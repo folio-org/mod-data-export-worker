@@ -1,0 +1,7 @@
+{
+  "srvcId": "@artifactId@-@version@",
+  "nodeId": "localhost",
+  "descriptor": {
+    "exec": "java -Dport=%p -jar ../mod-data-export-worker/target/mod-data-export-worker-fat.jar -Dhttp.port=%p embed_postgres=true"
+  }
+}

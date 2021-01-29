@@ -1,0 +1,41 @@
+#mvn build
+target/
+#vert.x
+.vertx/
+file-uploads/
+#netbeans
+nbproject/
+#eclipse
+.project
+.settings/
+.classpath
+
+#Intellij Idea
+.idea/
+*.iml
+
+# React
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# production
+build/
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+

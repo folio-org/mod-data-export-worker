@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "description": "Main entity for saving/retrieving log info",
+  "properties": {
+    "id": {
+      "description": "Log record id",
+      "$ref": "common/uuid.json"
+    },
+    "eventId": {
+      "description": "Event id",
+      "$ref": "common/uuid.json"
+    },
+    "userBarcode": {
+      "description": "User barcode",
+      "type": "string"
+    },
+    "items": {
+      "description": "Notice items",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "description": "Item related data",
+        "properties": {
+          "itemBarcode": {
+            "description": "Item barcode",
+            "type": "string"
+          },
+          "itemId": {
+            "description": "Item id",
+            "$ref": "common/uuid.json"
+          },
+          "instanceId": {
+            "description": "Instance id",
+            "$ref": "common/uuid.json"
+          },
+          "holdingId": {
+            "description": "Holding id",
+            "$ref": "common/uuid.json"
+          },
+          "loanId": {
+            "description": "Loan id",
+            "$ref": "common/uuid.json"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "itemBarcode"
+        ]
+      }
+    },
+    "object": {
+      "description": "The logged object type",
+      "type": "object",
+      "$ref": "logged_object_type.json"
+    },
+    "action": {
+      "description": "Action type",
+      "type": "object",
+      "$ref": "action_type.json"
+    },
+    "date": {
+      "description": "Event date",
+      "type": "string",
+      "format": "date-time"
+    },
+    "servicePointId": {
+      "description": "Service point id",
+      "$ref": "common/uuid.json"
+    },
+    "source": {
+      "description": "Source",
+      "type": "string"
+    },
+    "description": {
+      "description": "Description",
+      "type": "string"
+    },
+    "linkToIds": {
+      "description": "Additional data for details",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "description": "User id",
+          "$ref": "common/uuid.json"
+        },
+        "requestId": {
+          "description": "Request id",
+          "$ref": "common/uuid.json"
+        },
+        "feeFineId": {
+          "description": "Fee/Fine id",
+          "$ref": "common/uuid.json"
+        },
+        "templateId": {
+          "description": "Template id",
+          "$ref": "common/uuid.json"
+        },
+        "noticePolicyId": {
+          "description": "Notice Policy id",
+          "$ref": "common/uuid.json"
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "eventId"
+  ]
+}

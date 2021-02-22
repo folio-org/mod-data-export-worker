@@ -1,0 +1,18 @@
+openapi: 3.0.0
+info:
+  title: Data Export Worker
+  version: 1.0
+servers:
+  - url: https://foo.com/
+paths:
+  /foo:
+    get:
+      responses:
+        "200":
+          description: foo
+components:
+  schemas:
+    logRecord:
+      $ref: schemas/logRecord.json
+    logRecordCollection:
+      $ref: schemas/logRecordCollection.json

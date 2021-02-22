@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "description": "Collection of circulation audit log records",
+  "properties": {
+    "logRecords": {
+      "type": "array",
+      "description": "Circulation audit log records",
+      "items": {
+        "type": "object",
+        "$ref": "logRecord.json"
+      }
+    },
+    "totalRecords": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "logRecords",
+    "totalRecords"
+  ]
+}

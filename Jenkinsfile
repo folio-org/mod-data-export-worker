@@ -5,8 +5,8 @@ buildMvn {
   buildNode = 'jenkins-agent-java11'
 
   doApiLint = true
-  apiTypes = 'RAML OAS'
-  apiDirectories = 'ramls src/main/resources/swagger.api'
+  apiTypes = 'OAS'
+  apiDirectories = 'src/main/resources/swagger.api'
 
   doDocker = {
     buildDocker {

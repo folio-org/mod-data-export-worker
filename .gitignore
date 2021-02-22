@@ -15,6 +15,7 @@ mod-data-export-worker/target/
 
 ### IntelliJ IDEA ###
 .idea
+/.idea/
 *.iws
 *.iml
 *.ipr
@@ -34,3 +35,7 @@ build/
 
 **/postgres-conf.json
 /target/*
+/.settings/
+/.classpath
+/.project
+/.vertx/

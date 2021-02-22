@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "The purchase order line format",
+  "type": "string",
+  "enum": [
+    "N/A",
+    "Fee/Fine",
+    "Item Block",
+    "Loan",
+    "Manual Block",
+    "Notice",
+    "Patron Block",
+    "Request",
+    "CheckIn/CheckOut"
+  ]
+}

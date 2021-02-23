@@ -13,7 +13,6 @@ COPY ${JAR_FILE} ${JAVA_APP_DIR}/${APP_FILE}
 ARG RUN_ENV_FILE=run-env.sh
 
 COPY ${RUN_ENV_FILE} ${JAVA_APP_DIR}/
-RUN chmod 755 ${JAVA_APP_DIR}/${RUN_ENV_FILE}
 
 # Expose this port locally in the container.
 EXPOSE 8081

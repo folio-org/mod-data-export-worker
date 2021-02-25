@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "description": "A facet value",
+  "properties": {
+    "count": {
+      "type": "integer",
+      "description": "Count of facet values"
+    },
+    "value": {
+      "description": "Value Object"
+    }
+  }
+}

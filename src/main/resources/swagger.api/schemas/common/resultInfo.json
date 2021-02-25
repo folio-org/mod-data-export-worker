@@ -1,0 +1,31 @@
+{
+  "description": "Faceting of result sets",
+  "type": "object",
+  "properties": {
+    "totalRecords": {
+      "type": "integer",
+      "description": "Total number of records"
+    },
+    "responseTime": {
+      "type": "number",
+      "description": "Response time"
+    },
+    "facets": {
+      "type": "array",
+      "description": "Array of facets",
+      "items": {
+        "type": "object",
+        "$ref": "facet.json"
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "description": "Array of diagnostic information",
+      "items": {
+        "type": "object",
+        "$ref": "diagnostic.json"
+      }
+    }
+  },
+  "additionalProperties": false
+}

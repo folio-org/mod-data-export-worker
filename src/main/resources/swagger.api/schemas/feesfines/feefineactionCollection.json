@@ -1,0 +1,23 @@
+{
+  "description": "Collection of feefineactions",
+  "type": "object",
+  "properties": {
+    "feefineactions": {
+      "description": "List of feefineaction items",
+      "type": "array",
+      "id": "feefineactionsData",
+      "items": {
+        "type": "object",
+        "$ref": "feefineaction.json"
+      }
+    },
+    "totalRecords": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "feefineactions",
+    "totalRecords"
+  ]
+}
+

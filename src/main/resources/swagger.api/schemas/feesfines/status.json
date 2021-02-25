@@ -1,0 +1,11 @@
+{
+  "properties": {
+    "name": {
+      "description": "Name of the status (values used are Open and Closed)",
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

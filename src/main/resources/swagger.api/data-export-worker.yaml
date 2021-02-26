@@ -13,6 +13,6 @@ paths:
 components:
   schemas:
     logRecord:
-      $ref: schemas/logRecord.json
+      $ref: schemas/circulationlog/logRecord.json
     logRecordCollection:
-      $ref: schemas/logRecordCollection.json
+      $ref: schemas/circulationlog/logRecordCollection.json

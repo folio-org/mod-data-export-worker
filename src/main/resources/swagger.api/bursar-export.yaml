@@ -1,0 +1,20 @@
+openapi: 3.0.0
+info:
+  title: Bursar export config
+  version: v1
+servers:
+  - url: https://stub.com/
+paths:
+  /stub:
+    get:
+      responses:
+        "200":
+          description: stub
+components:
+  schemas:
+    userdataCollection:
+      $ref: schemas/user/userCollection.json
+    accountdataCollection:
+      $ref: schemas/feesfines/accountdataCollection.json
+    feefineactionCollection:
+      $ref: schemas/feesfines/feefineactionCollection.json

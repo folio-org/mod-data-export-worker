@@ -1,0 +1,26 @@
+{
+  "description": "Collection of accounts",
+  "type": "object",
+  "properties": {
+    "accounts": {
+      "description": "List of account items",
+      "type": "array",
+      "id": "accountsData",
+      "items": {
+        "type": "object",
+        "$ref": "account.json"
+      }
+    },
+    "totalRecords": {
+      "type": "integer"
+    },
+    "resultInfo":{
+      "$ref": "../common/resultInfo.json",
+      "readonly":true
+    }
+  },
+  "required": [
+    "accounts",
+    "totalRecords"
+  ]
+}

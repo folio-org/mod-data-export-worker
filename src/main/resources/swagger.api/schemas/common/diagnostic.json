@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "description": "Diagnostic information",
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "Source reporting the diagnostic information"
+    },
+    "code": {
+      "type": "string",
+      "description": "Diagnostic Code"
+    },
+    "message": {
+      "type": "string",
+      "description": "Diagnostic Message"
+    },
+    "module": {
+      "type": "string",
+      "description": "Module reporting diagnostic information"
+    },
+    "recordCount": {
+      "type": "integer",
+      "description": "Record Count for diagnostics"
+    },
+    "query": {
+      "type": "string",
+      "description": "CQL Query associated with results"
+    }
+  }
+}

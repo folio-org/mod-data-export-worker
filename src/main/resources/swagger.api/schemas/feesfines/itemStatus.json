@@ -1,0 +1,11 @@
+{
+  "properties": {
+    "name": {
+      "description": "Name of the item state",
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

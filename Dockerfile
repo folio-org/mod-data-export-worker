@@ -1,6 +1,6 @@
 FROM folioci/alpine-jre-openjdk11:latest
 
-USER folio
+USER root
 
 # Copy your fat jar to the container
 ENV APP_FILE mod-data-export-worker-fat.jar

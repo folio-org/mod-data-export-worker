@@ -15,8 +15,8 @@ stages:
 - name: Deploy
   steps:
   - applyAppConfig:
-      catalogTemplate: p-ngvqv:scout-helmcharts-mod-data-export-worker
-      version: 0.1.26
+      catalogTemplate: p-7wfkf:scout-helmcharts-mod-data-export-worker
+      version: 0.1.1
       answers:
         image.repository: docker.dev.folio.org/mod-data-export-worker
         image.tag: scout-latest

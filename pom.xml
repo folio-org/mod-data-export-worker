@@ -41,8 +41,7 @@
 
         <openapi-generator.version>4.3.1</openapi-generator.version>
 
-        <sonar.exclusions>
-        </sonar.exclusions>
+        <sonar.exclusions>**/src/main/java/org/folio/dew/**</sonar.exclusions>
 
         <!-- Test properties-->
         <mockito.version>3.7.7</mockito.version>

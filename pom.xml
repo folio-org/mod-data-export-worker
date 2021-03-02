@@ -33,7 +33,7 @@
         <bursar-export.yaml.file>${project.basedir}/src/main/resources/swagger.api/bursar-export.yaml
         </bursar-export.yaml.file>
 
-        <folio-spring-base.version>1.0.2-SNAPSHOT</folio-spring-base.version>
+        <folio-spring-base.version>1.0.2</folio-spring-base.version>
         <folio-data-export-spring.version>1.0.1-SNAPSHOT</folio-data-export-spring.version>
         <commons-io.version>2.8.0</commons-io.version>
         <minio.version>8.1.0</minio.version>
@@ -217,7 +217,9 @@
                             <generateApiTests>false</generateApiTests>
                             <generateApiDocumentation>false</generateApiDocumentation>
                             <generateModels>true</generateModels>
-                            <modelsToGenerate>logged_object_type,action_type,logRecord,logRecord_items,logRecord_linkToIds,logRecordCollection</modelsToGenerate>
+                            <modelsToGenerate>
+                                logged_object_type,action_type,logRecord,logRecord_items,logRecord_linkToIds,logRecordCollection
+                            </modelsToGenerate>
                             <generateModelTests>false</generateModelTests>
                             <generateSupportingFiles>false</generateSupportingFiles>
                             <generateModelDocumentation>true</generateModelDocumentation>
@@ -243,7 +245,7 @@
                             <generateApiDocumentation>false</generateApiDocumentation>
                             <generateModels>true</generateModels>
                             <modelsToGenerate>
-                              metadata,tags,uuid,user,userCollection,resultInfo,personal,diagnostic,facet,address,facetValue,account,accountdataCollection,itemStatus,status,paymentStatus,feefineaction,feefineactionCollection
+                                metadata,tags,uuid,user,userCollection,resultInfo,personal,diagnostic,facet,address,facetValue,account,accountdataCollection,itemStatus,status,paymentStatus,feefineaction,feefineactionCollection
                             </modelsToGenerate>
                             <generateModelTests>false</generateModelTests>
                             <generateSupportingFiles>false</generateSupportingFiles>

@@ -1,14 +1,11 @@
 package org.folio.dew.config;
 
-import static org.folio.dew.utils.BursarFilenameUtil.CHARGE_FEESFINES_EXPORT_STEP;
-import static org.folio.dew.utils.BursarFilenameUtil.REFUND_FEESFINES_EXPORT_STEP;
-
+import org.folio.des.domain.dto.ExportType;
 import org.folio.dew.batch.bursarfeesfines.BursarExportStepListener;
 import org.folio.dew.batch.bursarfeesfines.TransferFeesFinesTasklet;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.Feefineaction;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarFormat;
-import org.folio.des.domain.entity.enums.JobType;
 import org.folio.dew.utils.BursarFilenameUtil;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
@@ -36,15 +33,11 @@ public class BursarExportJobConfig {
     String fileName = BursarFilenameUtil.getFilename(stepName);
     Resource exportFileResource = new FileSystemResource(outputFilePath + fileName);
 
-    var fieldNames =
-        new String[] {
-          "employeeId", "amount", "itemType", "transactionDate", "sfs", "termValue", "description"
-        };
+    var fieldNames = new String[] { "employeeId", "amount", "itemType", "transactionDate", "sfs", "termValue", "description" };
     var lineFormat = "%11.11s%9.9s%12.12s%6.6s%3.3s%4.4s%30.30s";
     FlatFileHeaderCallback header = writer -> writer.write("LIB02");
 
-    return new FlatFileItemWriterBuilder<BursarFormat>()
-        .name("bursarExportWriter")
+    return new FlatFileItemWriterBuilder<BursarFormat>().name("bursarExportWriter")
         .headerCallback(header)
         .formatted()
         .format(lineFormat)
@@ -54,56 +47,35 @@ public class BursarExportJobConfig {
   }
 
   @Bean
-  public Step exportChargeFeefinesStep(
-      ItemReader<Account> reader,
-      ItemProcessor<Account, BursarFormat> processor,
-      BursarExportStepListener listener,
-      StepBuilderFactory stepBuilderFactory) {
+  public Step exportChargeFeefinesStep(ItemReader<Account> reader, ItemProcessor<Account, BursarFormat> processor,
+      BursarExportStepListener listener, StepBuilderFactory stepBuilderFactory) {
 
-    return stepBuilderFactory
-        .get(CHARGE_FEESFINES_EXPORT_STEP)
-        .<Account, BursarFormat>chunk(1000)
-        .reader(reader)
+    return stepBuilderFactory.get(BursarFilenameUtil.CHARGE_FEESFINES_EXPORT_STEP).<Account, BursarFormat>chunk(1000).reader(reader)
         .processor(processor)
-        .writer(writer(CHARGE_FEESFINES_EXPORT_STEP))
+        .writer(writer(BursarFilenameUtil.CHARGE_FEESFINES_EXPORT_STEP))
         .listener(promotionListener())
         .listener(listener)
         .build();
   }
 
   @Bean
-  public Step transferFeefinesStep(
-      StepBuilderFactory stepBuilderFactory, TransferFeesFinesTasklet tasklet) {
+  public Step transferFeefinesStep(StepBuilderFactory stepBuilderFactory, TransferFeesFinesTasklet tasklet) {
     return stepBuilderFactory.get("transferFeefinesStep").tasklet(tasklet).build();
   }
 
   @Bean
-  public Step exportRefundFeefinesStep(
-      ItemReader<Feefineaction> reader,
-      ItemProcessor<Feefineaction, BursarFormat> processor,
-      BursarExportStepListener listener,
-      StepBuilderFactory stepBuilderFactory) {
+  public Step exportRefundFeefinesStep(ItemReader<Feefineaction> reader, ItemProcessor<Feefineaction, BursarFormat> processor,
+      BursarExportStepListener listener, StepBuilderFactory stepBuilderFactory) {
 
-    return stepBuilderFactory
-        .get(REFUND_FEESFINES_EXPORT_STEP)
-        .<Feefineaction, BursarFormat>chunk(1000)
-        .reader(reader)
-        .processor(processor)
-        .writer(writer(REFUND_FEESFINES_EXPORT_STEP))
-        .listener(listener)
-        .build();
+    return stepBuilderFactory.get(BursarFilenameUtil.REFUND_FEESFINES_EXPORT_STEP).<Feefineaction, BursarFormat>chunk(1000).reader(
+        reader).processor(processor).writer(writer(BursarFilenameUtil.REFUND_FEESFINES_EXPORT_STEP)).listener(listener).build();
   }
 
   @Bean
-  public Job bursarExportJob(
-      Step exportChargeFeefinesStep,
-      Step exportRefundFeefinesStep,
-      Step transferFeefinesStep,
-      JobBuilderFactory jobBuilderFactory,
-      JobExecutionListener jobCompletionNotificationListener) {
+  public Job bursarExportJob(Step exportChargeFeefinesStep, Step exportRefundFeefinesStep, Step transferFeefinesStep,
+      JobBuilderFactory jobBuilderFactory, JobExecutionListener jobCompletionNotificationListener) {
 
-    return jobBuilderFactory
-        .get(JobType.BURSAR_FEES_FINES_EXPORT.toString())
+    return jobBuilderFactory.get(ExportType.BURSAR_FEES_FINES.toString())
         .incrementer(new RunIdIncrementer())
         .listener(jobCompletionNotificationListener)
         .flow(exportChargeFeefinesStep)
@@ -116,7 +88,8 @@ public class BursarExportJobConfig {
   @Bean
   public ExecutionContextPromotionListener promotionListener() {
     ExecutionContextPromotionListener listener = new ExecutionContextPromotionListener();
-    listener.setKeys(new String[] {"accounts", "userIdMap"});
+    listener.setKeys(new String[] { "accounts", "userIdMap" });
     return listener;
   }
+
 }

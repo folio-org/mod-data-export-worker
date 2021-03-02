@@ -1,6 +1,7 @@
 package org.folio.dew.config;
 
 import lombok.RequiredArgsConstructor;
+import org.folio.des.domain.dto.ExportType;
 import org.folio.dew.batch.CsvFileAssembler;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.circulationlog.CirculationLogFeignItemReader;
@@ -8,7 +9,6 @@ import org.folio.dew.batch.circulationlog.CirculationLogPartStepExecutionListene
 import org.folio.dew.batch.circulationlog.CirculationLogPartitioner;
 import org.folio.dew.client.AuditClient;
 import org.folio.dew.domain.dto.LogRecord;
-import org.folio.des.domain.entity.enums.JobType;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -39,8 +39,7 @@ public class CirculationLogJobConfig {
 
   @Bean
   @StepScope
-  public CirculationLogFeignItemReader reader(
-      @Value("#{stepExecutionContext[circulationLogOffset]}") Long offset,
+  public CirculationLogFeignItemReader reader(@Value("#{stepExecutionContext[circulationLogOffset]}") Long offset,
       @Value("#{stepExecutionContext[circulationLogLimit]}") Long limit) {
 
     int offsetInt = offset.intValue();
@@ -51,8 +50,7 @@ public class CirculationLogJobConfig {
 
   @Bean
   @StepScope
-  public FlatFileItemWriter<LogRecord> writer(
-      @Value("#{stepExecutionContext['outputFilePath']}") String outputFilePath) {
+  public FlatFileItemWriter<LogRecord> writer(@Value("#{stepExecutionContext['outputFilePath']}") String outputFilePath) {
     final String commaDelimiter = ",";
 
     if (outputFilePath == null) {
@@ -68,19 +66,8 @@ public class CirculationLogJobConfig {
     lineAggregator.setDelimiter(commaDelimiter);
 
     BeanWrapperFieldExtractor<LogRecord> fieldExtractor = new BeanWrapperFieldExtractor<>();
-    String[] extractedFieldNames = {
-      "id",
-      "eventId",
-      "userBarcode",
-      "items",
-      "object",
-      "action",
-      "date",
-      "servicePointId",
-      "source",
-      "description",
-      "linkToIds"
-    };
+    String[] extractedFieldNames = { "id", "eventId", "userBarcode", "items", "object", "action", "date", "servicePointId",
+        "source", "description", "linkToIds" };
     fieldExtractor.setNames(extractedFieldNames);
     lineAggregator.setFieldExtractor(fieldExtractor);
 
@@ -93,13 +80,10 @@ public class CirculationLogJobConfig {
   }
 
   @Bean
-  public Job getCirculationLogJob(
-      JobCompletionNotificationListener jobCompletionNotificationListener,
-      @Qualifier("getCirculationLogStep") Step getCirculationLogStep,
-      JobRepository jobRepository) {
+  public Job getCirculationLogJob(JobCompletionNotificationListener jobCompletionNotificationListener,
+      @Qualifier("getCirculationLogStep") Step getCirculationLogStep, JobRepository jobRepository) {
 
-    return jobBuilderFactory
-        .get(JobType.CIRCULATION_LOG_EXPORT.toString())
+    return jobBuilderFactory.get(ExportType.CIRCULATION_LOG.toString())
         .repository(jobRepository)
         .incrementer(new RunIdIncrementer())
         .listener(jobCompletionNotificationListener)
@@ -109,14 +93,10 @@ public class CirculationLogJobConfig {
   }
 
   @Bean("getCirculationLogStep")
-  public Step getCirculationLogStep(
-      @Qualifier("getCirculationLogPartStep") Step getCirculationLogPartStep,
-      Partitioner partitioner,
-      @Qualifier("asyncTaskExecutor") TaskExecutor taskExecutor,
-      CsvFileAssembler csvFileAssembler) {
+  public Step getCirculationLogStep(@Qualifier("getCirculationLogPartStep") Step getCirculationLogPartStep, Partitioner partitioner,
+      @Qualifier("asyncTaskExecutor") TaskExecutor taskExecutor, CsvFileAssembler csvFileAssembler) {
 
-    return stepBuilderFactory
-        .get("getCirculationLogChunkStep")
+    return stepBuilderFactory.get("getCirculationLogChunkStep")
         .partitioner("getCirculationLogPartStep", partitioner)
         .taskExecutor(taskExecutor)
         .step(getCirculationLogPartStep)
@@ -125,18 +105,15 @@ public class CirculationLogJobConfig {
   }
 
   @Bean("getCirculationLogPartStep")
-  public Step getCirculationLogPartStep(
-      CirculationLogFeignItemReader circulationLogFeignItemReader,
+  public Step getCirculationLogPartStep(CirculationLogFeignItemReader circulationLogFeignItemReader,
       FlatFileItemWriter<LogRecord> flatFileItemWriter,
       CirculationLogPartStepExecutionListener circulationLogPartStepExecutionListener) {
     final int numberOfRetries = 3;
     // TODO Add retry logic here
     // https://docs.spring.io/spring-batch/docs/current/reference/html/index-single.html#retryLogic
 
-    return stepBuilderFactory
-        .get("getCirculationLogPartStep")
-        .<LogRecord, LogRecord>chunk(100)
-        .reader(circulationLogFeignItemReader)
+    return stepBuilderFactory.get("getCirculationLogPartStep").<LogRecord, LogRecord>chunk(100).reader(
+        circulationLogFeignItemReader)
         .writer(flatFileItemWriter)
         .faultTolerant()
         // TODO Uncomment this line, once appropriate exceptions are added below
@@ -150,8 +127,7 @@ public class CirculationLogJobConfig {
 
   @Bean
   @StepScope
-  public Partitioner getCirculationLogPartitioner(
-      @Value("#{jobParameters['offset']}") Long circulationLogOffset,
+  public Partitioner getCirculationLogPartitioner(@Value("#{jobParameters['offset']}") Long circulationLogOffset,
       @Value("#{jobParameters['limit']}") Long circulationLogLimit,
       @Value("#{jobParameters['outputFilePath']}") String outputFilePath) {
 
@@ -161,7 +137,7 @@ public class CirculationLogJobConfig {
 
     int circulationLogOffsetInt = circulationLogOffset.intValue();
     int circulationLogLimitInt = circulationLogLimit.intValue();
-    return new CirculationLogPartitioner(
-        circulationLogOffsetInt, circulationLogLimitInt, outputFilePath);
+    return new CirculationLogPartitioner(circulationLogOffsetInt, circulationLogLimitInt, outputFilePath);
   }
+
 }

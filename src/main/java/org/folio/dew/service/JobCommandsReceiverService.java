@@ -1,20 +1,12 @@
 package org.folio.dew.service;
 
-import static org.folio.des.domain.entity.enums.JobType.BURSAR_FEES_FINES_EXPORT;
-import static org.folio.des.domain.entity.enums.JobType.CIRCULATION_LOG_EXPORT;
-
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.folio.des.domain.dto.ExportType;
 import org.folio.des.domain.dto.JobParameterDto;
 import org.folio.des.domain.dto.StartJobCommandDto;
-import org.folio.dew.batch.ExportJobManager;
 import org.folio.des.domain.entity.constant.JobParameterNames;
-import org.folio.des.domain.entity.enums.JobType;
+import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
@@ -23,6 +15,12 @@ import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -43,16 +41,15 @@ public class JobCommandsReceiverService {
     }
   }
 
-  @KafkaListener(topics = {DATA_EXPORT_JOB_COMMANDS_TOPIC_NAME})
-  public void receiveStartJobCommand(
-      StartJobCommandDto startJobCommand, Acknowledgment acknowledgment) {
+  @KafkaListener(topics = { DATA_EXPORT_JOB_COMMANDS_TOPIC_NAME })
+  public void receiveStartJobCommand(StartJobCommandDto startJobCommand, Acknowledgment acknowledgment) {
 
     String jobId = startJobCommand.getId().toString();
-    JobType jobType = startJobCommand.getJobType();
+    ExportType exportType = startJobCommand.getExportType();
     Map<String, JobParameterDto> jobInputParameters = prepareJobParameters(startJobCommand);
     JobParameters jobParameters = toJobParameters(jobInputParameters);
 
-    Job job = jobMap.get(jobType.toString());
+    Job job = jobMap.get(exportType.toString());
     JobLaunchRequest jobLaunchRequest = new JobLaunchRequest(job, jobParameters);
 
     try {
@@ -64,15 +61,15 @@ public class JobCommandsReceiverService {
   }
 
   private Map<String, JobParameterDto> prepareJobParameters(StartJobCommandDto startJobCommand) {
-    JobType jobType = startJobCommand.getJobType();
+    ExportType exportType = startJobCommand.getExportType();
     String jobId = startJobCommand.getId().toString();
 
     Map<String, JobParameterDto> jobInputParameters = startJobCommand.getJobInputParameters();
     String outputFilePath = "";
 
-    if (jobType == CIRCULATION_LOG_EXPORT) {
+    if (exportType == ExportType.CIRCULATION_LOG) {
       outputFilePath = "\\minio\\" + jobId + ".csv";
-    } else if (jobType == BURSAR_FEES_FINES_EXPORT) {
+    } else if (exportType == ExportType.BURSAR_FEES_FINES) {
       outputFilePath = "\\minio\\";
     }
 
@@ -92,9 +89,7 @@ public class JobCommandsReceiverService {
     return jobParametersBuilder.toJobParameters();
   }
 
-  private void addJobParameter(
-      JobParametersBuilder jobParametersBuilder,
-      String jobParameterName,
+  private void addJobParameter(JobParametersBuilder jobParametersBuilder, String jobParameterName,
       JobParameterDto jobParameterDto) {
 
     Object parameterValue = jobParameterDto.getParameter();
@@ -112,4 +107,5 @@ public class JobCommandsReceiverService {
       jobParametersBuilder.addString(jobParameterName, (String) parameterValue);
     }
   }
+
 }

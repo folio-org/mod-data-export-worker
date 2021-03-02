@@ -1,23 +1,23 @@
 {
+  "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "Collection of feefineactions",
-  "type": "object",
-  "properties": {
-    "feefineactions": {
-      "description": "List of feefineaction items",
-      "type": "array",
-      "id": "feefineactionsData",
-      "items": {
-        "type": "object",
-        "$ref": "feefineaction.json"
+  "FeefineactionCollection": {
+    "type": "object",
+    "properties": {
+      "feefineactions": {
+        "description": "List of feefineaction items",
+        "type": "array",
+        "items": {
+          "$ref": "feefineaction.json#/Feefineaction"
+        }
+      },
+      "totalRecords": {
+        "type": "integer"
       }
     },
-    "totalRecords": {
-      "type": "integer"
-    }
-  },
-  "required": [
-    "feefineactions",
-    "totalRecords"
-  ]
+    "required": [
+      "feefineactions",
+      "totalRecords"
+    ]
+  }
 }
-

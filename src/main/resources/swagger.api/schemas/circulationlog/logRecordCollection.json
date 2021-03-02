@@ -1,22 +1,23 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "type": "object",
   "description": "Collection of circulation audit log records",
-  "properties": {
-    "logRecords": {
-      "type": "array",
-      "description": "Circulation audit log records",
-      "items": {
-        "type": "object",
-        "$ref": "logRecord.json"
+  "LogRecordCollection": {
+    "type": "object",
+    "properties": {
+      "logRecords": {
+        "type": "array",
+        "description": "Circulation audit log records",
+        "items": {
+          "$ref": "logRecord.json#/LogRecord"
+        }
+      },
+      "totalRecords": {
+        "type": "integer"
       }
     },
-    "totalRecords": {
-      "type": "integer"
-    }
-  },
-  "required": [
-    "logRecords",
-    "totalRecords"
-  ]
+    "required": [
+      "logRecords",
+      "totalRecords"
+    ]
+  }
 }

@@ -1,0 +1,18 @@
+openapi: 3.0.0
+info:
+  title: Circulation log export schemas
+  version: v1
+servers:
+  - url: https://stub.com/
+paths:
+  /stub:
+    get:
+      responses:
+        "200":
+          description: stub
+components:
+  schemas:
+    logRecord:
+      $ref: 'schemas/circulationlog/logRecord.json#/LogRecord'
+    logRecordCollection:
+      $ref: 'schemas/circulationlog/logRecordCollection.json#/LogRecordCollection'

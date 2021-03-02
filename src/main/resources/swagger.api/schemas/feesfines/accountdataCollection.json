@@ -1,26 +1,27 @@
 {
+  "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "Collection of accounts",
-  "type": "object",
-  "properties": {
-    "accounts": {
-      "description": "List of account items",
-      "type": "array",
-      "id": "accountsData",
-      "items": {
-        "type": "object",
-        "$ref": "account.json"
+  "AccountdataCollection": {
+    "type": "object",
+    "properties": {
+      "accounts": {
+        "description": "List of account items",
+        "type": "array",
+        "items": {
+          "$ref": "account.json#/Account"
+        }
+      },
+      "totalRecords": {
+        "type": "integer"
+      },
+      "resultInfo": {
+        "$ref": "../common/resultInfo.json#/ResultInfo",
+        "readonly": true
       }
     },
-    "totalRecords": {
-      "type": "integer"
-    },
-    "resultInfo":{
-      "$ref": "../common/resultInfo.json",
-      "readonly":true
-    }
-  },
-  "required": [
-    "accounts",
-    "totalRecords"
-  ]
+    "required": [
+      "accounts",
+      "totalRecords"
+    ]
+  }
 }

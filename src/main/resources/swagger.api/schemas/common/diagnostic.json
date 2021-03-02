@@ -1,30 +1,33 @@
 {
-  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "Diagnostic information",
-  "properties": {
-    "source": {
-      "type": "string",
-      "description": "Source reporting the diagnostic information"
-    },
-    "code": {
-      "type": "string",
-      "description": "Diagnostic Code"
-    },
-    "message": {
-      "type": "string",
-      "description": "Diagnostic Message"
-    },
-    "module": {
-      "type": "string",
-      "description": "Module reporting diagnostic information"
-    },
-    "recordCount": {
-      "type": "integer",
-      "description": "Record Count for diagnostics"
-    },
-    "query": {
-      "type": "string",
-      "description": "CQL Query associated with results"
+  "Diagnostic": {
+    "type": "object",
+    "properties": {
+      "source": {
+        "type": "string",
+        "description": "Source reporting the diagnostic information"
+      },
+      "code": {
+        "type": "string",
+        "description": "Diagnostic Code"
+      },
+      "message": {
+        "type": "string",
+        "description": "Diagnostic Message"
+      },
+      "module": {
+        "type": "string",
+        "description": "Module reporting diagnostic information"
+      },
+      "recordCount": {
+        "type": "integer",
+        "description": "Record Count for diagnostics"
+      },
+      "query": {
+        "type": "string",
+        "description": "CQL Query associated with results"
+      }
     }
   }
 }

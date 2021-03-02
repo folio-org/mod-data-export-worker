@@ -28,10 +28,9 @@
         <java.version>11</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <data-export-worker.yaml.file>${project.basedir}/src/main/resources/swagger.api/data-export-worker.yaml
-        </data-export-worker.yaml.file>
-        <bursar-export.yaml.file>${project.basedir}/src/main/resources/swagger.api/bursar-export.yaml
-        </bursar-export.yaml.file>
+        <circulation-log.yaml.file>${project.basedir}/src/main/resources/swagger.api/circulation-log.yaml
+        </circulation-log.yaml.file>
+        <bursar-export.yaml.file>${project.basedir}/src/main/resources/swagger.api/bursar-export.yaml</bursar-export.yaml.file>
 
         <folio-spring-base.version>1.0.2</folio-spring-base.version>
         <folio-data-export-spring.version>1.0.1-SNAPSHOT</folio-data-export-spring.version>
@@ -208,7 +207,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${data-export-worker.yaml.file}</inputSpec>
+                            <inputSpec>${circulation-log.yaml.file}</inputSpec>
                             <output>${project.build.directory}/generated-sources</output>
                             <generatorName>spring</generatorName>
                             <modelPackage>${project.groupId}.dew.domain.dto</modelPackage>
@@ -217,7 +216,7 @@
                             <generateApiDocumentation>false</generateApiDocumentation>
                             <generateModels>true</generateModels>
                             <modelsToGenerate>
-                                logged_object_type,action_type,logRecord,logRecord_items,logRecord_linkToIds,logRecordCollection
+                                LoggedObjectType,ActionType,LogRecord,logRecord_items,logRecord_linkToIds,LogRecordCollection
                             </modelsToGenerate>
                             <generateModelTests>false</generateModelTests>
                             <generateSupportingFiles>false</generateSupportingFiles>
@@ -244,7 +243,7 @@
                             <generateApiDocumentation>false</generateApiDocumentation>
                             <generateModels>true</generateModels>
                             <modelsToGenerate>
-                                metadata,tags,uuid,user,userCollection,resultInfo,personal,diagnostic,facet,address,facetValue,account,accountdataCollection,itemStatus,status,paymentStatus,feefineaction,feefineactionCollection
+                                Metadata,Tags,User,UserCollection,ResultInfo,Personal,Diagnostic,Facet,Address,FacetValue,Account,AccountdataCollection,ItemStatus,Status,PaymentStatus,Feefineaction,FeefineactionCollection
                             </modelsToGenerate>
                             <generateModelTests>false</generateModelTests>
                             <generateSupportingFiles>false</generateSupportingFiles>

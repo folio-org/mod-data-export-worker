@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: Bursar export config
+  title: Fees and fines for bursar export schemas
   version: v1
 servers:
   - url: https://stub.com/
@@ -13,8 +13,8 @@ paths:
 components:
   schemas:
     userdataCollection:
-      $ref: schemas/user/userCollection.json
+      $ref: 'schemas/user/userCollection.json#/UserCollection'
     accountdataCollection:
-      $ref: schemas/feesfines/accountdataCollection.json
+      $ref: 'schemas/feesfines/accountdataCollection.json#/AccountdataCollection'
     feefineactionCollection:
-      $ref: schemas/feesfines/feefineactionCollection.json
+      $ref: 'schemas/feesfines/feefineactionCollection.json#/FeefineactionCollection'

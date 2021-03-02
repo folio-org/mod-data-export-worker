@@ -1,11 +1,16 @@
 {
-  "properties": {
-    "name": {
-      "description": "Name of the status (values used are Open and Closed)",
-      "type": "string"
-    }
-  },
-  "required": [
-    "name"
-  ]
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Status",
+  "Status": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "description": "Name of the status (values used are Open and Closed)",
+        "type": "string"
+      }
+    },
+    "required": [
+      "name"
+    ]
+  }
 }

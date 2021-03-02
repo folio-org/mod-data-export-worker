@@ -1,13 +1,17 @@
 {
-  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "A facet value",
-  "properties": {
-    "count": {
-      "type": "integer",
-      "description": "Count of facet values"
-    },
-    "value": {
-      "description": "Value Object"
+  "FacetValue": {
+    "type": "object",
+    "properties": {
+      "count": {
+        "type": "integer",
+        "description": "Count of facet values"
+      },
+      "value": {
+        "type": "object",
+        "description": "Value Object"
+      }
     }
   }
 }

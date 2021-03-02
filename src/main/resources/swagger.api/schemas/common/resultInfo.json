@@ -1,31 +1,32 @@
 {
+  "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "Faceting of result sets",
-  "type": "object",
-  "properties": {
-    "totalRecords": {
-      "type": "integer",
-      "description": "Total number of records"
-    },
-    "responseTime": {
-      "type": "number",
-      "description": "Response time"
-    },
-    "facets": {
-      "type": "array",
-      "description": "Array of facets",
-      "items": {
-        "type": "object",
-        "$ref": "facet.json"
+  "ResultInfo": {
+    "type": "object",
+    "properties": {
+      "totalRecords": {
+        "type": "integer",
+        "description": "Total number of records"
+      },
+      "responseTime": {
+        "type": "number",
+        "description": "Response time"
+      },
+      "facets": {
+        "type": "array",
+        "description": "Array of facets",
+        "items": {
+          "$ref": "facet.json#/Facet"
+        }
+      },
+      "diagnostics": {
+        "type": "array",
+        "description": "Array of diagnostic information",
+        "items": {
+          "$ref": "diagnostic.json#/Diagnostic"
+        }
       }
     },
-    "diagnostics": {
-      "type": "array",
-      "description": "Array of diagnostic information",
-      "items": {
-        "type": "object",
-        "$ref": "diagnostic.json"
-      }
-    }
-  },
-  "additionalProperties": false
+    "additionalProperties": false
+  }
 }

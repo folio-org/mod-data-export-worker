@@ -36,7 +36,6 @@
         <folio-data-export-spring.version>1.0.1-SNAPSHOT</folio-data-export-spring.version>
         <commons-io.version>2.8.0</commons-io.version>
         <minio.version>8.1.0</minio.version>
-        <embedded-minio.version>2.0.3</embedded-minio.version>
 
         <openapi-generator.version>4.3.1</openapi-generator.version>
 
@@ -46,6 +45,7 @@
         <mockito.version>3.7.7</mockito.version>
         <embedded-postgresql.version>1.6.2</embedded-postgresql.version>
         <junit-extensions.version>2.4.0</junit-extensions.version>
+        <embedded-minio.version>2.0.3</embedded-minio.version>
     </properties>
 
     <dependencies>
@@ -88,12 +88,6 @@
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
             <version>${minio.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.playtika.testcontainers</groupId>
-            <artifactId>embedded-minio</artifactId>
-            <version>${embedded-minio.version}</version>
         </dependency>
 
         <dependency>
@@ -153,6 +147,12 @@
             <groupId>io.github.glytching</groupId>
             <artifactId>junit-extensions</artifactId>
             <version>${junit-extensions.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.playtika.testcontainers</groupId>
+            <artifactId>embedded-minio</artifactId>
+            <version>${embedded-minio.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

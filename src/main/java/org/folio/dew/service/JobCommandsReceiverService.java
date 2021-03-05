@@ -45,7 +45,7 @@ public class JobCommandsReceiverService {
   public void receiveStartJobCommand(StartJobCommandDto startJobCommand, Acknowledgment acknowledgment) {
 
     String jobId = startJobCommand.getId().toString();
-    ExportType exportType = startJobCommand.getExportType();
+    ExportType exportType = startJobCommand.getType();
     Map<String, JobParameterDto> jobInputParameters = prepareJobParameters(startJobCommand);
     JobParameters jobParameters = toJobParameters(jobInputParameters);
 
@@ -61,7 +61,7 @@ public class JobCommandsReceiverService {
   }
 
   private Map<String, JobParameterDto> prepareJobParameters(StartJobCommandDto startJobCommand) {
-    ExportType exportType = startJobCommand.getExportType();
+    ExportType exportType = startJobCommand.getType();
     String jobId = startJobCommand.getId().toString();
 
     Map<String, JobParameterDto> jobInputParameters = startJobCommand.getJobInputParameters();

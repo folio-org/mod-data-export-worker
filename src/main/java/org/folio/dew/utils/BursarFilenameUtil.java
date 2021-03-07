@@ -1,8 +1,9 @@
 package org.folio.dew.utils;
 
+import lombok.experimental.UtilityClass;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class BursarFilenameUtil {
@@ -23,4 +24,5 @@ public class BursarFilenameUtil {
     String now = LocalDateTime.now().format(dateTimeFormatter);
     return String.format(fileNamePattern, now);
   }
+
 }

@@ -3,22 +3,19 @@ package org.folio.dew.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.des.domain.dto.ExportType;
-import org.folio.des.domain.dto.JobParameterDto;
-import org.folio.des.domain.dto.StartJobCommandDto;
-import org.folio.des.domain.entity.constant.JobParameterNames;
+import org.folio.des.domain.dto.JobParameterNames;
+import org.folio.des.domain.dto.StartJobCommand;
 import org.folio.des.service.JobExecutionService;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,70 +39,34 @@ public class JobCommandsReceiverService {
   }
 
   @KafkaListener(topics = { JobExecutionService.DATA_EXPORT_JOB_COMMANDS_TOPIC_NAME })
-  public void receiveStartJobCommand(StartJobCommandDto startJobCommand, Acknowledgment acknowledgment) {
+  public void receiveStartJobCommand(StartJobCommand startJobCommand, Acknowledgment acknowledgment) {
     log.info("Received {}.", startJobCommand);
 
-    String jobId = startJobCommand.getId().toString();
-    ExportType exportType = startJobCommand.getType();
-    Map<String, JobParameterDto> jobInputParameters = prepareJobParameters(startJobCommand);
-    JobParameters jobParameters = toJobParameters(jobInputParameters);
+    prepareJobParameters(startJobCommand);
 
-    Job job = jobMap.get(exportType.toString());
-    JobLaunchRequest jobLaunchRequest = new JobLaunchRequest(job, jobParameters);
+    JobLaunchRequest jobLaunchRequest = new JobLaunchRequest(jobMap.get(startJobCommand.getType().toString()),
+        startJobCommand.getJobParameters());
 
     try {
-      acknowledgementRepository.addAcknowledgement(jobId, acknowledgment);
+      acknowledgementRepository.addAcknowledgement(startJobCommand.getId().toString(), acknowledgment);
       exportJobManager.launchJob(jobLaunchRequest);
     } catch (Exception ex) {
       log.error(ex.getMessage(), ex);
     }
   }
 
-  private Map<String, JobParameterDto> prepareJobParameters(StartJobCommandDto startJobCommand) {
-    ExportType exportType = startJobCommand.getType();
+  private void prepareJobParameters(StartJobCommand startJobCommand) {
     String jobId = startJobCommand.getId().toString();
-
-    Map<String, JobParameterDto> jobInputParameters = startJobCommand.getJobInputParameters();
+    ExportType exportType = startJobCommand.getType();
     String outputFilePath = "";
-
     if (exportType == ExportType.CIRCULATION_LOG) {
       outputFilePath = "\\minio\\" + jobId + ".csv";
     } else if (exportType == ExportType.BURSAR_FEES_FINES) {
       outputFilePath = "\\minio\\";
     }
 
-    jobInputParameters.put(JobParameterNames.OUTPUT_FILE_PATH, new JobParameterDto(outputFilePath));
-    jobInputParameters.put(JobParameterNames.JOB_ID, new JobParameterDto(jobId));
-
-    return jobInputParameters;
-  }
-
-  private JobParameters toJobParameters(Map<String, JobParameterDto> jobInputParameters) {
-    JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
-
-    for (Map.Entry<String, JobParameterDto> inputParameter : jobInputParameters.entrySet()) {
-      addJobParameter(jobParametersBuilder, inputParameter.getKey(), inputParameter.getValue());
-    }
-
-    return jobParametersBuilder.toJobParameters();
-  }
-
-  private void addJobParameter(JobParametersBuilder jobParametersBuilder, String jobParameterName,
-      JobParameterDto jobParameterDto) {
-    Object parameterValue = jobParameterDto.getParameter();
-
-    if (parameterValue.getClass() == Long.class) {
-      jobParametersBuilder.addLong(jobParameterName, (Long) parameterValue);
-    } else if (parameterValue.getClass() == Integer.class) {
-      Long value = ((Integer) parameterValue).longValue();
-      jobParametersBuilder.addLong(jobParameterName, value);
-    } else if (parameterValue.getClass() == Double.class) {
-      jobParametersBuilder.addDouble(jobParameterName, (Double) parameterValue);
-    } else if (parameterValue.getClass() == Date.class) {
-      jobParametersBuilder.addDate(jobParameterName, (Date) parameterValue);
-    } else {
-      jobParametersBuilder.addString(jobParameterName, (String) parameterValue);
-    }
+    startJobCommand.getJobParameters().getParameters().put(JobParameterNames.OUTPUT_FILE_PATH, new JobParameter(outputFilePath));
+    startJobCommand.getJobParameters().getParameters().put(JobParameterNames.JOB_ID, new JobParameter(jobId));
   }
 
 }

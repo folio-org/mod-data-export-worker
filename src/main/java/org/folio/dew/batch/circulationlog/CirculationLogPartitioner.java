@@ -2,7 +2,7 @@ package org.folio.dew.batch.circulationlog;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
-import org.folio.des.domain.entity.constant.JobParameterNames;
+import org.folio.des.domain.dto.JobParameterNames;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.item.ExecutionContext;
 
@@ -36,10 +36,7 @@ public class CirculationLogPartitioner implements Partitioner {
     int currentLimit;
     for (int i = 0; i < numberOfPartitions; i++) {
       String outputFilePath = getPartitionOutputFilePath(i);
-      currentLimit =
-          this.limit - QUANTITY_PER_PARTITION >= QUANTITY_PER_PARTITION
-              ? QUANTITY_PER_PARTITION
-              : this.limit;
+      currentLimit = this.limit - QUANTITY_PER_PARTITION >= QUANTITY_PER_PARTITION ? QUANTITY_PER_PARTITION : this.limit;
 
       ExecutionContext executionContext = new ExecutionContext();
       executionContext.putLong("circulationLogOffset", this.offset);
@@ -47,14 +44,7 @@ public class CirculationLogPartitioner implements Partitioner {
       executionContext.putString(JobParameterNames.OUTPUT_FILE_PATH, outputFilePath);
 
       log.debug(
-          "Partition created: "
-              + i
-              + " Offset: "
-              + this.offset
-              + " Limit: "
-              + currentLimit
-              + " Output file path: "
-              + outputFilePath);
+          "Partition created: " + i + " Offset: " + this.offset + " Limit: " + currentLimit + " Output file path: " + outputFilePath);
 
       this.offset += currentLimit;
       this.limit -= QUANTITY_PER_PARTITION;
@@ -70,10 +60,8 @@ public class CirculationLogPartitioner implements Partitioner {
   }
 
   private String createOutputFilePathTemplate(String outputFilePath) {
-    return FilenameUtils.getFullPath(outputFilePath)
-        + FilenameUtils.getBaseName(outputFilePath)
-        + "_%d."
-        + FilenameUtils.getExtension(outputFilePath)
-        + ".tmp";
+    return FilenameUtils.getFullPath(outputFilePath) + FilenameUtils.getBaseName(
+        outputFilePath) + "_%d." + FilenameUtils.getExtension(outputFilePath) + ".tmp";
   }
+
 }

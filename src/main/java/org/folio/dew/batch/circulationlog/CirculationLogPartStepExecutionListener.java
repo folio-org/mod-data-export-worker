@@ -1,7 +1,7 @@
 package org.folio.dew.batch.circulationlog;
 
 import lombok.extern.log4j.Log4j2;
-import org.folio.des.domain.entity.constant.JobParameterNames;
+import org.folio.des.domain.dto.JobParameterNames;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.utils.ExecutionContextUtils;
 import org.springframework.batch.core.ExitStatus;
@@ -20,19 +20,18 @@ public class CirculationLogPartStepExecutionListener implements StepExecutionLis
   private final String workspaceBucketName;
 
   @Autowired
-  public CirculationLogPartStepExecutionListener(
-      MinIOObjectStorageRepository objectStorageRepository,
+  public CirculationLogPartStepExecutionListener(MinIOObjectStorageRepository objectStorageRepository,
       @Value("${minio.workspaceBucketName}") String workspaceBucketName) {
     this.objectStorageRepository = objectStorageRepository;
     this.workspaceBucketName = workspaceBucketName;
   }
 
   @Override
-  public void beforeStep(StepExecution stepExecution) {}
+  public void beforeStep(StepExecution stepExecution) {
+  }
 
   @Override
   public ExitStatus afterStep(StepExecution stepExecution) {
-
     final String csvFilePartContentType = "csv";
 
     ExecutionContext executionContext = stepExecution.getExecutionContext();
@@ -40,12 +39,12 @@ public class CirculationLogPartStepExecutionListener implements StepExecutionLis
     String objectName = ExecutionContextUtils.getObjectNameByOutputFilePath(executionContext);
 
     try {
-      objectStorageRepository.uploadObject(
-          this.workspaceBucketName, objectName, outputFilePath, csvFilePartContentType);
+      objectStorageRepository.uploadObject(this.workspaceBucketName, objectName, outputFilePath, csvFilePartContentType);
     } catch (Exception ex) {
       log.error(ex.getMessage(), ex);
     }
 
     return stepExecution.getExitStatus();
   }
+
 }

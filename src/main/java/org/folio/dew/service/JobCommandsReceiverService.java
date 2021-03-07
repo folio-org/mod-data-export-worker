@@ -6,6 +6,7 @@ import org.folio.des.domain.dto.ExportType;
 import org.folio.des.domain.dto.JobParameterDto;
 import org.folio.des.domain.dto.StartJobCommandDto;
 import org.folio.des.domain.entity.constant.JobParameterNames;
+import org.folio.des.service.JobExecutionService;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.springframework.batch.core.Job;
@@ -26,7 +27,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Log4j2
 public class JobCommandsReceiverService {
-  private static final String DATA_EXPORT_JOB_COMMANDS_TOPIC_NAME = "dataExportJobCommandsTopic";
 
   private final ExportJobManager exportJobManager;
   private final List<Job> jobs;
@@ -41,8 +41,9 @@ public class JobCommandsReceiverService {
     }
   }
 
-  @KafkaListener(topics = { DATA_EXPORT_JOB_COMMANDS_TOPIC_NAME })
+  @KafkaListener(topics = { JobExecutionService.DATA_EXPORT_JOB_COMMANDS_TOPIC_NAME })
   public void receiveStartJobCommand(StartJobCommandDto startJobCommand, Acknowledgment acknowledgment) {
+    log.info("Received {}.", startJobCommand);
 
     String jobId = startJobCommand.getId().toString();
     ExportType exportType = startJobCommand.getType();
@@ -91,7 +92,6 @@ public class JobCommandsReceiverService {
 
   private void addJobParameter(JobParametersBuilder jobParametersBuilder, String jobParameterName,
       JobParameterDto jobParameterDto) {
-
     Object parameterValue = jobParameterDto.getParameter();
 
     if (parameterValue.getClass() == Long.class) {

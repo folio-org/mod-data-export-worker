@@ -21,4 +21,5 @@ public class ExecutionContextUtils {
     ExecutionContext jobContext = jobExecution.getExecutionContext();
     return jobContext.get(variable);
   }
+
 }

@@ -1,7 +1,7 @@
 package org.folio.dew.batch.bursarfeesfines;
 
 import lombok.extern.log4j.Log4j2;
-import org.folio.des.domain.entity.constant.JobParameterNames;
+import org.folio.des.domain.dto.JobParameterNames;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.utils.BursarFilenameUtil;
 import org.springframework.batch.core.ExitStatus;
@@ -22,32 +22,31 @@ public class BursarExportStepListener implements StepExecutionListener {
   private final String workspaceBucketName;
 
   @Autowired
-  public BursarExportStepListener(
-      MinIOObjectStorageRepository objectStorageRepository,
+  public BursarExportStepListener(MinIOObjectStorageRepository objectStorageRepository,
       @Value("${minio.workspaceBucketName}") String workspaceBucketName) {
     this.objectStorageRepository = objectStorageRepository;
     this.workspaceBucketName = workspaceBucketName;
   }
 
   @Override
-  public void beforeStep(StepExecution stepExecution) {}
+  public void beforeStep(StepExecution stepExecution) {
+    // Nothing to do
+  }
 
   @Override
   public ExitStatus afterStep(StepExecution stepExecution) {
-
     final String fileContentType = "dat";
     JobExecution execution = stepExecution.getJobExecution();
     String objectName = BursarFilenameUtil.getFilename(stepExecution.getStepName());
-    String outputFilePath =
-        execution.getJobParameters().getString(JobParameterNames.OUTPUT_FILE_PATH) + objectName;
+    String outputFilePath = execution.getJobParameters().getString(JobParameterNames.OUTPUT_FILE_PATH) + objectName;
 
     try {
-      objectStorageRepository.uploadObject(
-          workspaceBucketName, objectName, outputFilePath, fileContentType);
+      objectStorageRepository.uploadObject(workspaceBucketName, objectName, outputFilePath, fileContentType);
     } catch (Exception ex) {
       log.error(ex.getMessage(), ex);
     }
 
     return stepExecution.getExitStatus();
   }
+
 }

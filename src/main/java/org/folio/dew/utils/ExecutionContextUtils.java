@@ -3,7 +3,7 @@ package org.folio.dew.utils;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
-import org.folio.des.domain.entity.constant.JobParameterNames;
+import org.folio.des.domain.dto.JobParameterNames;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.item.ExecutionContext;

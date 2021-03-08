@@ -10,6 +10,7 @@ import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
+import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
@@ -65,8 +66,10 @@ public class JobCommandsReceiverService {
       outputFilePath = "\\minio\\";
     }
 
-    startJobCommand.getJobParameters().getParameters().put(JobParameterNames.OUTPUT_FILE_PATH, new JobParameter(outputFilePath));
-    startJobCommand.getJobParameters().getParameters().put(JobParameterNames.JOB_ID, new JobParameter(jobId));
+    Map<String, JobParameter> parameters = startJobCommand.getJobParameters().getParameters();
+    parameters.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
+    parameters.put(JobParameterNames.OUTPUT_FILE_PATH, new JobParameter(outputFilePath));
+    startJobCommand.setJobParameters(new JobParameters(parameters));
   }
 
 }

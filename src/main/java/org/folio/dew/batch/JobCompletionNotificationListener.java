@@ -81,7 +81,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
   private Throwable getThrowableRootCause(Throwable t) {
     Throwable cause = t.getCause();
-    while (cause != t) {
+    while (cause != null && cause != t) {
       t = cause;
       cause = t.getCause();
     }

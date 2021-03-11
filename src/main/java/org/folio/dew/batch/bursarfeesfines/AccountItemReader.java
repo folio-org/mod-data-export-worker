@@ -1,13 +1,8 @@
 package org.folio.dew.batch.bursarfeesfines;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.service.BursarExportService;
@@ -19,10 +14,14 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
 @Log4j2
 @Component
 @StepScope
 public class AccountItemReader implements ItemReader<Account> {
+
   private int nextIndex;
   private List<Account> accounts;
   private Map<String, String> userIdMap;
@@ -31,15 +30,14 @@ public class AccountItemReader implements ItemReader<Account> {
 
   @Value("#{jobParameters['patronGroups']}")
   private String patronGroups;
-
   @Value("#{jobParameters['daysOutstanding']}")
   private Long daysOutstanding;
 
   public AccountItemReader(BursarExportService service) {
-    this.exportService = service;
-    this.accounts = new ArrayList<>();
-    this.userIdMap = new HashMap<>();
-    this.nextIndex = 0;
+    exportService = service;
+    accounts = new ArrayList<>();
+    userIdMap = new HashMap<>();
+    nextIndex = 0;
   }
 
   @Override
@@ -62,17 +60,20 @@ public class AccountItemReader implements ItemReader<Account> {
   public void initStep(StepExecution stepExecution) {
     this.stepExecution = stepExecution;
 
-    if (daysOutstanding == null || patronGroups == null) {
-      log.info("Job parameters don't set");
-      return;
+    if (daysOutstanding == null || StringUtils.isBlank(patronGroups)) {
+      throw new IllegalArgumentException("'daysOutstanding' and/or 'patronGroups' aren't set");
     }
 
-    String[] groupIds = patronGroups.split(",");
-    List<User> users = exportService.findUsers(Arrays.asList(groupIds));
+    List<User> users = exportService.findUsers(Arrays.asList(patronGroups.split(",")));
+    if (CollectionUtils.isEmpty(users)) {
+      throw new IllegalArgumentException(String.format("Users not found for %s", patronGroups));
+    }
 
-    userIdMap = users.stream().collect(Collectors.toMap(User::getId, user -> Optional.ofNullable(user.getExternalSystemId()).orElse("")));
+    userIdMap = users.stream()
+        .collect(Collectors.toMap(User::getId, user -> Optional.ofNullable(user.getExternalSystemId()).orElse("")));
     accounts = exportService.findAccounts(daysOutstanding, users);
 
-    this.stepExecution.getExecutionContext().put("userIdMap", userIdMap);
+    stepExecution.getExecutionContext().put("userIdMap", userIdMap);
   }
+
 }

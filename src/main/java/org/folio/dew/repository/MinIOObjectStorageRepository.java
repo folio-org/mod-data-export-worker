@@ -1,72 +1,63 @@
 package org.folio.dew.repository;
 
-import io.minio.ComposeObjectArgs;
-import io.minio.ComposeSource;
-import io.minio.MinioClient;
-import io.minio.ObjectWriteResponse;
-import io.minio.UploadObjectArgs;
-import io.minio.errors.ErrorResponseException;
-import io.minio.errors.InsufficientDataException;
-import io.minio.errors.InternalException;
-import io.minio.errors.InvalidResponseException;
-import io.minio.errors.ServerException;
-import io.minio.errors.XmlParserException;
+import io.minio.*;
+import io.minio.errors.*;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
+
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public class MinIOObjectStorageRepository {
 
   private final MinioClient minioClient;
+  @Value("${minio.workspaceBucketName}")
+  private String workspaceBucketName;
 
-  public MinIOObjectStorageRepository(
-      @Value("${minio.url}") String url,
-      @Value("${minio.accessKey}") String accessKey,
+  public MinIOObjectStorageRepository(@Value("${minio.url}") String url, @Value("${minio.accessKey}") String accessKey,
       @Value("${minio.secretKey}") String secretKey) {
-    this.minioClient =
-        MinioClient.builder().endpoint(url).credentials(accessKey, secretKey).build();
+    MinioClient.Builder builder = MinioClient.builder().endpoint(url);
+    if (StringUtils.isNotBlank(accessKey) && StringUtils.isNotBlank(secretKey)) {
+      builder.credentials(accessKey, secretKey);
+    }
+    minioClient = builder.build();
   }
 
-  public ObjectWriteResponse uploadObject(
-      String bucketName, String objectName, String filePath, String contentType)
-      throws IOException, ServerException, InsufficientDataException, InternalException,
-          InvalidResponseException, InvalidKeyException, NoSuchAlgorithmException,
-          XmlParserException, ErrorResponseException {
-    UploadObjectArgs uploadObjectArgs =
-        UploadObjectArgs.builder()
-            .bucket(bucketName)
-            .object(objectName)
-            .filename(filePath)
-            .contentType(contentType)
-            .build();
+  public ObjectWriteResponse uploadObject(String objectName, String filePath, String contentType)
+      throws IOException, ServerException, InsufficientDataException, InternalException, InvalidResponseException,
+      InvalidKeyException, NoSuchAlgorithmException, XmlParserException, ErrorResponseException {
+    UploadObjectArgs uploadObjectArgs = UploadObjectArgs.builder()
+        .bucket(workspaceBucketName)
+        .object(objectName)
+        .filename(filePath)
+        .contentType(contentType)
+        .build();
 
-    return this.minioClient.uploadObject(uploadObjectArgs);
+    return minioClient.uploadObject(uploadObjectArgs);
   }
 
-  public ObjectWriteResponse composeObject(
-      String bucketName, String destObjectName, List<String> sourceObjectNames)
-      throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException,
-          NoSuchAlgorithmException, ServerException, InternalException, XmlParserException,
-          ErrorResponseException {
+  public ObjectWriteResponse composeObject(String destObjectName, List<String> sourceObjectNames)
+      throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
+      ServerException, InternalException, XmlParserException, ErrorResponseException {
     List<ComposeSource> sourceObjects = new ArrayList<>();
 
     for (String name : sourceObjectNames) {
-      ComposeSource composeSource = ComposeSource.builder().bucket(bucketName).object(name).build();
+      ComposeSource composeSource = ComposeSource.builder().bucket(workspaceBucketName).object(name).build();
       sourceObjects.add(composeSource);
     }
 
-    ComposeObjectArgs composeObjectArgs =
-        ComposeObjectArgs.builder()
-            .bucket(bucketName)
-            .object(destObjectName)
-            .sources(sourceObjects)
-            .build();
+    ComposeObjectArgs composeObjectArgs = ComposeObjectArgs.builder()
+        .bucket(workspaceBucketName)
+        .object(destObjectName)
+        .sources(sourceObjects)
+        .build();
 
     return minioClient.composeObject(composeObjectArgs);
   }
+
 }

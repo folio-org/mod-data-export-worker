@@ -68,7 +68,8 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     jobExecutionUpdate.setUpdatedDate(jobExecution.getLastUpdated());
     List<Throwable> errors = jobExecution.getAllFailureExceptions();
     if (CollectionUtils.isNotEmpty(errors)) {
-      jobExecutionUpdate.setErrorDetails(errors.stream().map(Throwable::getMessage).collect(Collectors.joining("\n")));
+      jobExecutionUpdate.setErrorDetails(
+          errors.stream().map(t -> getThrowableRootCause(t).getMessage()).collect(Collectors.joining("\n")));
     }
     jobExecutionUpdate.setBatchStatus(jobExecution.getStatus());
     jobExecutionUpdate.setExitStatus(jobExecution.getExitStatus());
@@ -76,6 +77,15 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     kafkaTemplate.send(JobUpdatesService.DATA_EXPORT_JOB_EXECUTION_UPDATES_TOPIC_NAME, jobExecutionUpdate.getId().toString(),
         jobExecutionUpdate);
     log.info("Sent job {} update.", jobExecutionUpdate.getId());
+  }
+
+  private Throwable getThrowableRootCause(Throwable t) {
+    Throwable cause = t.getCause();
+    while (cause != t) {
+      t = cause;
+      cause = t.getCause();
+    }
+    return t;
   }
 
 }

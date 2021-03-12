@@ -2,6 +2,7 @@ package org.folio.dew.repository;
 
 import io.minio.*;
 import io.minio.errors.*;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -11,8 +12,10 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
+@Log4j2
 public class MinIOObjectStorageRepository {
 
   private final MinioClient minioClient;
@@ -38,6 +41,7 @@ public class MinIOObjectStorageRepository {
         .contentType(contentType)
         .build();
 
+    log.info("Uploading object {} filename {} contentType {}.", objectName, filePath, contentType);
     return minioClient.uploadObject(uploadObjectArgs);
   }
 
@@ -57,6 +61,9 @@ public class MinIOObjectStorageRepository {
         .sources(sourceObjects)
         .build();
 
+    log.info("Composing object {} sources [{}].", destObjectName, sourceObjects.stream()
+        .map(so -> String.format("bucketName %s objectName %s", so.bucket(), so.object()))
+        .collect(Collectors.joining(",")));
     return minioClient.composeObject(composeObjectArgs);
   }
 

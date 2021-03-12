@@ -1,6 +1,7 @@
 package org.folio.dew.config;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.folio.des.domain.dto.ExportType;
 import org.folio.dew.batch.CsvFileAssembler;
 import org.folio.dew.batch.JobCompletionNotificationListener;
@@ -29,8 +30,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskExecutor;
 
 @Configuration
+@Log4j2
 @RequiredArgsConstructor
 public class CirculationLogJobConfig {
+
   private static final int NUMBER_OF_CONCURRENT_TASK_EXECUTIONS = 10;
 
   private final JobBuilderFactory jobBuilderFactory;
@@ -75,7 +78,7 @@ public class CirculationLogJobConfig {
     flatFileItemWriter.setResource(outputFile);
 
     flatFileItemWriter.setAppendAllowed(true);
-
+    log.info("Creating file {}.", outputFilePath);
     return flatFileItemWriter;
   }
 

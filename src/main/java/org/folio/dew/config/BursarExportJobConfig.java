@@ -1,5 +1,6 @@
 package org.folio.dew.config;
 
+import lombok.extern.log4j.Log4j2;
 import org.folio.des.domain.dto.ExportType;
 import org.folio.dew.batch.bursarfeesfines.BursarExportStepListener;
 import org.folio.dew.batch.bursarfeesfines.TransferFeesFinesTasklet;
@@ -25,18 +26,18 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
 @Configuration
+@Log4j2
 public class BursarExportJobConfig {
 
   public ItemWriter<BursarFormat> writer(String stepName) {
-    String outputFilePath = "\\minio\\";
-
     String fileName = BursarFilenameUtil.getFilename(stepName);
-    Resource exportFileResource = new FileSystemResource(outputFilePath + fileName);
+    String outputFilePath = "\\minio\\" + fileName;
+    Resource exportFileResource = new FileSystemResource(outputFilePath);
 
     var fieldNames = new String[] { "employeeId", "amount", "itemType", "transactionDate", "sfs", "termValue", "description" };
     var lineFormat = "%11.11s%9.9s%12.12s%6.6s%3.3s%4.4s%30.30s";
     FlatFileHeaderCallback header = writer -> writer.write("LIB02");
-
+    log.info("Creating file {}.", outputFilePath);
     return new FlatFileItemWriterBuilder<BursarFormat>().name("bursarExportWriter")
         .headerCallback(header)
         .formatted()

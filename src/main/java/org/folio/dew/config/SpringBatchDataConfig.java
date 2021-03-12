@@ -1,7 +1,6 @@
 package org.folio.dew.config;
 
 import com.zaxxer.hikari.HikariDataSource;
-import javax.sql.DataSource;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -10,15 +9,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import javax.sql.DataSource;
+
 @Configuration
-public class DataConfig {
+public class SpringBatchDataConfig {
+
   private static final int MAX_DATA_SOURCE_POOL_SIZE = 20;
 
   @Bean
-  public JobRepository getJobRepository(
-      @Qualifier("jobRepositoryDataSource") DataSource dataSource,
-      PlatformTransactionManager transactionManager)
-      throws Exception {
+  public JobRepository getJobRepository(@Qualifier("jobRepositoryDataSource") DataSource dataSource,
+      PlatformTransactionManager transactionManager) throws Exception {
     JobRepositoryFactoryBean jobRepositoryFactory = new JobRepositoryFactoryBean();
     jobRepositoryFactory.setDataSource(dataSource);
     jobRepositoryFactory.setTransactionManager(transactionManager);
@@ -30,12 +30,9 @@ public class DataConfig {
   }
 
   @Bean("jobRepositoryDataSource")
-  public DataSource getJobRepositoryDataSource(
-      @Value("${dataSource.driver}") String driverClassName,
-      @Value("${dataSource.jdbcUrl}") String jdbcUrl,
-      @Value("${dataSource.username}") String userName,
+  public DataSource getJobRepositoryDataSource(@Value("${dataSource.driver}") String driverClassName,
+      @Value("${dataSource.jdbcUrl}") String jdbcUrl, @Value("${dataSource.username}") String userName,
       @Value("${dataSource.password}") String password) {
-
     HikariDataSource dataSource = new HikariDataSource();
     dataSource.setDriverClassName(driverClassName);
     dataSource.setJdbcUrl(jdbcUrl);

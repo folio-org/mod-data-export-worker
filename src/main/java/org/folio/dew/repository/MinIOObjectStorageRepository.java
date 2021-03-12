@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,37 +33,26 @@ public class MinIOObjectStorageRepository {
   public ObjectWriteResponse uploadObject(String objectName, String filePath, String contentType)
       throws IOException, ServerException, InsufficientDataException, InternalException, InvalidResponseException,
       InvalidKeyException, NoSuchAlgorithmException, XmlParserException, ErrorResponseException {
-    UploadObjectArgs uploadObjectArgs = UploadObjectArgs.builder()
+    log.info("Uploading object {} filename {} contentType {}.", objectName, filePath, contentType);
+    return minioClient.uploadObject(UploadObjectArgs.builder()
         .bucket(workspaceBucketName)
         .object(objectName)
         .filename(filePath)
         .contentType(contentType)
-        .build();
-
-    log.info("Uploading object {} filename {} contentType {}.", objectName, filePath, contentType);
-    return minioClient.uploadObject(uploadObjectArgs);
+        .build());
   }
 
   public ObjectWriteResponse composeObject(String destObjectName, List<String> sourceObjectNames)
       throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
       ServerException, InternalException, XmlParserException, ErrorResponseException {
-    List<ComposeSource> sourceObjects = new ArrayList<>();
-
-    for (String name : sourceObjectNames) {
-      ComposeSource composeSource = ComposeSource.builder().bucket(workspaceBucketName).object(name).build();
-      sourceObjects.add(composeSource);
-    }
-
-    ComposeObjectArgs composeObjectArgs = ComposeObjectArgs.builder()
-        .bucket(workspaceBucketName)
-        .object(destObjectName)
-        .sources(sourceObjects)
-        .build();
-
+    List<ComposeSource> sourceObjects = sourceObjectNames.stream()
+        .map(n -> ComposeSource.builder().bucket(workspaceBucketName).object(n).build())
+        .collect(Collectors.toList());
     log.info("Composing object {} sources [{}].", destObjectName, sourceObjects.stream()
         .map(so -> String.format("bucketName %s objectName %s", so.bucket(), so.object()))
         .collect(Collectors.joining(",")));
-    return minioClient.composeObject(composeObjectArgs);
+    return minioClient.composeObject(
+        ComposeObjectArgs.builder().bucket(workspaceBucketName).object(destObjectName).sources(sourceObjects).build());
   }
 
 }

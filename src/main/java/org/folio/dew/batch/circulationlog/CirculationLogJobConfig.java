@@ -41,6 +41,53 @@ public class CirculationLogJobConfig {
   private final AuditClient auditClient;
 
   @Bean
+  public Job getCirculationLogJob(JobCompletionNotificationListener jobCompletionNotificationListener,
+      @Qualifier("getCirculationLogStep") Step getCirculationLogStep, JobRepository jobRepository) {
+    return jobBuilderFactory.get(ExportType.CIRCULATION_LOG.toString())
+        .repository(jobRepository)
+        .incrementer(new RunIdIncrementer())
+        .listener(jobCompletionNotificationListener)
+        .flow(getCirculationLogStep)
+        .end()
+        .build();
+  }
+
+  @Bean("getCirculationLogStep")
+  public Step getCirculationLogStep(@Qualifier("getCirculationLogPartStep") Step getCirculationLogPartStep, Partitioner partitioner,
+      @Qualifier("asyncTaskExecutor") TaskExecutor taskExecutor, CsvFileAssembler csvFileAssembler) {
+    return stepBuilderFactory.get("getCirculationLogChunkStep")
+        .partitioner("getCirculationLogPartStep", partitioner)
+        .taskExecutor(taskExecutor)
+        .step(getCirculationLogPartStep)
+        .aggregator(csvFileAssembler)
+        .build();
+  }
+
+  @Bean
+  @StepScope
+  public Partitioner getCirculationLogPartitioner(@Value("#{jobParameters['offset']}") Long offset,
+      @Value("#{jobParameters['limit']}") Long limit, @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath) {
+    if (offset == null || limit == null || StringUtils.isBlank(tempOutputFilePath)) {
+      throw new IllegalArgumentException(
+          String.format("offset %d limit %d tempOutputFilePath %s", offset, limit, tempOutputFilePath));
+    }
+    return new CsvPartitioner(offset.intValue(), limit.intValue(), tempOutputFilePath);
+  }
+
+  @Bean("getCirculationLogPartStep")
+  public Step getCirculationLogPartStep(CirculationLogFeignItemReader circulationLogFeignItemReader,
+      FlatFileItemWriter<LogRecord> flatFileItemWriter, CsvPartStepExecutionListener csvPartStepExecutionListener) {
+    return stepBuilderFactory.get("getCirculationLogPartStep").<LogRecord, LogRecord>chunk(100).reader(
+        circulationLogFeignItemReader)
+        .writer(flatFileItemWriter)
+        .faultTolerant()
+        .allowStartIfComplete(false)
+        .throttleLimit(NUMBER_OF_CONCURRENT_TASK_EXECUTIONS)
+        .listener(csvPartStepExecutionListener)
+        .build();
+  }
+
+  @Bean
   @StepScope
   public CirculationLogFeignItemReader reader(@Value("#{stepExecutionContext[offset]}") Long offset,
       @Value("#{stepExecutionContext[limit]}") Long limit) {
@@ -79,53 +126,6 @@ public class CirculationLogJobConfig {
     flatFileItemWriter.setAppendAllowed(true);
     log.info("Creating file {}.", tempOutputFilePath);
     return flatFileItemWriter;
-  }
-
-  @Bean
-  public Job getCirculationLogJob(JobCompletionNotificationListener jobCompletionNotificationListener,
-      @Qualifier("getCirculationLogStep") Step getCirculationLogStep, JobRepository jobRepository) {
-    return jobBuilderFactory.get(ExportType.CIRCULATION_LOG.toString())
-        .repository(jobRepository)
-        .incrementer(new RunIdIncrementer())
-        .listener(jobCompletionNotificationListener)
-        .flow(getCirculationLogStep)
-        .end()
-        .build();
-  }
-
-  @Bean("getCirculationLogStep")
-  public Step getCirculationLogStep(@Qualifier("getCirculationLogPartStep") Step getCirculationLogPartStep, Partitioner partitioner,
-      @Qualifier("asyncTaskExecutor") TaskExecutor taskExecutor, CsvFileAssembler csvFileAssembler) {
-    return stepBuilderFactory.get("getCirculationLogChunkStep")
-        .partitioner("getCirculationLogPartStep", partitioner)
-        .taskExecutor(taskExecutor)
-        .step(getCirculationLogPartStep)
-        .aggregator(csvFileAssembler)
-        .build();
-  }
-
-  @Bean("getCirculationLogPartStep")
-  public Step getCirculationLogPartStep(CirculationLogFeignItemReader circulationLogFeignItemReader,
-      FlatFileItemWriter<LogRecord> flatFileItemWriter, CsvPartStepExecutionListener csvPartStepExecutionListener) {
-    return stepBuilderFactory.get("getCirculationLogPartStep").<LogRecord, LogRecord>chunk(100).reader(
-        circulationLogFeignItemReader)
-        .writer(flatFileItemWriter)
-        .faultTolerant()
-        .allowStartIfComplete(false)
-        .throttleLimit(NUMBER_OF_CONCURRENT_TASK_EXECUTIONS)
-        .listener(csvPartStepExecutionListener)
-        .build();
-  }
-
-  @Bean
-  @StepScope
-  public Partitioner getCirculationLogPartitioner(@Value("#{jobParameters['offset']}") Long offset,
-      @Value("#{jobParameters['limit']}") Long limit, @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath) {
-    if (offset == null || limit == null || StringUtils.isBlank(tempOutputFilePath)) {
-      throw new IllegalArgumentException(
-          String.format("offset %d limit %d tempOutputFilePath %s", offset, limit, tempOutputFilePath));
-    }
-    return new CsvPartitioner(offset.intValue(), limit.intValue(), tempOutputFilePath);
   }
 
 }

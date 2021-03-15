@@ -10,8 +10,8 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.listener.ExecutionContextPromotionListener;
 import org.springframework.batch.item.ItemProcessor;
@@ -30,7 +30,20 @@ import org.springframework.core.io.Resource;
 public class BursarExportJobConfig {
 
   @Bean
-  @StepScope
+  public Job bursarExportJob(Step exportChargeFeefinesStep, Step exportRefundFeefinesStep, Step transferFeefinesStep,
+      JobBuilderFactory jobBuilderFactory, JobExecutionListener jobCompletionNotificationListener) {
+    return jobBuilderFactory.get(ExportType.BURSAR_FEES_FINES.toString())
+        .incrementer(new RunIdIncrementer())
+        .listener(jobCompletionNotificationListener)
+        .flow(exportChargeFeefinesStep)
+        .next(exportRefundFeefinesStep)
+        .next(transferFeefinesStep)
+        .end()
+        .build();
+  }
+
+  @Bean
+  @JobScope
   public Step exportChargeFeefinesStep(ItemReader<Account> reader, ItemProcessor<Account, BursarFormat> processor,
       BursarExportStepListener listener, StepBuilderFactory stepBuilderFactory,
       @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath) {
@@ -43,12 +56,7 @@ public class BursarExportJobConfig {
   }
 
   @Bean
-  public Step transferFeefinesStep(StepBuilderFactory stepBuilderFactory, TransferFeesFinesTasklet tasklet) {
-    return stepBuilderFactory.get("transferFeefinesStep").tasklet(tasklet).build();
-  }
-
-  @Bean
-  @StepScope
+  @JobScope
   public Step exportRefundFeefinesStep(ItemReader<Feefineaction> reader, ItemProcessor<Feefineaction, BursarFormat> processor,
       BursarExportStepListener listener, StepBuilderFactory stepBuilderFactory,
       @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath) {
@@ -61,16 +69,8 @@ public class BursarExportJobConfig {
   }
 
   @Bean
-  public Job bursarExportJob(Step exportChargeFeefinesStep, Step exportRefundFeefinesStep, Step transferFeefinesStep,
-      JobBuilderFactory jobBuilderFactory, JobExecutionListener jobCompletionNotificationListener) {
-    return jobBuilderFactory.get(ExportType.BURSAR_FEES_FINES.toString())
-        .incrementer(new RunIdIncrementer())
-        .listener(jobCompletionNotificationListener)
-        .flow(exportChargeFeefinesStep)
-        .next(exportRefundFeefinesStep)
-        .next(transferFeefinesStep)
-        .end()
-        .build();
+  public Step transferFeefinesStep(StepBuilderFactory stepBuilderFactory, TransferFeesFinesTasklet tasklet) {
+    return stepBuilderFactory.get("transferFeefinesStep").tasklet(tasklet).build();
   }
 
   @Bean

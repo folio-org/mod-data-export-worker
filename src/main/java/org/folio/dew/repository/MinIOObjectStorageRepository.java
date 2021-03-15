@@ -43,7 +43,7 @@ public class MinIOObjectStorageRepository {
   public ObjectWriteResponse uploadObject(String object, String filename, String downloadFilename, String contentType)
       throws IOException, ServerException, InsufficientDataException, InternalException, InvalidResponseException,
       InvalidKeyException, NoSuchAlgorithmException, XmlParserException, ErrorResponseException {
-    log.info("Uploading object {} filename {} downloadFilename {} contentType {}.", object, filename, downloadFilename,
+    log.info("Uploading object {},filename {},downloadFilename {},contentType {}.", object, filename, downloadFilename,
         contentType);
     ObjectWriteResponse result = minioClient.uploadObject(
         createArgs(UploadObjectArgs.builder().filename(filename), object, downloadFilename, contentType));
@@ -61,7 +61,7 @@ public class MinIOObjectStorageRepository {
     List<ComposeSource> sources = sourceObjects.stream()
         .map(so -> ComposeSource.builder().bucket(workspaceBucketName).object(so).build())
         .collect(Collectors.toList());
-    log.info("Composing object {} sources [{}] downloadFilename {} contentType {}.", destObject,
+    log.info("Composing object {},sources [{}],downloadFilename {},contentType {}.", destObject,
         sources.stream().map(s -> String.format("bucket %s object %s", s.bucket(), s.object())).collect(Collectors.joining(",")),
         downloadFilename, contentType);
     ObjectWriteResponse result = minioClient.composeObject(
@@ -90,8 +90,8 @@ public class MinIOObjectStorageRepository {
     return result;
   }
 
-  private <T extends ObjectWriteArgs> T createArgs(T.Builder<?, T> builder, String object, String downloadFilename,
-      String contentType) {
+  private <T extends ObjectWriteArgs, B extends ObjectWriteArgs.Builder<B, T>> T createArgs(B builder, String object,
+      String downloadFilename, String contentType) {
     Map<String, String> headers = new HashMap<>(2);
     if (StringUtils.isNotBlank(downloadFilename)) {
       headers.put(HttpHeaders.CONTENT_DISPOSITION, String.format(CONTENT_DISPOSITION_HEADER_WITH_FILENAME, downloadFilename));
@@ -101,9 +101,9 @@ public class MinIOObjectStorageRepository {
     if (StringUtils.isNotBlank(contentType)) {
       headers.put(HttpHeaders.CONTENT_TYPE, contentType);
     }
-    builder.headers(headers);
-
-    return builder.object(object).bucket(workspaceBucketName).build();
+    T result = builder.headers(headers).object(object).bucket(workspaceBucketName).build();
+    log.info("Created {}(bucket {},object {}).", result.getClass().getSimpleName(), result.bucket(), result.object());
+    return result;
   }
 
 }

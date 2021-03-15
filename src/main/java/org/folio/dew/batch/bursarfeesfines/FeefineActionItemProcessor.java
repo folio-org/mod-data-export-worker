@@ -5,7 +5,7 @@ import java.util.Map;
 import org.folio.dew.domain.dto.Feefineaction;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarFormat;
 import org.folio.dew.utils.ExecutionContextUtils;
-import org.folio.dew.utils.FormatterUtils;
+import org.folio.dew.utils.BursarFeesFinesUtils;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -21,13 +21,13 @@ public class FeefineActionItemProcessor implements ItemProcessor<Feefineaction, 
   @Override
   public BursarFormat process(Feefineaction item) {
     BursarFormat format = new BursarFormat();
-    format.setEmployeeId(FormatterUtils.getEmployeeId(item.getUserId(), userIdMap));
-    format.setAmount(FormatterUtils.normalizeAmount(item.getAmountAction()));
-    format.setTransactionDate(FormatterUtils.getTransactionDate(item.getDateAction()));
+    format.setEmployeeId(BursarFeesFinesUtils.getEmployeeId(item.getUserId(), userIdMap));
+    format.setAmount(BursarFeesFinesUtils.normalizeAmount(item.getAmountAction()));
+    format.setTransactionDate(BursarFeesFinesUtils.getTransactionDate(item.getDateAction()));
     format.setSfs("SFS");
     format.setTermValue("    ");
-    format.setDescription(FormatterUtils.getItemTypeDescription(item.getTypeAction()));
-    format.setItemType(FormatterUtils.getItemType());
+    format.setDescription(BursarFeesFinesUtils.getItemTypeDescription(item.getTypeAction()));
+    format.setItemType(BursarFeesFinesUtils.getItemType());
     return format;
   }
 

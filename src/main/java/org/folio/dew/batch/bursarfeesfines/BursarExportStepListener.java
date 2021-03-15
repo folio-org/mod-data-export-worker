@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
-import org.folio.dew.utils.BursarFilenameUtil;
+import org.folio.dew.utils.BursarFeesFinesUtils;
 import org.folio.dew.utils.ExecutionContextUtils;
 import org.folio.dew.utils.JobParameterNames;
 import org.springframework.batch.core.ExitStatus;
@@ -29,10 +29,10 @@ public class BursarExportStepListener implements StepExecutionListener {
 
   @Override
   public ExitStatus afterStep(StepExecution stepExecution) {
-    String downloadFilename = BursarFilenameUtil.getFilename(stepExecution.getStepName());
+    String downloadFilename = BursarFeesFinesUtils.getFilename(stepExecution.getStepName());
     String filename = stepExecution.getJobExecution()
         .getJobParameters()
-        .getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + ' ' + downloadFilename;
+        .getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + '_' + downloadFilename;
 
     String url;
     try {

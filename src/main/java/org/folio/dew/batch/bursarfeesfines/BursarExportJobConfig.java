@@ -5,7 +5,7 @@ import org.folio.des.domain.dto.ExportType;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.Feefineaction;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarFormat;
-import org.folio.dew.utils.BursarFilenameUtil;
+import org.folio.dew.utils.BursarFeesFinesUtils;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
@@ -48,7 +48,7 @@ public class BursarExportJobConfig {
   public Step exportChargeFeefinesStep(ItemReader<Account> reader, ItemProcessor<Account, BursarFormat> processor,
       @Qualifier("bursarFeesFines") ItemWriter<BursarFormat> writer, BursarExportStepListener listener,
       StepBuilderFactory stepBuilderFactory) {
-    return stepBuilderFactory.get(BursarFilenameUtil.CHARGE_FEESFINES_EXPORT_STEP).<Account, BursarFormat>chunk(1000).reader(reader)
+    return stepBuilderFactory.get(BursarFeesFinesUtils.CHARGE_FEESFINES_EXPORT_STEP).<Account, BursarFormat>chunk(1000).reader(reader)
         .processor(processor)
         .writer(writer)
         .listener(promotionListener())
@@ -60,7 +60,7 @@ public class BursarExportJobConfig {
   public Step exportRefundFeefinesStep(ItemReader<Feefineaction> reader, ItemProcessor<Feefineaction, BursarFormat> processor,
       @Qualifier("bursarFeesFines") ItemWriter<BursarFormat> writer, BursarExportStepListener listener,
       StepBuilderFactory stepBuilderFactory) {
-    return stepBuilderFactory.get(BursarFilenameUtil.REFUND_FEESFINES_EXPORT_STEP).<Feefineaction, BursarFormat>chunk(1000).reader(
+    return stepBuilderFactory.get(BursarFeesFinesUtils.REFUND_FEESFINES_EXPORT_STEP).<Feefineaction, BursarFormat>chunk(1000).reader(
         reader).processor(processor).writer(writer).listener(listener).build();
   }
 
@@ -80,7 +80,7 @@ public class BursarExportJobConfig {
   @StepScope
   public FlatFileItemWriter<BursarFormat> writer(@Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
       @Value("#{stepExecution.stepName}") String stepName) {
-    String fileName = tempOutputFilePath + '_' + BursarFilenameUtil.getFilename(stepName);
+    String fileName = tempOutputFilePath + '_' + BursarFeesFinesUtils.getFilename(stepName);
     Resource exportFileResource = new FileSystemResource(fileName);
 
     var fieldNames = new String[] { "employeeId", "amount", "itemType", "transactionDate", "sfs", "termValue", "description" };

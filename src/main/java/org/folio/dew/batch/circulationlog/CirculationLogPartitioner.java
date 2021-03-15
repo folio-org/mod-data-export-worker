@@ -1,8 +1,7 @@
 package org.folio.dew.batch.circulationlog;
 
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.io.FilenameUtils;
-import org.folio.des.domain.dto.JobParameterNames;
+import org.folio.dew.utils.JobParameterNames;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.item.ExecutionContext;
 
@@ -14,40 +13,40 @@ public class CirculationLogPartitioner implements Partitioner {
 
   private static final int QUANTITY_PER_PARTITION = 250000;
 
+  private final String outputFilePathTemplate;
   private int offset;
   private int limit;
-  private final String outputFilePathTemplate;
 
-  public CirculationLogPartitioner(int offset, int limit, String outputFilePath) {
+  public CirculationLogPartitioner(int offset, int limit, String tempOutputFilePath) {
     this.offset = offset;
     this.limit = limit;
-    this.outputFilePathTemplate = createOutputFilePathTemplate(outputFilePath);
+    outputFilePathTemplate = createOutputFilePathTemplate(tempOutputFilePath);
   }
 
   @Override
   public Map<String, ExecutionContext> partition(int gridSize) {
     Map<String, ExecutionContext> partitionKeyContext = new HashMap<>();
 
-    int numberOfPartitions = this.limit / QUANTITY_PER_PARTITION;
+    int numberOfPartitions = limit / QUANTITY_PER_PARTITION;
     if (numberOfPartitions == 0) {
       numberOfPartitions = 1;
     }
 
     int currentLimit;
     for (int i = 0; i < numberOfPartitions; i++) {
-      String outputFilePath = getPartitionOutputFilePath(i);
-      currentLimit = this.limit - QUANTITY_PER_PARTITION >= QUANTITY_PER_PARTITION ? QUANTITY_PER_PARTITION : this.limit;
+      String tempOutputFilePath = getPartitionOutputFilePath(i);
+      currentLimit = limit - QUANTITY_PER_PARTITION >= QUANTITY_PER_PARTITION ? QUANTITY_PER_PARTITION : limit;
 
       ExecutionContext executionContext = new ExecutionContext();
-      executionContext.putLong("circulationLogOffset", this.offset);
+      executionContext.putLong("circulationLogOffset", offset);
       executionContext.putLong("circulationLogLimit", currentLimit);
-      executionContext.putString(JobParameterNames.OUTPUT_FILE_PATH, outputFilePath);
+      executionContext.putString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, tempOutputFilePath);
 
       log.debug(
-          "Partition created: " + i + " Offset: " + this.offset + " Limit: " + currentLimit + " Output file path: " + outputFilePath);
+          "Partition created: " + i + " Offset: " + offset + " Limit: " + currentLimit + " Output file path: " + tempOutputFilePath);
 
-      this.offset += currentLimit;
-      this.limit -= QUANTITY_PER_PARTITION;
+      offset += currentLimit;
+      limit -= QUANTITY_PER_PARTITION;
 
       partitionKeyContext.put("Partition_" + i, executionContext);
     }
@@ -56,12 +55,11 @@ public class CirculationLogPartitioner implements Partitioner {
   }
 
   private String getPartitionOutputFilePath(int partitionNumber) {
-    return String.format(this.outputFilePathTemplate, partitionNumber);
+    return String.format(outputFilePathTemplate, partitionNumber);
   }
 
-  private String createOutputFilePathTemplate(String outputFilePath) {
-    return FilenameUtils.getFullPath(outputFilePath) + FilenameUtils.getBaseName(
-        outputFilePath) + "_%d." + FilenameUtils.getExtension(outputFilePath) + ".tmp";
+  private String createOutputFilePathTemplate(String tempOutputFilePath) {
+    return tempOutputFilePath + "_%d.tmp";
   }
 
 }

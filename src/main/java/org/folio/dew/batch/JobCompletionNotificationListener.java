@@ -48,62 +48,70 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       log.error("Job update with empty Job ID {}.", jobExecution);
       return;
     }
-
     log.info("Job update {}.", jobExecution);
 
     if (after) {
-      Acknowledgment acknowledgment = acknowledgementRepository.getAcknowledgement(jobId);
-      if (acknowledgment != null) {
-        acknowledgment.acknowledge();
-        acknowledgementRepository.deleteAcknowledgement(jobId);
-      }
+      processJobAfter(jobId, jobParameters);
+    }
 
-      String tempOutputFilePath = jobParameters.getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH);
-      if (StringUtils.isNotBlank(tempOutputFilePath)) {
-        String path = FilenameUtils.getFullPath(tempOutputFilePath);
-        String fileNameStart = FilenameUtils.getName(tempOutputFilePath);
-        if (StringUtils.isNotBlank(path) && StringUtils.isNotBlank(fileNameStart)) {
-          File[] files = new File(path).listFiles((dir, name) -> name.startsWith(fileNameStart));
-          if (files != null && files.length > 0) {
-            for (File f : files) {
-              f.delete();
-            }
-            log.info("Job {} temp files {} deleted.", jobId, files);
+    Job jobExecutionUpdate = createJobExecutionUpdate(jobId, jobExecution);
+
+    log.info("Sending {}.", jobExecutionUpdate);
+    kafkaTemplate.send(JobUpdatesService.DATA_EXPORT_JOB_EXECUTION_UPDATES_TOPIC_NAME, jobExecutionUpdate.getId().toString(),
+        jobExecutionUpdate);
+    log.info("Sent job {} update.", jobExecutionUpdate.getId());
+  }
+
+  private void processJobAfter(String jobId, JobParameters jobParameters) {
+    Acknowledgment acknowledgment = acknowledgementRepository.getAcknowledgement(jobId);
+    if (acknowledgment != null) {
+      acknowledgment.acknowledge();
+      acknowledgementRepository.deleteAcknowledgement(jobId);
+    }
+
+    String tempOutputFilePath = jobParameters.getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH);
+    if (StringUtils.isNotBlank(tempOutputFilePath)) {
+      String path = FilenameUtils.getFullPath(tempOutputFilePath);
+      String fileNameStart = FilenameUtils.getName(tempOutputFilePath);
+      if (StringUtils.isNotBlank(path) && StringUtils.isNotBlank(fileNameStart)) {
+        File[] files = new File(path).listFiles((dir, name) -> name.startsWith(fileNameStart));
+        if (files != null && files.length > 0) {
+          for (File f : files) {
+            f.delete();
           }
+          log.info("Deleted temp files {} of job {}.", files, jobId);
         }
       }
     }
+  }
 
-    Job jobExecutionUpdate = new Job();
+  private Job createJobExecutionUpdate(String jobId, JobExecution jobExecution) {
+    Job result = new Job();
 
-    jobExecutionUpdate.setId(UUID.fromString(jobId));
+    result.setId(UUID.fromString(jobId));
 
     ExecutionContext executionContext = jobExecution.getExecutionContext();
     String outputFilesInStorage = executionContext.containsKey(JobParameterNames.OUTPUT_FILES_IN_STORAGE) ?
         executionContext.getString(JobParameterNames.OUTPUT_FILES_IN_STORAGE) :
         null;
     if (StringUtils.isNotBlank(outputFilesInStorage)) {
-      jobExecutionUpdate.setFiles(Arrays.asList(outputFilesInStorage.split(";")));
+      result.setFiles(Arrays.asList(outputFilesInStorage.split(";")));
     }
 
-    jobExecutionUpdate.setStartTime(jobExecution.getStartTime());
-    jobExecutionUpdate.setCreatedDate(jobExecution.getCreateTime());
-    jobExecutionUpdate.setEndTime(jobExecution.getEndTime());
-    jobExecutionUpdate.setUpdatedDate(jobExecution.getLastUpdated());
+    result.setStartTime(jobExecution.getStartTime());
+    result.setCreatedDate(jobExecution.getCreateTime());
+    result.setEndTime(jobExecution.getEndTime());
+    result.setUpdatedDate(jobExecution.getLastUpdated());
 
     List<Throwable> errors = jobExecution.getAllFailureExceptions();
     if (CollectionUtils.isNotEmpty(errors)) {
-      jobExecutionUpdate.setErrorDetails(
-          errors.stream().map(t -> getThrowableRootCause(t).getMessage()).collect(Collectors.joining("\n")));
+      result.setErrorDetails(errors.stream().map(t -> getThrowableRootCause(t).getMessage()).collect(Collectors.joining("\n")));
     }
 
-    jobExecutionUpdate.setBatchStatus(jobExecution.getStatus());
-    jobExecutionUpdate.setExitStatus(jobExecution.getExitStatus());
+    result.setBatchStatus(jobExecution.getStatus());
+    result.setExitStatus(jobExecution.getExitStatus());
 
-    log.info("Sending {}.", jobExecutionUpdate);
-    kafkaTemplate.send(JobUpdatesService.DATA_EXPORT_JOB_EXECUTION_UPDATES_TOPIC_NAME, jobExecutionUpdate.getId().toString(),
-        jobExecutionUpdate);
-    log.info("Sent job {} update.", jobExecutionUpdate.getId());
+    return result;
   }
 
   private Throwable getThrowableRootCause(Throwable t) {

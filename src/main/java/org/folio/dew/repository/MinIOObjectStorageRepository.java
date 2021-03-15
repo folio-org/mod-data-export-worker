@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -32,15 +33,18 @@ public class MinIOObjectStorageRepository {
   private String workspaceBucketName;
 
   public MinIOObjectStorageRepository(@Value("${minio.url}") String url, @Value("${minio.accessKey}") String accessKey,
-      @Value("${minio.secretKey}") String secretKey)
-      throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
-      ServerException, InternalException, XmlParserException, ErrorResponseException {
+      @Value("${minio.secretKey}") String secretKey) {
     MinioClient.Builder builder = MinioClient.builder().endpoint(url);
     if (StringUtils.isNotBlank(accessKey) && StringUtils.isNotBlank(secretKey)) {
       builder.credentials(accessKey, secretKey);
     }
     client = builder.build();
+  }
 
+  @PostConstruct
+  public void postConstruct()
+      throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
+      ServerException, InternalException, XmlParserException, ErrorResponseException {
     if (StringUtils.isBlank(workspaceBucketName)) {
       log.info("Working bucket /.");
       return;

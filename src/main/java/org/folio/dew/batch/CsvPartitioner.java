@@ -1,4 +1,4 @@
-package org.folio.dew.batch.circulationlog;
+package org.folio.dew.batch;
 
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.utils.JobParameterNames;
@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Log4j2
-public class CirculationLogPartitioner implements Partitioner {
+public class CsvPartitioner implements Partitioner {
 
   private static final int QUANTITY_PER_PARTITION = 250000;
 
@@ -17,7 +17,7 @@ public class CirculationLogPartitioner implements Partitioner {
   private int offset;
   private int limit;
 
-  public CirculationLogPartitioner(int offset, int limit, String tempOutputFilePath) {
+  public CsvPartitioner(int offset, int limit, String tempOutputFilePath) {
     this.offset = offset;
     this.limit = limit;
     outputFilePathTemplate = createOutputFilePathTemplate(tempOutputFilePath);
@@ -38,8 +38,8 @@ public class CirculationLogPartitioner implements Partitioner {
       currentLimit = limit - QUANTITY_PER_PARTITION >= QUANTITY_PER_PARTITION ? QUANTITY_PER_PARTITION : limit;
 
       ExecutionContext executionContext = new ExecutionContext();
-      executionContext.putLong("circulationLogOffset", offset);
-      executionContext.putLong("circulationLogLimit", currentLimit);
+      executionContext.putLong("offset", offset);
+      executionContext.putLong("limit", currentLimit);
       executionContext.putString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, tempOutputFilePath);
 
       log.debug(

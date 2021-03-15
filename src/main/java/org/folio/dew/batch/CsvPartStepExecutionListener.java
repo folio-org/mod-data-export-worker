@@ -1,4 +1,4 @@
-package org.folio.dew.batch.circulationlog;
+package org.folio.dew.batch;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Log4j2
 @RequiredArgsConstructor
-public class CirculationLogPartStepExecutionListener implements StepExecutionListener {
+public class CsvPartStepExecutionListener implements StepExecutionListener {
 
   private final MinIOObjectStorageRepository repository;
 

@@ -27,17 +27,30 @@ public class MinIOObjectStorageRepository {
   private static final String CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME = "attachment";
   private static final String CONTENT_DISPOSITION_HEADER_WITH_FILENAME = CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME + "; filename=\"%s\"";
 
-  private final MinioClient minioClient;
+  private final MinioClient client;
   @Value("${minio.workspaceBucketName}")
   private String workspaceBucketName;
 
   public MinIOObjectStorageRepository(@Value("${minio.url}") String url, @Value("${minio.accessKey}") String accessKey,
-      @Value("${minio.secretKey}") String secretKey) {
+      @Value("${minio.secretKey}") String secretKey)
+      throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
+      ServerException, InternalException, XmlParserException, ErrorResponseException {
     MinioClient.Builder builder = MinioClient.builder().endpoint(url);
     if (StringUtils.isNotBlank(accessKey) && StringUtils.isNotBlank(secretKey)) {
       builder.credentials(accessKey, secretKey);
     }
-    minioClient = builder.build();
+    client = builder.build();
+
+    if (StringUtils.isBlank(workspaceBucketName)) {
+      log.info("Working bucket /.");
+      return;
+    }
+    if (client.bucketExists(BucketExistsArgs.builder().bucket(workspaceBucketName).build())) {
+      log.info("Working bucket {}.", workspaceBucketName);
+    } else {
+      client.makeBucket(MakeBucketArgs.builder().bucket(workspaceBucketName).build());
+      log.info("Created working bucket {}.", workspaceBucketName);
+    }
   }
 
   public ObjectWriteResponse uploadObject(String object, String filename, String downloadFilename, String contentType)
@@ -45,7 +58,7 @@ public class MinIOObjectStorageRepository {
       InvalidKeyException, NoSuchAlgorithmException, XmlParserException, ErrorResponseException {
     log.info("Uploading object {},filename {},downloadFilename {},contentType {}.", object, filename, downloadFilename,
         contentType);
-    ObjectWriteResponse result = minioClient.uploadObject(
+    ObjectWriteResponse result = client.uploadObject(
         createArgs(UploadObjectArgs.builder().filename(filename), object, downloadFilename, contentType));
 
     new File(filename).delete();
@@ -64,7 +77,7 @@ public class MinIOObjectStorageRepository {
     log.info("Composing object {},sources [{}],downloadFilename {},contentType {}.", destObject,
         sources.stream().map(s -> String.format("bucket %s object %s", s.bucket(), s.object())).collect(Collectors.joining(",")),
         downloadFilename, contentType);
-    ObjectWriteResponse result = minioClient.composeObject(
+    ObjectWriteResponse result = client.composeObject(
         createArgs(ComposeObjectArgs.builder().sources(sources), destObject, downloadFilename, contentType));
 
     removeObjects(sourceObjects);
@@ -74,7 +87,7 @@ public class MinIOObjectStorageRepository {
 
   public Iterable<Result<DeleteError>> removeObjects(List<String> objects) {
     log.info("Deleting objects [{}].", StringUtils.join(objects, ","));
-    return minioClient.removeObjects(RemoveObjectsArgs.builder()
+    return client.removeObjects(RemoveObjectsArgs.builder()
         .bucket(workspaceBucketName)
         .objects(objects.stream().map(DeleteObject::new).collect(Collectors.toList()))
         .build());
@@ -83,9 +96,8 @@ public class MinIOObjectStorageRepository {
   public String objectWriteResponseToPresignedObjectUrl(ObjectWriteResponse response)
       throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
       ServerException, InternalException, XmlParserException, ErrorResponseException {
-    String result = minioClient.getPresignedObjectUrl(
-        GetPresignedObjectUrlArgs.builder().method(Method.GET).bucket(response.bucket()).
-            object(response.object()).region(response.region()).versionId(response.versionId()).build());
+    String result = client.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder().method(Method.GET).bucket(response.bucket()).
+        object(response.object()).region(response.region()).versionId(response.versionId()).build());
     log.info("Created presigned S3 URL {}.", result);
     return result;
   }
@@ -101,9 +113,7 @@ public class MinIOObjectStorageRepository {
     if (StringUtils.isNotBlank(contentType)) {
       headers.put(HttpHeaders.CONTENT_TYPE, contentType);
     }
-    T result = builder.headers(headers).object(object).bucket(workspaceBucketName).build();
-    log.info("Created {}(bucket {},object {}).", result.getClass().getSimpleName(), result.bucket(), result.object());
-    return result;
+    return builder.headers(headers).object(object).bucket(workspaceBucketName).build();
   }
 
 }

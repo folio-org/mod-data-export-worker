@@ -2,6 +2,7 @@ package org.folio.dew.batch.bursarfeesfines;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.service.BursarExportService;
 import org.springframework.batch.core.StepContribution;
@@ -24,8 +25,9 @@ public class TransferFeesFinesTasklet implements Tasklet {
         contribution.getStepExecution().getJobExecution().getExecutionContext();
 
     List<Account> accounts = (List<Account>) context.get("accounts");
-
-    exportService.transferAccounts(accounts);
+    if (CollectionUtils.isNotEmpty(accounts)) {
+      exportService.transferAccounts(accounts);
+    }
     return RepeatStatus.FINISHED;
   }
 }

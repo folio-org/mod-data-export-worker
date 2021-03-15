@@ -1,13 +1,10 @@
 package org.folio.dew.batch.bursarfeesfines;
 
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
-import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarFormat;
+import org.folio.dew.utils.FormatterUtils;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -23,42 +20,21 @@ public class AccountItemProcessor implements ItemProcessor<Account, BursarFormat
   @Override
   public BursarFormat process(Account item) {
     BursarFormat format = new BursarFormat();
-    format.setEmployeeId(getEmployeeId(item.getUserId()));
-    format.setAmount(normalizeAmount(item.getAmount()));
-    format.setTransactionDate(getTransactionDate(item.getMetadata().getCreatedDate()));
+    format.setEmployeeId(FormatterUtils.getEmployeeId(item.getUserId(), userIdMap));
+    format.setAmount(FormatterUtils.normalizeAmount(item.getAmount()));
+    format.setTransactionDate(
+        FormatterUtils.getTransactionDate(item.getMetadata().getCreatedDate()));
     format.setSfs("SFS");
     format.setTermValue("    ");
-    format.setDescription(getItemTypeDescription(item.getFeeFineType()));
-    format.setItemType(getItemType());
+    format.setDescription(FormatterUtils.getItemTypeDescription(item.getFeeFineType()));
+    format.setItemType(FormatterUtils.getItemType());
     return format;
-  }
-
-  private String getItemType() {
-    return StringUtils.rightPad(" ", 12);
-  }
-
-  private String getItemTypeDescription(String feeFineType) {
-    return StringUtils.rightPad(feeFineType, 30);
-  }
-
-  private String normalizeAmount(BigDecimal amount) {
-    return StringUtils.leftPad(amount.toString(), 9, "0");
-  }
-
-  private String getTransactionDate(Date createdDate) {
-    final SimpleDateFormat dateFormat = new SimpleDateFormat("MMddyy");
-    return dateFormat.format(createdDate);
-  }
-
-  private String getEmployeeId(String userId) {
-    String externalId = userIdMap.get(userId);
-    externalId = externalId == null ? "" : externalId.substring(externalId.length() - 7);
-    return StringUtils.rightPad(externalId, 11);
   }
 
   @BeforeStep
   public void initStep(StepExecution stepExecution) {
     var externalIdMap = stepExecution.getExecutionContext().get("userIdMap");
-    this.userIdMap = externalIdMap == null ? Collections.emptyMap() : (Map<String, String>) externalIdMap;
+    this.userIdMap =
+        externalIdMap == null ? Collections.emptyMap() : (Map<String, String>) externalIdMap;
   }
 }

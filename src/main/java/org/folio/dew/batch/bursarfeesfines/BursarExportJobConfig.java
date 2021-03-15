@@ -10,8 +10,8 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.listener.ExecutionContextPromotionListener;
 import org.springframework.batch.item.ItemProcessor;
@@ -19,6 +19,7 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileHeaderCallback;
 import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,29 +44,23 @@ public class BursarExportJobConfig {
   }
 
   @Bean
-  @JobScope
   public Step exportChargeFeefinesStep(ItemReader<Account> reader, ItemProcessor<Account, BursarFormat> processor,
-      BursarExportStepListener listener, StepBuilderFactory stepBuilderFactory,
-      @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath) {
+      @Qualifier("bursarFeesFines") ItemWriter<BursarFormat> writer, BursarExportStepListener listener,
+      StepBuilderFactory stepBuilderFactory) {
     return stepBuilderFactory.get(BursarFilenameUtil.CHARGE_FEESFINES_EXPORT_STEP).<Account, BursarFormat>chunk(1000).reader(reader)
         .processor(processor)
-        .writer(writer(BursarFilenameUtil.CHARGE_FEESFINES_EXPORT_STEP, tempOutputFilePath))
+        .writer(writer)
         .listener(promotionListener())
         .listener(listener)
         .build();
   }
 
   @Bean
-  @JobScope
   public Step exportRefundFeefinesStep(ItemReader<Feefineaction> reader, ItemProcessor<Feefineaction, BursarFormat> processor,
-      BursarExportStepListener listener, StepBuilderFactory stepBuilderFactory,
-      @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath) {
+      @Qualifier("bursarFeesFines") ItemWriter<BursarFormat> writer, BursarExportStepListener listener,
+      StepBuilderFactory stepBuilderFactory) {
     return stepBuilderFactory.get(BursarFilenameUtil.REFUND_FEESFINES_EXPORT_STEP).<Feefineaction, BursarFormat>chunk(1000).reader(
-        reader)
-        .processor(processor)
-        .writer(writer(BursarFilenameUtil.REFUND_FEESFINES_EXPORT_STEP, tempOutputFilePath))
-        .listener(listener)
-        .build();
+        reader).processor(processor).writer(writer).listener(listener).build();
   }
 
   @Bean
@@ -80,7 +75,10 @@ public class BursarExportJobConfig {
     return listener;
   }
 
-  private ItemWriter<BursarFormat> writer(String stepName, String tempOutputFilePath) {
+  @Bean("bursarFeesFines")
+  @StepScope
+  public ItemWriter<BursarFormat> writer(@Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
+      @Value("#{stepExecution.stepName}") String stepName) {
     String fileName = tempOutputFilePath + '_' + BursarFilenameUtil.getFilename(stepName);
     Resource exportFileResource = new FileSystemResource(fileName);
 

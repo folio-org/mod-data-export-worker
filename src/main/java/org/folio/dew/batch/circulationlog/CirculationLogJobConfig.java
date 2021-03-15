@@ -76,7 +76,7 @@ public class CirculationLogJobConfig {
 
   @Bean("getCirculationLogPartStep")
   public Step getCirculationLogPartStep(CirculationLogFeignItemReader circulationLogFeignItemReader,
-      FlatFileItemWriter<LogRecord> flatFileItemWriter, CsvPartStepExecutionListener csvPartStepExecutionListener) {
+      @Qualifier("circulationLog") FlatFileItemWriter<LogRecord> flatFileItemWriter, CsvPartStepExecutionListener csvPartStepExecutionListener) {
     return stepBuilderFactory.get("getCirculationLogPartStep").<LogRecord, LogRecord>chunk(100).reader(
         circulationLogFeignItemReader)
         .writer(flatFileItemWriter)
@@ -97,7 +97,7 @@ public class CirculationLogJobConfig {
     return new CirculationLogFeignItemReader(auditClient, offsetInt, limitInt);
   }
 
-  @Bean
+  @Bean("circulationLog")
   @StepScope
   public FlatFileItemWriter<LogRecord> writer(@Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath) {
     final String commaDelimiter = ",";

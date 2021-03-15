@@ -2,20 +2,30 @@ package org.folio.dew.repository;
 
 import io.minio.*;
 import io.minio.errors.*;
+import io.minio.http.Method;
+import io.minio.messages.DeleteError;
+import io.minio.messages.DeleteObject;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Repository;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Repository
 @Log4j2
 public class MinIOObjectStorageRepository {
+
+  private static final String CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME = "attachment";
+  private static final String CONTENT_DISPOSITION_HEADER_WITH_FILENAME = CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME + "; filename=\"%s\"";
 
   private final MinioClient minioClient;
   @Value("${minio.workspaceBucketName}")
@@ -30,29 +40,70 @@ public class MinIOObjectStorageRepository {
     minioClient = builder.build();
   }
 
-  public ObjectWriteResponse uploadObject(String objectName, String filePath, String contentType)
+  public ObjectWriteResponse uploadObject(String object, String filename, String downloadFilename, String contentType)
       throws IOException, ServerException, InsufficientDataException, InternalException, InvalidResponseException,
       InvalidKeyException, NoSuchAlgorithmException, XmlParserException, ErrorResponseException {
-    log.info("Uploading object {} filename {} contentType {}.", objectName, filePath, contentType);
-    return minioClient.uploadObject(UploadObjectArgs.builder()
+    log.info("Uploading object {} filename {} downloadFilename {} contentType {}.", object, filename, downloadFilename,
+        contentType);
+    ObjectWriteResponse result = minioClient.uploadObject(
+        createArgs(UploadObjectArgs.builder().filename(filename), object, downloadFilename, contentType));
+
+    new File(filename).delete();
+    log.info("Temp file {} deleted.", filename);
+
+    return result;
+  }
+
+  public ObjectWriteResponse composeObject(String destObject, List<String> sourceObjects, String downloadFilename,
+      String contentType)
+      throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
+      ServerException, InternalException, XmlParserException, ErrorResponseException {
+    List<ComposeSource> sources = sourceObjects.stream()
+        .map(so -> ComposeSource.builder().bucket(workspaceBucketName).object(so).build())
+        .collect(Collectors.toList());
+    log.info("Composing object {} sources [{}] downloadFilename {} contentType {}.", destObject,
+        sources.stream().map(s -> String.format("bucket %s object %s", s.bucket(), s.object())).collect(Collectors.joining(",")),
+        downloadFilename, contentType);
+    ObjectWriteResponse result = minioClient.composeObject(
+        createArgs(ComposeObjectArgs.builder().sources(sources), destObject, downloadFilename, contentType));
+
+    removeObjects(sourceObjects);
+
+    return result;
+  }
+
+  public Iterable<Result<DeleteError>> removeObjects(List<String> objects) {
+    log.info("Deleting objects [{}].", StringUtils.join(objects, ","));
+    return minioClient.removeObjects(RemoveObjectsArgs.builder()
         .bucket(workspaceBucketName)
-        .object(objectName)
-        .filename(filePath)
-        .contentType(contentType)
+        .objects(objects.stream().map(DeleteObject::new).collect(Collectors.toList()))
         .build());
   }
 
-  public ObjectWriteResponse composeObject(String destObjectName, List<String> sourceObjectNames)
+  public String objectWriteResponseToPresignedObjectUrl(ObjectWriteResponse response)
       throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
       ServerException, InternalException, XmlParserException, ErrorResponseException {
-    List<ComposeSource> sourceObjects = sourceObjectNames.stream()
-        .map(n -> ComposeSource.builder().bucket(workspaceBucketName).object(n).build())
-        .collect(Collectors.toList());
-    log.info("Composing object {} sources [{}].", destObjectName, sourceObjects.stream()
-        .map(so -> String.format("bucketName %s objectName %s", so.bucket(), so.object()))
-        .collect(Collectors.joining(",")));
-    return minioClient.composeObject(
-        ComposeObjectArgs.builder().bucket(workspaceBucketName).object(destObjectName).sources(sourceObjects).build());
+    String result = minioClient.getPresignedObjectUrl(
+        GetPresignedObjectUrlArgs.builder().method(Method.GET).bucket(response.bucket()).
+            object(response.object()).region(response.region()).versionId(response.versionId()).build());
+    log.info("Created presigned S3 URL {}.", result);
+    return result;
+  }
+
+  private <T extends ObjectWriteArgs> T createArgs(T.Builder<?, T> builder, String object, String downloadFilename,
+      String contentType) {
+    Map<String, String> headers = new HashMap<>(2);
+    if (StringUtils.isNotBlank(downloadFilename)) {
+      headers.put(HttpHeaders.CONTENT_DISPOSITION, String.format(CONTENT_DISPOSITION_HEADER_WITH_FILENAME, downloadFilename));
+    } else {
+      headers.put(HttpHeaders.CONTENT_DISPOSITION, CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME);
+    }
+    if (StringUtils.isNotBlank(contentType)) {
+      headers.put(HttpHeaders.CONTENT_TYPE, contentType);
+    }
+    builder.headers(headers);
+
+    return builder.object(object).bucket(workspaceBucketName).build();
   }
 
 }

@@ -1,12 +1,12 @@
 package org.folio.dew.batch.circulationlog;
 
-import java.util.UUID;
 import org.folio.dew.client.AuditClient;
 import org.folio.dew.domain.dto.LogRecord;
 import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
 
-public class CirculationLogFeignItemReader
-    extends AbstractItemCountingItemStreamItemReader<LogRecord> {
+import java.util.UUID;
+
+public class CirculationLogFeignItemReader extends AbstractItemCountingItemStreamItemReader<LogRecord> {
 
   private static final int QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST = 100;
   private static final boolean IS_SAVE_READER_STATE = false;
@@ -46,15 +46,19 @@ public class CirculationLogFeignItemReader
   }
 
   @Override
-  protected void doOpen() {}
+  protected void doOpen() {
+    // Nothing to do
+  }
 
   @Override
-  protected void doClose() {}
+  protected void doClose() {
+    // Nothing to do
+  }
 
   private LogRecord[] getLogRecord() {
-    return auditClient
-        .getCirculationAuditLogs(null, currentOffset, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST, null)
+    return auditClient.getCirculationAuditLogs(null, currentOffset, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST, null)
         .getLogRecords()
         .toArray(new LogRecord[0]);
   }
+
 }

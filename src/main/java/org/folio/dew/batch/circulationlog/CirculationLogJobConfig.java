@@ -5,6 +5,8 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.des.domain.dto.ExportType;
 import org.folio.dew.batch.CsvFileAssembler;
+import org.folio.dew.batch.CsvPartStepExecutionListener;
+import org.folio.dew.batch.CsvPartitioner;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.client.AuditClient;
 import org.folio.dew.domain.dto.LogRecord;
@@ -40,8 +42,8 @@ public class CirculationLogJobConfig {
 
   @Bean
   @StepScope
-  public CirculationLogFeignItemReader reader(@Value("#{stepExecutionContext[circulationLogOffset]}") Long offset,
-      @Value("#{stepExecutionContext[circulationLogLimit]}") Long limit) {
+  public CirculationLogFeignItemReader reader(@Value("#{stepExecutionContext[offset]}") Long offset,
+      @Value("#{stepExecutionContext[limit]}") Long limit) {
     int offsetInt = offset.intValue();
     int limitInt = limit.intValue();
 
@@ -104,29 +106,26 @@ public class CirculationLogJobConfig {
 
   @Bean("getCirculationLogPartStep")
   public Step getCirculationLogPartStep(CirculationLogFeignItemReader circulationLogFeignItemReader,
-      FlatFileItemWriter<LogRecord> flatFileItemWriter,
-      CirculationLogPartStepExecutionListener circulationLogPartStepExecutionListener) {
+      FlatFileItemWriter<LogRecord> flatFileItemWriter, CsvPartStepExecutionListener csvPartStepExecutionListener) {
     return stepBuilderFactory.get("getCirculationLogPartStep").<LogRecord, LogRecord>chunk(100).reader(
         circulationLogFeignItemReader)
         .writer(flatFileItemWriter)
         .faultTolerant()
         .allowStartIfComplete(false)
         .throttleLimit(NUMBER_OF_CONCURRENT_TASK_EXECUTIONS)
-        .listener(circulationLogPartStepExecutionListener)
+        .listener(csvPartStepExecutionListener)
         .build();
   }
 
   @Bean
   @StepScope
-  public Partitioner getCirculationLogPartitioner(@Value("#{jobParameters['offset']}") Long circulationLogOffset,
-      @Value("#{jobParameters['limit']}") Long circulationLogLimit,
-      @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath) {
-    if (circulationLogOffset == null || circulationLogLimit == null || StringUtils.isBlank(tempOutputFilePath)) {
+  public Partitioner getCirculationLogPartitioner(@Value("#{jobParameters['offset']}") Long offset,
+      @Value("#{jobParameters['limit']}") Long limit, @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath) {
+    if (offset == null || limit == null || StringUtils.isBlank(tempOutputFilePath)) {
       throw new IllegalArgumentException(
-          String.format("circulationLogOffset %d circulationLogLimit %d tempOutputFilePath %s", circulationLogOffset,
-              circulationLogLimit, tempOutputFilePath));
+          String.format("offset %d limit %d tempOutputFilePath %s", offset, limit, tempOutputFilePath));
     }
-    return new CirculationLogPartitioner(circulationLogOffset.intValue(), circulationLogLimit.intValue(), tempOutputFilePath);
+    return new CsvPartitioner(offset.intValue(), limit.intValue(), tempOutputFilePath);
   }
 
 }

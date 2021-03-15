@@ -18,6 +18,7 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileHeaderCallback;
+import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -77,7 +78,7 @@ public class BursarExportJobConfig {
 
   @Bean("bursarFeesFines")
   @StepScope
-  public ItemWriter<BursarFormat> writer(@Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
+  public FlatFileItemWriter<BursarFormat> writer(@Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
       @Value("#{stepExecution.stepName}") String stepName) {
     String fileName = tempOutputFilePath + '_' + BursarFilenameUtil.getFilename(stepName);
     Resource exportFileResource = new FileSystemResource(fileName);

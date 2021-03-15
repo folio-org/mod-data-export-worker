@@ -12,6 +12,7 @@ import org.folio.dew.utils.JobParameterNames;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
@@ -74,22 +75,31 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     }
 
     Job jobExecutionUpdate = new Job();
+
     jobExecutionUpdate.setId(UUID.fromString(jobId));
-    String outputFilesInStorage = jobExecution.getExecutionContext().getString(JobParameterNames.OUTPUT_FILES_IN_STORAGE);
+
+    ExecutionContext executionContext = jobExecution.getExecutionContext();
+    String outputFilesInStorage = executionContext.containsKey(JobParameterNames.OUTPUT_FILES_IN_STORAGE) ?
+        executionContext.getString(JobParameterNames.OUTPUT_FILES_IN_STORAGE) :
+        null;
     if (StringUtils.isNotBlank(outputFilesInStorage)) {
       jobExecutionUpdate.setFiles(Arrays.asList(outputFilesInStorage.split(";")));
     }
+
     jobExecutionUpdate.setStartTime(jobExecution.getStartTime());
     jobExecutionUpdate.setCreatedDate(jobExecution.getCreateTime());
     jobExecutionUpdate.setEndTime(jobExecution.getEndTime());
     jobExecutionUpdate.setUpdatedDate(jobExecution.getLastUpdated());
+
     List<Throwable> errors = jobExecution.getAllFailureExceptions();
     if (CollectionUtils.isNotEmpty(errors)) {
       jobExecutionUpdate.setErrorDetails(
           errors.stream().map(t -> getThrowableRootCause(t).getMessage()).collect(Collectors.joining("\n")));
     }
+
     jobExecutionUpdate.setBatchStatus(jobExecution.getStatus());
     jobExecutionUpdate.setExitStatus(jobExecution.getExitStatus());
+
     log.info("Sending {}.", jobExecutionUpdate);
     kafkaTemplate.send(JobUpdatesService.DATA_EXPORT_JOB_EXECUTION_UPDATES_TOPIC_NAME, jobExecutionUpdate.getId().toString(),
         jobExecutionUpdate);

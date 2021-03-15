@@ -18,7 +18,7 @@ public class ExecutionContextUtils {
 
   public static void addToJobExecutionContext(StepExecution stepExecution, String key, String value) {
     ExecutionContext jobExecutionContext = stepExecution.getJobExecution().getExecutionContext();
-    String oldUrl = jobExecutionContext.getString(key);
+    String oldUrl = jobExecutionContext.containsKey(key) ? jobExecutionContext.getString(key) : null;
     jobExecutionContext.putString(key, StringUtils.isBlank(oldUrl) ? value : oldUrl + ';' + value);
   }
 

@@ -91,6 +91,13 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     result.setId(UUID.fromString(jobId));
 
     ExecutionContext executionContext = jobExecution.getExecutionContext();
+    String jobDescription = executionContext.containsKey(JobParameterNames.JOB_DESCRIPTION) ?
+        executionContext.getString(JobParameterNames.JOB_DESCRIPTION) :
+        null;
+    if (StringUtils.isNotBlank(jobDescription)) {
+      result.setDescription(jobDescription);
+    }
+
     String outputFilesInStorage = executionContext.containsKey(JobParameterNames.OUTPUT_FILES_IN_STORAGE) ?
         executionContext.getString(JobParameterNames.OUTPUT_FILES_IN_STORAGE) :
         null;

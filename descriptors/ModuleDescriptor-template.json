@@ -107,6 +107,26 @@
         "value": "9092"
       },
       {
+        "name": "AWS_URL",
+        "value": "http://127.0.0.1:9000/"
+      },
+      {
+        "name": "AWS_REGION",
+        "value": ""
+      },
+      {
+        "name": "AWS_BUCKET",
+        "value": "test-bucket2"
+      },
+      {
+        "name": "AWS_ACCESS_KEY_ID",
+        "value": "AKIAIOSFODNN7EXAMPLE"
+      },
+      {
+        "name": "AWS_SECRET_ACCESS_KEY",
+        "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+      },
+      {
         "name": "ENV",
         "value": "folio"
       }

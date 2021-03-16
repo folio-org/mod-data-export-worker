@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Repository;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -31,8 +30,8 @@ public class MinIOObjectStorageRepository {
   private final MinioClient client;
   private final String bucket;
 
-  public MinIOObjectStorageRepository(@Value("${minio.url}") String endpoint, @Value("${minio.region}") String region,
-      @Value("${minio.workspaceBucketName}") String bucket, @Value("${minio.accessKey}") String accessKey,
+  public MinIOObjectStorageRepository(@Value("${minio.endpoint}") String endpoint, @Value("${minio.region}") String region,
+      @Value("${minio.bucket}") String bucket, @Value("${minio.accessKey}") String accessKey,
       @Value("${minio.secretKey}") String secretKey) {
     log.info("Creating MinIO S3 client endpoint {},region {},bucket {},accessKey {},secretKey {}.", endpoint, region, bucket,
         StringUtils.isNotBlank(accessKey) ? "<set>" : "<not set>", StringUtils.isNotBlank(secretKey) ? "<set>" : "<not set>");
@@ -47,19 +46,6 @@ public class MinIOObjectStorageRepository {
     client = builder.build();
 
     this.bucket = bucket;
-  }
-
-  @PostConstruct
-  public void postConstruct()
-      throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
-      ServerException, InternalException, XmlParserException, ErrorResponseException {
-    if (StringUtils.isBlank(bucket)) {
-      return;
-    }
-    if (!client.bucketExists(BucketExistsArgs.builder().bucket(bucket).build())) {
-      client.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
-      log.info("Created bucket {}.", bucket);
-    }
   }
 
   public ObjectWriteResponse uploadObject(String object, String filename, String downloadFilename, String contentType)

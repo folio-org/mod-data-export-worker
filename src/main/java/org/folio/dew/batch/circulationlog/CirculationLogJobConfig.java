@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskExecutor;
 
 @Configuration
@@ -67,16 +66,15 @@ public class CirculationLogJobConfig {
   @StepScope
   public Partitioner getCirculationLogPartitioner(@Value("#{jobParameters['offset']}") Long offset,
       @Value("#{jobParameters['limit']}") Long limit, @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath) {
-    if (offset == null || limit == null || StringUtils.isBlank(tempOutputFilePath)) {
-      throw new IllegalArgumentException(
-          String.format("offset %d limit %d tempOutputFilePath %s", offset, limit, tempOutputFilePath));
-    }
+    offset = offset == null ? 0 : offset;
+    limit = limit == null ? Integer.MAX_VALUE : limit;
     return new CsvPartitioner(offset.intValue(), limit.intValue(), tempOutputFilePath);
   }
 
   @Bean("getCirculationLogPartStep")
   public Step getCirculationLogPartStep(CirculationLogFeignItemReader circulationLogFeignItemReader,
-      @Qualifier("circulationLog") FlatFileItemWriter<LogRecord> flatFileItemWriter, CsvPartStepExecutionListener csvPartStepExecutionListener) {
+      @Qualifier("circulationLog") FlatFileItemWriter<LogRecord> flatFileItemWriter,
+      CsvPartStepExecutionListener csvPartStepExecutionListener) {
     return stepBuilderFactory.get("getCirculationLogPartStep").<LogRecord, LogRecord>chunk(100).reader(
         circulationLogFeignItemReader)
         .writer(flatFileItemWriter)
@@ -89,30 +87,23 @@ public class CirculationLogJobConfig {
 
   @Bean
   @StepScope
-  public CirculationLogFeignItemReader reader(@Value("#{stepExecutionContext[offset]}") Long offset,
-      @Value("#{stepExecutionContext[limit]}") Long limit) {
-    int offsetInt = offset.intValue();
-    int limitInt = limit.intValue();
-
-    return new CirculationLogFeignItemReader(auditClient, offsetInt, limitInt);
+  public CirculationLogFeignItemReader reader(@Value("#{jobParameters['query']}") String query,
+      @Value("#{stepExecutionContext[offset]}") Long offset, @Value("#{stepExecutionContext[limit]}") Long limit) {
+    return new CirculationLogFeignItemReader(auditClient, query, offset.intValue(), limit.intValue());
   }
 
   @Bean("circulationLog")
   @StepScope
   public FlatFileItemWriter<LogRecord> writer(@Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath) {
-    final String commaDelimiter = ",";
-
-    if (tempOutputFilePath == null) {
-      return null;
+    if (StringUtils.isBlank(tempOutputFilePath)) {
+      throw new IllegalArgumentException("#{stepExecutionContext['tempOutputFilePath']} is blank");
     }
-
-    Resource outputFile = new FileSystemResource(tempOutputFilePath);
 
     FlatFileItemWriter<LogRecord> flatFileItemWriter = new FlatFileItemWriter<>();
     flatFileItemWriter.setName("circulationLogWriter");
 
     DelimitedLineAggregator<LogRecord> lineAggregator = new DelimitedLineAggregator<>();
-    lineAggregator.setDelimiter(commaDelimiter);
+    lineAggregator.setDelimiter(",");
 
     BeanWrapperFieldExtractor<LogRecord> fieldExtractor = new BeanWrapperFieldExtractor<>();
     String[] extractedFieldNames = { "id", "eventId", "userBarcode", "items", "object", "action", "date", "servicePointId",
@@ -121,7 +112,7 @@ public class CirculationLogJobConfig {
     lineAggregator.setFieldExtractor(fieldExtractor);
 
     flatFileItemWriter.setLineAggregator(lineAggregator);
-    flatFileItemWriter.setResource(outputFile);
+    flatFileItemWriter.setResource(new FileSystemResource(tempOutputFilePath));
 
     flatFileItemWriter.setAppendAllowed(true);
     log.info("Creating file {}.", tempOutputFilePath);

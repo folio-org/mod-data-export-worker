@@ -8,6 +8,7 @@ import org.folio.dew.utils.BursarFeesFinesUtils;
 import org.folio.dew.utils.ExecutionContextUtils;
 import org.folio.dew.utils.JobParameterNames;
 import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -30,16 +31,17 @@ public class BursarExportStepListener implements StepExecutionListener {
   @Override
   public ExitStatus afterStep(StepExecution stepExecution) {
     String downloadFilename = BursarFeesFinesUtils.getFilename(stepExecution.getStepName());
-    String filename = stepExecution.getJobExecution()
-        .getJobParameters()
-        .getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + '_' + downloadFilename;
+    JobExecution jobExecution = stepExecution.getJobExecution();
+    String filename = jobExecution.getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + '_' + downloadFilename;
 
     String url;
     try {
       url = repository.objectWriteResponseToPresignedObjectUrl(
           repository.uploadObject(FilenameUtils.getName(filename), filename, downloadFilename, MediaType.TEXT_MARKDOWN_VALUE));
     } catch (Exception e) {
-      throw new IllegalStateException(e);
+      log.error(e.getMessage(), e);
+      jobExecution.addFailureException(e);
+      return ExitStatus.FAILED;
     }
 
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, url);

@@ -12,8 +12,6 @@ import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.SpringApplication;
-import org.springframework.context.ApplicationContext;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
@@ -32,7 +30,6 @@ public class JobCommandsReceiverService {
 
   private final ExportJobManager exportJobManager;
   private final IAcknowledgementRepository acknowledgementRepository;
-  private final ApplicationContext applicationContext;
   private final List<Job> jobs;
   private Map<String, Job> jobMap;
   @Value("${spring.application.name}")
@@ -52,8 +49,7 @@ public class JobCommandsReceiverService {
       if (file.mkdir()) {
         log.info("Created working directory {}.", workDir);
       } else {
-        log.fatal("Can't create working directory {}.", workDir);
-        SpringApplication.exit(applicationContext, () -> 1);
+        throw new IllegalStateException(String.format("Can't create working directory %s.", workDir));
       }
     } else {
       log.info("Working directory {}.", workDir);

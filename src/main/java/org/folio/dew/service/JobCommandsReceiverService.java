@@ -69,7 +69,7 @@ public class JobCommandsReceiverService {
       acknowledgementRepository.addAcknowledgement(startJobCommand.getId().toString(), acknowledgment);
       exportJobManager.launchJob(jobLaunchRequest);
     } catch (Exception e) {
-      log.error(e.getMessage(), e);
+      log.error(e.toString(), e);
     }
   }
 

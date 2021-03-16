@@ -42,9 +42,6 @@ public class CsvPartitioner implements Partitioner {
       executionContext.putLong("limit", currentLimit);
       executionContext.putString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, tempOutputFilePath);
 
-      log.info(
-          "Partition created: " + i + " Offset: " + offset + " Limit: " + currentLimit + " Output file path: " + tempOutputFilePath);
-
       offset += currentLimit;
       limit -= QUANTITY_PER_PARTITION;
 

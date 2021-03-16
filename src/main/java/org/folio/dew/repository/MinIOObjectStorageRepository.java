@@ -32,9 +32,11 @@ public class MinIOObjectStorageRepository {
   @Value("${minio.workspaceBucketName}")
   private String workspaceBucketName;
 
-  public MinIOObjectStorageRepository(@Value("${minio.url}") String url, @Value("${minio.accessKey}") String accessKey,
+  public MinIOObjectStorageRepository(@Value("${minio.url}") String endpoint, @Value("${minio.accessKey}") String accessKey,
       @Value("${minio.secretKey}") String secretKey) {
-    MinioClient.Builder builder = MinioClient.builder().endpoint(url);
+    log.info("Creating MinIO S3 client endpoint {},accessKey {},secretKey {}.", endpoint,
+        StringUtils.isNotBlank(accessKey) ? "<set>" : "<not set>", StringUtils.isNotBlank(secretKey) ? "<set>" : "<not set>");
+    MinioClient.Builder builder = MinioClient.builder().endpoint(endpoint);
     if (StringUtils.isNotBlank(accessKey) && StringUtils.isNotBlank(secretKey)) {
       builder.credentials(accessKey, secretKey);
     }

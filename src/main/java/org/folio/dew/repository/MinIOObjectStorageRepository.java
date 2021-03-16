@@ -29,33 +29,36 @@ public class MinIOObjectStorageRepository {
   private static final String CONTENT_DISPOSITION_HEADER_WITH_FILENAME = CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME + "; filename=\"%s\"";
 
   private final MinioClient client;
-  @Value("${minio.workspaceBucketName}")
-  private String workspaceBucketName;
+  private final String bucket;
 
-  public MinIOObjectStorageRepository(@Value("${minio.url}") String endpoint, @Value("${minio.accessKey}") String accessKey,
+  public MinIOObjectStorageRepository(@Value("${minio.url}") String endpoint, @Value("${minio.region}") String region,
+      @Value("${minio.workspaceBucketName}") String bucket, @Value("${minio.accessKey}") String accessKey,
       @Value("${minio.secretKey}") String secretKey) {
-    log.info("Creating MinIO S3 client endpoint {},accessKey {},secretKey {}.", endpoint,
+    log.info("Creating MinIO S3 client endpoint {},region {},bucket {},accessKey {},secretKey {}.", endpoint, region, bucket,
         StringUtils.isNotBlank(accessKey) ? "<set>" : "<not set>", StringUtils.isNotBlank(secretKey) ? "<set>" : "<not set>");
+
     MinioClient.Builder builder = MinioClient.builder().endpoint(endpoint);
+    if (StringUtils.isNotBlank(region)) {
+      builder.region(region);
+    }
     if (StringUtils.isNotBlank(accessKey) && StringUtils.isNotBlank(secretKey)) {
       builder.credentials(accessKey, secretKey);
     }
     client = builder.build();
+
+    this.bucket = bucket;
   }
 
   @PostConstruct
   public void postConstruct()
       throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
       ServerException, InternalException, XmlParserException, ErrorResponseException {
-    if (StringUtils.isBlank(workspaceBucketName)) {
-      log.info("Working bucket /.");
+    if (StringUtils.isBlank(bucket)) {
       return;
     }
-    if (client.bucketExists(BucketExistsArgs.builder().bucket(workspaceBucketName).build())) {
-      log.info("Working bucket {}.", workspaceBucketName);
-    } else {
-      client.makeBucket(MakeBucketArgs.builder().bucket(workspaceBucketName).build());
-      log.info("Created working bucket {}.", workspaceBucketName);
+    if (!client.bucketExists(BucketExistsArgs.builder().bucket(bucket).build())) {
+      client.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
+      log.info("Created bucket {}.", bucket);
     }
   }
 
@@ -78,10 +81,10 @@ public class MinIOObjectStorageRepository {
       throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
       ServerException, InternalException, XmlParserException, ErrorResponseException {
     List<ComposeSource> sources = sourceObjects.stream()
-        .map(so -> ComposeSource.builder().bucket(workspaceBucketName).object(so).build())
+        .map(so -> ComposeSource.builder().bucket(bucket).object(so).build())
         .collect(Collectors.toList());
     log.info("Composing object {},sources [{}],downloadFilename {},contentType {}.", destObject,
-        sources.stream().map(s -> String.format("bucket %s object %s", s.bucket(), s.object())).collect(Collectors.joining(",")),
+        sources.stream().map(s -> String.format("bucket %s,object %s", s.bucket(), s.object())).collect(Collectors.joining(",")),
         downloadFilename, contentType);
     ObjectWriteResponse result = client.composeObject(
         createArgs(ComposeObjectArgs.builder().sources(sources), destObject, downloadFilename, contentType));
@@ -94,7 +97,7 @@ public class MinIOObjectStorageRepository {
   public Iterable<Result<DeleteError>> removeObjects(List<String> objects) {
     log.info("Deleting objects [{}].", StringUtils.join(objects, ","));
     return client.removeObjects(RemoveObjectsArgs.builder()
-        .bucket(workspaceBucketName)
+        .bucket(bucket)
         .objects(objects.stream().map(DeleteObject::new).collect(Collectors.toList()))
         .build());
   }
@@ -119,7 +122,7 @@ public class MinIOObjectStorageRepository {
     if (StringUtils.isNotBlank(contentType)) {
       headers.put(HttpHeaders.CONTENT_TYPE, contentType);
     }
-    return builder.headers(headers).object(object).bucket(workspaceBucketName).build();
+    return builder.headers(headers).object(object).bucket(bucket).build();
   }
 
 }

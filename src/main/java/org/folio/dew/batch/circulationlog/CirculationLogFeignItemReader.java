@@ -12,13 +12,15 @@ public class CirculationLogFeignItemReader extends AbstractItemCountingItemStrea
   private static final boolean IS_SAVE_READER_STATE = false;
 
   private final AuditClient auditClient;
+  private final String query;
   private int currentOffset;
 
   private LogRecord[] currentChunk;
   private int currentChunkOffset;
 
-  public CirculationLogFeignItemReader(AuditClient auditClient, int offset, int limit) {
+  public CirculationLogFeignItemReader(AuditClient auditClient, String query, int offset, int limit) {
     this.auditClient = auditClient;
+    this.query = query;
     currentOffset = offset;
 
     setCurrentItemCount(0);
@@ -56,7 +58,7 @@ public class CirculationLogFeignItemReader extends AbstractItemCountingItemStrea
   }
 
   private LogRecord[] getLogRecord() {
-    return auditClient.getCirculationAuditLogs(null, currentOffset, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST, null)
+    return auditClient.getCirculationAuditLogs(query, currentOffset, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST, null)
         .getLogRecords()
         .toArray(new LogRecord[0]);
   }

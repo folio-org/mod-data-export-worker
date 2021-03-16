@@ -29,7 +29,7 @@ public class CsvPartStepExecutionListener implements StepExecutionListener {
     try {
       repository.uploadObject(FilenameUtils.getName(filename), filename, null, "text/csv");
     } catch (Exception e) {
-      log.error(e.getMessage(), e);
+      log.error(e.toString(), e);
       stepExecution.getJobExecution().addFailureException(e);
       return ExitStatus.FAILED;
     }

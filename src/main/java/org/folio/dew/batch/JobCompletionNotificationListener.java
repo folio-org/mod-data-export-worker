@@ -5,10 +5,10 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.des.domain.JobParameterNames;
 import org.folio.des.domain.entity.Job;
 import org.folio.des.service.JobUpdatesService;
 import org.folio.dew.repository.IAcknowledgementRepository;
-import org.folio.dew.utils.JobParameterNames;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
@@ -60,6 +60,9 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     kafkaTemplate.send(JobUpdatesService.DATA_EXPORT_JOB_EXECUTION_UPDATES_TOPIC_NAME, jobExecutionUpdate.getId().toString(),
         jobExecutionUpdate);
     log.info("Sent job {} update.", jobExecutionUpdate.getId());
+    if (after) {
+      log.info("-----------------------------JOB---ENDS-----------------------------");
+    }
   }
 
   private void processJobAfter(String jobId, JobParameters jobParameters) {

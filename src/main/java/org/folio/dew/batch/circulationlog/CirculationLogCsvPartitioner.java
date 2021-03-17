@@ -10,6 +10,7 @@ public class CirculationLogCsvPartitioner extends CsvPartitioner {
 
   public CirculationLogCsvPartitioner(Long offset, Long limit, String tempOutputFilePath, AuditClient auditClient, String query) {
     super(offset, limit, tempOutputFilePath);
+
     this.auditClient = auditClient;
     this.query = query;
   }

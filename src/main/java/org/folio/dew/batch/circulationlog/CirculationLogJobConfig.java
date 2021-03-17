@@ -70,11 +70,10 @@ public class CirculationLogJobConfig {
   }
 
   @Bean("getCirculationLogPartStep")
-  public Step getCirculationLogPartStep(CirculationLogFeignItemReader circulationLogFeignItemReader,
+  public Step getCirculationLogPartStep(CirculationLogCsvItemReader circulationLogCsvItemReader,
       @Qualifier("circulationLog") FlatFileItemWriter<LogRecord> flatFileItemWriter,
       CsvPartStepExecutionListener csvPartStepExecutionListener) {
-    return stepBuilderFactory.get("getCirculationLogPartStep").<LogRecord, LogRecord>chunk(100).reader(
-        circulationLogFeignItemReader)
+    return stepBuilderFactory.get("getCirculationLogPartStep").<LogRecord, LogRecord>chunk(100).reader(circulationLogCsvItemReader)
         .writer(flatFileItemWriter)
         .faultTolerant()
         .allowStartIfComplete(false)
@@ -85,9 +84,9 @@ public class CirculationLogJobConfig {
 
   @Bean
   @StepScope
-  public CirculationLogFeignItemReader reader(@Value("#{jobParameters['query']}") String query,
+  public CirculationLogCsvItemReader reader(@Value("#{jobParameters['query']}") String query,
       @Value("#{stepExecutionContext[offset]}") Long offset, @Value("#{stepExecutionContext[limit]}") Long limit) {
-    return new CirculationLogFeignItemReader(auditClient, query, offset, limit);
+    return new CirculationLogCsvItemReader(auditClient, query, offset, limit);
   }
 
   @Bean("circulationLog")

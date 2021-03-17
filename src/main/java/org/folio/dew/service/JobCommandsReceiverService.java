@@ -64,7 +64,7 @@ public class JobCommandsReceiverService {
     log.info("Received {}.", jobCommand);
 
     try {
-      if (deleteOldFiles(jobCommand)) {
+      if (deleteOldFiles(jobCommand, acknowledgment)) {
         return;
       }
 
@@ -92,16 +92,19 @@ public class JobCommandsReceiverService {
     jobCommand.setJobParameters(new JobParameters(parameters));
   }
 
-  private boolean deleteOldFiles(JobCommand jobCommand) {
+  private boolean deleteOldFiles(JobCommand jobCommand, Acknowledgment acknowledgment) {
     if (jobCommand.getType() != JobCommand.Type.DELETE) {
       return false;
     }
+
+    acknowledgment.acknowledge();
 
     String filesStr = jobCommand.getJobParameters().getString(JobParameterNames.OUTPUT_FILES_IN_STORAGE);
     log.info("Deleting old job files {}.", filesStr);
     if (StringUtils.isEmpty(filesStr)) {
       return true;
     }
+
     objectStorageRepository.removeObjects(Arrays.stream(filesStr.split(";")).map(f -> {
       try {
         return StringUtils.stripStart(new URL(f).getPath(), "/");

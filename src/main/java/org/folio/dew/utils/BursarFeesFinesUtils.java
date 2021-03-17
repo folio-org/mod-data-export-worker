@@ -1,14 +1,14 @@
 package org.folio.dew.utils;
 
-import lombok.experimental.UtilityClass;
-import org.apache.commons.lang3.StringUtils;
-
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Map;
+import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
 
 @UtilityClass
 public class BursarFeesFinesUtils {
@@ -18,7 +18,8 @@ public class BursarFeesFinesUtils {
 
   private static final String CHARGE_FILE_NAME_PATTERN = "lib_%sa.dat";
   private static final String REFUND_FILE_NAME_PATTERN = "lib_%sb.dat";
-  private static final DateTimeFormatter FILENAME_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyMMdd");
+  private static final DateTimeFormatter FILENAME_DATE_TIME_FORMATTER =
+      DateTimeFormatter.ofPattern("yyMMdd");
   private final SimpleDateFormat TRANSACTION_DATE_TIME_FORMAT = new SimpleDateFormat("MMddyy");
 
   public static String getFilename(String stepName) {
@@ -28,7 +29,8 @@ public class BursarFeesFinesUtils {
     } else if (REFUND_FEESFINES_EXPORT_STEP.equals(stepName)) {
       fileNamePattern = REFUND_FILE_NAME_PATTERN;
     } else {
-      throw new IllegalArgumentException(String.format("Can't create file name for step %s", stepName));
+      throw new IllegalArgumentException(
+          String.format("Can't create file name for step %s", stepName));
     }
 
     return String.format(fileNamePattern, LocalDateTime.now().format(FILENAME_DATE_TIME_FORMATTER));
@@ -43,7 +45,7 @@ public class BursarFeesFinesUtils {
   }
 
   public static String normalizeAmount(BigDecimal amount) {
-    return StringUtils.leftPad(amount.setScale(2).toString(), 9, "0");
+    return StringUtils.leftPad(amount.setScale(2, RoundingMode.UNNECESSARY).toString(), 9, "0");
   }
 
   public static String getTransactionDate(Date createdDate) {
@@ -52,8 +54,11 @@ public class BursarFeesFinesUtils {
 
   public static String getEmployeeId(String userId, Map<String, String> userIdMap) {
     String externalId = userIdMap.get(userId);
-    externalId = externalId == null ? "" : externalId.substring(externalId.length() - 7);
+    if (StringUtils.isEmpty(externalId)) {
+      externalId = "";
+    } else if (externalId.length() > 7) {
+      externalId = externalId.substring(externalId.length() - 7);
+    }
     return StringUtils.rightPad(externalId, 11);
   }
-
 }

@@ -24,6 +24,11 @@ public class CsvPartStepExecutionListener implements StepExecutionListener {
 
   @Override
   public ExitStatus afterStep(StepExecution stepExecution) {
+    ExitStatus exitStatus = stepExecution.getExitStatus();
+    if (ExitStatus.FAILED.equals(exitStatus)) {
+      return exitStatus;
+    }
+
     String filename = stepExecution.getExecutionContext().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH);
 
     try {
@@ -34,7 +39,7 @@ public class CsvPartStepExecutionListener implements StepExecutionListener {
       return ExitStatus.FAILED;
     }
 
-    return stepExecution.getExitStatus();
+    return exitStatus;
   }
 
 }

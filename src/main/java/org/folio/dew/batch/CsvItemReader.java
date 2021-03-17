@@ -1,26 +1,20 @@
-package org.folio.dew.batch.circulationlog;
+package org.folio.dew.batch;
 
-import org.folio.dew.client.AuditClient;
-import org.folio.dew.domain.dto.LogRecord;
 import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
 
 import java.util.List;
 import java.util.UUID;
 
-public class CirculationLogFeignItemReader extends AbstractItemCountingItemStreamItemReader<LogRecord> {
+public abstract class CsvItemReader<T> extends AbstractItemCountingItemStreamItemReader<T> {
 
   private static final int QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST = 100;
 
-  private final AuditClient auditClient;
-  private final String query;
   private int currentOffset;
 
-  private List<LogRecord> currentChunk;
+  private List<T> currentChunk;
   private int currentChunkOffset;
 
-  public CirculationLogFeignItemReader(AuditClient auditClient, String query, Long offset, Long limit) {
-    this.auditClient = auditClient;
-    this.query = query;
+  protected CsvItemReader(Long offset, Long limit) {
     currentOffset = offset.intValue();
 
     setCurrentItemCount(0);
@@ -30,9 +24,9 @@ public class CirculationLogFeignItemReader extends AbstractItemCountingItemStrea
   }
 
   @Override
-  protected LogRecord doRead() {
+  protected T doRead() {
     if (currentChunk == null || currentChunkOffset >= currentChunk.size()) {
-      currentChunk = getLogRecords();
+      currentChunk = getItems(currentOffset, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST);
       currentOffset += QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST;
       currentChunkOffset = 0;
     }
@@ -41,10 +35,10 @@ public class CirculationLogFeignItemReader extends AbstractItemCountingItemStrea
       return null;
     }
 
-    LogRecord logRecord = currentChunk.get(currentChunkOffset);
+    T item = currentChunk.get(currentChunkOffset);
     currentChunkOffset++;
 
-    return logRecord;
+    return item;
   }
 
   @Override
@@ -57,8 +51,6 @@ public class CirculationLogFeignItemReader extends AbstractItemCountingItemStrea
     // Nothing to do
   }
 
-  private List<LogRecord> getLogRecords() {
-    return auditClient.getCirculationAuditLogs(query, currentOffset, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST, null).getLogRecords();
-  }
+  protected abstract List<T> getItems(int offset, int limit);
 
 }

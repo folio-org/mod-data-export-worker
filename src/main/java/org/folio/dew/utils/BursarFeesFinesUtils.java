@@ -1,5 +1,8 @@
 package org.folio.dew.utils;
 
+import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
@@ -7,8 +10,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Map;
-import lombok.experimental.UtilityClass;
-import org.apache.commons.lang3.StringUtils;
 
 @UtilityClass
 public class BursarFeesFinesUtils {
@@ -18,8 +19,7 @@ public class BursarFeesFinesUtils {
 
   private static final String CHARGE_FILE_NAME_PATTERN = "lib_%sa.dat";
   private static final String REFUND_FILE_NAME_PATTERN = "lib_%sb.dat";
-  private static final DateTimeFormatter FILENAME_DATE_TIME_FORMATTER =
-      DateTimeFormatter.ofPattern("yyMMdd");
+  private static final DateTimeFormatter FILENAME_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyMMdd");
   private final SimpleDateFormat TRANSACTION_DATE_TIME_FORMAT = new SimpleDateFormat("MMddyy");
 
   public static String getFilename(String stepName) {
@@ -29,8 +29,7 @@ public class BursarFeesFinesUtils {
     } else if (REFUND_FEESFINES_EXPORT_STEP.equals(stepName)) {
       fileNamePattern = REFUND_FILE_NAME_PATTERN;
     } else {
-      throw new IllegalArgumentException(
-          String.format("Can't create file name for step %s", stepName));
+      throw new IllegalArgumentException(String.format("Can't create file name for step %s", stepName));
     }
 
     return String.format(fileNamePattern, LocalDateTime.now().format(FILENAME_DATE_TIME_FORMATTER));
@@ -61,4 +60,5 @@ public class BursarFeesFinesUtils {
     }
     return StringUtils.rightPad(externalId, 11);
   }
+
 }

@@ -9,30 +9,32 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Log4j2
-public class CsvPartitioner implements Partitioner {
+public abstract class CsvPartitioner implements Partitioner {
 
   private static final int QUANTITY_PER_PARTITION = 250000;
 
   private final String outputFilePathTemplate;
-  private int offset;
-  private int limit;
+  private long offset;
+  private Long limit;
 
-  public CsvPartitioner(int offset, int limit, String tempOutputFilePath) {
-    this.offset = offset;
+  protected CsvPartitioner(Long offset, Long limit, String tempOutputFilePath) {
+    this.offset = offset == null ? 0 : offset;
     this.limit = limit;
     outputFilePathTemplate = createOutputFilePathTemplate(tempOutputFilePath);
   }
 
   @Override
   public Map<String, ExecutionContext> partition(int gridSize) {
+    limit = limit == null ? getLimit() : limit;
+
     Map<String, ExecutionContext> partitionKeyContext = new HashMap<>();
 
-    int numberOfPartitions = limit / QUANTITY_PER_PARTITION;
+    long numberOfPartitions = limit / QUANTITY_PER_PARTITION;
     if (numberOfPartitions == 0) {
       numberOfPartitions = 1;
     }
 
-    int currentLimit;
+    long currentLimit;
     for (int i = 0; i < numberOfPartitions; i++) {
       String tempOutputFilePath = getPartitionOutputFilePath(i);
       currentLimit = limit - QUANTITY_PER_PARTITION >= QUANTITY_PER_PARTITION ? QUANTITY_PER_PARTITION : limit;
@@ -50,6 +52,8 @@ public class CsvPartitioner implements Partitioner {
 
     return partitionKeyContext;
   }
+
+  protected abstract long getLimit();
 
   private String getPartitionOutputFilePath(int partitionNumber) {
     return String.format(outputFilePathTemplate, partitionNumber);

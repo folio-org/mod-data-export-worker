@@ -27,7 +27,7 @@ public abstract class CsvPartitioner implements Partitioner {
   public Map<String, ExecutionContext> partition(int gridSize) {
     limit = limit == null ? getLimit() : limit;
 
-    Map<String, ExecutionContext> partitionKeyContext = new HashMap<>();
+    Map<String, ExecutionContext> result = new HashMap<>();
 
     long numberOfPartitions = limit / QUANTITY_PER_PARTITION;
     if (numberOfPartitions == 0) {
@@ -43,14 +43,15 @@ public abstract class CsvPartitioner implements Partitioner {
       executionContext.putLong("offset", offset);
       executionContext.putLong("limit", currentLimit);
       executionContext.putString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, tempOutputFilePath);
+      result.put("Partition_" + i, executionContext);
+      log.info("Partition {}: offset {}, limit {}, tempOutputFilePath {}.", i, offset, currentLimit, tempOutputFilePath);
 
       offset += currentLimit;
       limit -= QUANTITY_PER_PARTITION;
 
-      partitionKeyContext.put("Partition_" + i, executionContext);
     }
 
-    return partitionKeyContext;
+    return result;
   }
 
   protected abstract long getLimit();

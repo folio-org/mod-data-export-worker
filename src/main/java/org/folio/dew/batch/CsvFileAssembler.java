@@ -32,7 +32,7 @@ public class CsvFileAssembler implements StepExecutionAggregator {
     String url;
     try {
       url = repository.objectWriteResponseToPresignedObjectUrl(
-          repository.composeObject(destObject, csvFilePartObjectNames, destObject, "text/csv"));
+          repository.composeObject(destObject, csvFilePartObjectNames, null, "text/csv"));
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }

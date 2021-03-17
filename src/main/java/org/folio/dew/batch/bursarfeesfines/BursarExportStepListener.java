@@ -30,6 +30,11 @@ public class BursarExportStepListener implements StepExecutionListener {
 
   @Override
   public ExitStatus afterStep(StepExecution stepExecution) {
+    ExitStatus exitStatus = stepExecution.getExitStatus();
+    if (ExitStatus.FAILED.equals(exitStatus)) {
+      return exitStatus;
+    }
+
     String downloadFilename = BursarFeesFinesUtils.getFilename(stepExecution.getStepName());
     JobExecution jobExecution = stepExecution.getJobExecution();
     String filename = jobExecution.getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + '_' + downloadFilename;
@@ -46,7 +51,7 @@ public class BursarExportStepListener implements StepExecutionListener {
 
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, url);
 
-    return stepExecution.getExitStatus();
+    return exitStatus;
   }
 
 }

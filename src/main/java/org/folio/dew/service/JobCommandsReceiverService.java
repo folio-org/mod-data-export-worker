@@ -58,6 +58,7 @@ public class JobCommandsReceiverService {
 
   @KafkaListener(topics = { JobExecutionService.DATA_EXPORT_JOB_COMMANDS_TOPIC_NAME })
   public void receiveStartJobCommand(StartJobCommand startJobCommand, Acknowledgment acknowledgment) {
+    log.info("-----------------------------JOB---STARTS-----------------------------");
     log.info("Received {}.", startJobCommand);
 
     prepareJobParameters(startJobCommand);

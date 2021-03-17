@@ -1,5 +1,11 @@
 package org.folio.dew.batch;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
@@ -8,20 +14,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.folio.des.domain.entity.Job;
 import org.folio.des.service.JobUpdatesService;
 import org.folio.dew.repository.IAcknowledgementRepository;
+import org.folio.dew.utils.BursarFeesFinesUtils;
 import org.folio.dew.utils.JobParameterNames;
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -91,11 +94,9 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     result.setId(UUID.fromString(jobId));
 
     ExecutionContext executionContext = jobExecution.getExecutionContext();
-    String jobDescription = executionContext.containsKey(JobParameterNames.JOB_DESCRIPTION) ?
-        executionContext.getString(JobParameterNames.JOB_DESCRIPTION) :
-        null;
-    if (StringUtils.isNotBlank(jobDescription)) {
-      result.setDescription(jobDescription);
+
+    if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
+      result.setDescription(fetchDescription(jobExecution));
     }
 
     String outputFilesInStorage = executionContext.containsKey(JobParameterNames.OUTPUT_FILES_IN_STORAGE) ?
@@ -119,6 +120,24 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     result.setExitStatus(jobExecution.getExitStatus());
 
     return result;
+  }
+
+  private String fetchDescription(JobExecution jobExecution) {
+    String descriptionTemplate = "# of charges: %s\n # of refunds: %s\n";
+    int charges = 0;
+    int refunds = 0;
+
+    Collection<StepExecution> stepExecutions = jobExecution.getStepExecutions();
+    for (StepExecution stepExecution : stepExecutions) {
+      String stepName = stepExecution.getStepName();
+      if (stepName.equals(BursarFeesFinesUtils.CHARGE_FEESFINES_EXPORT_STEP)) {
+        charges = stepExecution.getWriteCount();
+      } else if (stepName.equals(BursarFeesFinesUtils.REFUND_FEESFINES_EXPORT_STEP)) {
+        refunds = stepExecution.getWriteCount();
+      }
+    }
+
+    return String.format(descriptionTemplate, charges, refunds);
   }
 
   private Throwable getThrowableRootCause(Throwable t) {

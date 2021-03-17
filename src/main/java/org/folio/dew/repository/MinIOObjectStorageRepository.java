@@ -57,7 +57,7 @@ public class MinIOObjectStorageRepository {
         createArgs(UploadObjectArgs.builder().filename(filename), object, downloadFilename, contentType));
 
     new File(filename).delete();
-    log.info("Temp file {} deleted.", filename);
+    log.info("Deleted temp file {}.", filename);
 
     return result;
   }

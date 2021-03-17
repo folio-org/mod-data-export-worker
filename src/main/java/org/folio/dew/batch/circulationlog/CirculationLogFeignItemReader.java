@@ -4,44 +4,44 @@ import org.folio.dew.client.AuditClient;
 import org.folio.dew.domain.dto.LogRecord;
 import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
 
+import java.util.List;
 import java.util.UUID;
 
 public class CirculationLogFeignItemReader extends AbstractItemCountingItemStreamItemReader<LogRecord> {
 
   private static final int QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST = 100;
-  private static final boolean IS_SAVE_READER_STATE = false;
 
   private final AuditClient auditClient;
   private final String query;
   private int currentOffset;
 
-  private LogRecord[] currentChunk;
+  private List<LogRecord> currentChunk;
   private int currentChunkOffset;
 
-  public CirculationLogFeignItemReader(AuditClient auditClient, String query, int offset, int limit) {
+  public CirculationLogFeignItemReader(AuditClient auditClient, String query, Long offset, Long limit) {
     this.auditClient = auditClient;
     this.query = query;
-    currentOffset = offset;
+    currentOffset = offset.intValue();
 
     setCurrentItemCount(0);
-    setMaxItemCount(limit);
-    setSaveState(IS_SAVE_READER_STATE);
+    setMaxItemCount(limit.intValue());
+    setSaveState(false);
     setExecutionContextName(getClass().getSimpleName() + '_' + UUID.randomUUID());
   }
 
   @Override
   protected LogRecord doRead() {
-    if (currentChunk == null || currentChunkOffset >= currentChunk.length) {
-      currentChunk = getLogRecord();
+    if (currentChunk == null || currentChunkOffset >= currentChunk.size()) {
+      currentChunk = getLogRecords();
       currentOffset += QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST;
       currentChunkOffset = 0;
     }
 
-    if (currentChunk.length == 0) {
+    if (currentChunk.isEmpty()) {
       return null;
     }
 
-    LogRecord logRecord = currentChunk[currentChunkOffset];
+    LogRecord logRecord = currentChunk.get(currentChunkOffset);
     currentChunkOffset++;
 
     return logRecord;
@@ -57,10 +57,8 @@ public class CirculationLogFeignItemReader extends AbstractItemCountingItemStrea
     // Nothing to do
   }
 
-  private LogRecord[] getLogRecord() {
-    return auditClient.getCirculationAuditLogs(query, currentOffset, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST, null)
-        .getLogRecords()
-        .toArray(new LogRecord[0]);
+  private List<LogRecord> getLogRecords() {
+    return auditClient.getCirculationAuditLogs(query, currentOffset, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST, null).getLogRecords();
   }
 
 }

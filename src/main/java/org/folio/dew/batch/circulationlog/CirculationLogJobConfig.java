@@ -6,7 +6,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.folio.des.domain.dto.ExportType;
 import org.folio.dew.batch.CsvFileAssembler;
 import org.folio.dew.batch.CsvPartStepExecutionListener;
-import org.folio.dew.batch.CsvPartitioner;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.client.AuditClient;
 import org.folio.dew.domain.dto.LogRecord;
@@ -65,10 +64,9 @@ public class CirculationLogJobConfig {
   @Bean
   @StepScope
   public Partitioner getCirculationLogPartitioner(@Value("#{jobParameters['offset']}") Long offset,
-      @Value("#{jobParameters['limit']}") Long limit, @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath) {
-    offset = offset == null ? 0 : offset;
-    limit = limit == null ? Integer.MAX_VALUE : limit;
-    return new CsvPartitioner(offset.intValue(), limit.intValue(), tempOutputFilePath);
+      @Value("#{jobParameters['limit']}") Long limit, @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
+      @Value("#{jobParameters['query']}") String query) {
+    return new CirculationLogCsvPartitioner(offset, limit, tempOutputFilePath, auditClient, query);
   }
 
   @Bean("getCirculationLogPartStep")
@@ -89,7 +87,7 @@ public class CirculationLogJobConfig {
   @StepScope
   public CirculationLogFeignItemReader reader(@Value("#{jobParameters['query']}") String query,
       @Value("#{stepExecutionContext[offset]}") Long offset, @Value("#{stepExecutionContext[limit]}") Long limit) {
-    return new CirculationLogFeignItemReader(auditClient, query, offset.intValue(), limit.intValue());
+    return new CirculationLogFeignItemReader(auditClient, query, offset, limit);
   }
 
   @Bean("circulationLog")

@@ -99,7 +99,7 @@ public class BursarExportServiceImpl implements BursarExportService {
 
     if (remainingAmount.doubleValue() <= 0) {
       throw new IllegalArgumentException(
-          String.format("Transfer amount should be positive, accounts [%s]", StringUtils.join(accounts, ",")));
+          String.format("Transfer amount should be positive for accounts [%s]", StringUtils.join(accounts, ",")));
     }
 
     TransferRequest transferRequest = new TransferRequest();

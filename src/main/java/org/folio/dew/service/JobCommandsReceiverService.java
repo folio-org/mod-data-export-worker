@@ -2,11 +2,13 @@ package org.folio.dew.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.folio.des.domain.dto.StartJobCommand;
+import org.apache.commons.lang3.StringUtils;
+import org.folio.des.domain.JobParameterNames;
+import org.folio.des.domain.dto.JobCommand;
 import org.folio.des.service.JobExecutionService;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.repository.IAcknowledgementRepository;
-import org.folio.dew.utils.JobParameterNames;
+import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
@@ -18,10 +20,10 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +32,7 @@ public class JobCommandsReceiverService {
 
   private final ExportJobManager exportJobManager;
   private final IAcknowledgementRepository acknowledgementRepository;
+  private final MinIOObjectStorageRepository objectStorageRepository;
   private final List<Job> jobs;
   private Map<String, Job> jobMap;
   @Value("${spring.application.name}")
@@ -57,31 +60,60 @@ public class JobCommandsReceiverService {
   }
 
   @KafkaListener(topics = { JobExecutionService.DATA_EXPORT_JOB_COMMANDS_TOPIC_NAME })
-  public void receiveStartJobCommand(StartJobCommand startJobCommand, Acknowledgment acknowledgment) {
-    log.info("-----------------------------JOB---STARTS-----------------------------");
-    log.info("Received {}.", startJobCommand);
-
-    prepareJobParameters(startJobCommand);
-
-    JobLaunchRequest jobLaunchRequest = new JobLaunchRequest(jobMap.get(startJobCommand.getType().toString()),
-        startJobCommand.getJobParameters());
+  public void receiveStartJobCommand(JobCommand jobCommand, Acknowledgment acknowledgment) {
+    log.info("Received {}.", jobCommand);
 
     try {
-      acknowledgementRepository.addAcknowledgement(startJobCommand.getId().toString(), acknowledgment);
+      if (deleteOldFiles(jobCommand, acknowledgment)) {
+        return;
+      }
+
+      log.info("-----------------------------JOB---STARTS-----------------------------");
+
+      prepareJobParameters(jobCommand);
+
+      JobLaunchRequest jobLaunchRequest = new JobLaunchRequest(jobMap.get(jobCommand.getExportType().toString()),
+          jobCommand.getJobParameters());
+
+      acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
       exportJobManager.launchJob(jobLaunchRequest);
     } catch (Exception e) {
       log.error(e.toString(), e);
     }
   }
 
-  private void prepareJobParameters(StartJobCommand startJobCommand) {
-    Map<String, JobParameter> parameters = startJobCommand.getJobParameters().getParameters();
-    String jobId = startJobCommand.getId().toString();
+  private void prepareJobParameters(JobCommand jobCommand) {
+    Map<String, JobParameter> parameters = jobCommand.getJobParameters().getParameters();
+    String jobId = jobCommand.getId().toString();
     parameters.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
     Date now = new Date();
     parameters.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH,
-        new JobParameter(String.format("%s%s_%tF_%tT_%s", workDir, startJobCommand.getType(), now, now, jobId)));
-    startJobCommand.setJobParameters(new JobParameters(parameters));
+        new JobParameter(String.format("%s%s_%tF_%tT_%s", workDir, jobCommand.getExportType(), now, now, jobId)));
+    jobCommand.setJobParameters(new JobParameters(parameters));
+  }
+
+  private boolean deleteOldFiles(JobCommand jobCommand, Acknowledgment acknowledgment) {
+    if (jobCommand.getType() != JobCommand.Type.DELETE) {
+      return false;
+    }
+
+    acknowledgment.acknowledge();
+
+    String filesStr = jobCommand.getJobParameters().getString(JobParameterNames.OUTPUT_FILES_IN_STORAGE);
+    log.info("Deleting old job files {}.", filesStr);
+    if (StringUtils.isEmpty(filesStr)) {
+      return true;
+    }
+
+    objectStorageRepository.removeObjects(Arrays.stream(filesStr.split(";")).map(f -> {
+      try {
+        return StringUtils.stripStart(new URL(f).getPath(), "/");
+      } catch (MalformedURLException e) {
+        throw new IllegalArgumentException(e);
+      }
+    }).collect(Collectors.toList()));
+
+    return true;
   }
 
 }

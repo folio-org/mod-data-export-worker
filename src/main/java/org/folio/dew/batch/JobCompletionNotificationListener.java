@@ -1,11 +1,17 @@
 package org.folio.dew.batch;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.dew.utils.JobParameterNames;
+import org.folio.des.domain.JobParameterNames;
 import org.folio.des.domain.entity.Job;
 import org.folio.des.service.JobUpdatesService;
 import org.folio.dew.repository.IAcknowledgementRepository;
@@ -19,12 +25,6 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor

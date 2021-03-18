@@ -1,11 +1,5 @@
 package org.folio.dew.batch;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
@@ -25,6 +19,13 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -126,9 +127,8 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
   }
 
   private String fetchDescription(JobExecution jobExecution) {
-    String descriptionTemplate = "# of charges: %s\n # of refunds: %s\n";
-    int charges = 0;
-    int refunds = 0;
+    Integer charges = null;
+    Integer refunds = null;
 
     Collection<StepExecution> stepExecutions = jobExecution.getStepExecutions();
     for (StepExecution stepExecution : stepExecutions) {
@@ -140,7 +140,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       }
     }
 
-    return String.format(descriptionTemplate, charges, refunds);
+    return charges != null || refunds != null ? String.format("# of charges: %s\n# of refunds: %s", charges, refunds) : null;
   }
 
   private Throwable getThrowableRootCause(Throwable t) {

@@ -66,7 +66,7 @@ public class AccountItemReader implements ItemReader<Account> {
 
     List<User> users = exportService.findUsers(Arrays.asList(patronGroups.split(",")));
     if (CollectionUtils.isEmpty(users)) {
-      throw new IllegalArgumentException(String.format("Users not found for %s", patronGroups));
+      throw new IllegalArgumentException(String.format("Users not found for patron groups %s", patronGroups));
     }
 
     userIdMap = users.stream()

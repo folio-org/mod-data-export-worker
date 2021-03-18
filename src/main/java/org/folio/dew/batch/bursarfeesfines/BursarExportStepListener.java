@@ -15,6 +15,8 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+
 @Component
 @StepScope
 @Log4j2
@@ -31,13 +33,17 @@ public class BursarExportStepListener implements StepExecutionListener {
   @Override
   public ExitStatus afterStep(StepExecution stepExecution) {
     ExitStatus exitStatus = stepExecution.getExitStatus();
-    if (ExitStatus.FAILED.equals(exitStatus)) {
+    if (ExitStatus.FAILED.getExitCode().equals(exitStatus.getExitCode())) {
       return exitStatus;
     }
 
     String downloadFilename = BursarFeesFinesUtils.getFilename(stepExecution.getStepName());
     JobExecution jobExecution = stepExecution.getJobExecution();
     String filename = jobExecution.getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + '_' + downloadFilename;
+    if (!new File(filename).exists()) {
+      log.error("Can't find {}.", filename);
+      return ExitStatus.FAILED;
+    }
 
     String url;
     try {

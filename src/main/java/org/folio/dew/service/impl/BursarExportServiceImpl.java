@@ -3,6 +3,7 @@ package org.folio.dew.service.impl;
 import joptsimple.internal.Strings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.AccountBulkClient;
 import org.folio.dew.client.AccountClient;
@@ -53,14 +54,14 @@ public class BursarExportServiceImpl implements BursarExportService {
   @Override
   public List<User> findUsers(List<String> patronGroups) {
     if (patronGroups == null) {
-      log.info("Can not create query for batch job, cause config parameters are null");
+      log.error("Can not create query for batch job, cause config parameters are null.");
       return Collections.emptyList();
     }
 
     final String groupIds = patronGroups.stream().collect(toQueryParameters);
     var userResponse = userClient.getUserByQuery(String.format(USER_QUERY, groupIds), DEFAULT_LIMIT);
     if (userResponse == null || userResponse.getTotalRecords() == 0) {
-      log.info("There are no active users for patrons groups {}", groupIds);
+      log.error("There are no active users for patrons group(s) {}.", groupIds);
       return Collections.emptyList();
     }
 
@@ -71,7 +72,7 @@ public class BursarExportServiceImpl implements BursarExportService {
   public List<Account> findAccounts(Long outStandingDays, List<User> users) {
 
     if (outStandingDays == null) {
-      log.info("Can not create query for batch job, cause outStandingDays are null");
+      log.error("Can not create query for batch job, cause outStandingDays are null.");
       return Collections.emptyList();
     }
     final LocalDate localDate = LocalDate.now().minusDays(outStandingDays);
@@ -89,9 +90,12 @@ public class BursarExportServiceImpl implements BursarExportService {
   }
 
   private TransferRequest toTransferRequest(List<Account> accounts) {
+    if (CollectionUtils.isEmpty(accounts)) {
+      throw new IllegalArgumentException("No accounts found to make transfer request for");
+    }
+
     BigDecimal remainingAmount = BigDecimal.ZERO;
     List<String> accountIds = new ArrayList<>();
-
     for (Account account : accounts) {
       remainingAmount = remainingAmount.add(account.getRemaining());
       accountIds.add(account.getId());
@@ -99,7 +103,7 @@ public class BursarExportServiceImpl implements BursarExportService {
 
     if (remainingAmount.doubleValue() <= 0) {
       throw new IllegalArgumentException(
-          String.format("Transfer amount should be positive for accounts [%s]", StringUtils.join(accounts, ",")));
+          String.format("Transfer amount should be positive for account(s) %s", StringUtils.join(accounts, ",")));
     }
 
     TransferRequest transferRequest = new TransferRequest();

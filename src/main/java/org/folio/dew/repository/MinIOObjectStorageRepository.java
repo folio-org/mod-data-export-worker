@@ -33,7 +33,7 @@ public class MinIOObjectStorageRepository {
   public MinIOObjectStorageRepository(@Value("${minio.endpoint}") String endpoint, @Value("${minio.region}") String region,
       @Value("${minio.bucket}") String bucket, @Value("${minio.accessKey}") String accessKey,
       @Value("${minio.secretKey}") String secretKey) {
-    log.info("Creating MinIO S3 client endpoint {},region {},bucket {},accessKey {},secretKey {}.", endpoint, region, bucket,
+    log.info("Creating MinIO client endpoint {},region {},bucket {},accessKey {},secretKey {}.", endpoint, region, bucket,
         StringUtils.isNotBlank(accessKey) ? "<set>" : "<not set>", StringUtils.isNotBlank(secretKey) ? "<set>" : "<not set>");
 
     MinioClient.Builder builder = MinioClient.builder().endpoint(endpoint);
@@ -93,7 +93,7 @@ public class MinIOObjectStorageRepository {
       ServerException, InternalException, XmlParserException, ErrorResponseException {
     String result = client.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder().method(Method.GET).bucket(response.bucket()).
         object(response.object()).region(response.region()).versionId(response.versionId()).build());
-    log.info("Created presigned S3 URL {}.", result);
+    log.info("Created presigned URL {}.", result);
     return result;
   }
 

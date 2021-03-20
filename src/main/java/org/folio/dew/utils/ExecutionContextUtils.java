@@ -16,10 +16,14 @@ public class ExecutionContextUtils {
     return jobContext.get(variable);
   }
 
-  public static void addToJobExecutionContext(StepExecution stepExecution, String key, String value) {
-    ExecutionContext jobExecutionContext = stepExecution.getJobExecution().getExecutionContext();
-    String oldUrl = jobExecutionContext.containsKey(key) ? jobExecutionContext.getString(key) : null;
-    jobExecutionContext.putString(key, StringUtils.isBlank(oldUrl) ? value : oldUrl + ';' + value);
+  public static String getFromJobExecutionContext(JobExecution jobExecution, String key) {
+    return jobExecution.getExecutionContext().containsKey(key) ? jobExecution.getExecutionContext().getString(key) : null;
+  }
+
+  public static void addToJobExecutionContext(StepExecution stepExecution, String key, String value, String delimiter) {
+    JobExecution jobExecution = stepExecution.getJobExecution();
+    String oldUrl = getFromJobExecutionContext(jobExecution, key);
+    jobExecution.getExecutionContext().putString(key, StringUtils.isBlank(oldUrl) ? value : oldUrl + delimiter + value);
   }
 
 }

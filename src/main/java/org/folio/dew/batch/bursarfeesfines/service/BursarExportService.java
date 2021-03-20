@@ -1,9 +1,10 @@
-package org.folio.dew.service;
+package org.folio.dew.batch.bursarfeesfines.service;
 
-import java.util.List;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.Feefineaction;
 import org.folio.dew.domain.dto.User;
+
+import java.util.List;
 
 public interface BursarExportService {
 
@@ -14,4 +15,5 @@ public interface BursarExportService {
   List<Account> findAccounts(Long outStandingDays, List<User> users);
 
   List<Feefineaction> findRefundedFeefineActions(List<String> accountIds);
+
 }

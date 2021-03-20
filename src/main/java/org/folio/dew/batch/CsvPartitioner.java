@@ -42,6 +42,7 @@ public abstract class CsvPartitioner implements Partitioner {
       ExecutionContext executionContext = new ExecutionContext();
       executionContext.putLong("offset", offset);
       executionContext.putLong("limit", currentLimit);
+      executionContext.putLong("partition", i);
       executionContext.putString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, tempOutputFilePath);
       result.put("Partition_" + i, executionContext);
       log.info("Partition {}: offset {}, limit {}, tempOutputFilePath {}.", i, offset, currentLimit, tempOutputFilePath);

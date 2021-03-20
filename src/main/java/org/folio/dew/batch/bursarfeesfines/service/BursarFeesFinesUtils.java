@@ -1,4 +1,4 @@
-package org.folio.dew.utils;
+package org.folio.dew.batch.bursarfeesfines.service;
 
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 @UtilityClass
@@ -17,22 +18,29 @@ public class BursarFeesFinesUtils {
   public static final String CHARGE_FEESFINES_EXPORT_STEP = "CHARGE_FEESFINES_EXPORT_STEP";
   public static final String REFUND_FEESFINES_EXPORT_STEP = "REFUND_FEESFINES_EXPORT_STEP";
 
-  private static final String CHARGE_FILE_NAME_PATTERN = "lib_%sa.dat";
-  private static final String REFUND_FILE_NAME_PATTERN = "lib_%sb.dat";
+  private static final Map<String, String> FILE_PATTERNS = new HashMap<>();
+
+  static {
+    FILE_PATTERNS.put(CHARGE_FEESFINES_EXPORT_STEP, "lib_%sa.dat");
+    FILE_PATTERNS.put(REFUND_FEESFINES_EXPORT_STEP, "lib_%sb.dat");
+  }
+
+  private static final Map<String, String> DESCRIPTION_PATTERNS = new HashMap<>();
+
+  static {
+    DESCRIPTION_PATTERNS.put(CHARGE_FEESFINES_EXPORT_STEP, "# of charges: %d");
+    DESCRIPTION_PATTERNS.put(REFUND_FEESFINES_EXPORT_STEP, "# of refunds: %d");
+  }
+
   private static final DateTimeFormatter FILENAME_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyMMdd");
   private final SimpleDateFormat TRANSACTION_DATE_TIME_FORMAT = new SimpleDateFormat("MMddyy");
 
   public static String getFilename(String stepName) {
-    String fileNamePattern;
-    if (CHARGE_FEESFINES_EXPORT_STEP.equals(stepName)) {
-      fileNamePattern = CHARGE_FILE_NAME_PATTERN;
-    } else if (REFUND_FEESFINES_EXPORT_STEP.equals(stepName)) {
-      fileNamePattern = REFUND_FILE_NAME_PATTERN;
-    } else {
-      throw new IllegalArgumentException(String.format("Can't create file name for step %s", stepName));
-    }
+    return String.format(FILE_PATTERNS.get(stepName), LocalDateTime.now().format(FILENAME_DATE_TIME_FORMATTER));
+  }
 
-    return String.format(fileNamePattern, LocalDateTime.now().format(FILENAME_DATE_TIME_FORMATTER));
+  public static String getDescription(String stepName) {
+    return DESCRIPTION_PATTERNS.get(stepName);
   }
 
   public static String getItemType() {

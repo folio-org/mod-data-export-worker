@@ -87,14 +87,16 @@ public class CirculationLogJobConfig {
   @Bean
   @StepScope
   public CirculationLogCsvItemReader reader(@Value("#{jobParameters['query']}") String query,
-      @Value("#{stepExecutionContext[offset]}") Long offset, @Value("#{stepExecutionContext[limit]}") Long limit) {
+      @Value("#{stepExecutionContext['offset']}") Long offset, @Value("#{stepExecutionContext['limit']}") Long limit) {
     return new CirculationLogCsvItemReader(auditClient, query, offset, limit);
   }
 
   @Bean("circulationLog")
   @StepScope
-  public FlatFileItemWriter<LogRecord> writer(@Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath) {
-    return new CsvWriter<>(tempOutputFilePath,
+  public FlatFileItemWriter<LogRecord> writer(@Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath,
+      @Value("#{stepExecutionContext['partition']}") Long partition) {
+    return new CsvWriter<>(tempOutputFilePath, partition,
+        "User barcode,Item barcode,Object,Circ action,Date,Service point,Source,Description",
         new String[] { "userBarcode", "items", "object", "action", "date", "servicePointId", "source", "description" },
         (field, i) -> {
           if (i != 1) {

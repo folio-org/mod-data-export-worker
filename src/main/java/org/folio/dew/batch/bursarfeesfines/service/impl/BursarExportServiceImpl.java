@@ -1,10 +1,11 @@
-package org.folio.dew.service.impl;
+package org.folio.dew.batch.bursarfeesfines.service.impl;
 
 import joptsimple.internal.Strings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.client.AccountBulkClient;
 import org.folio.dew.client.AccountClient;
 import org.folio.dew.client.FeefineactionsClient;
@@ -14,7 +15,6 @@ import org.folio.dew.domain.dto.Feefineaction;
 import org.folio.dew.domain.dto.FeefineactionCollection;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.bursarfeesfines.TransferRequest;
-import org.folio.dew.service.BursarExportService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

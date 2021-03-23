@@ -1,9 +1,12 @@
 package org.folio.dew.batch.bursarfeesfines;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.des.domain.dto.BursarFeeFines;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.User;
@@ -25,16 +28,15 @@ import java.util.stream.Collectors;
 public class AccountItemReader implements ItemReader<Account> {
 
   private final BursarExportService exportService;
+  private final ObjectMapper objectMapper;
+
+  @Value("#{jobParameters['bursarFeeFines']}")
+  private String bursarFeeFinesStr;
+
+  private StepExecution stepExecution;
   private List<Account> accounts = new ArrayList<>();
   private Map<String, String> userIdMap = new HashMap<>();
   private int nextIndex = 0;
-
-  private StepExecution stepExecution;
-
-  @Value("#{jobParameters['patronGroups']}")
-  private String patronGroups;
-  @Value("#{jobParameters['daysOutstanding']}")
-  private Long daysOutstanding;
 
   @Override
   public Account read() {
@@ -53,21 +55,20 @@ public class AccountItemReader implements ItemReader<Account> {
   }
 
   @BeforeStep
-  public void initStep(StepExecution stepExecution) {
+  public void initStep(StepExecution stepExecution) throws JsonProcessingException {
     this.stepExecution = stepExecution;
 
-    if (daysOutstanding == null || StringUtils.isBlank(patronGroups)) {
-      throw new IllegalArgumentException("'daysOutstanding' and/or 'patronGroups' aren't set");
-    }
+    BursarFeeFines bursarFeeFines = objectMapper.readValue(bursarFeeFinesStr, BursarFeeFines.class);
 
-    List<User> users = exportService.findUsers(Arrays.asList(patronGroups.split(",")));
+    List<User> users = exportService.findUsers(bursarFeeFines.getPatronGroups());
     if (CollectionUtils.isEmpty(users)) {
-      throw new IllegalArgumentException(String.format("Users not found for patron group(s) %s", patronGroups));
+      throw new IllegalArgumentException(
+          String.format("Users not found for patron group(s) %s", StringUtils.join(bursarFeeFines.getPatronGroups(), ",")));
     }
 
     userIdMap = users.stream()
         .collect(Collectors.toMap(User::getId, user -> Optional.ofNullable(user.getExternalSystemId()).orElse("")));
-    accounts = exportService.findAccounts(daysOutstanding, users);
+    accounts = exportService.findAccounts(bursarFeeFines.getDaysOutstanding().longValue(), users);
 
     stepExecution.getExecutionContext().put("userIdMap", userIdMap);
   }

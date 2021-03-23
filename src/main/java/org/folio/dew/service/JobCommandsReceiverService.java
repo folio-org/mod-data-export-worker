@@ -105,13 +105,17 @@ public class JobCommandsReceiverService {
       return true;
     }
 
-    objectStorageRepository.removeObjects(Arrays.stream(filesStr.split(";")).map(f -> {
+    List<String> objects = Arrays.stream(filesStr.split(";")).distinct().map(f -> {
       try {
         return StringUtils.stripStart(new URL(f).getPath(), "/");
       } catch (MalformedURLException e) {
-        throw new IllegalArgumentException(e);
+        log.error(e.getMessage(), e);
+        return null;
       }
-    }).collect(Collectors.toList()));
+    }).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+    if (!objects.isEmpty()) {
+      objectStorageRepository.removeObjects(objects);
+    }
 
     return true;
   }

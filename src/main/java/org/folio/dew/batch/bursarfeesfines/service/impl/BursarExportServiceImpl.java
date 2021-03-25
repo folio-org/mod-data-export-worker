@@ -5,15 +5,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.des.domain.dto.BursarFeeFines;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
-import org.folio.dew.client.AccountBulkClient;
-import org.folio.dew.client.AccountClient;
-import org.folio.dew.client.FeefineactionsClient;
-import org.folio.dew.client.UserClient;
-import org.folio.dew.domain.dto.Account;
-import org.folio.dew.domain.dto.Feefineaction;
-import org.folio.dew.domain.dto.FeefineactionCollection;
-import org.folio.dew.domain.dto.User;
+import org.folio.dew.client.*;
+import org.folio.dew.domain.dto.*;
 import org.folio.dew.domain.dto.bursarfeesfines.TransferRequest;
 import org.springframework.stereotype.Service;
 
@@ -31,8 +26,8 @@ import static java.util.stream.Collectors.joining;
 @Log4j2
 public class BursarExportServiceImpl implements BursarExportService {
 
-  private static final String SERVICE_POINT_ONLINE = "7c5abc9f-f3d7-4856-b8d7-6712462ca007";
-  private static final String PAYMENT_METHOD = "Bursar";
+  private static final String DEFAULT_ONLINE_SERVICE_POINT = "7c5abc9f-f3d7-4856-b8d7-6712462ca007";
+  private static final String DEFAULT_PAYMENT_METHOD = "Bursar";
   private static final String USER_NAME = "System";
   private static final String ACCOUNT_QUERY = "userId==%s and remaining > 0.0 and metadata.createdDate>=%s";
   private static final String USER_QUERY = "(active==\"true\" and patronGroup==%s)";
@@ -44,11 +39,11 @@ public class BursarExportServiceImpl implements BursarExportService {
   private final AccountClient accountClient;
   private final AccountBulkClient bulkClient;
   private final FeefineactionsClient feefineClient;
+  private final TransferClient transferClient;
 
   @Override
-  public void transferAccounts(List<Account> accounts) {
-    TransferRequest request = toTransferRequest(accounts);
-    bulkClient.transferAccount(request);
+  public void transferAccounts(List<Account> accounts, BursarFeeFines bursarFeeFines) {
+    bulkClient.transferAccount(toTransferRequest(accounts, bursarFeeFines));
   }
 
   @Override
@@ -89,7 +84,7 @@ public class BursarExportServiceImpl implements BursarExportService {
     return findFeefineActions(accountIds).getFeefineactions();
   }
 
-  private TransferRequest toTransferRequest(List<Account> accounts) {
+  private TransferRequest toTransferRequest(List<Account> accounts, BursarFeeFines bursarFeeFines) {
     if (CollectionUtils.isEmpty(accounts)) {
       throw new IllegalArgumentException("No accounts found to make transfer request for");
     }
@@ -106,10 +101,21 @@ public class BursarExportServiceImpl implements BursarExportService {
           String.format("Transfer amount should be positive for account(s) %s", StringUtils.join(accounts, ",")));
     }
 
+    String paymentMethod;
+    if (bursarFeeFines.getTransferAccountId() == null) {
+      paymentMethod = DEFAULT_PAYMENT_METHOD;
+    } else {
+      TransferdataCollection transfers = transferClient.get("id==" + bursarFeeFines.getTransferAccountId().toString(), 1);
+      paymentMethod = CollectionUtils.isEmpty(transfers.getTransfers()) ?
+          DEFAULT_PAYMENT_METHOD :
+          transfers.getTransfers().get(0).getAccountName();
+    }
+
     TransferRequest transferRequest = new TransferRequest();
     transferRequest.setAmount(remainingAmount.doubleValue());
-    transferRequest.setPaymentMethod(PAYMENT_METHOD);
-    transferRequest.setServicePointId(SERVICE_POINT_ONLINE);
+    transferRequest.setPaymentMethod(paymentMethod);
+    transferRequest.setServicePointId(
+        bursarFeeFines.getServicePointId() == null ? DEFAULT_ONLINE_SERVICE_POINT : bursarFeeFines.getServicePointId().toString());
     transferRequest.setNotifyPatron(false);
     transferRequest.setUserName(USER_NAME);
     transferRequest.setAccountIds(accountIds);

@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface AuditClient {
 
   @GetMapping(value = "/circulation/logs", produces = MediaType.APPLICATION_JSON_VALUE)
-  LogRecordCollection getCirculationAuditLogs(
-      @RequestParam String query,
-      @RequestParam int offset,
-      @RequestParam int limit,
+  LogRecordCollection getCirculationAuditLogs(@RequestParam String query, @RequestParam int offset, @RequestParam int limit,
       @RequestParam String lang);
+
 }

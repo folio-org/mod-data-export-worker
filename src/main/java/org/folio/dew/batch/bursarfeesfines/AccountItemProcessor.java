@@ -1,8 +1,11 @@
 package org.folio.dew.batch.bursarfeesfines;
 
+import org.folio.des.domain.dto.BursarFeeFines;
+import org.folio.des.domain.dto.BursarFeeFinesTypeMapping;
 import org.folio.dew.batch.bursarfeesfines.service.BursarFeesFinesUtils;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarFormat;
+import org.folio.dew.utils.ExecutionContextUtils;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -17,6 +20,7 @@ import java.util.Map;
 public class AccountItemProcessor implements ItemProcessor<Account, BursarFormat> {
 
   private Map<String, String> userIdMap;
+  private BursarFeeFines bursarFeeFines;
 
   @Override
   public BursarFormat process(Account item) {
@@ -26,15 +30,21 @@ public class AccountItemProcessor implements ItemProcessor<Account, BursarFormat
     format.setTransactionDate(BursarFeesFinesUtils.getTransactionDate(item.getMetadata().getCreatedDate()));
     format.setSfs("SFS");
     format.setTermValue("    ");
-    format.setDescription(BursarFeesFinesUtils.getItemTypeDescription(item.getFeeFineType()));
-    format.setItemType(BursarFeesFinesUtils.getItemType());
+
+    BursarFeeFinesTypeMapping mapping = BursarFeesFinesUtils.getMapping(bursarFeeFines, item);
+    format.setItemType(BursarFeesFinesUtils.formatItemType(mapping == null ? null : mapping.getItemType()));
+    format.setDescription(
+        BursarFeesFinesUtils.formatItemTypeDescription(mapping == null ? item.getFeeFineType() : mapping.getItemDescription()));
+
     return format;
   }
 
   @BeforeStep
   public void initStep(StepExecution stepExecution) {
-    var externalIdMap = stepExecution.getExecutionContext().get("userIdMap");
-    this.userIdMap = externalIdMap == null ? Collections.emptyMap() : (Map<String, String>) externalIdMap;
+    Map<String, String> externalIdMap = (Map<String, String>) stepExecution.getExecutionContext().get("userIdMap");
+    userIdMap = externalIdMap == null ? Collections.emptyMap() : externalIdMap;
+
+    bursarFeeFines = (BursarFeeFines) ExecutionContextUtils.getExecutionVariable(stepExecution, "bursarFeeFines");
   }
 
 }

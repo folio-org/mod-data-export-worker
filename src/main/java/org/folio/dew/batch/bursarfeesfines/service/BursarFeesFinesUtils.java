@@ -2,6 +2,9 @@ package org.folio.dew.batch.bursarfeesfines.service;
 
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.des.domain.dto.BursarFeeFines;
+import org.folio.des.domain.dto.BursarFeeFinesTypeMapping;
+import org.folio.dew.domain.dto.Account;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -25,11 +28,11 @@ public class BursarFeesFinesUtils {
     FILE_PATTERNS.put(REFUND_FEESFINES_EXPORT_STEP, "lib_%sb.dat");
   }
 
-  private static final Map<String, String> DESCRIPTION_PATTERNS = new HashMap<>();
+  private static final Map<String, String> JOB_DESCRIPTION_PATTERNS = new HashMap<>();
 
   static {
-    DESCRIPTION_PATTERNS.put(CHARGE_FEESFINES_EXPORT_STEP, "# of charges: %d");
-    DESCRIPTION_PATTERNS.put(REFUND_FEESFINES_EXPORT_STEP, "# of refunds: %d");
+    JOB_DESCRIPTION_PATTERNS.put(CHARGE_FEESFINES_EXPORT_STEP, "# of charges: %d");
+    JOB_DESCRIPTION_PATTERNS.put(REFUND_FEESFINES_EXPORT_STEP, "# of refunds: %d");
   }
 
   private static final DateTimeFormatter FILENAME_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyMMdd");
@@ -39,16 +42,16 @@ public class BursarFeesFinesUtils {
     return String.format(FILE_PATTERNS.get(stepName), LocalDateTime.now().format(FILENAME_DATE_TIME_FORMATTER));
   }
 
-  public static String getDescription(String stepName) {
-    return DESCRIPTION_PATTERNS.get(stepName);
+  public static String getJobDescriptionPart(String stepName) {
+    return JOB_DESCRIPTION_PATTERNS.get(stepName);
   }
 
-  public static String getItemType() {
-    return StringUtils.rightPad(" ", 12);
+  public static String formatItemType(String type) {
+    return StringUtils.rightPad(type, 12);
   }
 
-  public static String getItemTypeDescription(String feeFineType) {
-    return StringUtils.rightPad(feeFineType, 30);
+  public static String formatItemTypeDescription(String description) {
+    return StringUtils.rightPad(description, 30);
   }
 
   public static String normalizeAmount(BigDecimal amount) {
@@ -67,6 +70,17 @@ public class BursarFeesFinesUtils {
       externalId = externalId.substring(externalId.length() - 7);
     }
     return StringUtils.rightPad(externalId, 11);
+  }
+
+  public static BursarFeeFinesTypeMapping getMapping(BursarFeeFines bursarFeeFines, Account account) {
+    if (bursarFeeFines.getTypeMappings() == null) {
+      return null;
+    }
+    return bursarFeeFines.getTypeMappings()
+        .stream()
+        .filter(m -> m.getFeefineTypeId().equals(account.getFeeFineId()))
+        .findFirst()
+        .orElse(null);
   }
 
 }

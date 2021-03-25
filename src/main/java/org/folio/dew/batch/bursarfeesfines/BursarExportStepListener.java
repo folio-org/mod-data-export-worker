@@ -58,7 +58,7 @@ public class BursarExportStepListener implements StepExecutionListener {
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, url, ";");
 
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.JOB_DESCRIPTION,
-        String.format(BursarFeesFinesUtils.getDescription(stepExecution.getStepName()), stepExecution.getWriteCount()), "\n");
+        String.format(BursarFeesFinesUtils.getJobDescriptionPart(stepExecution.getStepName()), stepExecution.getWriteCount()), "\n");
 
     return exitStatus;
   }

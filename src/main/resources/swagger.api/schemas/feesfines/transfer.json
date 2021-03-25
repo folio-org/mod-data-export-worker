@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Allows Fee/Fine Owner to identify accepted locations to which fees/fines are transferred",
+  "Transfer": {
+    "type": "object",
+    "title": "CRUD Fee/Fine Transfer Accounts Settings schema",
+    "properties": {
+      "accountName": {
+        "description": "Transfer account name",
+        "type": "string"
+      },
+      "desc": {
+        "description": "Transfer account description",
+        "type": "string"
+      },
+      "metadata": {
+        "description": "Metadata about creation to transfer account, provided by the server",
+        "type": "object",
+        "$ref": "../common/metadata.json#/Metadata"
+      },
+      "ownerId": {
+        "description": "ID of the owner",
+        "type": "string"
+      },
+      "id": {
+        "description": "Transfer account id, UUID",
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "accountName"
+    ]
+  }
+}

@@ -59,6 +59,7 @@ public class AccountItemReader implements ItemReader<Account> {
     this.stepExecution = stepExecution;
 
     BursarFeeFines bursarFeeFines = objectMapper.readValue(bursarFeeFinesStr, BursarFeeFines.class);
+    stepExecution.getJobExecution().getExecutionContext().put("bursarFeeFines", bursarFeeFines);
 
     List<User> users = exportService.findUsers(bursarFeeFines.getPatronGroups());
     if (CollectionUtils.isEmpty(users)) {

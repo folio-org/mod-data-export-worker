@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Collection of transfers",
+  "TransferdataCollection": {
+    "type": "object",
+    "properties": {
+      "transfers": {
+        "description": "List of transfer items",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "$ref": "transfer.json#/Transfer"
+        }
+      },
+      "totalRecords": {
+        "type": "integer"
+      },
+      "resultInfo": {
+        "type": "object",
+        "$ref": "../common/resultInfo.json#/ResultInfo",
+        "readonly": true
+      }
+    },
+    "required": [
+      "transfers",
+      "totalRecords"
+    ]
+  }
+}

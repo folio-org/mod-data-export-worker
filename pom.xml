@@ -242,7 +242,7 @@
                             <generateApiDocumentation>false</generateApiDocumentation>
                             <generateModels>true</generateModels>
                             <modelsToGenerate>
-                                Metadata,Tags,User,UserCollection,ResultInfo,Personal,Diagnostic,Facet,Address,FacetValue,Account,AccountdataCollection,ItemStatus,Status,PaymentStatus,Feefineaction,FeefineactionCollection
+                                Metadata,Tags,User,UserCollection,ResultInfo,Personal,Diagnostic,Facet,Address,FacetValue,Account,AccountdataCollection,ItemStatus,Status,PaymentStatus,Feefineaction,FeefineactionCollection,Transfer,TransferdataCollection
                             </modelsToGenerate>
                             <generateModelTests>false</generateModelTests>
                             <generateSupportingFiles>false</generateSupportingFiles>

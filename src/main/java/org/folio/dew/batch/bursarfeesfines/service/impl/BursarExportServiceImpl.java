@@ -26,7 +26,7 @@ import static java.util.stream.Collectors.joining;
 @Log4j2
 public class BursarExportServiceImpl implements BursarExportService {
 
-  private static final String DEFAULT_ONLINE_SERVICE_POINT = "7c5abc9f-f3d7-4856-b8d7-6712462ca007";
+  private static final String SERVICE_POINT_CODE = "system";
   private static final String DEFAULT_PAYMENT_METHOD = "Bursar";
   private static final String USER_NAME = "System";
   private static final String ACCOUNT_QUERY = "userId==%s and remaining > 0.0 and metadata.createdDate>=%s";
@@ -40,6 +40,7 @@ public class BursarExportServiceImpl implements BursarExportService {
   private final AccountBulkClient bulkClient;
   private final FeefineactionsClient feefineClient;
   private final TransferClient transferClient;
+  private final ServicePointClient servicePointClient;
 
   @Override
   public void transferAccounts(List<Account> accounts, BursarFeeFines bursarFeeFines) {
@@ -65,7 +66,6 @@ public class BursarExportServiceImpl implements BursarExportService {
 
   @Override
   public List<Account> findAccounts(Long outStandingDays, List<User> users) {
-
     if (outStandingDays == null) {
       log.error("Can not create query for batch job, cause outStandingDays are null.");
       return Collections.emptyList();
@@ -114,12 +114,24 @@ public class BursarExportServiceImpl implements BursarExportService {
     TransferRequest transferRequest = new TransferRequest();
     transferRequest.setAmount(remainingAmount.doubleValue());
     transferRequest.setPaymentMethod(paymentMethod);
-    transferRequest.setServicePointId(
-        bursarFeeFines.getServicePointId() == null ? DEFAULT_ONLINE_SERVICE_POINT : bursarFeeFines.getServicePointId().toString());
+    transferRequest.setServicePointId(getServicePoint().getId());
     transferRequest.setNotifyPatron(false);
     transferRequest.setUserName(USER_NAME);
     transferRequest.setAccountIds(accountIds);
     return transferRequest;
+  }
+
+  private ServicePoint getServicePoint() {
+    ServicePoints servicePoints = servicePointClient.get("code==" + SERVICE_POINT_CODE, 2);
+    if (servicePoints.getTotalRecords() < 1) {
+      throw new IllegalStateException(
+          "Fees/fines bursar report generation needs a service point with '" + SERVICE_POINT_CODE + "' code for transfers creation. Create please such service point and run the export again.");
+    }
+    if (servicePoints.getTotalRecords() > 1) {
+      throw new IllegalStateException(
+          "Fees/fines bursar report generation needs a service point with '" + SERVICE_POINT_CODE + "' code for transfers creation. More than one such service points were found - resolve please this ambiguity and run the export again.");
+    }
+    return servicePoints.getServicepoints().get(0);
   }
 
   private FeefineactionCollection findFeefineActions(List<String> accountIds) {

@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "schema for time-period, which contains time interval 'duration' and the time unit",
+  "TimePeriod": {
+    "type": "object",
+    "properties": {
+      "duration": {
+        "type": "integer",
+        "description": "Duration interval"
+      },
+      "intervalId": {
+        "type": "string",
+        "description": "Unit of time for the duration",
+        "enum": [
+          "Minutes",
+          "Hours",
+          "Days",
+          "Weeks",
+          "Months"
+        ],
+        "default": "Days"
+      }
+    },
+    "required": [
+      "duration",
+      "intervalId"
+    ],
+    "additionalProperties": false
+  }
+}

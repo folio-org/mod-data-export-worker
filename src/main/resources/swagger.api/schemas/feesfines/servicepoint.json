@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A service point",
+  "ServicePoint": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Id of service-point object"
+      },
+      "name": {
+        "type": "string",
+        "description": "service-point name, a required field"
+      },
+      "code": {
+        "type": "string",
+        "description": "service-point code, a required field"
+      },
+      "discoveryDisplayName": {
+        "type": "string",
+        "description": "display name, a required field"
+      },
+      "description": {
+        "type": "string",
+        "description": "description of the service-point"
+      },
+      "shelvingLagTime": {
+        "type": "integer",
+        "description": "shelving lag time"
+      },
+      "pickupLocation": {
+        "type": "boolean",
+        "description": "indicates whether or not the service point is a pickup location"
+      },
+      "holdShelfExpiryPeriod": {
+        "type": "object",
+        "$ref": "time-period.json#/TimePeriod",
+        "description": "expiration period for items on the hold shelf at the service point"
+      },
+      "staffSlips": {
+        "type": "array",
+        "description": "List of staff slips for this service point",
+        "items": {
+          "type": "object",
+          "$ref": "staffSlip.json#/StaffSlip"
+        }
+      },
+      "metadata": {
+        "type": "object",
+        "$ref": "../common/metadata.json#/Metadata",
+        "readonly": true
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "name",
+      "code",
+      "discoveryDisplayName"
+    ]
+  }
+}

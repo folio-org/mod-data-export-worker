@@ -127,11 +127,11 @@ public class BursarExportServiceImpl implements BursarExportService {
     ServicePoints servicePoints = servicePointClient.get("code==" + SERVICE_POINT_CODE, 2);
     if (servicePoints.getTotalRecords() < 1) {
       throw new IllegalStateException(
-          "Fees/fines bursar report generation needs a service point with '" + SERVICE_POINT_CODE + "' code for transfers creation. Create please such service point and run the export again.");
+          "Fees/fines bursar report generation requires a service point with the code '" + SERVICE_POINT_CODE + "'. Please create this service point and run the export again.");
     }
     if (servicePoints.getTotalRecords() > 1) {
       throw new IllegalStateException(
-          "Fees/fines bursar report generation needs a service point with '" + SERVICE_POINT_CODE + "' code for transfers creation. More than one such service points were found - resolve please this ambiguity and run the export again.");
+          "Fees/fines bursar report generation requires a service point with the code '" + SERVICE_POINT_CODE + "'. More than one such service points were found - please resolve this ambiguity and run the export again.");
     }
     return servicePoints.getServicepoints().get(0);
   }

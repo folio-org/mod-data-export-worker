@@ -44,7 +44,9 @@ public class BursarExportServiceImpl implements BursarExportService {
 
   @Override
   public void transferAccounts(List<Account> accounts, BursarFeeFines bursarFeeFines) {
-    bulkClient.transferAccount(toTransferRequest(accounts, bursarFeeFines));
+    TransferRequest transferRequest = toTransferRequest(accounts, bursarFeeFines);
+    log.info("Creating {}.", transferRequest);
+    bulkClient.transferAccount(transferRequest);
   }
 
   @Override

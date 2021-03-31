@@ -1,16 +1,25 @@
 package org.folio.dew.repository;
 
-import io.minio.*;
-import io.minio.errors.*;
+import io.minio.BucketExistsArgs;
+import io.minio.ComposeObjectArgs;
+import io.minio.ComposeSource;
+import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.MakeBucketArgs;
+import io.minio.MinioClient;
+import io.minio.ObjectWriteArgs;
+import io.minio.ObjectWriteResponse;
+import io.minio.RemoveObjectsArgs;
+import io.minio.Result;
+import io.minio.UploadObjectArgs;
+import io.minio.errors.ErrorResponseException;
+import io.minio.errors.InsufficientDataException;
+import io.minio.errors.InternalException;
+import io.minio.errors.InvalidResponseException;
+import io.minio.errors.ServerException;
+import io.minio.errors.XmlParserException;
 import io.minio.http.Method;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
-import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Repository;
-
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -19,6 +28,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Repository;
 
 @Repository
 @Log4j2
@@ -48,6 +64,15 @@ public class MinIOObjectStorageRepository {
     this.bucket = bucket;
   }
 
+  @SneakyThrows
+  public void createBucketIfNotExists() {
+    if (StringUtils.isNotBlank(this.bucket)
+        && !client.bucketExists(BucketExistsArgs.builder().bucket(this.bucket).build())) {
+      client.makeBucket(MakeBucketArgs.builder().bucket(this.bucket).build());
+      log.info("Created MinIO bucket with name {}.", this.bucket);
+    }
+  }
+
   public ObjectWriteResponse uploadObject(String object, String filename, String downloadFilename, String contentType)
       throws IOException, ServerException, InsufficientDataException, InternalException, InvalidResponseException,
       InvalidKeyException, NoSuchAlgorithmException, XmlParserException, ErrorResponseException {
@@ -56,7 +81,7 @@ public class MinIOObjectStorageRepository {
     ObjectWriteResponse result = client.uploadObject(
         createArgs(UploadObjectArgs.builder().filename(filename), object, downloadFilename, contentType));
 
-    new File(filename).delete();
+    FileUtils.deleteQuietly(new File(filename));
     log.info("Deleted temp file {}.", filename);
 
     return result;

@@ -1,0 +1,17 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/service-points?query=code%3D%3Dsystem&limit=2"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n  \"servicepoints\": [\n    {\n      \"id\": \"afdb59ae-1185-4cd7-94dd-39a87fe01c51\",\n      \"name\": \"System\",\n      \"code\": \"system\",\n      \"discoveryDisplayName\": \"System\",\n      \"staffSlips\": [\n        {\n          \"id\": \"6a6e72f0-69da-4b4c-8254-7154679e9d88\",\n          \"printByDefault\": true\n        },\n        {\n          \"id\": \"8812bae1-2738-442c-bc20-fe4bb38a11f8\",\n          \"printByDefault\": true\n        },\n        {\n          \"id\": \"1ed55c5c-64d9-40eb-8b80-7438a262288b\",\n          \"printByDefault\": true\n        },\n        {\n          \"id\": \"f838cdaf-555a-473f-abf1-f35ef6ab8ae1\",\n          \"printByDefault\": true\n        }\n      ],\n      \"metadata\": {\n        \"createdDate\": \"2021-03-26T12:29:22.507+00:00\",\n        \"createdByUserId\": \"61187964-6bb3-526f-bdaa-e20e8e2f9305\",\n        \"updatedDate\": \"2021-03-26T12:29:22.507+00:00\",\n        \"updatedByUserId\": \"61187964-6bb3-526f-bdaa-e20e8e2f9305\"\n      }\n    }\n  ],\n  \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

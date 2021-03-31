@@ -18,7 +18,6 @@ import org.folio.dew.repository.InMemoryAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.batch.core.JobExecutionException;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
@@ -35,7 +34,7 @@ class JobCommandsReceiverServiceTest {
   @Autowired private InMemoryAcknowledgementRepository repository;
   @MockBean private ExportJobManager exportJobManager;
   @MockBean private MinIOObjectStorageRepository minIOObjectStorageRepository;
-  @Mock private Acknowledgment acknowledgment;
+  @MockBean private Acknowledgment acknowledgment;
 
   @Test
   @DisplayName("Start job by kafka request")

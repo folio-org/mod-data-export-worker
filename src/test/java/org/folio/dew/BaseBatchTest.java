@@ -2,6 +2,12 @@ package org.folio.dew;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,6 +30,7 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.util.SocketUtils;
@@ -84,6 +91,13 @@ public abstract class BaseBatchTest {
     testLauncher.setJobLauncher(jobLauncher);
     testLauncher.setJobRepository(jobRepository);
     return testLauncher;
+  }
+
+  protected FileSystemResource actualFileOutput(String spec) throws IOException {
+    InputStream inputStream = new URL(spec).openStream();
+    final Path actualResult = Files.createTempFile("temp", ".tmp");
+    Files.copy(inputStream, actualResult, StandardCopyOption.REPLACE_EXISTING);
+    return new FileSystemResource(actualResult);
   }
 
   @AfterAll

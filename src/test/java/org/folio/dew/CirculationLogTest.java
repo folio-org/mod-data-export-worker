@@ -3,6 +3,7 @@ package org.folio.dew;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 import java.io.File;
 import java.util.Date;
@@ -18,12 +19,16 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
 
 class CirculationLogTest extends BaseBatchTest {
 
   @Autowired private Job getCirculationLogJob;
+
+  private final static String EXPECTED_CIRCULATION_OUTPUT = "src/test/resources/output/circulation_export.csv";
 
   @Test
   @DisplayName("Run CirculationLogJob successfully")
@@ -33,12 +38,23 @@ class CirculationLogTest extends BaseBatchTest {
     final JobParameters jobParameters = prepareJobParameters();
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
+    verifyFileOutput(jobExecution);
+
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(
           "/audit-data/circulation/logs?query&offset=0&limit=1")));
+  }
+
+  private void verifyFileOutput(JobExecution jobExecution) throws Exception {
+    final ExecutionContext executionContext = jobExecution.getExecutionContext();
+    final String fileInStorage = (String) executionContext.get("outputFilesInStorage");
+
+    final FileSystemResource actualChargeFeesFinesOutput = actualFileOutput(fileInStorage);
+    FileSystemResource expectedCharges = new FileSystemResource(EXPECTED_CIRCULATION_OUTPUT);
+    assertFileEquals(expectedCharges, actualChargeFeesFinesOutput);
   }
 
   private JobParameters prepareJobParameters() {

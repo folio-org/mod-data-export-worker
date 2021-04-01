@@ -1,0 +1,56 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/accounts?query=userId%3D%3D%28bec20636-fb68-41fd-84ea-2cf910673599%20or%202205005b-ca51-4a04-87fd-938eefa8f6de%20or%20b4cee18d-f862-4ef1-95a5-879fdd619603%29%20and%20remaining%20%3E%200.0%20and%20metadata.createdDate%3E%3D2021-03-29&limit=10000"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n  \"accounts\": [\n    {\n      \"amount\": 100.0,\n      \"remaining\": 100.0,\n      \"status\": {\n        \"name\": \"Open\"\n      },\n      \"paymentStatus\": {\n        \"name\": \"Outstanding\"\n      },\n      \"feeFineType\": \"Test ff type                 1\",\n      \"feeFineOwner\": \"Bursar owner\",\n      \"metadata\": {\n        \"createdDate\": \"2021-03-30T19:53:50.289+00:00\",\n        \"createdByUserId\": \"61187964-6bb3-526f-bdaa-e20e8e2f9305\",\n        \"updatedDate\": \"2021-03-30T19:53:50.289+00:00\",\n        \"updatedByUserId\": \"61187964-6bb3-526f-bdaa-e20e8e2f9305\"\n      },\n      \"userId\": \"bec20636-fb68-41fd-84ea-2cf910673599\",\n      \"feeFineId\": \"933336fd-0290-468a-b69f-35815b713265\",\n      \"ownerId\": \"782c9784-cba0-480a-b8c0-1ffba088c9a4\",\n      \"id\": \"807becbc-c3e6-4871-bf38-d140597e41cb\"\n    },\n    {\n      \"amount\": 400.0,\n      \"remaining\": 400.0,\n      \"status\": {\n        \"name\": \"Open\"\n      },\n      \"paymentStatus\": {\n        \"name\": \"Outstanding\"\n      },\n      \"feeFineType\": \"Test ff type                 1\",\n      \"feeFineOwner\": \"Bursar owner\",\n      \"metadata\": {\n        \"createdDate\": \"2021-03-30T19:53:50.289+00:00\",\n        \"createdByUserId\": \"61187964-6bb3-526f-bdaa-e20e8e2f9305\",\n        \"updatedDate\": \"2021-03-30T19:53:50.289+00:00\",\n        \"updatedByUserId\": \"61187964-6bb3-526f-bdaa-e20e8e2f9305\"\n      },\n      \"userId\": \"2205005b-ca51-4a04-87fd-938eefa8f6de\",\n      \"feeFineId\": \"933336fd-0290-468a-b69f-35815b713265\",\n      \"ownerId\": \"782c9784-cba0-480a-b8c0-1ffba088c9a4\",\n      \"id\": \"707becbc-c3e6-4871-bf38-d140597e41cb\"\n    },\n    {\n      \"amount\": 400.0,\n      \"remaining\": 400.0,\n      \"status\": {\n        \"name\": \"Open\"\n      },\n      \"paymentStatus\": {\n        \"name\": \"Outstanding\"\n      },\n      \"feeFineType\": \"Test ff type                 1\",\n      \"feeFineOwner\": \"Bursar owner\",\n      \"metadata\": {\n        \"createdDate\": \"2021-03-30T19:53:50.289+00:00\",\n        \"createdByUserId\": \"61187964-6bb3-526f-bdaa-e20e8e2f9305\",\n        \"updatedDate\": \"2021-03-30T19:53:50.289+00:00\",\n        \"updatedByUserId\": \"61187964-6bb3-526f-bdaa-e20e8e2f9305\"\n      },\n      \"userId\": \"b4cee18d-f862-4ef1-95a5-879fdd619603\",\n      \"feeFineId\": \"933336fd-0290-468a-b69f-35815b713265\",\n      \"ownerId\": \"782c9784-cba0-480a-b8c0-1ffba088c9a4\",\n      \"id\": \"907becbc-c3e6-4871-bf38-d140597e41cb\"\n    }\n  ],\n  \"totalRecords\": 3,\n  \"resultInfo\": {\n    \"totalRecords\": 3,\n    \"facets\": [],\n    \"diagnostics\": []\n  }\n}\n",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/accounts-bulk/transfer"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n  \"accountId\" : \"807becbc-c3e6-4871-bf38-d140597e41cb\",\n  \"amount\" : \"5.00\",\n  \"feefineactions\" : [ {\n    \"dateAction\" : \"2021-03-30T22:23:59.830+00:00\",\n    \"typeAction\" : \"Transferred partially\",\n    \"comments\" : \"\",\n    \"notify\" : false,\n    \"amountAction\" : 5.0,\n    \"balance\" : 85.0,\n    \"createdAt\" : \"7c5abc9f-f3d7-4856-b8d7-6712462ca007\",\n    \"source\" : \"ADMINISTRATOR, DIKU\",\n    \"paymentMethod\" : \"Transfer2bursar\",\n    \"accountId\" : \"807becbc-c3e6-4871-bf38-d140597e41cb\",\n    \"userId\" : \"bec20636-fb68-41fd-84ea-2cf910673599\",\n    \"id\" : \"cc7a9cc0-6db7-4e24-b331-6b0655c8b4d4\"\n  } ]\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/feefineactions?query=%28accountId%3D%3D%28807becbc-c3e6-4871-bf38-d140597e41cb%20or%20707becbc-c3e6-4871-bf38-d140597e41cb%20or%20907becbc-c3e6-4871-bf38-d140597e41cb%29%20and%20%28typeAction%3D%3D%28%22Refunded%20partially%22%20or%20%22Refunded%20fully%22%29%29%29&limit=10000"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n  \"feefineactions\": [\n    {\n      \"dateAction\": \"2021-03-26T11:38:18.180+00:00\",\n      \"typeAction\": \"Refunded fully               1\",\n      \"comments\": \"\",\n      \"notify\": false,\n      \"amountAction\": 10.0,\n      \"balance\": 90.0,\n      \"transactionInformation\": \"Refunded to Bursar\",\n      \"createdAt\": \"7c5abc9f-f3d7-4856-b8d7-6712462ca007\",\n      \"source\": \"ADMINISTRATOR, DIKU\",\n      \"paymentMethod\": \"Bursar refund\",\n      \"accountId\": \"89c6a365-55af-4ce7-9162-17c686eb8b4b\",\n      \"userId\": \"bec20636-fb68-41fd-84ea-2cf910673599\",\n      \"id\": \"ed876607-42ce-468b-b596-f43516b942e8\"\n    }\n  ],\n  \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/transfers?query=id%3D%3D998ecb15-9f5d-4674-b288-faad24e44c0b&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"transfers\": [\n        {\n            \"accountName\": \"Transfer2bursar\",\n            \"desc\": \"transfer desc\",\n            \"metadata\": {\n                \"createdDate\": \"2021-03-10T15:31:50.708+00:00\",\n                \"createdByUserId\": \"61187964-6bb3-526f-bdaa-e20e8e2f9305\",\n                \"updatedDate\": \"2021-03-10T15:31:50.708+00:00\",\n                \"updatedByUserId\": \"61187964-6bb3-526f-bdaa-e20e8e2f9305\"\n            },\n            \"ownerId\": \"782c9784-cba0-480a-b8c0-1ffba088c9a4\",\n            \"id\": \"e61729b1-22c0-4bdb-8940-45fb9a28363e\"\n        }\n    ],\n    \"totalRecords\": 1,\n    \"resultInfo\": {\n        \"totalRecords\": 1,\n        \"facets\": [],\n        \"diagnostics\": []\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

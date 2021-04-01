@@ -40,12 +40,16 @@
         <minio.version>8.1.0</minio.version>
         <openapi-generator.version>4.3.1</openapi-generator.version>
 
-        <sonar.exclusions>**/src/main/java/org/folio/dew/**</sonar.exclusions>
+        <sonar.exclusions>
+          /src/main/java/org/folio/dew/ModDataExportWorkerApplication.java,
+          /src/main/java/org/folio/dew/domain/dto/**,
+        </sonar.exclusions>
 
         <!-- Test properties-->
         <mockito.version>3.7.7</mockito.version>
         <junit-extensions.version>2.4.0</junit-extensions.version>
         <embedded-minio.version>2.0.3</embedded-minio.version>
+        <wiremock.version>2.27.2</wiremock.version>
     </properties>
 
     <dependencies>
@@ -136,6 +140,16 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>org.springframework.batch</groupId>
+            <artifactId>spring-batch-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
             <version>${mockito.version}</version>
@@ -151,6 +165,17 @@
             <groupId>com.playtika.testcontainers</groupId>
             <artifactId>embedded-minio</artifactId>
             <version>${embedded-minio.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock-standalone</artifactId>
+            <version>${wiremock.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

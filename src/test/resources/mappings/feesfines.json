@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/accounts?query=userId%3D%3D%28bec20636-fb68-41fd-84ea-2cf910673599%20or%202205005b-ca51-4a04-87fd-938eefa8f6de%20or%20b4cee18d-f862-4ef1-95a5-879fdd619603%29%20and%20remaining%20%3E%200.0%20and%20metadata.createdDate%3E%3D2021-03-29&limit=10000"
+        "urlPath": "/accounts"
       },
       "response": {
         "status": 200,

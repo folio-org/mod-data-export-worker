@@ -38,8 +38,7 @@
         "type": "array",
         "uniqueItems": true,
         "items": {
-          "type": "string",
-          "format": "uuid"
+          "type": "string"
         }
       },
       "meta": {

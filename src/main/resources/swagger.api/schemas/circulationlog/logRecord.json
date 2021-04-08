@@ -6,13 +6,11 @@
     "properties": {
       "id": {
         "description": "Log record id",
-        "type": "string",
-        "format": "uuid"
+        "type": "string"
       },
       "eventId": {
         "description": "Event id",
-        "type": "string",
-        "format": "uuid"
+        "type": "string"
       },
       "userBarcode": {
         "description": "User barcode",
@@ -31,23 +29,19 @@
             },
             "itemId": {
               "description": "Item id",
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             },
             "instanceId": {
               "description": "Instance id",
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             },
             "holdingId": {
               "description": "Holding id",
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             },
             "loanId": {
               "description": "Loan id",
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             }
           },
           "additionalProperties": false,
@@ -71,8 +65,7 @@
       },
       "servicePointId": {
         "description": "Service point id",
-        "type": "string",
-        "format": "uuid"
+        "type": "string"
       },
       "source": {
         "description": "Source",
@@ -88,28 +81,23 @@
         "properties": {
           "userId": {
             "description": "User id",
-            "type": "string",
-            "format": "uuid"
+            "type": "string"
           },
           "requestId": {
             "description": "Request id",
-            "type": "string",
-            "format": "uuid"
+            "type": "string"
           },
           "feeFineId": {
             "description": "Fee/Fine id",
-            "type": "string",
-            "format": "uuid"
+            "type": "string"
           },
           "templateId": {
             "description": "Template id",
-            "type": "string",
-            "format": "uuid"
+            "type": "string"
           },
           "noticePolicyId": {
             "description": "Notice Policy id",
-            "type": "string",
-            "format": "uuid"
+            "type": "string"
           }
         }
       }

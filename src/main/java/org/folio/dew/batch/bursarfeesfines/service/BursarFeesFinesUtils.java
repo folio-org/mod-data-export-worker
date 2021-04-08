@@ -78,7 +78,7 @@ public class BursarFeesFinesUtils {
     }
     return bursarFeeFines.getTypeMappings()
         .stream()
-        .filter(m -> m.getFeefineTypeId().equals(account.getFeeFineId()))
+        .filter(m -> m.getFeefineTypeId().toString().equals(account.getFeeFineId()))
         .findFirst()
         .orElse(null);
   }

@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.des.domain.JobParameterNames;
+import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.bursarfeesfines.service.BursarFeesFinesUtils;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
-import org.folio.dew.utils.ExecutionContextUtils;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
@@ -58,7 +58,8 @@ public class BursarExportStepListener implements StepExecutionListener {
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, url, ";");
 
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.JOB_DESCRIPTION,
-        String.format(BursarFeesFinesUtils.getJobDescriptionPart(stepExecution.getStepName()), stepExecution.getWriteCount()), "\n");
+        String.format(BursarFeesFinesUtils.getJobDescriptionPart(stepExecution.getStepName()), stepExecution.getWriteCount()),
+        "\n");
 
     return exitStatus;
   }

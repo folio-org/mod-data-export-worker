@@ -3,9 +3,9 @@ package org.folio.dew.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.folio.des.domain.JobParameterNames;
 import org.folio.des.domain.dto.JobCommand;
-import org.folio.des.service.JobExecutionService;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
@@ -14,7 +14,7 @@ import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.listener.AcknowledgingMessageListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Log4j2
-public class JobCommandsReceiverService {
+public class JobCommandsReceiverService implements AcknowledgingMessageListener<String, JobCommand> {
 
   private final ExportJobManager exportJobManager;
   private final IAcknowledgementRepository acknowledgementRepository;
@@ -59,8 +59,9 @@ public class JobCommandsReceiverService {
     }
   }
 
-  @KafkaListener(topics = { JobExecutionService.DATA_EXPORT_JOB_COMMANDS_TOPIC_NAME })
-  public void receiveStartJobCommand(JobCommand jobCommand, Acknowledgment acknowledgment) {
+  @Override
+  public void onMessage(ConsumerRecord<String, JobCommand> data, Acknowledgment acknowledgment) {
+    JobCommand jobCommand = data.value();
     log.info("Received {}.", jobCommand);
 
     try {

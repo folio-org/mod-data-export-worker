@@ -2,11 +2,11 @@ package org.folio.dew.batch.bursarfeesfines;
 
 import org.folio.des.domain.dto.BursarFeeFines;
 import org.folio.des.domain.dto.BursarFeeFinesTypeMapping;
+import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.bursarfeesfines.service.BursarFeesFinesUtils;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.Feefineaction;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarFormat;
-import org.folio.dew.utils.ExecutionContextUtils;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;

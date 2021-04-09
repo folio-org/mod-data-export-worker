@@ -5,15 +5,13 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.des.config.KafkaConfiguration;
 import org.folio.des.domain.JobParameterNames;
 import org.folio.des.domain.entity.Job;
-import org.folio.des.service.JobUpdatesService;
 import org.folio.dew.repository.IAcknowledgementRepository;
-import org.folio.dew.utils.ExecutionContextUtils;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
@@ -24,12 +22,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
-@RequiredArgsConstructor
 @Log4j2
+@RequiredArgsConstructor
 public class JobCompletionNotificationListener extends JobExecutionListenerSupport {
 
   private final IAcknowledgementRepository acknowledgementRepository;
-  private final KafkaTemplate<String, Job> kafkaTemplate;
+  private final KafkaConfiguration kafka;
 
   @Override
   public void beforeJob(JobExecution jobExecution) {
@@ -56,10 +54,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
     Job jobExecutionUpdate = createJobExecutionUpdate(jobId, jobExecution);
 
-    log.info("Sending {}.", jobExecutionUpdate);
-    kafkaTemplate.send(JobUpdatesService.DATA_EXPORT_JOB_EXECUTION_UPDATES_TOPIC_NAME, jobExecutionUpdate.getId().toString(),
-        jobExecutionUpdate);
-    log.info("Sent job {} update.", jobExecutionUpdate.getId());
+    kafka.send(KafkaConfiguration.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     if (after) {
       log.info("-----------------------------JOB---ENDS-----------------------------");
     }

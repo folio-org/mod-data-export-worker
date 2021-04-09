@@ -1,10 +1,10 @@
 package org.folio.dew.batch.bursarfeesfines;
 
 import lombok.RequiredArgsConstructor;
+import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.Feefineaction;
-import org.folio.dew.utils.ExecutionContextUtils;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;

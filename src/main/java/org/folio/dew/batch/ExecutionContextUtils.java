@@ -1,4 +1,4 @@
-package org.folio.dew.utils;
+package org.folio.dew.batch;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

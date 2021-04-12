@@ -12,8 +12,7 @@
       },
       "createdByUserId": {
         "description": "ID of the user who created the record (when available)",
-        "type": "string",
-        "format": "uuid"
+        "type": "string"
       },
       "createdByUsername": {
         "description": "Username of the user who created the record (when available)",
@@ -26,8 +25,7 @@
       },
       "updatedByUserId": {
         "description": "ID of the user who last updated the record (when available)",
-        "type": "string",
-        "format": "uuid"
+        "type": "string"
       },
       "updatedByUsername": {
         "description": "Username of the user who last updated the record (when available)",

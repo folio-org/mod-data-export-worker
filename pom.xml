@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.3.4.RELEASE</version>
-        <relativePath /> <!-- lookup parent from repository -->
+        <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <groupId>org.folio</groupId>
@@ -31,20 +32,24 @@
         </circulation-log.yaml.file>
         <bursar-export.yaml.file>${project.basedir}/src/main/resources/swagger.api/bursar-export.yaml</bursar-export.yaml.file>
 
-        <folio-spring-base.version>1.0.2</folio-spring-base.version>
+        <folio-spring-base.version>1.0.4</folio-spring-base.version>
         <folio-spring-tenant.version>1.0.0</folio-spring-tenant.version>
-        <folio-data-export-spring.version>1.0.1</folio-data-export-spring.version>
+        <folio-data-export-spring.version>1.0.2-SNAPSHOT</folio-data-export-spring.version>
 
         <commons-io.version>2.8.0</commons-io.version>
         <minio.version>8.1.0</minio.version>
         <openapi-generator.version>4.3.1</openapi-generator.version>
 
-        <sonar.exclusions>**/src/main/java/org/folio/dew/**</sonar.exclusions>
+        <sonar.exclusions>
+            **/src/main/java/org/folio/dew/ModDataExportWorkerApplication.java,
+            **/src/main/java/org/folio/dew/domain/dto/**
+        </sonar.exclusions>
 
         <!-- Test properties-->
         <mockito.version>3.7.7</mockito.version>
         <junit-extensions.version>2.4.0</junit-extensions.version>
         <embedded-minio.version>2.0.3</embedded-minio.version>
+        <wiremock.version>2.27.2</wiremock.version>
     </properties>
 
     <dependencies>
@@ -135,6 +140,16 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>org.springframework.batch</groupId>
+            <artifactId>spring-batch-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
             <version>${mockito.version}</version>
@@ -150,6 +165,12 @@
             <groupId>com.playtika.testcontainers</groupId>
             <artifactId>embedded-minio</artifactId>
             <version>${embedded-minio.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock-standalone</artifactId>
+            <version>${wiremock.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -241,7 +262,7 @@
                             <generateApiDocumentation>false</generateApiDocumentation>
                             <generateModels>true</generateModels>
                             <modelsToGenerate>
-                                Metadata,Tags,User,UserCollection,ResultInfo,Personal,Diagnostic,Facet,Address,FacetValue,Account,AccountdataCollection,ItemStatus,Status,PaymentStatus,Feefineaction,FeefineactionCollection
+                                Metadata,Tags,User,UserCollection,ResultInfo,Personal,Diagnostic,Facet,Address,FacetValue,Account,AccountdataCollection,ItemStatus,Status,PaymentStatus,Feefineaction,FeefineactionCollection,Transfer,TransferdataCollection,TimePeriod,StaffSlip,ServicePoint,ServicePoints
                             </modelsToGenerate>
                             <generateModelTests>false</generateModelTests>
                             <generateSupportingFiles>false</generateSupportingFiles>
@@ -334,7 +355,7 @@
         <url>https://github.com/folio-org/${project.artifactId}</url>
         <connection>scm:git:git://github.com/folio-org/${project.artifactId}.git</connection>
         <developerConnection>scm:git:git@github.com:folio-org/${project.artifactId}.git</developerConnection>
-        <tag>v1.0.1</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <repositories>

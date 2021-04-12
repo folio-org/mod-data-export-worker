@@ -19,7 +19,9 @@
             "accounts.transfer.post",
             "accounts.collection.get",
             "feefineactions.collection.get",
-            "users.collection.get"
+            "users.collection.get",
+            "transfers.collection.get",
+            "inventory-storage.service-points.collection.get"
           ]
         },
         {

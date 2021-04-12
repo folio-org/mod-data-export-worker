@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "List of staff slips for this service point",
+  "StaffSlip": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "The ID of the staff slip"
+      },
+      "printByDefault": {
+        "type": "boolean",
+        "description": "Whether or not to print the staff slip by default"
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "printByDefault"
+    ]
+  }
+}

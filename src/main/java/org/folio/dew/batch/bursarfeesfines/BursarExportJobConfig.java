@@ -2,10 +2,10 @@ package org.folio.dew.batch.bursarfeesfines;
 
 import lombok.extern.log4j.Log4j2;
 import org.folio.des.domain.dto.ExportType;
+import org.folio.dew.batch.bursarfeesfines.service.BursarFeesFinesUtils;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.Feefineaction;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarFormat;
-import org.folio.dew.utils.BursarFeesFinesUtils;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
@@ -48,20 +48,16 @@ public class BursarExportJobConfig {
   public Step exportChargeFeefinesStep(ItemReader<Account> reader, ItemProcessor<Account, BursarFormat> processor,
       @Qualifier("bursarFeesFines") ItemWriter<BursarFormat> writer, BursarExportStepListener listener,
       StepBuilderFactory stepBuilderFactory) {
-    return stepBuilderFactory.get(BursarFeesFinesUtils.CHARGE_FEESFINES_EXPORT_STEP).<Account, BursarFormat>chunk(1000).reader(reader)
-        .processor(processor)
-        .writer(writer)
-        .listener(promotionListener())
-        .listener(listener)
-        .build();
+    return stepBuilderFactory.get(BursarFeesFinesUtils.CHARGE_FEESFINES_EXPORT_STEP).<Account, BursarFormat>chunk(1000).reader(
+        reader).processor(processor).writer(writer).listener(promotionListener()).listener(listener).build();
   }
 
   @Bean
   public Step exportRefundFeefinesStep(ItemReader<Feefineaction> reader, ItemProcessor<Feefineaction, BursarFormat> processor,
       @Qualifier("bursarFeesFines") ItemWriter<BursarFormat> writer, BursarExportStepListener listener,
       StepBuilderFactory stepBuilderFactory) {
-    return stepBuilderFactory.get(BursarFeesFinesUtils.REFUND_FEESFINES_EXPORT_STEP).<Feefineaction, BursarFormat>chunk(1000).reader(
-        reader).processor(processor).writer(writer).listener(listener).build();
+    return stepBuilderFactory.get(BursarFeesFinesUtils.REFUND_FEESFINES_EXPORT_STEP).<Feefineaction, BursarFormat>chunk(
+        1000).reader(reader).processor(processor).writer(writer).listener(listener).build();
   }
 
   @Bean

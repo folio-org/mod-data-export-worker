@@ -18,3 +18,7 @@ components:
       $ref: 'schemas/feesfines/accountdataCollection.json#/AccountdataCollection'
     feefineactionCollection:
       $ref: 'schemas/feesfines/feefineactionCollection.json#/FeefineactionCollection'
+    transferdataCollection:
+      $ref: 'schemas/feesfines/transferdataCollection.json#/TransferdataCollection'
+    servicepoints:
+      $ref: 'schemas/feesfines/servicepoints.json#/ServicePoints'

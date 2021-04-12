@@ -5,7 +5,6 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.des.domain.JobParameterNames;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
-import org.folio.dew.utils.ExecutionContextUtils;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.partition.support.StepExecutionAggregator;
 import org.springframework.stereotype.Component;
@@ -37,7 +36,7 @@ public class CsvFileAssembler implements StepExecutionAggregator {
       throw new IllegalStateException(e);
     }
 
-    ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, url);
+    ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, url, ";");
   }
 
 }

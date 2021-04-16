@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.folio.des.config.KafkaConfiguration;
 import org.folio.des.domain.JobParameterNames;
 import org.folio.des.domain.dto.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
@@ -14,6 +15,8 @@ import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.kafka.listener.AcknowledgingMessageListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
@@ -30,6 +33,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class JobCommandsReceiverService implements AcknowledgingMessageListener<String, JobCommand> {
 
+  private final KafkaConfiguration kafka;
   private final ExportJobManager exportJobManager;
   private final IAcknowledgementRepository acknowledgementRepository;
   private final MinIOObjectStorageRepository objectStorageRepository;
@@ -57,6 +61,11 @@ public class JobCommandsReceiverService implements AcknowledgingMessageListener<
     } else {
       log.info("Working directory {}.", workDir);
     }
+  }
+
+  @EventListener(ContextRefreshedEvent.class)
+  public void onContextRefreshed() {
+    kafka.startListener(KafkaConfiguration.Topic.JOB_COMMAND, this);
   }
 
   @Override

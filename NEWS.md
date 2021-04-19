@@ -1,3 +1,6 @@
+## 2021-04-19 v1.0.3
+ * [MODEXPS-15](https://issues.folio.org/browse/MODEXPS-15) Kafka connection does not start without tenant registration
+
 ## 2021-04-12 v1.0.2
  * [MODEXPW-5](https://issues.folio.org/browse/MODEXPW-5) Include column headers in .CSV export of Circulation Log
  * [MODEXPW-6](https://issues.folio.org/browse/MODEXPW-6) Enhance fees/fines bursar report settings

@@ -69,23 +69,26 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     }
 
     String tempOutputFilePath = jobParameters.getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH);
-    if (StringUtils.isNotBlank(tempOutputFilePath)) {
-      String path = FilenameUtils.getFullPath(tempOutputFilePath);
-      String fileNameStart = FilenameUtils.getName(tempOutputFilePath);
-      if (StringUtils.isNotBlank(path) && StringUtils.isNotBlank(fileNameStart)) {
-        File[] files = new File(path).listFiles((dir, name) -> name.startsWith(fileNameStart));
-        if (files != null && files.length > 0) {
-          for (File f : files) {
-            try {
-              Files.delete(f.toPath());
-            } catch (Exception e) {
-              log.error(e.getMessage(), e);
-            }
-          }
-          log.info("Deleted temp files {} of job {}.", files, jobId);
-        }
+    if (StringUtils.isBlank(tempOutputFilePath)) {
+      return;
+    }
+    String path = FilenameUtils.getFullPath(tempOutputFilePath);
+    String fileNameStart = FilenameUtils.getName(tempOutputFilePath);
+    if (StringUtils.isBlank(path) || StringUtils.isBlank(fileNameStart)) {
+      return;
+    }
+    File[] files = new File(path).listFiles((dir, name) -> name.startsWith(fileNameStart));
+    if (files == null || files.length <= 0) {
+      return;
+    }
+    for (File f : files) {
+      try {
+        Files.delete(f.toPath());
+      } catch (Exception e) {
+        log.error(e.getMessage(), e);
       }
     }
+    log.info("Deleted temp files {} of job {}.", files, jobId);
   }
 
   private Job createJobExecutionUpdate(String jobId, JobExecution jobExecution) {

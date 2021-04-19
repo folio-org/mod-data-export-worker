@@ -16,6 +16,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -68,19 +69,26 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     }
 
     String tempOutputFilePath = jobParameters.getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH);
-    if (StringUtils.isNotBlank(tempOutputFilePath)) {
-      String path = FilenameUtils.getFullPath(tempOutputFilePath);
-      String fileNameStart = FilenameUtils.getName(tempOutputFilePath);
-      if (StringUtils.isNotBlank(path) && StringUtils.isNotBlank(fileNameStart)) {
-        File[] files = new File(path).listFiles((dir, name) -> name.startsWith(fileNameStart));
-        if (files != null && files.length > 0) {
-          for (File f : files) {
-            f.delete();
-          }
-          log.info("Deleted temp files {} of job {}.", files, jobId);
-        }
+    if (StringUtils.isBlank(tempOutputFilePath)) {
+      return;
+    }
+    String path = FilenameUtils.getFullPath(tempOutputFilePath);
+    String fileNameStart = FilenameUtils.getName(tempOutputFilePath);
+    if (StringUtils.isBlank(path) || StringUtils.isBlank(fileNameStart)) {
+      return;
+    }
+    File[] files = new File(path).listFiles((dir, name) -> name.startsWith(fileNameStart));
+    if (files == null || files.length <= 0) {
+      return;
+    }
+    for (File f : files) {
+      try {
+        Files.delete(f.toPath());
+      } catch (Exception e) {
+        log.error(e.getMessage(), e);
       }
     }
+    log.info("Deleted temp files {} of job {}.", files, jobId);
   }
 
   private Job createJobExecutionUpdate(String jobId, JobExecution jobExecution) {
@@ -106,7 +114,10 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
     List<Throwable> errors = jobExecution.getAllFailureExceptions();
     if (CollectionUtils.isNotEmpty(errors)) {
-      result.setErrorDetails(errors.stream().map(t -> getThrowableRootCause(t).getMessage()).collect(Collectors.joining("\n")));
+      result.setErrorDetails(errors.stream().map(t -> {
+        t = getThrowableRootCause(t);
+        return t.getMessage() + " (" + t.getClass().getSimpleName() + ')';
+      }).collect(Collectors.joining("\n")));
     }
 
     result.setBatchStatus(jobExecution.getStatus());

@@ -32,9 +32,8 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createStartJobRequest(id);
 
-    service.onMessage(
-        new ConsumerRecord<>(KafkaConfiguration.Topic.JOB_COMMAND.getName(), 0, 0, jobCommand.getId().toString(), jobCommand),
-        acknowledgment);
+    service.onMessage(new ConsumerRecord<>(TENANT + KafkaConfiguration.Topic.JOB_COMMAND.getNameWithoutTenant(), 0, 0,
+        jobCommand.getId().toString(), jobCommand), acknowledgment);
 
     verify(exportJobManager, times(1)).launchJob(any());
 
@@ -51,9 +50,8 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createDeleteJobRequest(id);
 
-    service.onMessage(
-        new ConsumerRecord<>(KafkaConfiguration.Topic.JOB_COMMAND.getName(), 0, 0, jobCommand.getId().toString(), jobCommand),
-        acknowledgment);
+    service.onMessage(new ConsumerRecord<>(TENANT + KafkaConfiguration.Topic.JOB_COMMAND.getNameWithoutTenant(), 0, 0,
+        jobCommand.getId().toString(), jobCommand), acknowledgment);
 
     verify(acknowledgment, times(1)).acknowledge();
   }

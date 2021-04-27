@@ -1,3 +1,6 @@
+## 2021-04-27 v1.0.4
+ * [MODEXPW-16](https://issues.folio.org/browse/MODEXPW-16) Use MinIO client with implicit AWS role authorization
+
 ## 2021-04-19 v1.0.3
  * [MODEXPS-15](https://issues.folio.org/browse/MODEXPS-15) Kafka connection does not start without tenant registration
 

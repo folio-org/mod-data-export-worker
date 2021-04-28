@@ -1,3 +1,6 @@
+## 2021-04-28 v1.0.5
+ * [MODEXPW-16](https://issues.folio.org/browse/MODEXPW-16) Use MinIO client with implicit AWS role authorization
+
 ## 2021-04-27 v1.0.4
  * [MODEXPW-16](https://issues.folio.org/browse/MODEXPW-16) Use MinIO client with implicit AWS role authorization
 

@@ -12,7 +12,7 @@
     <groupId>org.folio</groupId>
     <artifactId>mod-data-export-worker</artifactId>
     <description>Data Export Worker module</description>
-    <version>1.0.5-SNAPSHOT</version>
+    <version>1.0.6-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <licenses>

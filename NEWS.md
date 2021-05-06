@@ -1,3 +1,6 @@
+## 2021-05-06 v1.0.6
+ * [MODEXPW-17](https://issues.folio.org/browse/MODEXPW-17) Username and password expressed in plain text in module logs
+
 ## 2021-04-28 v1.0.5
  * [MODEXPW-16](https://issues.folio.org/browse/MODEXPW-16) Use MinIO client with implicit AWS role authorization
 

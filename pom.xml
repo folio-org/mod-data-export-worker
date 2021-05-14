@@ -31,7 +31,7 @@
         </circulation-log.yaml.file>
         <bursar-export.yaml.file>${project.basedir}/src/main/resources/swagger.api/bursar-export.yaml</bursar-export.yaml.file>
 
-        <folio-spring-base.version>1.0.4</folio-spring-base.version>
+        <folio-spring-base.version>1.0.5</folio-spring-base.version>
         <folio-spring-tenant.version>1.0.0</folio-spring-tenant.version>
         <folio-data-export-spring.version>1.0.3</folio-data-export-spring.version>
 
@@ -85,6 +85,17 @@
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

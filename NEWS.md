@@ -1,5 +1,7 @@
+## 2021-06-18 v1.1.0
+ * No changes since last release.
 ## 2021-05-14 v1.0.7
-* [MODEXPW-9](https://issues.folio.org/browse/MODEXPW-9) Add standard health check endpoint
+ * [MODEXPW-9](https://issues.folio.org/browse/MODEXPW-9) Add standard health check endpoint
 
 ## 2021-05-06 v1.0.6
  * [MODEXPW-17](https://issues.folio.org/browse/MODEXPW-17) Username and password expressed in plain text in module logs

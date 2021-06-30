@@ -87,7 +87,7 @@ public class BursarExportServiceImpl implements BursarExportService {
       return Collections.emptyList();
     }
 
-    if (users.size() < bucketSize) {
+    if (users.size() <= bucketSize) {
       return fetchAccounts(users, outStandingDays);
     }
 

@@ -1,16 +1,6 @@
 package org.folio.dew.batch.bursarfeesfines.service.impl;
 
-import joptsimple.internal.Strings;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.folio.des.domain.dto.BursarFeeFines;
-import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
-import org.folio.dew.client.*;
-import org.folio.dew.domain.dto.*;
-import org.folio.dew.domain.dto.bursarfeesfines.TransferRequest;
-import org.springframework.stereotype.Service;
+import static java.util.stream.Collectors.joining;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,8 +8,30 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collector;
-
-import static java.util.stream.Collectors.joining;
+import joptsimple.internal.Strings;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.folio.des.domain.dto.BursarFeeFines;
+import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
+import org.folio.dew.client.AccountBulkClient;
+import org.folio.dew.client.AccountClient;
+import org.folio.dew.client.FeefineactionsClient;
+import org.folio.dew.client.ServicePointClient;
+import org.folio.dew.client.TransferClient;
+import org.folio.dew.client.UserClient;
+import org.folio.dew.domain.dto.Account;
+import org.folio.dew.domain.dto.Feefineaction;
+import org.folio.dew.domain.dto.FeefineactionCollection;
+import org.folio.dew.domain.dto.ServicePoint;
+import org.folio.dew.domain.dto.ServicePoints;
+import org.folio.dew.domain.dto.TransferdataCollection;
+import org.folio.dew.domain.dto.User;
+import org.folio.dew.domain.dto.bursarfeesfines.TransferRequest;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
@@ -34,6 +46,8 @@ public class BursarExportServiceImpl implements BursarExportService {
   private static final String FEEFINE_QUERY = "(accountId==(%s) and (typeAction==(\"Refunded partially\" or \"Refunded fully\")))";
   private static final long DEFAULT_LIMIT = 10000L;
   private final Collector<CharSequence, ?, String> toQueryParameters = joining(" or ", "(", ")");
+  @Value("${bucket.size}")
+  private int bucketSize;
 
   private final UserClient userClient;
   private final AccountClient accountClient;
@@ -72,6 +86,19 @@ public class BursarExportServiceImpl implements BursarExportService {
       log.error("Can not create query for batch job, cause outStandingDays are null.");
       return Collections.emptyList();
     }
+
+    if (users.size() < bucketSize) {
+      return fetchAccounts(users, outStandingDays);
+    }
+
+    final List<List<User>> partition = ListUtils.partition(users, bucketSize);
+    log.debug("Fetch accounts in several calls, bucket count {}", partition::size);
+    return partition.stream()
+        .map(usersBucket -> fetchAccounts(usersBucket, outStandingDays))
+        .collect(ArrayList::new, List::addAll, List::addAll);
+  }
+
+  private List<Account> fetchAccounts(List<User> users, long outStandingDays) {
     final LocalDate localDate = LocalDate.now().minusDays(outStandingDays);
     final String userIdsAsParameter = users.stream().map(User::getId).collect(toQueryParameters);
     final String accountQuery = String.format(ACCOUNT_QUERY, userIdsAsParameter, localDate);

@@ -1,5 +1,9 @@
+## 2021-06-30 v1.1.1
+* [MODEXPW-22](https://issues.folio.org/browse/MODEXPW-22) Bursar export failed for large patron group
+
 ## 2021-06-18 v1.1.0
  * No changes since last release.
+
 ## 2021-05-14 v1.0.7
  * [MODEXPW-9](https://issues.folio.org/browse/MODEXPW-9) Add standard health check endpoint
 

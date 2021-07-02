@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.stream.Collector;
 import joptsimple.internal.Strings;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +25,7 @@ import org.folio.dew.client.TransferClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.Feefineaction;
-import org.folio.dew.domain.dto.FeefineactionCollection;
 import org.folio.dew.domain.dto.ServicePoint;
-import org.folio.dew.domain.dto.ServicePoints;
 import org.folio.dew.domain.dto.TransferdataCollection;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.bursarfeesfines.TransferRequest;
@@ -46,6 +45,7 @@ public class BursarExportServiceImpl implements BursarExportService {
   private static final String FEEFINE_QUERY = "(accountId==(%s) and (typeAction==(\"Refunded partially\" or \"Refunded fully\")))";
   private static final long DEFAULT_LIMIT = 10000L;
   private final Collector<CharSequence, ?, String> toQueryParameters = joining(" or ", "(", ")");
+
   @Value("${bucket.size}")
   private int bucketSize;
 
@@ -58,7 +58,7 @@ public class BursarExportServiceImpl implements BursarExportService {
 
   @Override
   public void transferAccounts(List<Account> accounts, BursarFeeFines bursarFeeFines) {
-    TransferRequest transferRequest = toTransferRequest(accounts, bursarFeeFines);
+    var transferRequest = toTransferRequest(accounts, bursarFeeFines);
     log.info("Creating {}.", transferRequest);
     bulkClient.transferAccount(transferRequest);
   }
@@ -69,15 +69,7 @@ public class BursarExportServiceImpl implements BursarExportService {
       log.error("Can not create query for batch job, cause config parameters are null.");
       return Collections.emptyList();
     }
-
-    final String groupIds = patronGroups.stream().collect(toQueryParameters);
-    var userResponse = userClient.getUserByQuery(String.format(USER_QUERY, groupIds), DEFAULT_LIMIT);
-    if (userResponse == null || userResponse.getTotalRecords() == 0) {
-      log.error("There are no active users for patrons group(s) {}.", groupIds);
-      return Collections.emptyList();
-    }
-
-    return userResponse.getUsers();
+    return fetchDataInBatch(patronGroups, null, (nill, listParams) -> fetchUsers(listParams));
   }
 
   @Override
@@ -86,23 +78,7 @@ public class BursarExportServiceImpl implements BursarExportService {
       log.error("Can not create query for batch job, cause outStandingDays are null.");
       return Collections.emptyList();
     }
-
-    if (users.size() <= bucketSize) {
-      return fetchAccounts(users, outStandingDays);
-    }
-
-    final List<List<User>> partition = ListUtils.partition(users, bucketSize);
-    log.debug("Fetch accounts in several calls, bucket count {}", partition::size);
-    return partition.stream()
-        .map(usersBucket -> fetchAccounts(usersBucket, outStandingDays))
-        .collect(ArrayList::new, List::addAll, List::addAll);
-  }
-
-  private List<Account> fetchAccounts(List<User> users, long outStandingDays) {
-    final LocalDate localDate = LocalDate.now().minusDays(outStandingDays);
-    final String userIdsAsParameter = users.stream().map(User::getId).collect(toQueryParameters);
-    final String accountQuery = String.format(ACCOUNT_QUERY, userIdsAsParameter, localDate);
-    return accountClient.getAccounts(accountQuery, DEFAULT_LIMIT).getAccounts();
+    return fetchDataInBatch(users, outStandingDays, (u, d) -> fetchAccounts(d, (Long) u));
   }
 
   @Override
@@ -110,7 +86,45 @@ public class BursarExportServiceImpl implements BursarExportService {
     if (accountIds.isEmpty()) {
       return Collections.emptyList();
     }
-    return findFeefineActions(accountIds).getFeefineactions();
+    return fetchDataInBatch(accountIds, null, (nill, paramList) -> fetchFeefineActions(paramList));
+  }
+
+  private <T, P> List<T> fetchDataInBatch(
+      List<P> parameters, Object additionalParam, BiFunction<Object, List<P>, List<T>> client) {
+
+    if (parameters.size() <= bucketSize) {
+      log.debug("Fetch data by one call");
+      return client.apply(additionalParam, parameters);
+    }
+
+    final List<List<P>> partition = ListUtils.partition(parameters, bucketSize);
+    log.debug("Fetch data in several calls, bucket count {}", partition::size);
+    return partition.stream()
+        .map(paramBucket -> client.apply(additionalParam, paramBucket))
+        .collect(ArrayList::new, List::addAll, List::addAll);
+  }
+
+  private List<User> fetchUsers(List<String> patronGroups) {
+    final String groupIds = patronGroups.stream().collect(toQueryParameters);
+    var userResponse = userClient.getUserByQuery(String.format(USER_QUERY, groupIds), DEFAULT_LIMIT);
+    if (userResponse == null || userResponse.getTotalRecords() == 0) {
+      log.error("There are no active users for patrons group(s) {}.", groupIds);
+      return Collections.emptyList();
+    }
+    return userResponse.getUsers();
+  }
+
+  private List<Account> fetchAccounts(List<User> users, Long outStandingDays) {
+    var localDate = LocalDate.now().minusDays(outStandingDays);
+    final String userIdsAsParameter = users.stream().map(User::getId).collect(toQueryParameters);
+    var accountQuery = String.format(ACCOUNT_QUERY, userIdsAsParameter, localDate);
+    return accountClient.getAccounts(accountQuery, DEFAULT_LIMIT).getAccounts();
+  }
+
+  private List<Feefineaction> fetchFeefineActions(List<String> accountIds) {
+    var ids = Strings.join(accountIds, " or ");
+    var query = String.format(FEEFINE_QUERY, ids);
+    return feefineClient.getFeefineactions(query, DEFAULT_LIMIT).getFeefineactions();
   }
 
   private TransferRequest toTransferRequest(List<Account> accounts, BursarFeeFines bursarFeeFines) {
@@ -127,20 +141,24 @@ public class BursarExportServiceImpl implements BursarExportService {
 
     if (remainingAmount.doubleValue() <= 0) {
       throw new IllegalArgumentException(
-          String.format("Transfer amount should be positive for account(s) %s", StringUtils.join(accounts, ",")));
+          String.format(
+              "Transfer amount should be positive for account(s) %s",
+              StringUtils.join(accounts, ",")));
     }
 
     String paymentMethod;
     if (bursarFeeFines.getTransferAccountId() == null) {
       paymentMethod = DEFAULT_PAYMENT_METHOD;
     } else {
-      TransferdataCollection transfers = transferClient.get("id==" + bursarFeeFines.getTransferAccountId().toString(), 1);
-      paymentMethod = CollectionUtils.isEmpty(transfers.getTransfers()) ?
-          DEFAULT_PAYMENT_METHOD :
-          transfers.getTransfers().get(0).getAccountName();
+      TransferdataCollection transfers =
+          transferClient.get("id==" + bursarFeeFines.getTransferAccountId().toString(), 1);
+      paymentMethod =
+          CollectionUtils.isEmpty(transfers.getTransfers())
+              ? DEFAULT_PAYMENT_METHOD
+              : transfers.getTransfers().get(0).getAccountName();
     }
 
-    TransferRequest transferRequest = new TransferRequest();
+    var transferRequest = new TransferRequest();
     transferRequest.setAmount(remainingAmount.doubleValue());
     transferRequest.setPaymentMethod(paymentMethod);
     transferRequest.setServicePointId(getServicePoint().getId());
@@ -151,22 +169,19 @@ public class BursarExportServiceImpl implements BursarExportService {
   }
 
   private ServicePoint getServicePoint() {
-    ServicePoints servicePoints = servicePointClient.get("code==" + SERVICE_POINT_CODE, 2);
+    var servicePoints = servicePointClient.get("code==" + SERVICE_POINT_CODE, 2);
     if (servicePoints.getTotalRecords() < 1) {
       throw new IllegalStateException(
-          "Fees/fines bursar report generation requires a service point with the code '" + SERVICE_POINT_CODE + "'. Please create this service point and run the export again.");
+          "Fees/fines bursar report generation requires a service point with the code '"
+              + SERVICE_POINT_CODE
+              + "'. Please create this service point and run the export again.");
     }
     if (servicePoints.getTotalRecords() > 1) {
       throw new IllegalStateException(
-          "Fees/fines bursar report generation requires a service point with the code '" + SERVICE_POINT_CODE + "'. More than one such service points were found - please resolve this ambiguity and run the export again.");
+          "Fees/fines bursar report generation requires a service point with the code '"
+              + SERVICE_POINT_CODE
+              + "'. More than one such service points were found - please resolve this ambiguity and run the export again.");
     }
     return servicePoints.getServicepoints().get(0);
   }
-
-  private FeefineactionCollection findFeefineActions(List<String> accountIds) {
-    String ids = Strings.join(accountIds, " or ");
-    String query = String.format(FEEFINE_QUERY, ids);
-    return feefineClient.getFeefineactions(query, DEFAULT_LIMIT);
-  }
-
 }

@@ -44,7 +44,7 @@ management:
         include: health
   metrics:
     export:
-      influx:v
+      influx:
         enabled: false
 feign:
   client:

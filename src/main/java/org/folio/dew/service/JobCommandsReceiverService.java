@@ -1,10 +1,19 @@
 package org.folio.dew.service;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.folio.des.config.KafkaConfiguration;
+import org.folio.des.config.kafka.KafkaService;
 import org.folio.des.domain.JobParameterNames;
 import org.folio.des.domain.dto.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
@@ -15,25 +24,15 @@ import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.kafka.listener.AcknowledgingMessageListener;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Log4j2
-public class JobCommandsReceiverService implements AcknowledgingMessageListener<String, JobCommand> {
+public class JobCommandsReceiverService {
 
-  private final KafkaConfiguration kafka;
   private final ExportJobManager exportJobManager;
   private final IAcknowledgementRepository acknowledgementRepository;
   private final MinIOObjectStorageRepository objectStorageRepository;
@@ -51,7 +50,7 @@ public class JobCommandsReceiverService implements AcknowledgingMessageListener<
     }
 
     workDir = System.getProperty("java.io.tmpdir") + '/' + springApplicationName + '/';
-    File file = new File(workDir);
+    var file = new File(workDir);
     if (!file.exists()) {
       if (file.mkdir()) {
         log.info("Created working directory {}.", workDir);
@@ -63,14 +62,12 @@ public class JobCommandsReceiverService implements AcknowledgingMessageListener<
     }
   }
 
-  @EventListener(ContextRefreshedEvent.class)
-  public void onContextRefreshed() {
-    kafka.startListener(KafkaConfiguration.Topic.JOB_COMMAND, this);
-  }
-
-  @Override
-  public void onMessage(ConsumerRecord<String, JobCommand> data, Acknowledgment acknowledgment) {
-    JobCommand jobCommand = data.value();
+  @KafkaListener(
+    id = KafkaService.EVENT_LISTENER_ID,
+    containerFactory = "kafkaListenerContainerFactory",
+    topicPattern = "${application.kafka.topic-pattern}",
+    groupId = "${application.kafka.group-id}")
+  public void receiveStartJobCommand(JobCommand jobCommand, Acknowledgment acknowledgment) {
     log.info("Received {}.", jobCommand);
 
     try {
@@ -82,7 +79,9 @@ public class JobCommandsReceiverService implements AcknowledgingMessageListener<
 
       prepareJobParameters(jobCommand);
 
-      JobLaunchRequest jobLaunchRequest = new JobLaunchRequest(jobMap.get(jobCommand.getExportType().toString()),
+      var jobLaunchRequest =
+        new JobLaunchRequest(
+          jobMap.get(jobCommand.getExportType().toString()),
           jobCommand.getJobParameters());
 
       acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
@@ -94,9 +93,9 @@ public class JobCommandsReceiverService implements AcknowledgingMessageListener<
 
   private void prepareJobParameters(JobCommand jobCommand) {
     Map<String, JobParameter> parameters = jobCommand.getJobParameters().getParameters();
-    String jobId = jobCommand.getId().toString();
+    var jobId = jobCommand.getId().toString();
     parameters.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
-    Date now = new Date();
+    var now = new Date();
     parameters.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH,
         new JobParameter(String.format("%s%s_%tF_%tT_%s", workDir, jobCommand.getExportType(), now, now, jobId)));
     jobCommand.setJobParameters(new JobParameters(parameters));
@@ -109,7 +108,7 @@ public class JobCommandsReceiverService implements AcknowledgingMessageListener<
 
     acknowledgment.acknowledge();
 
-    String filesStr = jobCommand.getJobParameters().getString(JobParameterNames.OUTPUT_FILES_IN_STORAGE);
+    var filesStr = jobCommand.getJobParameters().getString(JobParameterNames.OUTPUT_FILES_IN_STORAGE);
     log.info("Deleting old job files {}.", filesStr);
     if (StringUtils.isEmpty(filesStr)) {
       return true;

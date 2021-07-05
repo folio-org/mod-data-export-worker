@@ -1,0 +1,66 @@
+server:
+  port: 8081
+  tomcat.threads.max: 100
+spring:
+  application:
+    name: mod-data-export-worker
+  jpa:
+    open-in-view: false
+  jackson:
+    default-property-inclusion: non_empty
+    deserialization:
+      fail-on-unknown-properties: false
+  kafka:
+    bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
+    listener:
+      ack-mode: manual
+    consumer:
+      auto-offset-reset: latest
+      enable-auto-commit: false
+  batch:
+    initialize-schema: always
+    schema: classpath:db/hsql/schema-hsqldb.sql
+    job:
+      enabled: false
+  liquibase:
+    changeLog: classpath:db/changelog/changelog-master.xml
+    enabled: true
+minio:
+  endpoint: ${AWS_URL:http://127.0.0.1:9000/}
+  region: ${AWS_REGION:}
+  bucket: ${AWS_BUCKET:}
+  accessKey: ${AWS_ACCESS_KEY_ID:}
+  secretKey: ${AWS_SECRET_ACCESS_KEY:}
+dataSource:
+  driver: org.hsqldb.jdbcDriver
+  jdbcUrl: jdbc:hsqldb:mem:testdb;sql.enforce_strict_size=true;hsqldb.tx=mvcc
+  username: sa
+  password:
+management:
+  endpoints:
+    web:
+      base-path: /admin
+      exposure:
+        include: health
+  metrics:
+    export:
+      influx:v
+        enabled: false
+feign:
+  client:
+    config:
+      default:
+        loggerLevel: basic
+application:
+  kafka:
+    topic-pattern: (${ENV:folio}\.)?(.*\.)?data-export.job.command
+    group-id: ${ENV:folio}-mod-data-export-worker-events-group
+  bucket:
+    size: ${BUCKET_SIZE:50}
+folio:
+  tenant:
+    validation:
+      enabled: true
+logging:
+  level:
+    org.folio.dew.client.*: debug

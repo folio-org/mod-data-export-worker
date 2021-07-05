@@ -1,7 +1,7 @@
 package org.folio.dew.controller;
 
 import lombok.extern.log4j.Log4j2;
-import org.folio.des.config.KafkaConfiguration;
+import org.folio.des.config.kafka.KafkaService;
 import org.folio.spring.controller.TenantController;
 import org.folio.spring.service.TenantService;
 import org.folio.tenant.domain.dto.TenantAttributes;
@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Log4j2
 public class FolioTenantController extends TenantController {
 
-  private final KafkaConfiguration kafka;
+  private final KafkaService kafka;
 
-  public FolioTenantController(TenantService baseTenantService, KafkaConfiguration kafka) {
+  public FolioTenantController(TenantService baseTenantService, KafkaService kafka) {
     super(baseTenantService);
     this.kafka = kafka;
   }
@@ -28,7 +28,8 @@ public class FolioTenantController extends TenantController {
 
     if (tenantInit.getStatusCode() == HttpStatus.OK) {
       try {
-        kafka.createTopics();
+        kafka.createKafkaTopics();
+        kafka.restartEventListeners();
       } catch (Exception e) {
         log.error(e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());

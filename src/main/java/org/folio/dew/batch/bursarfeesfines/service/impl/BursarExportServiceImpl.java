@@ -46,7 +46,7 @@ public class BursarExportServiceImpl implements BursarExportService {
   private static final long DEFAULT_LIMIT = 10000L;
   private final Collector<CharSequence, ?, String> toQueryParameters = joining(" or ", "(", ")");
 
-  @Value("${bucket.size}")
+  @Value("${application.bucket.size}")
   private int bucketSize;
 
   private final UserClient userClient;

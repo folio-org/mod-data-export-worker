@@ -120,12 +120,16 @@ class BursarFeesFinesTest extends BaseBatchTest {
     feeFines.setTransferAccountId(UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b"));
 
     BursarFeeFinesTypeMapping typeMapping = new BursarFeeFinesTypeMapping();
-    typeMapping.setFeefineTypeId(UUID.randomUUID());
-    typeMapping.setItemType("itemType");
-    typeMapping.setItemCode(ItemCodeEnum.PAYMENT);
-    typeMapping.setItemDescription("Desc");
+    typeMapping.setFeefineTypeId(UUID.fromString("933336fd-0290-468a-b69f-35815b713265"));
+    typeMapping.setItemType("Bursar Type");
+    typeMapping.setItemCode(ItemCodeEnum.CHARGE);
+    typeMapping.setItemDescription("Desc bursar                  1");
 
-    feeFines.setTypeMappings(List.of(typeMapping));
+    final Map<String, List<BursarFeeFinesTypeMapping>> mapping = new HashMap<>();
+    mapping.put("782c9784-cba0-480a-b8c0-1ffba088c9a5", null);
+    mapping.put("782c9784-cba0-480a-b8c0-1ffba088c9a4", List.of(typeMapping));
+
+    feeFines.setTypeMappings(mapping);
 
     Map<String, JobParameter> params = new HashMap<>();
     params.put("bursarFeeFines", new JobParameter(objectMapper.writeValueAsString(feeFines)));

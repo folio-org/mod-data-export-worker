@@ -1,11 +1,5 @@
 package org.folio.dew.batch.bursarfeesfines.service;
 
-import lombok.experimental.UtilityClass;
-import org.apache.commons.lang3.StringUtils;
-import org.folio.des.domain.dto.BursarFeeFines;
-import org.folio.des.domain.dto.BursarFeeFinesTypeMapping;
-import org.folio.dew.domain.dto.Account;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
@@ -13,7 +7,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
+import org.folio.des.domain.dto.BursarFeeFines;
+import org.folio.des.domain.dto.BursarFeeFinesTypeMapping;
+import org.folio.dew.domain.dto.Account;
 
 @UtilityClass
 public class BursarFeesFinesUtils {
@@ -76,11 +76,19 @@ public class BursarFeesFinesUtils {
     if (bursarFeeFines.getTypeMappings() == null) {
       return null;
     }
-    return bursarFeeFines.getTypeMappings()
+
+    final List<BursarFeeFinesTypeMapping> feeFinesTypeMappingList = bursarFeeFines
+      .getTypeMappings()
+      .get(account.getOwnerId());
+
+    if (feeFinesTypeMappingList == null) {
+      return null;
+    }
+
+    return feeFinesTypeMappingList
         .stream()
         .filter(m -> m.getFeefineTypeId().toString().equals(account.getFeeFineId()))
         .findFirst()
         .orElse(null);
   }
-
 }

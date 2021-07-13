@@ -22,7 +22,7 @@ application:
     password:
     max-pool-size: 20
   minio:
-    endpoint: http://127.0.0.1:9000/
+    endpoint: http://${embedded.minio.host}:${embedded.minio.port}/
     region: ${AWS_REGION:region}
     bucket: ${AWS_BUCKET:test}
     accessKey: ${AWS_ACCESS_KEY_ID:AKIAIOSFODNN7EXAMPLE}

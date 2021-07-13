@@ -36,7 +36,8 @@ public class BursarFeesFinesUtils {
   }
 
   private static final DateTimeFormatter FILENAME_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyMMdd");
-  private final SimpleDateFormat TRANSACTION_DATE_TIME_FORMAT = new SimpleDateFormat("MMddyy");
+  private static final ThreadLocal<SimpleDateFormat> TRANSACTION_DATE_TIME_FORMAT = ThreadLocal
+    .withInitial(() -> new SimpleDateFormat("MMddyy"));
 
   public static String getFilename(String stepName) {
     return String.format(FILE_PATTERNS.get(stepName), LocalDateTime.now().format(FILENAME_DATE_TIME_FORMATTER));
@@ -59,7 +60,14 @@ public class BursarFeesFinesUtils {
   }
 
   public static String getTransactionDate(Date createdDate) {
-    return TRANSACTION_DATE_TIME_FORMAT.format(createdDate);
+    return TRANSACTION_DATE_TIME_FORMAT.get().format(createdDate);
+  }
+
+  /**
+   * Clean up the ThreadLocal.
+   */
+  public static void cleanUp() {
+    TRANSACTION_DATE_TIME_FORMAT.remove();
   }
 
   public static String getEmployeeId(String userId, Map<String, String> userIdMap) {

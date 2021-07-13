@@ -20,7 +20,7 @@ public class AsyncConfig {
   @Bean(name = "asyncJobLauncher")
   public JobLauncher getAsyncJobLauncher(
       JobRepository jobRepository, @Qualifier("asyncTaskExecutor") TaskExecutor taskExecutor) {
-    final SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
+    var jobLauncher = new SimpleJobLauncher();
     jobLauncher.setJobRepository(jobRepository);
     jobLauncher.setTaskExecutor(taskExecutor);
     return jobLauncher;
@@ -28,7 +28,7 @@ public class AsyncConfig {
 
   @Bean(name = "asyncTaskExecutor")
   public TaskExecutor getAsyncTaskExecutor() {
-    ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+    var threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
     threadPoolTaskExecutor.setCorePoolSize(TASK_EXECUTOR_CORE_POOL_SIZE);
     threadPoolTaskExecutor.setMaxPoolSize(TASK_EXECUTOR_MAX_POOL_SIZE);
     return threadPoolTaskExecutor;

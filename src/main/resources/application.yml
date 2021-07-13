@@ -25,17 +25,6 @@ spring:
   liquibase:
     changeLog: classpath:db/changelog/changelog-master.xml
     enabled: true
-minio:
-  endpoint: ${AWS_URL:http://127.0.0.1:9000/}
-  region: ${AWS_REGION:}
-  bucket: ${AWS_BUCKET:}
-  accessKey: ${AWS_ACCESS_KEY_ID:}
-  secretKey: ${AWS_SECRET_ACCESS_KEY:}
-dataSource:
-  driver: org.hsqldb.jdbcDriver
-  jdbcUrl: jdbc:hsqldb:mem:testdb;sql.enforce_strict_size=true;hsqldb.tx=mvcc
-  username: sa
-  password:
 management:
   endpoints:
     web:
@@ -55,6 +44,18 @@ application:
   kafka:
     topic-pattern: (${ENV:folio}\.)?(.*\.)?data-export.job.command
     group-id: ${ENV:folio}-mod-data-export-worker-events-group
+  datasource:
+    driver: org.hsqldb.jdbcDriver
+    jdbc-url: jdbc:hsqldb:mem:testdb;sql.enforce_strict_size=true;hsqldb.tx=mvcc
+    username: sa
+    password:
+    max-pool-size: 20
+  minio:
+    endpoint: ${AWS_URL:http://127.0.0.1:9000/}
+    region: ${AWS_REGION:}
+    bucket: ${AWS_BUCKET:}
+    accessKey: ${AWS_ACCESS_KEY_ID:}
+    secretKey: ${AWS_SECRET_ACCESS_KEY:}
   bucket:
     size: ${BUCKET_SIZE:50}
 folio:

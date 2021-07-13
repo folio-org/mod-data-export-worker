@@ -18,7 +18,7 @@ public class ExecutionContextUtils {
   }
 
   public static void addToJobExecutionContext(StepExecution stepExecution, String key, String value, String delimiter) {
-    JobExecution jobExecution = stepExecution.getJobExecution();
+    var jobExecution = stepExecution.getJobExecution();
     String oldUrl = getFromJobExecutionContext(jobExecution, key);
     jobExecution.getExecutionContext().putString(key, StringUtils.isBlank(oldUrl) ? value : oldUrl + delimiter + value);
   }

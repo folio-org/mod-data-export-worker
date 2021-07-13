@@ -29,7 +29,7 @@ public class CsvWriter<T> extends FlatFileItemWriter<T> {
           return result;
         }
 
-        for (int i = 0; i < result.length; i++) {
+        for (var i = 0; i < result.length; i++) {
           Object o = result[i];
           if (o == null) {
             continue;
@@ -39,7 +39,7 @@ public class CsvWriter<T> extends FlatFileItemWriter<T> {
             o = fieldProcessor.process(o, i);
           }
 
-          String s = o.toString();
+          var s = o.toString();
           if (s.contains(",") || s.contains("\n")) {
             s = "\"" + s.replace("\"", "\"\"") + "\"";
           }

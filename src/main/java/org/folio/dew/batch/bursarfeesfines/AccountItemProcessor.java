@@ -1,5 +1,7 @@
 package org.folio.dew.batch.bursarfeesfines;
 
+import java.util.Collections;
+import java.util.Map;
 import org.folio.des.domain.dto.BursarFeeFines;
 import org.folio.des.domain.dto.BursarFeeFinesTypeMapping;
 import org.folio.dew.batch.ExecutionContextUtils;
@@ -12,9 +14,6 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.Map;
-
 @Component
 @StepScope
 public class AccountItemProcessor implements ItemProcessor<Account, BursarFormat> {
@@ -24,7 +23,7 @@ public class AccountItemProcessor implements ItemProcessor<Account, BursarFormat
 
   @Override
   public BursarFormat process(Account item) {
-    BursarFormat format = new BursarFormat();
+    var format = new BursarFormat();
     format.setEmployeeId(BursarFeesFinesUtils.getEmployeeId(item.getUserId(), userIdMap));
     format.setAmount(BursarFeesFinesUtils.normalizeAmount(item.getAmount()));
     format.setTransactionDate(BursarFeesFinesUtils.getTransactionDate(item.getMetadata().getCreatedDate()));

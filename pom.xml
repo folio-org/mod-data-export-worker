@@ -27,9 +27,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <circulation-log.yaml.file>${project.basedir}/src/main/resources/swagger.api/circulation-log.yaml
+        <circulation-log.yaml.file>
+          ${project.basedir}/src/main/resources/swagger.api/circulation-log.yaml
         </circulation-log.yaml.file>
-        <bursar-export.yaml.file>${project.basedir}/src/main/resources/swagger.api/bursar-export.yaml</bursar-export.yaml.file>
+        <bursar-export.yaml.file>
+          ${project.basedir}/src/main/resources/swagger.api/bursar-export.yaml
+        </bursar-export.yaml.file>
 
         <folio-spring-base.version>1.0.5</folio-spring-base.version>
         <folio-spring-tenant.version>1.0.0</folio-spring-tenant.version>
@@ -38,11 +41,15 @@
         <commons-io.version>2.8.0</commons-io.version>
         <minio.version>8.1.0</minio.version>
         <openapi-generator.version>4.3.1</openapi-generator.version>
+        <log4j-web.version>2.14.0</log4j-web.version>
+        <commons-collections4.version>4.4</commons-collections4.version>
+        <lombok.version>1.18.18</lombok.version>
 
         <sonar.exclusions>
             **/src/main/java/org/folio/dew/ModDataExportWorkerApplication.java,
             **/src/main/java/org/folio/dew/batch/JobCompletionNotificationListener.java,
-            **/src/main/java/org/folio/dew/domain/dto/**
+            **/src/main/java/org/folio/dew/domain/dto/**,
+            **/src/main/java/org/folio/dew/config/properties/**
         </sonar.exclusions>
 
         <!-- Test properties-->
@@ -60,15 +67,14 @@
         </dependency>
         <dependency>
             <groupId>org.folio</groupId>
-            <artifactId>spring-tenant</artifactId>
-            <version>${folio-spring-tenant.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.folio</groupId>
             <artifactId>mod-data-export-spring</artifactId>
             <version>${folio-data-export-spring.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
         <dependency>
             <groupId>org.springframework.batch</groupId>
             <artifactId>spring-batch-core</artifactId>
@@ -113,7 +119,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
-            <version>4.4</version>
+            <version>${commons-collections4.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -124,14 +130,14 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.18</version>
+            <version>${lombok.version}</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-web</artifactId>
-            <version>2.14.0</version>
+            <version>${log4j-web.version}</version>
         </dependency>
 
         <!-- Test dependencies -->
@@ -195,6 +201,12 @@
                     <layers>
                         <enabled>true</enabled>
                     </layers>
+                    <excludes>
+                       <exclude>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-configuration-processor</artifactId>
+                       </exclude>
+                    </excludes>
                 </configuration>
             </plugin>
 

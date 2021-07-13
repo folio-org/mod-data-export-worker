@@ -1,12 +1,11 @@
 package org.folio.dew.batch;
 
+import java.util.HashMap;
+import java.util.Map;
 import lombok.extern.log4j.Log4j2;
 import org.folio.des.domain.JobParameterNames;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.item.ExecutionContext;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Log4j2
 public abstract class CsvPartitioner implements Partitioner {
@@ -35,11 +34,11 @@ public abstract class CsvPartitioner implements Partitioner {
     }
 
     long currentLimit;
-    for (int i = 0; i < numberOfPartitions; i++) {
+    for (var i = 0; i < numberOfPartitions; i++) {
       String tempOutputFilePath = getPartitionOutputFilePath(i);
       currentLimit = limit - QUANTITY_PER_PARTITION >= QUANTITY_PER_PARTITION ? QUANTITY_PER_PARTITION : limit;
 
-      ExecutionContext executionContext = new ExecutionContext();
+      var executionContext = new ExecutionContext();
       executionContext.putLong("offset", offset);
       executionContext.putLong("limit", currentLimit);
       executionContext.putLong("partition", i);
@@ -55,7 +54,7 @@ public abstract class CsvPartitioner implements Partitioner {
     return result;
   }
 
-  protected abstract long getLimit();
+  protected abstract Long getLimit();
 
   private String getPartitionOutputFilePath(int partitionNumber) {
     return String.format(outputFilePathTemplate, partitionNumber);

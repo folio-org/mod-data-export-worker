@@ -1,9 +1,8 @@
 package org.folio.dew.batch;
 
-import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
-
 import java.util.List;
 import java.util.UUID;
+import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
 
 public abstract class CsvItemReader<T> extends AbstractItemCountingItemStreamItemReader<T> {
 
@@ -35,7 +34,7 @@ public abstract class CsvItemReader<T> extends AbstractItemCountingItemStreamIte
       return null;
     }
 
-    T item = currentChunk.get(currentChunkOffset);
+    var item = currentChunk.get(currentChunkOffset);
     currentChunkOffset++;
 
     return item;

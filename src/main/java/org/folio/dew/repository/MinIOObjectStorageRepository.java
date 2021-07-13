@@ -1,21 +1,28 @@
 package org.folio.dew.repository;
 
-import io.minio.*;
+import io.minio.BucketExistsArgs;
+import io.minio.ComposeObjectArgs;
+import io.minio.ComposeSource;
+import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.MakeBucketArgs;
+import io.minio.MinioClient;
+import io.minio.ObjectWriteArgs;
+import io.minio.ObjectWriteResponse;
+import io.minio.RemoveObjectsArgs;
+import io.minio.Result;
+import io.minio.UploadObjectArgs;
 import io.minio.credentials.IamAwsProvider;
 import io.minio.credentials.Provider;
 import io.minio.credentials.StaticProvider;
-import io.minio.errors.*;
+import io.minio.errors.ErrorResponseException;
+import io.minio.errors.InsufficientDataException;
+import io.minio.errors.InternalException;
+import io.minio.errors.InvalidResponseException;
+import io.minio.errors.ServerException;
+import io.minio.errors.XmlParserException;
 import io.minio.http.Method;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
-import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Repository;
-
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -24,6 +31,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.config.properties.MinIoProperties;
+import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Repository;
 
 @Repository
 @Log4j2
@@ -35,13 +49,15 @@ public class MinIOObjectStorageRepository {
   private final MinioClient client;
   private final String bucket;
 
-  public MinIOObjectStorageRepository(@Value("${minio.endpoint}") String endpoint, @Value("${minio.region}") String region,
-      @Value("${minio.bucket}") String bucket, @Value("${minio.accessKey}") String accessKey,
-      @Value("${minio.secretKey}") String secretKey) {
-    log.info("Creating MinIO client endpoint {},region {},bucket {},accessKey {},secretKey {}.", endpoint, region, bucket,
+  public MinIOObjectStorageRepository(MinIoProperties properties) {
+    final String accessKey = properties.getAccessKey();
+    final String endpoint = properties.getEndpoint();
+    final String region = properties.getRegion();
+    final String secretKey = properties.getSecretKey();
+    log.info("Creating MinIO client endpoint {},region {},bucket {},accessKey {},secretKey {}.", endpoint, region, properties.getBucket(),
         StringUtils.isNotBlank(accessKey) ? "<set>" : "<not set>", StringUtils.isNotBlank(secretKey) ? "<set>" : "<not set>");
 
-    MinioClient.Builder builder = MinioClient.builder().endpoint(endpoint);
+    var builder = MinioClient.builder().endpoint(endpoint);
     if (StringUtils.isNotBlank(region)) {
       builder.region(region);
     }
@@ -57,7 +73,7 @@ public class MinIOObjectStorageRepository {
 
     client = builder.build();
 
-    this.bucket = bucket;
+    this.bucket = properties.getBucket();
   }
 
   @SneakyThrows

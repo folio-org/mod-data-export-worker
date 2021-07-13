@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bursarfeesfines;
 
+import java.io.File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
@@ -8,14 +9,11 @@ import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.bursarfeesfines.service.BursarFeesFinesUtils;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-
-import java.io.File;
 
 @Component
 @StepScope
@@ -32,13 +30,13 @@ public class BursarExportStepListener implements StepExecutionListener {
 
   @Override
   public ExitStatus afterStep(StepExecution stepExecution) {
-    ExitStatus exitStatus = stepExecution.getExitStatus();
+    var exitStatus = stepExecution.getExitStatus();
     if (ExitStatus.FAILED.getExitCode().equals(exitStatus.getExitCode())) {
       return exitStatus;
     }
 
     String downloadFilename = BursarFeesFinesUtils.getFilename(stepExecution.getStepName());
-    JobExecution jobExecution = stepExecution.getJobExecution();
+    var jobExecution = stepExecution.getJobExecution();
     String filename = jobExecution.getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + '_' + downloadFilename;
     if (!new File(filename).exists()) {
       log.error("Can't find {}.", filename);

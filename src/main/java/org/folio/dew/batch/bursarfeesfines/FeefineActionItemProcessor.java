@@ -1,5 +1,8 @@
 package org.folio.dew.batch.bursarfeesfines;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.folio.des.domain.dto.BursarFeeFines;
 import org.folio.des.domain.dto.BursarFeeFinesTypeMapping;
 import org.folio.dew.batch.ExecutionContextUtils;
@@ -13,10 +16,6 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 @Component
 @StepScope
 public class FeefineActionItemProcessor implements ItemProcessor<Feefineaction, BursarFormat> {
@@ -27,14 +26,14 @@ public class FeefineActionItemProcessor implements ItemProcessor<Feefineaction, 
 
   @Override
   public BursarFormat process(Feefineaction item) {
-    BursarFormat format = new BursarFormat();
+    var format = new BursarFormat();
     format.setEmployeeId(BursarFeesFinesUtils.getEmployeeId(item.getUserId(), userIdMap));
     format.setAmount(BursarFeesFinesUtils.normalizeAmount(item.getAmountAction()));
     format.setTransactionDate(BursarFeesFinesUtils.getTransactionDate(item.getDateAction()));
     format.setSfs("SFS");
     format.setTermValue("    ");
 
-    Account account = getAccount(item);
+    var account = getAccount(item);
     BursarFeeFinesTypeMapping mapping = account == null ? null : BursarFeesFinesUtils.getMapping(bursarFeeFines, account);
     format.setItemType(BursarFeesFinesUtils.formatItemType(mapping == null ? null : mapping.getItemType()));
     format.setDescription(

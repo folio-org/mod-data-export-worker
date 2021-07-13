@@ -1,5 +1,6 @@
 package org.folio.dew.batch;
 
+import java.io.File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
@@ -9,8 +10,6 @@ import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.stereotype.Component;
-
-import java.io.File;
 
 @Component
 @Log4j2
@@ -26,12 +25,12 @@ public class CsvPartStepExecutionListener implements StepExecutionListener {
 
   @Override
   public ExitStatus afterStep(StepExecution stepExecution) {
-    ExitStatus exitStatus = stepExecution.getExitStatus();
+    var exitStatus = stepExecution.getExitStatus();
     if (ExitStatus.FAILED.getExitCode().equals(exitStatus.getExitCode())) {
       return exitStatus;
     }
 
-    String filename = stepExecution.getExecutionContext().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH);
+    var filename = stepExecution.getExecutionContext().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH);
     if (!new File(filename).exists()) {
       log.error("Can't find {}.", filename);
       return ExitStatus.FAILED;

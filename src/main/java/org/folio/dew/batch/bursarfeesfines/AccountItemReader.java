@@ -2,6 +2,12 @@ package org.folio.dew.batch.bursarfeesfines;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
@@ -13,13 +19,9 @@ import org.folio.dew.domain.dto.User;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 @StepScope
@@ -40,7 +42,7 @@ public class AccountItemReader implements ItemReader<Account> {
 
   @Override
   public Account read() {
-    ExecutionContext stepContext = stepExecution.getExecutionContext();
+    var stepContext = stepExecution.getExecutionContext();
     stepContext.put("accounts", accounts);
     stepContext.put("userIdMap", userIdMap);
 
@@ -58,7 +60,7 @@ public class AccountItemReader implements ItemReader<Account> {
   public void initStep(StepExecution stepExecution) throws JsonProcessingException {
     this.stepExecution = stepExecution;
 
-    BursarFeeFines bursarFeeFines = objectMapper.readValue(bursarFeeFinesStr, BursarFeeFines.class);
+    var bursarFeeFines = objectMapper.readValue(bursarFeeFinesStr, BursarFeeFines.class);
     stepExecution.getJobExecution().getExecutionContext().put("bursarFeeFines", bursarFeeFines);
 
     List<User> users = exportService.findUsers(bursarFeeFines.getPatronGroups());

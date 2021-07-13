@@ -1,25 +1,23 @@
 package org.folio.dew.config;
 
 import com.zaxxer.hikari.HikariDataSource;
+import javax.sql.DataSource;
+import org.folio.dew.config.properties.DataSourceProperties;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import javax.sql.DataSource;
-
 @Configuration
-public class SpringBatchDataConfig {
-
-  private static final int MAX_DATA_SOURCE_POOL_SIZE = 20;
+public class BatchDataConfig {
 
   @Bean
-  public JobRepository getJobRepository(@Qualifier("jobRepositoryDataSource") DataSource dataSource,
+  public JobRepository getJobRepository(
+      @Qualifier("jobRepositoryDataSource") DataSource dataSource,
       PlatformTransactionManager transactionManager) throws Exception {
-    JobRepositoryFactoryBean jobRepositoryFactory = new JobRepositoryFactoryBean();
+    var jobRepositoryFactory = new JobRepositoryFactoryBean();
     jobRepositoryFactory.setDataSource(dataSource);
     jobRepositoryFactory.setTransactionManager(transactionManager);
     jobRepositoryFactory.setIsolationLevelForCreate("ISOLATION_SERIALIZABLE");
@@ -30,15 +28,13 @@ public class SpringBatchDataConfig {
   }
 
   @Bean("jobRepositoryDataSource")
-  public DataSource getJobRepositoryDataSource(@Value("${dataSource.driver}") String driverClassName,
-      @Value("${dataSource.jdbcUrl}") String jdbcUrl, @Value("${dataSource.username}") String userName,
-      @Value("${dataSource.password}") String password) {
-    HikariDataSource dataSource = new HikariDataSource();
-    dataSource.setDriverClassName(driverClassName);
-    dataSource.setJdbcUrl(jdbcUrl);
-    dataSource.setUsername(userName);
-    dataSource.setPassword(password);
-    dataSource.setMaximumPoolSize(MAX_DATA_SOURCE_POOL_SIZE);
+  public DataSource getJobRepositoryDataSource(DataSourceProperties properties) {
+    var dataSource = new HikariDataSource();
+    dataSource.setDriverClassName(properties.getDriver());
+    dataSource.setJdbcUrl(properties.getJdbcUrl());
+    dataSource.setUsername(properties.getUsername());
+    dataSource.setPassword(properties.getPassword());
+    dataSource.setMaximumPoolSize(properties.getMaxPoolSize());
 
     return dataSource;
   }

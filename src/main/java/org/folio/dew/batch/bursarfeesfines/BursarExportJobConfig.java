@@ -67,7 +67,7 @@ public class BursarExportJobConfig {
 
   @Bean
   public ExecutionContextPromotionListener promotionListener() {
-    ExecutionContextPromotionListener listener = new ExecutionContextPromotionListener();
+    var listener = new ExecutionContextPromotionListener();
     listener.setKeys(new String[] { "accounts", "userIdMap" });
     return listener;
   }

@@ -18,7 +18,6 @@ import org.folio.dew.repository.IAcknowledgementRepository;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
-import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -61,7 +60,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
   }
 
   private void processJobAfter(String jobId, JobParameters jobParameters) {
-    Acknowledgment acknowledgment = acknowledgementRepository.getAcknowledgement(jobId);
+    var acknowledgment = acknowledgementRepository.getAcknowledgement(jobId);
     if (acknowledgment != null) {
       acknowledgment.acknowledge();
       acknowledgementRepository.deleteAcknowledgement(jobId);

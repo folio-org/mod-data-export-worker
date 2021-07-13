@@ -48,7 +48,8 @@
         <sonar.exclusions>
             **/src/main/java/org/folio/dew/ModDataExportWorkerApplication.java,
             **/src/main/java/org/folio/dew/batch/JobCompletionNotificationListener.java,
-            **/src/main/java/org/folio/dew/domain/dto/**
+            **/src/main/java/org/folio/dew/domain/dto/**,
+            **/src/main/java/org/folio/dew/config/properties/**
         </sonar.exclusions>
 
         <!-- Test properties-->

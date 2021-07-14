@@ -64,17 +64,23 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
   private void initTenantSpecificDateFormat() {
     if (format != null) return;
 
-    final ConfigurationCollection tenantLocaleSettings =
-      configurationClient.getConfiguration("(module==ORG and configName==localeSettings)");
-    var modelConfiguration = tenantLocaleSettings.getConfigs().get(0);
-
-    var jsonObject = new JSONObject(modelConfiguration.getValue());
-    var timezoneId = String.valueOf(jsonObject.get("timezone"));
+    String timezoneId = fetchTimezone();
 
     var dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
     dateFormat.setTimeZone(TimeZone.getTimeZone(timezoneId));
 
     format = dateFormat;
+  }
+
+  private String fetchTimezone() {
+    final ConfigurationCollection tenantLocaleSettings =
+      configurationClient.getConfiguration("(module==ORG and configName==localeSettings)");
+
+    if (tenantLocaleSettings.getTotalRecords() == 0) return "UTC";
+
+    var modelConfiguration = tenantLocaleSettings.getConfigs().get(0);
+    var jsonObject = new JSONObject(modelConfiguration.getValue());
+    return String.valueOf(jsonObject.get("timezone"));
   }
 
   private void fetchServicePoints() {

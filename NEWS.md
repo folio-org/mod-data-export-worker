@@ -1,3 +1,6 @@
+## 2021-07-15 v1.1.4
+* [MODEXPW-24](https://issues.folio.org/browse/MODEXPW-24) Update audit data schema.json
+
 ## 2021-07-15 v1.1.3
 * [MODEXPW-24](https://issues.folio.org/browse/MODEXPW-24) Change export Circulation log format
 * [MODEXPW-25](https://issues.folio.org/browse/MODEXPW-25) Enable mutiowner mapping feature

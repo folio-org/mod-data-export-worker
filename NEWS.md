@@ -1,18 +1,8 @@
-## 2021-07-15 v1.1.4
-* [MODEXPW-24](https://issues.folio.org/browse/MODEXPW-24) Update audit data schema.json
-
-## 2021-07-15 v1.1.3
-* [MODEXPW-24](https://issues.folio.org/browse/MODEXPW-24) Change export Circulation log format
-* [MODEXPW-25](https://issues.folio.org/browse/MODEXPW-25) Enable mutiowner mapping feature
-
-## 2021-07-05 v1.1.2
-* [MODEXPW-23](https://issues.folio.org/browse/MODEXPW-23) URI Too Large for feefineactions call
-
-## 2021-06-30 v1.1.1
-* [MODEXPW-22](https://issues.folio.org/browse/MODEXPW-22) Bursar export failed for large patron group
-
-## 2021-06-18 v1.1.0
- * No changes since last release.
+## 2021-07-16 v1.0.8
+ * [MODEXPW-24](https://issues.folio.org/browse/MODEXPW-24) Change export Circulation log format
+ * [MODEXPW-25](https://issues.folio.org/browse/MODEXPW-25) Enable mutiowner mapping feature
+ * [MODEXPW-23](https://issues.folio.org/browse/MODEXPW-23) URI Too Large for feefineactions call
+ * [MODEXPW-22](https://issues.folio.org/browse/MODEXPW-22) Bursar export failed for large patron group
 
 ## 2021-05-14 v1.0.7
  * [MODEXPW-9](https://issues.folio.org/browse/MODEXPW-9) Add standard health check endpoint

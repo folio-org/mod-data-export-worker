@@ -1,3 +1,6 @@
+## 2021-08-02 v1.0.9
+ * [MODEXPW-27](https://issues.folio.org/browse/MODEXPW-27) Can not start an export job for configuration with a lot of records for mapping
+
 ## 2021-07-16 v1.0.8
  * [MODEXPW-24](https://issues.folio.org/browse/MODEXPW-24) Change export Circulation log format
  * [MODEXPW-25](https://issues.folio.org/browse/MODEXPW-25) Enable mutiowner mapping feature

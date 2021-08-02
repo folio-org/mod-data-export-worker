@@ -1,15 +1,20 @@
 package org.folio.dew.batch.bursarfeesfines.service;
 
-import org.folio.des.domain.dto.BursarFeeFines;
+import java.util.List;
+import java.util.Map;
+import org.folio.des.domain.dto.BursarFeeFinesTypeMapping;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.Feefineaction;
 import org.folio.dew.domain.dto.User;
-
-import java.util.List;
+import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 
 public interface BursarExportService {
 
-  void transferAccounts(List<Account> accounts, BursarFeeFines bursarFeeFines);
+  void addMapping(String jobId, Map<String, List<BursarFeeFinesTypeMapping>> mapping);
+
+  BursarFeeFinesTypeMapping getMapping(String jobId, Account account);
+
+  void transferAccounts(List<Account> accounts, BursarJobPrameterDto bursarFeeFines);
 
   List<User> findUsers(List<String> patronGroups);
 

@@ -1,3 +1,6 @@
+## 2021-08-02 v1.1.5
+* [MODEXPW-27](https://issues.folio.org/browse/MODEXPW-27) Can not start an export job for configuration with a lot of records for mapping
+
 ## 2021-07-15 v1.1.4
 * [MODEXPW-24](https://issues.folio.org/browse/MODEXPW-24) Update audit data schema.json
 

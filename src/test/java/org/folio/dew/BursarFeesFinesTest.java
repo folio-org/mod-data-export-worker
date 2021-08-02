@@ -17,10 +17,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.folio.des.domain.JobParameterNames;
-import org.folio.des.domain.dto.BursarFeeFines;
 import org.folio.des.domain.dto.BursarFeeFinesTypeMapping;
 import org.folio.des.domain.dto.BursarFeeFinesTypeMapping.ItemCodeEnum;
 import org.folio.des.domain.dto.ExportType;
+import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
+import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -41,17 +42,17 @@ class BursarFeesFinesTest extends BaseBatchTest {
       "/feefineactions?query=%28accountId%3D%3D%28807becbc-c3e6-4871-bf38-d140597e41cb%20or%20707becbc-c3e6-4871-bf38-d140597e41cb%20or%20907becbc-c3e6-4871-bf38-d140597e41cb%29%20and%20%28typeAction%3D%3D%28%22Refunded%20partially%22%20or%20%22Refunded%20fully%22%29%29%29&limit=10000";
 
   private static final String ACCOUNTS_GET_REQUEST = "/accounts";
-  private static final String TRANSFERS_GET_REQUEST =
-      "/transfers?query=id%3D%3D998ecb15-9f5d-4674-b288-faad24e44c0b&limit=1";
-  private static final String SERVICE_POINTS_GET_REQUEST =
-      "/service-points?query=code%3D%3Dsystem&limit=2";
+  private static final String TRANSFERS_GET_REQUEST = "/transfers?query=id%3D%3D998ecb15-9f5d-4674-b288-faad24e44c0b&limit=1";
+  private static final String SERVICE_POINTS_GET_REQUEST = "/service-points?query=code%3D%3Dsystem&limit=2";
   private static final String PATRON_GROUP_WITH_USERS = "3684a786-6671-4268-8ed0-9db82ebca60b";
   private static final String PATRON_GROUP_WITH_NO_USER = "0004a786-6671-4268-8ed0-9db82ebca600";
-  private static final String EXPECTED_CHARGE_OUTPUT =
-      "src/test/resources/output/charge_bursar_export.dat";
-  private static final String EXPECTED_REFUND_OUTPUT =
-      "src/test/resources/output/refund_bursar_export.dat";
-  @Autowired private Job bursarExportJob;
+  private static final String EXPECTED_CHARGE_OUTPUT = "src/test/resources/output/charge_bursar_export.dat";
+  private static final String EXPECTED_REFUND_OUTPUT = "src/test/resources/output/refund_bursar_export.dat";
+
+  @Autowired
+  private Job bursarExportJob;
+  @Autowired
+  private BursarExportService bursarExportService;
 
   @Test
   @DisplayName("BursarExportJob run successfully and passed all steps")
@@ -114,7 +115,7 @@ class BursarFeesFinesTest extends BaseBatchTest {
   }
 
   private JobParameters prepareJobParameters(String patronGroup) throws JsonProcessingException {
-    BursarFeeFines feeFines = new BursarFeeFines();
+    var feeFines = new BursarJobPrameterDto();
     feeFines.setPatronGroups(List.of(patronGroup));
     feeFines.setDaysOutstanding(2);
     feeFines.setTransferAccountId(UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b"));
@@ -129,13 +130,15 @@ class BursarFeesFinesTest extends BaseBatchTest {
     mapping.put("782c9784-cba0-480a-b8c0-1ffba088c9a5", null);
     mapping.put("782c9784-cba0-480a-b8c0-1ffba088c9a4", List.of(typeMapping));
 
-    feeFines.setTypeMappings(mapping);
+    feeFines.setTypeMappings(String.valueOf(mapping.hashCode()));
 
     Map<String, JobParameter> params = new HashMap<>();
     params.put("bursarFeeFines", new JobParameter(objectMapper.writeValueAsString(feeFines)));
 
     String jobId = UUID.randomUUID().toString();
     params.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
+
+    bursarExportService.addMapping(jobId, mapping);
 
     Date now = new Date();
     String workDir =

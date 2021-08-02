@@ -7,6 +7,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.stream.Collector;
 import joptsimple.internal.Strings;
@@ -15,7 +17,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.des.domain.dto.BursarFeeFines;
+import org.folio.des.domain.dto.BursarFeeFinesTypeMapping;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.client.AccountBulkClient;
 import org.folio.dew.client.AccountClient;
@@ -28,6 +30,7 @@ import org.folio.dew.domain.dto.Feefineaction;
 import org.folio.dew.domain.dto.ServicePoint;
 import org.folio.dew.domain.dto.TransferdataCollection;
 import org.folio.dew.domain.dto.User;
+import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.folio.dew.domain.dto.bursarfeesfines.TransferRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -55,9 +58,38 @@ public class BursarExportServiceImpl implements BursarExportService {
   private final FeefineactionsClient feefineClient;
   private final TransferClient transferClient;
   private final ServicePointClient servicePointClient;
+  private final Map<String, Map<String, List<BursarFeeFinesTypeMapping>>> mapping = new ConcurrentHashMap<>();
+
 
   @Override
-  public void transferAccounts(List<Account> accounts, BursarFeeFines bursarFeeFines) {
+  public void addMapping(String jobId, Map<String, List<BursarFeeFinesTypeMapping>> mapping) {
+    this.mapping.put(jobId, mapping);
+  }
+
+  @Override
+  public BursarFeeFinesTypeMapping getMapping(String jobId, Account account) {
+
+    if (!mapping.containsKey(jobId)) {
+      return null;
+    }
+
+    final List<BursarFeeFinesTypeMapping> feeFinesTypeMappingList = mapping
+      .get(jobId)
+      .get(account.getOwnerId());
+
+    if (feeFinesTypeMappingList == null) {
+      return null;
+    }
+
+    return feeFinesTypeMappingList
+      .stream()
+      .filter(m -> m.getFeefineTypeId().toString().equals(account.getFeeFineId()))
+      .findFirst()
+      .orElse(null);
+  }
+
+  @Override
+  public void transferAccounts(List<Account> accounts, BursarJobPrameterDto bursarFeeFines) {
     var transferRequest = toTransferRequest(accounts, bursarFeeFines);
     log.info("Creating {}.", transferRequest);
     bulkClient.transferAccount(transferRequest);
@@ -127,7 +159,7 @@ public class BursarExportServiceImpl implements BursarExportService {
     return feefineClient.getFeefineactions(query, DEFAULT_LIMIT).getFeefineactions();
   }
 
-  private TransferRequest toTransferRequest(List<Account> accounts, BursarFeeFines bursarFeeFines) {
+  private TransferRequest toTransferRequest(List<Account> accounts, BursarJobPrameterDto bursarFeeFines) {
     if (CollectionUtils.isEmpty(accounts)) {
       throw new IllegalArgumentException("No accounts found to make transfer request for");
     }

@@ -12,10 +12,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.des.domain.dto.BursarFeeFines;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.User;
+import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -60,7 +60,7 @@ public class AccountItemReader implements ItemReader<Account> {
   public void initStep(StepExecution stepExecution) throws JsonProcessingException {
     this.stepExecution = stepExecution;
 
-    var bursarFeeFines = objectMapper.readValue(bursarFeeFinesStr, BursarFeeFines.class);
+    var bursarFeeFines = objectMapper.readValue(bursarFeeFinesStr, BursarJobPrameterDto.class);
     stepExecution.getJobExecution().getExecutionContext().put("bursarFeeFines", bursarFeeFines);
 
     List<User> users = exportService.findUsers(bursarFeeFines.getPatronGroups());

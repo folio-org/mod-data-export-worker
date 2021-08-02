@@ -32,9 +32,14 @@ import org.springframework.core.io.Resource;
 public class BursarExportJobConfig {
 
   @Bean
-  public Job bursarExportJob(Step exportChargeFeefinesStep, Step exportRefundFeefinesStep, Step transferFeefinesStep,
-      JobBuilderFactory jobBuilderFactory, JobExecutionListener jobCompletionNotificationListener) {
-    return jobBuilderFactory.get(ExportType.BURSAR_FEES_FINES.toString())
+  public Job bursarExportJob(
+      Step exportChargeFeefinesStep,
+      Step exportRefundFeefinesStep,
+      Step transferFeefinesStep,
+      JobBuilderFactory jobBuilderFactory,
+      JobExecutionListener jobCompletionNotificationListener) {
+    return jobBuilderFactory
+        .get(ExportType.BURSAR_FEES_FINES.toString())
         .incrementer(new RunIdIncrementer())
         .listener(jobCompletionNotificationListener)
         .flow(exportChargeFeefinesStep)
@@ -45,19 +50,38 @@ public class BursarExportJobConfig {
   }
 
   @Bean
-  public Step exportChargeFeefinesStep(ItemReader<Account> reader, ItemProcessor<Account, BursarFormat> processor,
-      @Qualifier("bursarFeesFines") ItemWriter<BursarFormat> writer, BursarExportStepListener listener,
+  public Step exportChargeFeefinesStep(
+      ItemReader<Account> reader,
+      ItemProcessor<Account, BursarFormat> processor,
+      @Qualifier("bursarFeesFines") ItemWriter<BursarFormat> writer,
+      BursarExportStepListener listener,
       StepBuilderFactory stepBuilderFactory) {
-    return stepBuilderFactory.get(BursarFeesFinesUtils.CHARGE_FEESFINES_EXPORT_STEP).<Account, BursarFormat>chunk(1000).reader(
-        reader).processor(processor).writer(writer).listener(promotionListener()).listener(listener).build();
+    return stepBuilderFactory
+        .get(BursarFeesFinesUtils.CHARGE_FEESFINES_EXPORT_STEP)
+        .<Account, BursarFormat>chunk(1000)
+        .reader(reader)
+        .processor(processor)
+        .writer(writer)
+        .listener(promotionListener())
+        .listener(listener)
+        .build();
   }
 
   @Bean
-  public Step exportRefundFeefinesStep(ItemReader<Feefineaction> reader, ItemProcessor<Feefineaction, BursarFormat> processor,
-      @Qualifier("bursarFeesFines") ItemWriter<BursarFormat> writer, BursarExportStepListener listener,
+  public Step exportRefundFeefinesStep(
+      ItemReader<Feefineaction> reader,
+      ItemProcessor<Feefineaction, BursarFormat> processor,
+      @Qualifier("bursarFeesFines") ItemWriter<BursarFormat> writer,
+      BursarExportStepListener listener,
       StepBuilderFactory stepBuilderFactory) {
-    return stepBuilderFactory.get(BursarFeesFinesUtils.REFUND_FEESFINES_EXPORT_STEP).<Feefineaction, BursarFormat>chunk(
-        1000).reader(reader).processor(processor).writer(writer).listener(listener).build();
+    return stepBuilderFactory
+        .get(BursarFeesFinesUtils.REFUND_FEESFINES_EXPORT_STEP)
+        .<Feefineaction, BursarFormat>chunk(1000)
+        .reader(reader)
+        .processor(processor)
+        .writer(writer)
+        .listener(listener)
+        .build();
   }
 
   @Bean
@@ -68,22 +92,27 @@ public class BursarExportJobConfig {
   @Bean
   public ExecutionContextPromotionListener promotionListener() {
     var listener = new ExecutionContextPromotionListener();
-    listener.setKeys(new String[] { "accounts", "userIdMap" });
+    listener.setKeys(new String[] {"accounts", "userIdMap"});
     return listener;
   }
 
   @Bean("bursarFeesFines")
   @StepScope
-  public FlatFileItemWriter<BursarFormat> writer(@Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
+  public FlatFileItemWriter<BursarFormat> writer(
+      @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
       @Value("#{stepExecution.stepName}") String stepName) {
     String fileName = tempOutputFilePath + '_' + BursarFeesFinesUtils.getFilename(stepName);
     Resource exportFileResource = new FileSystemResource(fileName);
 
-    var fieldNames = new String[] { "employeeId", "amount", "itemType", "transactionDate", "sfs", "termValue", "description" };
+    var fieldNames =
+        new String[] {
+          "employeeId", "amount", "itemType", "transactionDate", "sfs", "termValue", "description"
+        };
     var lineFormat = "%11.11s%9.9s%12.12s%6.6s%3.3s%4.4s%30.30s";
     FlatFileHeaderCallback header = writer -> writer.write("LIB02");
     log.info("Creating file {}.", fileName);
-    return new FlatFileItemWriterBuilder<BursarFormat>().name("bursarExportWriter")
+    return new FlatFileItemWriterBuilder<BursarFormat>()
+        .name("bursarExportWriter")
         .headerCallback(header)
         .formatted()
         .format(lineFormat)
@@ -91,5 +120,4 @@ public class BursarExportJobConfig {
         .resource(exportFileResource)
         .build();
   }
-
 }

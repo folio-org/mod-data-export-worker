@@ -42,7 +42,7 @@ feign:
         loggerLevel: basic
 application:
   kafka:
-    topic-pattern: (${ENV:folio}\.)?(.*\.)?data-export.job.command
+    topic-pattern: ${ENV:folio}.(.*\.)?data-export.job.command
     group-id: ${ENV:folio}-mod-data-export-worker-events-group
   datasource:
     driver: org.hsqldb.jdbcDriver

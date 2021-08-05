@@ -1,3 +1,6 @@
+## 2021-08-06 v1.1.6
+* [MODEXPS-24](https://issues.folio.org/browse/MODEXPS-24) Kafka topic created with incorrect ENV and tenantId combination
+
 ## 2021-08-02 v1.1.5
 * [MODEXPW-27](https://issues.folio.org/browse/MODEXPW-27) Can not start an export job for configuration with a lot of records for mapping
 

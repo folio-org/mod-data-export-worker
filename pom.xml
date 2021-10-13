@@ -55,7 +55,8 @@
         <!-- Test properties-->
         <mockito.version>3.7.7</mockito.version>
         <junit-extensions.version>2.4.0</junit-extensions.version>
-        <embedded-minio.version>2.0.3</embedded-minio.version>
+        <embedded-minio.version>2.0.16</embedded-minio.version>
+        <spring-cloud-starter-bootstrap.version>3.0.4</spring-cloud-starter-bootstrap.version>
         <wiremock.version>2.27.2</wiremock.version>
     </properties>
 
@@ -141,6 +142,12 @@
         </dependency>
 
         <!-- Test dependencies -->
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-bootstrap</artifactId>
+        <version>${spring-cloud-starter-bootstrap.version}</version>
+        <scope>test</scope>
+      </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

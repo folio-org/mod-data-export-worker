@@ -23,7 +23,7 @@ spring:
     job:
       enabled: false
   liquibase:
-    changeLog: classpath:db/changelog/changelog-master.xml
+    changeLog: classpath:db/changelog/data-export-worker-changelog-master.xml
     enabled: true
 management:
   endpoints:

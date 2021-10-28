@@ -1,10 +1,5 @@
 package org.folio.dew.batch.circulationlog;
 
-import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +16,12 @@ import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
+
+import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 @Component
 @StepScope
@@ -66,7 +67,7 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
 
     String timezoneId = fetchTimezone();
 
-    var dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+    var dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     dateFormat.setTimeZone(TimeZone.getTimeZone(timezoneId));
 
     format = dateFormat;

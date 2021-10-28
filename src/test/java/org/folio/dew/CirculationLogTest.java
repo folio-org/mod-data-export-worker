@@ -1,17 +1,9 @@
 package org.folio.dew;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.batch.test.AssertFile.assertFileEquals;
-
-import java.io.File;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 import org.folio.des.domain.JobParameterNames;
 import org.folio.des.domain.dto.ExportType;
+import org.folio.dew.domain.dto.CirculationLogExportFormat;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -23,6 +15,19 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
+
+import java.io.File;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 class CirculationLogTest extends BaseBatchTest {
 
@@ -46,6 +51,23 @@ class CirculationLogTest extends BaseBatchTest {
       getRequestedFor(
         urlEqualTo(
           "/audit-data/circulation/logs?query&offset=0&limit=1")));
+  }
+
+  @Test
+  @DisplayName("Check that date setting in 24 hours format instead of 12h and test pass successfully")
+  void successfulSetDateIn24hFormatInsteadOf12hTest() throws ParseException {
+    CirculationLogExportFormat circulationLogExportFormat = new CirculationLogExportFormat();
+    String testDate = "2000-12-31 23:59";
+
+    var oldDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+    circulationLogExportFormat.setDate(oldDateFormat.format(oldDateFormat.parse(testDate)));
+    String before = circulationLogExportFormat.getDate();
+
+    var newDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+    circulationLogExportFormat.setDate(newDateFormat.format(newDateFormat.parse(testDate)));
+    String after = circulationLogExportFormat.getDate();
+
+    Assertions.assertNotEquals(after, before);
   }
 
   private void verifyFileOutput(JobExecution jobExecution) throws Exception {
@@ -79,4 +101,5 @@ class CirculationLogTest extends BaseBatchTest {
 
     return new JobParameters(params);
   }
+
 }

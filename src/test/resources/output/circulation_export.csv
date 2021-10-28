@@ -1,52 +1,52 @@
 User barcode,Item barcode,Object,Circ action,Date,Service point,Source,Description
-,4539876054383,Fee/Fine,Billed,2021-03-12 07:32,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 5.00. manual
-456,,Fee/Fine,Billed,2021-03-17 12:43,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
-456,,Fee/Fine,Transferred partially,2021-03-17 12:44,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 10.00. Balance: 90.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Transferred fully,2021-03-17 11:59,Online,System,Fee/Fine type: Test ff type. Amount: 90.00. Balance: 0.00. Transfer account: Bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Billed,2021-03-18 08:02,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
-456,,Fee/Fine,Transferred partially,2021-03-18 08:03,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 30.00. Balance: 70.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Transferred fully,2021-03-18 08:04,Online,System,Fee/Fine type: Test ff type. Amount: 70.00. Balance: 0.00. Transfer account: Bursar. Additional information to staff: . Additional information to patron: .
-789,A14811392645,Loan,Checked out,2021-03-18 10:15,Online,folio,Checked out to proxy: no.
-789,A14811392645,N/A,Checked in,2021-03-18 10:15,Online,folio,Item status: In transit to Circ Desk 1.
-789,A14811392645,Loan,Closed loan,2021-03-18 10:15,Online,folio,Item status: In transit. Backdated to: 2021-03-18 12:15:24. Overdue due date: 2021-05-17 23:59:59.
-456,,Fee/Fine,Billed,2021-03-22 06:05,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
-456,,Fee/Fine,Transferred partially,2021-03-22 06:05,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 20.00. Balance: 80.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Billed,2021-03-26 09:33,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
-456,,Fee/Fine,Transferred fully,2021-03-22 06:10,Online,System,Fee/Fine type: Test ff type. Amount: 80.00. Balance: 0.00. Transfer account: Bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Billed,2021-03-26 08:24,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
-456,,Fee/Fine,Transferred partially,2021-03-26 08:25,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 40.00. Balance: 60.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Transferred fully,2021-03-26 08:27,Online,System,Fee/Fine type: Test ff type. Amount: 60.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Billed,2021-03-26 08:30,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
-456,,Fee/Fine,Transferred partially,2021-03-26 08:30,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 33.00. Balance: 67.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Transferred fully,2021-03-26 08:31,Online,System,Fee/Fine type: Test ff type. Amount: 67.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Billed,2021-03-26 08:40,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
-456,,Fee/Fine,Transferred partially,2021-03-26 08:40,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 11.00. Balance: 89.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Transferred fully,2021-03-26 08:41,Online,System,Fee/Fine type: Test ff type. Amount: 89.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Billed,2021-03-26 09:31,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Fee/Fine owner: Bursar owner. Amount: 200.00. manual
-456,,Fee/Fine,Transferred partially,2021-03-26 09:31,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Amount: 55.00. Balance: 145.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Transferred fully,2021-03-26 09:31,Online,System,Fee/Fine type: Fee/Fine Type 2. Amount: 145.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Transferred partially,2021-03-26 09:33,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 55.00. Balance: 45.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Billed,2021-03-26 09:34,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Fee/Fine owner: Bursar owner. Amount: 200.00. manual
-456,,Fee/Fine,Transferred fully,2021-03-26 09:34,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Amount: 200.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Transferred fully,2021-03-26 09:35,Online,System,Fee/Fine type: Test ff type. Amount: 45.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Billed,2021-03-26 09:37,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
-456,,Fee/Fine,Transferred partially,2021-03-26 09:38,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 10.00. Balance: 90.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-123,,Fee/Fine,Billed,2021-03-26 09:38,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Fee/Fine owner: Bursar owner. Amount: 200.00. manual
-123,,Fee/Fine,Transferred partially,2021-03-26 09:39,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Amount: 20.00. Balance: 180.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-123,,Fee/Fine,Transferred fully,2021-03-26 09:39,Online,System,Fee/Fine type: Fee/Fine Type 2. Amount: 180.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Transferred fully,2021-03-26 09:39,Online,System,Fee/Fine type: Test ff type. Amount: 90.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+,4539876054383,Fee/Fine,Billed,2021-03-12 19:32,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 5.00. manual
+456,,Fee/Fine,Billed,2021-03-17 00:43,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
+456,,Fee/Fine,Transferred partially,2021-03-17 00:44,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 10.00. Balance: 90.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Transferred fully,2021-03-17 23:59,Online,System,Fee/Fine type: Test ff type. Amount: 90.00. Balance: 0.00. Transfer account: Bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Billed,2021-03-18 20:02,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
+456,,Fee/Fine,Transferred partially,2021-03-18 20:03,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 30.00. Balance: 70.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Transferred fully,2021-03-18 20:04,Online,System,Fee/Fine type: Test ff type. Amount: 70.00. Balance: 0.00. Transfer account: Bursar. Additional information to staff: . Additional information to patron: .
+789,A14811392645,Loan,Checked out,2021-03-18 22:15,Online,folio,Checked out to proxy: no.
+789,A14811392645,N/A,Checked in,2021-03-18 22:15,Online,folio,Item status: In transit to Circ Desk 1.
+789,A14811392645,Loan,Closed loan,2021-03-18 22:15,Online,folio,Item status: In transit. Backdated to: 2021-03-18 12:15:24. Overdue due date: 2021-05-17 23:59:59.
+456,,Fee/Fine,Billed,2021-03-22 18:05,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
+456,,Fee/Fine,Transferred partially,2021-03-22 18:05,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 20.00. Balance: 80.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Billed,2021-03-26 21:33,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
+456,,Fee/Fine,Transferred fully,2021-03-22 18:10,Online,System,Fee/Fine type: Test ff type. Amount: 80.00. Balance: 0.00. Transfer account: Bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Billed,2021-03-26 20:24,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
+456,,Fee/Fine,Transferred partially,2021-03-26 20:25,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 40.00. Balance: 60.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Transferred fully,2021-03-26 20:27,Online,System,Fee/Fine type: Test ff type. Amount: 60.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Billed,2021-03-26 20:30,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
+456,,Fee/Fine,Transferred partially,2021-03-26 20:30,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 33.00. Balance: 67.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Transferred fully,2021-03-26 20:31,Online,System,Fee/Fine type: Test ff type. Amount: 67.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Billed,2021-03-26 20:40,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
+456,,Fee/Fine,Transferred partially,2021-03-26 20:40,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 11.00. Balance: 89.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Transferred fully,2021-03-26 20:41,Online,System,Fee/Fine type: Test ff type. Amount: 89.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Billed,2021-03-26 21:31,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Fee/Fine owner: Bursar owner. Amount: 200.00. manual
+456,,Fee/Fine,Transferred partially,2021-03-26 21:31,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Amount: 55.00. Balance: 145.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Transferred fully,2021-03-26 21:31,Online,System,Fee/Fine type: Fee/Fine Type 2. Amount: 145.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Transferred partially,2021-03-26 21:33,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 55.00. Balance: 45.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Billed,2021-03-26 21:34,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Fee/Fine owner: Bursar owner. Amount: 200.00. manual
+456,,Fee/Fine,Transferred fully,2021-03-26 21:34,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Amount: 200.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Transferred fully,2021-03-26 21:35,Online,System,Fee/Fine type: Test ff type. Amount: 45.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Billed,2021-03-26 21:37,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
+456,,Fee/Fine,Transferred partially,2021-03-26 21:38,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 10.00. Balance: 90.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+123,,Fee/Fine,Billed,2021-03-26 21:38,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Fee/Fine owner: Bursar owner. Amount: 200.00. manual
+123,,Fee/Fine,Transferred partially,2021-03-26 21:39,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Amount: 20.00. Balance: 180.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+123,,Fee/Fine,Transferred fully,2021-03-26 21:39,Online,System,Fee/Fine type: Fee/Fine Type 2. Amount: 180.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Transferred fully,2021-03-26 21:39,Online,System,Fee/Fine type: Test ff type. Amount: 90.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
 456,,Fee/Fine,Billed,2021-03-30 03:07,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
 456,,Fee/Fine,Transferred partially,2021-03-30 03:08,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 55.00. Balance: 45.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
 456,,Fee/Fine,Transferred fully,2021-03-30 03:08,,System,Fee/Fine type: Test ff type. Amount: 45.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
 456,,Fee/Fine,Billed,2021-03-30 03:55,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Fee/Fine owner: Fee/fine. Amount: 1222.00. manual
 456,,Fee/Fine,Transferred partially,2021-03-30 03:56,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Amount: 111.00. Balance: 1111.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
 456,,Fee/Fine,Transferred fully,2021-03-30 04:16,,System,Fee/Fine type: Fee/Fine Type 2. Amount: 1111.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Billed,2021-03-30 04:59,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
-456,,Fee/Fine,Transferred partially,2021-03-30 05:00,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 40.00. Balance: 60.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Transferred fully,2021-03-30 05:09,,System,Fee/Fine type: Test ff type. Amount: 60.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Billed,2021-03-30 05:33,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Fee/Fine owner: Fee/fine. Amount: 100.00. manual
-456,,Fee/Fine,Transferred partially,2021-03-30 05:33,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Amount: 50.00. Balance: 50.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
-456,,Fee/Fine,Transferred fully,2021-03-30 05:34,,System,Fee/Fine type: Fee/Fine Type 2. Amount: 50.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Billed,2021-03-30 16:59,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
+456,,Fee/Fine,Transferred partially,2021-03-30 17:00,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 40.00. Balance: 60.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Transferred fully,2021-03-30 17:09,,System,Fee/Fine type: Test ff type. Amount: 60.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Billed,2021-03-30 17:33,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Fee/Fine owner: Fee/fine. Amount: 100.00. manual
+456,,Fee/Fine,Transferred partially,2021-03-30 17:33,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Fee/Fine Type 2. Amount: 50.00. Balance: 50.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
+456,,Fee/Fine,Transferred fully,2021-03-30 17:34,,System,Fee/Fine type: Fee/Fine Type 2. Amount: 50.00. Balance: 0.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
 456,,Fee/Fine,Billed,2021-03-31 05:53,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
 456,,Fee/Fine,Transferred partially,2021-03-31 07:48,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 10.00. Balance: 90.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .
 456,,Fee/Fine,Transferred partially,2021-03-31 08:23,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 5.00. Balance: 85.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .

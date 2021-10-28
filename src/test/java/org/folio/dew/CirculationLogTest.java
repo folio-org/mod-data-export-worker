@@ -53,6 +53,23 @@ class CirculationLogTest extends BaseBatchTest {
           "/audit-data/circulation/logs?query&offset=0&limit=1")));
   }
 
+  @Test
+  @DisplayName("Check that date setting in 24 hours format instead of 12h and test pass successfully")
+  void successfulSetDateIn24hFormatInsteadOf12hTest() throws ParseException {
+    CirculationLogExportFormat circulationLogExportFormat = new CirculationLogExportFormat();
+    String testDate = "2000-12-31 23:59";
+
+    var oldDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+    circulationLogExportFormat.setDate(oldDateFormat.format(oldDateFormat.parse(testDate)));
+    String before = circulationLogExportFormat.getDate();
+
+    var newDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+    circulationLogExportFormat.setDate(newDateFormat.format(newDateFormat.parse(testDate)));
+    String after = circulationLogExportFormat.getDate();
+
+    Assertions.assertNotEquals(after, before);
+  }
+
   private void verifyFileOutput(JobExecution jobExecution) throws Exception {
     final ExecutionContext executionContext = jobExecution.getExecutionContext();
     final String fileInStorage = (String) executionContext.get("outputFilesInStorage");
@@ -83,23 +100,6 @@ class CirculationLogTest extends BaseBatchTest {
                 workDir, ExportType.CIRCULATION_LOG, now, now, now, now, jobId)));
 
     return new JobParameters(params);
-  }
-
-  @Test
-  @DisplayName("Check that date setting in 24 hours format instead of 12h and test pass successfully")
-  void successfulSetDateIn24hFormatInsteadOf12hTest() throws ParseException {
-    CirculationLogExportFormat circulationLogExportFormat = new CirculationLogExportFormat();
-    String testDate = "2000-12-31 23:59";
-
-    var oldDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
-    circulationLogExportFormat.setDate(oldDateFormat.format(oldDateFormat.parse(testDate)));
-    String before = circulationLogExportFormat.getDate();
-
-    var newDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-    circulationLogExportFormat.setDate(newDateFormat.format(newDateFormat.parse(testDate)));
-    String after = circulationLogExportFormat.getDate();
-
-    Assertions.assertNotEquals(after, before);
   }
 
 }

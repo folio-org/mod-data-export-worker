@@ -43,7 +43,7 @@ public class BursarExportServiceImpl implements BursarExportService {
   private static final String SERVICE_POINT_CODE = "system";
   private static final String DEFAULT_PAYMENT_METHOD = "Bursar";
   private static final String USER_NAME = "System";
-  private static final String ACCOUNT_QUERY = "userId==%s and remaining > 0.0 and metadata.createdDate>=%s";
+  private static final String ACCOUNT_QUERY = "userId==%s and remaining > 0.0 and metadata.createdDate<=%s";
   private static final String USER_QUERY = "(active==\"true\" and patronGroup==%s)";
   private static final String FEEFINE_QUERY = "(accountId==(%s) and (typeAction==(\"Refunded partially\" or \"Refunded fully\")))";
   private static final long DEFAULT_LIMIT = 10000L;

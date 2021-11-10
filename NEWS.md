@@ -1,16 +1,10 @@
-## 1.2.0 - Unreleased
+## v1.3.0 - Unreleased
 
-## 1.1.7 - Released
-
-  This release contains bug fixes
-
-  [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.1.6...v1.1.7)
-
-### Bug fixes
-
+## 2021-11-10 v1.2.0
 * [MODEXPW-38](https://issues.folio.org/browse/MODEXPW-38) Saving circulation log with notices "send error" fails
 * [MODEXPW-35](https://issues.folio.org/browse/MODEXPW-35) Dates in CSV export from Circulation log are not in 24-hour time format
 * [MODEXPW-31](https://issues.folio.org/browse/MODEXPW-31) Bursar transfer form cannot specify days outstanding
+* [MODEXPW-29](https://issues.folio.org/browse/MODEXPW-29) mod-data-export-worker: folio-spring-base v2 update
 
 ## 2021-08-06 v1.1.6
 * [MODEXPS-24](https://issues.folio.org/browse/MODEXPS-24) Kafka topic created with incorrect ENV and tenantId combination

@@ -4,7 +4,6 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dew.config.properties.FTPProperties;
-import org.folio.dew.repository.FTPObjectStorageRepository;
 import org.folio.dew.utils.FTPCommandLogger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

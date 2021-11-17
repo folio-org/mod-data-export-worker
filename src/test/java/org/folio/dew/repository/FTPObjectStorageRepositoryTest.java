@@ -1,7 +1,6 @@
 package org.folio.dew.repository;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
@@ -32,6 +31,7 @@ class FTPObjectStorageRepositoryTest {
   private static final String username_valid = "validUser";
   private static final String password_valid = "letMeIn";
   private static final String password_invalid = "don'tLetMeIn";
+  private static final String invalid_uri = "http://localhost";
 
   private static String uri;
   private static FTPClient client;
@@ -84,7 +84,7 @@ class FTPObjectStorageRepositoryTest {
   }
 
   @Test
-  public void testSuccessfulLogin() throws URISyntaxException {
+  void testSuccessfulLogin() throws URISyntaxException {
     log.info("=== Test successful login ===");
     FTPObjectStorageRepository ftpRepository = new FTPObjectStorageRepository(client, properties);
 
@@ -93,7 +93,22 @@ class FTPObjectStorageRepositoryTest {
   }
 
   @Test
-  public void testFailedLogin() throws URISyntaxException {
+  void testFailedConnect() {
+    log.info("=== Test unsuccessful login ===");
+    FTPObjectStorageRepository ftpRepository = new FTPObjectStorageRepository(client, properties);
+
+    Exception exception = assertThrows(URISyntaxException.class, () -> {
+      ftpRepository.login(invalid_uri, username_valid, password_valid);
+    });
+
+    String expectedMessage = "URI should be valid ftp path";
+    String actualMessage = exception.getMessage();
+
+    assertTrue(actualMessage.contains(expectedMessage));
+  }
+
+  @Test
+  void testFailedLogin() throws URISyntaxException {
     log.info("=== Test unsuccessful login ===");
     FTPObjectStorageRepository ftpRepository = new FTPObjectStorageRepository(client, properties);
 
@@ -102,13 +117,24 @@ class FTPObjectStorageRepositoryTest {
   }
 
   @Test
-  public void testSuccessfulUpload() throws URISyntaxException {
+  void testSuccessfulUpload() throws URISyntaxException {
     log.info("=== Test successful upload ===");
     FTPObjectStorageRepository ftpRepository = new FTPObjectStorageRepository(client, properties);
 
     assertTrue(ftpRepository.login(uri, username_valid, password_valid));
     assertTrue(ftpRepository.upload(filename, "Some text"));
-    assertTrue(fakeFtpServer.getFileSystem().exists(user_home_dir + "/" + filename));
+    assertTrue(fakeFtpServer.getFileSystem()
+      .exists(user_home_dir + "/" + filename));
+    ftpRepository.logout();
+  }
+
+  @Test
+  void testFailedUpload() throws URISyntaxException {
+    log.info("=== Test unsuccessful upload ===");
+    FTPObjectStorageRepository ftpRepository = new FTPObjectStorageRepository(client, properties);
+
+    assertTrue(ftpRepository.login(uri, username_valid, password_valid));
+    assertFalse(ftpRepository.upload("/invalid/path/" + filename, "Some text"));
     ftpRepository.logout();
   }
 }

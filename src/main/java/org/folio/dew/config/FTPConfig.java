@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class FTPConfig {
 
-  private static final Logger logger = LogManager.getLogger(FTPObjectStorageRepository.class);
+  private static final Logger logger = LogManager.getLogger(FTPConfig.class);
 
   @Bean(name = "FTPClientConfig")
   public FTPClient getFTPClientConfig(FTPProperties properties) {

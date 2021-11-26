@@ -8,7 +8,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import org.apache.commons.net.ftp.FTPClient;
-import org.folio.dew.config.FTPConfig;
 import org.folio.dew.config.properties.FTPProperties;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -18,11 +17,22 @@ import org.mockftpserver.fake.UserAccount;
 import org.mockftpserver.fake.filesystem.DirectoryEntry;
 import org.mockftpserver.fake.filesystem.FileSystem;
 import org.mockftpserver.fake.filesystem.UnixFakeFileSystem;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
+@SpringBootTest()
 class FTPObjectStorageRepositoryTest {
+
+  @Autowired
+  private FTPObjectStorageRepository repository;
+  @Autowired
+  private ObjectFactory<FTPClient> ftpClientFactory;
+  @Autowired
+  private FTPProperties properties;
 
   private static FakeFtpServer fakeFtpServer;
 
@@ -34,8 +44,6 @@ class FTPObjectStorageRepositoryTest {
   private static final String invalid_uri = "http://localhost";
 
   private static String uri;
-  private static FTPClient client;
-  private static FTPProperties properties;
 
   private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSz", Locale.ENGLISH);
 
@@ -60,19 +68,6 @@ class FTPObjectStorageRepositoryTest {
 
     uri = "ftp://localhost:" + fakeFtpServer.getServerControlPort() + "/";
     log.info("Mock FTP server running at: " + uri);
-
-    properties = new FTPProperties();
-    properties.setDefaultPort(21);
-    properties.setDefaultTimeout(30000);
-    properties.setControlKeepAliveTimeout(30);
-    properties.setBufferSize(1024 * 1024);
-
-    client = new FTPClient();
-    client = new FTPClient();
-    client.setDefaultTimeout(properties.getDefaultTimeout());
-    client.setControlKeepAliveTimeout(properties.getControlKeepAliveTimeout());
-    client.setBufferSize(properties.getBufferSize());
-    client.setPassiveNatWorkaroundStrategy(new FTPConfig.DefaultServerResolver(client));
   }
 
   @AfterAll
@@ -86,19 +81,17 @@ class FTPObjectStorageRepositoryTest {
   @Test
   void testSuccessfulLogin() throws URISyntaxException {
     log.info("=== Test successful login ===");
-    FTPObjectStorageRepository ftpRepository = new FTPObjectStorageRepository(client, properties);
 
-    assertTrue(ftpRepository.login(uri, username_valid, password_valid));
-    ftpRepository.logout();
+    assertTrue(repository.login(uri, username_valid, password_valid));
+    repository.logout();
   }
 
   @Test
   void testFailedConnect() {
     log.info("=== Test unsuccessful login ===");
-    FTPObjectStorageRepository ftpRepository = new FTPObjectStorageRepository(client, properties);
 
     Exception exception = assertThrows(URISyntaxException.class, () -> {
-      ftpRepository.login(invalid_uri, username_valid, password_valid);
+      repository.login(invalid_uri, username_valid, password_valid);
     });
 
     String expectedMessage = "URI should be valid ftp path";
@@ -110,31 +103,27 @@ class FTPObjectStorageRepositoryTest {
   @Test
   void testFailedLogin() throws URISyntaxException {
     log.info("=== Test unsuccessful login ===");
-    FTPObjectStorageRepository ftpRepository = new FTPObjectStorageRepository(client, properties);
 
-    assertFalse(ftpRepository.login(uri, username_valid, password_invalid));
-    ftpRepository.logout();
+    assertFalse(repository.login(uri, username_valid, password_invalid));
+    repository.logout();
   }
 
   @Test
   void testSuccessfulUpload() throws URISyntaxException {
     log.info("=== Test successful upload ===");
-    FTPObjectStorageRepository ftpRepository = new FTPObjectStorageRepository(client, properties);
 
-    assertTrue(ftpRepository.login(uri, username_valid, password_valid));
-    assertTrue(ftpRepository.upload(filename, "Some text"));
-    assertTrue(fakeFtpServer.getFileSystem()
-      .exists(user_home_dir + "/" + filename));
-    ftpRepository.logout();
+    assertTrue(repository.login(uri, username_valid, password_valid));
+    assertTrue(repository.upload(filename, "Some text"));
+    assertTrue(fakeFtpServer.getFileSystem().exists(user_home_dir + "/" + filename));
+    repository.logout();
   }
 
   @Test
   void testFailedUpload() throws URISyntaxException {
     log.info("=== Test unsuccessful upload ===");
-    FTPObjectStorageRepository ftpRepository = new FTPObjectStorageRepository(client, properties);
 
-    assertTrue(ftpRepository.login(uri, username_valid, password_valid));
-    assertFalse(ftpRepository.upload("/invalid/path/" + filename, "Some text"));
-    ftpRepository.logout();
+    assertTrue(repository.login(uri, username_valid, password_valid));
+    assertFalse(repository.upload("/invalid/path/" + filename, "Some text"));
+    repository.logout();
   }
 }

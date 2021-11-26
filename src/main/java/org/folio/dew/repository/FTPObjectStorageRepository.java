@@ -12,21 +12,27 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 import org.folio.dew.config.properties.FTPProperties;
 import org.folio.dew.exceptions.FtpException;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.stereotype.Repository;
 
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
+@Repository
 public class FTPObjectStorageRepository {
 
-  private final FTPClient ftpClient;
-  private final FTPProperties properties;
+  private FTPClient ftpClient;
 
-  public FTPObjectStorageRepository(FTPClient ftpClient, FTPProperties ftpProperties) {
-    this.ftpClient = ftpClient;
-    this.properties = ftpProperties;
+  private final ObjectFactory<FTPClient> ftpClientFactory;
+  private final FTPProperties ftpProperties;
+
+  public FTPObjectStorageRepository(ObjectFactory<FTPClient> ftpClientFactory, FTPProperties ftpProperties) {
+    this.ftpProperties = ftpProperties;
+    this.ftpClientFactory = ftpClientFactory;
   }
 
   public boolean login(String ftpUrl, String username, String password) throws URISyntaxException {
+    ftpClient = ftpClientFactory.getObject();
     if (!isUriValid(ftpUrl)) {
       throw new URISyntaxException(ftpUrl, "URI should be valid ftp path");
     }
@@ -34,7 +40,7 @@ public class FTPObjectStorageRepository {
     try {
       URI url = new URI(ftpUrl);
       String server = url.getHost();
-      int port = url.getPort() > 0 ? url.getPort() : properties.getDefaultPort();
+      int port = url.getPort() > 0 ? url.getPort() : ftpProperties.getDefaultPort();
       ftpClient.connect(server, port);
       log.info("Connected to {}:{}", server, port);
       int reply = ftpClient.getReplyCode();
@@ -101,11 +107,11 @@ public class FTPObjectStorageRepository {
   }
 
   private void changeWorkingDirectory() throws IOException {
-    if (isDirectoryAbsent(properties.getWorkingDir())) {
-      log.info("A directory has been created: " + properties.getWorkingDir());
-      ftpClient.makeDirectory(properties.getWorkingDir());
+    if (isDirectoryAbsent(ftpProperties.getWorkingDir())) {
+      log.info("A directory has been created: " + ftpProperties.getWorkingDir());
+      ftpClient.makeDirectory(ftpProperties.getWorkingDir());
     }
-    ftpClient.changeWorkingDirectory(properties.getWorkingDir());
+    ftpClient.changeWorkingDirectory(ftpProperties.getWorkingDir());
   }
 
   private boolean isDirectoryAbsent(String dirPath) throws IOException {

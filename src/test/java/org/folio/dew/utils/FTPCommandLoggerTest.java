@@ -20,14 +20,14 @@ class FTPCommandLoggerTest {
   }
 
   @Test
-  public void testLogInfo() {
+  void testLogInfo() {
     FTPCommandLogger obj = new FTPCommandLogger(log);
     obj.write('\n');
     verify(log).info(anyString());
   }
 
   @Test
-  public void testLogInfoPass() {
+  void testLogInfoPass() {
     FTPCommandLogger obj = new FTPCommandLogger(log);
     obj.write('P');
     obj.write('A');
@@ -43,14 +43,14 @@ class FTPCommandLoggerTest {
 
 
   @Test
-  public void testLogInfoSkipp() {
+  void testLogInfoSkipp() {
     FTPCommandLogger obj = new FTPCommandLogger(log);
     obj.write('x');
     verify(log, never()).info(anyString());
   }
 
   @Test
-  public void testPassLogInfo() {
+  void testPassLogInfo() {
     FTPCommandLogger obj = new FTPCommandLogger(log);
     obj.write("PASS".getBytes(), 0, "PASS".length() - 1);
     verify(log, never()).info(anyString());

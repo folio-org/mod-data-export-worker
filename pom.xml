@@ -109,6 +109,15 @@
         </dependency>
 
         <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>com.github.ben-manes.caffeine</groupId>
+          <artifactId>caffeine</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
             <version>${minio.version}</version>
@@ -322,7 +331,7 @@
                       <generateApiDocumentation>false</generateApiDocumentation>
                       <generateModels>true</generateModels>
                       <modelsToGenerate>
-                        Parameter,Error,Errors
+                        Department,DepartmentCollection,ProxyFor,ProxyForCollection,AddressType,AddressTypeCollection,UserGroup,UserGroupCollection,Parameter,Error,Errors
                       </modelsToGenerate>
                       <generateModelTests>false</generateModelTests>
                       <generateSupportingFiles>false</generateSupportingFiles>

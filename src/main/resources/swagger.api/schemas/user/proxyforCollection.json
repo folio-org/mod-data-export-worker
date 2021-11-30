@@ -1,23 +1,24 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "type": "object",
-  "description": "Collection of user proxies",
-  "properties": {
-    "proxiesFor": {
-      "description": "List of user proxy items",
-      "type": "array",
-      "id": "proxyFor",
-      "items": {
-        "type": "object",
-        "$ref": "proxyfor.json"
+  "ProxyForCollection": {
+    "type": "object",
+    "description": "Collection of user proxies",
+    "properties": {
+      "proxiesFor": {
+        "description": "List of user proxy items",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "$ref": "proxyfor.json#/ProxyFor"
+        }
+      },
+      "totalRecords": {
+        "type": "integer"
       }
     },
-    "totalRecords": {
-      "type": "integer"
-    }
-  },
-  "required": [
-    "proxiesFor",
-    "totalRecords"
-  ]
+    "required": [
+      "proxiesFor",
+      "totalRecords"
+    ]
+  }
 }

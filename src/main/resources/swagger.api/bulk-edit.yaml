@@ -51,6 +51,14 @@ components:
       format: uuid
     errors:
       $ref: 'schemas/common/errors.json#/Errors'
+    userGroupCollections:
+      $ref: 'schemas/user/userGroupCollection.json#/UserGroupCollection'
+    addressTypeCollection:
+      $ref: 'schemas/user/addressTypeCollection.json#/AddressTypeCollection'
+    proxyForCollection:
+      $ref: 'schemas/user/proxyForCollection.json#/ProxyForCollection'
+    departmentCollection:
+      $ref: 'schemas/user/departmentCollection.json#/DepartmentCollection'
   examples:
     errors:
       value:

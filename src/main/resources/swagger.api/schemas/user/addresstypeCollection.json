@@ -7,10 +7,9 @@
       "addressTypes": {
         "description": "List of address type items",
         "type": "array",
-        "id": "addressType",
         "items": {
           "type": "object",
-          "$ref": "addresstype.json"
+          "$ref": "addressType.json#/AddressType"
         }
       },
       "totalRecords": {

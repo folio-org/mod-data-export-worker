@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Collection of address types",
+  "AddressTypeCollection": {
+    "type": "object",
+    "properties": {
+      "addressTypes": {
+        "description": "List of address type items",
+        "type": "array",
+        "id": "addressType",
+        "items": {
+          "type": "object",
+          "$ref": "addresstype.json"
+        }
+      },
+      "totalRecords": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "addressTypes",
+      "totalRecords"
+    ]
+  }
+}

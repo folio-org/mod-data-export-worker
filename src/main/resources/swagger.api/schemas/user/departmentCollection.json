@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Department Collection",
+  "description": "Department collection object schema",
+  "javaType": "org.folio.rest.jaxrs.model.DepartmentCollection",
+  "additionalProperties": false,
+  "type": "object",
+  "properties": {
+    "departments": {
+      "type": "array",
+      "description": "List of departments",
+      "items": {
+        "type": "object",
+        "$ref": "department.json"
+      }
+    },
+    "totalRecords": {
+      "type": "integer"
+    }
+  },
+  "required": ["departments", "totalRecords"]
+}

@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "ProxyFor Schema",
+  "description": "A proxy for a user",
+  "type": "object",
+  "properties": {
+    "userId": {
+      "description": "The id of the user for whom this proxy pertains",
+      "type": "string"
+    },
+    "proxyUserId": {
+      "description": "The id of the user acting as the proxy",
+      "type": "string"
+    },
+    "id": {
+      "description": "A UUID identifying this proxy relationship",
+      "type": "string"
+    },
+    "requestForSponsor": {
+      "description": "Can the user request a sponsor (yes/no)",
+      "type": "string"
+    },
+    "createdDate": {
+      "description": "Deprecated",
+      "type": "string",
+      "format": "date-time"
+    },
+    "notificationsTo": {
+      "description": "Where notifications are sent",
+      "type": "string"
+    },
+    "accrueTo": {
+      "description": "Where fees and fines accrue",
+      "type": "string"
+    },
+    "status": {
+      "description": "Active or Inactive",
+      "type": "string"
+    },
+    "expirationDate": {
+      "description": "The date this proxy relationship expires",
+      "type": "string",
+      "format": "date-time"
+    },
+    "metadata" : {
+      "$ref" : "raml-util/schemas/metadata.schema",
+      "readonly" : true
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,9 +1,5 @@
 package org.folio.dew.service;
 
-import static java.util.Optional.ofNullable;
-import static org.folio.des.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -16,9 +12,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.des.config.kafka.KafkaService;
 import org.folio.des.domain.JobParameterNames;
@@ -38,6 +31,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 
 @Service
 @RequiredArgsConstructor
@@ -104,7 +102,6 @@ public class JobCommandsReceiverService {
           jobMap.get(jobCommand.getExportType().toString()),
           jobCommand.getJobParameters());
 
-      acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
       exportJobManager.launchJob(jobLaunchRequest);
     } catch (Exception e) {
       log.error(e.toString(), e);

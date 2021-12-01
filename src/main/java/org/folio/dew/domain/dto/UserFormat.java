@@ -32,4 +32,5 @@ public class UserFormat {
   private String createdDate;
   private String updatedDate;
   private String tags;
+  private String customFields;
 }

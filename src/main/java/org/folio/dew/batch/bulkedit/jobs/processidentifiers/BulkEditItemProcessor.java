@@ -19,6 +19,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -27,6 +28,9 @@ import java.util.stream.Collectors;
 @Log4j2
 public class BulkEditItemProcessor implements ItemProcessor<String, UserFormat> {
   private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSX");
+  private static final String ARRAY_DELIMITER = ";";
+  private static final String ITEM_DELIMITER = "|";
+  private static final String KEY_VALUE_DELIMITER = ":";
 
   private final UserClient userClient;
   private final UserReferenceService userReferenceService;
@@ -59,7 +63,8 @@ public class BulkEditItemProcessor implements ItemProcessor<String, UserFormat> 
       .expirationDate(dateFormat.format(user.getExpirationDate()))
       .createdDate(dateFormat.format(user.getCreatedDate()))
       .updatedDate(dateFormat.format(user.getUpdatedDate()))
-      .tags(nonNull(user.getTags()) ? String.join(";", user.getTags().getTagList()) : EMPTY)
+      .tags(nonNull(user.getTags()) ? String.join(ARRAY_DELIMITER, user.getTags().getTagList()) : EMPTY)
+      .customFields(nonNull(user.getCustomFields()) ? customFieldsToString(user.getCustomFields()) : EMPTY)
       .build();
   }
 
@@ -67,7 +72,7 @@ public class BulkEditItemProcessor implements ItemProcessor<String, UserFormat> 
     if (nonNull(user.getDepartments())) {
       return user.getDepartments().stream()
         .map(id -> userReferenceService.getDepartmentById(id).getName())
-        .collect(Collectors.joining(";"));
+        .collect(Collectors.joining(ARRAY_DELIMITER));
     }
     return EMPTY;
   }
@@ -77,16 +82,16 @@ public class BulkEditItemProcessor implements ItemProcessor<String, UserFormat> 
       return user.getProxyFor().stream()
         .map(id -> userReferenceService.getProxyForById(id).getProxyUserId())
         .map(userId -> userClient.getUserById(userId).getUsername())
-        .collect(Collectors.joining(";"));
+        .collect(Collectors.joining(ARRAY_DELIMITER));
     }
     return EMPTY;
   }
 
   private String addressesToString(List<Address> addresses) {
     if (nonNull(addresses)) {
-      addresses.stream()
+      return addresses.stream()
         .map(this::addressToString)
-        .collect(Collectors.joining("|"));
+        .collect(Collectors.joining(ITEM_DELIMITER));
     }
     return EMPTY;
   }
@@ -104,6 +109,12 @@ public class BulkEditItemProcessor implements ItemProcessor<String, UserFormat> 
       addressData.add(userReferenceService.getAddressTypeById(address.getAddressTypeId()).getDesc());
     }
     addressData.add(nonNull(address.getPrimaryAddress()) ? address.getPrimaryAddress().toString() : EMPTY);
-    return String.join(";", addressData);
+    return String.join(ARRAY_DELIMITER, addressData);
+  }
+
+  private String customFieldsToString(Map<String, Object> map) {
+    return map.entrySet().stream()
+      .map(e -> e.getKey() + KEY_VALUE_DELIMITER + e.getValue().toString())
+      .collect(Collectors.joining(ITEM_DELIMITER));
   }
 }

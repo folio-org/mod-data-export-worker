@@ -5,10 +5,15 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +51,7 @@ public class JobCommandsReceiverService {
   private final MinIOObjectStorageRepository objectStorageRepository;
   private final List<Job> jobs;
   private Map<String, Job> jobMap;
+  private Map<String, JobCommand> bulkEditJobCommands;
   @Value("${spring.application.name}")
   private String springApplicationName;
   private String workDir;
@@ -68,6 +74,7 @@ public class JobCommandsReceiverService {
     } else {
       log.info("Working directory {}.", workDir);
     }
+    bulkEditJobCommands = new ConcurrentHashMap<>();
   }
 
   @KafkaListener(
@@ -86,13 +93,19 @@ public class JobCommandsReceiverService {
       log.info("-----------------------------JOB---STARTS-----------------------------");
 
       prepareJobParameters(jobCommand);
+      acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
+
+      //TODO should be replaced with enum value when will be added
+      if (jobCommand.getExportType().getValue().equals("BULK-EDIT")) {
+        bulkEditJobCommands.put(jobCommand.getId().toString(), jobCommand);
+        return;
+      }
 
       var jobLaunchRequest =
         new JobLaunchRequest(
           jobMap.get(jobCommand.getExportType().toString()),
           jobCommand.getJobParameters());
 
-      acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
       exportJobManager.launchJob(jobLaunchRequest);
     } catch (Exception e) {
       log.error(e.toString(), e);
@@ -167,6 +180,10 @@ public class JobCommandsReceiverService {
     }
 
     return true;
+  }
+
+  public Optional<JobCommand> getBulkEditJobCommandById(String id) {
+    return Optional.ofNullable(bulkEditJobCommands.get(id));
   }
 
 }

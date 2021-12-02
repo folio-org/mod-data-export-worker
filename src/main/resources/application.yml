@@ -56,6 +56,12 @@ application:
     bucket: ${AWS_BUCKET:}
     accessKey: ${AWS_ACCESS_KEY_ID:}
     secretKey: ${AWS_SECRET_ACCESS_KEY:}
+  ftp:
+    bufferSize: 1048576 #that 1024 * 1024
+    defaultPort: 21
+    workingDir: /files
+    defaultTimeout: 30000
+    controlKeepAliveTimeout: 30
   bucket:
     size: ${BUCKET_SIZE:50}
 folio:

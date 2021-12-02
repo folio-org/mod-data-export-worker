@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.Address;
+import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.service.UserReferenceService;
@@ -26,46 +27,56 @@ import java.util.stream.Collectors;
 @StepScope
 @RequiredArgsConstructor
 @Log4j2
-public class BulkEditItemProcessor implements ItemProcessor<String, UserFormat> {
-  private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSX");
+public class BulkEditItemProcessor implements ItemProcessor<ItemIdentifier, UserFormat> {
+  private static final String BARCODE = "barcode==";
   private static final String ARRAY_DELIMITER = ";";
   private static final String ITEM_DELIMITER = "|";
   private static final String KEY_VALUE_DELIMITER = ":";
+  private static final String USER_NOT_FOUND_ERROR = "User with barcode=%s was not found";
 
   private final UserClient userClient;
   private final UserReferenceService userReferenceService;
 
+  private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSX");
+
   @Override
-  public UserFormat process(String id) {
-    var user = userClient.getUserById(id);
-    var patronGroup = userReferenceService.getUserGroupById(user.getPatronGroup());
-    return UserFormat.builder()
-      .username(user.getUsername())
-      .id(user.getId())
-      .externalSystemId(user.getExternalSystemId())
-      .barcode(user.getBarcode())
-      .active(user.getActive().toString())
-      .type(user.getType())
-      .patronGroup(patronGroup.getGroup())
-      .departments(fetchDepartments(user))
-      .proxyFor(fetchProxyFor(user))
-      .lastName(user.getPersonal().getLastName())
-      .firstName(user.getPersonal().getFirstName())
-      .middleName(user.getPersonal().getMiddleName())
-      .preferredFirstName(user.getPersonal().getPreferredFirstName())
-      .email(user.getPersonal().getEmail())
-      .phone(user.getPersonal().getPhone())
-      .mobilePhone(user.getPersonal().getMobilePhone())
-      .dateOfBirth(dateFormat.format(user.getPersonal().getDateOfBirth()))
-      .addresses(addressesToString(user.getPersonal().getAddresses()))
-      .preferredContactTypeId(user.getPersonal().getPreferredContactTypeId())
-      .enrollmentDate(dateFormat.format(user.getEnrollmentDate()))
-      .expirationDate(dateFormat.format(user.getExpirationDate()))
-      .createdDate(dateFormat.format(user.getCreatedDate()))
-      .updatedDate(dateFormat.format(user.getUpdatedDate()))
-      .tags(nonNull(user.getTags()) ? String.join(ARRAY_DELIMITER, user.getTags().getTagList()) : EMPTY)
-      .customFields(nonNull(user.getCustomFields()) ? customFieldsToString(user.getCustomFields()) : EMPTY)
-      .build();
+  public UserFormat process(ItemIdentifier itemIdentifier) {
+    var users = userClient.getUserByQuery(BARCODE + itemIdentifier.getItemId(), 1);
+    if (!users.getUsers().isEmpty()) {
+      var user = users.getUsers().get(0);
+      var patronGroup = userReferenceService.getUserGroupById(user.getPatronGroup());
+      return UserFormat.builder()
+        .username(user.getUsername())
+        .id(user.getId())
+        .externalSystemId(user.getExternalSystemId())
+        .barcode(user.getBarcode())
+        .active(user.getActive().toString())
+        .type(user.getType())
+        .patronGroup(patronGroup.getGroup())
+        .departments(fetchDepartments(user))
+        .proxyFor(fetchProxyFor(user))
+        .lastName(user.getPersonal().getLastName())
+        .firstName(user.getPersonal().getFirstName())
+        .middleName(user.getPersonal().getMiddleName())
+        .preferredFirstName(user.getPersonal().getPreferredFirstName())
+        .email(user.getPersonal().getEmail())
+        .phone(user.getPersonal().getPhone())
+        .mobilePhone(user.getPersonal().getMobilePhone())
+        .dateOfBirth(dateFormat.format(user.getPersonal().getDateOfBirth()))
+        .addresses(addressesToString(user.getPersonal().getAddresses()))
+        .preferredContactTypeId(user.getPersonal().getPreferredContactTypeId())
+        .enrollmentDate(dateFormat.format(user.getEnrollmentDate()))
+        .expirationDate(dateFormat.format(user.getExpirationDate()))
+        .createdDate(dateFormat.format(user.getCreatedDate()))
+        .updatedDate(dateFormat.format(user.getUpdatedDate()))
+        .tags(nonNull(user.getTags()) ? String.join(ARRAY_DELIMITER, user.getTags().getTagList()) : EMPTY)
+        .customFields(nonNull(user.getCustomFields()) ? customFieldsToString(user.getCustomFields()) : EMPTY)
+        .build();
+    }
+    var errorMessage = String.format(USER_NOT_FOUND_ERROR, itemIdentifier.getItemId());
+    log.error(errorMessage);
+    //TODO replace with BulkEditException (MODBULKED-10)
+    throw new IllegalArgumentException(errorMessage);
   }
 
   private String fetchDepartments(User user) {

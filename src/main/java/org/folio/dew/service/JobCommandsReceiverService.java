@@ -1,19 +1,18 @@
 package org.folio.dew.service;
 
+import static java.util.Optional.ofNullable;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +42,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Log4j2
 public class JobCommandsReceiverService {
+  private static final String IDENTIFIERS_FILE_NAME_PATTERN = "bulk-edit-%s.csv";
+  private static final String OUTPUT_FILE_NAME_PATTERN = "%s-Matched-Records-%s";
+  private static final String PATH_PATTERN = "%s%s";
 
   private final ObjectMapper objectMapper;
   private final ExportJobManager exportJobManager;
@@ -95,8 +97,8 @@ public class JobCommandsReceiverService {
       prepareJobParameters(jobCommand);
       acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
 
-      //TODO should be replaced with enum value when will be added
-      if (jobCommand.getExportType().getValue().equals("BULK-EDIT")) {
+      //TODO should be replaced with enum value when will be added (MODBULKED-16)
+      if (jobCommand.getExportType().getValue().equals("BULK-EDIT-IDENTIFIER")) {
         bulkEditJobCommands.put(jobCommand.getId().toString(), jobCommand);
         return;
       }
@@ -183,7 +185,7 @@ public class JobCommandsReceiverService {
   }
 
   public Optional<JobCommand> getBulkEditJobCommandById(String id) {
-    return Optional.ofNullable(bulkEditJobCommands.get(id));
+    return ofNullable(bulkEditJobCommands.get(id));
   }
 
 }

@@ -18,9 +18,13 @@ paths:
             $ref: "#/components/schemas/UUID"
       requestBody:
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
+              type: object
+              properties:
+                fileName:
+                  type: string
+                  format: binary
       responses:
         "201":
           description: File uploaded

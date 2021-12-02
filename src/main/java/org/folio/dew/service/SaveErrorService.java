@@ -2,6 +2,7 @@ package org.folio.dew.service;
 
 import static java.util.Objects.isNull;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,6 +12,7 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+@Service
 @Log4j2
 public class SaveErrorService {
 

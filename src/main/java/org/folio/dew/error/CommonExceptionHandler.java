@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @Log4j2
 @RequiredArgsConstructor
 @ControllerAdvice
-public class DefaultExceptionHandler {
+public class CommonExceptionHandler {
 
   private final SaveErrorService saveErrorService;
 

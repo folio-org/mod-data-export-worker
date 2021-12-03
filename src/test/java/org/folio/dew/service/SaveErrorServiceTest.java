@@ -1,5 +1,6 @@
 package org.folio.dew.service;
 
+import org.folio.dew.error.BulkEditException;
 import static org.folio.dew.service.SaveErrorService.CSV_NAME_DATE_FORMAT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -17,14 +18,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
-public class SaveErrorServiceTest {
+class SaveErrorServiceTest {
 
   @Test
   @DisplayName("Show that error file is created")
-  void saveErrorInCSVTestSuccess() throws IOException {
+  void saveErrorInCSVTestSuccessTest() throws IOException {
     var jobId = UUID.randomUUID().toString();
     var affectedIdentifier = "ID";
-    var reasonForError = new Throwable("Record not found");
+    var reasonForError = new BulkEditException("Record not found");
     var identifiersFileName = "userUUIDs.csv";
     var csvFileName = LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Errors-" + identifiersFileName;
     var pathToCsvFile = Paths.get("." + File.separator + "storage" + File.separator + jobId + File.separator + csvFileName);
@@ -39,10 +40,10 @@ public class SaveErrorServiceTest {
 
   @Test
   @DisplayName("Show that error file is not created if at lease one of the parameter is null")
-  void saveErrorInCSVTestFailed() throws IOException {
+  void saveErrorInCSVTestFailedTest() {
     var jobId = UUID.randomUUID().toString();
     var affectedIdentifier = "ID";
-    var reasonForError = new Throwable("Record not found");
+    var reasonForError = new BulkEditException("Record not found");
     var identifiersFileName = "userUUIDs.csv";
     var csvFileName = LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Errors-" + identifiersFileName;
     var pathToCsvFile = Paths.get("." + File.separator + "storage" + File.separator + jobId + File.separator + csvFileName);

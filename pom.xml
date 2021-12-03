@@ -52,6 +52,7 @@
             **/src/main/java/org/folio/dew/ModDataExportWorkerApplication.java,
             **/src/main/java/org/folio/dew/batch/JobCompletionNotificationListener.java,
             **/src/main/java/org/folio/dew/domain/dto/**,
+            **/src/main/java/org/folio/dew/config/FTPConfig.java,
             **/src/main/java/org/folio/dew/config/properties/**
         </sonar.exclusions>
 
@@ -152,8 +153,21 @@
             <artifactId>log4j-web</artifactId>
             <version>${log4j-web.version}</version>
         </dependency>
+        
+        <dependency>
+          <groupId>commons-net</groupId>
+          <artifactId>commons-net</artifactId>
+          <version>3.6</version>
+        </dependency>
+
 
         <!-- Test dependencies -->
+      <dependency>
+        <groupId>org.mockftpserver</groupId>
+        <artifactId>MockFtpServer</artifactId>
+        <version>2.7.1</version>
+        <scope>test</scope>
+      </dependency>
       <dependency>
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-starter-bootstrap</artifactId>

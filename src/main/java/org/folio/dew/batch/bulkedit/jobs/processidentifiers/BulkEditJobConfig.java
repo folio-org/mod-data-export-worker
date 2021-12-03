@@ -1,6 +1,7 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
 import lombok.RequiredArgsConstructor;
+import org.folio.des.domain.dto.ExportType;
 import org.folio.dew.batch.CsvWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.domain.dto.UserFormat;
@@ -70,7 +71,7 @@ public class BulkEditJobConfig {
   @Bean
   public Job bulkEditJob(JobCompletionNotificationListener listener, Step bulkEditStep) {
     return jobBuilderFactory
-      .get("BULK-EDIT-IDENTIFIER")
+      .get(ExportType.BULK_EDIT_IDENTIFIERS.toString())
       .incrementer(new RunIdIncrementer())
       .listener(listener)
       .flow(bulkEditStep)

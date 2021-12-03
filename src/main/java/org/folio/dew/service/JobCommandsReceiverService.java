@@ -1,6 +1,7 @@
 package org.folio.dew.service;
 
 import static java.util.Optional.ofNullable;
+import static org.folio.des.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
@@ -42,10 +43,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Log4j2
 public class JobCommandsReceiverService {
-  private static final String IDENTIFIERS_FILE_NAME_PATTERN = "bulk-edit-%s.csv";
-  private static final String OUTPUT_FILE_NAME_PATTERN = "%s-Matched-Records-%s";
-  private static final String PATH_PATTERN = "%s%s";
-
   private final ObjectMapper objectMapper;
   private final ExportJobManager exportJobManager;
   private final BursarExportService bursarExportService;
@@ -97,9 +94,8 @@ public class JobCommandsReceiverService {
       prepareJobParameters(jobCommand);
       acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
 
-      //TODO should be replaced with enum value when will be added (MODBULKED-16)
-      if (jobCommand.getExportType().getValue().equals("BULK-EDIT-IDENTIFIER")) {
-        bulkEditJobCommands.put(jobCommand.getId().toString(), jobCommand);
+      if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())) {
+        addBulkEditJobCommand(jobCommand);
         return;
       }
 
@@ -182,6 +178,10 @@ public class JobCommandsReceiverService {
     }
 
     return true;
+  }
+
+  public void addBulkEditJobCommand(JobCommand jobCommand) {
+    bulkEditJobCommands.put(jobCommand.getId().toString(), jobCommand);
   }
 
   public Optional<JobCommand> getBulkEditJobCommandById(String id) {

@@ -3,6 +3,7 @@ package org.folio.dew.controller;
 import static java.lang.String.format;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Optional.ofNullable;
+import static org.folio.des.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -10,6 +11,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
 import org.folio.des.domain.dto.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.service.JobCommandsReceiverService;
@@ -62,7 +64,7 @@ public class UploadController implements BulkEditApi {
 
       var parameters = optionalJobCommand.get().getJobParameters().getParameters();
       parameters.put("identifiersFileName", new JobParameter(identifiersFileName));
-      parameters.put("outputCsvFileName", new JobParameter(FILE_STORAGE_PATH+ format(OUTPUT_FILE_NAME_PATTERN, LocalDate.now().format(ofPattern("yyyy-MM-dd")), identifiersFileName)));
+      parameters.put("outputCsvFileName", new JobParameter(FILE_STORAGE_PATH + format(OUTPUT_FILE_NAME_PATTERN, LocalDate.now().format(ofPattern("yyyy-MM-dd")), identifiersFileName)));
       ofNullable(optionalJobCommand.get().getIdentifierType()).ifPresent(type ->
         parameters.put("identifierType", new JobParameter(type.getValue())));
       ofNullable(optionalJobCommand.get().getEntityType()).ifPresent(type ->
@@ -84,7 +86,10 @@ public class UploadController implements BulkEditApi {
   }
 
   private Job getBulkEditJob() {
-    return jobs.stream().filter(job -> job.getName().equals("BULK-EDIT-IDENTIFIER")).findFirst().get();
+    return jobs.stream()
+      .filter(job -> BULK_EDIT_IDENTIFIERS.getValue().equals(job.getName()))
+      .findFirst()
+      .orElseThrow(() -> new IllegalStateException("Job was not found, aborting"));
   }
 
 }

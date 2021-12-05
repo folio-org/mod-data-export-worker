@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -46,7 +47,7 @@ public class BulkEditItemProcessor implements ItemProcessor<ItemIdentifier, User
       var user = users.getUsers().get(0);
       var patronGroup = userReferenceService.getUserGroupById(user.getPatronGroup());
       return UserFormat.builder()
-        .username(user.getUsername())
+        .userName(user.getUsername())
         .id(user.getId())
         .externalSystemId(user.getExternalSystemId())
         .barcode(user.getBarcode())
@@ -62,20 +63,19 @@ public class BulkEditItemProcessor implements ItemProcessor<ItemIdentifier, User
         .email(user.getPersonal().getEmail())
         .phone(user.getPersonal().getPhone())
         .mobilePhone(user.getPersonal().getMobilePhone())
-        .dateOfBirth(dateFormat.format(user.getPersonal().getDateOfBirth()))
+        .dateOfBirth(dateToString(user.getPersonal().getDateOfBirth()))
         .addresses(addressesToString(user.getPersonal().getAddresses()))
         .preferredContactTypeId(user.getPersonal().getPreferredContactTypeId())
-        .enrollmentDate(dateFormat.format(user.getEnrollmentDate()))
-        .expirationDate(dateFormat.format(user.getExpirationDate()))
-        .createdDate(dateFormat.format(user.getCreatedDate()))
-        .updatedDate(dateFormat.format(user.getUpdatedDate()))
+        .enrollmentDate(dateToString(user.getEnrollmentDate()))
+        .expirationDate(dateToString(user.getExpirationDate()))
+        .createdDate(dateToString(user.getCreatedDate()))
+        .updatedDate(dateToString(user.getUpdatedDate()))
         .tags(nonNull(user.getTags()) ? String.join(ARRAY_DELIMITER, user.getTags().getTagList()) : EMPTY)
         .customFields(nonNull(user.getCustomFields()) ? customFieldsToString(user.getCustomFields()) : EMPTY)
         .build();
     }
     var errorMessage = String.format(USER_NOT_FOUND_ERROR, itemIdentifier.getItemId());
     log.error(errorMessage);
-    //TODO replace with BulkEditException (MODBULKED-10)
     throw new IllegalArgumentException(errorMessage);
   }
 
@@ -109,7 +109,7 @@ public class BulkEditItemProcessor implements ItemProcessor<ItemIdentifier, User
 
   private String addressToString(Address address) {
     List<String> addressData = new ArrayList<>();
-    addressData.add(address.getId());
+    addressData.add(ofNullable(address.getId()).orElse(EMPTY));
     addressData.add(ofNullable(address.getCountryId()).orElse(EMPTY));
     addressData.add(ofNullable(address.getAddressLine1()).orElse(EMPTY));
     addressData.add(ofNullable(address.getAddressLine2()).orElse(EMPTY));
@@ -127,5 +127,9 @@ public class BulkEditItemProcessor implements ItemProcessor<ItemIdentifier, User
     return map.entrySet().stream()
       .map(e -> e.getKey() + KEY_VALUE_DELIMITER + e.getValue().toString())
       .collect(Collectors.joining(ITEM_DELIMITER));
+  }
+
+  private String dateToString(Date date) {
+    return nonNull(date) ? dateFormat.format(date) : EMPTY;
   }
 }

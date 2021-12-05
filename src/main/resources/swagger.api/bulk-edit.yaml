@@ -3,9 +3,9 @@ info:
   title: Bulk edit API
   version: v1
 servers:
-  - url: /data-export-worker/
+  - url: /bulk-edit/
 paths:
-  /bulk-edit/{jobId}/upload:
+  /{jobId}/upload:
     post:
       description: Upload csv file
       operationId: uploadCsvFile
@@ -22,7 +22,7 @@ paths:
             schema:
               type: object
               properties:
-                fileName:
+                file:
                   type: string
                   format: binary
       responses:

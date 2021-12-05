@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class UserFormat {
-  private String username;
+  private String userName;
   private String id;
   private String externalSystemId;
   private String barcode;

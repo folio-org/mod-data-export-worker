@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Collection of user proxies",
   "ProxyForCollection": {
     "type": "object",
     "description": "Collection of user proxies",

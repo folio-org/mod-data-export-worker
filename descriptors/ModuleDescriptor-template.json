@@ -2,8 +2,31 @@
   "id": "@artifactId@-@version@",
   "name": "Data Export Worker Module",
   "requires": [
+    {
+      "id": "users",
+      "version": "15.4"
+    }
   ],
   "provides": [
+    {
+      "id": "bulk-edit",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": [ "POST" ],
+          "pathPattern": "/bulk-edit/{id}/upload",
+          "permissionsRequired": [ "bulk-edit.item.post" ],
+          "modulePermissions": [
+            "users.collection.get",
+            "users.item.get",
+            "usergroups.item.get",
+            "addresstypes.item.get",
+            "proxiesfor.item.get",
+            "departments.item.get"
+          ]
+        }
+      ]
+    },
     {
       "id": "_tenant",
       "version": "1.2",
@@ -47,6 +70,17 @@
     }
   ],
   "permissionSets": [
+    {
+      "permissionName" : "bulk-edit.item.post",
+      "displayName" : "upload identifiers list",
+      "description" : "Upload list of item identifiers"
+    },
+    {
+      "permissionName" : "bulk-edit.all",
+      "displayName" : "bulk-edit all",
+      "description" : "All permissions for bulk-edit module",
+      "subPermissions" : [ "bulk-edit.item.post" ]
+    }
   ],
   "launchDescriptor": {
     "dockerImage": "@artifactId@:@version@",

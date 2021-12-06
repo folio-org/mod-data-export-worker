@@ -1,5 +1,8 @@
 package org.folio.dew.service;
 
+import static java.util.Optional.ofNullable;
+import static org.folio.des.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -9,6 +12,8 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +43,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Log4j2
 public class JobCommandsReceiverService {
-
   private final ObjectMapper objectMapper;
   private final ExportJobManager exportJobManager;
   private final BursarExportService bursarExportService;
@@ -46,6 +50,7 @@ public class JobCommandsReceiverService {
   private final MinIOObjectStorageRepository objectStorageRepository;
   private final List<Job> jobs;
   private Map<String, Job> jobMap;
+  private Map<String, JobCommand> bulkEditJobCommands;
   @Value("${spring.application.name}")
   private String springApplicationName;
   private String workDir;
@@ -68,6 +73,7 @@ public class JobCommandsReceiverService {
     } else {
       log.info("Working directory {}.", workDir);
     }
+    bulkEditJobCommands = new ConcurrentHashMap<>();
   }
 
   @KafkaListener(
@@ -86,6 +92,12 @@ public class JobCommandsReceiverService {
       log.info("-----------------------------JOB---STARTS-----------------------------");
 
       prepareJobParameters(jobCommand);
+      acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
+
+      if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())) {
+        addBulkEditJobCommand(jobCommand);
+        return;
+      }
 
       var jobLaunchRequest =
         new JobLaunchRequest(
@@ -167,6 +179,14 @@ public class JobCommandsReceiverService {
     }
 
     return true;
+  }
+
+  public void addBulkEditJobCommand(JobCommand jobCommand) {
+    bulkEditJobCommands.put(jobCommand.getId().toString(), jobCommand);
+  }
+
+  public Optional<JobCommand> getBulkEditJobCommandById(String id) {
+    return ofNullable(bulkEditJobCommands.get(id));
   }
 
 }

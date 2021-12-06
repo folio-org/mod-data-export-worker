@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Address Type Schema",
+  "description": "An address type",
+  "AddressType": {
+    "type": "object",
+    "properties": {
+      "addressType": {
+        "description": "A unique name for this address type",
+        "type": "string"
+      },
+      "desc": {
+        "description": "An explanation of this address type",
+        "type": "string"
+      },
+      "id": {
+        "description": "A UUID identifying this address type",
+        "type": "string"
+      },
+      "metadata" : {
+        "$ref" : "../common/metadata.json",
+        "readonly" : true
+      }
+    },
+    "additionalProperties": false,
+    "required" : [ "addressType" ]
+  }
+}

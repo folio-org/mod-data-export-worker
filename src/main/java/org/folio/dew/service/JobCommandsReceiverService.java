@@ -104,6 +104,7 @@ public class JobCommandsReceiverService {
           jobMap.get(jobCommand.getExportType().toString()),
           jobCommand.getJobParameters());
 
+      acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
       exportJobManager.launchJob(jobLaunchRequest);
     } catch (Exception e) {
       log.error(e.toString(), e);

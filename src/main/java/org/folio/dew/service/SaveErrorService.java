@@ -72,14 +72,7 @@ public class SaveErrorService {
         if (csvErrorFile.isPresent()) {
           var filename = csvErrorFile.get().toAbsolutePath().toString();
           var downloadFilename = FilenameUtils.getName(filename);
-          try {
-            minIOObjectStorageRepository.uploadObject(downloadFilename, filename, downloadFilename, CONTENT_TYPE);
-            log.info("CSV error file {} was saved into S3 successfully", downloadFilename);
-            return getDownloadLink(downloadFilename);
-          } catch (Exception e) {
-            log.error("Error occurred while saving error csv file into S3", e);
-            throw new IllegalStateException(e);
-          }
+          return saveErrorFile(downloadFilename, filename);
         } else {
           log.error("Download link cannot be created because CSV error file cannot be found at {}", pathToStorage.toString());
           throw new FileNotFoundException();
@@ -90,6 +83,17 @@ public class SaveErrorService {
       }
     } else {
       return null;
+    }
+  }
+
+  private String saveErrorFile(String downloadFilename, String filename) {
+    try {
+      minIOObjectStorageRepository.uploadObject(downloadFilename, filename, downloadFilename, CONTENT_TYPE);
+      log.info("CSV error file {} was saved into S3 successfully", downloadFilename);
+      return getDownloadLink(downloadFilename);
+    } catch (Exception e) {
+      log.error("Error occurred while saving error csv file into S3", e);
+      throw new IllegalStateException(e);
     }
   }
 

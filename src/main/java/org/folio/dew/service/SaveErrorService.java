@@ -19,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 @Log4j2
@@ -54,11 +55,8 @@ public class SaveErrorService {
   public void removeTemporaryErrorStorage(String jobId) {
     Path storage = Paths.get("." + File.separator + SaveErrorService.STORAGE);
     if (Files.exists(storage)) {
-      try {
-        Files.walk(storage)
-          .sorted(Comparator.reverseOrder())
-          .map(Path::toFile)
-          .forEach(File::delete);
+      try (Stream<Path> stream = Files.walk(storage)) {
+        stream.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
         log.info("Deleted temporary error storage of job {}.", jobId);
       } catch (IOException e) {
         log.error("Error occurred while deleting temporary error storage", e);
@@ -69,8 +67,8 @@ public class SaveErrorService {
   public String saveErrorFileAndGetDownloadLink(String jobId) {
     var pathToStorage = Paths.get(String.format(STORAGE_TEMPLATE, jobId));
     if (Files.exists(pathToStorage)) {
-      try {
-        Optional<Path> csvErrorFile = Files.list(pathToStorage).filter(Files::isRegularFile).findFirst();
+      try (Stream<Path> stream = Files.list(pathToStorage)) {
+        Optional<Path> csvErrorFile = stream.filter(Files::isRegularFile).findFirst();
         if (csvErrorFile.isPresent()) {
           var filename = csvErrorFile.get().toAbsolutePath().toString();
           var downloadFilename = FilenameUtils.getName(filename);

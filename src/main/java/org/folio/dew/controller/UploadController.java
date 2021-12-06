@@ -37,6 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class UploadController implements JobIdApi {
   private static final String TMP_DIR_PROPERTY = "java.io.tmpdir";
+  private static final String PATH_SEPARATOR = "/";
   private static final String OUTPUT_FILE_NAME_PATTERN = "%s-Matched-Records-%s";
   private static final String FILE_UPLOAD_ERROR = "Cannot upload a file. Reason: %s.";
   private static final String JOB_COMMAND_NOT_FOUND_ERROR = "JobCommand with id %s doesn't exist.";
@@ -60,7 +61,7 @@ public class UploadController implements JobIdApi {
       log.debug(msg);
       return new ResponseEntity<>(msg, HttpStatus.NOT_FOUND);
     }
-    var workDir = System.getProperty(TMP_DIR_PROPERTY) + File.pathSeparator + springApplicationName + File.pathSeparator;
+    var workDir = System.getProperty(TMP_DIR_PROPERTY) + PATH_SEPARATOR + springApplicationName + PATH_SEPARATOR;
     var identifiersFileName = workDir + file.getOriginalFilename();
 
     try {

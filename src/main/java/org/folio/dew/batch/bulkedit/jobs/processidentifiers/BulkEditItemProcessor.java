@@ -16,12 +16,15 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 @Component
@@ -38,7 +41,13 @@ public class BulkEditItemProcessor implements ItemProcessor<ItemIdentifier, User
   private final UserClient userClient;
   private final UserReferenceService userReferenceService;
 
-  private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSX");
+  private DateFormat dateFormat;
+
+  @PostConstruct
+  public void postConstruct() {
+    dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSX");
+    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+  }
 
   @Override
   public UserFormat process(ItemIdentifier itemIdentifier) {

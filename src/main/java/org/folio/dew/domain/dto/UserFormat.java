@@ -1,14 +1,17 @@
 package org.folio.dew.domain.dto;
 
-import lombok.Builder;
-import lombok.Data;
-
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserFormat {
   private static final Map<String, String> map = new LinkedHashMap<>();
 
@@ -76,3 +79,4 @@ public class UserFormat {
     return map.keySet().toArray(new String[0]);
   }
 }
+

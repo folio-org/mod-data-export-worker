@@ -12,6 +12,8 @@ import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import static org.folio.dew.utils.Constants.FILE_NAME;
+
 @Log4j2
 @RequiredArgsConstructor
 @JobScope
@@ -26,7 +28,7 @@ public class BulkEditSkipListener {
   @OnSkipInProcess
   public void onSkipInProcess(ItemIdentifier itemIdentifier, BulkEditException bulkEditException) {
     log.debug(bulkEditException);
-    saveErrorService.saveErrorInCSV(jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID), itemIdentifier.getItemId(), bulkEditException, FilenameUtils.getName(jobExecution.getJobParameters().getString("identifiersFileName")));
+    saveErrorService.saveErrorInCSV(jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID), itemIdentifier.getItemId(), bulkEditException, FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
   }
 
 }

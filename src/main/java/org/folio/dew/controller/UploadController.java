@@ -60,7 +60,7 @@ public class UploadController implements JobIdApi {
       log.debug(msg);
       return new ResponseEntity<>(msg, HttpStatus.NOT_FOUND);
     }
-    var workDir = System.getProperty(TMP_DIR_PROPERTY) + springApplicationName + File.pathSeparator;
+    var workDir = System.getProperty(TMP_DIR_PROPERTY) + File.pathSeparator + springApplicationName + File.pathSeparator;
     var identifiersFileName = workDir + file.getOriginalFilename();
 
     try {

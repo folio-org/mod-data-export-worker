@@ -31,7 +31,7 @@ class BulkEditTest extends BaseBatchTest {
 
   @Test
   @DisplayName("Run bulk-edit (identifiers) successfully")
-  void circulationLogJobTest() throws Exception {
+  void bulkEditJobTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditJob);
 
     final JobParameters jobParameters = prepareJobParameters();

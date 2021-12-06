@@ -6,6 +6,8 @@ import org.folio.dew.batch.CsvWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.domain.dto.ItemIdentifier;
+import org.folio.dew.error.BulkEditException;
+import org.folio.dew.error.BulkEditSkipListener;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -86,6 +88,9 @@ public class BulkEditJobConfig {
       .reader(csvItemIdentifierReader)
       .processor(bulkEditItemProcessor)
       .writer(csvItemWriter)
+      .faultTolerant()
+      .skip(BulkEditException.class)
+      .listener(BulkEditSkipListener.class)
       .build();
   }
 }

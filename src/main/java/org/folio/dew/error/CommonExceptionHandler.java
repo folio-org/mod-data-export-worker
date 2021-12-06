@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class CommonExceptionHandler {
 
-  private final SaveErrorService saveErrorService;
-
   @ExceptionHandler(Exception.class)
   public void defaultErrorHandler(final Exception exception) {
     log.error("Exception other than BulkEditException occurred: {}", exception);

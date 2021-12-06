@@ -2,11 +2,12 @@ package org.folio.dew.error;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.folio.des.domain.dto.JobCommand;
+import org.folio.des.domain.JobParameterNames;
+import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.service.SaveErrorService;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.annotation.OnSkipInProcess;
 import org.springframework.batch.core.configuration.annotation.JobScope;
-import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -18,12 +19,12 @@ public class BulkEditSkipListener {
 
   private final SaveErrorService saveErrorService;
 
-  @Value("#{jobExecution.executionContext}")
-  private final ExecutionContext executionContext;
+  @Value("#{jobExecution}")
+  private final JobExecution jobExecution;
 
   @OnSkipInProcess
-  public void onSkipInProcess(JobCommand jobCommand, BulkEditException bulkEditException) {
-    saveErrorService.saveErrorInCSV(jobCommand.getId().toString(), jobCommand.getIdentifierType().getValue(), bulkEditException, executionContext.getString("fileName"));
+  public void onSkipInProcess(ItemIdentifier itemIdentifier, BulkEditException bulkEditException) {
+    saveErrorService.saveErrorInCSV(jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID), itemIdentifier.toString(), bulkEditException, jobExecution.getJobParameters().getString("identifiersFileName"));
   }
 
 }

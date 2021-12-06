@@ -1,5 +1,6 @@
 package org.folio.dew.service;
 
+import org.folio.dew.BaseBatchTest;
 import org.folio.dew.error.BulkEditException;
 import static org.folio.dew.service.SaveErrorService.CSV_NAME_DATE_FORMAT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -7,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +20,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
-class SaveErrorServiceTest {
+class SaveErrorServiceTest extends BaseBatchTest {
+
+  @Autowired
+  private SaveErrorService saveErrorService;
 
   @Test
   @DisplayName("Show that error file is created")
@@ -28,8 +33,7 @@ class SaveErrorServiceTest {
     var reasonForError = new BulkEditException("Record not found");
     var identifiersFileName = "userUUIDs.csv";
     var csvFileName = LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Errors-" + identifiersFileName;
-    var pathToCsvFile = Paths.get("." + File.separator + "storage" + File.separator + jobId + File.separator + csvFileName);
-    SaveErrorService saveErrorService = new SaveErrorService();
+    var pathToCsvFile = Paths.get("." + File.separator + SaveErrorService.STORAGE + File.separator + jobId + File.separator + csvFileName);
     saveErrorService.saveErrorInCSV(jobId, affectedIdentifier, reasonForError, identifiersFileName);
     assertTrue(Files.exists(pathToCsvFile));
     List<String> lines = Files.readAllLines(pathToCsvFile);
@@ -46,8 +50,7 @@ class SaveErrorServiceTest {
     var reasonForError = new BulkEditException("Record not found");
     var identifiersFileName = "userUUIDs.csv";
     var csvFileName = LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Errors-" + identifiersFileName;
-    var pathToCsvFile = Paths.get("." + File.separator + "storage" + File.separator + jobId + File.separator + csvFileName);
-    SaveErrorService saveErrorService = new SaveErrorService();
+    var pathToCsvFile = Paths.get("." + File.separator + SaveErrorService.STORAGE + File.separator + jobId + File.separator + csvFileName);
     saveErrorService.saveErrorInCSV(null, affectedIdentifier, reasonForError, identifiersFileName);
     assertFalse(Files.exists(pathToCsvFile));
     saveErrorService.saveErrorInCSV(jobId, null, reasonForError, identifiersFileName);
@@ -59,7 +62,7 @@ class SaveErrorServiceTest {
   }
 
   private void removeStorage() throws IOException {
-    Files.walk(Paths.get("." + File.separator + "storage")).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+    Files.walk(Paths.get("." + File.separator + SaveErrorService.STORAGE)).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
   }
 
 }

@@ -17,9 +17,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.de.entity.JobCommand;
@@ -40,10 +37,20 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
+
+import static java.util.Optional.ofNullable;
+import static org.folio.des.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.des.domain.dto.ExportType.BULK_EDIT_UPDATE;
+
 @Service
 @RequiredArgsConstructor
 @Log4j2
 public class JobCommandsReceiverService {
+
   private final ObjectMapper objectMapper;
   private final ExportJobManager exportJobManager;
   private final BursarExportService bursarExportService;
@@ -95,11 +102,9 @@ public class JobCommandsReceiverService {
       prepareJobParameters(jobCommand);
 
       if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) ||
-          BULK_EDIT_QUERY.equals(jobCommand.getExportType())) {
+          BULK_EDIT_QUERY.equals(jobCommand.getExportType()) ||
+        BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
         acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-        addBulkEditJobCommand(jobCommand);
-        return;
-      }
 
       var jobLaunchRequest =
         new JobLaunchRequest(

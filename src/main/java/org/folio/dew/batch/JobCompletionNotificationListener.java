@@ -73,7 +73,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     }
   }
 
-  private void  processJobAfter(String jobId, JobParameters jobParameters) {
+  private void processJobAfter(String jobId, JobParameters jobParameters) {
     var acknowledgment = acknowledgementRepository.getAcknowledgement(jobId);
     if (acknowledgment != null) {
       acknowledgment.acknowledge();

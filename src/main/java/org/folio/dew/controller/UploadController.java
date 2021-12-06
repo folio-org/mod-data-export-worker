@@ -14,7 +14,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.de.entity.JobCommand;
@@ -30,10 +29,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.web.multipart.MultipartFile;
+
+import static java.lang.String.format;
+import static java.time.format.DateTimeFormatter.ofPattern;
+import static java.util.Optional.ofNullable;
+import static org.folio.des.domain.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
+import static org.folio.des.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 
 import javax.annotation.PostConstruct;
 
@@ -79,9 +84,9 @@ public class UploadController implements JobIdApi {
     identifiersFileName = workDir + file.getOriginalFilename();
 
     try {
-      Files.deleteIfExists(Paths.get(identifiersFileName));
-      var identifiersFilePath = Files.createFile(Paths.get(identifiersFileName));
-      Files.write(identifiersFilePath, file.getBytes());
+      Files.deleteIfExists(Paths.get(fileName));
+      var filePath = Files.createFile(Paths.get(fileName));
+      Files.write(filePath, file.getBytes());
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
 
       prepareJobParameters(jobCommand);

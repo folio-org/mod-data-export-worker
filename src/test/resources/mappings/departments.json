@@ -1,0 +1,17 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/departments?query=name=Departments"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"departments\": [\n        {\n            \"id\": \"a4b5e97a-0a99-4db9-97df-4fdf406ec74d\",\n            \"name\": \"Departments\",\n            \"code\": \"ACC\",\n            \"usageNumber\": 0,\n            \"metadata\": {\n                \"createdDate\": \"2021-12-08T11:23:34.096+00:00\",\n                \"createdByUserId\": \"1b83b39d-56ba-5905-a195-0a3f1f2da0fd\",\n                \"updatedDate\": \"2021-12-08T11:23:34.096+00:00\",\n                \"updatedByUserId\": \"1b83b39d-56ba-5905-a195-0a3f1f2da0fd\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

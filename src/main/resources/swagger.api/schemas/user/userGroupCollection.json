@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Collection of user groups",
+  "UserGroupCollection": {
+    "type": "object",
+    "properties": {
+      "usergroups": {
+        "description": "List of user group items",
+        "type": "array",
+        "items": {
+          "$ref": "userGroup.json#/UserGroup"
+        }
+      },
+      "totalRecords": {
+        "type": "integer"
+      }
+    }
+  }
+}

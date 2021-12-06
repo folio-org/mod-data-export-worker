@@ -1,5 +1,7 @@
 package org.folio.dew.batch;
 
+import static org.folio.des.domain.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -13,8 +15,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.des.config.kafka.KafkaService;
 import org.folio.des.domain.JobParameterNames;
+import org.folio.des.domain.dto.ExportType;
 import org.folio.des.domain.entity.Job;
 import org.folio.dew.repository.IAcknowledgementRepository;
+import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
@@ -27,6 +31,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
   private final IAcknowledgementRepository acknowledgementRepository;
   private final KafkaService kafka;
+  private final MinIOObjectStorageRepository repository;
 
   @Override
   public void beforeJob(JobExecution jobExecution) {
@@ -48,6 +53,9 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     log.info("Job update {}.", jobExecution);
 
     if (after) {
+      if (isBulkEditIdentifiersJob(jobExecution)) {
+        jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution));
+      }
       processJobAfter(jobId, jobParameters);
     }
 
@@ -59,7 +67,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     }
   }
 
-  private void processJobAfter(String jobId, JobParameters jobParameters) {
+  private void  processJobAfter(String jobId, JobParameters jobParameters) {
     var acknowledgment = acknowledgementRepository.getAcknowledgement(jobId);
     if (acknowledgment != null) {
       acknowledgment.acknowledge();
@@ -100,7 +108,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     }
 
     String outputFilesInStorage = ExecutionContextUtils.getFromJobExecutionContext(jobExecution,
-        JobParameterNames.OUTPUT_FILES_IN_STORAGE);
+        OUTPUT_FILES_IN_STORAGE);
     if (StringUtils.isNotBlank(outputFilesInStorage)) {
       result.setFiles(Arrays.asList(outputFilesInStorage.split(";")));
     }
@@ -131,6 +139,20 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       cause = t.getCause();
     }
     return t;
+  }
+
+  private boolean isBulkEditIdentifiersJob(JobExecution jobExecution) {
+    return ExportType.BULK_EDIT_IDENTIFIERS.getValue().equals(jobExecution.getJobInstance().getJobName());
+  }
+
+  private String saveResult(JobExecution jobExecution) {
+    String path = jobExecution.getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH);
+    try {
+      return repository.objectWriteResponseToPresignedObjectUrl(
+        repository.uploadObject(FilenameUtils.getName(path), path, null, "text/csv"));
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
   }
 
 }

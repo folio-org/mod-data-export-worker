@@ -33,6 +33,9 @@
         <bursar-export.yaml.file>
           ${project.basedir}/src/main/resources/swagger.api/bursar-export.yaml
         </bursar-export.yaml.file>
+        <bulk-edit.yaml.file>
+          ${project.basedir}/src/main/resources/swagger.api/bulk-edit.yaml
+        </bulk-edit.yaml.file>
 
         <folio-spring-base.version>2.0.0</folio-spring-base.version>
         <folio-spring-tenant.version>1.0.0</folio-spring-tenant.version>
@@ -48,6 +51,7 @@
         <sonar.exclusions>
             **/src/main/java/org/folio/dew/ModDataExportWorkerApplication.java,
             **/src/main/java/org/folio/dew/batch/JobCompletionNotificationListener.java,
+            **/src/main/java/org/folio/dew/controller/UploadController.java,
             **/src/main/java/org/folio/dew/domain/dto/**,
             **/src/main/java/org/folio/dew/config/FTPConfig.java,
             **/src/main/java/org/folio/dew/config/properties/**
@@ -70,7 +74,7 @@
         <dependency>
             <groupId>org.folio</groupId>
             <artifactId>mod-data-export-spring</artifactId>
-            <version>1.2.0</version>
+            <version>${folio-data-export-spring.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -104,6 +108,15 @@
                     <artifactId>spring-boot-starter-logging</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>com.github.ben-manes.caffeine</groupId>
+          <artifactId>caffeine</artifactId>
         </dependency>
 
         <dependency>
@@ -318,6 +331,33 @@
                             </configOptions>
                         </configuration>
                     </execution>
+                  <execution>
+                    <id>bulk-edit-worker</id>
+                    <goals>
+                      <goal>generate</goal>
+                    </goals>
+                    <configuration>
+                      <inputSpec>${bulk-edit.yaml.file}</inputSpec>
+                      <output>${project.build.directory}/generated-sources</output>
+                      <generatorName>spring</generatorName>
+                      <modelPackage>${project.groupId}.dew.domain.dto</modelPackage>
+                      <generateApis>true</generateApis>
+                      <generateApiTests>false</generateApiTests>
+                      <generateApiDocumentation>false</generateApiDocumentation>
+                      <generateModels>true</generateModels>
+                      <modelsToGenerate>
+                        Department,DepartmentCollection,ProxyFor,ProxyForCollection,AddressType,AddressTypeCollection,UserGroup,UserGroupCollection,Parameter,Error,Errors
+                      </modelsToGenerate>
+                      <generateModelTests>false</generateModelTests>
+                      <generateSupportingFiles>false</generateSupportingFiles>
+                      <generateModelDocumentation>true</generateModelDocumentation>
+                      <configOptions>
+                        <java8>true</java8>
+                        <dateLibrary>java</dateLibrary>
+                        <interfaceOnly>true</interfaceOnly>
+                      </configOptions>
+                    </configuration>
+                  </execution>
                 </executions>
             </plugin>
 

@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Department Collection",
+  "description": "Department collection object schema",
+  "DepartmentCollection": {
+    "type": "object",
+    "properties": {
+      "departments": {
+        "type": "array",
+        "description": "List of departments",
+        "items": {
+          "type": "object",
+          "$ref": "department.json#/Department"
+        }
+      },
+      "totalRecords": {
+        "type": "integer"
+      }
+    },
+    "required": ["departments", "totalRecords"],
+    "additionalProperties": false
+  }
+}

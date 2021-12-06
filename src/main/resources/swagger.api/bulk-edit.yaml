@@ -1,0 +1,69 @@
+openapi: 3.0.0
+info:
+  title: Bulk edit API
+  version: v1
+servers:
+  - url: /bulk-edit/
+paths:
+  /{jobId}/upload:
+    post:
+      description: Upload csv file
+      operationId: uploadCsvFile
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: UUID of the JobCommand
+          schema:
+            $ref: "#/components/schemas/UUID"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: File uploaded
+          content:
+            application/json:
+              schema:
+                type: string
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "500":
+          description: Internal server errors, e.g. due to misconfiguration
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+components:
+  schemas:
+    UUID:
+      type: string
+      format: uuid
+    errors:
+      $ref: 'schemas/common/errors.json#/Errors'
+    userGroupCollections:
+      $ref: 'schemas/user/userGroupCollection.json#/UserGroupCollection'
+    addressTypeCollection:
+      $ref: 'schemas/user/addressTypeCollection.json#/AddressTypeCollection'
+    proxyForCollection:
+      $ref: 'schemas/user/proxyForCollection.json#/ProxyForCollection'
+    departmentCollection:
+      $ref: 'schemas/user/departmentCollection.json#/DepartmentCollection'
+  examples:
+    errors:
+      value:
+        $ref: 'examples/errors.sample'

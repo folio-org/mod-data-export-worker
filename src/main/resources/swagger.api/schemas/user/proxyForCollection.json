@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Collection of user proxies",
+  "ProxyForCollection": {
+    "type": "object",
+    "description": "Collection of user proxies",
+    "properties": {
+      "proxiesFor": {
+        "description": "List of user proxy items",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "$ref": "proxyfor.json#/ProxyFor"
+        }
+      },
+      "totalRecords": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "proxiesFor",
+      "totalRecords"
+    ]
+  }
+}

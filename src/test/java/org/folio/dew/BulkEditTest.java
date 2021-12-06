@@ -57,6 +57,7 @@ class BulkEditTest extends BaseBatchTest {
   private JobParameters prepareJobParameters() {
     String workDir =
       System.getProperty("java.io.tmpdir")
+        + File.separator
         + springApplicationName
         + File.separator;
 

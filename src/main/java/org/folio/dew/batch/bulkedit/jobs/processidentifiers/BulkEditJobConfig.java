@@ -27,8 +27,8 @@ import org.springframework.core.io.FileSystemResource;
 @Configuration
 @RequiredArgsConstructor
 public class BulkEditJobConfig {
-  private final int CHUNK_SIZE = 100;
-  private final long NO_PARTITIONS = 0L;
+  private static final int CHUNKS = 100;
+  private static final long ZERO = 0L;
 
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
@@ -62,7 +62,7 @@ public class BulkEditJobConfig {
   @StepScope
   public FlatFileItemWriter<UserFormat> csvItemWriter(
     @Value("#{jobParameters['tempOutputFilePath']}") String outputFileName) {
-    return new CsvWriter<>(outputFileName, NO_PARTITIONS,
+    return new CsvWriter<>(outputFileName, ZERO,
       "User name, User id, External system id, Barcode, Active, Type, Patron group, Departments, Proxy for, Last name, First name, Middle name, Preferred first name, Email, Phone, Mobile phone, Date of birth, Addresses, Preferred contact type id, Enrollment date, Expiration date, Created date, Updated date, Tags, Custom fields",
       new String[] { "userName", "id", "externalSystemId", "barcode", "active", "type", "patronGroup", "departments", "proxyFor", "lastName", "firstName", "middleName", "preferredFirstName", "email", "phone", "mobilePhone", "dateOfBirth", "addresses", "preferredContactTypeId", "enrollmentDate", "expirationDate", "createdDate", "updatedDate", "tags", "customFields" },
       (field, i) -> field);
@@ -82,7 +82,7 @@ public class BulkEditJobConfig {
   @Bean
   public Step bulkEditStep(FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader, FlatFileItemWriter<UserFormat> csvItemWriter) {
     return stepBuilderFactory.get("bulkEditStep")
-      .<ItemIdentifier, UserFormat> chunk(CHUNK_SIZE)
+      .<ItemIdentifier, UserFormat> chunk(CHUNKS)
       .reader(csvItemIdentifierReader)
       .processor(bulkEditItemProcessor)
       .writer(csvItemWriter)

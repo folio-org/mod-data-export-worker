@@ -57,13 +57,13 @@ public class BulkEditUpdateUserRecordsJobConfig {
   @Bean
   @StepScope
   public ItemReader<UserFormat> reader(@Value("#{jobParameters['fileName']}") String fileName) {
-    LineMapper<UserFormat> studentLineMapper = createUserLineMapper();
+    LineMapper<UserFormat> userLineMapper = createUserLineMapper();
 
     return new FlatFileItemReaderBuilder<UserFormat>()
       .name("userReader")
       .resource(new FileSystemResource(fileName))
       .linesToSkip(1)
-      .lineMapper(studentLineMapper)
+      .lineMapper(userLineMapper)
       .build();
   }
 

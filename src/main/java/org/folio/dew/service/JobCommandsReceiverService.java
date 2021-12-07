@@ -92,9 +92,9 @@ public class JobCommandsReceiverService {
       log.info("-----------------------------JOB---STARTS-----------------------------");
 
       prepareJobParameters(jobCommand);
-      acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
 
       if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())) {
+        acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
         addBulkEditJobCommand(jobCommand);
         return;
       }

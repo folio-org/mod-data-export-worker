@@ -93,14 +93,14 @@ public class SaveErrorService {
     try {
       ObjectWriteResponse objectWriteResponse = minIOObjectStorageRepository.uploadObject(downloadFilename, filename, downloadFilename, CONTENT_TYPE);
       log.info("CSV error file {} was saved into S3 successfully", downloadFilename);
-      return getDownloadLink(downloadFilename, objectWriteResponse);
+      return getDownloadLink(objectWriteResponse);
     } catch (Exception e) {
       log.error("Error occurred while saving error csv file into S3", e);
       throw new IllegalStateException(e);
     }
   }
 
-  private String getDownloadLink(String destObject, ObjectWriteResponse objectWriteResponse) {
+  private String getDownloadLink(ObjectWriteResponse objectWriteResponse) {
     try {
       return minIOObjectStorageRepository.objectWriteResponseToPresignedObjectUrl(objectWriteResponse);
     } catch (Exception e) {

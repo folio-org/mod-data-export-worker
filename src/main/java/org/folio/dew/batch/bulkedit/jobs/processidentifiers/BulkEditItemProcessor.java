@@ -38,7 +38,7 @@ public class BulkEditItemProcessor implements ItemProcessor<ItemIdentifier, User
   private static final String ARRAY_DELIMITER = ";";
   private static final String ITEM_DELIMITER = "|";
   private static final String KEY_VALUE_DELIMITER = ":";
-  private static final String USER_NOT_FOUND_ERROR = "User with barcode=%s was not found";
+  private static final String USER_NOT_FOUND_ERROR = "No match found";
 
   private final UserClient userClient;
   private final UserReferenceService userReferenceService;

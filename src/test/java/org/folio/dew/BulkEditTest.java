@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -28,6 +29,7 @@ class BulkEditTest extends BaseBatchTest {
 
   private final static String EXPECTED_BULK_EDIT_OUTPUT = "src/test/resources/output/bulk_edit_identifiers_output.csv";
   private final static String EXPECTED_BULK_EDIT_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_identifiers_output_some_not_found.csv";
+  private final static String EXPECTED_BULK_EDIT_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_identifiers_errors_output.csv";
 
   @Test
   @DisplayName("Run bulk-edit (identifiers) successfully")
@@ -68,6 +70,11 @@ class BulkEditTest extends BaseBatchTest {
     if (fileInStorage.contains(";")) {
       String[] links = fileInStorage.split(";");
       fileInStorage = links[0];
+      String errorInStorage = links[1];
+      System.out.println("output: " + output);
+      final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
+      final FileSystemResource expectedResultWithErrors =  new FileSystemResource(EXPECTED_BULK_EDIT_OUTPUT_ERRORS);
+      assertFileEquals(expectedResultWithErrors, actualResultWithErrors);
     }
     final FileSystemResource actualResult = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(output);

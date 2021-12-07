@@ -1,5 +1,6 @@
 package org.folio.dew.service;
 
+import io.minio.ObjectWriteResponse;
 import static java.util.Objects.isNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -17,7 +18,6 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -41,14 +41,17 @@ public class SaveErrorService {
       return;
     }
     var csvFileName = LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Errors-" + identifiersFileName;
-    var errorLine = affectedIdentifier + "," + reasonForError.getMessage() + System.lineSeparator();
-    var pathToStorage = Paths.get(String.format(STORAGE_TEMPLATE, jobId));
-    var pathToCSVFile = Paths.get(String.format(CSV_FILE_TEMPLATE, jobId, csvFileName));
-    try {
-      Files.createDirectories(pathToStorage);
-      Files.write(pathToCSVFile, errorLine.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-    } catch (IOException ioException) {
-      log.error("Failed to save {} error file with job id {} cause {}", csvFileName, jobId, ioException);
+    var errorMessages = reasonForError.getMessage().split(",");
+    for (var errorMessage: errorMessages) {
+      var errorLine = affectedIdentifier + "," + errorMessage + System.lineSeparator();
+      var pathToStorage = Paths.get(String.format(STORAGE_TEMPLATE, jobId));
+      var pathToCSVFile = Paths.get(String.format(CSV_FILE_TEMPLATE, jobId, csvFileName));
+      try {
+        Files.createDirectories(pathToStorage);
+        Files.write(pathToCSVFile, errorLine.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+      } catch (IOException ioException) {
+        log.error("Failed to save {} error file with job id {} cause {}", csvFileName, jobId, ioException);
+      }
     }
   }
 
@@ -88,20 +91,18 @@ public class SaveErrorService {
 
   private String saveErrorFile(String downloadFilename, String filename) {
     try {
-      minIOObjectStorageRepository.uploadObject(downloadFilename, filename, downloadFilename, CONTENT_TYPE);
+      ObjectWriteResponse objectWriteResponse = minIOObjectStorageRepository.uploadObject(downloadFilename, filename, downloadFilename, CONTENT_TYPE);
       log.info("CSV error file {} was saved into S3 successfully", downloadFilename);
-      return getDownloadLink(downloadFilename);
+      return getDownloadLink(downloadFilename, objectWriteResponse);
     } catch (Exception e) {
       log.error("Error occurred while saving error csv file into S3", e);
       throw new IllegalStateException(e);
     }
   }
 
-  private String getDownloadLink(String destObject) {
+  private String getDownloadLink(String destObject, ObjectWriteResponse objectWriteResponse) {
     try {
-      return minIOObjectStorageRepository.objectWriteResponseToPresignedObjectUrl(
-        minIOObjectStorageRepository.composeObject(destObject, List.of(destObject), destObject, CONTENT_TYPE)
-      );
+      return minIOObjectStorageRepository.objectWriteResponseToPresignedObjectUrl(objectWriteResponse);
     } catch (Exception e) {
       log.error("Error occurred while getting the link to error CSV file from S3", e);
       throw new IllegalStateException(e);

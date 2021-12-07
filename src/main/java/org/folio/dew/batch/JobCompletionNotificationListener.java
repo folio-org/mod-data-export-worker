@@ -58,7 +58,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     if (after) {
       if (isBulkEditIdentifiersJob(jobExecution)) {
         String downloadErrorLink = saveErrorService.saveErrorFileAndGetDownloadLink(jobId);
-        jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution) + (isNull(downloadErrorLink) ? "" : ";" + saveErrorService.saveErrorFileAndGetDownloadLink(jobId)));
+        jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution) + (isNull(downloadErrorLink) ? "" : ";" + downloadErrorLink));
         saveErrorService.removeTemporaryErrorStorage(jobId);
       }
       processJobAfter(jobId, jobParameters);

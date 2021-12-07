@@ -3,10 +3,9 @@ package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 import feign.FeignException;
 import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.Address;
 import org.folio.dew.domain.dto.ItemIdentifier;
@@ -21,11 +20,12 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
@@ -45,6 +45,8 @@ public class BulkEditItemProcessor implements ItemProcessor<ItemIdentifier, User
 
   private DateFormat dateFormat;
 
+  private Set<ItemIdentifier> identifiersToCheckDuplication = new HashSet<>();
+
   @PostConstruct
   public void postConstruct() {
     dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSX");
@@ -53,6 +55,10 @@ public class BulkEditItemProcessor implements ItemProcessor<ItemIdentifier, User
 
   @Override
   public UserFormat process(ItemIdentifier itemIdentifier) throws BulkEditException {
+    if (identifiersToCheckDuplication.contains(itemIdentifier)) {
+      throw new BulkEditException("Duplicate entry");
+    }
+    identifiersToCheckDuplication.add(itemIdentifier);
     try {
       var users = userClient.getUserByQuery(BARCODE + itemIdentifier.getItemId(), 1);
       if (!users.getUsers().isEmpty()) {
@@ -87,7 +93,7 @@ public class BulkEditItemProcessor implements ItemProcessor<ItemIdentifier, User
           .build();
       }
     } catch (FeignException e) {
-      // Means user not found 404
+      // When user not found 404
     }
     var errorMessage = String.format(USER_NOT_FOUND_ERROR, itemIdentifier.getItemId());
     log.error(errorMessage);

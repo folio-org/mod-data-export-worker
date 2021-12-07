@@ -94,7 +94,6 @@ public class JobCommandsReceiverService {
       log.info("-----------------------------JOB---STARTS-----------------------------");
 
       prepareJobParameters(jobCommand);
-      acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
 
       if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
         addBulkEditJobCommand(jobCommand);

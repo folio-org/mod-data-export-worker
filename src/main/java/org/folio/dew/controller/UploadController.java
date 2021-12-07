@@ -12,6 +12,7 @@ import org.folio.dew.service.JobCommandsReceiverService;
 import org.openapitools.api.JobIdApi;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
+import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -79,7 +80,7 @@ public class UploadController implements JobIdApi {
       var jobLaunchRequest =
         new JobLaunchRequest(
           getBulkEditJob(),
-          optionalJobCommand.get().getJobParameters());
+          new JobParameters(parameters));
 
       log.info("Launching bulk edit job.");
       exportJobManager.launchJob(jobLaunchRequest);

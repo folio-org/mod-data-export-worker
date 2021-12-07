@@ -1,11 +1,14 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
-import static java.util.Objects.nonNull;
-import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.Address;
 import org.folio.dew.domain.dto.ItemIdentifier;
@@ -16,26 +19,23 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+
+import static java.util.Objects.nonNull;
+import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
+import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
+import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
 
 @Component
 @StepScope
 @RequiredArgsConstructor
 @Log4j2
 public class BulkEditItemProcessor implements ItemProcessor<ItemIdentifier, UserFormat> {
+
   private static final String BARCODE = "barcode==";
-  private static final String ARRAY_DELIMITER = ";";
-  private static final String ITEM_DELIMITER = "|";
-  private static final String KEY_VALUE_DELIMITER = ":";
   private static final String USER_NOT_FOUND_ERROR = "User with barcode=%s was not found";
 
   private final UserClient userClient;
@@ -125,10 +125,10 @@ public class BulkEditItemProcessor implements ItemProcessor<ItemIdentifier, User
     addressData.add(ofNullable(address.getCity()).orElse(EMPTY));
     addressData.add(ofNullable(address.getRegion()).orElse(EMPTY));
     addressData.add(ofNullable(address.getPostalCode()).orElse(EMPTY));
+    addressData.add(nonNull(address.getPrimaryAddress()) ? address.getPrimaryAddress().toString() : EMPTY);
     if (nonNull(address.getAddressTypeId())) {
       addressData.add(userReferenceService.getAddressTypeById(address.getAddressTypeId()).getDesc());
     }
-    addressData.add(nonNull(address.getPrimaryAddress()) ? address.getPrimaryAddress().toString() : EMPTY);
     return String.join(ARRAY_DELIMITER, addressData);
   }
 

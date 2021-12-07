@@ -5,7 +5,7 @@ import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.User;
 import org.springframework.batch.item.ItemWriter;
 
-public class BulkEditUpdateRecordsWriter implements ItemWriter<User> {
+public class BulkEditUpdateUserRecordsWriter implements ItemWriter<User> {
 
   private UserClient userClient;
 

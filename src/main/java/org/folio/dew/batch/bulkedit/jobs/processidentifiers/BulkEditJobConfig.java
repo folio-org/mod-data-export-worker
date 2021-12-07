@@ -37,7 +37,7 @@ public class BulkEditJobConfig {
   @Bean
   @StepScope
   public FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader(
-    @Value("#{jobParameters['identifiersFileName']}") String uploadedFileName) {
+    @Value("#{jobParameters['fileName']}") String uploadedFileName) {
     return new FlatFileItemReaderBuilder<ItemIdentifier>()
       .name("userItemIdentifierReader")
       .resource(new FileSystemResource(uploadedFileName))

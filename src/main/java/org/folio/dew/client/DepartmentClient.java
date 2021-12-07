@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface DepartmentClient {
 
   @GetMapping(value = "/{deptId}", produces = MediaType.APPLICATION_JSON_VALUE)
-  Department getDepartmentsById(@PathVariable String deptId);
+  Department getDepartmentById(@PathVariable String deptId);
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  Department getDepartmentsByName(@RequestParam String query);
+  Department getDepartmentByQuery(@RequestParam String query);
 
 }

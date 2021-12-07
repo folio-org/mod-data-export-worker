@@ -22,14 +22,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.FileSystemResource;
 
-public class BulkEditUpdateRecordsJobConfig {
+import static org.folio.des.domain.dto.EntityType.USER;
+import static org.folio.des.domain.dto.ExportType.BULK_EDIT_UPDATE;
+
+public class BulkEditUpdateUserRecordsJobConfig {
 
   @Bean
   public Job bulkEditUpdateJob(
     Step bulkEditUpdateRecordsStep,
     JobBuilderFactory jobBuilderFactory) {
     return jobBuilderFactory
-      .get("BULK_EDIT_UPDATE")  //TODO replace with enum value
+      .get(BULK_EDIT_UPDATE.getValue() + "-" + USER.getValue())
       .incrementer(new RunIdIncrementer())
       .flow(bulkEditUpdateRecordsStep)
       .end()
@@ -57,7 +60,7 @@ public class BulkEditUpdateRecordsJobConfig {
     LineMapper<UserFormat> studentLineMapper = createUserLineMapper();
 
     return new FlatFileItemReaderBuilder<UserFormat>()
-      .name("studentReader")
+      .name("userReader")
       .resource(new FileSystemResource(fileName))
       .linesToSkip(1)
       .lineMapper(studentLineMapper)

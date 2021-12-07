@@ -1,19 +1,11 @@
 package org.folio.dew.controller;
 
-import static java.lang.String.format;
-import static java.time.format.DateTimeFormatter.ofPattern;
-import static java.util.Optional.ofNullable;
-import static org.folio.des.domain.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
-import static org.folio.des.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
-
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.folio.des.domain.dto.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.service.JobCommandsReceiverService;
@@ -26,10 +18,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.web.multipart.MultipartFile;
+
+import static java.lang.String.format;
+import static java.time.format.DateTimeFormatter.ofPattern;
+import static java.util.Optional.ofNullable;
+import static org.folio.des.domain.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
+import static org.folio.des.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 
 @RestController
 @RequestMapping("/bulk-edit")
@@ -62,17 +60,17 @@ public class UploadController implements JobIdApi {
       return new ResponseEntity<>(msg, HttpStatus.NOT_FOUND);
     }
     var workDir = System.getProperty(TMP_DIR_PROPERTY) + PATH_SEPARATOR + springApplicationName + PATH_SEPARATOR;
-    var identifiersFileName = workDir + file.getOriginalFilename();
+    var fileName = workDir + file.getOriginalFilename();
 
     try {
-      Files.deleteIfExists(Paths.get(identifiersFileName));
-      var identifiersFilePath = Files.createFile(Paths.get(identifiersFileName));
-      Files.write(identifiersFilePath, file.getBytes());
+      Files.deleteIfExists(Paths.get(fileName));
+      var filePath = Files.createFile(Paths.get(fileName));
+      Files.write(filePath, file.getBytes());
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
 
       var parameters = optionalJobCommand.get().getJobParameters().getParameters();
-      parameters.put("identifiersFileName", new JobParameter(identifiersFileName));
-      parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + format(OUTPUT_FILE_NAME_PATTERN, LocalDate.now().format(ofPattern("yyyy-MM-dd")), identifiersFileName)));
+      parameters.put("fileName", new JobParameter(fileName));
+      parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + format(OUTPUT_FILE_NAME_PATTERN, LocalDate.now().format(ofPattern("yyyy-MM-dd")), fileName)));
       ofNullable(optionalJobCommand.get().getIdentifierType()).ifPresent(type ->
         parameters.put("identifierType", new JobParameter(type.getValue())));
       ofNullable(optionalJobCommand.get().getEntityType()).ifPresent(type ->

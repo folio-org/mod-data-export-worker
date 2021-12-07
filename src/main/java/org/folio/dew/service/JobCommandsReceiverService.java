@@ -37,6 +37,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 
+import static java.util.Optional.ofNullable;
+import static org.folio.des.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.des.domain.dto.ExportType.BULK_EDIT_UPDATE;
+
 @Service
 @RequiredArgsConstructor
 @Log4j2
@@ -92,7 +96,7 @@ public class JobCommandsReceiverService {
       prepareJobParameters(jobCommand);
       acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
 
-      if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())) {
+      if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
         addBulkEditJobCommand(jobCommand);
         return;
       }

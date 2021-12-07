@@ -20,6 +20,9 @@ public interface UserClient {
   @GetMapping(value = "/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
   User getUserById(@PathVariable String userId);
 
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  User getUserByQuery(@RequestParam String query);
+
   @PutMapping(value = "/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
   User updateUser(@RequestBody User user, @PathVariable String userId);
 }

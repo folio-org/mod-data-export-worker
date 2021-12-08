@@ -58,6 +58,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String EXPECTED_BULK_EDIT_OUTPUT = "src/test/resources/output/bulk_edit_identifiers_output.csv";
   private final static String EXPECTED_BULK_EDIT_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_identifiers_output_some_not_found.csv";
   private final static String EXPECTED_BULK_EDIT_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_identifiers_errors_output.csv";
+  private final static String EXPECTED_BULK_EDIT_OUTPUT = "src/test/resources/output/bulk_edit_identifiers_output.csv";
 
   @Autowired private Job bulkEditProcessIdentifiersJob;
   @Autowired private Job bulkEditCqlJob;
@@ -65,7 +66,6 @@ class BulkEditTest extends BaseBatchTest {
 
   private static final UserClient userClient = Mockito.spy(UserClient.class);
 
-  private final static String EXPECTED_BULK_EDIT_OUTPUT = "src/test/resources/output/bulk_edit_identifiers_output.csv";
 
   @BeforeAll
   static void BeforeAll() {
@@ -95,7 +95,7 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (identifiers) with errors")
   void bulkEditJobTestWithErrors() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditJob);
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_IDENTIFIERS, BARCODES_SOME_NOT_FOUND);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);

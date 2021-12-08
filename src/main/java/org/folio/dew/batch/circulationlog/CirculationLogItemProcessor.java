@@ -75,7 +75,7 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
 
   private String fetchTimezone() {
     final ConfigurationCollection tenantLocaleSettings =
-      configurationClient.getConfiguration("(module==ORG and configName==localeSettings)");
+      configurationClient.getConfigurations("(module==ORG and configName==localeSettings)");
 
     if (tenantLocaleSettings.getTotalRecords() == 0) return "UTC";
 

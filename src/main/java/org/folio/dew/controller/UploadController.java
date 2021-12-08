@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.folio.des.domain.dto.ExportType;
 import org.folio.des.domain.dto.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.service.JobCommandsReceiverService;
@@ -28,7 +29,6 @@ import static java.lang.String.format;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Optional.ofNullable;
 import static org.folio.des.domain.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
-import static org.folio.des.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 
 @RestController
 @RequestMapping("/bulk-edit")
@@ -69,17 +69,18 @@ public class UploadController implements JobIdApi {
       Files.write(filePath, file.getBytes());
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
 
-      var parameters = optionalJobCommand.get().getJobParameters().getParameters();
+      JobCommand jobCommand = optionalJobCommand.get();
+      var parameters = jobCommand.getJobParameters().getParameters();
       parameters.put("fileName", new JobParameter(fileName));
       parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + format(OUTPUT_FILE_NAME_PATTERN, LocalDate.now().format(ofPattern("yyyy-MM-dd")), fileName)));
-      ofNullable(optionalJobCommand.get().getIdentifierType()).ifPresent(type ->
+      ofNullable(jobCommand.getIdentifierType()).ifPresent(type ->
         parameters.put("identifierType", new JobParameter(type.getValue())));
-      ofNullable(optionalJobCommand.get().getEntityType()).ifPresent(type ->
+      ofNullable(jobCommand.getEntityType()).ifPresent(type ->
         parameters.put("entityType", new JobParameter(type.getValue())));
 
       var jobLaunchRequest =
         new JobLaunchRequest(
-          getBulkEditJob(),
+          getBulkEditJob(jobCommand),
           new JobParameters(parameters));
 
       log.info("Launching bulk edit job.");
@@ -92,9 +93,10 @@ public class UploadController implements JobIdApi {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
-  private Job getBulkEditJob() {
+  private Job getBulkEditJob(JobCommand jobCommand) {
+    ExportType exportType = jobCommand.getExportType();
     return jobs.stream()
-      .filter(job -> BULK_EDIT_IDENTIFIERS.getValue().equals(job.getName()))
+      .filter(job -> job.getName().contains(exportType.getValue()))
       .findFirst()
       .orElseThrow(() -> new IllegalStateException("Job was not found, aborting"));
   }

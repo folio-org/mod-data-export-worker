@@ -37,17 +37,18 @@ import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 class BulkEditTest extends BaseBatchTest {
 
-  private static final String BARCODES_CSV = "src/test/resources/upload/barcodes.csv";
-  private static final String USER_RECORD_CSV = "src/test/resources/upload/bulk_edit_user_record.csv";
+  private static final String BARCODES_CSV = "barcodes.csv";
+  private static final String BARCODES_WITH_NONEXISTENT_USER_BARCODES_CSV = "barcodesSomeNotFound.csv";
+  private static final String USER_RECORD_CSV = "bulk_edit_user_record.csv";
   private final static String EXPECTED_BULK_EDIT_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_identifiers_output_some_not_found.csv";
   private final static String EXPECTED_BULK_EDIT_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_identifiers_errors_output.csv";
+  private final static String EXPECTED_BULK_EDIT_OUTPUT = "src/test/resources/output/bulk_edit_identifiers_output.csv";
 
   @Autowired private Job bulkEditProcessIdentifiersJob;
   @Autowired private Job bulkEditUpdateUserRecordsJob;
 
   private static final UserClient userClient = Mockito.spy(UserClient.class);
 
-  private final static String EXPECTED_BULK_EDIT_OUTPUT = "src/test/resources/output/bulk_edit_identifiers_output.csv";
 
   @BeforeAll
   static void BeforeAll() {
@@ -64,7 +65,7 @@ class BulkEditTest extends BaseBatchTest {
     final JobParameters jobParameters = prepareJobParameters(BARCODES_CSV, true);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
-    verifyFileOutput(jobExecution);
+    verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
@@ -75,9 +76,9 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (identifiers) with errors")
   void bulkEditJobTestWithErrors() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditJob);
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessIdentifiersJob);
 
-    final JobParameters jobParameters = prepareJobParameters("barcodesSomeNotFound.csv");
+    final JobParameters jobParameters = prepareJobParameters(BARCODES_WITH_NONEXISTENT_USER_BARCODES_CSV, true);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_OUTPUT_SOME_NOT_FOUND);
@@ -169,16 +170,18 @@ class BulkEditTest extends BaseBatchTest {
     assertFileEquals(expectedCharges, actualResult);
   }
 
-  private JobParameters prepareJobParameters(String uploadFilename) {
-    String workDir =
-      System.getProperty("java.io.tmpdir")
-        + File.separator
-        + springApplicationName
-        + File.separator;
-
+  private JobParameters prepareJobParameters(String uploadFilename, boolean hasOutcomeFile) {
     Map<String, JobParameter> params = new HashMap<>();
-    params.put("identifiersFileName", new JobParameter("src/test/resources/upload/" + uploadFilename));
-    params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out.csv"));
+    params.put("fileName", new JobParameter("src/test/resources/upload/" + uploadFilename));
+
+    if (hasOutcomeFile) {
+      String workDir =
+        System.getProperty("java.io.tmpdir")
+          + File.separator
+          + springApplicationName
+          + File.separator;
+      params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out.csv"));
+    }
 
     String jobId = UUID.randomUUID().toString();
     params.put(JobParameterNames.JOB_ID, new JobParameter(jobId));

@@ -64,6 +64,32 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/users?query=%28patronGroup%3D%3D%223684a786-6671-4268-8ed0-9db82ebca60b%22%29%20sortby%20personal.lastName&offset=0&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"users\": [\n        {\n            \"username\": \"sheldon\",\n            \"id\": \"b4cee18d-f862-4ef1-95a5-879fdd619603\",\n            \"barcode\": \"789\",\n            \"active\": true,\n            \"patronGroup\": \"3684a786-6671-4268-8ed0-9db82ebca60b\",\n            \"departments\": [],\n            \"proxyFor\": [],\n            \"personal\": {\n                \"lastName\": \"sheldon\",\n                \"firstName\": \"bazinga\",\n                \"email\": \"sheldon@example.com\",\n                \"addresses\": [],\n                \"preferredContactTypeId\": \"002\"\n            },\n            \"createdDate\": \"2021-12-05T03:23:37.989+00:00\",\n            \"updatedDate\": \"2021-12-05T03:23:37.989+00:00\",\n            \"metadata\": {\n                \"createdDate\": \"2021-12-05T03:23:37.987+00:00\",\n                \"updatedDate\": \"2021-12-05T03:23:37.987+00:00\"\n            }\n        }\n    ],\n    \"totalRecords\": 3,\n    \"resultInfo\": {\n        \"totalRecords\": 3,\n        \"facets\": [],\n        \"diagnostics\": []\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/users?query=%28patronGroup%3D%3D%223684a786-6671-4268-8ed0-9db82ebca60b%22%29%20sortby%20personal.lastName&offset=0&limit=100"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"users\": [\n        {\n            \"username\": \"morty\",\n            \"id\": \"bec20636-fb68-41fd-84ea-2cf910673599\",\n            \"barcode\": \"456\",\n            \"active\": true,\n            \"patronGroup\": \"3684a786-6671-4268-8ed0-9db82ebca60b\",\n            \"departments\": [],\n            \"proxyFor\": [],\n            \"personal\": {\n                \"lastName\": \"morty\",\n                \"firstName\": \"panic\",\n                \"email\": \"morty@example.com\",\n                \"addresses\": [\n                    {\n                        \"countryId\": \"BE\",\n                        \"addressLine1\": \"Address line 1\",\n                        \"addressLine2\": \"Address line 2\",\n                        \"city\": \"Some City\",\n                        \"postalCode\": \"12345\",\n                        \"addressTypeId\": \"93d3d88d-499b-45d0-9bc7-ac73c3a19880\"\n                    }\n                ],\n                \"preferredContactTypeId\": \"002\"\n            },\n            \"enrollmentDate\": \"2020-10-07T04:00:00.000+00:00\",\n            \"createdDate\": \"2021-12-03T14:25:55.129+00:00\",\n            \"updatedDate\": \"2021-12-03T14:25:55.129+00:00\",\n            \"metadata\": {\n                \"createdDate\": \"2021-12-03T09:12:41.682+00:00\",\n                \"updatedDate\": \"2021-12-03T14:25:55.107+00:00\",\n                \"updatedByUserId\": \"696c5a72-fca4-5f8d-a6a0-a44c6da57419\"\n            },\n            \"tags\": {\n                \"tagList\": [\n                    \"tag1\",\n                    \"tag2\",\n                    \"tag3\"\n                ]\n            },\n            \"customFields\": {\n                \"fieldName1\": \"val1\",\n                \"fieldName2\": \"val2\",\n                \"fieldName3\": \"val3\"\n            }\n        },\n{\n            \"username\": \"rick\",\n            \"id\": \"2205005b-ca51-4a04-87fd-938eefa8f6de\",\n            \"barcode\": \"123\",\n            \"active\": true,\n            \"patronGroup\": \"3684a786-6671-4268-8ed0-9db82ebca60b\",\n            \"departments\": [],\n            \"proxyFor\": [],\n            \"personal\": {\n                \"lastName\": \"rick\",\n                \"firstName\": \"psych\",\n                \"email\": \"rick@example.com\",\n                \"addresses\": [],\n                \"preferredContactTypeId\": \"002\"\n            },\n            \"enrollmentDate\": \"2020-10-07T04:00:00.000+00:00\",\n            \"createdDate\": \"2021-12-05T03:23:39.674+00:00\",\n            \"updatedDate\": \"2021-12-05T03:23:39.674+00:00\",\n            \"metadata\": {\n                \"createdDate\": \"2021-12-05T03:23:39.672+00:00\",\n                \"updatedDate\": \"2021-12-05T03:23:39.672+00:00\"\n            }\n        },\n{\n            \"username\": \"sheldon\",\n            \"id\": \"b4cee18d-f862-4ef1-95a5-879fdd619603\",\n            \"barcode\": \"789\",\n            \"active\": true,\n            \"patronGroup\": \"3684a786-6671-4268-8ed0-9db82ebca60b\",\n            \"departments\": [],\n            \"proxyFor\": [],\n            \"personal\": {\n                \"lastName\": \"sheldon\",\n                \"firstName\": \"bazinga\",\n                \"email\": \"sheldon@example.com\",\n                \"addresses\": [],\n                \"preferredContactTypeId\": \"002\"\n            },\n            \"createdDate\": \"2021-12-05T03:23:37.989+00:00\",\n            \"updatedDate\": \"2021-12-05T03:23:37.989+00:00\",\n            \"metadata\": {\n                \"createdDate\": \"2021-12-05T03:23:37.987+00:00\",\n                \"updatedDate\": \"2021-12-05T03:23:37.987+00:00\"\n            }\n        }\n    ],\n    \"totalRecords\": 3,\n    \"resultInfo\": {\n        \"totalRecords\": 3,\n        \"facets\": [],\n        \"diagnostics\": []\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

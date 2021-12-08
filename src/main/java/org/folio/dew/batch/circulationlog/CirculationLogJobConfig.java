@@ -54,7 +54,7 @@ public class CirculationLogJobConfig {
   @Bean("getCirculationLogStep")
   public Step getCirculationLogStep(
       @Qualifier("getCirculationLogPartStep") Step getCirculationLogPartStep,
-      Partitioner partitioner,
+      CirculationLogCsvPartitioner partitioner,
       @Qualifier("asyncTaskExecutor") TaskExecutor taskExecutor,
       CsvFileAssembler csvFileAssembler) {
     return stepBuilderFactory
@@ -68,7 +68,7 @@ public class CirculationLogJobConfig {
 
   @Bean
   @StepScope
-  public Partitioner getCirculationLogPartitioner(
+  public CirculationLogCsvPartitioner getCirculationLogPartitioner(
       @Value("#{jobParameters['offset']}") Long offset,
       @Value("#{jobParameters['limit']}") Long limit,
       @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,

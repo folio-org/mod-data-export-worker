@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 @Log4j2
 @RequiredArgsConstructor
 public class JobCompletionNotificationListener extends JobExecutionListenerSupport {
+  private static final String CSV_EXTENSION = ".csv";
 
   private final IAcknowledgementRepository acknowledgementRepository;
   private final KafkaService kafka;
@@ -149,7 +150,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     String path = jobExecution.getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH);
     try {
       return repository.objectWriteResponseToPresignedObjectUrl(
-        repository.uploadObject(FilenameUtils.getName(path), path, null, "text/csv"));
+        repository.uploadObject(FilenameUtils.getName(path) + CSV_EXTENSION, path, null, "text/csv"));
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }

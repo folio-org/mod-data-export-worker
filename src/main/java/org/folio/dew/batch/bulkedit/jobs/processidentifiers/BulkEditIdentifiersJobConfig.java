@@ -1,9 +1,13 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
+import static org.folio.dew.domain.dto.UserFormat.getUserColumnHeaders;
+import static org.folio.dew.domain.dto.UserFormat.getUserFieldsArray;
+
 import lombok.RequiredArgsConstructor;
 import org.folio.des.domain.dto.ExportType;
 import org.folio.dew.batch.CsvWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
+import org.folio.dew.batch.bulkedit.jobs.BulkEditUserProcessor;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.springframework.batch.core.Job;
@@ -19,20 +23,24 @@ import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 
+import java.util.Arrays;
+
 @Configuration
 @RequiredArgsConstructor
-public class BulkEditJobConfig {
+public class BulkEditIdentifiersJobConfig {
   private static final int CHUNKS = 100;
   private static final long ZERO = 0L;
 
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
-  private final BulkEditItemProcessor bulkEditItemProcessor;
+  private final BulkEditUserProcessor bulkEditUserProcessor;
+  private final UserFetcher userFetcher;
 
   @Bean
   @StepScope
@@ -62,10 +70,7 @@ public class BulkEditJobConfig {
   @StepScope
   public FlatFileItemWriter<UserFormat> csvItemWriter(
     @Value("#{jobParameters['tempOutputFilePath']}") String outputFileName) {
-    return new CsvWriter<>(outputFileName, ZERO,
-      "User name, User id, External system id, Barcode, Active, Type, Patron group, Departments, Proxy for, Last name, First name, Middle name, Preferred first name, Email, Phone, Mobile phone, Date of birth, Addresses, Preferred contact type id, Enrollment date, Expiration date, Created date, Updated date, Tags, Custom fields",
-      new String[] { "userName", "id", "externalSystemId", "barcode", "active", "type", "patronGroup", "departments", "proxyFor", "lastName", "firstName", "middleName", "preferredFirstName", "email", "phone", "mobilePhone", "dateOfBirth", "addresses", "preferredContactTypeId", "enrollmentDate", "expirationDate", "createdDate", "updatedDate", "tags", "customFields" },
-      (field, i) -> field);
+    return new CsvWriter<>(outputFileName, ZERO, getUserColumnHeaders(), getUserFieldsArray(), (field, i) -> field);
   }
 
   @Bean
@@ -84,8 +89,15 @@ public class BulkEditJobConfig {
     return stepBuilderFactory.get("bulkEditStep")
       .<ItemIdentifier, UserFormat> chunk(CHUNKS)
       .reader(csvItemIdentifierReader)
-      .processor(bulkEditItemProcessor)
+      .processor(identifierUserProcessor())
       .writer(csvItemWriter)
       .build();
+  }
+
+  @Bean
+  public CompositeItemProcessor<ItemIdentifier, UserFormat> identifierUserProcessor() {
+    var processor = new CompositeItemProcessor<ItemIdentifier, UserFormat>();
+    processor.setDelegates(Arrays.asList(userFetcher, bulkEditUserProcessor));
+    return processor;
   }
 }

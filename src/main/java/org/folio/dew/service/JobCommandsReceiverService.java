@@ -2,6 +2,7 @@ package org.folio.dew.service;
 
 import static java.util.Optional.ofNullable;
 import static org.folio.des.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.des.domain.dto.ExportType.BULK_EDIT_QUERY;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
@@ -93,7 +94,8 @@ public class JobCommandsReceiverService {
 
       prepareJobParameters(jobCommand);
 
-      if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())) {
+      if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) ||
+          BULK_EDIT_QUERY.equals(jobCommand.getExportType())) {
         acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
         addBulkEditJobCommand(jobCommand);
         return;

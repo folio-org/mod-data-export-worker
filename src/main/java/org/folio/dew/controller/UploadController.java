@@ -17,6 +17,8 @@ import java.util.UUID;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.de.entity.JobCommand;
+import org.folio.des.domain.dto.ExportType;
+import org.folio.des.domain.dto.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.openapitools.api.JobIdApi;
@@ -38,7 +40,6 @@ import static java.lang.String.format;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Optional.ofNullable;
 import static org.folio.des.domain.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
-import static org.folio.des.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 
 import javax.annotation.PostConstruct;
 

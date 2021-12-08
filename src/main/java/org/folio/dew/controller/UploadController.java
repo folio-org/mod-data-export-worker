@@ -6,7 +6,6 @@ import static java.util.Optional.ofNullable;
 import static org.folio.des.domain.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.des.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -16,6 +15,7 @@ import java.util.UUID;
 
 import org.folio.des.domain.dto.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
+import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.openapitools.api.JobIdApi;
 import org.springframework.batch.core.Job;
@@ -44,6 +44,7 @@ public class UploadController implements JobIdApi {
 
   private final JobCommandsReceiverService jobCommandsReceiverService;
   private final ExportJobManager exportJobManager;
+  private final BulkEditRollBackService bulkEditRollBackService;
   private final List<Job> jobs;
 
   @Value("${spring.application.name}")
@@ -90,6 +91,12 @@ public class UploadController implements JobIdApi {
       log.error(errorMessage);
       return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<String> rollBackCsvFile(UUID jobId) {
+    bulkEditRollBackService.stopJobExecution(jobId);
     return new ResponseEntity<>(HttpStatus.OK);
   }
 

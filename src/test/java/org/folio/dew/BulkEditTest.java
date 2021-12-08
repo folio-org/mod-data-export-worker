@@ -62,7 +62,7 @@ class BulkEditTest extends BaseBatchTest {
         + File.separator;
 
     Map<String, JobParameter> params = new HashMap<>();
-    params.put("identifiersFileName", new JobParameter("src/test/resources/upload/barcodes.csv"));
+    params.put("fileName", new JobParameter("src/test/resources/upload/barcodes.csv"));
     params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out.csv"));
 
     String jobId = UUID.randomUUID().toString();

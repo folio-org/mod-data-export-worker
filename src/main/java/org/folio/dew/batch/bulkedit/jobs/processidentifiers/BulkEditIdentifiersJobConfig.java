@@ -10,6 +10,8 @@ import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.bulkedit.jobs.BulkEditUserProcessor;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.domain.dto.ItemIdentifier;
+import org.folio.dew.error.BulkEditException;
+import org.folio.dew.error.BulkEditSkipListener;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -41,6 +43,7 @@ public class BulkEditIdentifiersJobConfig {
   private final StepBuilderFactory stepBuilderFactory;
   private final BulkEditUserProcessor bulkEditUserProcessor;
   private final UserFetcher userFetcher;
+  private final BulkEditSkipListener bulkEditSkipListener;
 
   @Bean
   @StepScope
@@ -90,6 +93,11 @@ public class BulkEditIdentifiersJobConfig {
       .<ItemIdentifier, UserFormat> chunk(CHUNKS)
       .reader(csvItemIdentifierReader)
       .processor(identifierUserProcessor())
+      .faultTolerant()
+      .skipLimit(1_000_000)
+      .processorNonTransactional() // Required to avoid repeating BulkEditItemProcessor#process after skip.
+      .skip(BulkEditException.class)
+      .listener(bulkEditSkipListener)
       .writer(csvItemWriter)
       .build();
   }

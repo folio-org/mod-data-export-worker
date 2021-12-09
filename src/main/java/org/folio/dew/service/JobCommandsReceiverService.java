@@ -25,7 +25,6 @@ import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobCommand;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.BursarFeeFines;
-import org.folio.dew.domain.dto.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;

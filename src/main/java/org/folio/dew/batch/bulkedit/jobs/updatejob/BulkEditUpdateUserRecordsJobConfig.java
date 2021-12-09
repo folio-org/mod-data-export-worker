@@ -24,6 +24,7 @@ import org.springframework.core.io.FileSystemResource;
 
 import static org.folio.des.domain.dto.EntityType.USER;
 import static org.folio.des.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.utils.Constants.FILE_NAME;
 
 public class BulkEditUpdateUserRecordsJobConfig {
 
@@ -56,7 +57,7 @@ public class BulkEditUpdateUserRecordsJobConfig {
 
   @Bean
   @StepScope
-  public ItemReader<UserFormat> reader(@Value("#{jobParameters['fileName']}") String fileName) {
+  public ItemReader<UserFormat> reader(@Value("#{jobParameters['" + FILE_NAME + "']}") String fileName) {
     LineMapper<UserFormat> userLineMapper = createUserLineMapper();
 
     return new FlatFileItemReaderBuilder<UserFormat>()

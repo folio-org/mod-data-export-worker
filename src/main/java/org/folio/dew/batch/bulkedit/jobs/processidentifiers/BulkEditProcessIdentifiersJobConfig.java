@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.folio.des.domain.dto.ExportType;
 import org.folio.dew.batch.CsvWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
-import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.domain.dto.ItemIdentifier;
+import org.folio.dew.domain.dto.UserFormat;
+import org.folio.dew.error.BulkEditException;
+import org.folio.dew.error.BulkEditSkipListener;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -24,6 +26,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 
+import static org.folio.dew.utils.Constants.FILE_NAME;
+
 @Configuration
 @RequiredArgsConstructor
 public class BulkEditProcessIdentifiersJobConfig {
@@ -33,11 +37,12 @@ public class BulkEditProcessIdentifiersJobConfig {
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
   private final BulkEditItemProcessor bulkEditItemProcessor;
+  private final BulkEditSkipListener bulkEditSkipListener;
 
   @Bean
   @StepScope
   public FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader(
-    @Value("#{jobParameters['fileName']}") String uploadedFileName) {
+    @Value("#{jobParameters['" + FILE_NAME + "']}") String uploadedFileName) {
     return new FlatFileItemReaderBuilder<ItemIdentifier>()
       .name("userItemIdentifierReader")
       .resource(new FileSystemResource(uploadedFileName))
@@ -85,6 +90,11 @@ public class BulkEditProcessIdentifiersJobConfig {
       .<ItemIdentifier, UserFormat> chunk(CHUNKS)
       .reader(csvItemIdentifierReader)
       .processor(bulkEditItemProcessor)
+      .faultTolerant()
+      .skipLimit(1_000_000)
+      .processorNonTransactional() // Required to avoid repeating BulkEditItemProcessor#process after skip.
+      .skip(BulkEditException.class)
+      .listener(bulkEditSkipListener)
       .writer(csvItemWriter)
       .build();
   }

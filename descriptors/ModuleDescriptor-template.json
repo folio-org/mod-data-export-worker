@@ -24,6 +24,19 @@
             "proxiesfor.item.get",
             "departments.item.get"
           ]
+        },
+        {
+          "methods": [ "POST" ],
+          "pathPattern": "/bulk-edit/{jobId}/roll-back",
+          "permissionsRequired": [ "bulk-edit.roll-back.item.post" ],
+          "modulePermissions": [
+            "users.collection.get",
+            "users.item.get",
+            "usergroups.item.get",
+            "addresstypes.item.get",
+            "proxiesfor.item.get",
+            "departments.item.get"
+          ]
         }
       ]
     },
@@ -76,10 +89,18 @@
       "description" : "Upload list of item identifiers"
     },
     {
+      "permissionName" : "bulk-edit.roll-back.item.post",
+      "displayName" : "roll back list of uploaded items",
+      "description" : "Roll back list of uploaded items"
+    },
+    {
       "permissionName" : "bulk-edit.all",
       "displayName" : "bulk-edit all",
       "description" : "All permissions for bulk-edit module",
-      "subPermissions" : [ "bulk-edit.item.post" ]
+      "subPermissions" : [
+        "bulk-edit.item.post",
+        "bulk-edit.roll-back.item.post"
+      ]
     }
   ],
   "launchDescriptor": {

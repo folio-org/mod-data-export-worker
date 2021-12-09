@@ -1,6 +1,7 @@
 package org.folio.dew.client;
 
 import org.folio.dew.domain.dto.AddressType;
+import org.folio.dew.domain.dto.AddressTypeCollection;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,6 @@ public interface AddressTypeClient {
   AddressType getAddressTypeById(@PathVariable String typeId);
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  AddressType getAddressTypeByQuery(@RequestParam String query);
+  AddressTypeCollection getAddressTypeByQuery(@RequestParam String query);
 
 }

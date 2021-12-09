@@ -4,10 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.folio.des.domain.dto.ExportType;
 import org.folio.dew.batch.CsvWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
-import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.UserFormat;
-import org.folio.dew.error.BulkEditException;
-import org.folio.dew.error.BulkEditSkipListener;
+import org.folio.dew.domain.dto.ItemIdentifier;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -28,14 +26,13 @@ import org.springframework.core.io.FileSystemResource;
 
 @Configuration
 @RequiredArgsConstructor
-public class BulkEditJobConfig {
+public class BulkEditProcessIdentifiersJobConfig {
   private static final int CHUNKS = 100;
   private static final long ZERO = 0L;
 
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
   private final BulkEditItemProcessor bulkEditItemProcessor;
-  private final BulkEditSkipListener bulkEditSkipListener;
 
   @Bean
   @StepScope
@@ -72,7 +69,7 @@ public class BulkEditJobConfig {
   }
 
   @Bean
-  public Job bulkEditJob(JobCompletionNotificationListener listener, Step bulkEditStep) {
+  public Job bulkEditProcessIdentifiersJob(JobCompletionNotificationListener listener, Step bulkEditStep) {
     return jobBuilderFactory
       .get(ExportType.BULK_EDIT_IDENTIFIERS.toString())
       .incrementer(new RunIdIncrementer())
@@ -88,11 +85,6 @@ public class BulkEditJobConfig {
       .<ItemIdentifier, UserFormat> chunk(CHUNKS)
       .reader(csvItemIdentifierReader)
       .processor(bulkEditItemProcessor)
-      .faultTolerant()
-      .skipLimit(1_000_000)
-      .processorNonTransactional() // Required to avoid repeating BulkEditItemProcessor#process after skip.
-      .skip(BulkEditException.class)
-      .listener(bulkEditSkipListener)
       .writer(csvItemWriter)
       .build();
   }

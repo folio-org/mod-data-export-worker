@@ -12,6 +12,19 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/groups?query=group=PatronGroup"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"group\": \"PatronGroup\",\n    \"desc\": \"Staff Member\",\n    \"id\": \"3684a786-6671-4268-8ed0-9db82ebca60b\",\n    \"expirationOffsetInDays\": 730,\n    \"metadata\": {\n        \"createdDate\": \"2021-12-03T09:12:37.358+00:00\",\n        \"updatedDate\": \"2021-12-03T09:12:37.358+00:00\"\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

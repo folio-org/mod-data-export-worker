@@ -6,4 +6,5 @@ public class Constants {
   public static final String ITEM_DELIMITER = "|";
   public static final String KEY_VALUE_DELIMITER = ":";
 
+  public static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss.SSSX";
 }

@@ -54,7 +54,7 @@ public class BulkEditUpdateUserRecordsProcessor implements ItemProcessor<UserFor
     return user;
   }
 
-  private void populateUserFields(User user, UserFormat userFormat) {
+  protected void populateUserFields(User user, UserFormat userFormat) {
     user.setId(userFormat.getId());
     user.setUsername(userFormat.getUserName());
     user.setExternalSystemId(userFormat.getExternalSystemId());

@@ -29,11 +29,13 @@ public class BulkEditUpdateUserRecordsJobConfig {
 
   @Bean
   public Job bulkEditUpdateJob(
-    Step bulkEditUpdateRecordsStep,
-    JobBuilderFactory jobBuilderFactory) {
+      BulkEditUpdateUserRecordsListener listener,
+      Step bulkEditUpdateRecordsStep,
+      JobBuilderFactory jobBuilderFactory) {
     return jobBuilderFactory
       .get(BULK_EDIT_UPDATE.getValue() + "-" + USER.getValue())
       .incrementer(new RunIdIncrementer())
+      .listener(listener)
       .flow(bulkEditUpdateRecordsStep)
       .end()
       .build();
@@ -119,6 +121,4 @@ public class BulkEditUpdateUserRecordsJobConfig {
     userInformationMapper.setTargetType(UserFormat.class);
     return userInformationMapper;
   }
-
-
 }

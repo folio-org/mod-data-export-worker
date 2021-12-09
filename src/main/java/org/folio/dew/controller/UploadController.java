@@ -12,6 +12,7 @@ import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.openapitools.api.JobIdApi;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecutionException;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
@@ -30,6 +31,7 @@ import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Optional.ofNullable;
 import static org.folio.des.domain.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.des.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.des.domain.dto.ExportType.BULK_EDIT_UPDATE;
 
 @RestController
 @RequestMapping("/bulk-edit")
@@ -85,7 +87,9 @@ public class UploadController implements JobIdApi {
           new JobParameters(parameters));
 
       log.info("Launching bulk edit job.");
-      exportJobManager.launchJob(jobLaunchRequest);
+      var execution = exportJobManager.launchJob(jobLaunchRequest);
+      // ToDo only for BULK_EDIT_UPDATE
+      bulkEditRollBackService.putExecutionPerJob(execution.getId(), jobId);
     } catch (Exception e) {
       String errorMessage = format(FILE_UPLOAD_ERROR, e.getMessage());
       log.error(errorMessage);

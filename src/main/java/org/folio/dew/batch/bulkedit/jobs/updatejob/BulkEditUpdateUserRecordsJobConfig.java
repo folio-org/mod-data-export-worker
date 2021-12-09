@@ -18,6 +18,7 @@ import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.mapping.FieldSetMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.item.file.transform.LineTokenizer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.FileSystemResource;
@@ -42,9 +43,9 @@ public class BulkEditUpdateUserRecordsJobConfig {
 
   @Bean
   public Step bulkEditUpdateRecordsStep(
-    ItemReader<UserFormat> reader,
-    ItemProcessor<UserFormat, User> processor,
-    ItemWriter<User> writer,
+    @Qualifier("updateUserRecordsReader") ItemReader<UserFormat> reader,
+    @Qualifier("updateUserRecordsProcessor") ItemProcessor<UserFormat, User> processor,
+    @Qualifier("updateUserRecordsWriter") ItemWriter<User> writer,
     StepBuilderFactory stepBuilderFactory) {
     return stepBuilderFactory
       .get("bulkEditUpdateRecordsStep")
@@ -55,7 +56,7 @@ public class BulkEditUpdateUserRecordsJobConfig {
       .build();
   }
 
-  @Bean
+  @Bean("updateUserRecordsReader")
   @StepScope
   public ItemReader<UserFormat> reader(@Value("#{jobParameters['" + FILE_NAME + "']}") String fileName) {
     LineMapper<UserFormat> userLineMapper = createUserLineMapper();

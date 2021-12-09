@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "The Email object for this EDI",
+  "EdiEmail": {
+    "type": "object",
+    "properties": {
+      "emailFrom": {
+        "description": "Send email from address",
+        "type": "string"
+      },
+      "emailTo": {
+        "description": "Send email to address",
+        "type": "string"
+      },
+      "isPrimaryTransmissionMethod": {
+        "description": "Primary transmission method",
+        "type": "boolean"
+      }
+    }
+  }
+}

@@ -6,8 +6,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 import lombok.SneakyThrows;
-import org.folio.des.domain.JobParameterNames;
-import org.folio.des.domain.dto.ExportType;
+import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.ExportType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;

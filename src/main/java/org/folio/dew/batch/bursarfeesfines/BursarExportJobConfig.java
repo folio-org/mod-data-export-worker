@@ -1,7 +1,7 @@
 package org.folio.dew.batch.bursarfeesfines;
 
 import lombok.extern.log4j.Log4j2;
-import org.folio.des.domain.dto.ExportType;
+import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.batch.bursarfeesfines.service.BursarFeesFinesUtils;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.Feefineaction;

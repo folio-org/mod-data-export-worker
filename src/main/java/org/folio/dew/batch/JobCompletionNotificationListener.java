@@ -1,7 +1,7 @@
 package org.folio.dew.batch;
 
 import static java.util.Objects.isNull;
-import static org.folio.des.domain.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -14,10 +14,10 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.des.config.kafka.KafkaService;
-import org.folio.des.domain.JobParameterNames;
-import org.folio.des.domain.dto.ExportType;
-import org.folio.des.domain.entity.Job;
+import org.folio.dew.config.kafka.KafkaService;
+import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.entity.Job;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.service.SaveErrorService;

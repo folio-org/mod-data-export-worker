@@ -4,7 +4,7 @@ import static org.folio.dew.domain.dto.UserFormat.getUserColumnHeaders;
 import static org.folio.dew.domain.dto.UserFormat.getUserFieldsArray;
 
 import lombok.RequiredArgsConstructor;
-import org.folio.des.domain.dto.ExportType;
+import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.batch.CsvWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.bulkedit.jobs.BulkEditUserProcessor;

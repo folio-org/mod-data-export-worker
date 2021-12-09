@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Map;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.des.domain.dto.BursarFeeFines;
-import org.folio.des.domain.dto.BursarFeeFinesTypeMapping;
+import org.folio.dew.domain.dto.BursarFeeFines;
+import org.folio.dew.domain.dto.BursarFeeFinesTypeMapping;
 import org.folio.dew.domain.dto.Account;
 
 @UtilityClass

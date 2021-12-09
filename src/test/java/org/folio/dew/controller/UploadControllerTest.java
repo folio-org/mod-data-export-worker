@@ -7,10 +7,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import lombok.SneakyThrows;
-import org.folio.des.domain.dto.EntityType;
-import org.folio.des.domain.dto.ExportType;
-import org.folio.des.domain.dto.IdentifierType;
-import org.folio.des.domain.dto.JobCommand;
+import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.IdentifierType;
+import org.folio.dew.domain.dto.JobCommand;
 import org.folio.dew.BaseBatchTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

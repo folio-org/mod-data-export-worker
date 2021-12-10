@@ -1,7 +1,7 @@
 package org.folio.dew;
 
-import org.folio.des.domain.JobParameterNames;
-import org.folio.des.domain.dto.ExportType;
+import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.CirculationLogExportFormat;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;

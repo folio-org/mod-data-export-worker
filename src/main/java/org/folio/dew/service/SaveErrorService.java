@@ -1,7 +1,8 @@
 package org.folio.dew.service;
 
-import io.minio.ObjectWriteResponse;
 import static java.util.Objects.isNull;
+
+import io.minio.ObjectWriteResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;

@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "ConfigurationModel",
+  "Configuration": {
+    "type": "object",
+    "title": "Configuration Schema",
+    "properties": {
+      "id": {
+        "description": "A globally unique (UUID) identifier",
+        "type": "string"
+      },
+      "module": {
+        "description": "The name of module the config belongs to",
+        "type": "string"
+      },
+      "configName": {
+        "description": "Name of config",
+        "type": "string"
+      },
+      "code": {
+        "description": " globally unique (UUID) identifier",
+        "type": "string"
+      },
+      "description": {
+        "description": "Configuration description",
+        "type": "string"
+      },
+      "default": {
+        "description": "A flag to determine if a config is default",
+        "type": "boolean"
+      },
+      "enabled": {
+        "description": "A flag is config active",
+        "type": "boolean"
+      },
+      "value": {
+        "description": "JSON object",
+        "type": "string"
+      },
+      "userId": {
+        "description": "A UUID corresponding to User who created",
+        "type": "string"
+      },
+      "metadata": {
+        "$ref": "../common/metadata.json#/Metadata"
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "module",
+      "configName"
+    ]
+  }
+}

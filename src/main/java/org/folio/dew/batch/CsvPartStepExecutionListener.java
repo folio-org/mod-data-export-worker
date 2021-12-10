@@ -4,7 +4,7 @@ import java.io.File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
-import org.folio.des.domain.JobParameterNames;
+import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;

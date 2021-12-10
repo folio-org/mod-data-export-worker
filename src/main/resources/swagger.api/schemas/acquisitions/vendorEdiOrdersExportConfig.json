@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "EDI config",
+  "VendorEdiOrdersExportConfig": {
+    "type": "object",
+    "properties": {
+      "vendorId": {
+        "description": "UUID of the acquisition method",
+        "type": "string",
+        "format": "uuid"
+      },
+      "defaultAcquisitionMethods": {
+        "description": "Default acquisition methods for the vendor",
+        "type": "array",
+        "items": {
+          "description": "UUID of the acquisition method",
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "defaultEdiConfig": {
+        "description": "Default EDI config for this vendor",
+        "$ref": "ediConfig.json#/EdiConfig"
+      },
+      "ediConfigs": {
+        "type": "array",
+        "items": {
+          "description": "List of available EDI export configurations",
+          "$ref": "ediConfig.json#/EdiConfig"
+        }
+      }
+    }
+  }
+}

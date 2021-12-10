@@ -16,3 +16,21 @@ components:
       $ref: 'schemas/circulationlog/logRecord.json#/LogRecord'
     logRecordCollection:
       $ref: 'schemas/circulationlog/logRecordCollection.json#/LogRecordCollection'
+    configuration:
+      $ref: 'schemas/configuration/configuration.json#/Configuration'
+    configurationCollection:
+      $ref: 'schemas/configuration/configurationCollection.json#/ConfigurationCollection'
+    job:
+      $ref: 'schemas/job.json#/Job'
+    exportType:
+      $ref: 'schemas/exportType.json#/ExportType'
+    entityType:
+      $ref: 'schemas/entityType.json#/EntityType'
+    progress:
+      $ref: 'schemas/progress.json#/Progress'
+    identifierType:
+      $ref: 'schemas/identifierType.json#/IdentifierType'
+    jobStatus:
+      $ref: 'schemas/jobStatus.json#/JobStatus'
+    exportTypeSpecificParameters:
+      $ref: 'schemas/exportTypeSpecificParameters.json#/ExportTypeSpecificParameters'

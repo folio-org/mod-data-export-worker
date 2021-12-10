@@ -1,7 +1,7 @@
 package org.folio.dew.controller;
 
 import lombok.extern.log4j.Log4j2;
-import org.folio.des.config.kafka.KafkaService;
+import org.folio.dew.config.kafka.KafkaService;
 import org.folio.spring.controller.TenantController;
 import org.folio.spring.service.TenantService;
 import org.folio.tenant.domain.dto.TenantAttributes;

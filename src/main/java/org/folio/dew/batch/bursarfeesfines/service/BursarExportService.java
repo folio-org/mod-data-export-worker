@@ -2,7 +2,7 @@ package org.folio.dew.batch.bursarfeesfines.service;
 
 import java.util.List;
 import java.util.Map;
-import org.folio.des.domain.dto.BursarFeeFinesTypeMapping;
+import org.folio.dew.domain.dto.BursarFeeFinesTypeMapping;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.Feefineaction;
 import org.folio.dew.domain.dto.User;

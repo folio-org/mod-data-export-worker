@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "The EDI object for organization (only applicable when isVendor is true)",
+  "Edi": {
+    "type": "object",
+    "properties": {
+      "ediFtp": {
+        "$ref": "ediFtp.json#/EdiFtp"
+      },
+      "ediEmail": {
+        "$ref": "ediEmail.json#/EdiEmail"
+      },
+      "ediSchedule": {
+        "$ref": "ediSchedule.json#/EdiSchedule"
+      },
+      "ediNamingConvention": {
+        "description": "The naming convention for this EDI",
+        "type": "string"
+      },
+      "libEdiCode": {
+        "description": "The library code for this EDI",
+        "type": "string"
+      },
+      "libEdiType": {
+        "description": "The library type for this EDI",
+        "type": "string",
+        "enum": [
+          "014/EAN",
+          "31B/US-SAN",
+          "091/Vendor-assigned",
+          "092/Customer-assigned"
+        ]
+      },
+      "notes": {
+        "description": "The notes for this EDI",
+        "type": "string"
+      },
+      "sendAccountNumber": {
+        "description": "The setting to send the account number for this EDI",
+        "type": "boolean"
+      },
+      "supportInvoice": {
+        "description": "The setting to support invoice for this EDI",
+        "type": "boolean"
+      },
+      "supportOrder": {
+        "description": "The setting to support order for this EDI",
+        "type": "boolean"
+      },
+      "vendorEdiCode": {
+        "description": "The organization code for this EDI",
+        "type": "string"
+      },
+      "vendorEdiType": {
+        "description": "The organization type for this EDI",
+        "type": "string",
+        "enum": [
+          "014/EAN",
+          "31B/US-SAN",
+          "091/Vendor-assigned",
+          "092/Customer-assigned"
+        ]
+      }
+    }
+  }
+}

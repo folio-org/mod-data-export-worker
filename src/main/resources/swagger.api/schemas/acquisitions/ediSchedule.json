@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "The job object for this EDI",
+  "EdiSchedule": {
+    "type": "object",
+    "properties": {
+      "notificationOptions": {
+        "description": "The setting to notify receivers when this EDI job runs",
+        "type": "string",
+        "enum": [
+          "ERROR_ONLY",
+          "INVOICE_ONLY",
+          "ALL_EDI"
+        ]
+      },
+      "enableScheduledExport": {
+        "description": "Whether or not to enable scheduled batch voucher exports",
+        "type": "boolean",
+        "default": false
+      },
+      "scheduleParameters": {
+        "$ref": "scheduleParameters.json#/ScheduleParameters"
+      },
+      "schedulingNotes": {
+        "description": "The schedule notes for this EDI job",
+        "type": "string"
+      },
+      "sendToEmails": {
+        "description": "The comma delimited list of email addresses to notify when this EDI job runs",
+        "type": "string"
+      }
+    }
+  }
+}

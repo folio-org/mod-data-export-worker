@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Identifier type",
+  "IdentifierType": {
+    "type": "string",
+    "enum": [
+      "ID",
+      "BARCODE"
+    ]
+  }
+}

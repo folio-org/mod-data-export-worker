@@ -1,7 +1,7 @@
 package org.folio.dew.batch;
 
 import static java.util.Objects.isNull;
-import static org.folio.des.domain.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -14,10 +14,10 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.des.config.kafka.KafkaService;
-import org.folio.des.domain.JobParameterNames;
-import org.folio.des.domain.dto.ExportType;
-import org.folio.des.domain.entity.Job;
+import org.folio.dew.config.kafka.KafkaService;
+import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.ExportType;
+import org.folio.de.entity.Job;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.service.SaveErrorService;
@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 @Log4j2
 @RequiredArgsConstructor
 public class JobCompletionNotificationListener extends JobExecutionListenerSupport {
+  private static final String CSV_EXTENSION = ".csv";
 
   private final IAcknowledgementRepository acknowledgementRepository;
   private final KafkaService kafka;
@@ -154,7 +155,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     String path = jobExecution.getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH);
     try {
       return repository.objectWriteResponseToPresignedObjectUrl(
-        repository.uploadObject(FilenameUtils.getName(path), path, null, "text/csv"));
+        repository.uploadObject(FilenameUtils.getName(path) + CSV_EXTENSION, path, null, "text/csv"));
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }

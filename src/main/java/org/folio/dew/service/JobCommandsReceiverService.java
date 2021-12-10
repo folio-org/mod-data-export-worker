@@ -1,7 +1,8 @@
 package org.folio.dew.service;
 
 import static java.util.Optional.ofNullable;
-import static org.folio.des.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
@@ -20,10 +21,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.des.config.kafka.KafkaService;
-import org.folio.des.domain.JobParameterNames;
-import org.folio.des.domain.dto.BursarFeeFines;
-import org.folio.des.domain.dto.JobCommand;
+import org.folio.dew.config.kafka.KafkaService;
+import org.folio.de.entity.JobCommand;
+import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.BursarFeeFines;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
@@ -93,7 +94,8 @@ public class JobCommandsReceiverService {
 
       prepareJobParameters(jobCommand);
 
-      if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())) {
+      if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) ||
+          BULK_EDIT_QUERY.equals(jobCommand.getExportType())) {
         acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
         addBulkEditJobCommand(jobCommand);
         return;

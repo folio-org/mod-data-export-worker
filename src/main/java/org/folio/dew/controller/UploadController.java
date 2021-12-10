@@ -1,11 +1,5 @@
 package org.folio.dew.controller;
 
-import static java.lang.String.format;
-import static java.time.format.DateTimeFormatter.ofPattern;
-import static java.util.Optional.ofNullable;
-import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.nio.file.Files;
@@ -14,12 +8,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import javax.annotation.PostConstruct;
 import org.apache.commons.io.FilenameUtils;
-import org.folio.dew.domain.dto.ExportType;
 import org.folio.de.entity.JobCommand;
-import org.folio.des.domain.dto.ExportType;
-import org.folio.des.domain.dto.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
+import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.openapitools.api.JobIdApi;
 import org.springframework.batch.core.Job;
@@ -39,9 +32,9 @@ import lombok.extern.log4j.Log4j2;
 import static java.lang.String.format;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Optional.ofNullable;
-import static org.folio.des.domain.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
-
-import javax.annotation.PostConstruct;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
+import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
+import static org.folio.dew.utils.Constants.FILE_NAME;
 
 @RestController
 @RequestMapping("/bulk-edit")
@@ -61,7 +54,7 @@ public class UploadController implements JobIdApi {
   @Value("${spring.application.name}")
   private String springApplicationName;
   private String workDir;
-  private String identifiersFileName;
+  private String fileName;
 
   @PostConstruct
   public void postConstruct() {
@@ -82,7 +75,7 @@ public class UploadController implements JobIdApi {
     }
     var jobCommand = optionalJobCommand.get();
 
-    identifiersFileName = workDir + file.getOriginalFilename();
+    fileName = workDir + file.getOriginalFilename();
 
     try {
       Files.deleteIfExists(Paths.get(fileName));
@@ -116,14 +109,14 @@ public class UploadController implements JobIdApi {
 
   private void prepareJobParameters(JobCommand jobCommand) {
     var parameters = jobCommand.getJobParameters().getParameters();
-    parameters.put("identifiersFileName", new JobParameter(identifiersFileName));
-    parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + format(OUTPUT_FILE_NAME_PATTERN, LocalDate.now().format(ofPattern("yyyy-MM-dd")), FilenameUtils.getBaseName(identifiersFileName))));
+    parameters.put(FILE_NAME, new JobParameter(fileName));
+    parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + format(OUTPUT_FILE_NAME_PATTERN, LocalDate.now().format(ofPattern("yyyy-MM-dd")), FilenameUtils.getBaseName(fileName))));
     ofNullable(jobCommand.getIdentifierType()).ifPresent(type ->
       parameters.put("identifierType", new JobParameter(type.getValue())));
     ofNullable(jobCommand.getEntityType()).ifPresent(type ->
       parameters.put("entityType", new JobParameter(type.getValue())));
     if (BULK_EDIT_QUERY.equals(jobCommand.getExportType())) {
-      parameters.put("query", new JobParameter(readQueryFromFile(identifiersFileName)));
+      parameters.put("query", new JobParameter(readQueryFromFile(fileName)));
     }
     jobCommand.setJobParameters(new JobParameters(parameters));
   }

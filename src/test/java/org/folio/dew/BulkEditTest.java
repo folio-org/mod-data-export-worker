@@ -1,27 +1,18 @@
 package org.folio.dew;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.batch.test.AssertFile.assertFileEquals;
-
-import lombok.SneakyThrows;
-import org.folio.dew.domain.dto.JobParameterNames;
-import org.folio.dew.domain.dto.ExportType;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import org.folio.des.domain.JobParameterNames;
-import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.Address;
+import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.Personal;
 import org.folio.dew.domain.dto.User;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -32,22 +23,15 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 
+import lombok.SneakyThrows;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 class BulkEditTest extends BaseBatchTest {
 
@@ -58,30 +42,17 @@ class BulkEditTest extends BaseBatchTest {
   private static final String EXPECTED_BULK_EDIT_OUTPUT = "src/test/resources/output/bulk_edit_identifiers_output.csv";
   private final static String EXPECTED_BULK_EDIT_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_identifiers_output_some_not_found.csv";
   private final static String EXPECTED_BULK_EDIT_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_identifiers_errors_output.csv";
-  private final static String EXPECTED_BULK_EDIT_OUTPUT = "src/test/resources/output/bulk_edit_identifiers_output.csv";
 
-  @Autowired private Job bulkEditProcessIdentifiersJob;
+  @Autowired private Job bulkEditJob;
   @Autowired private Job bulkEditCqlJob;
   @Autowired private Job bulkEditUpdateUserRecordsJob;
 
-  private static final UserClient userClient = Mockito.spy(UserClient.class);
-
-
-  @BeforeAll
-  static void BeforeAll() {
-    when(userClient.getUserById(anyString())).thenCallRealMethod();
-    when(userClient.getUserByQuery(anyString())).thenCallRealMethod();
-    when(userClient.getUserByQuery(anyString(), anyLong())).thenCallRealMethod();
-  }
-
   @Test
   @DisplayName("Run bulk-edit (identifiers) successfully")
-  void bulkEditIdentifiersJobTest() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditJob);
   void uploadIdentifiersJobTest() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessIdentifiersJob);
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditJob);
 
-    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_IDENTIFIERS, BARCODES_FILE_PATH);
+    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_IDENTIFIERS, BARCODES_CSV, true);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_OUTPUT);
@@ -95,9 +66,9 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (identifiers) with errors")
   void bulkEditJobTestWithErrors() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessIdentifiersJob);
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditJob);
 
-    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_IDENTIFIERS, BARCODES_SOME_NOT_FOUND);
+    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_IDENTIFIERS, BARCODES_SOME_NOT_FOUND, true);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_OUTPUT_SOME_NOT_FOUND);
@@ -113,7 +84,7 @@ class BulkEditTest extends BaseBatchTest {
   void bulkEditQueryJobTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditCqlJob);
 
-    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, QUERY_FILE_PATH);
+    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, QUERY_FILE_PATH, true);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_OUTPUT);
@@ -125,15 +96,16 @@ class BulkEditTest extends BaseBatchTest {
     @DisplayName("Run bulk-edit (update user record) successfully")
     void uploadUserRecordsJobTest() throws Exception {
       JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateUserRecordsJob);
-  //    ArgumentCaptor<User> userArgumentCaptor = createUserCaptor();
+      //    ArgumentCaptor<User> userArgumentCaptor = createUserCaptor();
 //
-//    final JobParameters jobParameters = prepareJobParameters(USER_RECORD_CSV, false);
-//    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
-//
-//    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-  //    User user = userArgumentCaptor.getValue();
-  //    verifyUpdatedUser(user);
+    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_UPDATE, USER_RECORD_CSV, false);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+      //    User user = userArgumentCaptor.getValue();
+      //    verifyUpdatedUser(user);
 //  }
+    }
 
     private void verifyUpdatedUser(User user) {
       assertEquals("User name", user.getUsername());
@@ -196,16 +168,19 @@ class BulkEditTest extends BaseBatchTest {
     assertFileEquals(expectedCharges, actualResult);
   }
 
-  private JobParameters prepareJobParameters(ExportType exportType, String path) {
-    String workDir =
-      System.getProperty("java.io.tmpdir")
-        + File.separator
-        + springApplicationName
-        + File.separator;
-
+  private JobParameters prepareJobParameters(ExportType exportType, String path, boolean hasOutcomeFile) {
     Map<String, JobParameter> params = new HashMap<>();
     params.put(FILE_NAME, new JobParameter(path));
-    params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
+
+    if (hasOutcomeFile) {
+      String workDir =
+        System.getProperty("java.io.tmpdir")
+          + File.separator
+          + springApplicationName
+          + File.separator;
+      params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
+    }
+
     if (ExportType.BULK_EDIT_QUERY.equals(exportType)) {
       params.put("query", new JobParameter(readQueryString(path)));
     }

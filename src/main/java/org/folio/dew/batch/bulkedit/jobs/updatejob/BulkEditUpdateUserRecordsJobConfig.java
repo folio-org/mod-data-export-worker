@@ -25,8 +25,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 
-import static org.folio.des.domain.dto.EntityType.USER;
-import static org.folio.des.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.domain.dto.EntityType.USER;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 
 @Configuration
@@ -88,33 +88,7 @@ public class BulkEditUpdateUserRecordsJobConfig {
   private LineTokenizer createUserLineTokenizer() {
     DelimitedLineTokenizer userLineTokenizer = new DelimitedLineTokenizer();
     userLineTokenizer.setDelimiter(",");
-    userLineTokenizer.setNames(new String[]{
-      "username",
-      "id",
-      "externalSystemId",
-      "barcode",
-      "active",
-      "type",
-      "patronGroup",
-      "departments",
-      "proxyFor",
-      "lastName",
-      "firstName",
-      "middleName",
-      "preferredFirstName",
-      "email",
-      "phone",
-      "mobilePhone",
-      "dateOfBirth",
-      "addresses",
-      "preferredContactTypeId",
-      "enrollmentDate",
-      "expirationDate",
-      "createdDate",
-      "updatedDate",
-      "tags",
-      "customFields"
-    });
+    userLineTokenizer.setNames(UserFormat.getUserFieldsArray());
     return userLineTokenizer;
   }
 

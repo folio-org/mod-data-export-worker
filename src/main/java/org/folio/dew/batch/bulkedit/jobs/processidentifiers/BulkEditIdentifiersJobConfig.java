@@ -2,6 +2,7 @@ package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
 import static org.folio.dew.domain.dto.UserFormat.getUserColumnHeaders;
 import static org.folio.dew.domain.dto.UserFormat.getUserFieldsArray;
+import static org.folio.dew.utils.Constants.FILE_NAME;
 
 import lombok.RequiredArgsConstructor;
 import org.folio.dew.domain.dto.ExportType;
@@ -48,7 +49,7 @@ public class BulkEditIdentifiersJobConfig {
   @Bean
   @StepScope
   public FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader(
-    @Value("#{jobParameters['identifiersFileName']}") String uploadedFileName) {
+    @Value("#{jobParameters['" + FILE_NAME + "']}") String uploadedFileName) {
     return new FlatFileItemReaderBuilder<ItemIdentifier>()
       .name("userItemIdentifierReader")
       .resource(new FileSystemResource(uploadedFileName))

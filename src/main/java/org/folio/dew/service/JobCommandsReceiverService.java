@@ -1,10 +1,5 @@
 package org.folio.dew.service;
 
-import static java.util.Optional.ofNullable;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -18,12 +13,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.dew.config.kafka.KafkaService;
 import org.folio.de.entity.JobCommand;
-import org.folio.dew.domain.dto.JobParameterNames;
-import org.folio.dew.domain.dto.BursarFeeFines;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
+import org.folio.dew.config.kafka.KafkaService;
+import org.folio.dew.domain.dto.BursarFeeFines;
+import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
@@ -43,8 +38,9 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 
 import static java.util.Optional.ofNullable;
-import static org.folio.des.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
-import static org.folio.des.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 
 @Service
 @RequiredArgsConstructor
@@ -96,24 +92,25 @@ public class JobCommandsReceiverService {
       if (deleteOldFiles(jobCommand, acknowledgment)) {
         return;
       }
+        log.info("-----------------------------JOB---STARTS-----------------------------");
 
-      log.info("-----------------------------JOB---STARTS-----------------------------");
+        prepareJobParameters(jobCommand);
 
-      prepareJobParameters(jobCommand);
-
-      if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) ||
+        if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) ||
           BULK_EDIT_QUERY.equals(jobCommand.getExportType()) ||
-        BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
-        acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
+          BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
+          acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
 
-      var jobLaunchRequest =
-        new JobLaunchRequest(
-          jobMap.get(jobCommand.getExportType().toString()),
-          jobCommand.getJobParameters());
+          var jobLaunchRequest =
+            new JobLaunchRequest(
+              jobMap.get(jobCommand.getExportType().toString()),
+              jobCommand.getJobParameters());
 
-      acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-      exportJobManager.launchJob(jobLaunchRequest);
-    } catch (Exception e) {
+          acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
+          exportJobManager.launchJob(jobLaunchRequest);
+        }
+      }
+      catch (Exception e) {
       log.error(e.toString(), e);
     }
   }

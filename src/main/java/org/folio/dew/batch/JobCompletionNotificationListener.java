@@ -17,7 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.ExportType;
-import org.folio.dew.domain.entity.Job;
+import org.folio.de.entity.Job;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.service.SaveErrorService;

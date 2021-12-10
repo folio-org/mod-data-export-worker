@@ -17,7 +17,7 @@ import java.util.UUID;
 
 import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.domain.dto.ExportType;
-import org.folio.dew.domain.dto.JobCommand;
+import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.openapitools.api.JobIdApi;

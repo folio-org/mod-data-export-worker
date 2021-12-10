@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.ExportType;
-import org.folio.dew.domain.dto.JobCommand;
+import org.folio.de.entity.JobCommand;
 import org.folio.dew.BaseBatchTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

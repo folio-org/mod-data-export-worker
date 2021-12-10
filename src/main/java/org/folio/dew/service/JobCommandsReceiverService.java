@@ -22,7 +22,7 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.config.kafka.KafkaService;
-import org.folio.dew.domain.dto.JobCommand;
+import org.folio.de.entity.JobCommand;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.BursarFeeFines;
 import org.folio.dew.batch.ExportJobManager;

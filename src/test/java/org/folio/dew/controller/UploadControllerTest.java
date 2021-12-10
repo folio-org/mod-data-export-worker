@@ -10,7 +10,7 @@ import lombok.SneakyThrows;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.IdentifierType;
-import org.folio.dew.domain.dto.JobCommand;
+import org.folio.de.entity.JobCommand;
 import org.folio.dew.BaseBatchTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

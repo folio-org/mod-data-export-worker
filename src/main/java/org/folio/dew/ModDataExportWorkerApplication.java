@@ -15,7 +15,6 @@ import org.folio.dew.client.UserClient;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
@@ -33,7 +32,6 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
   TransferClient.class,
   UserClient.class
 })
-@EntityScan("org.folio.des.domain.*")
 @EnableBatchProcessing
 public class ModDataExportWorkerApplication {
 

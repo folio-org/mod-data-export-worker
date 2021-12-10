@@ -53,7 +53,8 @@
             **/src/main/java/org/folio/dew/batch/JobCompletionNotificationListener.java,
             **/src/main/java/org/folio/dew/controller/UploadController.java,
             **/src/main/java/org/folio/dew/domain/**,
-            **/src/main/java/org/folio/dew/config/**
+            **/src/main/java/org/folio/dew/config/**,
+            **/src/main/java/org/folio/de/entity/**
         </sonar.exclusions>
 
         <!-- Test properties-->

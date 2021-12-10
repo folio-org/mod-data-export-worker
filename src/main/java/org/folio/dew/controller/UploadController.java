@@ -14,7 +14,6 @@ import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.openapitools.api.JobIdApi;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecutionException;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
@@ -81,16 +80,13 @@ public class UploadController implements JobIdApi {
         parameters.put("identifierType", new JobParameter(type.getValue())));
       ofNullable(jobCommand.getEntityType()).ifPresent(type ->
         parameters.put("entityType", new JobParameter(type.getValue())));
-
-      var jobLaunchRequest =
-        new JobLaunchRequest(
-          getBulkEditJob(jobCommand),
-          new JobParameters(parameters));
-
+      var job =  getBulkEditJob(jobCommand);
+      var jobLaunchRequest = new JobLaunchRequest(job, new JobParameters(parameters));
       log.info("Launching bulk edit job.");
       var execution = exportJobManager.launchJob(jobLaunchRequest);
-      // ToDo only for BULK_EDIT_UPDATE
-      bulkEditRollBackService.putExecutionPerJob(execution.getId(), jobId);
+      if (ExportType.BULK_EDIT_UPDATE.getValue().equals(job.getName())) {
+        bulkEditRollBackService.putExecutionPerJob(execution.getId(), jobId);
+      }
     } catch (Exception e) {
       String errorMessage = format(FILE_UPLOAD_ERROR, e.getMessage());
       log.error(errorMessage);
@@ -99,6 +95,11 @@ public class UploadController implements JobIdApi {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
+  @Override
+  public ResponseEntity<String> rollBackCsvFile(UUID jobId) {
+    bulkEditRollBackService.stopJobExecution(jobId);
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
 
   private Job getBulkEditJob(JobCommand jobCommand) {
     ExportType exportType = jobCommand.getExportType();

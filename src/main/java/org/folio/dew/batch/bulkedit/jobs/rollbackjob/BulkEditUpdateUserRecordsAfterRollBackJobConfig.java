@@ -14,10 +14,13 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 
+@Configuration
 public class BulkEditUpdateUserRecordsAfterRollBackJobConfig {
 
   @Bean
@@ -37,7 +40,9 @@ public class BulkEditUpdateUserRecordsAfterRollBackJobConfig {
   @Bean
   public Step bulkEditRollBackRecordsStep(
     ItemReader<UserFormat> reader,
+    @Qualifier("bulkEditFilterUserRecordsForRollBackProcessor")
     ItemProcessor<UserFormat, User> processor,
+    @Qualifier("bulkEditUpdateUserRecordsForRollBackWriter")
     ItemWriter<User> writer,
     StepBuilderFactory stepBuilderFactory) {
     return stepBuilderFactory
@@ -51,7 +56,7 @@ public class BulkEditUpdateUserRecordsAfterRollBackJobConfig {
 
   @Bean
   @StepScope
-  public ItemReader<UserFormat> reader(@Value("#{jobParameters['fileName']}") String fileName) {
+  public ItemReader<UserFormat> bulkEditRollBackReader(@Value("#{jobParameters['fileName']}") String fileName) {
    LineMapper<UserFormat> userLineMapper = JobConfigHelper.createUserLineMapper();
     return new FlatFileItemReaderBuilder<UserFormat>()
       .name("userReader")

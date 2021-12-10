@@ -4,14 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.ExportJobManager;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecutionException;
+import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import javax.batch.operations.JobOperator;
+import org.springframework.batch.core.launch.JobOperator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -23,21 +23,23 @@ import java.util.UUID;
 @Log4j2
 public class BulkEditRollBackService {
 
-  private static Map<UUID, Long> executionIdPerJobId = new HashMap<>();
-  private static Map<UUID, Set<String>> usersIdsToRollBackForJobId = new HashMap<>();
+  private Map<UUID, Long> executionIdPerJobId = new HashMap<>();
+  private Map<UUID, Set<String>> usersIdsToRollBackForJobId = new HashMap<>();
 
   private final ExportJobManager exportJobManager;
   private final JobOperator jobOperator;
   @Autowired
-  @Qualifier("bulk-edit-roll-back")
-  private final Job job;
+  @Qualifier("bulkEditRollBackJob")
+  private Job job;
 
   public void stopJobExecution(UUID jobId) {
     try {
       if (executionIdPerJobId.containsKey(jobId)) {
-        // ToDo File to roll-back
+        var parameters = new HashMap<String, JobParameter>();
+        parameters.put("jobId", new JobParameter(jobId.toString()));
+        //ToDo find file
         jobOperator.stop(executionIdPerJobId.get(jobId));
-        var jobLaunchRequest = new JobLaunchRequest(job, new JobParameters());
+        var jobLaunchRequest = new JobLaunchRequest(job, new JobParameters(parameters));
         exportJobManager.launchJob(jobLaunchRequest);
       }
     } catch (Exception e) {

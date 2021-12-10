@@ -30,7 +30,7 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 
 @Configuration
 @RequiredArgsConstructor
-public class BulkEditProcessIdentifiersJobConfig {
+public class BulkEditJobConfig {
   private static final int CHUNKS = 100;
   private static final long ZERO = 0L;
 

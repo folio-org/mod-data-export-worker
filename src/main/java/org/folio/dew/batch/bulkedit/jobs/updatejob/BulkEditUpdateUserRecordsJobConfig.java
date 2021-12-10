@@ -21,12 +21,14 @@ import org.springframework.batch.item.file.transform.LineTokenizer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 
 import static org.folio.des.domain.dto.EntityType.USER;
 import static org.folio.des.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 
+@Configuration
 public class BulkEditUpdateUserRecordsJobConfig {
 
   @Bean
@@ -43,22 +45,22 @@ public class BulkEditUpdateUserRecordsJobConfig {
 
   @Bean
   public Step bulkEditUpdateRecordsStep(
-    @Qualifier("updateUserRecordsReader") ItemReader<UserFormat> reader,
-    @Qualifier("updateUserRecordsProcessor") ItemProcessor<UserFormat, User> processor,
+    ItemReader<UserFormat> csvUserRecordsReader,
+    ItemProcessor<UserFormat, User> processor,
     @Qualifier("updateUserRecordsWriter") ItemWriter<User> writer,
     StepBuilderFactory stepBuilderFactory) {
     return stepBuilderFactory
       .get("bulkEditUpdateRecordsStep")
       .<UserFormat, User>chunk(10)
-      .reader(reader)
+      .reader(csvUserRecordsReader)
       .processor(processor)
       .writer(writer)
       .build();
   }
 
-  @Bean("updateUserRecordsReader")
+  @Bean
   @StepScope
-  public ItemReader<UserFormat> reader(@Value("#{jobParameters['" + FILE_NAME + "']}") String fileName) {
+  public ItemReader<UserFormat> csvUserRecordsReader(@Value("#{jobParameters['" + FILE_NAME + "']}") String fileName) {
     LineMapper<UserFormat> userLineMapper = createUserLineMapper();
 
     return new FlatFileItemReaderBuilder<UserFormat>()

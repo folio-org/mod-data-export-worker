@@ -108,7 +108,7 @@ class BulkEditTest extends BaseBatchTest {
     wireMockServer.verify(1, getRequestedFor(urlEqualTo("/groups/3684a786-6671-4268-8ed0-9db82ebca60b")));
   }
 
-//  @Test
+  @Test
   @DisplayName("Run bulk-edit (query) successfully")
   void bulkEditQueryJobTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditCqlJob);
@@ -122,16 +122,15 @@ class BulkEditTest extends BaseBatchTest {
   }
 
     @Test
-  //  @DisplayName("Run bulk-edit (update user record) successfully")
-  //  void uploadUserRecordsJobTest() throws Exception {
-  //    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateUserRecordsJob);
-//
+    @DisplayName("Run bulk-edit (update user record) successfully")
+    void uploadUserRecordsJobTest() throws Exception {
+      JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateUserRecordsJob);
   //    ArgumentCaptor<User> userArgumentCaptor = createUserCaptor();
 //
-  //    final JobParameters jobParameters = prepareJobParameters(USER_RECORD_CSV, false);
-  //    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+//    final JobParameters jobParameters = prepareJobParameters(USER_RECORD_CSV, false);
+//    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 //
-  //    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+//    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   //    User user = userArgumentCaptor.getValue();
   //    verifyUpdatedUser(user);
 //  }

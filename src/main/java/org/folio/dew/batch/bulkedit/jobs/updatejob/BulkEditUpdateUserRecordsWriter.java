@@ -18,8 +18,6 @@ public class BulkEditUpdateUserRecordsWriter implements ItemWriter<User> {
 
   @Override
   public void write(List<? extends User> items) throws Exception {
-    items.forEach(user -> {
-      userClient.updateUser(user, user.getId());
-    });
+    items.forEach(user -> userClient.updateUser(user, user.getId()));
   }
 }

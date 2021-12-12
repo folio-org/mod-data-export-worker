@@ -23,8 +23,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserReferenceService {
 
-  private static final String QUERY_PARAM = "query=";
-
   private final AddressTypeClient addressTypeClient;
   private final DepartmentClient departmentClient;
   private final GroupClient groupClient;
@@ -38,7 +36,7 @@ public class UserReferenceService {
 
   @Cacheable(cacheNames = "addressTypes")
   public AddressTypeCollection getAddressTypeByDesc(String name) {
-    return addressTypeClient.getAddressTypeByQuery(/*QUERY_PARAM + */"desc=" + name);
+    return addressTypeClient.getAddressTypeByQuery("desc=" + name);
   }
 
   @Cacheable(cacheNames = "departments")
@@ -48,7 +46,7 @@ public class UserReferenceService {
 
   @Cacheable(cacheNames = "departments")
   public DepartmentCollection getDepartmentByName(String name) {
-    return departmentClient.getDepartmentByQuery(/*QUERY_PARAM + */"name=" + name);
+    return departmentClient.getDepartmentByQuery("name=" + name);
   }
 
   @Cacheable(cacheNames = "userGroups")
@@ -58,7 +56,7 @@ public class UserReferenceService {
 
   @Cacheable(cacheNames = "userGroups")
   public UserGroupCollection getUserGroupByGroupName(String name) {
-    return groupClient.getGroupByQuery(/*QUERY_PARAM + */"group=" + name);
+    return groupClient.getGroupByQuery("group=" + name);
   }
 
   @Cacheable(cacheNames = "proxies")
@@ -68,12 +66,12 @@ public class UserReferenceService {
 
   @Cacheable(cacheNames = "proxies")
   public ProxyForCollection getProxyForByProxyUserId(String id) {
-    return proxiesForClient.getProxiesForByQuery(/*QUERY_PARAM + */"proxyUserId=" + id);
+    return proxiesForClient.getProxiesForByQuery("proxyUserId=" + id);
   }
 
   @Cacheable(cacheNames = "users")
   public UserCollection getUserByName(String name) {
-    return userClient.getUserByQuery(/*QUERY_PARAM + */"username=" + name);
+    return userClient.getUserByQuery("username=" + name);
   }
 
 }

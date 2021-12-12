@@ -1,5 +1,8 @@
 package org.folio.dew.utils;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public class Constants {
 
   public static final String ARRAY_DELIMITER = ";";

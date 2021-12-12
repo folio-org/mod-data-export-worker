@@ -92,7 +92,7 @@ public class BulkEditParseService {
   private List<String> getUserDepartments(UserFormat userFormat) {
     String[] departmentNames = userFormat.getDepartments().split(ARRAY_DELIMITER);
     return Arrays.stream(departmentNames).parallel()
-      .map(name -> userReferenceService.getDepartmentByName(name))
+      .map(userReferenceService::getDepartmentByName)
       .flatMap(departmentCollection -> departmentCollection.getDepartments().stream())
       .map(Department::getId)
       .collect(Collectors.toList());
@@ -102,10 +102,10 @@ public class BulkEditParseService {
     String[] proxyUserNames = userFormat.getProxyFor().split(ARRAY_DELIMITER);
     return Arrays.stream(proxyUserNames)
       .parallel()
-      .map(proxyUserName -> userReferenceService.getUserByName(proxyUserName))
+      .map(userReferenceService::getUserByName)
       .flatMap(userCollection -> userCollection.getUsers().stream())
       .map(User::getId)
-      .map(id -> userReferenceService.getProxyForByProxyUserId(id))
+      .map(userReferenceService::getProxyForByProxyUserId)
       .flatMap(proxyForCollection -> proxyForCollection.getProxiesFor().stream())
       .map(ProxyFor::getId)
       .collect(Collectors.toList());

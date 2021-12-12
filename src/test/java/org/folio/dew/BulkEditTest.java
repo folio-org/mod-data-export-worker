@@ -109,9 +109,9 @@ class BulkEditTest extends BaseBatchTest {
 
     private void verifyUpdatedUser(User user) {
       assertEquals("User name", user.getUsername());
-      assertEquals("User id", user.getId());
-      assertEquals("External system id", user.getExternalSystemId());
-      assertEquals("Barcode", user.getBarcode());
+      assertEquals("88a087b4-c3a1-485b-8a22-2fa8f7b661c4", user.getId());
+      assertEquals("74c30c60-0c55-4c03-94a3-0ea02e158807", user.getExternalSystemId());
+      assertEquals("12345", user.getBarcode());
       assertTrue(user.getActive());
       assertEquals("Type", user.getType());
       assertEquals("PatronGroup", user.getPatronGroup());

@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/proxiesfor?query=proxyUserId=b4cee18d-f862-4ef1-95a5-879fdd619603"
+        "url": "/proxiesfor?query=proxyUserId%3Db4cee18d-f862-4ef1-95a5-879fdd619603"
       },
       "response": {
         "status": 200,

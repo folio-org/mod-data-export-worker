@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class BulkEditUpdateUserRecordsProcessor implements ItemProcessor<UserFormat, User> {
 
-  private BulkEditParseService bulkEditParseService;
+  private final BulkEditParseService bulkEditParseService;
 
   @Override
   public User process(UserFormat userFormat) throws Exception {

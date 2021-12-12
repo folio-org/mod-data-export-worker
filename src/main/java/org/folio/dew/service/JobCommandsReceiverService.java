@@ -92,25 +92,26 @@ public class JobCommandsReceiverService {
       if (deleteOldFiles(jobCommand, acknowledgment)) {
         return;
       }
-        log.info("-----------------------------JOB---STARTS-----------------------------");
+      log.info("-----------------------------JOB---STARTS-----------------------------");
 
-        prepareJobParameters(jobCommand);
+      prepareJobParameters(jobCommand);
 
-        if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) ||
-          BULK_EDIT_QUERY.equals(jobCommand.getExportType()) ||
-          BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
-          acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-
-          var jobLaunchRequest =
-            new JobLaunchRequest(
-              jobMap.get(jobCommand.getExportType().toString()),
-              jobCommand.getJobParameters());
-
-          acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-          exportJobManager.launchJob(jobLaunchRequest);
-        }
+      if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) ||
+        BULK_EDIT_QUERY.equals(jobCommand.getExportType()) ||
+        BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
+        acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
+        addBulkEditJobCommand(jobCommand);
+        return;
       }
-      catch (Exception e) {
+
+      var jobLaunchRequest =
+        new JobLaunchRequest(
+          jobMap.get(jobCommand.getExportType().toString()),
+          jobCommand.getJobParameters());
+
+      acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
+      exportJobManager.launchJob(jobLaunchRequest);
+    } catch (Exception e) {
       log.error(e.toString(), e);
     }
   }
@@ -121,7 +122,7 @@ public class JobCommandsReceiverService {
     parameters.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
     var now = new Date();
     parameters.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH,
-        new JobParameter(String.format("%s%s_%tF_%tT_%s", workDir, jobCommand.getExportType(), now, now, jobId)));
+      new JobParameter(String.format("%s%s_%tF_%tT_%s", workDir, jobCommand.getExportType(), now, now, jobId)));
 
     normalizeParametersForBursarExport(parameters, jobId);
 

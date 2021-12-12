@@ -136,7 +136,7 @@ class BulkEditTest extends BaseBatchTest {
       assertEquals("Phone", personal.getPhone());
       assertEquals("Mobile phone", personal.getMobilePhone());
       assertEquals("1998-12-19 03:23:37.989Z", personal.getDateOfBirth().toString());
-      assertEquals("preferredContactTypeId", personal.getPreferredContactTypeId());
+      assertEquals("b376d1f8-6dd0-49af-8bac-13e177cc9a73", personal.getPreferredContactTypeId());
 
       Address address = personal.getAddresses().iterator().next();
       assertEquals("addressId", address.getId());

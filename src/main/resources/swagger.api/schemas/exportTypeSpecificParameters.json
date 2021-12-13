@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Export parameters which depend on export type",
+  "ExportTypeSpecificParameters": {
+    "type": "object",
+    "properties": {
+      "bursarFeeFines": {
+        "$ref": "bursarFeeFines.json#/BursarFeeFines"
+      },
+      "vendorEdiOrdersExportConfig": {
+        "$ref": "acquisitions/vendorEdiOrdersExportConfig.json#/VendorEdiOrdersExportConfig"
+      },
+      "query": {
+        "description": "CQL query to be passed to the module which data is being exported. Use it to filter data.",
+        "type": "string",
+        "maxLength": 5000
+      }
+    }
+  }
+}

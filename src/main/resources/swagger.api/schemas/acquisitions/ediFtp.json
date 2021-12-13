@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "The FTP object for this EDI",
+  "EdiFtp": {
+    "type": "object",
+    "properties": {
+      "ftpConnMode": {
+        "description": "The FTP connection mode for this EDI",
+        "type": "string",
+        "enum": [
+          "Active",
+          "Passive"
+        ]
+      },
+      "ftpFormat": {
+        "description": "The FTP format for this EDI",
+        "type": "string",
+        "enum": [
+          "SFTP",
+          "FTP"
+        ]
+      },
+      "ftpMode": {
+        "description": "The FTP mode for this EDI",
+        "type": "string",
+        "enum": [
+          "ASCII",
+          "Binary"
+        ]
+      },
+      "ftpPort": {
+        "description": "The port for this EDI",
+        "type": "integer"
+      },
+      "invoiceDirectory": {
+        "description": "The invoice directory for this EDI",
+        "type": "string"
+      },
+      "isPrimaryTransmissionMethod": {
+        "description": "Primary transmission method",
+        "type": "boolean"
+      },
+      "notes": {
+        "description": "The notes for this EDI",
+        "type": "string"
+      },
+      "orderDirectory": {
+        "description": "The order directory for this EDI",
+        "type": "string"
+      },
+      "password": {
+        "description": "The login password for this EDI",
+        "type": "string"
+      },
+      "serverAddress": {
+        "description": "The server address for this EDI",
+        "pattern": "^$|(([Hh][Tt][Tt][Pp]|[Ff][Tt][Pp])([Ss])?://.+$)",
+        "type": "string"
+      },
+      "username": {
+        "description": "The login username for this EDI",
+        "type": "string"
+      }
+    }
+  }
+}

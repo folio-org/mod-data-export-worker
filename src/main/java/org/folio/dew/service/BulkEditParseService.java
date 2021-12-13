@@ -25,14 +25,14 @@ import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
-import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
+import static org.folio.dew.utils.Constants.ITEM_DELIMITER_PATTERN;
 import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
 
 @Component
 @RequiredArgsConstructor
 public class BulkEditParseService {
 
-  private UserReferenceService userReferenceService;
+  private final UserReferenceService userReferenceService;
 
   private static final int ADDRESS_ID = 0;
   private static final int ADDRESS_COUNTRY_ID = 1;
@@ -92,7 +92,7 @@ public class BulkEditParseService {
   private List<String> getUserDepartments(UserFormat userFormat) {
     String[] departmentNames = userFormat.getDepartments().split(ARRAY_DELIMITER);
     return Arrays.stream(departmentNames).parallel()
-      .map(name -> userReferenceService.getDepartmentByName(name))
+      .map(userReferenceService::getDepartmentByName)
       .flatMap(departmentCollection -> departmentCollection.getDepartments().stream())
       .map(Department::getId)
       .collect(Collectors.toList());
@@ -102,10 +102,10 @@ public class BulkEditParseService {
     String[] proxyUserNames = userFormat.getProxyFor().split(ARRAY_DELIMITER);
     return Arrays.stream(proxyUserNames)
       .parallel()
-      .map(proxyUserName -> userReferenceService.getUserByName(proxyUserName))
+      .map(userReferenceService::getUserByName)
       .flatMap(userCollection -> userCollection.getUsers().stream())
       .map(User::getId)
-      .map(id -> userReferenceService.getProxyForByProxyUserId(id))
+      .map(userReferenceService::getProxyForByProxyUserId)
       .flatMap(proxyForCollection -> proxyForCollection.getProxiesFor().stream())
       .map(ProxyFor::getId)
       .collect(Collectors.toList());
@@ -132,7 +132,7 @@ public class BulkEditParseService {
   }
 
   private List<Address> getUserAddresses(UserFormat userFormat) {
-    String[] addresses = userFormat.getAddresses().split(ITEM_DELIMITER);
+    String[] addresses = userFormat.getAddresses().split(ITEM_DELIMITER_PATTERN);
     return Arrays.stream(addresses)
       .parallel()
       .map(this::getAddressFromString)
@@ -170,7 +170,7 @@ public class BulkEditParseService {
   private Map<String, Object> getCustomFields(UserFormat userFormat) {
     if (isNotEmpty(userFormat.getCustomFields())) {
       Map<String, Object> customFields = new HashMap<>();
-      String[] customFieldsArray = userFormat.getCustomFields().split(ITEM_DELIMITER);
+      String[] customFieldsArray = userFormat.getCustomFields().split(ITEM_DELIMITER_PATTERN);
       Arrays.stream(customFieldsArray)
         .forEach(customField -> {
           List<String> customFieldKeyValue = Arrays.asList(customField.split(KEY_VALUE_DELIMITER));

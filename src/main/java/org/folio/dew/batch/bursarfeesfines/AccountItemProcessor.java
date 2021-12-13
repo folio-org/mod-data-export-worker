@@ -3,7 +3,7 @@ package org.folio.dew.batch.bursarfeesfines;
 import java.util.Collections;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.folio.des.domain.dto.BursarFeeFinesTypeMapping;
+import org.folio.dew.domain.dto.BursarFeeFinesTypeMapping;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.batch.bursarfeesfines.service.BursarFeesFinesUtils;
 import org.folio.dew.domain.dto.Account;

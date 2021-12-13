@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Progress for the records being processed",
+  "Progress": {
+    "type": "object",
+    "properties": {
+      "total": {
+        "type": "integer",
+        "minimum": 0,
+        "default": 0,
+        "description": "Total number of records being processed"
+      },
+      "processed": {
+        "type": "integer",
+        "minimum": 0,
+        "default": 0,
+        "description": "Current number of records already processed"
+      },
+      "progress": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 100,
+        "default": 0,
+        "description": "Current progress in %"
+      }
+    }
+  }
+}

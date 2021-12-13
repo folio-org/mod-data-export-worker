@@ -7,10 +7,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import lombok.SneakyThrows;
-import org.folio.des.domain.dto.EntityType;
-import org.folio.des.domain.dto.ExportType;
-import org.folio.des.domain.dto.IdentifierType;
-import org.folio.des.domain.dto.JobCommand;
+import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.IdentifierType;
+import org.folio.de.entity.JobCommand;
 import org.folio.dew.BaseBatchTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,12 +26,13 @@ import java.util.UUID;
 
 class UploadControllerTest extends BaseBatchTest {
   private static final String URL_TEMPLATE = "/bulk-edit/%s/upload";
+
   @Test
-  @DisplayName("Upload JobCommand successfully")
+  @DisplayName("Launch job on upload file with identifiers successfully")
   @SneakyThrows
-  void shouldLaunchJobOnFileUpload() {
+  void shouldLaunchJobOnIdentifiersFileUpload() {
     var jobId = UUID.randomUUID();
-    service.addBulkEditJobCommand(createBulkEditJobRequest(jobId));
+    service.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_IDENTIFIERS));
 
     var headers = defaultHeaders();
 
@@ -47,11 +48,31 @@ class UploadControllerTest extends BaseBatchTest {
   }
 
   @Test
+  @DisplayName("Launch job on upload file with CQL query successfully")
+  @SneakyThrows
+  void shouldLaunchJobOnQueryFileUpload() {
+    var jobId = UUID.randomUUID();
+    service.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_QUERY));
+
+    var headers = defaultHeaders();
+
+    var bytes = new FileInputStream("src/test/resources/upload/users_by_group.cql").readAllBytes();
+    var file = new MockMultipartFile("file", "users_by_group.cql", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    mockMvc.perform(multipart(String.format(URL_TEMPLATE, jobId))
+        .file(file)
+        .headers(headers))
+      .andExpect(status().isOk());
+
+    verify(exportJobManager, times(1)).launchJob(any());
+  }
+
+  @Test
   @DisplayName("Upload empty file - BAD REQUEST")
   @SneakyThrows
   void shouldReturnBadRequestWhenIdentifiersFileIsEmpty() {
     var jobId = UUID.randomUUID();
-    service.addBulkEditJobCommand(createBulkEditJobRequest(jobId));
+    service.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_IDENTIFIERS));
 
     var headers = defaultHeaders();
 
@@ -80,13 +101,13 @@ class UploadControllerTest extends BaseBatchTest {
       .andExpect(status().isNotFound());
   }
 
-  private JobCommand createBulkEditJobRequest(UUID id) {
+  private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType) {
     JobCommand jobCommand = new JobCommand();
     jobCommand.setType(JobCommand.Type.START);
     jobCommand.setId(id);
-    jobCommand.setName(ExportType.BULK_EDIT_IDENTIFIERS.toString());
+    jobCommand.setName(exportType.toString());
     jobCommand.setDescription("Job description");
-    jobCommand.setExportType(ExportType.BULK_EDIT_IDENTIFIERS);
+    jobCommand.setExportType(exportType);
     jobCommand.setIdentifierType(IdentifierType.BARCODE);
     jobCommand.setEntityType(EntityType.USER);
 

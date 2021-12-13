@@ -9,18 +9,20 @@ import org.folio.dew.domain.dto.User;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 @JobScope
+@Qualifier("updateUserRecordsWriter")
 @RequiredArgsConstructor
 public class BulkEditUpdateUserRecordsWriter implements ItemWriter<User> {
 
   @Value("#{jobParameters['jobId']}")
   private String jobId;
-  private UserClient userClient;
-  private BulkEditRollBackService bulkEditRollBackService;
+  private final UserClient userClient;
+  private final BulkEditRollBackService bulkEditRollBackService;
 
   @Override
   public void write(List<? extends User> items) throws Exception {

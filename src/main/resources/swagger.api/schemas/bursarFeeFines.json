@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Fees and fines for bursar export parameters",
+  "BursarFeeFines": {
+    "type": "object",
+    "properties": {
+      "daysOutstanding": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Days outstanding"
+      },
+      "patronGroups": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        },
+        "minItems": 1
+      },
+      "servicePointId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "feefineOwnerId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "transferAccountId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "typeMappings": {
+        "type": "object",
+        "properties": {
+          "default": {
+            "type": "string"
+          }
+        },
+        "additionalProperties" : {
+          "type": "array",
+          "items": {
+            "$ref": "bursarFeeFinesTypeMapping.json#/BursarFeeFinesTypeMapping"
+          }
+        }
+      }
+    },
+    "required": [
+      "daysOutstanding",
+      "patronGroups"
+    ]
+  }
+}

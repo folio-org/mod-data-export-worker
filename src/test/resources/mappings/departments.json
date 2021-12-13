@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/departments?query=name=Departments"
+        "url": "/departments?query=name%3DDepartments"
       },
       "response": {
         "status": 200,

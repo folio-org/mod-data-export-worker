@@ -3,10 +3,10 @@ package org.folio.dew.batch.circulationlog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.des.client.ConfigurationClient;
-import org.folio.des.domain.dto.ConfigurationCollection;
+import org.folio.dew.client.ConfigurationClient;
 import org.folio.dew.client.ServicePointClient;
 import org.folio.dew.domain.dto.CirculationLogExportFormat;
+import org.folio.dew.domain.dto.ConfigurationCollection;
 import org.folio.dew.domain.dto.LogRecord;
 import org.folio.dew.domain.dto.LogRecordItems;
 import org.folio.dew.domain.dto.ServicePoint;
@@ -75,7 +75,7 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
 
   private String fetchTimezone() {
     final ConfigurationCollection tenantLocaleSettings =
-      configurationClient.getConfiguration("(module==ORG and configName==localeSettings)");
+      configurationClient.getConfigurations("(module==ORG and configName==localeSettings)");
 
     if (tenantLocaleSettings.getTotalRecords() == 0) return "UTC";
 

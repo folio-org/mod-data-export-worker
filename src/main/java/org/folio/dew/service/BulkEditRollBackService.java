@@ -55,6 +55,7 @@ public class BulkEditRollBackService {
     var existUsersIds = usersIdsToRollBackForJobId.get(jobId);
     if (existUsersIds == null) {
       existUsersIds = new HashSet<>();
+      usersIdsToRollBackForJobId.put(jobId, existUsersIds);
     }
     existUsersIds.add(userId);
   }

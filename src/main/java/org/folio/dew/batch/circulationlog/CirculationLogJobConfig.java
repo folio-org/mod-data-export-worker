@@ -2,7 +2,7 @@ package org.folio.dew.batch.circulationlog;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.folio.des.domain.dto.ExportType;
+import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.batch.CsvFileAssembler;
 import org.folio.dew.batch.CsvPartStepExecutionListener;
 import org.folio.dew.batch.CsvWriter;
@@ -16,7 +16,6 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -54,7 +53,7 @@ public class CirculationLogJobConfig {
   @Bean("getCirculationLogStep")
   public Step getCirculationLogStep(
       @Qualifier("getCirculationLogPartStep") Step getCirculationLogPartStep,
-      Partitioner partitioner,
+      CirculationLogCsvPartitioner partitioner,
       @Qualifier("asyncTaskExecutor") TaskExecutor taskExecutor,
       CsvFileAssembler csvFileAssembler) {
     return stepBuilderFactory
@@ -68,7 +67,7 @@ public class CirculationLogJobConfig {
 
   @Bean
   @StepScope
-  public Partitioner getCirculationLogPartitioner(
+  public CirculationLogCsvPartitioner getCirculationLogPartitioner(
       @Value("#{jobParameters['offset']}") Long offset,
       @Value("#{jobParameters['limit']}") Long limit,
       @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,

@@ -13,12 +13,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.des.config.kafka.KafkaService;
-import org.folio.des.domain.JobParameterNames;
-import org.folio.des.domain.dto.BursarFeeFines;
-import org.folio.des.domain.dto.JobCommand;
+import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
+import org.folio.dew.config.kafka.KafkaService;
+import org.folio.dew.domain.dto.BursarFeeFines;
+import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
@@ -38,8 +38,9 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 
 import static java.util.Optional.ofNullable;
-import static org.folio.des.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
-import static org.folio.des.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 
 @Service
 @RequiredArgsConstructor
@@ -91,13 +92,15 @@ public class JobCommandsReceiverService {
       if (deleteOldFiles(jobCommand, acknowledgment)) {
         return;
       }
-
       log.info("-----------------------------JOB---STARTS-----------------------------");
 
       prepareJobParameters(jobCommand);
       acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
 
-      if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
+      if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) ||
+        BULK_EDIT_QUERY.equals(jobCommand.getExportType()) ||
+        BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
+        acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
         addBulkEditJobCommand(jobCommand);
         return;
       }
@@ -119,7 +122,7 @@ public class JobCommandsReceiverService {
     parameters.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
     var now = new Date();
     parameters.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH,
-        new JobParameter(String.format("%s%s_%tF_%tT_%s", workDir, jobCommand.getExportType(), now, now, jobId)));
+      new JobParameter(String.format("%s%s_%tF_%tT_%s", workDir, jobCommand.getExportType(), now, now, jobId)));
 
     normalizeParametersForBursarExport(parameters, jobId);
 

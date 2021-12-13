@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Job",
+  "Job": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "description": "Job ID",
+        "type": "string",
+        "format": "uuid"
+      },
+      "name": {
+        "description": "Job name",
+        "type": "string",
+        "maxLength": 100
+      },
+      "description": {
+        "description": "Job description",
+        "type": "string"
+      },
+      "source": {
+        "description": "Job source",
+        "type": "string",
+        "maxLength": 50
+      },
+      "isSystemSource": {
+        "description": "Was the job created by system",
+        "type": "boolean"
+      },
+      "type": {
+        "description": "Export type",
+        "$ref": "exportType.json#/ExportType"
+      },
+      "exportTypeSpecificParameters": {
+        "$ref": "exportTypeSpecificParameters.json#/ExportTypeSpecificParameters"
+      },
+      "status": {
+        "description": "Job status",
+        "$ref": "jobStatus.json#/JobStatus"
+      },
+      "files": {
+        "description": "Export files URLs",
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "startTime": {
+        "description": "Job start timestamp",
+        "type": "string",
+        "format": "date-time"
+      },
+      "endTime": {
+        "description": "Job end timestamp",
+        "type": "string",
+        "format": "date-time"
+      },
+      "metadata": {
+        "description": "Standard FOLIO metadata",
+        "$ref": "common/metadata.json#/Metadata"
+      },
+      "outputFormat": {
+        "description": "Job output format",
+        "type": "string",
+        "maxLength": 50
+      },
+      "errorDetails": {
+        "description": "Job error details",
+        "type": "string"
+      },
+      "identifierType": {
+        "description": "Identifier type",
+        "$ref": "identifierType.json#/IdentifierType"
+      },
+      "entityType": {
+        "description": "Entity type",
+        "$ref": "entityType.json#/EntityType"
+      },
+      "progress": {
+        "description": "Progress for records being processed",
+        "$ref": "progress.json#/Progress"
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "type",
+      "exportTypeSpecificParameters"
+    ]
+  }
+}

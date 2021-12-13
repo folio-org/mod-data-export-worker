@@ -1,5 +1,8 @@
 package org.folio.dew.controller;
 
+
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -7,9 +10,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.folio.des.domain.dto.ExportType;
-import org.folio.des.domain.dto.JobCommand;
+import javax.annotation.PostConstruct;
+import org.apache.commons.io.FilenameUtils;
+import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
+import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.openapitools.api.JobIdApi;
@@ -30,8 +35,10 @@ import lombok.extern.log4j.Log4j2;
 import static java.lang.String.format;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Optional.ofNullable;
-import static org.folio.des.domain.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
-import static org.folio.des.domain.dto.EntityType.USER;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
+import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
+import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.domain.dto.EntityType.USER;
 
 
 @RestController
@@ -52,6 +59,13 @@ public class UploadController implements JobIdApi {
 
   @Value("${spring.application.name}")
   private String springApplicationName;
+  private String workDir;
+  private String fileName;
+
+  @PostConstruct
+  public void postConstruct() {
+    workDir = System.getProperty(TMP_DIR_PROPERTY) + PATH_SEPARATOR + springApplicationName + PATH_SEPARATOR;
+  }
 
   @Override
   public ResponseEntity<String> uploadCsvFile(UUID jobId, MultipartFile file) {
@@ -65,24 +79,21 @@ public class UploadController implements JobIdApi {
       log.debug(msg);
       return new ResponseEntity<>(msg, HttpStatus.NOT_FOUND);
     }
-    var workDir = System.getProperty(TMP_DIR_PROPERTY) + PATH_SEPARATOR + springApplicationName + PATH_SEPARATOR;
-    var fileName = workDir + file.getOriginalFilename();
+    var jobCommand = optionalJobCommand.get();
+
+    fileName = workDir + file.getOriginalFilename();
 
     try {
       Files.deleteIfExists(Paths.get(fileName));
       var filePath = Files.createFile(Paths.get(fileName));
       Files.write(filePath, file.getBytes());
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
-      JobCommand jobCommand = optionalJobCommand.get();
-      var parameters = jobCommand.getJobParameters().getParameters();
-      parameters.put("fileName", new JobParameter(fileName));
-      parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + format(OUTPUT_FILE_NAME_PATTERN, LocalDate.now().format(ofPattern("yyyy-MM-dd")), fileName)));
-      ofNullable(jobCommand.getIdentifierType()).ifPresent(type ->
-        parameters.put("identifierType", new JobParameter(type.getValue())));
-      ofNullable(jobCommand.getEntityType()).ifPresent(type ->
-        parameters.put("entityType", new JobParameter(type.getValue())));
-      var job =  getBulkEditJob(jobCommand);
-      var jobLaunchRequest = new JobLaunchRequest(job, new JobParameters(parameters));
+
+      prepareJobParameters(jobCommand);
+      var job =  getBulkEditJob(jobCommand.getExportType());
+      var jobLaunchRequest =
+        new JobLaunchRequest(job, jobCommand.getJobParameters());
+
       log.info("Launching bulk edit job.");
       var execution = exportJobManager.launchJob(jobLaunchRequest);
       if ((ExportType.BULK_EDIT_UPDATE.getValue() + "-" + USER.getValue()).equals(job.getName())) {
@@ -102,12 +113,33 @@ public class UploadController implements JobIdApi {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
-  private Job getBulkEditJob(JobCommand jobCommand) {
-    ExportType exportType = jobCommand.getExportType();
+  private Job getBulkEditJob(ExportType exportType) {
     return jobs.stream()
-      .filter(job -> job.getName().contains(exportType.getValue()))
+      .filter(job -> exportType.getValue().equals(job.getName()))
       .findFirst()
       .orElseThrow(() -> new IllegalStateException("Job was not found, aborting"));
   }
 
+  private void prepareJobParameters(JobCommand jobCommand) {
+    var parameters = jobCommand.getJobParameters().getParameters();
+    parameters.put(FILE_NAME, new JobParameter(fileName));
+    parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + format(OUTPUT_FILE_NAME_PATTERN, LocalDate.now().format(ofPattern("yyyy-MM-dd")), FilenameUtils.getBaseName(fileName))));
+    ofNullable(jobCommand.getIdentifierType()).ifPresent(type ->
+      parameters.put("identifierType", new JobParameter(type.getValue())));
+    ofNullable(jobCommand.getEntityType()).ifPresent(type ->
+      parameters.put("entityType", new JobParameter(type.getValue())));
+    if (BULK_EDIT_QUERY.equals(jobCommand.getExportType())) {
+      parameters.put("query", new JobParameter(readQueryFromFile(fileName)));
+    }
+    jobCommand.setJobParameters(new JobParameters(parameters));
+  }
+
+  public String readQueryFromFile(String fileName) {
+    try (BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName))) {
+      var res =  bufferedReader.readLine();
+      return res;
+    } catch (Exception e) {
+      throw new IllegalStateException(e.getMessage());
+    }
+  }
 }

@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "The job object for this EDI",
+  "ScheduleParameters": {
+    "type": "object",
+    "properties": {
+      "scheduleFrequency": {
+        "type": "integer",
+        "description": "Number of time periods"
+      },
+      "schedulePeriod": {
+        "type": "string",
+        "description": "Time period for repeating job",
+        "enum": [
+          "WEEK",
+          "DAY",
+          "HOUR",
+          "NONE"
+        ]
+      },
+      "schedulingDate": {
+        "description": "The date (MM/DD/YYYY) for this job to start running",
+        "format": "date-time",
+        "type": "string"
+      },
+      "scheduleTime": {
+        "type": "string",
+        "description": "Time to run the job"
+      },
+      "weekDays": {
+        "type": "array",
+        "description": "Day of week to run the job",
+        "items": {
+          "type": "string",
+          "description": "Day of week",
+          "enum": [
+            "MONDAY",
+            "TUESDAY",
+            "WEDNESDAY",
+            "THURSDAY",
+            "FRIDAY",
+            "SATURDAY",
+            "SUNDAY"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Type of export",
+  "ExportType": {
+    "type": "string",
+    "enum": [
+      "CIRCULATION_LOG",
+      "BURSAR_FEES_FINES",
+      "BATCH_VOUCHER_EXPORT",
+      "EDIFACT_ORDERS_EXPORT",
+      "ORDERS_EXPORT",
+      "INVOICE_EXPORT",
+      "BULK_EDIT_IDENTIFIERS",
+      "BULK_EDIT_QUERY",
+      "BULK_EDIT_UPDATE"
+    ],
+    "default": "BURSAR_FEES_FINES"
+  }
+}

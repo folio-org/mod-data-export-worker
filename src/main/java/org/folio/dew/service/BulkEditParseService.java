@@ -92,11 +92,15 @@ public class BulkEditParseService {
 
   private List<String> getUserDepartments(UserFormat userFormat) {
     String[] departmentNames = userFormat.getDepartments().split(ARRAY_DELIMITER);
-    return Arrays.stream(departmentNames).parallel()
-      .map(userReferenceService::getDepartmentByName)
-      .flatMap(departmentCollection -> departmentCollection.getDepartments().stream())
-      .map(Department::getId)
-      .collect(Collectors.toList());
+    if (departmentNames.length > 0) {
+      return Arrays.stream(departmentNames).parallel()
+        .filter(StringUtils::isNotEmpty)
+        .map(userReferenceService::getDepartmentByName)
+        .flatMap(departmentCollection -> departmentCollection.getDepartments().stream())
+        .map(Department::getId)
+        .collect(Collectors.toList());
+    }
+    return Collections.emptyList();
   }
 
   private List<String> getProxyFor(UserFormat userFormat) {

@@ -13,24 +13,24 @@ paths:
 components:
   schemas:
     logRecord:
-      $ref: 'schemas/circulationlog/logRecord.json#/LogRecord'
+      $ref: '../../../../folio-export-common/schemas/circulationlog/logRecord.json#/LogRecord'
     logRecordCollection:
-      $ref: 'schemas/circulationlog/logRecordCollection.json#/LogRecordCollection'
+      $ref: '../../../../folio-export-common/schemas/circulationlog/logRecordCollection.json#/LogRecordCollection'
     configuration:
-      $ref: 'schemas/configuration/configuration.json#/Configuration'
+      $ref: '../../../../folio-export-common/schemas/configuration/configuration.json#/Configuration'
     configurationCollection:
-      $ref: 'schemas/configuration/configurationCollection.json#/ConfigurationCollection'
+      $ref: '../../../../folio-export-common/schemas/configuration/configurationCollection.json#/ConfigurationCollection'
     job:
-      $ref: 'schemas/job.json#/Job'
+      $ref: '../../../../folio-export-common/schemas/job.json#/Job'
     exportType:
-      $ref: 'schemas/exportType.json#/ExportType'
+      $ref: '../../../../folio-export-common/schemas/exportType.json#/ExportType'
     entityType:
-      $ref: 'schemas/entityType.json#/EntityType'
+      $ref: '../../../../folio-export-common/schemas/entityType.json#/EntityType'
     progress:
-      $ref: 'schemas/progress.json#/Progress'
+      $ref: '../../../../folio-export-common/schemas/progress.json#/Progress'
     identifierType:
-      $ref: 'schemas/identifierType.json#/IdentifierType'
+      $ref: '../../../../folio-export-common/schemas/identifierType.json#/IdentifierType'
     jobStatus:
-      $ref: 'schemas/jobStatus.json#/JobStatus'
+      $ref: '../../../../folio-export-common/schemas/jobStatus.json#/JobStatus'
     exportTypeSpecificParameters:
-      $ref: 'schemas/exportTypeSpecificParameters.json#/ExportTypeSpecificParameters'
+      $ref: '../../../../folio-export-common/schemas/exportTypeSpecificParameters.json#/ExportTypeSpecificParameters'

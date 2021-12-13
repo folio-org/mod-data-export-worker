@@ -6,11 +6,8 @@ import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import org.folio.dew.domain.dto.Address;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
-import org.folio.dew.domain.dto.Personal;
-import org.folio.dew.domain.dto.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -29,8 +26,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.dew.utils.Constants.FILE_NAME;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 class BulkEditTest extends BaseBatchTest {
@@ -96,58 +91,10 @@ class BulkEditTest extends BaseBatchTest {
     @DisplayName("Run bulk-edit (update user record) successfully")
     void uploadUserRecordsJobTest() throws Exception {
       JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateUserRecordsJob);
-      //    ArgumentCaptor<User> userArgumentCaptor = createUserCaptor();
-//
     final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_UPDATE, USER_RECORD_CSV, false);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-      //    User user = userArgumentCaptor.getValue();
-      //    verifyUpdatedUser(user);
-//  }
-    }
-
-    private void verifyUpdatedUser(User user) {
-      assertEquals("User name", user.getUsername());
-      assertEquals("88a087b4-c3a1-485b-8a22-2fa8f7b661c4", user.getId());
-      assertEquals("74c30c60-0c55-4c03-94a3-0ea02e158807", user.getExternalSystemId());
-      assertEquals("12345", user.getBarcode());
-      assertTrue(user.getActive());
-      assertEquals("Type", user.getType());
-      assertEquals("PatronGroup", user.getPatronGroup());
-      assertEquals("Departments", user.getDepartments().iterator().next());
-      assertEquals("2021-12-19 03:23:37.989Z", user.getEnrollmentDate().toString());
-      assertEquals("2021-12-20 03:23:37.989Z", user.getExpirationDate().toString());
-      assertEquals("2021-12-05 02:23:37.989Z", user.getCreatedDate().toString());
-      assertEquals("2021-12-05 03:23:37.989Z", user.getUpdatedDate().toString());
-      assertEquals("Tag1", user.getTags().getTagList().iterator().next());
-
-      Map<String, Object> customFields = user.getCustomFields();
-      Map.Entry<String, Object> customField = customFields.entrySet().iterator().next();
-      assertEquals("Custom", customField.getKey());
-      assertEquals("field", customField.getValue().toString());
-
-      Personal personal = user.getPersonal();
-      assertEquals("Last name", personal.getLastName());
-      assertEquals("First name", personal.getFirstName());
-      assertEquals("Middle name", personal.getMiddleName());
-      assertEquals("Preferred first name", personal.getPreferredFirstName());
-      assertEquals("Email", personal.getEmail());
-      assertEquals("Phone", personal.getPhone());
-      assertEquals("Mobile phone", personal.getMobilePhone());
-      assertEquals("1998-12-19 03:23:37.989Z", personal.getDateOfBirth().toString());
-      assertEquals("b376d1f8-6dd0-49af-8bac-13e177cc9a73", personal.getPreferredContactTypeId());
-
-      Address address = personal.getAddresses().iterator().next();
-      assertEquals("addressId", address.getId());
-      assertEquals("BE", address.getCountryId());
-      assertEquals("Address line 1", address.getAddressLine1());
-      assertEquals("Address line 2", address.getAddressLine2());
-      assertEquals("Some City", address.getCity());
-      assertEquals("Some Region", address.getRegion());
-      assertEquals("12345", address.getPostalCode());
-      assertTrue(address.getPrimaryAddress());
-      assertEquals("HomeAddress", address.getAddressTypeId());
     }
 
   @SneakyThrows

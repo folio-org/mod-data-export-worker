@@ -91,8 +91,7 @@ public class UploadController implements JobIdApi {
 
       prepareJobParameters(jobCommand);
       var job =  getBulkEditJob(jobCommand.getExportType());
-      var jobLaunchRequest =
-        new JobLaunchRequest(job, jobCommand.getJobParameters());
+      var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
 
       log.info("Launching bulk edit job.");
       var execution = exportJobManager.launchJob(jobLaunchRequest);

@@ -14,7 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BulkEditUpdateUserRecordsForRollBackWriter implements ItemWriter<User> {
 
-  private UserClient userClient;
+  private final UserClient userClient;
 
   @Override
   public void write(List<? extends User> items) throws Exception {

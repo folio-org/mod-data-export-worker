@@ -3,15 +3,16 @@ package org.folio.dew.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.ExportJobManager;
+import org.folio.dew.utils.Constants;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import org.springframework.batch.core.launch.JobOperator;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -31,16 +32,17 @@ public class BulkEditRollBackService {
   @Autowired
   @Qualifier("bulkEditRollBackJob")
   private Job job;
+  @Autowired
+  private BulkEditStopJobLauncher stopJobLauncher;
 
   public void stopJobExecution(UUID jobId) {
     try {
       if (executionIdPerJobId.containsKey(jobId)) {
         var parameters = new HashMap<String, JobParameter>();
-        parameters.put("jobId", new JobParameter(jobId.toString()));
+        parameters.put(Constants.JOB_ID, new JobParameter(jobId.toString()));
         //ToDo find file
         jobOperator.stop(executionIdPerJobId.get(jobId));
-        var jobLaunchRequest = new JobLaunchRequest(job, new JobParameters(parameters));
-        exportJobManager.launchJob(jobLaunchRequest);
+        stopJobLauncher.run(job, new JobParameters(parameters));
       }
     } catch (Exception e) {
       log.error(e.getMessage());

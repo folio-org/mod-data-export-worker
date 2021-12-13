@@ -10,7 +10,6 @@ import org.springframework.batch.item.file.transform.LineTokenizer;
 
 public class JobConfigHelper {
 
-
   public static LineMapper<UserFormat> createUserLineMapper() {
     DefaultLineMapper<UserFormat> userLineMapper = new DefaultLineMapper<>();
 

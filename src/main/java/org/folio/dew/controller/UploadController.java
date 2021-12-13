@@ -31,6 +31,7 @@ import static java.lang.String.format;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Optional.ofNullable;
 import static org.folio.des.domain.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
+import static org.folio.des.domain.dto.EntityType.USER;
 
 
 @RestController
@@ -84,7 +85,7 @@ public class UploadController implements JobIdApi {
       var jobLaunchRequest = new JobLaunchRequest(job, new JobParameters(parameters));
       log.info("Launching bulk edit job.");
       var execution = exportJobManager.launchJob(jobLaunchRequest);
-      if (ExportType.BULK_EDIT_UPDATE.getValue().equals(job.getName())) {
+      if ((ExportType.BULK_EDIT_UPDATE.getValue() + "-" + USER.getValue()).equals(job.getName())) {
         bulkEditRollBackService.putExecutionPerJob(execution.getId(), jobId);
       }
     } catch (Exception e) {

@@ -29,7 +29,7 @@ public class BulkEditUpdateUserRecordsAfterRollBackJobConfig {
     Step bulkEditRollBackRecordsStep,
     JobBuilderFactory jobBuilderFactory) {
     return jobBuilderFactory
-      .get("bulk-edit-roll-back")
+      .get("BULK_EDIT_ROLL_BACK")
       .incrementer(new RunIdIncrementer())
       .listener(listener)
       .flow(bulkEditRollBackRecordsStep)
@@ -39,6 +39,7 @@ public class BulkEditUpdateUserRecordsAfterRollBackJobConfig {
 
   @Bean
   public Step bulkEditRollBackRecordsStep(
+    @Qualifier("bulkEditRollBackReader")
     ItemReader<UserFormat> reader,
     @Qualifier("bulkEditFilterUserRecordsForRollBackProcessor")
     ItemProcessor<UserFormat, User> processor,
@@ -59,7 +60,7 @@ public class BulkEditUpdateUserRecordsAfterRollBackJobConfig {
   public ItemReader<UserFormat> bulkEditRollBackReader(@Value("#{jobParameters['fileName']}") String fileName) {
    LineMapper<UserFormat> userLineMapper = JobConfigHelper.createUserLineMapper();
     return new FlatFileItemReaderBuilder<UserFormat>()
-      .name("userReader")
+      .name("bulkEditRollBackReader")
       .resource(new FileSystemResource(fileName))
       .linesToSkip(1)
       .lineMapper(userLineMapper)

@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.Address;
 import org.folio.dew.domain.dto.Department;
 import org.folio.dew.domain.dto.Personal;
@@ -100,15 +101,20 @@ public class BulkEditParseService {
 
   private List<String> getProxyFor(UserFormat userFormat) {
     String[] proxyUserNames = userFormat.getProxyFor().split(ARRAY_DELIMITER);
-    return Arrays.stream(proxyUserNames)
-      .parallel()
-      .map(userReferenceService::getUserByName)
-      .flatMap(userCollection -> userCollection.getUsers().stream())
-      .map(User::getId)
-      .map(userReferenceService::getProxyForByProxyUserId)
-      .flatMap(proxyForCollection -> proxyForCollection.getProxiesFor().stream())
-      .map(ProxyFor::getId)
-      .collect(Collectors.toList());
+    if (proxyUserNames.length > 0) {
+      return Arrays.stream(proxyUserNames)
+        .parallel()
+        .filter(StringUtils::isNotEmpty)
+        .map(userReferenceService::getUserByName)
+        .flatMap(userCollection -> userCollection.getUsers().stream())
+        .map(User::getId)
+        .filter(StringUtils::isNotEmpty)
+        .map(userReferenceService::getProxyForByProxyUserId)
+        .flatMap(proxyForCollection -> proxyForCollection.getProxiesFor().stream())
+        .map(ProxyFor::getId)
+        .collect(Collectors.toList());
+    }
+    return Collections.emptyList();
   }
 
   private Personal getUserPersonalInfo(UserFormat userFormat) {
@@ -133,10 +139,14 @@ public class BulkEditParseService {
 
   private List<Address> getUserAddresses(UserFormat userFormat) {
     String[] addresses = userFormat.getAddresses().split(ITEM_DELIMITER_PATTERN);
-    return Arrays.stream(addresses)
-      .parallel()
-      .map(this::getAddressFromString)
-      .collect(Collectors.toList());
+    if (addresses.length > 0) {
+      return Arrays.stream(addresses)
+        .parallel()
+        .filter(StringUtils::isNotEmpty)
+        .map(this::getAddressFromString)
+        .collect(Collectors.toList());
+    }
+    return Collections.emptyList();
   }
 
   private Address getAddressFromString(String stringAddress) {

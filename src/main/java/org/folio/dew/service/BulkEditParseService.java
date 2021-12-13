@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.Address;
@@ -90,7 +91,7 @@ public class BulkEditParseService {
     return null;
   }
 
-  private List<String> getUserDepartments(UserFormat userFormat) {
+  private List<UUID> getUserDepartments(UserFormat userFormat) {
     String[] departmentNames = userFormat.getDepartments().split(ARRAY_DELIMITER);
     if (departmentNames.length > 0) {
       return Arrays.stream(departmentNames).parallel()
@@ -98,6 +99,7 @@ public class BulkEditParseService {
         .map(userReferenceService::getDepartmentByName)
         .flatMap(departmentCollection -> departmentCollection.getDepartments().stream())
         .map(Department::getId)
+        .map(UUID::fromString)
         .collect(Collectors.toList());
     }
     return Collections.emptyList();

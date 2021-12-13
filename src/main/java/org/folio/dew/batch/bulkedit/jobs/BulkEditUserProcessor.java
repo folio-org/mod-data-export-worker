@@ -80,7 +80,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
   private String fetchDepartments(User user) {
     if (nonNull(user.getDepartments())) {
       return user.getDepartments().stream()
-        .map(id -> userReferenceService.getDepartmentById(id).getName())
+        .map(id -> userReferenceService.getDepartmentById(id.toString()).getName())
         .collect(Collectors.joining(ARRAY_DELIMITER));
     }
     return EMPTY;

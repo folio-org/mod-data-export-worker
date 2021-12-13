@@ -13,31 +13,31 @@ paths:
 components:
   schemas:
     userdataCollection:
-      $ref: 'schemas/user/userCollection.json#/UserCollection'
+      $ref: '../../../../folio-export-common/schemas/user/userCollection.json#/UserCollection'
     accountdataCollection:
-      $ref: 'schemas/feesfines/accountdataCollection.json#/AccountdataCollection'
+      $ref: '../../../../folio-export-common/schemas/feesfines/accountdataCollection.json#/AccountdataCollection'
     feefineactionCollection:
-      $ref: 'schemas/feesfines/feefineactionCollection.json#/FeefineactionCollection'
+      $ref: '../../../../folio-export-common/schemas/feesfines/feefineactionCollection.json#/FeefineactionCollection'
     transferdataCollection:
-      $ref: 'schemas/feesfines/transferdataCollection.json#/TransferdataCollection'
+      $ref: '../../../../folio-export-common/schemas/feesfines/transferdataCollection.json#/TransferdataCollection'
     servicepoints:
-      $ref: 'schemas/feesfines/servicepoints.json#/ServicePoints'
+      $ref: '../../../../folio-export-common/schemas/feesfines/servicepoints.json#/ServicePoints'
     bursarFeeFines:
-      $ref: 'schemas/bursarFeeFines.json#/BursarFeeFines'
+      $ref: '../../../../folio-export-common/schemas/bursarFeeFines.json#/BursarFeeFines'
     bursarFeeFinesTypeMapping:
-      $ref: 'schemas/bursarFeeFinesTypeMapping.json#/BursarFeeFinesTypeMapping'
+      $ref: '../../../../folio-export-common/schemas/bursarFeeFinesTypeMapping.json#/BursarFeeFinesTypeMapping'
     edi:
-      $ref: 'schemas/acquisitions/edi.json#/Edi'
+      $ref: '../../../../folio-export-common/schemas/acquisitions/edi.json#/Edi'
     ediConfig:
-      $ref: 'schemas/acquisitions/ediConfig.json#/EdiConfig'
+      $ref: '../../../../folio-export-common/schemas/acquisitions/ediConfig.json#/EdiConfig'
     ediEmail:
-      $ref: 'schemas/acquisitions/ediEmail.json#/EdiEmail'
+      $ref: '../../../../folio-export-common/schemas/acquisitions/ediEmail.json#/EdiEmail'
     ediFtp:
-      $ref: 'schemas/acquisitions/ediFtp.json#/EdiFtp'
+      $ref: '../../../../folio-export-common/schemas/acquisitions/ediFtp.json#/EdiFtp'
     ediSchedule:
-      $ref: 'schemas/acquisitions/ediSchedule.json#/EdiSchedule'
+      $ref: '../../../../folio-export-common/schemas/acquisitions/ediSchedule.json#/EdiSchedule'
     scheduleParameters:
-      $ref: 'schemas/acquisitions/scheduleParameters.json#/ScheduleParameters'
+      $ref: '../../../../folio-export-common/schemas/acquisitions/scheduleParameters.json#/ScheduleParameters'
     vendorEdiOrdersExportConfig:
-      $ref: 'schemas/acquisitions/vendorEdiOrdersExportConfig.json#/VendorEdiOrdersExportConfig'
+      $ref: '../../../../folio-export-common/schemas/acquisitions/vendorEdiOrdersExportConfig.json#/VendorEdiOrdersExportConfig'
 

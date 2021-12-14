@@ -8,7 +8,7 @@ import org.springframework.batch.item.file.mapping.FieldSetMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.item.file.transform.LineTokenizer;
 
-public class JobConfigHelper {
+public class JobConfigReaderHelper {
 
   public static LineMapper<UserFormat> createUserLineMapper() {
     DefaultLineMapper<UserFormat> userLineMapper = new DefaultLineMapper<>();
@@ -26,33 +26,7 @@ public class JobConfigHelper {
   private static LineTokenizer createUserLineTokenizer() {
     DelimitedLineTokenizer userLineTokenizer = new DelimitedLineTokenizer();
     userLineTokenizer.setDelimiter(",");
-    userLineTokenizer.setNames(new String[]{
-      "username",
-      "id",
-      "externalSystemId",
-      "barcode",
-      "active",
-      "type",
-      "patronGroup",
-      "departments",
-      "proxyFor",
-      "lastName",
-      "firstName",
-      "middleName",
-      "preferredFirstName",
-      "email",
-      "phone",
-      "mobilePhone",
-      "dateOfBirth",
-      "addresses",
-      "preferredContactTypeId",
-      "enrollmentDate",
-      "expirationDate",
-      "createdDate",
-      "updatedDate",
-      "tags",
-      "customFields"
-    });
+    userLineTokenizer.setNames(UserFormat.getUserFieldsArray());
     return userLineTokenizer;
   }
 
@@ -62,6 +36,4 @@ public class JobConfigHelper {
     userInformationMapper.setTargetType(UserFormat.class);
     return userInformationMapper;
   }
-
-
 }

@@ -1,6 +1,6 @@
 package org.folio.dew.batch.bulkedit.jobs.rollbackjob;
 
-import org.folio.dew.batch.bulkedit.jobs.JobConfigHelper;
+import org.folio.dew.batch.bulkedit.jobs.JobConfigReaderHelper;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
 import org.springframework.batch.core.Job;
@@ -59,7 +59,7 @@ public class BulkEditUpdateUserRecordsAfterRollBackJobConfig {
   @Bean
   @StepScope
   public FlatFileItemReader<UserFormat> bulkEditRollBackReader(@Value("#{jobParameters['fileName']}") String fileName) {
-   LineMapper<UserFormat> userLineMapper = JobConfigHelper.createUserLineMapper();
+   LineMapper<UserFormat> userLineMapper = JobConfigReaderHelper.createUserLineMapper();
     return new FlatFileItemReaderBuilder<UserFormat>()
       .name("bulkEditRollBackReader")
       .resource(new FileSystemResource(fileName))

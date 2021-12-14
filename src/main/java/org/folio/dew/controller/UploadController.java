@@ -39,6 +39,8 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.domain.dto.EntityType.USER;
+import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
+import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 
 
 @RestController
@@ -46,8 +48,7 @@ import static org.folio.dew.domain.dto.EntityType.USER;
 @Log4j2
 @RequiredArgsConstructor
 public class UploadController implements JobIdApi {
-  private static final String TMP_DIR_PROPERTY = "java.io.tmpdir";
-  private static final String PATH_SEPARATOR = "/";
+
   private static final String OUTPUT_FILE_NAME_PATTERN = "%s-Matched-Records-%s";
   private static final String FILE_UPLOAD_ERROR = "Cannot upload a file. Reason: %s.";
   private static final String JOB_COMMAND_NOT_FOUND_ERROR = "JobCommand with id %s doesn't exist.";
@@ -108,7 +109,7 @@ public class UploadController implements JobIdApi {
 
   @Override
   public ResponseEntity<String> rollBackCsvFile(UUID jobId) {
-    bulkEditRollBackService.stopJobExecution(jobId);
+    bulkEditRollBackService.stopAndRollBackJobExecutionByJobId(jobId);
     return new ResponseEntity<>(HttpStatus.OK);
   }
 

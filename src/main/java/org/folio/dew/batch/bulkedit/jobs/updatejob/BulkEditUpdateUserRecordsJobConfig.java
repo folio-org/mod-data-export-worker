@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bulkedit.jobs.updatejob;
 
+import org.folio.dew.batch.bulkedit.jobs.JobConfigReaderHelper;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
 import org.springframework.batch.core.Job;
@@ -65,7 +66,7 @@ public class BulkEditUpdateUserRecordsJobConfig {
   @Bean
   @StepScope
   public FlatFileItemReader<UserFormat> csvUserRecordsReader(@Value("#{jobParameters['" + FILE_NAME + "']}") String fileName) {
-    LineMapper<UserFormat> userLineMapper = createUserLineMapper();
+    LineMapper<UserFormat> userLineMapper = JobConfigReaderHelper.createUserLineMapper();
 
     return new FlatFileItemReaderBuilder<UserFormat>()
       .name("userReader")
@@ -75,30 +76,4 @@ public class BulkEditUpdateUserRecordsJobConfig {
       .build();
   }
 
-  private LineMapper<UserFormat> createUserLineMapper() {
-    DefaultLineMapper<UserFormat> userLineMapper = new DefaultLineMapper<>();
-
-    LineTokenizer userLineTokenizer = createUserLineTokenizer();
-    userLineMapper.setLineTokenizer(userLineTokenizer);
-
-    FieldSetMapper<UserFormat> userInformationMapper =
-      createUserInformationMapper();
-    userLineMapper.setFieldSetMapper(userInformationMapper);
-
-    return userLineMapper;
-  }
-
-  private LineTokenizer createUserLineTokenizer() {
-    DelimitedLineTokenizer userLineTokenizer = new DelimitedLineTokenizer();
-    userLineTokenizer.setDelimiter(",");
-    userLineTokenizer.setNames(UserFormat.getUserFieldsArray());
-    return userLineTokenizer;
-  }
-
-  private FieldSetMapper<UserFormat> createUserInformationMapper() {
-    BeanWrapperFieldSetMapper<UserFormat> userInformationMapper =
-      new BeanWrapperFieldSetMapper<>();
-    userInformationMapper.setTargetType(UserFormat.class);
-    return userInformationMapper;
-  }
 }

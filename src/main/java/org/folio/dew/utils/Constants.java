@@ -5,6 +5,8 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class Constants {
 
+  public static final String TMP_DIR_PROPERTY = "java.io.tmpdir";
+  public static final String PATH_SEPARATOR = "/";
   public static final String ARRAY_DELIMITER = ";";
   public static final String ITEM_DELIMITER = "|";
   public static final String ITEM_DELIMITER_PATTERN = "\\|";

@@ -8,6 +8,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import org.apache.commons.net.ftp.FTPClient;
+import org.folio.dew.config.JacksonConfiguration;
 import org.folio.dew.config.properties.FTPProperties;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -24,7 +25,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
-@SpringBootTest()
+@SpringBootTest(classes ={JacksonConfiguration.class,
+  FTPObjectStorageRepository.class,
+  FTPProperties.class,
+  FTPClient.class})
 class FTPObjectStorageRepositoryTest {
 
   @Autowired

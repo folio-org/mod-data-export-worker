@@ -17,6 +17,7 @@ import org.folio.dew.client.FeefineactionsClient;
 import org.folio.dew.client.ServicePointClient;
 import org.folio.dew.client.TransferClient;
 import org.folio.dew.client.UserClient;
+import org.folio.dew.config.JacksonConfiguration;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.AccountdataCollection;
 import org.folio.dew.domain.dto.Feefineaction;
@@ -29,7 +30,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.MockBeans;
 
-@SpringBootTest(classes = BursarExportServiceImpl.class)
+@SpringBootTest(classes = {JacksonConfiguration.class, BursarExportServiceImpl.class})
 @MockBeans({
   @MockBean(UserClient.class),
   @MockBean(AccountBulkClient.class),

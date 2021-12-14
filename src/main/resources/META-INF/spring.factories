@@ -1,0 +1,4 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  org.folio.dew.config.JacksonConfiguration,\
+  org.folio.dew.config.kafka.KafkaService,\
+  org.folio.dew.config.kafka.KafkaConfiguration

@@ -8,7 +8,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.Address;
 import org.folio.dew.domain.dto.Department;
 import org.folio.dew.domain.dto.Personal;
@@ -89,26 +91,36 @@ public class BulkEditParseService {
     return null;
   }
 
-  private List<String> getUserDepartments(UserFormat userFormat) {
+  private List<UUID> getUserDepartments(UserFormat userFormat) {
     String[] departmentNames = userFormat.getDepartments().split(ARRAY_DELIMITER);
-    return Arrays.stream(departmentNames).parallel()
-      .map(userReferenceService::getDepartmentByName)
-      .flatMap(departmentCollection -> departmentCollection.getDepartments().stream())
-      .map(Department::getId)
-      .collect(Collectors.toList());
+    if (departmentNames.length > 0) {
+      return Arrays.stream(departmentNames).parallel()
+        .filter(StringUtils::isNotEmpty)
+        .map(userReferenceService::getDepartmentByName)
+        .flatMap(departmentCollection -> departmentCollection.getDepartments().stream())
+        .map(Department::getId)
+        .map(UUID::fromString)
+        .collect(Collectors.toList());
+    }
+    return Collections.emptyList();
   }
 
   private List<String> getProxyFor(UserFormat userFormat) {
     String[] proxyUserNames = userFormat.getProxyFor().split(ARRAY_DELIMITER);
-    return Arrays.stream(proxyUserNames)
-      .parallel()
-      .map(userReferenceService::getUserByName)
-      .flatMap(userCollection -> userCollection.getUsers().stream())
-      .map(User::getId)
-      .map(userReferenceService::getProxyForByProxyUserId)
-      .flatMap(proxyForCollection -> proxyForCollection.getProxiesFor().stream())
-      .map(ProxyFor::getId)
-      .collect(Collectors.toList());
+    if (proxyUserNames.length > 0) {
+      return Arrays.stream(proxyUserNames)
+        .parallel()
+        .filter(StringUtils::isNotEmpty)
+        .map(userReferenceService::getUserByName)
+        .flatMap(userCollection -> userCollection.getUsers().stream())
+        .map(User::getId)
+        .filter(StringUtils::isNotEmpty)
+        .map(userReferenceService::getProxyForByProxyUserId)
+        .flatMap(proxyForCollection -> proxyForCollection.getProxiesFor().stream())
+        .map(ProxyFor::getId)
+        .collect(Collectors.toList());
+    }
+    return Collections.emptyList();
   }
 
   private Personal getUserPersonalInfo(UserFormat userFormat) {
@@ -133,10 +145,14 @@ public class BulkEditParseService {
 
   private List<Address> getUserAddresses(UserFormat userFormat) {
     String[] addresses = userFormat.getAddresses().split(ITEM_DELIMITER_PATTERN);
-    return Arrays.stream(addresses)
-      .parallel()
-      .map(this::getAddressFromString)
-      .collect(Collectors.toList());
+    if (addresses.length > 0) {
+      return Arrays.stream(addresses)
+        .parallel()
+        .filter(StringUtils::isNotEmpty)
+        .map(this::getAddressFromString)
+        .collect(Collectors.toList());
+    }
+    return Collections.emptyList();
   }
 
   private Address getAddressFromString(String stringAddress) {

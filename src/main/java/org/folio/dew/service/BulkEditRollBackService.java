@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.utils.Constants;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
@@ -53,6 +54,7 @@ public class BulkEditRollBackService {
   public void stopAndRollBackJobExecutionByJobId(UUID jobId) {
     try {
       if (executionIdPerJobId.containsKey(jobId)) {
+        log.info("Roll-back for jobId {} is started", jobId.toString());
         jobOperator.stop(executionIdPerJobId.get(jobId));
         rollBackExecutionByJobId(jobId);
       }
@@ -77,6 +79,13 @@ public class BulkEditRollBackService {
   public boolean isUserIdExistForJob(String userId, UUID jobId) {
     return usersIdsToRollBackForJobId.get(jobId) != null
       && usersIdsToRollBackForJobId.get(jobId).contains(userId);
+  }
+
+  public void cleanJobData(String exitCode, UUID jobId) {
+    if (!ExitStatus.STOPPED.getExitCode().equals(exitCode)) {
+      executionIdPerJobId.remove(jobId);
+      usersIdsToRollBackForJobId.remove(jobId);
+    }
   }
 
   public void cleanJobData(UUID jobId) {

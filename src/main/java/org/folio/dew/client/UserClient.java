@@ -26,6 +26,6 @@ public interface UserClient {
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   UserCollection getUserByQuery(@RequestParam String query);
 
-  @PutMapping(value = "/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
-  User updateUser(@RequestBody User user, @PathVariable String userId);
+  @PutMapping(value = "/{userId}",consumes = MediaType.APPLICATION_JSON_VALUE)
+  void updateUser(@RequestBody User user, @PathVariable String userId);
 }

@@ -2,7 +2,6 @@ package org.folio.dew.batch.bulkedit.jobs.updatejob;
 
 import lombok.RequiredArgsConstructor;
 import org.folio.dew.service.BulkEditRollBackService;
-import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.configuration.annotation.JobScope;
@@ -25,7 +24,6 @@ public class BulkEditUpdateUserRecordsListener implements JobExecutionListener {
 
   @Override
   public void afterJob(JobExecution jobExecution) {
-    if (jobExecution.getExitStatus() != ExitStatus.STOPPED)
-      bulkEditRollBackService.cleanJobData(UUID.fromString(jobId));
+    bulkEditRollBackService.cleanJobData(jobExecution.getExitStatus().getExitCode(), UUID.fromString(jobId));
   }
 }

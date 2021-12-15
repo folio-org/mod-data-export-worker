@@ -49,7 +49,7 @@ public class BulkEditUpdateUserRecordsAfterRollBackJobConfig {
     StepBuilderFactory stepBuilderFactory) {
     return stepBuilderFactory
       .get("bulkEditRollBackRecordsStep")
-      .<UserFormat, User>chunk(10)
+      .<UserFormat, User>chunk(1)
       .reader(reader)
       .processor(processor)
       .writer(writer)

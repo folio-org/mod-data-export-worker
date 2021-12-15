@@ -1,7 +1,6 @@
 package org.folio.dew.batch.bulkedit.jobs.rollbackjob;
 
 import lombok.RequiredArgsConstructor;
-import org.folio.dew.batch.bulkedit.jobs.updatejob.BulkEditUpdateUserRecordsProcessor;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.service.BulkEditParseService;

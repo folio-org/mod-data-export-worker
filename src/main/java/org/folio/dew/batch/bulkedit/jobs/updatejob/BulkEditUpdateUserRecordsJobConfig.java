@@ -15,18 +15,12 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
-import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
-import org.springframework.batch.item.file.mapping.DefaultLineMapper;
-import org.springframework.batch.item.file.mapping.FieldSetMapper;
-import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
-import org.springframework.batch.item.file.transform.LineTokenizer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 
-import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 
@@ -39,7 +33,7 @@ public class BulkEditUpdateUserRecordsJobConfig {
       Step bulkEditUpdateRecordsStep,
       JobBuilderFactory jobBuilderFactory) {
     return jobBuilderFactory
-      .get(BULK_EDIT_UPDATE.getValue() + "-" + USER.getValue())
+      .get(BULK_EDIT_UPDATE.getValue())
       .incrementer(new RunIdIncrementer())
       .listener(listener)
       .flow(bulkEditUpdateRecordsStep)
@@ -56,7 +50,7 @@ public class BulkEditUpdateUserRecordsJobConfig {
     StepBuilderFactory stepBuilderFactory) {
     return stepBuilderFactory
       .get("bulkEditUpdateRecordsStep")
-      .<UserFormat, User>chunk(10)
+      .<UserFormat, User>chunk(1)
       .reader(csvUserRecordsReader)
       .processor(processor)
       .writer(writer)

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.service.BulkEditRollBackService;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 @JobScope
 @Qualifier("updateUserRecordsWriter")
 @RequiredArgsConstructor
+@Log4j2
 public class BulkEditUpdateUserRecordsWriter implements ItemWriter<User> {
 
   @Value("#{jobParameters['jobId']}")
@@ -28,6 +30,7 @@ public class BulkEditUpdateUserRecordsWriter implements ItemWriter<User> {
   public void write(List<? extends User> items) throws Exception {
     items.forEach(user -> {
       userClient.updateUser(user, user.getId());
+      log.info("Update user with id - {}", user.getId());
       bulkEditRollBackService.putUserIdForJob(user.getId(), UUID.fromString(jobId));
     });
   }

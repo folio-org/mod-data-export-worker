@@ -37,7 +37,7 @@ public class BulkEditRollBackService {
 
   private final Map<UUID, Long> executionIdPerJobId = new HashMap<>();
   private final Map<UUID, Set<String>> usersIdsToRollBackForJobId = new HashMap<>();
-  private final Map<UUID, String> jobIdIdsToRollBackPerJobId = new HashMap<>();
+  private final Map<UUID, String> jobIdIdsWithRollBackFilePerJobId = new HashMap<>();
 
   private String workDir;
   @Value("${spring.application.name}")
@@ -71,15 +71,11 @@ public class BulkEditRollBackService {
 
   public void putExecutionInfoPerJob(long executionId, UUID jobId, String fileUploadName) {
     executionIdPerJobId.put(jobId, executionId);
-    jobIdIdsToRollBackPerJobId.put(jobId, getJobIdFromFileName(fileUploadName));
+    jobIdIdsWithRollBackFilePerJobId.put(jobId, getJobIdFromFileName(fileUploadName));
   }
 
   public void putUserIdForJob(String userId, UUID jobId) {
-    var existUsersIds = usersIdsToRollBackForJobId.get(jobId);
-    if (existUsersIds == null) {
-      existUsersIds = new HashSet<>();
-      usersIdsToRollBackForJobId.put(jobId, existUsersIds);
-    }
+    var existUsersIds = usersIdsToRollBackForJobId.computeIfAbsent(jobId, key -> new HashSet<>());
     existUsersIds.add(userId);
   }
 
@@ -88,18 +84,26 @@ public class BulkEditRollBackService {
       && usersIdsToRollBackForJobId.get(jobId).contains(userId);
   }
 
+  public boolean isExecutionIdExistForJob(UUID jobId) {
+    return executionIdPerJobId.containsKey(jobId);
+  }
+
+  public boolean isJobIdWithRollBackFileExistForJob(UUID jobId) {
+    return jobIdIdsWithRollBackFilePerJobId.containsKey(jobId);
+  }
+
   public void cleanJobData(String exitCode, UUID jobId) {
     if (!ExitStatus.STOPPED.getExitCode().equals(exitCode)) {
       executionIdPerJobId.remove(jobId);
       usersIdsToRollBackForJobId.remove(jobId);
-      jobIdIdsToRollBackPerJobId.remove(jobId);
+      jobIdIdsWithRollBackFilePerJobId.remove(jobId);
     }
   }
 
   public void cleanJobData(UUID jobId) {
     executionIdPerJobId.remove(jobId);
     usersIdsToRollBackForJobId.remove(jobId);
-    jobIdIdsToRollBackPerJobId.remove(jobId);
+    jobIdIdsWithRollBackFilePerJobId.remove(jobId);
   }
 
   private String getJobIdFromFileName(String fileUploadName) {
@@ -107,9 +111,9 @@ public class BulkEditRollBackService {
   }
 
   private void rollBackExecutionByJobId(UUID jobId) throws Exception {
-    var jobIdToRollBack = jobIdIdsToRollBackPerJobId.get(jobId);
-    var fileToRollBack = workDir + jobIdToRollBack + "_origin.csv";
-    var fileToRollBackMinIOPath = dataExportSpringClient.getJobById(jobIdToRollBack).getFiles().get(0);
+    var jobIdWithRollBackFile = jobIdIdsWithRollBackFilePerJobId.get(jobId);
+    var fileToRollBack = workDir + jobIdWithRollBackFile + "_origin.csv";
+    var fileToRollBackMinIOPath = dataExportSpringClient.getJobById(jobIdWithRollBackFile).getFiles().get(0);
     var objectName = getObjectName(fileToRollBackMinIOPath);
     minIOObjectStorageRepository.downloadObject(objectName, fileToRollBack);
     var parameters = new HashMap<String, JobParameter>();

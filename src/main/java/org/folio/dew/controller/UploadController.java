@@ -5,7 +5,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,12 +32,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import static java.lang.String.format;
-import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Optional.ofNullable;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.utils.Constants.FILE_NAME;
-import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 
@@ -90,14 +87,14 @@ public class UploadController implements JobIdApi {
       Files.write(filePath, file.getBytes());
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
 
-      prepareJobParameters(jobCommand);
+      prepareJobParameters(jobId, jobCommand);
       var job =  getBulkEditJob(jobCommand.getExportType());
       var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
 
       log.info("Launching bulk edit job.");
       var execution = exportJobManager.launchJob(jobLaunchRequest);
       if ((ExportType.BULK_EDIT_UPDATE.getValue()).equals(job.getName())) {
-        bulkEditRollBackService.putExecutionPerJob(execution.getId(), jobId);
+        bulkEditRollBackService.putExecutionInfoPerJob(execution.getId(), jobId, fileName);
       }
     } catch (Exception e) {
       String errorMessage = format(FILE_UPLOAD_ERROR, e.getMessage());
@@ -109,8 +106,8 @@ public class UploadController implements JobIdApi {
 
   @Override
   public ResponseEntity<String> rollBackCsvFile(UUID jobId) {
-    bulkEditRollBackService.stopAndRollBackJobExecutionByJobId(jobId);
-    return new ResponseEntity<>(HttpStatus.OK);
+    var message = bulkEditRollBackService.stopAndRollBackJobExecutionByJobId(jobId);
+    return new ResponseEntity<>(message, HttpStatus.OK);
   }
 
   private Job getBulkEditJob(ExportType exportType) {
@@ -120,10 +117,11 @@ public class UploadController implements JobIdApi {
       .orElseThrow(() -> new IllegalStateException("Job was not found, aborting"));
   }
 
-  private void prepareJobParameters(JobCommand jobCommand) {
+  private void prepareJobParameters(UUID jobId, JobCommand jobCommand) {
     var parameters = jobCommand.getJobParameters().getParameters();
     parameters.put(FILE_NAME, new JobParameter(fileName));
-    parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + format(OUTPUT_FILE_NAME_PATTERN, LocalDate.now().format(ofPattern("yyyy-MM-dd")), FilenameUtils.getBaseName(fileName))));
+    var outputFile = workDir + jobId.toString()  + "_" + FilenameUtils.getBaseName(fileName);
+    parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(outputFile));
     ofNullable(jobCommand.getIdentifierType()).ifPresent(type ->
       parameters.put("identifierType", new JobParameter(type.getValue())));
     ofNullable(jobCommand.getEntityType()).ifPresent(type ->

@@ -22,7 +22,7 @@ public class BulkEditUpdateUserRecordsForRollBackWriter implements ItemWriter<Us
   public void write(List<? extends User> items) throws Exception {
     items.forEach(user -> {
       userClient.updateUser(user, user.getId());
-      log.info("Roll-back user with id - {}", user.getId());
+      log.info("Rollback user with id - {}", user.getId());
     });
   }
 }

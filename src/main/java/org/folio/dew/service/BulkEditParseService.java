@@ -23,8 +23,6 @@ import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 
-import javax.print.DocFlavor;
-
 import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;

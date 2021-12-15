@@ -32,8 +32,12 @@ import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 @Log4j2
 public class BulkEditRollBackService {
 
-  private Map<UUID, Long> executionIdPerJobId = new HashMap<>();
-  private Map<UUID, Set<String>> usersIdsToRollBackForJobId = new HashMap<>();
+  private static final String UPDATE_JOB_DONE_MESSAGE = "Update job already has been done, can not be stopped";
+  private static final String ROLLBACK_JOB_DONE_MESSAGE = "Rollback has been done";
+
+  private final Map<UUID, Long> executionIdPerJobId = new HashMap<>();
+  private final Map<UUID, Set<String>> usersIdsToRollBackForJobId = new HashMap<>();
+  private final Map<UUID, String> jobIdIdsToRollBackPerJobId = new HashMap<>();
 
   private String workDir;
   @Value("${spring.application.name}")
@@ -51,20 +55,23 @@ public class BulkEditRollBackService {
     workDir = System.getProperty(TMP_DIR_PROPERTY) + PATH_SEPARATOR + springApplicationName + PATH_SEPARATOR;
   }
 
-  public void stopAndRollBackJobExecutionByJobId(UUID jobId) {
+  public String stopAndRollBackJobExecutionByJobId(UUID jobId) {
     try {
       if (executionIdPerJobId.containsKey(jobId)) {
-        log.info("Roll-back for jobId {} is started", jobId.toString());
+        log.info("Rollback for jobId {} is started", jobId.toString());
         jobOperator.stop(executionIdPerJobId.get(jobId));
         rollBackExecutionByJobId(jobId);
+        return ROLLBACK_JOB_DONE_MESSAGE;
       }
     } catch (Exception e) {
       log.error(e.getMessage());
     }
+    return UPDATE_JOB_DONE_MESSAGE;
   }
 
-  public void putExecutionPerJob(long executionId, UUID jobId) {
+  public void putExecutionInfoPerJob(long executionId, UUID jobId, String fileUploadName) {
     executionIdPerJobId.put(jobId, executionId);
+    jobIdIdsToRollBackPerJobId.put(jobId, getJobIdFromFileName(fileUploadName));
   }
 
   public void putUserIdForJob(String userId, UUID jobId) {
@@ -85,22 +92,29 @@ public class BulkEditRollBackService {
     if (!ExitStatus.STOPPED.getExitCode().equals(exitCode)) {
       executionIdPerJobId.remove(jobId);
       usersIdsToRollBackForJobId.remove(jobId);
+      jobIdIdsToRollBackPerJobId.remove(jobId);
     }
   }
 
   public void cleanJobData(UUID jobId) {
     executionIdPerJobId.remove(jobId);
     usersIdsToRollBackForJobId.remove(jobId);
+    jobIdIdsToRollBackPerJobId.remove(jobId);
+  }
+
+  private String getJobIdFromFileName(String fileUploadName) {
+    return StringUtils.substringAfterLast(StringUtils.substringBefore(fileUploadName, "_"), PATH_SEPARATOR);
   }
 
   private void rollBackExecutionByJobId(UUID jobId) throws Exception {
-    var fileToSave = workDir + jobId.toString() + "_origin.csv";
-    var objectPath = dataExportSpringClient.getJobById(jobId.toString()).getFiles().get(0);
-    var objectName = getObjectName(objectPath);
-    minIOObjectStorageRepository.downloadObject(objectName, fileToSave);
+    var jobIdToRollBack = jobIdIdsToRollBackPerJobId.get(jobId);
+    var fileToRollBack = workDir + jobIdToRollBack + "_origin.csv";
+    var fileToRollBackMinIOPath = dataExportSpringClient.getJobById(jobIdToRollBack).getFiles().get(0);
+    var objectName = getObjectName(fileToRollBackMinIOPath);
+    minIOObjectStorageRepository.downloadObject(objectName, fileToRollBack);
     var parameters = new HashMap<String, JobParameter>();
     parameters.put(Constants.JOB_ID, new JobParameter(jobId.toString()));
-    parameters.put(Constants.FILE_NAME, new JobParameter(fileToSave));
+    parameters.put(Constants.FILE_NAME, new JobParameter(fileToRollBack));
     stopJobLauncher.run(job, new JobParameters(parameters));
   }
 

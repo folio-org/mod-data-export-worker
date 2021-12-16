@@ -76,9 +76,9 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       processJobAfter(jobId, jobParameters);
     } else {
       Optional<String> exportTypeOptional = Optional.ofNullable(jobExecution.getJobParameters().getString(EXPORT_TYPE));
-
-      exportTypeOptional.ifPresent(exportType -> {
-        if (exportType.equals(ExportType.BULK_EDIT_UPDATE.getValue())) {
+      if (exportTypeOptional.isPresent()) {
+        ExportType exportType = ExportType.fromValue(exportTypeOptional.get());
+        if (exportType.equals(ExportType.BULK_EDIT_UPDATE)) {
           try {
             String filePath = requireNonNull(jobExecution.getJobParameters().getString(FILE_NAME));
             int totalUsers = (int) Files.lines(Paths.get(filePath)).count() - 1;
@@ -89,7 +89,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
             throw new BulkEditException(msg);
           }
         }
-      });
+      }
     }
 
     var jobExecutionUpdate = createJobExecutionUpdate(jobId, jobExecution);
@@ -141,7 +141,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     }
 
     String outputFilesInStorage = ExecutionContextUtils.getFromJobExecutionContext(jobExecution,
-        OUTPUT_FILES_IN_STORAGE);
+      OUTPUT_FILES_IN_STORAGE);
     if (StringUtils.isNotBlank(outputFilesInStorage)) {
       result.setFiles(Arrays.asList(outputFilesInStorage.split(";")));
     }

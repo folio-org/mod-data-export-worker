@@ -25,6 +25,7 @@ import lombok.SneakyThrows;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 class BulkEditTest extends BaseBatchTest {
@@ -114,19 +115,21 @@ class BulkEditTest extends BaseBatchTest {
     assertFileEquals(expectedCharges, actualResult);
   }
 
-  private JobParameters prepareJobParameters(ExportType exportType, String path) {
-    String workDir =
-      System.getProperty("java.io.tmpdir")
-        + File.separator
-        + springApplicationName
-        + File.separator;
-
+  private JobParameters prepareJobParameters(ExportType exportType, String path, boolean hasOutcomeFile) {
     Map<String, JobParameter> params = new HashMap<>();
-    params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
+    if (hasOutcomeFile) {
+      String workDir =
+        System.getProperty("java.io.tmpdir")
+          + File.separator
+          + springApplicationName
+          + File.separator;
+      params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
+    }
+
     if (ExportType.BULK_EDIT_QUERY.equals(exportType)) {
       params.put("query", new JobParameter(readQueryString(path)));
-    } else if (ExportType.BULK_EDIT_IDENTIFIERS.equals(exportType)) {
-      params.put("identifiersFileName", new JobParameter(path));
+    } else if (ExportType.BULK_EDIT_IDENTIFIERS.equals(exportType) || ExportType.BULK_EDIT_UPDATE.equals(exportType)) {
+      params.put(FILE_NAME, new JobParameter(path));
     }
 
     String jobId = UUID.randomUUID().toString();

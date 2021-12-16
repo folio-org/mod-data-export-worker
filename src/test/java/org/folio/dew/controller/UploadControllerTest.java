@@ -48,26 +48,6 @@ class UploadControllerTest extends BaseBatchTest {
   }
 
   @Test
-  @DisplayName("Launch job on upload file with CQL query successfully")
-  @SneakyThrows
-  void shouldLaunchJobOnQueryFileUpload() {
-    var jobId = UUID.randomUUID();
-    service.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_QUERY));
-
-    var headers = defaultHeaders();
-
-    var bytes = new FileInputStream("src/test/resources/upload/users_by_group.cql").readAllBytes();
-    var file = new MockMultipartFile("file", "users_by_group.cql", MediaType.TEXT_PLAIN_VALUE, bytes);
-
-    mockMvc.perform(multipart(String.format(URL_TEMPLATE, jobId))
-        .file(file)
-        .headers(headers))
-      .andExpect(status().isOk());
-
-    verify(exportJobManager, times(1)).launchJob(any());
-  }
-
-  @Test
   @DisplayName("Upload empty file - BAD REQUEST")
   @SneakyThrows
   void shouldReturnBadRequestWhenIdentifiersFileIsEmpty() {

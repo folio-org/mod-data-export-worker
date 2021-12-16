@@ -110,10 +110,11 @@ class BulkEditTest extends BaseBatchTest {
         + File.separator;
 
     Map<String, JobParameter> params = new HashMap<>();
-    params.put("identifiersFileName", new JobParameter(path));
     params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
     if (ExportType.BULK_EDIT_QUERY.equals(exportType)) {
       params.put("query", new JobParameter(readQueryString(path)));
+    } else if (ExportType.BULK_EDIT_IDENTIFIERS.equals(exportType)) {
+      params.put("identifiersFileName", new JobParameter(path));
     }
 
     String jobId = UUID.randomUUID().toString();

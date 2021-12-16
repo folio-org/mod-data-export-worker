@@ -102,7 +102,9 @@ public class UploadController implements JobIdApi {
   }
 
   private String extractQueryFromJobCommand(JobCommand jobCommand, String parameterName) {
-    return (String) jobCommand.getJobParameters().getParameters().get(parameterName).getValue();
+    return BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())
+      ? (String) jobCommand.getJobParameters().getParameters().get(parameterName).getValue()
+      : jobCommand.getJobParameters().getString(parameterName);
   }
 
   @Override
@@ -159,9 +161,6 @@ public class UploadController implements JobIdApi {
       parameters.put("identifierType", new JobParameter(type.getValue())));
     ofNullable(jobCommand.getEntityType()).ifPresent(type ->
       parameters.put("entityType", new JobParameter(type.getValue())));
-    if (BULK_EDIT_QUERY.equals(jobCommand.getExportType())) {
-      parameters.put("query", new JobParameter(readQueryFromFile(identifiersFileName)));
-    }
     jobCommand.setJobParameters(new JobParameters(parameters));
   }
 

@@ -25,6 +25,8 @@ import lombok.SneakyThrows;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
@@ -38,14 +40,17 @@ class BulkEditTest extends BaseBatchTest {
   private final static String EXPECTED_BULK_EDIT_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_identifiers_output_some_not_found.csv";
   private final static String EXPECTED_BULK_EDIT_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_identifiers_errors_output.csv";
 
-  @Autowired private Job bulkEditJob;
-  @Autowired private Job bulkEditCqlJob;
-  @Autowired private Job bulkEditUpdateUserRecordsJob;
+  @Autowired
+  private Job bulkEditProcessIdentifiersJob;
+  @Autowired
+  private Job bulkEditCqlJob;
+  @Autowired
+  private Job bulkEditUpdateUserRecordsJob;
 
   @Test
   @DisplayName("Run bulk-edit (identifiers) successfully")
   void uploadIdentifiersJobTest() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditJob);
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_IDENTIFIERS, BARCODES_CSV, true);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
@@ -61,7 +66,7 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (identifiers) with errors")
   void bulkEditJobTestWithErrors() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditJob);
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_IDENTIFIERS, BARCODES_SOME_NOT_FOUND, true);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
@@ -87,15 +92,15 @@ class BulkEditTest extends BaseBatchTest {
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 
-    @Test
-    @DisplayName("Run bulk-edit (update user record) successfully")
-    void uploadUserRecordsJobTest() throws Exception {
-      JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateUserRecordsJob);
-    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_UPDATE, USER_RECORD_CSV, false);
+  @Test
+  @DisplayName("Run update user records successfully")
+  void uploadUserRecordsJobTest() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateUserRecordsJob);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, USER_RECORD_CSV, false);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-    }
+  }
 
   @SneakyThrows
   private void verifyFileOutput(JobExecution jobExecution, String output) {
@@ -107,7 +112,7 @@ class BulkEditTest extends BaseBatchTest {
       String errorInStorage = links[1];
       System.out.println("output: " + output);
       final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
-      final FileSystemResource expectedResultWithErrors =  new FileSystemResource(EXPECTED_BULK_EDIT_OUTPUT_ERRORS);
+      final FileSystemResource expectedResultWithErrors = new FileSystemResource(EXPECTED_BULK_EDIT_OUTPUT_ERRORS);
       assertFileEquals(expectedResultWithErrors, actualResultWithErrors);
     }
     final FileSystemResource actualResult = actualFileOutput(fileInStorage);
@@ -128,12 +133,13 @@ class BulkEditTest extends BaseBatchTest {
 
     if (ExportType.BULK_EDIT_QUERY.equals(exportType)) {
       params.put("query", new JobParameter(readQueryString(path)));
-    } else if (ExportType.BULK_EDIT_IDENTIFIERS.equals(exportType) || ExportType.BULK_EDIT_UPDATE.equals(exportType)) {
+    } else if (ExportType.BULK_EDIT_IDENTIFIERS.equals(exportType) || BULK_EDIT_UPDATE.equals(exportType)) {
       params.put(FILE_NAME, new JobParameter(path));
     }
 
     String jobId = UUID.randomUUID().toString();
     params.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
+    params.put(EXPORT_TYPE, new JobParameter(exportType.getValue()));
 
     return new JobParameters(params);
   }

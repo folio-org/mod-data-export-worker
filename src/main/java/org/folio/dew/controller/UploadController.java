@@ -1,7 +1,5 @@
 package org.folio.dew.controller;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -43,6 +41,7 @@ import static java.util.stream.Collectors.joining;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
+import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 
 @RestController
@@ -73,7 +72,7 @@ public class UploadController implements JobIdApi {
   }
 
   @Override
-  public ResponseEntity<Object> getPreviewByJobId(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId,@NotNull @ApiParam(value = "The numbers of items to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
+  public ResponseEntity<Object> getPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId, @NotNull @ApiParam(value = "The numbers of items to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
     var optionalJobCommand = jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
 
     if (optionalJobCommand.isEmpty()) {
@@ -95,7 +94,7 @@ public class UploadController implements JobIdApi {
         log.error(format("Non-supported export type: %s of the jobId=%s", exportType.getValue(), jobId));
         return new ResponseEntity<>(format("Non-supported export type: %s", exportType.getValue()), HttpStatus.BAD_REQUEST);
       }
-    } catch(Exception e) {
+    } catch (Exception e) {
       return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -156,23 +155,13 @@ public class UploadController implements JobIdApi {
     var parameters = jobCommand.getJobParameters().getParameters();
     parameters.put(FILE_NAME, new JobParameter(fileName));
     parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + format(OUTPUT_FILE_NAME_PATTERN, LocalDate.now().format(ofPattern("yyyy-MM-dd")), FilenameUtils.getBaseName(fileName))));
+    parameters.put(EXPORT_TYPE, new JobParameter(jobCommand.getExportType().getValue()));
     ofNullable(jobCommand.getIdentifierType()).ifPresent(type ->
       parameters.put("identifierType", new JobParameter(type.getValue())));
     ofNullable(jobCommand.getEntityType()).ifPresent(type ->
       parameters.put("entityType", new JobParameter(type.getValue())));
-    if (BULK_EDIT_QUERY.equals(jobCommand.getExportType())) {
-      parameters.put("query", new JobParameter(readQueryFromFile(fileName)));
-    }
     jobCommand.setJobParameters(new JobParameters(parameters));
-  }
-
-  public String readQueryFromFile(String fileName) {
-    try (BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName))) {
-      var res =  bufferedReader.readLine();
-      return res;
-    } catch (Exception e) {
-      throw new IllegalStateException(e.getMessage());
-    }
+    jobCommand.setJobParameters(new JobParameters(parameters));
   }
 
   private String buildBarcodesQuery(String fileName, int limit) throws IOException {

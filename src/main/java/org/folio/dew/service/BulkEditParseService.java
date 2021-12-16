@@ -86,7 +86,7 @@ public class BulkEditParseService {
   private String getPatronGroupId(UserFormat userFormat) {
     if (isNotEmpty(userFormat.getPatronGroup())) {
       UserGroupCollection userGroup = userReferenceService.getUserGroupByGroupName(userFormat.getPatronGroup());
-      if (userGroup.getUsergroups().size() > 0) {
+      if (!userGroup.getUsergroups().isEmpty()) {
         return userGroup.getUsergroups().iterator().next().getId();
       }
     }

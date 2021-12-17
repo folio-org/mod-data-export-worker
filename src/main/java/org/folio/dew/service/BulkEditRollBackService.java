@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
@@ -32,12 +33,12 @@ import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 @Log4j2
 public class BulkEditRollBackService {
 
-  private static final String UPDATE_JOB_DONE_MESSAGE = "Update job already has been done, can not be stopped";
-  private static final String ROLLBACK_JOB_DONE_MESSAGE = "Rollback has been done";
+  private static final String ROLLBACK_ERROR_MESSAGE = "Rollback error";
+  private static final String ROLLBACK_DONE_MESSAGE = "Rollback has been done";
 
-  private final Map<UUID, Long> executionIdPerJobId = new HashMap<>();
-  private final Map<UUID, Set<String>> usersIdsToRollBackForJobId = new HashMap<>();
-  private final Map<UUID, String> jobIdIdsWithRollBackFilePerJobId = new HashMap<>();
+  private final Map<UUID, Long> executionIdPerJobId = new ConcurrentHashMap<>();
+  private final Map<UUID, Set<String>> usersIdsToRollBackForJobId = new ConcurrentHashMap<>();
+  private final Map<UUID, String> jobIdIdsWithRollBackFilePerJobId = new ConcurrentHashMap<>();
 
   private String workDir;
   @Value("${spring.application.name}")
@@ -46,7 +47,7 @@ public class BulkEditRollBackService {
   @Autowired
   @Qualifier("bulkEditRollBackJob")
   private Job job;
-  private final BulkEditStopJobLauncher stopJobLauncher;
+  private final BulkEditRollBackJobLauncher rollBackJobLauncher;
   private final DataExportSpringClient dataExportSpringClient;
   private final MinIOObjectStorageRepository minIOObjectStorageRepository;
 
@@ -57,16 +58,16 @@ public class BulkEditRollBackService {
 
   public String stopAndRollBackJobExecutionByJobId(UUID jobId) {
     try {
+      log.info("Rollback for jobId {} is started", jobId.toString());
       if (executionIdPerJobId.containsKey(jobId)) {
-        log.info("Rollback for jobId {} is started", jobId.toString());
         jobOperator.stop(executionIdPerJobId.get(jobId));
-        rollBackExecutionByJobId(jobId);
-        return ROLLBACK_JOB_DONE_MESSAGE;
       }
+      rollBackByJobId(jobId);
+      return ROLLBACK_DONE_MESSAGE;
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return UPDATE_JOB_DONE_MESSAGE;
+    return ROLLBACK_ERROR_MESSAGE;
   }
 
   public void putExecutionInfoPerJob(long executionId, UUID jobId, String fileUploadName) {
@@ -79,9 +80,9 @@ public class BulkEditRollBackService {
     existUsersIds.add(userId);
   }
 
-  public boolean isUserIdExistForJob(String userId, UUID jobId) {
-    return usersIdsToRollBackForJobId.get(jobId) != null
-      && usersIdsToRollBackForJobId.get(jobId).contains(userId);
+  public boolean isUserBeRollBack(String userId, UUID jobId) {
+    return !executionIdPerJobId.containsKey(jobId) || (usersIdsToRollBackForJobId.get(jobId) != null
+      && usersIdsToRollBackForJobId.get(jobId).remove(userId));
   }
 
   public boolean isExecutionIdExistForJob(UUID jobId) {
@@ -106,20 +107,30 @@ public class BulkEditRollBackService {
     jobIdIdsWithRollBackFilePerJobId.remove(jobId);
   }
 
+  public String getFileForRollBackFromMinIO(String fileUploadName) {
+    var jobId = getJobIdFromFileName(fileUploadName);
+    return dataExportSpringClient.getJobById(jobId).getFiles().get(0);
+  }
+
   private String getJobIdFromFileName(String fileUploadName) {
     return StringUtils.substringAfterLast(StringUtils.substringBefore(fileUploadName, "_"), PATH_SEPARATOR);
   }
 
-  private void rollBackExecutionByJobId(UUID jobId) throws Exception {
-    var jobIdWithRollBackFile = jobIdIdsWithRollBackFilePerJobId.get(jobId);
-    var fileToRollBack = workDir + jobIdWithRollBackFile + "_origin.csv";
-    var fileToRollBackMinIOPath = dataExportSpringClient.getJobById(jobIdWithRollBackFile).getFiles().get(0);
-    var objectName = getObjectName(fileToRollBackMinIOPath);
-    minIOObjectStorageRepository.downloadObject(objectName, fileToRollBack);
+  private void rollBackByJobId(UUID jobId) throws Exception {
+    var jobIdWithRollBackFile = jobIdIdsWithRollBackFilePerJobId.containsKey(jobId) ?
+      jobIdIdsWithRollBackFilePerJobId.get(jobId) : jobId.toString();
+    var fileForRollBack = workDir + jobId.toString() + "_rollBack.csv";
+    var fileForRollBackMinIOPath = dataExportSpringClient.getJobById(jobIdWithRollBackFile).getFiles().get(0);
+    var objectName = getObjectName(fileForRollBackMinIOPath);
+    minIOObjectStorageRepository.downloadObject(objectName, fileForRollBack);
+    rollBackJobLauncher.run(job, getFollBackParameters(jobId.toString(), fileForRollBack));
+  }
+
+  private JobParameters getFollBackParameters(String jobId, String fileToRollBack) {
     var parameters = new HashMap<String, JobParameter>();
     parameters.put(Constants.JOB_ID, new JobParameter(jobId.toString()));
     parameters.put(Constants.FILE_NAME, new JobParameter(fileToRollBack));
-    stopJobLauncher.run(job, new JobParameters(parameters));
+    return new JobParameters(parameters);
   }
 
   private String getObjectName(String path) {

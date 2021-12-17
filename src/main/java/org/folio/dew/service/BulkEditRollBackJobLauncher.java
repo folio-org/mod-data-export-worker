@@ -15,10 +15,10 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-public class BulkEditStopJobLauncher extends SimpleJobLauncher {
+public class BulkEditRollBackJobLauncher extends SimpleJobLauncher {
 
   @Autowired
-  public BulkEditStopJobLauncher(JobRepository jobRepository) {
+  public BulkEditRollBackJobLauncher(JobRepository jobRepository) {
     this.setJobRepository(jobRepository);
   }
 

@@ -30,7 +30,7 @@ public class BulkEditRollBackServiceTest {
   @Mock
   private JobOperator jobOperator;
   @Mock
-  private BulkEditStopJobLauncher stopJobLauncher;
+  private BulkEditRollBackJobLauncher rollBackJobLauncher;
   @Mock
   private DataExportSpringClient dataExportSpringClient;
   @Mock
@@ -51,14 +51,14 @@ public class BulkEditRollBackServiceTest {
     bulkEditRollBackService.putExecutionInfoPerJob(executionId, jobId ,fileUploadName);
     when(dataExportSpringClient.getJobById(isA(String.class))).thenReturn(job);
     doNothing().when(minIOObjectStorageRepository).downloadObject(isA(String.class), isA(String.class));
-    when(stopJobLauncher.run(any(), isA(JobParameters.class))).thenReturn(new JobExecution(1l));
+    when(rollBackJobLauncher.run(any(), isA(JobParameters.class))).thenReturn(new JobExecution(1l));
 
     bulkEditRollBackService.stopAndRollBackJobExecutionByJobId(jobId);
 
     verify(jobOperator, times(1)).stop(executionId);
     verify(dataExportSpringClient, times(1)).getJobById(jobIdWithRollBackFile);
     verify(minIOObjectStorageRepository, times(1)).downloadObject(isA(String.class), isA(String.class));
-    verify(stopJobLauncher, times(1)).run(any(), isA(JobParameters.class));
+    verify(rollBackJobLauncher, times(1)).run(any(), isA(JobParameters.class));
   }
 
   @Test
@@ -73,12 +73,12 @@ public class BulkEditRollBackServiceTest {
     bulkEditRollBackService.putUserIdForJob(userId, jobId);
     assertTrue(bulkEditRollBackService.isExecutionIdExistForJob(jobId));
     assertTrue(bulkEditRollBackService.isJobIdWithRollBackFileExistForJob(jobId));
-    assertTrue(bulkEditRollBackService.isUserIdExistForJob(userId, jobId));
+    assertTrue(bulkEditRollBackService.isUserBeRollBack(userId, jobId));
 
     bulkEditRollBackService.cleanJobData(jobId);
     assertFalse(bulkEditRollBackService.isExecutionIdExistForJob(jobId));
     assertFalse(bulkEditRollBackService.isJobIdWithRollBackFileExistForJob(jobId));
-    assertFalse(bulkEditRollBackService.isUserIdExistForJob(userId, jobId));
+    assertTrue(bulkEditRollBackService.isUserBeRollBack(userId, jobId));
   }
 
   @Test
@@ -93,12 +93,12 @@ public class BulkEditRollBackServiceTest {
     bulkEditRollBackService.putUserIdForJob(userId, jobId);
     assertTrue(bulkEditRollBackService.isExecutionIdExistForJob(jobId));
     assertTrue(bulkEditRollBackService.isJobIdWithRollBackFileExistForJob(jobId));
-    assertTrue(bulkEditRollBackService.isUserIdExistForJob(userId, jobId));
+    assertTrue(bulkEditRollBackService.isUserBeRollBack(userId, jobId));
 
     bulkEditRollBackService.cleanJobData(ExitStatus.COMPLETED.getExitCode(), jobId);
     assertFalse(bulkEditRollBackService.isExecutionIdExistForJob(jobId));
     assertFalse(bulkEditRollBackService.isJobIdWithRollBackFileExistForJob(jobId));
-    assertFalse(bulkEditRollBackService.isUserIdExistForJob(userId, jobId));
+    assertTrue(bulkEditRollBackService.isUserBeRollBack(userId, jobId));
   }
 
   @Test
@@ -113,11 +113,11 @@ public class BulkEditRollBackServiceTest {
     bulkEditRollBackService.putUserIdForJob(userId, jobId);
     assertTrue(bulkEditRollBackService.isExecutionIdExistForJob(jobId));
     assertTrue(bulkEditRollBackService.isJobIdWithRollBackFileExistForJob(jobId));
-    assertTrue(bulkEditRollBackService.isUserIdExistForJob(userId, jobId));
 
     bulkEditRollBackService.cleanJobData(ExitStatus.STOPPED.getExitCode(), jobId);
     assertTrue(bulkEditRollBackService.isExecutionIdExistForJob(jobId));
     assertTrue(bulkEditRollBackService.isJobIdWithRollBackFileExistForJob(jobId));
-    assertTrue(bulkEditRollBackService.isUserIdExistForJob(userId, jobId));
+    assertTrue(bulkEditRollBackService.isUserBeRollBack(userId, jobId));
+    assertFalse(bulkEditRollBackService.isUserBeRollBack(userId, jobId));
   }
 }

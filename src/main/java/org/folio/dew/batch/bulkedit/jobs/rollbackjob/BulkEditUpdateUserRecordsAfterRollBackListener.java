@@ -23,7 +23,6 @@ public class BulkEditUpdateUserRecordsAfterRollBackListener implements JobExecut
   private String fileName;
   private final BulkEditRollBackService bulkEditRollBackService;
 
-
   @Override
   public void beforeJob(JobExecution jobExecution) {}
 

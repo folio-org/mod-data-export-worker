@@ -31,7 +31,7 @@ public class BulkEditUpdateUserRecordsWriter implements ItemWriter<User> {
     items.forEach(user -> {
       try {
         userClient.updateUser(user, user.getId());
-        log.info("Update user with id - {}", user.getId());
+        log.info("Update user with id - {} by job id {}", user.getId(), jobId);
         bulkEditRollBackService.putUserIdForJob(user.getId(), UUID.fromString(jobId));
       } catch (Exception e) {
         log.debug("Cannot update user with id '%s'. Reason: " + e.getMessage());

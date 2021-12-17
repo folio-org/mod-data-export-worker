@@ -24,7 +24,7 @@ public class BulkEditFilterUserRecordsForRollBackProcessor implements ItemProces
 
   @Override
   public User process(UserFormat userFormat) {
-    if (bulkEditRollBackService.isUserIdExistForJob(userFormat.getId(), UUID.fromString(jobId))) {
+    if (bulkEditRollBackService.isUserBeRollBack(userFormat.getId(), UUID.fromString(jobId))) {
       return bulkEditParseService.mapUserFormatToUser(userFormat);
     }
     return null;

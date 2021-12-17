@@ -78,11 +78,12 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       Optional<String> exportTypeOptional = Optional.ofNullable(jobExecution.getJobParameters().getString(EXPORT_TYPE));
       if (exportTypeOptional.isPresent()) {
         ExportType exportType = ExportType.fromValue(exportTypeOptional.get());
-        if (exportType.equals(ExportType.BULK_EDIT_UPDATE)) {
+        if (exportType == ExportType.BULK_EDIT_UPDATE) {
           try {
             String filePath = requireNonNull(jobExecution.getJobParameters().getString(FILE_NAME));
             int totalUsers = (int) Files.lines(Paths.get(filePath)).count() - 1;
             jobExecution.getExecutionContext().putLong(TOTAL_USERS, totalUsers);
+            jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE,jobExecution.getJobParameters().getString(OUTPUT_FILES_IN_STORAGE) );
           } catch (IOException | NullPointerException e) {
             String msg = String.format("Couldn't open a required for the job file. File path '%s'", FILE_NAME);
             log.debug(msg);

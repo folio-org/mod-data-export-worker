@@ -36,7 +36,6 @@ public class UserReferenceService {
 
   @Cacheable(cacheNames = "addressTypes")
   public AddressTypeCollection getAddressTypeByDesc(String name) {
-
     return addressTypeClient.getAddressTypeByQuery("desc=" + name);
   }
 

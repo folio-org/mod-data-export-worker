@@ -86,7 +86,9 @@ public class BulkEditParseService {
   private String getPatronGroupId(UserFormat userFormat) {
     if (isNotEmpty(userFormat.getPatronGroup())) {
       UserGroupCollection userGroup = userReferenceService.getUserGroupByGroupName(userFormat.getPatronGroup());
-      return userGroup.getUsergroups().iterator().next().getId();
+      if (!userGroup.getUsergroups().isEmpty()) {
+        return userGroup.getUsergroups().iterator().next().getId();
+      }
     }
     return null;
   }
@@ -139,9 +141,11 @@ public class BulkEditParseService {
   }
 
   private Date getDate(String date) {
-    if (StringUtils.isEmpty(date)) return null;
-    LocalDateTime localDateTime = LocalDateTime.parse(date, DateTimeFormatter.ofPattern(DATE_TIME_PATTERN));
-    return Date.from(localDateTime.atZone(UTC).toInstant());
+    if (isNotEmpty(date)) {
+      LocalDateTime localDateTime = LocalDateTime.parse(date, DateTimeFormatter.ofPattern(DATE_TIME_PATTERN));
+      return Date.from(localDateTime.atZone(UTC).toInstant());
+    }
+    return null;
   }
 
   private List<Address> getUserAddresses(UserFormat userFormat) {

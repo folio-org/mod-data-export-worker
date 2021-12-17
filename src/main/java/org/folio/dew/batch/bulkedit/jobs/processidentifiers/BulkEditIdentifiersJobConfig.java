@@ -78,7 +78,7 @@ public class BulkEditIdentifiersJobConfig {
   }
 
   @Bean
-  public Job bulkEditJob(JobCompletionNotificationListener listener, Step bulkEditStep) {
+  public Job bulkEditProcessIdentifiersJob(JobCompletionNotificationListener listener, Step bulkEditStep) {
     return jobBuilderFactory
       .get(ExportType.BULK_EDIT_IDENTIFIERS.toString())
       .incrementer(new RunIdIncrementer())

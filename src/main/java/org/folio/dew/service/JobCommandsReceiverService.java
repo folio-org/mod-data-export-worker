@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -97,12 +98,12 @@ public class JobCommandsReceiverService {
       prepareJobParameters(jobCommand);
       acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
 
-      if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) ||
-        BULK_EDIT_QUERY.equals(jobCommand.getExportType()) ||
-        BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
-        acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
+      if (Set.of(BULK_EDIT_IDENTIFIERS, BULK_EDIT_QUERY, BULK_EDIT_UPDATE).contains(jobCommand.getExportType())) {
         addBulkEditJobCommand(jobCommand);
-        return;
+        if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
+          acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
+          return;
+        }
       }
 
       var jobLaunchRequest =

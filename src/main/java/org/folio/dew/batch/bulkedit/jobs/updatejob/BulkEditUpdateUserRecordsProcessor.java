@@ -8,8 +8,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
-
+@Log4j2
 @Component
 @Qualifier("updateUserRecordsProcessor")
 @RequiredArgsConstructor
@@ -19,7 +20,12 @@ public class BulkEditUpdateUserRecordsProcessor implements ItemProcessor<UserFor
 
   @Override
   public User process(UserFormat userFormat) throws Exception {
-    return bulkEditParseService.mapUserFormatToUser(userFormat);
+    try {
+      return bulkEditParseService.mapUserFormatToUser(userFormat);
+    } catch (Exception e) {
+      log.debug("Cannot process user record. Skipping a user.");
+      return null;
+    }
   }
 
 }

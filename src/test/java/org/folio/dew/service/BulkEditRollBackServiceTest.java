@@ -15,6 +15,7 @@ import org.springframework.batch.core.launch.JobOperator;
 import java.util.List;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -59,6 +60,19 @@ public class BulkEditRollBackServiceTest {
     verify(dataExportSpringClient, times(1)).getJobById(jobIdWithRollBackFile);
     verify(minIOObjectStorageRepository, times(1)).downloadObject(isA(String.class), isA(String.class));
     verify(rollBackJobLauncher, times(1)).run(any(), isA(JobParameters.class));
+  }
+
+  @Test
+  public void getFileForRollBackFromMinIO() {
+    var jobIdWithRollBackFile = "74914e57-3406-4757-938b-9a3f718d0ee6";
+    var fileUploadName = "/some/file/" + jobIdWithRollBackFile + "_file.csv";
+    var job = new org.folio.dew.domain.dto.Job();
+    job.setFiles(List.of("minio/path/" + jobIdWithRollBackFile + "_file.csv"));
+
+    when(dataExportSpringClient.getJobById(isA(String.class))).thenReturn(job);
+
+    var actual = bulkEditRollBackService.getFileForRollBackFromMinIO(fileUploadName);
+    assertEquals("minio/path/74914e57-3406-4757-938b-9a3f718d0ee6_file.csv", actual);
   }
 
   @Test

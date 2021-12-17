@@ -128,7 +128,7 @@ public class BulkEditRollBackService {
 
   private JobParameters getFollBackParameters(String jobId, String fileToRollBack) {
     var parameters = new HashMap<String, JobParameter>();
-    parameters.put(Constants.JOB_ID, new JobParameter(jobId.toString()));
+    parameters.put(Constants.JOB_ID, new JobParameter(jobId));
     parameters.put(Constants.FILE_NAME, new JobParameter(fileToRollBack));
     return new JobParameters(parameters);
   }

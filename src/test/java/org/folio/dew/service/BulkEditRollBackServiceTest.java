@@ -26,7 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class BulkEditRollBackServiceTest {
+class BulkEditRollBackServiceTest {
 
   @Mock
   private JobOperator jobOperator;
@@ -41,7 +41,7 @@ public class BulkEditRollBackServiceTest {
   private BulkEditRollBackService bulkEditRollBackService;
 
   @Test
-  public void stopAndRollBackJobExecutionByJobIdTest() throws Exception {
+  void stopAndRollBackJobExecutionByJobIdTest() throws Exception {
     var jobId = UUID.fromString("edd30136-9a7b-4226-9e82-83024dbeac4a");
     var jobIdWithRollBackFile = "74914e57-3406-4757-938b-9a3f718d0ee6";
     var fileUploadName = "/some/file/" + jobIdWithRollBackFile + "_file.csv";
@@ -63,7 +63,7 @@ public class BulkEditRollBackServiceTest {
   }
 
   @Test
-  public void getFileForRollBackFromMinIO() {
+  void getFileForRollBackFromMinIO() {
     var jobIdWithRollBackFile = "74914e57-3406-4757-938b-9a3f718d0ee6";
     var fileUploadName = "/some/file/" + jobIdWithRollBackFile + "_file.csv";
     var job = new org.folio.dew.domain.dto.Job();
@@ -76,7 +76,7 @@ public class BulkEditRollBackServiceTest {
   }
 
   @Test
-  public void cleanJobDataTest() {
+  void cleanJobDataTest() {
     var jobId = UUID.fromString("edd30136-9a7b-4226-9e82-83024dbeac4a");
     var jobIdWithRollBackFile = "74914e57-3406-4757-938b-9a3f718d0ee6";
     var fileUploadName = "/some/file/" + jobIdWithRollBackFile + "_file.csv";
@@ -96,7 +96,7 @@ public class BulkEditRollBackServiceTest {
   }
 
   @Test
-  public void cleanJobDataWithCompletedExitCodeTest() {
+  void cleanJobDataWithCompletedExitCodeTest() {
     var jobId = UUID.fromString("edd30136-9a7b-4226-9e82-83024dbeac4a");
     var jobIdWithRollBackFile = "74914e57-3406-4757-938b-9a3f718d0ee6";
     var fileUploadName = "/some/file/" + jobIdWithRollBackFile + "_file.csv";
@@ -116,7 +116,7 @@ public class BulkEditRollBackServiceTest {
   }
 
   @Test
-  public void cleanJobDataWithStoppedExitCodeTest() {
+  void cleanJobDataWithStoppedExitCodeTest() {
     var jobId = UUID.fromString("edd30136-9a7b-4226-9e82-83024dbeac4a");
     var jobIdWithRollBackFile = "74914e57-3406-4757-938b-9a3f718d0ee6";
     var fileUploadName = "/some/file/" + jobIdWithRollBackFile + "_file.csv";

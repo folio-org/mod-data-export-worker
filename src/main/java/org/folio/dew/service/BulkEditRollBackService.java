@@ -1,6 +1,7 @@
 package org.folio.dew.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.DataExportSpringClient;
@@ -116,7 +117,8 @@ public class BulkEditRollBackService {
     return StringUtils.substringAfterLast(StringUtils.substringBefore(fileUploadName, "_"), PATH_SEPARATOR);
   }
 
-  private void rollBackByJobId(UUID jobId) throws Exception {
+  @SneakyThrows
+  private void rollBackByJobId(UUID jobId) {
     var jobIdWithRollBackFile = jobIdIdsWithRollBackFilePerJobId.containsKey(jobId) ?
       jobIdIdsWithRollBackFilePerJobId.get(jobId) : jobId.toString();
     var fileForRollBack = workDir + jobId.toString() + "_rollBack.csv";

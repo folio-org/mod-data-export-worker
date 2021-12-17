@@ -1,0 +1,53 @@
+openapi: 3.0.0
+info:
+  title: Order export API
+  version: v1
+servers:
+  - url: https://order-stub.com/
+paths:
+  /order-stub:
+    get:
+      responses:
+        "200":
+          description: stub
+components:
+  schemas:
+    UUID:
+      type: string
+      format: uuid
+    referenceNumberItem:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/common/reference_number_item.json#/ReferenceNumberItem'
+    compositePoLine:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders/composite_po_line.json#/CompositePoLine'
+    compositePurchaseOrder:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders/composite_purchase_order.json#/CompositePurchaseOrder'
+    alert:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/alert.json#/Alert'
+    claim:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/claim.json#/Claim'
+    closeReason:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/close_reason.json#/CloseReason'
+    contributor:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/contributor.json#/Contributor'
+    cost:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/cost.json#/Cost'
+    details:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/details.json#/Details'
+    eresource:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/eresource.json#/Eresource'
+    fundDistribution:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/fund_distribution.json#/FundDistribution'
+    license:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/license.json#/License'
+    location:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/location.json#/Location'
+    ongoing:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/ongoing.json#/Ongoing'
+    physical:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/physical.json#/Physical'
+    productIdentifier:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/product_identifier.json#/ProductIdentifier'
+    reportingCode:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/reporting_code.json#/ReportingCode'
+    vendorDetail:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/vendor_detail.json#/VendorDetail'

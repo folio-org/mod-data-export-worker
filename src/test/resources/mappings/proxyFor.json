@@ -1,0 +1,17 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/proxiesfor?query=proxyUserId%3Db4cee18d-f862-4ef1-95a5-879fdd619603"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"proxiesFor\": [\n        {\n            \"userId\": \"774cc489-15ff-44b5-abb4-9702035b8a07\",\n            \"proxyUserId\": \"b4cee18d-f862-4ef1-95a5-879fdd619603\",\n            \"id\": \"e22cd63e-a9a0-4ef8-b8a3-b2e2522fda93\",\n            \"status\": \"active\",\n            \"metadata\": {\n                \"createdDate\": \"2021-12-08T11:34:09.237+00:00\",\n                \"createdByUserId\": \"1b83b39d-56ba-5905-a195-0a3f1f2da0fd\",\n                \"updatedDate\": \"2021-12-08T11:34:09.237+00:00\",\n                \"updatedByUserId\": \"1b83b39d-56ba-5905-a195-0a3f1f2da0fd\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

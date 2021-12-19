@@ -24,6 +24,14 @@
             "proxiesfor.item.get",
             "departments.item.get"
           ]
+        },
+        {
+          "methods": [ "GET" ],
+          "pathPattern": "/bulk-edit/{id}/preview",
+          "permissionsRequired": [ "bulk-edit.preview.collection.get" ],
+          "modulePermissions": [
+            "users.collection.get"
+          ]
         }
       ]
     },
@@ -76,10 +84,18 @@
       "description" : "Upload list of item identifiers"
     },
     {
+      "permissionName" : "bulk-edit.preview.collection.get",
+      "displayName" : "get N items for preview",
+      "description" : "Get N items for preview"
+    },
+    {
       "permissionName" : "bulk-edit.all",
       "displayName" : "bulk-edit all",
       "description" : "All permissions for bulk-edit module",
-      "subPermissions" : [ "bulk-edit.item.post" ]
+      "subPermissions" : [
+        "bulk-edit.item.post",
+        "bulk-edit.preview.collection.get"
+      ]
     }
   ],
   "launchDescriptor": {

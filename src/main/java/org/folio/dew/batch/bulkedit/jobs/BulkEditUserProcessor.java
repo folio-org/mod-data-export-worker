@@ -1,13 +1,19 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
-import static java.util.Objects.nonNull;
-import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimeZone;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.Address;
+import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.service.UserReferenceService;
@@ -15,33 +21,33 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+
+import static java.util.Objects.nonNull;
+import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
+import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
+import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
+import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
 
 @Component
 @StepScope
 @RequiredArgsConstructor
 @Log4j2
 public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
-  private static final String ARRAY_DELIMITER = ";";
-  private static final String ITEM_DELIMITER = "|";
-  private static final String KEY_VALUE_DELIMITER = ":";
 
   private final UserClient userClient;
   private final UserReferenceService userReferenceService;
 
   private DateFormat dateFormat;
 
+  private Set<ItemIdentifier> identifiersToCheckDuplication = new HashSet<>();
+
   @PostConstruct
   public void postConstruct() {
-    dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSX");
+    dateFormat = new SimpleDateFormat(DATE_TIME_PATTERN);
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 
@@ -114,10 +120,10 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
     addressData.add(ofNullable(address.getCity()).orElse(EMPTY));
     addressData.add(ofNullable(address.getRegion()).orElse(EMPTY));
     addressData.add(ofNullable(address.getPostalCode()).orElse(EMPTY));
+    addressData.add(nonNull(address.getPrimaryAddress()) ? address.getPrimaryAddress().toString() : EMPTY);
     if (nonNull(address.getAddressTypeId())) {
       addressData.add(userReferenceService.getAddressTypeById(address.getAddressTypeId()).getDesc());
     }
-    addressData.add(nonNull(address.getPrimaryAddress()) ? address.getPrimaryAddress().toString() : EMPTY);
     return String.join(ARRAY_DELIMITER, addressData);
   }
 

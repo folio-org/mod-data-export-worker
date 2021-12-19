@@ -1,15 +1,5 @@
 package org.folio.dew.controller;
 
-import static java.lang.String.format;
-import static java.time.format.DateTimeFormatter.ofPattern;
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.joining;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
-import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -17,13 +7,14 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import io.swagger.annotations.ApiParam;
+import javax.annotation.PostConstruct;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import org.apache.commons.io.FilenameUtils;
-import org.folio.dew.client.UserClient;
-import org.folio.dew.domain.dto.ExportType;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
+import org.folio.dew.client.UserClient;
+import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.openapitools.api.JobIdApi;
 import org.springframework.batch.core.Job;
@@ -37,14 +28,21 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.PostConstruct;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import io.swagger.annotations.ApiParam;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+
+import static java.lang.String.format;
+import static java.time.format.DateTimeFormatter.ofPattern;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.joining;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
+import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
+import static org.folio.dew.utils.Constants.EXPORT_TYPE;
+import static org.folio.dew.utils.Constants.FILE_NAME;
 
 @RestController
 @RequestMapping("/bulk-edit")
@@ -66,7 +64,7 @@ public class UploadController implements JobIdApi {
   @Value("${spring.application.name}")
   private String springApplicationName;
   private String workDir;
-  private String identifiersFileName;
+  private String fileName;
 
   @PostConstruct
   public void postConstruct() {
@@ -74,7 +72,7 @@ public class UploadController implements JobIdApi {
   }
 
   @Override
-  public ResponseEntity<Object> getPreviewByJobId(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId,@NotNull @ApiParam(value = "The numbers of items to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
+  public ResponseEntity<Object> getPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId, @NotNull @ApiParam(value = "The numbers of items to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
     var optionalJobCommand = jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
 
     if (optionalJobCommand.isEmpty()) {
@@ -96,13 +94,15 @@ public class UploadController implements JobIdApi {
         log.error(format("Non-supported export type: %s of the jobId=%s", exportType.getValue(), jobId));
         return new ResponseEntity<>(format("Non-supported export type: %s", exportType.getValue()), HttpStatus.BAD_REQUEST);
       }
-    } catch(Exception e) {
+    } catch (Exception e) {
       return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   private String extractQueryFromJobCommand(JobCommand jobCommand, String parameterName) {
-    return (String) jobCommand.getJobParameters().getParameters().get(parameterName).getValue();
+    return BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())
+      ? (String) jobCommand.getJobParameters().getParameters().get(parameterName).getValue()
+      : jobCommand.getJobParameters().getString(parameterName);
   }
 
   @Override
@@ -119,12 +119,12 @@ public class UploadController implements JobIdApi {
     }
     var jobCommand = optionalJobCommand.get();
 
-    identifiersFileName = workDir + file.getOriginalFilename();
+    fileName = workDir + file.getOriginalFilename();
 
     try {
-      Files.deleteIfExists(Paths.get(identifiersFileName));
-      var identifiersFilePath = Files.createFile(Paths.get(identifiersFileName));
-      Files.write(identifiersFilePath, file.getBytes());
+      Files.deleteIfExists(Paths.get(fileName));
+      var filePath = Files.createFile(Paths.get(fileName));
+      Files.write(filePath, file.getBytes());
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
 
       prepareJobParameters(jobCommand);
@@ -146,32 +146,30 @@ public class UploadController implements JobIdApi {
 
   private Job getBulkEditJob(ExportType exportType) {
     return jobs.stream()
-      .filter(job -> exportType.getValue().equals(job.getName()))
+      .filter(job -> job.getName().contains(exportType.getValue()))
       .findFirst()
       .orElseThrow(() -> new IllegalStateException("Job was not found, aborting"));
   }
 
   private void prepareJobParameters(JobCommand jobCommand) throws IOException {
     var parameters = jobCommand.getJobParameters().getParameters();
-    parameters.put(IDENTIFIERS_FILE_NAME, new JobParameter(identifiersFileName));
-    parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + format(OUTPUT_FILE_NAME_PATTERN, LocalDate.now().format(ofPattern("yyyy-MM-dd")), FilenameUtils.getBaseName(identifiersFileName))));
+    parameters.put(FILE_NAME, new JobParameter(fileName));
+    parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + format(OUTPUT_FILE_NAME_PATTERN, LocalDate.now().format(ofPattern("yyyy-MM-dd")), FilenameUtils.getBaseName(fileName))));
+    parameters.put(EXPORT_TYPE, new JobParameter(jobCommand.getExportType().getValue()));
     ofNullable(jobCommand.getIdentifierType()).ifPresent(type ->
       parameters.put("identifierType", new JobParameter(type.getValue())));
     ofNullable(jobCommand.getEntityType()).ifPresent(type ->
       parameters.put("entityType", new JobParameter(type.getValue())));
-    if (BULK_EDIT_QUERY.equals(jobCommand.getExportType())) {
-      parameters.put("query", new JobParameter(readQueryFromFile(identifiersFileName)));
-    }
+    jobCommand.setJobParameters(new JobParameters(parameters));
     jobCommand.setJobParameters(new JobParameters(parameters));
   }
 
-  public String readQueryFromFile(String fileName) {
-    try (BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName))) {
-      var res =  bufferedReader.readLine();
-      return res;
-    } catch (Exception e) {
-      throw new IllegalStateException(e.getMessage());
-    }
+  private String buildBarcodesQuery(String fileName, int limit) throws IOException {
+    return String.format("barcode==(%s)", Files.lines(Paths.get(fileName))
+      .limit(limit)
+      .map(String::strip)
+      .map(i -> i.replace("\"", ""))
+      .collect(joining(" OR ")));
   }
 
   private String buildBarcodesQuery(String fileName, int limit) throws IOException {

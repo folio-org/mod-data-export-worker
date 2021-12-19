@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.folio.dew.controller.UploadController.IDENTIFIERS_FILE_NAME;
+import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -185,7 +185,7 @@ class UploadControllerTest extends BaseBatchTest {
 
     Map<String, JobParameter> params = new HashMap<>();
     params.put("query", new JobParameter("(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName"));
-    params.put(IDENTIFIERS_FILE_NAME, new JobParameter("src/test/resources/upload/barcodes.csv"));
+    params.put(FILE_NAME, new JobParameter("src/test/resources/upload/barcodes.csv"));
     jobCommand.setJobParameters(new JobParameters(params));
     return jobCommand;
   }

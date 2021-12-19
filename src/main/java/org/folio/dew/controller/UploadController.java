@@ -54,7 +54,6 @@ public class UploadController implements JobIdApi {
   private static final String OUTPUT_FILE_NAME_PATTERN = "%s-Matched-Records-%s";
   private static final String FILE_UPLOAD_ERROR = "Cannot upload a file. Reason: %s.";
   private static final String JOB_COMMAND_NOT_FOUND_ERROR = "JobCommand with id %s doesn't exist.";
-  public static final String IDENTIFIERS_FILE_NAME = "identifiersFileName";
 
   private final UserClient userClient;
   private final JobCommandsReceiverService jobCommandsReceiverService;
@@ -83,7 +82,7 @@ public class UploadController implements JobIdApi {
 
     var jobCommand = optionalJobCommand.get();
 
-    var fileName = extractQueryFromJobCommand(jobCommand, IDENTIFIERS_FILE_NAME);
+    var fileName = extractQueryFromJobCommand(jobCommand, FILE_NAME);
     var exportType = jobCommand.getExportType();
     try {
       if (BULK_EDIT_IDENTIFIERS == exportType) {

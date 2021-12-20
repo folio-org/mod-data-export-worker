@@ -3,7 +3,6 @@ package org.folio.dew.controller;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,14 +35,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import static java.lang.String.format;
-import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
-import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
+import static org.folio.dew.service.BulkEditRollBackService.ROLLBACK_FILE;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
@@ -131,7 +129,7 @@ public class UploadController implements JobIdApi {
       Files.write(filePath, file.getBytes());
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
 
-      prepareJobParameters(jobCommand, fileName);
+      prepareJobParameters(jobCommand, fileName, jobId.toString());
 
       var job =  getBulkEditJob(jobCommand.getExportType());
       var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
@@ -162,10 +160,10 @@ public class UploadController implements JobIdApi {
       .orElseThrow(() -> new IllegalStateException("Job was not found, aborting"));
   }
 
-  private void prepareJobParameters(JobCommand jobCommand, String fileName) throws IOException {
+  private void prepareJobParameters(JobCommand jobCommand, String fileName, String jobId) throws IOException {
     var parameters = jobCommand.getJobParameters().getParameters();
     parameters.put(FILE_NAME, new JobParameter(fileName));
-    parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + format(OUTPUT_FILE_NAME_PATTERN, LocalDate.now().format(ofPattern("yyyy-MM-dd")), FilenameUtils.getBaseName(fileName))));
+    parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + jobId + "_" + FilenameUtils.getBaseName(fileName)));
     parameters.put(EXPORT_TYPE, new JobParameter(jobCommand.getExportType().getValue()));
     ofNullable(jobCommand.getIdentifierType()).ifPresent(type ->
       parameters.put("identifierType", new JobParameter(type.getValue())));
@@ -173,7 +171,7 @@ public class UploadController implements JobIdApi {
       parameters.put("entityType", new JobParameter(type.getValue())));
     if (jobCommand.getExportType() == BULK_EDIT_UPDATE) {
       var fileForRollBack = bulkEditRollBackService.getFileForRollBackFromMinIO(fileName);
-      parameters.put(OUTPUT_FILES_IN_STORAGE, new JobParameter(fileForRollBack));
+      parameters.put(ROLLBACK_FILE, new JobParameter(fileForRollBack));
     }
     jobCommand.setJobParameters(new JobParameters(parameters));
     jobCommand.setJobParameters(new JobParameters(parameters));

@@ -36,7 +36,7 @@ class SFTPObjectStorageRepositoryTest {
 
   private static final String SFTP_HOST = "localhost";
   private static final String INVALID_HOST = "invalidhost123";
-  private static final int PORT = 8099;
+  private static final int PORT = 22;
   private static final String filename = "exported.csv";
   private static final String USERNAME = "sftpuser";
   private static final String PASSWORD = "letmein";

@@ -125,10 +125,10 @@ public class BulkEditRollBackService {
     var fileForRollBackMinIOPath = dataExportSpringClient.getJobById(jobIdWithRollBackFile).getFiles().get(0);
     var objectName = getObjectName(fileForRollBackMinIOPath);
     minIOObjectStorageRepository.downloadObject(objectName, fileForRollBack);
-    rollBackJobLauncher.run(job, getFollBackParameters(jobId.toString(), fileForRollBack));
+    rollBackJobLauncher.run(job, getRollBackParameters(jobId.toString(), fileForRollBack));
   }
 
-  private JobParameters getFollBackParameters(String jobId, String fileToRollBack) {
+  private JobParameters getRollBackParameters(String jobId, String fileToRollBack) {
     var parameters = new HashMap<String, JobParameter>();
     parameters.put(Constants.JOB_ID, new JobParameter(jobId));
     parameters.put(Constants.FILE_NAME, new JobParameter(fileToRollBack));

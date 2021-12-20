@@ -6,8 +6,11 @@ import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import org.apache.commons.io.FileUtils;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.utils.Constants;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -35,6 +38,7 @@ class BulkEditTest extends BaseBatchTest {
 
   private static final String BARCODES_CSV = "src/test/resources/upload/barcodes.csv";
   private static final String USER_RECORD_CSV = "src/test/resources/upload/bulk_edit_user_record.csv";
+  private static final String USER_RECORD_ROLLBACK_CSV = "test-directory/bulk_edit_rollback.csv";
   private static final String BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/barcodesSomeNotFound.csv";
   private static final String QUERY_FILE_PATH = "src/test/resources/upload/users_by_group.cql";
   private static final String EXPECTED_BULK_EDIT_OUTPUT = "src/test/resources/output/bulk_edit_identifiers_output.csv";
@@ -47,6 +51,8 @@ class BulkEditTest extends BaseBatchTest {
   private Job bulkEditCqlJob;
   @Autowired
   private Job bulkEditUpdateUserRecordsJob;
+  @Autowired
+  private Job bulkEditRollBackJob;
 
   @Test
   @DisplayName("Run bulk-edit (identifiers) successfully")
@@ -102,6 +108,20 @@ class BulkEditTest extends BaseBatchTest {
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, USER_RECORD_CSV, false);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  @Test
+  @DisplayName("Run rollback user records successfully")
+  void rollBackUserRecordsJobTest() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditRollBackJob);
+    File srcFile = new File(USER_RECORD_CSV);
+    File destFile = new File(USER_RECORD_ROLLBACK_CSV);
+    FileUtils.copyFile(srcFile, destFile);
+    var parameters = new HashMap<String, JobParameter>();
+    parameters.put(Constants.JOB_ID, new JobParameter("74914e57-3406-4757-938b-9a3f718d0ee6"));
+    parameters.put(Constants.FILE_NAME, new JobParameter(USER_RECORD_ROLLBACK_CSV));
+    JobExecution jobExecution = testLauncher.launchJob(new JobParameters(parameters));
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 

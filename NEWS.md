@@ -1,5 +1,14 @@
 ## v1.3.0 - Unreleased
 
+## v1.2.1 - Released
+The primary focus of this release is fixing log4j vulnerability
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.2.0...v1.2.1)
+
+### Bug fixes
+* [MODEXPW-57](https://issues.folio.org/browse/MODEXPW-57) - Kiwi R3 2021 - Log4j vulnerability verification and correction
+
+
 ## 2021-11-10 v1.2.0
 * [MODEXPW-38](https://issues.folio.org/browse/MODEXPW-38) Saving circulation log with notices "send error" fails
 * [MODEXPW-35](https://issues.folio.org/browse/MODEXPW-35) Dates in CSV export from Circulation log are not in 24-hour time format

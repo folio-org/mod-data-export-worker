@@ -1,6 +1,7 @@
 package org.folio.dew.batch.bulkedit.jobs.rollbackjob;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.service.BulkEditParseService;
@@ -18,6 +19,7 @@ import java.util.UUID;
 public class BulkEditFilterUserRecordsForRollBackProcessor implements ItemProcessor<UserFormat, User> {
 
   @Value("#{jobParameters['jobId']}")
+  @Setter
   private String jobId;
   private final BulkEditRollBackService bulkEditRollBackService;
   private final BulkEditParseService bulkEditParseService;

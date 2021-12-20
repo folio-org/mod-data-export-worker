@@ -1,3 +1,12 @@
+## 2021-12-20 v1.1.7
+## v1.2.1 - Released
+The primary focus of this release is fixing log4j vulnerability
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.1.6...v1.1.7)
+
+### Bug fixes
+* [MODEXPW-57](https://issues.folio.org/browse/MODEXPW-57) - Kiwi R3 2021 - Log4j vulnerability verification and correction
+
 ## 2021-08-06 v1.1.6
 * [MODEXPS-24](https://issues.folio.org/browse/MODEXPS-24) Kafka topic created with incorrect ENV and tenantId combination
 

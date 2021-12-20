@@ -12,7 +12,7 @@
     <groupId>org.folio</groupId>
     <artifactId>mod-data-export-worker</artifactId>
     <description>Data Export Worker module</description>
-    <version>1.1.7-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <licenses>
@@ -41,7 +41,7 @@
         <commons-io.version>2.8.0</commons-io.version>
         <minio.version>8.1.0</minio.version>
         <openapi-generator.version>4.3.1</openapi-generator.version>
-        <log4j-web.version>2.14.0</log4j-web.version>
+        <log4j-web.version>2.16.0</log4j-web.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <lombok.version>1.18.18</lombok.version>
 

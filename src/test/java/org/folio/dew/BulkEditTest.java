@@ -27,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 
@@ -133,10 +134,12 @@ class BulkEditTest extends BaseBatchTest {
           + File.separator;
       params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
     }
-
-    if (ExportType.BULK_EDIT_QUERY.equals(exportType)) {
+    if (ExportType.BULK_EDIT_UPDATE == exportType) {
+      params.put(ROLLBACK_FILE, new JobParameter("rollback/file/path"));
+      params.put(FILE_NAME, new JobParameter(path));
+    } else if (ExportType.BULK_EDIT_QUERY == exportType) {
       params.put("query", new JobParameter(readQueryString(path)));
-    } else if (ExportType.BULK_EDIT_IDENTIFIERS.equals(exportType) || BULK_EDIT_UPDATE.equals(exportType)) {
+    } else if (ExportType.BULK_EDIT_IDENTIFIERS == exportType) {
       params.put(FILE_NAME, new JobParameter(path));
     }
 

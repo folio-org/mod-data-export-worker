@@ -34,7 +34,6 @@ import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 @Log4j2
 public class BulkEditRollBackService {
 
-  public static final String ROLLBACK_FILE = "rollBackFile";
   private static final String ROLLBACK_ERROR_MESSAGE = "Rollback error";
   private static final String ROLLBACK_DONE_MESSAGE = "Rollback has been done";
 

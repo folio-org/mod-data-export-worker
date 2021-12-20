@@ -5,6 +5,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class Constants {
 
+  public static final String ROLLBACK_FILE = "rollBackFile";
   public static final String TMP_DIR_PROPERTY = "java.io.tmpdir";
   public static final String PATH_SEPARATOR = "/";
 

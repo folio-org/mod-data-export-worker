@@ -137,7 +137,7 @@ public class UploadController implements JobIdApi {
       log.info("Launching bulk edit job.");
       var execution = exportJobManager.launchJob(jobLaunchRequest);
       if (job.getName().contains(ExportType.BULK_EDIT_UPDATE.getValue())) {
-        bulkEditRollBackService.putExecutionInfoPerJob(execution.getId(), jobId, fileName);
+        bulkEditRollBackService.putExecutionInfoPerJob(execution.getId(), jobId);
       }
     } catch (Exception e) {
       String errorMessage = format(FILE_UPLOAD_ERROR, e.getMessage());

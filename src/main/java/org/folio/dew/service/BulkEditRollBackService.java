@@ -70,7 +70,7 @@ public class BulkEditRollBackService {
     return ROLLBACK_ERROR_MESSAGE;
   }
 
-  public void putExecutionInfoPerJob(long executionId, UUID jobId, String fileUploadName) {
+  public void putExecutionInfoPerJob(long executionId, UUID jobId) {
     executionIdPerJobId.put(jobId, executionId);
   }
 

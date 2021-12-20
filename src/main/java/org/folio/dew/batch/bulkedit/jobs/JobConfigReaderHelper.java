@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
+import lombok.experimental.UtilityClass;
 import org.folio.dew.domain.dto.UserFormat;
 import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
@@ -8,6 +9,7 @@ import org.springframework.batch.item.file.mapping.FieldSetMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.item.file.transform.LineTokenizer;
 
+@UtilityClass
 public class JobConfigReaderHelper {
 
   public static LineMapper<UserFormat> createUserLineMapper() {

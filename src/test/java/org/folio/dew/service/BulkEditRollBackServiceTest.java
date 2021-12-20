@@ -44,12 +44,11 @@ class BulkEditRollBackServiceTest {
   void stopAndRollBackJobExecutionByJobIdTest() throws Exception {
     var jobId = UUID.fromString("edd30136-9a7b-4226-9e82-83024dbeac4a");
     var jobIdWithRollBackFile = jobId.toString();
-    var fileUploadName = "/some/file/" + jobIdWithRollBackFile + "_file.csv";
     var executionId = 0l;
     var job = new org.folio.dew.domain.dto.Job();
     job.setFiles(List.of("minio/path/" + jobIdWithRollBackFile + "_file.csv"));
 
-    bulkEditRollBackService.putExecutionInfoPerJob(executionId, jobId ,fileUploadName);
+    bulkEditRollBackService.putExecutionInfoPerJob(executionId, jobId);
     when(dataExportSpringClient.getJobById(isA(String.class))).thenReturn(job);
     doNothing().when(minIOObjectStorageRepository).downloadObject(isA(String.class), isA(String.class));
     when(rollBackJobLauncher.run(any(), isA(JobParameters.class))).thenReturn(new JobExecution(1l));
@@ -79,11 +78,10 @@ class BulkEditRollBackServiceTest {
   void cleanJobDataTest() {
     var jobId = UUID.fromString("edd30136-9a7b-4226-9e82-83024dbeac4a");
     var jobIdWithRollBackFile = "74914e57-3406-4757-938b-9a3f718d0ee6";
-    var fileUploadName = "/some/file/" + jobIdWithRollBackFile + "_file.csv";
     var executionId = 0l;
     var userId = "userId";
 
-    bulkEditRollBackService.putExecutionInfoPerJob(executionId, jobId ,fileUploadName);
+    bulkEditRollBackService.putExecutionInfoPerJob(executionId, jobId);
     bulkEditRollBackService.putUserIdForJob(userId, jobId);
     assertTrue(bulkEditRollBackService.isExecutionIdExistForJob(jobId));
     assertTrue(bulkEditRollBackService.isUserBeRollBack(userId, jobId));
@@ -97,11 +95,10 @@ class BulkEditRollBackServiceTest {
   void cleanJobDataWithCompletedExitCodeTest() {
     var jobId = UUID.fromString("edd30136-9a7b-4226-9e82-83024dbeac4a");
     var jobIdWithRollBackFile = "74914e57-3406-4757-938b-9a3f718d0ee6";
-    var fileUploadName = "/some/file/" + jobIdWithRollBackFile + "_file.csv";
     var executionId = 0l;
     var userId = "userId";
 
-    bulkEditRollBackService.putExecutionInfoPerJob(executionId, jobId ,fileUploadName);
+    bulkEditRollBackService.putExecutionInfoPerJob(executionId, jobId);
     bulkEditRollBackService.putUserIdForJob(userId, jobId);
     assertTrue(bulkEditRollBackService.isExecutionIdExistForJob(jobId));
     assertTrue(bulkEditRollBackService.isUserBeRollBack(userId, jobId));
@@ -115,11 +112,10 @@ class BulkEditRollBackServiceTest {
   void cleanJobDataWithStoppedExitCodeTest() {
     var jobId = UUID.fromString("edd30136-9a7b-4226-9e82-83024dbeac4a");
     var jobIdWithRollBackFile = "74914e57-3406-4757-938b-9a3f718d0ee6";
-    var fileUploadName = "/some/file/" + jobIdWithRollBackFile + "_file.csv";
     var executionId = 0l;
     var userId = "userId";
 
-    bulkEditRollBackService.putExecutionInfoPerJob(executionId, jobId ,fileUploadName);
+    bulkEditRollBackService.putExecutionInfoPerJob(executionId, jobId);
     bulkEditRollBackService.putUserIdForJob(userId, jobId);
     assertTrue(bulkEditRollBackService.isExecutionIdExistForJob(jobId));
 

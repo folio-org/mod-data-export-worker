@@ -96,7 +96,6 @@ public class JobCommandsReceiverService {
       log.info("-----------------------------JOB---STARTS-----------------------------");
 
       prepareJobParameters(jobCommand);
-      acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
 
       if (Set.of(BULK_EDIT_IDENTIFIERS, BULK_EDIT_QUERY, BULK_EDIT_UPDATE).contains(jobCommand.getExportType())) {
         addBulkEditJobCommand(jobCommand);
@@ -111,6 +110,7 @@ public class JobCommandsReceiverService {
           jobMap.get(jobCommand.getExportType().toString()),
           jobCommand.getJobParameters());
 
+      acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
       exportJobManager.launchJob(jobLaunchRequest);
     } catch (Exception e) {
       log.error(e.toString(), e);

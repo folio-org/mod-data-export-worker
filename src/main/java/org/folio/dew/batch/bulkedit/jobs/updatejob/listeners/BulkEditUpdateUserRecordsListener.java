@@ -1,4 +1,4 @@
-package org.folio.dew.batch.bulkedit.jobs.updatejob;
+package org.folio.dew.batch.bulkedit.jobs.updatejob.listeners;
 
 import lombok.RequiredArgsConstructor;
 import org.folio.dew.service.BulkEditRollBackService;

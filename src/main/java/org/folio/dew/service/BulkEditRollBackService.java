@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.DataExportSpringClient;
+import org.folio.dew.error.BulkEditException;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.utils.Constants;
 import org.springframework.batch.core.ExitStatus;
@@ -99,9 +100,15 @@ public class BulkEditRollBackService {
     usersIdsToRollBackForJobId.remove(jobId);
   }
 
+  @SneakyThrows
   public String getFileForRollBackFromMinIO(String fileUploadName) {
     var jobId = getJobIdFromFileName(fileUploadName);
-    return dataExportSpringClient.getJobById(jobId).getFiles().get(0);
+    var files = dataExportSpringClient.getJobById(jobId).getFiles();
+    if (files.isEmpty()) {
+      var error = "Rollback file does not exist for job " + jobId;
+      throw new BulkEditException(error);
+    }
+    return files.get(0);
   }
 
   private String getJobIdFromFileName(String fileUploadName) {
@@ -111,7 +118,12 @@ public class BulkEditRollBackService {
   @SneakyThrows
   private void rollBackByJobId(UUID jobId) {
     var fileForRollBack = workDir + jobId.toString() + "_rollBack.csv";
-    var fileForRollBackMinIOPath = dataExportSpringClient.getJobById(jobId.toString()).getFiles().get(0);
+    var files = dataExportSpringClient.getJobById(jobId.toString()).getFiles();
+    if (files.isEmpty()) {
+      var error = "Rollback file does not exist for job " + jobId.toString();
+      throw new BulkEditException(error);
+    }
+    var fileForRollBackMinIOPath = files.get(0);
     var objectName = getObjectName(fileForRollBackMinIOPath);
     minIOObjectStorageRepository.downloadObject(objectName, fileForRollBack);
     rollBackJobLauncher.run(job, getRollBackParameters(jobId.toString(), fileForRollBack));

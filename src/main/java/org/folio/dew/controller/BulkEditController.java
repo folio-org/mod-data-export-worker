@@ -51,7 +51,7 @@ import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 @RequestMapping("/bulk-edit")
 @Log4j2
 @RequiredArgsConstructor
-public class UploadController implements JobIdApi {
+public class BulkEditController implements JobIdApi {
 
   private static final String FILE_UPLOAD_ERROR = "Cannot upload a file. Reason: %s.";
   private static final String JOB_COMMAND_NOT_FOUND_ERROR = "JobCommand with id %s doesn't exist.";

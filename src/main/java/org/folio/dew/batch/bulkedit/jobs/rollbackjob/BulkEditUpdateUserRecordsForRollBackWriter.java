@@ -24,8 +24,12 @@ public class BulkEditUpdateUserRecordsForRollBackWriter implements ItemWriter<Us
   @Override
   public void write(List<? extends User> items) throws Exception {
     items.forEach(user -> {
-      userClient.updateUser(user, user.getId());
-      log.info("Rollback user with id - {} from updating by job {}", user.getId(), jobId);
+      try {
+        userClient.updateUser(user, user.getId());
+        log.info("Rollback user with id - {} from updating by job {}", user.getId(), jobId);
+      } catch (Exception e) {
+        log.debug("Cannot rollback user with id '%s'. Reason: " + e.getMessage());
+      }
     });
   }
 }

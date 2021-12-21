@@ -1,10 +1,5 @@
 package org.folio.dew.service;
 
-import static java.util.Optional.ofNullable;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -14,19 +9,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.dew.config.kafka.KafkaService;
 import org.folio.de.entity.JobCommand;
-import org.folio.dew.domain.dto.JobParameterNames;
-import org.folio.dew.domain.dto.BursarFeeFines;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
+import org.folio.dew.config.kafka.KafkaService;
+import org.folio.dew.domain.dto.BursarFeeFines;
+import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
@@ -40,10 +33,21 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
+
+import static java.util.Optional.ofNullable;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+
 @Service
 @RequiredArgsConstructor
 @Log4j2
 public class JobCommandsReceiverService {
+
   private final ObjectMapper objectMapper;
   private final ExportJobManager exportJobManager;
   private final BursarExportService bursarExportService;
@@ -89,16 +93,16 @@ public class JobCommandsReceiverService {
       if (deleteOldFiles(jobCommand, acknowledgment)) {
         return;
       }
-
       log.info("-----------------------------JOB---STARTS-----------------------------");
 
       prepareJobParameters(jobCommand);
 
-      if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) ||
-          BULK_EDIT_QUERY.equals(jobCommand.getExportType())) {
-        acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
+      if (Set.of(BULK_EDIT_IDENTIFIERS, BULK_EDIT_QUERY, BULK_EDIT_UPDATE).contains(jobCommand.getExportType())) {
         addBulkEditJobCommand(jobCommand);
-        return;
+        if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
+          acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
+          return;
+        }
       }
 
       var jobLaunchRequest =
@@ -119,7 +123,7 @@ public class JobCommandsReceiverService {
     parameters.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
     var now = new Date();
     parameters.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH,
-        new JobParameter(String.format("%s%s_%tF_%tT_%s", workDir, jobCommand.getExportType(), now, now, jobId)));
+      new JobParameter(String.format("%s%s_%tF_%tT_%s", workDir, jobCommand.getExportType(), now, now, jobId)));
 
     normalizeParametersForBursarExport(parameters, jobId);
 

@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -119,7 +120,7 @@ public class BulkEditController implements JobIdApi {
     }
     var jobCommand = optionalJobCommand.get();
 
-    var fileName = workDir + file.getOriginalFilename();
+    var fileName = String.format("%s%s", workDir, file.getOriginalFilename());
 
     try {
       Files.deleteIfExists(Paths.get(fileName));
@@ -176,10 +177,13 @@ public class BulkEditController implements JobIdApi {
   }
 
   private String buildBarcodesQuery(String fileName, int limit) throws IOException {
-    return String.format("barcode==(%s)", Files.lines(Paths.get(fileName))
-      .limit(limit)
+  var barcodes = "";
+  try (Stream<String> lines = Files.lines(Paths.get(fileName))) {
+    barcodes = lines.limit(limit)
       .map(String::strip)
       .map(i -> i.replace("\"", ""))
-      .collect(joining(" OR ")));
+      .collect(joining(" OR "));
+  }
+    return String.format("barcode==(%s)", barcodes);
   }
 }

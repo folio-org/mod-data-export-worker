@@ -1,3 +1,11 @@
+## 2021-12-22 v1.1.8
+The primary focus of this release is log4j upgrade
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.1.7...v1.1.8)
+
+### Bug fixes
+* [MODEXPW-57](https://issues.folio.org/browse/MODEXPW-57) - Kiwi R3 2021 - Log4j vulnerability verification and correction
+
 ## 2021-12-20 v1.1.7
 The primary focus of this release is fixing log4j vulnerability
 

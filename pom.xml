@@ -41,7 +41,6 @@
         <commons-io.version>2.8.0</commons-io.version>
         <minio.version>8.1.0</minio.version>
         <openapi-generator.version>4.3.1</openapi-generator.version>
-        <log4j-web.version>2.16.0</log4j-web.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <lombok.version>1.18.18</lombok.version>
 
@@ -58,6 +57,18 @@
         <embedded-minio.version>2.0.3</embedded-minio.version>
         <wiremock.version>2.27.2</wiremock.version>
     </properties>
+
+    <dependencyManagement>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-bom</artifactId>
+          <version>2.17.0</version>
+          <type>pom</type>
+          <scope>import</scope>
+        </dependency>
+      </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -137,7 +148,6 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-web</artifactId>
-            <version>${log4j-web.version}</version>
         </dependency>
 
         <!-- Test dependencies -->

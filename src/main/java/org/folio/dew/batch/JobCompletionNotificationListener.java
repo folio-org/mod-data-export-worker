@@ -78,7 +78,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       Optional<String> exportTypeOptional = Optional.ofNullable(jobExecution.getJobParameters().getString(EXPORT_TYPE));
       if (exportTypeOptional.isPresent()) {
         ExportType exportType = ExportType.fromValue(exportTypeOptional.get());
-        if (exportType.equals(ExportType.BULK_EDIT_UPDATE)) {
+        if (exportType == ExportType.BULK_EDIT_UPDATE) {
           try {
             String filePath = requireNonNull(jobExecution.getJobParameters().getString(FILE_NAME));
             int totalUsers = (int) Files.lines(Paths.get(filePath)).count() - 1;

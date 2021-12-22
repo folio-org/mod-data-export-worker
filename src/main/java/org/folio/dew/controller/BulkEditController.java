@@ -47,6 +47,7 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.JOB_ID_SEPARATOR;
 import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
@@ -165,14 +166,14 @@ public class BulkEditController implements JobIdApi {
   private void prepareJobParameters(JobCommand jobCommand, String fileName, String jobId) {
     var parameters = jobCommand.getJobParameters().getParameters();
     parameters.put(FILE_NAME, new JobParameter(fileName));
-    parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + jobId + "_" + FilenameUtils.getBaseName(fileName)));
+    parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + jobId + JOB_ID_SEPARATOR + FilenameUtils.getBaseName(fileName)));
     parameters.put(EXPORT_TYPE, new JobParameter(jobCommand.getExportType().getValue()));
     ofNullable(jobCommand.getIdentifierType()).ifPresent(type ->
       parameters.put("identifierType", new JobParameter(type.getValue())));
     ofNullable(jobCommand.getEntityType()).ifPresent(type ->
       parameters.put("entityType", new JobParameter(type.getValue())));
     if (jobCommand.getExportType() == BULK_EDIT_UPDATE) {
-      var fileForRollBack = bulkEditRollBackService.getFileForRollBackFromMinIO(fileName);
+      var fileForRollBack = bulkEditRollBackService.getFileForRollBackFromMinIO(FilenameUtils.getBaseName(fileName));
       parameters.put(ROLLBACK_FILE, new JobParameter(fileForRollBack));
     }
     jobCommand.setJobParameters(new JobParameters(parameters));

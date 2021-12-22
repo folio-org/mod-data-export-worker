@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.folio.dew.utils.Constants.JOB_ID_SEPARATOR;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 
@@ -112,7 +113,7 @@ public class BulkEditRollBackService {
   }
 
   private String getJobIdFromFileName(String fileUploadName) {
-    return StringUtils.substringAfterLast(StringUtils.substringBefore(fileUploadName, "_"), PATH_SEPARATOR);
+    return StringUtils.substringBefore(fileUploadName, JOB_ID_SEPARATOR);
   }
 
   @SneakyThrows

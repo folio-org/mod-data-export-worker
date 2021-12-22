@@ -2,6 +2,7 @@ package org.folio.dew.controller;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
@@ -10,6 +11,8 @@ import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
@@ -119,16 +122,16 @@ public class BulkEditController implements JobIdApi {
       return new ResponseEntity<>(msg, HttpStatus.NOT_FOUND);
     }
     var jobCommand = optionalJobCommand.get();
-
-    var fileName = String.format("%s%s", workDir, file.getOriginalFilename());
+    var uploadedPath = Path.of(workDir, file.getOriginalFilename());
 
     try {
-      Files.deleteIfExists(Paths.get(fileName));
-      var filePath = Files.createFile(Paths.get(fileName));
-      Files.write(filePath, file.getBytes());
+      if (Files.exists(uploadedPath)) {
+        FileUtils.forceDelete(uploadedPath.toFile());
+      }
+      Files.write(uploadedPath, file.getBytes());
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
 
-      prepareJobParameters(jobCommand, fileName, jobId.toString());
+      prepareJobParameters(jobCommand, uploadedPath.toString(), jobId.toString());
 
       var job =  getBulkEditJob(jobCommand.getExportType());
       var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
@@ -159,7 +162,7 @@ public class BulkEditController implements JobIdApi {
       .orElseThrow(() -> new IllegalStateException("Job was not found, aborting"));
   }
 
-  private void prepareJobParameters(JobCommand jobCommand, String fileName, String jobId) throws IOException {
+  private void prepareJobParameters(JobCommand jobCommand, String fileName, String jobId) {
     var parameters = jobCommand.getJobParameters().getParameters();
     parameters.put(FILE_NAME, new JobParameter(fileName));
     parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + jobId + "_" + FilenameUtils.getBaseName(fileName)));
@@ -184,6 +187,6 @@ public class BulkEditController implements JobIdApi {
       .map(i -> i.replace("\"", ""))
       .collect(joining(" OR "));
   }
-    return String.format("barcode==(%s)", barcodes);
+  return String.format("barcode==(%s)", barcodes);
   }
 }

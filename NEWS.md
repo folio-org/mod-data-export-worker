@@ -1,5 +1,14 @@
 ## v1.3.0 - Unreleased
 
+## v1.2.2 - Released
+The primary focus of this release is log4j upgrade to 2.17.0
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.2.1...v1.2.2)
+
+### Bug fixes
+* [MODEXPW-57](https://issues.folio.org/browse/MODEXPW-57) - Kiwi R3 2021 - Log4j vulnerability verification and correction
+
+
 ## v1.2.1 - Released
 The primary focus of this release is fixing log4j vulnerability
 

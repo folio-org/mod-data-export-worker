@@ -12,6 +12,19 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/addresstypes?query=desc%3DHomeAddress"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"addressTypes\": [\n        {\n            \"addressType\": \"Home\",\n            \"desc\": \"HomeAddress\",\n            \"id\": \"93d3d88d-499b-45d0-9bc7-ac73c3a19880\",\n            \"metadata\": {\n                \"createdDate\": \"2021-12-12T01:51:58.015+00:00\",\n                \"updatedDate\": \"2021-12-12T01:51:58.015+00:00\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

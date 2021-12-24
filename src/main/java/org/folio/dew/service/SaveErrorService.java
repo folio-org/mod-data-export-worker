@@ -36,12 +36,12 @@ public class SaveErrorService {
 
   private final MinIOObjectStorageRepository minIOObjectStorageRepository;
 
-  public void saveErrorInCSV(String jobId, String affectedIdentifier, Throwable reasonForError, String identifiersFileName) {
-    if (isNull(jobId) || isNull(affectedIdentifier) || isNull(reasonForError) || isNull(identifiersFileName)) {
-      log.error("Some of the parameters is null, jobId: {}, affectedIdentifier: {}, reasonForError: {}, identifiersFileName: {}", jobId, affectedIdentifier, reasonForError, identifiersFileName);
+  public void saveErrorInCSV(String jobId, String affectedIdentifier, Throwable reasonForError, String fileName) {
+    if (isNull(jobId) || isNull(affectedIdentifier) || isNull(reasonForError) || isNull(fileName)) {
+      log.error("Some of the parameters is null, jobId: {}, affectedIdentifier: {}, reasonForError: {}, fileName: {}", jobId, affectedIdentifier, reasonForError, fileName);
       return;
     }
-    var csvFileName = LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Errors-" + identifiersFileName;
+    var csvFileName = LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Errors-" + fileName;
     var errorMessages = reasonForError.getMessage().split(",");
     for (var errorMessage: errorMessages) {
       var errorLine = affectedIdentifier + "," + errorMessage + System.lineSeparator();

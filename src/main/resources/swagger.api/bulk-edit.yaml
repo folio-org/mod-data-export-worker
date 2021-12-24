@@ -5,6 +5,52 @@ info:
 servers:
   - url: /bulk-edit/
 paths:
+  /{jobId}/preview:
+    get:
+      description: Get a list of users for preview
+      operationId: getPreviewByJobId
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: UUID of the JobCommand
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+          description: The numbers of users to return
+      responses:
+        '200':
+          description: Collection of users for preview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/userCollection"
+                example: "{}"
+        '400':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Invalid query
+        '404':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Job not found
+        '500':
+           description: Internal server errors, e.g. due to misconfiguration
+           content:
+             text/plain:
+               schema:
+                 type: string
+                 example: Internal server error
   /{jobId}/upload:
     post:
       description: Upload csv file
@@ -48,6 +94,32 @@ paths:
                 $ref: "#/components/examples/errors"
               schema:
                 $ref: "#/components/schemas/errors"
+  /{jobId}/roll-back:
+    post:
+      description: Roll back csv file
+      operationId: rollBackCsvFile
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: UUID of the JobCommand
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: Csv file roll back uploaded
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: Internal server errors, e.g. due to misconfiguration
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
 components:
   schemas:
     UUID:
@@ -63,6 +135,8 @@ components:
       $ref: '../../../../folio-export-common/schemas/user/proxyForCollection.json#/ProxyForCollection'
     departmentCollection:
       $ref: '../../../../folio-export-common/schemas/user/departmentCollection.json#/DepartmentCollection'
+    userCollection:
+      $ref: '../../../../folio-export-common/schemas/user/userCollection.json'
   examples:
     errors:
       value:

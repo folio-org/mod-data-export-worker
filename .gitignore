@@ -3,7 +3,7 @@ mod-data-export-worker/target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-
+test-directory/
 ### STS ###
 .apt_generated
 .classpath

@@ -122,7 +122,7 @@ class UploadControllerTest extends BaseBatchTest {
   @Test
   @DisplayName("Launch job on upload file with identifiers successfully")
   @SneakyThrows
-  void shouldLaunchJobOnIdentifiersFileUpload() {
+  void shouldLaunchJobAndReturnNumberOfRecordsOnIdentifiersFileUpload() {
     var jobId = UUID.randomUUID();
     service.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_IDENTIFIERS));
 
@@ -131,10 +131,13 @@ class UploadControllerTest extends BaseBatchTest {
     var bytes = new FileInputStream("src/test/resources/upload/barcodes.csv").readAllBytes();
     var file = new MockMultipartFile("file", "barcodes.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
 
-    mockMvc.perform(multipart(String.format(UPLOAD_URL_TEMPLATE, jobId))
+    var result = mockMvc.perform(multipart(String.format(UPLOAD_URL_TEMPLATE, jobId))
       .file(file)
       .headers(headers))
-      .andExpect(status().isOk());
+      .andExpect(status().isOk())
+      .andReturn();
+
+    assertThat(result.getResponse().getContentAsString(), equalTo("3"));
 
     verify(exportJobManager, times(1)).launchJob(any());
   }

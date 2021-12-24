@@ -142,12 +142,12 @@ public class BulkEditController implements JobIdApi {
       if (job.getName().contains(ExportType.BULK_EDIT_UPDATE.getValue())) {
         bulkEditRollBackService.putExecutionInfoPerJob(execution.getId(), jobId);
       }
+      return new ResponseEntity<>(Long.toString(countLines(uploadedPath)), HttpStatus.OK);
     } catch (Exception e) {
       String errorMessage = format(FILE_UPLOAD_ERROR, e.getMessage());
       log.error(errorMessage);
       return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    return new ResponseEntity<>(HttpStatus.OK);
   }
 
   @Override
@@ -189,5 +189,11 @@ public class BulkEditController implements JobIdApi {
       .collect(joining(" OR "));
   }
   return String.format("barcode==(%s)", barcodes);
+  }
+
+  private long countLines(Path path) throws IOException {
+    try (var lines = Files.lines(path)) {
+      return lines.count();
+    }
   }
 }

@@ -1,94 +1,74 @@
 package org.folio.dew.repository;
 
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.SystemUtils;
 import org.apache.sshd.common.SshException;
-import org.apache.sshd.server.SshServer;
-import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.junit.jupiter.api.AfterAll;
+import org.apache.sshd.sftp.client.SftpClient;
+import org.folio.dew.domain.dto.Transfer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.images.builder.ImageFromDockerfile;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Log4j2
+@Testcontainers
 @SpringBootTest()
 class SFTPObjectStorageRepositoryTest {
 
   @Autowired
   private SFTPObjectStorageRepository sftpRepository;
 
+  private static final int PORT = 22;
   private static final String SFTP_HOST = "localhost";
   private static final String INVALID_HOST = "invalidhost123";
-  private static final int PORT = 22;
-  private static final String filename = "exported.csv";
-  private static final String USERNAME = "sftpuser";
-  private static final String PASSWORD = "letmein";
+  private static final String FILENAME = "exported.csv";
+  private static final String USERNAME = "user";
+  private static final String PASSWORD = "password";
   private static final String PASSWORD_INVALID = "dontLetMeIn";
-  private static final String EXPORT_FOLDER_NAME = "exported-files";
+  private static final String EXPORT_FOLDER_NAME = "upload";
 
-  private static final String USER_HOME_DIRECTORY = SystemUtils.getUserHome().getAbsolutePath();
+  private static Integer MAPPED_PORT;
 
-  private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSz", Locale.ENGLISH);
-
-
-  private static final GenericContainer sftp = new GenericContainer(
+  @Container
+  public static final GenericContainer sftp = new GenericContainer(
     new ImageFromDockerfile()
       .withDockerfileFromBuilder(builder ->
         builder
           .from("atmoz/sftp:latest")
-          .run("mkdir -p " + USER_HOME_DIRECTORY + File.separator + EXPORT_FOLDER_NAME + "; chmod -R 007 " + USER_HOME_DIRECTORY + File.separator + EXPORT_FOLDER_NAME)
+          .run("mkdir -p " + File.separator + EXPORT_FOLDER_NAME + "; chmod -R 777 " + File.separator + EXPORT_FOLDER_NAME)
           .build()))
-    //.withFileSystemBind(sftpHomeDirectory.getAbsolutePath(), "/home/" + USER + REMOTE_PATH, BindMode.READ_WRITE) //uncomment to mount host directory - not required / recommended
     .withExposedPorts(PORT)
-    .withCommand(USERNAME + ":" + PASSWORD + ":1001:::upload");
+    .withCommand(USERNAME + ":" + PASSWORD + ":::upload");
 
-
-  static {
-    sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-  }
 
   @BeforeAll
-  public static void setup() throws IOException {
-
-    sftp.start();
-    log.info("SFTP server running at: {}:{}", SFTP_HOST, PORT);
-  }
-
-  @AfterAll
-  public static void teardown() {
-    sftp.stop();
+  public static void staticSetup() {
+    MAPPED_PORT = sftp.getMappedPort(PORT);
   }
 
   @Test
   void testSuccessfullyLogin() throws IOException {
     log.info("=== Test successful login ===");
+    SftpClient sftp = sftpRepository.getSftpClient(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT);
 
-    var sftp = sftpRepository.getSftpClient(USERNAME, PASSWORD, SFTP_HOST, PORT);
     assertNotNull(sftp);
+
+    sftpRepository.logout();
   }
 
   @Test
   void testFailedConnect() {
     log.info("=== Test unsuccessful login ===");
     Exception exception = assertThrows(SshException.class, () -> {
-      sftpRepository.getSftpClient(USERNAME, PASSWORD, INVALID_HOST, PORT);
+      sftpRepository.getSftpClient(USERNAME, PASSWORD, INVALID_HOST, MAPPED_PORT);
     });
 
     String expectedMessage = "Failed (UnresolvedAddressException) to execute";
@@ -100,7 +80,7 @@ class SFTPObjectStorageRepositoryTest {
   @Test
   void testFailedLogin() {
     log.info("=== Test unsuccessful login ===");
-    Exception exception = assertThrows(IOException.class, () -> sftpRepository.getSftpClient(USERNAME, PASSWORD_INVALID, SFTP_HOST, PORT));
+    Exception exception = assertThrows(IOException.class, () -> sftpRepository.getSftpClient(USERNAME, PASSWORD_INVALID, SFTP_HOST, MAPPED_PORT));
 
     String expectedMessage = "SFTP server authentication failed";
     String actualMessage = exception.getMessage();
@@ -108,38 +88,29 @@ class SFTPObjectStorageRepositoryTest {
     assertTrue(actualMessage.contains(expectedMessage));
   }
 
-  @Test void testSuccessfulUpload() throws IOException {
+  @Test
+  void testSuccessfulUpload() throws IOException {
     log.info("=== Test successful upload ===");
-    Path path = Paths.get("src/test/resources/upload/barcodes.csv");
-    String fileContent = Files.lines(path).collect(Collectors.joining("\n"));
-
-    var sshClient = sftpRepository.getSftpClient(USERNAME, PASSWORD, SFTP_HOST, PORT);
-    var uploaded = sftpRepository.upload(sshClient, USER_HOME_DIRECTORY, EXPORT_FOLDER_NAME, filename, fileContent);
+    Transfer testObject = new Transfer().id("1234").accountName("Test Account");
+    SftpClient sftpClient = sftpRepository.getSftpClient(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT);
+    boolean uploaded = sftpRepository.upload(sftpClient, EXPORT_FOLDER_NAME, FILENAME, testObject);
 
     assertTrue(uploaded);
 
-    sshClient.close();
+    sftpClient.close();
+    sftpRepository.logout();
   }
 
-  public void startServer() throws IOException {
-    var sshd = SshServer.setUpDefaultServer();
-    sshd.setHost("localhost");
-    sshd.setKeyPairProvider(new SimpleGeneratorHostKeyProvider());
-    //Accept all keys for authentication
-    sshd.setPublickeyAuthenticator((s, publicKey, serverSession) -> true);
-    //Allow username/password authentication using pre-defined credentials
-    sshd.setPasswordAuthenticator((username, password, serverSession) ->  USERNAME.equals(username) && USERNAME.equals(password));
-    //Setup Virtual File System (VFS)
-    //Ensure VFS folder exists
+  @Test
+  void testSuccessfulUploadForLongPath() throws IOException {
+    log.info("=== Test successful upload for long path ===");
+    Transfer testObject = new Transfer().id("1234").accountName("Test Account");
+    SftpClient sftpClient = sftpRepository.getSftpClient(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT);
+    boolean uploaded = sftpRepository.upload(sftpClient, EXPORT_FOLDER_NAME + "/test/long/path/creation", FILENAME, testObject);
 
-/*    Path dir = Paths.get(getVirtualFileSystemPath());
-    Files.createDirectories(dir);
-    sshd.setFileSystemFactory(new VirtualFileSystemFactory(dir.toAbsolutePath()));
-    //Add SFTP support
-    List<NamedFactory<Command>> sftpCommandFactory = new ArrayList<>();
-    sftpCommandFactory.add(new SftpSubsystemFactory());
-    sshd.setSubsystemFactories(sftpCommandFactory);
-*/
-    sshd.start();
+    assertTrue(uploaded);
+
+    sftpClient.close();
+    sftpRepository.logout();
   }
 }

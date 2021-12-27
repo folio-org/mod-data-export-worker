@@ -188,7 +188,8 @@ public class JobCommandsReceiverService {
   }
 
   public void addBulkEditJobCommand(JobCommand jobCommand) {
-    bulkEditJobCommands.put(jobCommand.getId().toString(), jobCommand);
+    if (!bulkEditJobCommands.containsKey(jobCommand.getId().toString()))
+      bulkEditJobCommands.put(jobCommand.getId().toString(), jobCommand);
   }
 
   public Optional<JobCommand> getBulkEditJobCommandById(String id) {

@@ -33,6 +33,8 @@ public class UpdateUserWriteListener implements ItemWriteListener<User> {
 
   @Value("#{jobExecution}")
   private JobExecution jobExecution;
+  @Value("#{jobParameters['rollBackFile']}")
+  private String rollBackFile;
   private AtomicLong processedUsers = new AtomicLong();
 
   @Override
@@ -71,6 +73,7 @@ public class UpdateUserWriteListener implements ItemWriteListener<User> {
     progress.setProcessed((int) processedUsers.get());
     progress.setProgress((int) getProgressBarValue(processedUsers.get(), totalUsers));
     job.setProgress(progress);
+    job.setFiles(List.of(rollBackFile));
     return job;
   }
 

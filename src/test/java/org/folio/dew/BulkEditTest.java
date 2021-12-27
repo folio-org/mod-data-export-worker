@@ -6,8 +6,11 @@ import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import org.apache.commons.io.FileUtils;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.utils.Constants;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -19,7 +22,6 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
-
 import lombok.SneakyThrows;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
@@ -28,12 +30,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
+
 
 class BulkEditTest extends BaseBatchTest {
 
   private static final String BARCODES_CSV = "src/test/resources/upload/barcodes.csv";
   private static final String USER_RECORD_CSV = "src/test/resources/upload/bulk_edit_user_record.csv";
+  private static final String USER_RECORD_ROLLBACK_CSV = "test-directory/bulk_edit_rollback.csv";
   private static final String BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/barcodesSomeNotFound.csv";
   private static final String QUERY_FILE_PATH = "src/test/resources/upload/users_by_group.cql";
   private static final String EXPECTED_BULK_EDIT_OUTPUT = "src/test/resources/output/bulk_edit_identifiers_output.csv";
@@ -46,10 +51,13 @@ class BulkEditTest extends BaseBatchTest {
   private Job bulkEditCqlJob;
   @Autowired
   private Job bulkEditUpdateUserRecordsJob;
+  @Autowired
+  private Job bulkEditRollBackJob;
 
   @Test
   @DisplayName("Run bulk-edit (identifiers) successfully")
   void uploadIdentifiersJobTest() throws Exception {
+
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_IDENTIFIERS, BARCODES_CSV, true);
@@ -69,6 +77,7 @@ class BulkEditTest extends BaseBatchTest {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_IDENTIFIERS, BARCODES_SOME_NOT_FOUND, true);
+
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_OUTPUT_SOME_NOT_FOUND);
@@ -102,6 +111,20 @@ class BulkEditTest extends BaseBatchTest {
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 
+  @Test
+  @DisplayName("Run rollback user records successfully")
+  void rollBackUserRecordsJobTest() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditRollBackJob);
+    File srcFile = new File(USER_RECORD_CSV);
+    File destFile = new File(USER_RECORD_ROLLBACK_CSV);
+    FileUtils.copyFile(srcFile, destFile);
+    var parameters = new HashMap<String, JobParameter>();
+    parameters.put(Constants.JOB_ID, new JobParameter("74914e57-3406-4757-938b-9a3f718d0ee6"));
+    parameters.put(Constants.FILE_NAME, new JobParameter(USER_RECORD_ROLLBACK_CSV));
+    JobExecution jobExecution = testLauncher.launchJob(new JobParameters(parameters));
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
   @SneakyThrows
   private void verifyFileOutput(JobExecution jobExecution, String output) {
     final ExecutionContext executionContext = jobExecution.getExecutionContext();
@@ -120,6 +143,7 @@ class BulkEditTest extends BaseBatchTest {
     assertFileEquals(expectedCharges, actualResult);
   }
 
+
   private JobParameters prepareJobParameters(ExportType exportType, String path, boolean hasOutcomeFile) {
     Map<String, JobParameter> params = new HashMap<>();
     if (hasOutcomeFile) {
@@ -130,10 +154,12 @@ class BulkEditTest extends BaseBatchTest {
           + File.separator;
       params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
     }
-
-    if (ExportType.BULK_EDIT_QUERY.equals(exportType)) {
+    if (ExportType.BULK_EDIT_UPDATE == exportType) {
+      params.put(ROLLBACK_FILE, new JobParameter("rollback/file/path"));
+      params.put(FILE_NAME, new JobParameter(path));
+    } else if (ExportType.BULK_EDIT_QUERY == exportType) {
       params.put("query", new JobParameter(readQueryString(path)));
-    } else if (ExportType.BULK_EDIT_IDENTIFIERS.equals(exportType) || BULK_EDIT_UPDATE.equals(exportType)) {
+    } else if (ExportType.BULK_EDIT_IDENTIFIERS == exportType) {
       params.put(FILE_NAME, new JobParameter(path));
     }
 

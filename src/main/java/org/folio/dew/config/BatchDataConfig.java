@@ -3,8 +3,11 @@ package org.folio.dew.config;
 import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 import org.folio.dew.config.properties.DataSourceProperties;
+import org.springframework.batch.core.configuration.JobRegistry;
+import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +15,13 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
 public class BatchDataConfig {
+
+  @Bean
+  public JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor(JobRegistry jobRegistry) {
+    JobRegistryBeanPostProcessor postProcessor = new JobRegistryBeanPostProcessor();
+    postProcessor.setJobRegistry(jobRegistry);
+    return postProcessor;
+  }
 
   @Bean
   public JobRepository getJobRepository(

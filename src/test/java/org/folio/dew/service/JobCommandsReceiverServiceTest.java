@@ -31,7 +31,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createStartJobRequest(id);
 
-    service.receiveStartJobCommand(jobCommand, acknowledgment);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
 
     verify(exportJobManager, times(1)).launchJob(any());
 
@@ -48,7 +48,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createDeleteJobRequest(id);
 
-    service.receiveStartJobCommand(jobCommand, acknowledgment);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
 
     verify(acknowledgment, times(1)).acknowledge();
   }

@@ -6,13 +6,16 @@ import org.folio.de.entity.JobCommand;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.*;
+import org.folio.dew.service.BulkEditRollBackService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -21,6 +24,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.folio.dew.utils.Constants.FILE_NAME;
@@ -33,13 +37,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class UploadControllerTest extends BaseBatchTest {
+class BulkEditControllerTest extends BaseBatchTest {
   private static final String UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/upload";
+  private static final String START_URL_TEMPLATE = "/bulk-edit/%s/start";
   private static final String PREVIEW_URL_TEMPLATE = "/bulk-edit/%s/preview";
   public static final String LIMIT = "limit";
 
   @Autowired
   private ObjectMapper mapper;
+
+  @MockBean
+  private BulkEditRollBackService bulkEditRollBackService;
 
   @MockBean
   private UserClient client;
@@ -53,7 +61,7 @@ class UploadControllerTest extends BaseBatchTest {
     when(client.getUserByQuery(query, 3)).thenReturn(buildUserCollection());
 
     var jobId = UUID.randomUUID();
-    service.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType)));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType)));
 
     var headers = defaultHeaders();
 
@@ -76,7 +84,7 @@ class UploadControllerTest extends BaseBatchTest {
     when(client.getUserByQuery(query, 2)).thenReturn(buildUserCollection());
 
     var jobId = UUID.randomUUID();
-    service.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType)));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType)));
 
     var headers = defaultHeaders();
 
@@ -97,7 +105,7 @@ class UploadControllerTest extends BaseBatchTest {
   void shouldReturnErrorForInvalidExportType() {
 
     var jobId = UUID.randomUUID();
-    service.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.ORDERS_EXPORT));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.ORDERS_EXPORT));
 
     var headers = defaultHeaders();
 
@@ -124,7 +132,7 @@ class UploadControllerTest extends BaseBatchTest {
   @SneakyThrows
   void shouldLaunchJobOnIdentifiersFileUpload() {
     var jobId = UUID.randomUUID();
-    service.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_IDENTIFIERS));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_IDENTIFIERS));
 
     var headers = defaultHeaders();
 
@@ -144,7 +152,7 @@ class UploadControllerTest extends BaseBatchTest {
   @SneakyThrows
   void shouldReturnBadRequestWhenIdentifiersFileIsEmpty() {
     var jobId = UUID.randomUUID();
-    service.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_IDENTIFIERS));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_IDENTIFIERS));
 
     var headers = defaultHeaders();
 
@@ -171,6 +179,31 @@ class UploadControllerTest extends BaseBatchTest {
         .file(file)
         .headers(headers))
       .andExpect(status().isNotFound());
+  }
+
+  @Test
+  @DisplayName("Start update job test")
+  @SneakyThrows
+  void startUpdateJobTest() {
+    var jobId = UUID.fromString("edd30136-9a7b-4226-9e82-83024dbeac4a");
+    var jobCommand = new JobCommand();
+    jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
+    jobCommand.setJobParameters(new JobParameters(new HashMap<String, JobParameter>()));
+    var executionId = 0l;
+    var jobExecution = new JobExecution(executionId);
+
+    var headers = defaultHeaders();
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+    when(exportJobManager.launchJob(isA(JobLaunchRequest.class))).thenReturn(jobExecution);
+
+    mockMvc.perform(multipart(String.format(START_URL_TEMPLATE, jobId))
+      .headers(headers))
+      .andExpect(status().isOk());
+
+    verify(jobCommandsReceiverService, times(1)).getBulkEditJobCommandById(any());
+    verify(exportJobManager, times(1)).launchJob(isA(JobLaunchRequest.class));
+    verify(bulkEditRollBackService, times(1)).putExecutionInfoPerJob(executionId, jobId);
   }
 
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType) {

@@ -34,7 +34,7 @@ public class BulkEditUpdateUserRecordsWriter implements ItemWriter<User> {
         log.info("Update user with id - {} by job id {}", user.getId(), jobId);
         bulkEditRollBackService.putUserIdForJob(user.getId(), UUID.fromString(jobId));
       } catch (Exception e) {
-        log.debug("Cannot update user with id '%s'. Reason: " + e.getMessage());
+        log.info("Cannot rollback user with id {}. Reason: {}",  user.getId(), e.getMessage());
       }
     });
   }

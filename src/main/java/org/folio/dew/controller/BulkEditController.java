@@ -7,7 +7,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -131,16 +130,12 @@ public class BulkEditController implements JobIdApi {
       }
       Files.write(uploadedPath, file.getBytes());
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
-
       prepareJobParameters(jobCommand, uploadedPath.toString(), jobId.toString());
-
-      var job =  getBulkEditJob(jobCommand.getExportType());
-      var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
-
-      log.info("Launching bulk edit job.");
-      var execution = exportJobManager.launchJob(jobLaunchRequest);
-      if (job.getName().contains(ExportType.BULK_EDIT_UPDATE.getValue())) {
-        bulkEditRollBackService.putExecutionInfoPerJob(execution.getId(), jobId);
+      if (jobCommand.getExportType() != BULK_EDIT_UPDATE) {
+        var job = getBulkEditJob(jobCommand.getExportType());
+        var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
+        log.info("Launching bulk edit identifiers job.");
+        exportJobManager.launchJob(jobLaunchRequest);
       }
       return new ResponseEntity<>(Long.toString(countLines(uploadedPath)), HttpStatus.OK);
     } catch (Exception e) {
@@ -154,6 +149,29 @@ public class BulkEditController implements JobIdApi {
   public ResponseEntity<String> rollBackCsvFile(UUID jobId) {
     var message = bulkEditRollBackService.stopAndRollBackJobExecutionByJobId(jobId);
     return new ResponseEntity<>(message, HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<String> startUpdateJob(UUID jobId) {
+    var optionalJobCommand = jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
+    if (optionalJobCommand.isEmpty()) {
+      String msg = format(JOB_COMMAND_NOT_FOUND_ERROR, jobId);
+      log.debug(msg);
+      return new ResponseEntity<>(msg, HttpStatus.NOT_FOUND);
+    }
+    var jobCommand = optionalJobCommand.get();
+    var job =  getBulkEditJob(jobCommand.getExportType());
+    var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
+    try {
+      log.info("Launching bulk update job.");
+      var execution = exportJobManager.launchJob(jobLaunchRequest);
+      bulkEditRollBackService.putExecutionInfoPerJob(execution.getId(), jobId);
+    } catch (Exception e) {
+      var errorMessage = e.getMessage();
+      log.error(errorMessage);
+      return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    return new ResponseEntity<>(HttpStatus.OK);
   }
 
   private Job getBulkEditJob(ExportType exportType) {
@@ -177,18 +195,17 @@ public class BulkEditController implements JobIdApi {
       parameters.put(ROLLBACK_FILE, new JobParameter(fileForRollBack));
     }
     jobCommand.setJobParameters(new JobParameters(parameters));
-    jobCommand.setJobParameters(new JobParameters(parameters));
   }
 
   private String buildBarcodesQuery(String fileName, int limit) throws IOException {
-  var barcodes = "";
-  try (Stream<String> lines = Files.lines(Paths.get(fileName))) {
-    barcodes = lines.limit(limit)
-      .map(String::strip)
-      .map(i -> i.replace("\"", ""))
-      .collect(joining(" OR "));
-  }
-  return String.format("barcode==(%s)", barcodes);
+    var barcodes = "";
+    try (var lines = Files.lines(Paths.get(fileName))) {
+      barcodes = lines.limit(limit)
+        .map(String::strip)
+        .map(i -> i.replace("\"", ""))
+        .collect(joining(" OR "));
+    }
+    return String.format("barcode==(%s)", barcodes);
   }
 
   private long countLines(Path path) throws IOException {

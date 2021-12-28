@@ -26,8 +26,6 @@ components:
       $ref: '../../../../folio-export-common/schemas/bursarFeeFines.json#/BursarFeeFines'
     bursarFeeFinesTypeMapping:
       $ref: '../../../../folio-export-common/schemas/bursarFeeFinesTypeMapping.json#/BursarFeeFinesTypeMapping'
-    edi:
-      $ref: '../../../../folio-export-common/schemas/acquisitions/edi.json#/Edi'
     ediConfig:
       $ref: '../../../../folio-export-common/schemas/acquisitions/ediConfig.json#/EdiConfig'
     ediEmail:

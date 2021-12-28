@@ -13,6 +13,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobExecutionException;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
@@ -201,9 +202,44 @@ class BulkEditControllerTest extends BaseBatchTest {
       .headers(headers))
       .andExpect(status().isOk());
 
-    verify(jobCommandsReceiverService, times(1)).getBulkEditJobCommandById(any());
+    verify(jobCommandsReceiverService, times(1)).getBulkEditJobCommandById(jobId.toString());
     verify(exportJobManager, times(1)).launchJob(isA(JobLaunchRequest.class));
     verify(bulkEditRollBackService, times(1)).putExecutionInfoPerJob(executionId, jobId);
+  }
+
+  @Test
+  @DisplayName("Job doesn't exist - NOT FOUND")
+  @SneakyThrows
+  void startUpdateJobReturnNotFoundTest() {
+    var jobId = UUID.fromString("edd30136-9a7b-4226-9e82-83024dbeac4a");
+    var headers = defaultHeaders();
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.empty());
+
+    mockMvc.perform(multipart(String.format(START_URL_TEMPLATE, jobId))
+      .headers(headers))
+      .andExpect(status().isNotFound());
+
+    verify(jobCommandsReceiverService, times(1)).getBulkEditJobCommandById(jobId.toString());
+  }
+
+  @Test
+  @DisplayName("Start update job - INTERNAL SERVER ERROR")
+  @SneakyThrows
+  void startUpdateJobReturnInternalServerErrorTest() {
+    var jobId = UUID.fromString("edd30136-9a7b-4226-9e82-83024dbeac4a");
+    var jobCommand = new JobCommand();
+    jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
+    jobCommand.setJobParameters(new JobParameters(new HashMap<String, JobParameter>()));
+
+    var headers = defaultHeaders();
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+    when(exportJobManager.launchJob(isA(JobLaunchRequest.class))).thenThrow(new JobExecutionException("Execution exception"));
+
+    mockMvc.perform(multipart(String.format(START_URL_TEMPLATE, jobId))
+      .headers(headers))
+      .andExpect(status().isInternalServerError());
   }
 
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType) {

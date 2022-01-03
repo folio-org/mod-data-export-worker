@@ -1,5 +1,6 @@
 package org.folio.dew.service;
 
+import static java.lang.String.format;
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
 
@@ -74,7 +75,7 @@ public class BulkEditProcessingErrorsService {
       return new Errors().errors(errors).totalRecords(errors.size());
     } catch (IOException e) {
       log.error("Failed to read {} errors file for job id {} cause {}", csvFileName, jobId, e);
-      throw new BulkEditException(String.format("Failed to read %s errors file for job id %s", csvFileName, jobId));
+      throw new BulkEditException(format("Failed to read %s errors file for job id %s", csvFileName, jobId));
     }
   }
 
@@ -133,11 +134,11 @@ public class BulkEditProcessingErrorsService {
   }
 
   private Path constructPathToStorage(String jobId) {
-    return Paths.get(String.format(STORAGE_TEMPLATE, jobId));
+    return Paths.get(format(STORAGE_TEMPLATE, jobId));
   }
 
   private Path constructPathToCsvFile(String jobId, String csvFileName) {
-    return Paths.get(String.format(CSV_FILE_TEMPLATE, jobId, csvFileName));
+    return Paths.get(format(CSV_FILE_TEMPLATE, jobId, csvFileName));
   }
 
   private String constructCsvFileName(String fileName) {

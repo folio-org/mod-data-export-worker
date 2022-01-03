@@ -65,11 +65,17 @@
         },
         {
           "methods": [ "GET" ],
-          "pathPattern": "/bulk-edit/{id}/preview",
+          "pathPattern": "/bulk-edit/{jobId}/preview",
           "permissionsRequired": [ "bulk-edit.preview.collection.get" ],
           "modulePermissions": [
             "users.collection.get"
           ]
+        },
+        {
+          "methods": [ "GET" ],
+          "pathPattern": "/bulk-edit/{jobId}/errors",
+          "permissionsRequired": [ "bulk-edit.errors.collection.get" ],
+          "modulePermissions": []
         }
       ]
     },

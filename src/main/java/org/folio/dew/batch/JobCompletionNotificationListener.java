@@ -19,7 +19,7 @@ import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
-import org.folio.dew.service.SaveErrorService;
+import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
@@ -45,7 +45,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
   private final IAcknowledgementRepository acknowledgementRepository;
   private final KafkaService kafka;
   private final MinIOObjectStorageRepository repository;
-  private final SaveErrorService saveErrorService;
+  private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
 
   @Override
   public void beforeJob(JobExecution jobExecution) {
@@ -69,9 +69,9 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
     if (after) {
       if (isBulkEditIdentifiersJob(jobExecution)) {
-        String downloadErrorLink = saveErrorService.saveErrorFileAndGetDownloadLink(jobId);
+        String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
         jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution) + (isNull(downloadErrorLink) ? "" : ";" + downloadErrorLink));
-        saveErrorService.removeTemporaryErrorStorage(jobId);
+        bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId);
       }
       processJobAfter(jobId, jobParameters);
     } else {

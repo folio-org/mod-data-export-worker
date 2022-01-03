@@ -6,7 +6,10 @@ import org.folio.de.entity.JobCommand;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.*;
+import org.folio.dew.error.BulkEditException;
+import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
+import org.folio.tenant.domain.dto.Errors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -28,20 +31,22 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import static java.lang.String.format;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class BulkEditControllerTest extends BaseBatchTest {
   private static final String UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/upload";
   private static final String START_URL_TEMPLATE = "/bulk-edit/%s/start";
   private static final String PREVIEW_URL_TEMPLATE = "/bulk-edit/%s/preview";
+  private static final String ERRORS_URL_TEMPLATE = "/bulk-edit/%s/errors";
   public static final String LIMIT = "limit";
 
   @Autowired
@@ -52,6 +57,69 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @MockBean
   private UserClient client;
+
+  @Autowired
+  private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
+
+  @Test
+  void shouldReturnErrorsPreview() throws Exception {
+
+    var jobId = UUID.randomUUID();
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_IDENTIFIERS));
+
+    int numOfErrorLines = 3;
+    int errorsPreviewLimit = 2;
+    var reasonForError = new BulkEditException("Record not found");
+    var fileName = "barcodes.csv";
+    for (int i = 0; i < numOfErrorLines; i++) {
+      bulkEditProcessingErrorsService.saveErrorInCSV(jobId.toString(), String.valueOf(i), reasonForError, fileName);
+    }
+    var headers = defaultHeaders();
+
+    var response = mockMvc.perform(get(format(ERRORS_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(errorsPreviewLimit)))
+      .andExpect(status().isOk());
+
+    var errors = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), Errors.class);
+
+    assertThat(errors.getErrors(), hasSize(errorsPreviewLimit));
+    assertThat(errors.getTotalRecords(), is(errorsPreviewLimit));
+
+    bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId.toString());
+  }
+
+  @Test
+  void shouldReturnJobNotFoundErrorForErrorsPreview() throws Exception {
+
+    var jobId = UUID.randomUUID();
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_IDENTIFIERS));
+
+    var expectedErrorMsg = format("errors file for job id %s", jobId);
+
+    var headers = defaultHeaders();
+
+    mockMvc.perform(get(format(ERRORS_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(2)))
+      .andExpect(status().isInternalServerError())
+      .andExpect(content().string(containsString(expectedErrorMsg)));
+  }
+
+  @Test
+  void shouldReturnErrorsFileNotFoundErrorForErrorsPreview() throws Exception {
+
+    var jobId = UUID.randomUUID();
+    var expectedErrorMsg = format("JobCommand with id %s doesn't exist.", jobId);
+
+    var headers = defaultHeaders();
+
+    mockMvc.perform(get(format(ERRORS_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(2)))
+      .andExpect(status().isNotFound())
+      .andExpect(content().string(expectedErrorMsg));
+  }
 
   @SneakyThrows
   @ParameterizedTest
@@ -66,7 +134,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     var headers = defaultHeaders();
 
-    var response = mockMvc.perform(get(String.format(PREVIEW_URL_TEMPLATE, jobId))
+    var response = mockMvc.perform(get(format(PREVIEW_URL_TEMPLATE, jobId))
         .headers(headers)
         .queryParam(LIMIT, String.valueOf(3)))
       .andExpect(status().isOk());
@@ -89,7 +157,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     var headers = defaultHeaders();
 
-    var response = mockMvc.perform(get(String.format(PREVIEW_URL_TEMPLATE, jobId))
+    var response = mockMvc.perform(get(format(PREVIEW_URL_TEMPLATE, jobId))
         .headers(headers)
         .queryParam(LIMIT, String.valueOf(2)))
       .andExpect(status().isOk());
@@ -110,7 +178,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     var headers = defaultHeaders();
 
-    mockMvc.perform(get(String.format(PREVIEW_URL_TEMPLATE, jobId))
+    mockMvc.perform(get(format(PREVIEW_URL_TEMPLATE, jobId))
         .headers(headers)
         .queryParam(LIMIT, String.valueOf(2)))
       .andExpect(status().isBadRequest());
@@ -122,7 +190,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     var headers = defaultHeaders();
 
-    mockMvc.perform(get(String.format(PREVIEW_URL_TEMPLATE, UUID.randomUUID()))
+    mockMvc.perform(get(format(PREVIEW_URL_TEMPLATE, UUID.randomUUID()))
         .headers(headers)
         .queryParam(LIMIT, String.valueOf(2)))
       .andExpect(status().isNotFound());
@@ -140,7 +208,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var bytes = new FileInputStream("src/test/resources/upload/barcodes.csv").readAllBytes();
     var file = new MockMultipartFile("file", "barcodes.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
 
-    var result = mockMvc.perform(multipart(String.format(UPLOAD_URL_TEMPLATE, jobId))
+    var result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
       .file(file)
       .headers(headers))
       .andExpect(status().isOk())
@@ -162,7 +230,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     var file = new MockMultipartFile("file", "barcodes.csv", MediaType.TEXT_PLAIN_VALUE, new byte[]{});
 
-    mockMvc.perform(multipart(String.format(UPLOAD_URL_TEMPLATE, jobId))
+    mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
         .file(file)
         .headers(headers))
       .andExpect(status().isBadRequest());
@@ -179,7 +247,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var bytes = new FileInputStream("src/test/resources/upload/barcodes.csv").readAllBytes();
     var file = new MockMultipartFile("file", "barcodes.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
 
-    mockMvc.perform(multipart(String.format(UPLOAD_URL_TEMPLATE, jobId))
+    mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
         .file(file)
         .headers(headers))
       .andExpect(status().isNotFound());
@@ -201,7 +269,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
     when(exportJobManager.launchJob(isA(JobLaunchRequest.class))).thenReturn(jobExecution);
 
-    mockMvc.perform(multipart(String.format(START_URL_TEMPLATE, jobId))
+    mockMvc.perform(multipart(format(START_URL_TEMPLATE, jobId))
       .headers(headers))
       .andExpect(status().isOk());
 
@@ -219,7 +287,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.empty());
 
-    mockMvc.perform(multipart(String.format(START_URL_TEMPLATE, jobId))
+    mockMvc.perform(multipart(format(START_URL_TEMPLATE, jobId))
       .headers(headers))
       .andExpect(status().isNotFound());
 
@@ -240,7 +308,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
     when(exportJobManager.launchJob(isA(JobLaunchRequest.class))).thenThrow(new JobExecutionException("Execution exception"));
 
-    mockMvc.perform(multipart(String.format(START_URL_TEMPLATE, jobId))
+    mockMvc.perform(multipart(format(START_URL_TEMPLATE, jobId))
       .headers(headers))
       .andExpect(status().isInternalServerError());
   }

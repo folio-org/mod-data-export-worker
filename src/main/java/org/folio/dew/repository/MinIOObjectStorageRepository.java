@@ -3,6 +3,9 @@ package org.folio.dew.repository;
 import io.minio.BucketExistsArgs;
 import io.minio.ComposeObjectArgs;
 import io.minio.ComposeSource;
+import io.minio.DownloadObjectArgs;
+import io.minio.GetObjectArgs;
+import io.minio.GetObjectResponse;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
@@ -96,6 +99,12 @@ public class MinIOObjectStorageRepository {
     log.info("Deleted temp file {}.", filename);
 
     return result;
+  }
+
+  public void downloadObject(String objectToGet, String fileToSave) throws IOException, InvalidKeyException,
+    InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,
+    InternalException, XmlParserException, ErrorResponseException {
+    client.downloadObject(DownloadObjectArgs.builder().bucket(bucket).object(objectToGet).filename(fileToSave).build());
   }
 
   public ObjectWriteResponse composeObject(String destObject, List<String> sourceObjects, String downloadFilename,

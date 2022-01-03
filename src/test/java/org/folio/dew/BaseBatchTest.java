@@ -41,6 +41,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -74,8 +75,8 @@ public abstract class BaseBatchTest {
   protected ObjectMapper objectMapper;
   @Autowired
   protected MinIOObjectStorageRepository minIOObjectStorageRepository;
-  @Autowired
-  protected JobCommandsReceiverService service;
+  @SpyBean
+  protected JobCommandsReceiverService jobCommandsReceiverService;
   @Autowired
   protected InMemoryAcknowledgementRepository repository;
   @MockBean

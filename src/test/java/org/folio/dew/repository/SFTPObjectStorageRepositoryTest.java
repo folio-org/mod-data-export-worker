@@ -27,7 +27,6 @@ class SFTPObjectStorageRepositoryTest {
   private SFTPObjectStorageRepository sftpRepository;
 
   private static final int PORT = 22;
-  private static final String SFTP_HOST = "localhost";
   private static final String INVALID_HOST = "invalidhost123";
   private static final String FILENAME = "exported.csv";
   private static final String USERNAME = "user";
@@ -35,6 +34,7 @@ class SFTPObjectStorageRepositoryTest {
   private static final String PASSWORD_INVALID = "dontLetMeIn";
   private static final String EXPORT_FOLDER_NAME = "upload";
 
+  private static String SFTP_HOST;
   private static Integer MAPPED_PORT;
 
   @Container
@@ -52,6 +52,7 @@ class SFTPObjectStorageRepositoryTest {
   @BeforeAll
   public static void staticSetup() {
     MAPPED_PORT = sftp.getMappedPort(PORT);
+    SFTP_HOST = sftp.getHost();
   }
 
   @Test

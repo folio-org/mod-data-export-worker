@@ -85,7 +85,7 @@ public class SFTPObjectStorageRepository {
         if (isDirectoryAbsent(sftpClient, path.toString())) {
           sftpClient.mkdir(path.toString());
         }
-        if (!(i + 1 < folders.length)) return;
+        if ((i + 1 >= folders.length)) return;
         path.append(folders[i + 1]).append("/");
       }
       log.info("A directory has been created: {}", folder);

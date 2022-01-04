@@ -183,12 +183,12 @@ public class JobCommandsReceiverService {
     if (!objects.isEmpty()) {
       objectStorageRepository.removeObjects(objects);
     }
-
+    bulkEditJobCommands.remove(jobCommand.getId().toString());
     return true;
   }
 
   public void addBulkEditJobCommand(JobCommand jobCommand) {
-    bulkEditJobCommands.put(jobCommand.getId().toString(), jobCommand);
+    bulkEditJobCommands.putIfAbsent(jobCommand.getId().toString(), jobCommand);
   }
 
   public Optional<JobCommand> getBulkEditJobCommandById(String id) {

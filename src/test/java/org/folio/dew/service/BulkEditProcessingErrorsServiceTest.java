@@ -4,6 +4,7 @@ import org.folio.dew.BaseBatchTest;
 import org.folio.dew.error.BulkEditException;
 import static org.folio.dew.service.BulkEditProcessingErrorsService.CSV_NAME_DATE_FORMAT;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -42,6 +43,14 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
     List<String> lines = Files.readAllLines(pathToCsvFile);
     String expectedLine = affectedIdentifier + "," + reasonForError.getMessage();
     assertEquals(expectedLine, lines.get(0));
+    assertThat(lines, hasSize(1));
+
+    // Second attempt to verify file name calculation logic
+    bulkEditProcessingErrorsService.saveErrorInCSV(jobId, affectedIdentifier, reasonForError, fileName);
+    assertTrue(Files.exists(pathToCsvFile));
+    lines = Files.readAllLines(pathToCsvFile);
+    assertThat(lines, hasSize(2));
+
     removeStorage();
   }
 
@@ -76,7 +85,7 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
       bulkEditProcessingErrorsService.saveErrorInCSV(jobId, String.valueOf(i), reasonForError, fileName);
     }
     var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobId, fileName, errorsPreviewLimit);
-    assertThat(errors.getErrors(), Matchers.hasSize(errorsPreviewLimit));
+    assertThat(errors.getErrors(), hasSize(errorsPreviewLimit));
     assertThat(errors.getTotalRecords(), Matchers.is(errorsPreviewLimit));
     removeStorage();
   }

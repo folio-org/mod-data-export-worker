@@ -1,10 +1,5 @@
 package org.folio.dew.service;
 
-import static java.lang.String.format;
-import static java.util.Collections.emptyList;
-import static java.util.Objects.*;
-import static java.util.stream.Collectors.toList;
-
 import io.minio.ObjectWriteResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -26,6 +21,12 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Stream;
+
+import static java.lang.String.format;
+import static java.util.Collections.emptyList;
+import static java.util.Objects.isNull;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
 
 @Service
 @Log4j2
@@ -153,10 +154,10 @@ public class BulkEditProcessingErrorsService {
       names = Arrays.stream(requireNonNull(pathToStorage.toFile().listFiles()))
         .map(File::getName).collect(toList());
     }
-    if (names.size() > 0) {
-      return  names.get(0);
-    } else {
+    if (names.isEmpty()) {
       return LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Errors-" + fileName;
+    } else {
+      return  names.get(0);
     }
   }
 }

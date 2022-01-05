@@ -149,13 +149,13 @@ public class BulkEditController implements JobIdApi {
       Files.write(uploadedPath, file.getBytes());
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
       prepareJobParameters(jobCommand, uploadedPath.toString(), jobId.toString());
-      if (jobCommand.getExportType() != BULK_EDIT_UPDATE) {
+      if (!isUpdate(jobCommand)) {
         var job = getBulkEditJob(jobCommand.getExportType());
         var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
         log.info("Launching bulk edit identifiers job.");
         exportJobManager.launchJob(jobLaunchRequest);
       }
-      return new ResponseEntity<>(Long.toString(countLines(uploadedPath)), HttpStatus.OK);
+      return new ResponseEntity<>(Long.toString(countLines(uploadedPath, isUpdate(jobCommand))), HttpStatus.OK);
     } catch (Exception e) {
       String errorMessage = format(FILE_UPLOAD_ERROR, e.getMessage());
       log.error(errorMessage);
@@ -232,9 +232,13 @@ public class BulkEditController implements JobIdApi {
     return String.format("barcode==(%s)", barcodes);
   }
 
-  private long countLines(Path path) throws IOException {
+  private long countLines(Path path, boolean skipHeaders) throws IOException {
     try (var lines = Files.lines(path)) {
-      return lines.count();
+      return skipHeaders ? lines.count() - 1 : lines.count();
     }
+  }
+
+  private boolean isUpdate(JobCommand jobCommand) {
+    return jobCommand.getExportType() == BULK_EDIT_UPDATE;
   }
 }

@@ -1,6 +1,7 @@
 package org.folio.dew.service;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
 
@@ -23,6 +24,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -68,14 +70,18 @@ public class BulkEditProcessingErrorsService {
     var csvFileName = constructCsvFileName(fileName);
     var pathToCSVFile = constructPathToCsvFile(jobId, csvFileName);
 
-    try (var lines = Files.lines(pathToCSVFile)) {
-      var errors = lines.limit(limit)
-        .map(message -> new Error().message(message).type(BULK_EDIT_ERROR_TYPE_NAME))
-        .collect(toList());
-      return new Errors().errors(errors).totalRecords(errors.size());
-    } catch (IOException e) {
-      log.error("Failed to read {} errors file for job id {} cause {}", csvFileName, jobId, e);
-      throw new BulkEditException(format("Failed to read %s errors file for job id %s", csvFileName, jobId));
+    if (Files.exists(pathToCSVFile)) {
+      try (var lines = Files.lines(pathToCSVFile)) {
+        var errors = lines.limit(limit)
+          .map(message -> new Error().message(message).type(BULK_EDIT_ERROR_TYPE_NAME))
+          .collect(toList());
+        return new Errors().errors(errors).totalRecords(errors.size());
+      } catch (IOException e) {
+        log.error("Failed to read {} errors file for job id {} cause {}", csvFileName, jobId, e);
+        throw new BulkEditException(format("Failed to read %s errors file for job id %s", csvFileName, jobId));
+      }
+    } else {
+      return new Errors().errors(emptyList()).totalRecords(0);
     }
   }
 

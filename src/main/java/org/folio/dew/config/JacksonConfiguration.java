@@ -31,8 +31,7 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
                 new SimpleModule()
                     .addDeserializer(ExitStatus.class, new ExitStatusDeserializer())
                     .addDeserializer(JobParameter.class, new JobParameterDeserializer()))
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
   static class ExitStatusDeserializer extends StdDeserializer<ExitStatus> {

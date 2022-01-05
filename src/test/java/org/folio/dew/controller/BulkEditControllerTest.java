@@ -224,6 +224,27 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @Test
+  @DisplayName("Skip headers while counting records for update")
+  @SneakyThrows
+  void shouldSkipHeadersWhileCountingRecordsForUpdate() {
+    var jobId = UUID.randomUUID();
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_UPDATE));
+
+    var headers = defaultHeaders();
+
+    var bytes = new FileInputStream("src/test/resources/upload/bulk_edit_user_record.csv").readAllBytes();
+    var file = new MockMultipartFile("file", "bulk_edit_user_record.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    var result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
+        .file(file)
+        .headers(headers))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    assertThat(result.getResponse().getContentAsString(), equalTo("1"));
+  }
+
+  @Test
   @DisplayName("Upload empty file - BAD REQUEST")
   @SneakyThrows
   void shouldReturnBadRequestWhenIdentifiersFileIsEmpty() {

@@ -90,7 +90,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @Test
-  void shouldReturnJobNotFoundErrorForErrorsPreview() throws Exception {
+  void shouldReturnEmptyErrorsForErrorsPreview() throws Exception {
 
     var jobId = UUID.randomUUID();
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_IDENTIFIERS));
@@ -99,11 +99,15 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     var headers = defaultHeaders();
 
-    mockMvc.perform(get(format(ERRORS_URL_TEMPLATE, jobId))
+    var response = mockMvc.perform(get(format(ERRORS_URL_TEMPLATE, jobId))
         .headers(headers)
         .queryParam(LIMIT, String.valueOf(2)))
-      .andExpect(status().isInternalServerError())
-      .andExpect(content().string(containsString(expectedErrorMsg)));
+      .andExpect(status().isOk());
+
+    var errors = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), Errors.class);
+
+    assertThat(errors.getErrors(), empty());
+    assertThat(errors.getTotalRecords(), is(0));
   }
 
   @Test

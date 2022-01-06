@@ -1,9 +1,5 @@
 package org.folio.dew.service;
 
-import static java.lang.String.format;
-import static java.util.Objects.isNull;
-import static java.util.stream.Collectors.toList;
-
 import io.minio.ObjectWriteResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -23,9 +19,18 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+
+import static java.lang.String.format;
+import static java.util.Collections.emptyList;
+import static java.util.Objects.isNull;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
 
 @Service
 @Log4j2
@@ -48,12 +53,12 @@ public class BulkEditProcessingErrorsService {
       log.error("Some of the parameters is null, jobId: {}, affectedIdentifier: {}, reasonForError: {}, fileName: {}", jobId, affectedIdentifier, reasonForError, fileName);
       return;
     }
-    var csvFileName = constructCsvFileName(fileName);
+    var csvFileName = getCsvFileName(jobId, fileName);
     var errorMessages = reasonForError.getMessage().split(COMMA_SEPARATOR);
     for (var errorMessage: errorMessages) {
       var errorLine = affectedIdentifier + COMMA_SEPARATOR + errorMessage + System.lineSeparator();
-      var pathToStorage = constructPathToStorage(jobId);
-      var pathToCSVFile = constructPathToCsvFile(jobId, csvFileName);
+      var pathToStorage = getPathToStorage(jobId);
+      var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
       try {
         Files.createDirectories(pathToStorage);
         Files.write(pathToCSVFile, errorLine.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
@@ -65,17 +70,21 @@ public class BulkEditProcessingErrorsService {
 
   public Errors readErrorsFromCSV(String jobId, String fileName, Integer limit) throws BulkEditException {
 
-    var csvFileName = constructCsvFileName(fileName);
-    var pathToCSVFile = constructPathToCsvFile(jobId, csvFileName);
+    var csvFileName = getCsvFileName(jobId, fileName);
+    var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
 
-    try (var lines = Files.lines(pathToCSVFile)) {
-      var errors = lines.limit(limit)
-        .map(message -> new Error().message(message).type(BULK_EDIT_ERROR_TYPE_NAME))
-        .collect(toList());
-      return new Errors().errors(errors).totalRecords(errors.size());
-    } catch (IOException e) {
-      log.error("Failed to read {} errors file for job id {} cause {}", csvFileName, jobId, e);
-      throw new BulkEditException(format("Failed to read %s errors file for job id %s", csvFileName, jobId));
+    if (Files.exists(pathToCSVFile)) {
+      try (var lines = Files.lines(pathToCSVFile)) {
+        var errors = lines.limit(limit)
+          .map(message -> new Error().message(message).type(BULK_EDIT_ERROR_TYPE_NAME))
+          .collect(toList());
+        return new Errors().errors(errors).totalRecords(errors.size());
+      } catch (IOException e) {
+        log.error("Failed to read {} errors file for job id {} cause {}", csvFileName, jobId, e);
+        throw new BulkEditException(format("Failed to read %s errors file for job id %s", csvFileName, jobId));
+      }
+    } else {
+      return new Errors().errors(emptyList()).totalRecords(0);
     }
   }
 
@@ -92,7 +101,7 @@ public class BulkEditProcessingErrorsService {
   }
 
   public String saveErrorFileAndGetDownloadLink(String jobId) {
-    var pathToStorage = constructPathToStorage(jobId);
+    var pathToStorage = getPathToStorage(jobId);
     if (Files.exists(pathToStorage)) {
       try (Stream<Path> stream = Files.list(pathToStorage)) {
         Optional<Path> csvErrorFile = stream.filter(Files::isRegularFile).findFirst();
@@ -133,15 +142,26 @@ public class BulkEditProcessingErrorsService {
     }
   }
 
-  private Path constructPathToStorage(String jobId) {
+  private Path getPathToStorage(String jobId) {
     return Paths.get(format(STORAGE_TEMPLATE, jobId));
   }
 
-  private Path constructPathToCsvFile(String jobId, String csvFileName) {
+  private Path getPathToCsvFile(String jobId, String csvFileName) {
     return Paths.get(format(CSV_FILE_TEMPLATE, jobId, csvFileName));
   }
 
-  private String constructCsvFileName(String fileName) {
-    return LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Errors-" + fileName;
+  private String getCsvFileName(String jobId, String fileName) {
+    var pathToStorage = getPathToStorage(jobId);
+    List<String> names = new ArrayList<>();
+
+    if (Files.exists(pathToStorage)) {
+      names = Arrays.stream(requireNonNull(pathToStorage.toFile().listFiles()))
+        .map(File::getName).collect(toList());
+    }
+    if (names.isEmpty()) {
+      return LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Errors-" + fileName;
+    } else {
+      return  names.get(0);
+    }
   }
 }

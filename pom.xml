@@ -36,6 +36,9 @@
         <bulk-edit.yaml.file>
           ${project.basedir}/src/main/resources/swagger.api/bulk-edit.yaml
         </bulk-edit.yaml.file>
+      <order-export.yaml.file>
+        ${project.basedir}/src/main/resources/swagger.api/order-export.yaml
+      </order-export.yaml.file>
 
         <folio-spring-base.version>2.0.0</folio-spring-base.version>
         <folio-spring-tenant.version>1.0.0</folio-spring-tenant.version>
@@ -173,6 +176,12 @@
         <groupId>com.vladmihalcea</groupId>
         <artifactId>hibernate-types-52</artifactId>
         <version>${hibernate-types-52.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.xlate</groupId>
+        <artifactId>staedi</artifactId>
+        <version>1.16.0</version>
       </dependency>
 
         <!-- Test dependencies -->
@@ -375,6 +384,33 @@
                       <generateModels>true</generateModels>
                       <modelsToGenerate>
                         Department,DepartmentCollection,ProxyFor,ProxyForCollection,AddressType,AddressTypeCollection,UserGroup,UserGroupCollection,Parameter,Error,Errors
+                      </modelsToGenerate>
+                      <generateModelTests>false</generateModelTests>
+                      <generateSupportingFiles>false</generateSupportingFiles>
+                      <generateModelDocumentation>true</generateModelDocumentation>
+                      <configOptions>
+                        <java8>true</java8>
+                        <dateLibrary>java</dateLibrary>
+                        <interfaceOnly>true</interfaceOnly>
+                      </configOptions>
+                    </configuration>
+                  </execution>
+                  <execution>
+                    <id>order-export-worker</id>
+                    <goals>
+                      <goal>generate</goal>
+                    </goals>
+                    <configuration>
+                      <inputSpec>${order-export.yaml.file}</inputSpec>
+                      <output>${project.build.directory}/generated-sources</output>
+                      <generatorName>spring</generatorName>
+                      <modelPackage>${project.groupId}.dew.domain.dto</modelPackage>
+                      <generateApis>true</generateApis>
+                      <generateApiTests>false</generateApiTests>
+                      <generateApiDocumentation>false</generateApiDocumentation>
+                      <generateModels>true</generateModels>
+                      <modelsToGenerate>
+                        ReferenceNumberItem,CompositePoLine,CompositePurchaseOrder,Alert,Claim,CloseReason,Contributor,Cost,Details,Eresource,FundDistribution,License,Location,Ongoing,Physical,ProductIdentifier,ReportingCode,VendorDetail
                       </modelsToGenerate>
                       <generateModelTests>false</generateModelTests>
                       <generateSupportingFiles>false</generateSupportingFiles>

@@ -6,6 +6,7 @@ import org.folio.dew.client.AccountClient;
 import org.folio.dew.client.AddressTypeClient;
 import org.folio.dew.client.AuditClient;
 import org.folio.dew.client.ConfigurationClient;
+import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.client.DepartmentClient;
 import org.folio.dew.client.FeefineactionsClient;
 import org.folio.dew.client.GroupClient;
@@ -32,6 +33,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
   ServicePointClient.class,
   TransferClient.class,
   UserClient.class,
+  DataExportSpringClient.class,
   MaterialTypeClient.class
 })
 @EnableBatchProcessing

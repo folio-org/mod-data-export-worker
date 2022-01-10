@@ -42,7 +42,6 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
   private final UserReferenceService userReferenceService;
 
   private DateFormat dateFormat;
-
   private Set<ItemIdentifier> identifiersToCheckDuplication = new HashSet<>();
 
   @PostConstruct

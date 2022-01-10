@@ -22,16 +22,60 @@
             "usergroups.item.get",
             "addresstypes.item.get",
             "proxiesfor.item.get",
-            "departments.item.get"
+            "departments.item.get",
+            "data-export.job.item.get"
+          ]
+        },
+        {
+          "methods": [ "POST" ],
+          "pathPattern": "/bulk-edit/{id}/start",
+          "permissionsRequired": [ "bulk-edit.start.item.post" ],
+          "modulePermissions": [
+            "users.collection.get",
+            "users.item.get",
+            "users.item.put",
+            "usergroups.item.get",
+            "addresstypes.item.get",
+            "proxiesfor.item.get",
+            "departments.item.get",
+            "usergroups.collection.get",
+            "addresstypes.collection.get"
+          ]
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/bulk-edit/{jobId}/roll-back",
+          "permissionsRequired": [
+            "bulk-edit.roll-back.item.post"
+          ],
+          "modulePermissions": [
+            "users.collection.get",
+            "users.item.get",
+            "users.item.put",
+            "usergroups.item.get",
+            "addresstypes.item.get",
+            "proxiesfor.item.get",
+            "departments.item.get",
+            "usergroups.collection.get",
+            "addresstypes.collection.get",
+            "data-export.job.item.get"
           ]
         },
         {
           "methods": [ "GET" ],
-          "pathPattern": "/bulk-edit/{id}/preview",
+          "pathPattern": "/bulk-edit/{jobId}/preview",
           "permissionsRequired": [ "bulk-edit.preview.collection.get" ],
           "modulePermissions": [
             "users.collection.get"
           ]
+        },
+        {
+          "methods": [ "GET" ],
+          "pathPattern": "/bulk-edit/{jobId}/errors",
+          "permissionsRequired": [ "bulk-edit.errors.collection.get" ],
+          "modulePermissions": []
         }
       ]
     },
@@ -84,9 +128,26 @@
       "description" : "Upload list of item identifiers"
     },
     {
+      "permissionName": "bulk-edit.start.item.post",
+      "displayName": "start update items",
+      "description": "Start update items"
+    },
+    {
+      "permissionName": "bulk-edit.roll-back.item.post",
+      "displayName": "roll back list of uploaded items",
+      "description": "Roll back list of uploaded items"
+    },
+    {
       "permissionName" : "bulk-edit.preview.collection.get",
       "displayName" : "get N items for preview",
       "description" : "Get N items for preview"
+
+    },
+    {
+      "permissionName" : "bulk-edit.errors.collection.get",
+      "displayName" : "get errors for preview",
+      "description" : "Get errors for preview"
+
     },
     {
       "permissionName" : "bulk-edit.all",
@@ -94,7 +155,10 @@
       "description" : "All permissions for bulk-edit module",
       "subPermissions" : [
         "bulk-edit.item.post",
-        "bulk-edit.preview.collection.get"
+        "bulk-edit.start.item.post",
+        "bulk-edit.roll-back.item.post",
+        "bulk-edit.preview.collection.get",
+        "bulk-edit.errors.collection.get"
       ]
     }
   ],

@@ -23,7 +23,7 @@ public class BulkEditUpdateUserRecordsProcessor implements ItemProcessor<UserFor
     try {
       return bulkEditParseService.mapUserFormatToUser(userFormat);
     } catch (Exception e) {
-      log.debug("Cannot process user record. Skipping a user.");
+      log.info("Error process user format {} : {}",  userFormat.getId(), e.getMessage());
       return null;
     }
   }

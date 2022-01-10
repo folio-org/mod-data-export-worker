@@ -16,5 +16,4 @@ public interface DepartmentClient {
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   DepartmentCollection getDepartmentByQuery(@RequestParam String query);
-
 }

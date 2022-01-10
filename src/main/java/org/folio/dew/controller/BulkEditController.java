@@ -2,19 +2,24 @@ package org.folio.dew.controller;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.error.BulkEditException;
+import org.folio.dew.service.BulkEditProcessingErrorsService;
+import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.openapitools.api.JobIdApi;
 import org.springframework.batch.core.Job;
@@ -35,35 +40,38 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import static java.lang.String.format;
-import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.JOB_ID_SEPARATOR;
+import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
+import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
+import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 
 @RestController
 @RequestMapping("/bulk-edit")
 @Log4j2
 @RequiredArgsConstructor
-public class UploadController implements JobIdApi {
-  private static final String TMP_DIR_PROPERTY = "java.io.tmpdir";
-  private static final String PATH_SEPARATOR = "/";
-  private static final String OUTPUT_FILE_NAME_PATTERN = "%s-Matched-Records-%s";
+public class BulkEditController implements JobIdApi {
+
   private static final String FILE_UPLOAD_ERROR = "Cannot upload a file. Reason: %s.";
   private static final String JOB_COMMAND_NOT_FOUND_ERROR = "JobCommand with id %s doesn't exist.";
 
   private final UserClient userClient;
   private final JobCommandsReceiverService jobCommandsReceiverService;
   private final ExportJobManager exportJobManager;
+  private final BulkEditRollBackService bulkEditRollBackService;
+  private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   private final List<Job> jobs;
 
   @Value("${spring.application.name}")
   private String springApplicationName;
   private String workDir;
-  private String fileName;
 
   @PostConstruct
   public void postConstruct() {
@@ -98,10 +106,25 @@ public class UploadController implements JobIdApi {
     }
   }
 
-  private String extractQueryFromJobCommand(JobCommand jobCommand, String parameterName) {
-    return BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())
-      ? (String) jobCommand.getJobParameters().getParameters().get(parameterName).getValue()
-      : jobCommand.getJobParameters().getString(parameterName);
+  @Override
+  public ResponseEntity<Object> getErrorsPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId, @NotNull @ApiParam(value = "The numbers of users to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
+    var optionalJobCommand = jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
+
+    if (optionalJobCommand.isEmpty()) {
+      String msg = format(JOB_COMMAND_NOT_FOUND_ERROR, jobId);
+      log.debug(msg);
+      return new ResponseEntity<>(msg, HttpStatus.NOT_FOUND);
+    }
+
+    var jobCommand = optionalJobCommand.get();
+    var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME));
+
+    try {
+      var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobId.toString(), fileName, limit);
+      return new ResponseEntity<>(errors, HttpStatus.OK);
+    } catch (BulkEditException e) {
+      return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @Override
@@ -117,30 +140,62 @@ public class UploadController implements JobIdApi {
       return new ResponseEntity<>(msg, HttpStatus.NOT_FOUND);
     }
     var jobCommand = optionalJobCommand.get();
-
-    fileName = workDir + file.getOriginalFilename();
+    var uploadedPath = Path.of(workDir, file.getOriginalFilename());
 
     try {
-      Files.deleteIfExists(Paths.get(fileName));
-      var filePath = Files.createFile(Paths.get(fileName));
-      Files.write(filePath, file.getBytes());
+      if (Files.exists(uploadedPath)) {
+        FileUtils.forceDelete(uploadedPath.toFile());
+      }
+      Files.write(uploadedPath, file.getBytes());
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
-
-      prepareJobParameters(jobCommand);
-
-      var jobLaunchRequest =
-        new JobLaunchRequest(
-          getBulkEditJob(jobCommand.getExportType()),
-          jobCommand.getJobParameters());
-
-      log.info("Launching bulk edit job.");
-      exportJobManager.launchJob(jobLaunchRequest);
+      prepareJobParameters(jobCommand, uploadedPath.toString(), jobId.toString());
+      if (!isBulkEditUpdate(jobCommand)) {
+        var job = getBulkEditJob(jobCommand.getExportType());
+        var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
+        log.info("Launching bulk edit identifiers job.");
+        exportJobManager.launchJob(jobLaunchRequest);
+      }
+      return new ResponseEntity<>(Long.toString(countLines(uploadedPath, isBulkEditUpdate(jobCommand))), HttpStatus.OK);
     } catch (Exception e) {
       String errorMessage = format(FILE_UPLOAD_ERROR, e.getMessage());
       log.error(errorMessage);
       return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  @Override
+  public ResponseEntity<String> rollBackCsvFile(UUID jobId) {
+    var message = bulkEditRollBackService.stopAndRollBackJobExecutionByJobId(jobId);
+    return new ResponseEntity<>(message, HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<String> startUpdateJob(UUID jobId) {
+    var optionalJobCommand = jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
+    if (optionalJobCommand.isEmpty()) {
+      String msg = format(JOB_COMMAND_NOT_FOUND_ERROR, jobId);
+      log.debug(msg);
+      return new ResponseEntity<>(msg, HttpStatus.NOT_FOUND);
+    }
+    var jobCommand = optionalJobCommand.get();
+    var job =  getBulkEditJob(jobCommand.getExportType());
+    var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
+    try {
+      log.info("Launching bulk update job.");
+      var execution = exportJobManager.launchJob(jobLaunchRequest);
+      bulkEditRollBackService.putExecutionInfoPerJob(execution.getId(), jobId);
+    } catch (Exception e) {
+      var errorMessage = e.getMessage();
+      log.error(errorMessage);
+      return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
     return new ResponseEntity<>(HttpStatus.OK);
+  }
+
+  private String extractQueryFromJobCommand(JobCommand jobCommand, String parameterName) {
+    return BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())
+      ? (String) jobCommand.getJobParameters().getParameters().get(parameterName).getValue()
+      : jobCommand.getJobParameters().getString(parameterName);
   }
 
   private Job getBulkEditJob(ExportType exportType) {
@@ -150,24 +205,40 @@ public class UploadController implements JobIdApi {
       .orElseThrow(() -> new IllegalStateException("Job was not found, aborting"));
   }
 
-  private void prepareJobParameters(JobCommand jobCommand) throws IOException {
+  private void prepareJobParameters(JobCommand jobCommand, String fileName, String jobId) {
     var parameters = jobCommand.getJobParameters().getParameters();
     parameters.put(FILE_NAME, new JobParameter(fileName));
-    parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + format(OUTPUT_FILE_NAME_PATTERN, LocalDate.now().format(ofPattern("yyyy-MM-dd")), FilenameUtils.getBaseName(fileName))));
+    parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + jobId + JOB_ID_SEPARATOR + FilenameUtils.getBaseName(fileName)));
     parameters.put(EXPORT_TYPE, new JobParameter(jobCommand.getExportType().getValue()));
     ofNullable(jobCommand.getIdentifierType()).ifPresent(type ->
       parameters.put("identifierType", new JobParameter(type.getValue())));
     ofNullable(jobCommand.getEntityType()).ifPresent(type ->
       parameters.put("entityType", new JobParameter(type.getValue())));
-    jobCommand.setJobParameters(new JobParameters(parameters));
+    if (jobCommand.getExportType() == BULK_EDIT_UPDATE) {
+      var fileForRollBack = bulkEditRollBackService.getFileForRollBackFromMinIO(FilenameUtils.getBaseName(fileName));
+      parameters.put(ROLLBACK_FILE, new JobParameter(fileForRollBack));
+    }
     jobCommand.setJobParameters(new JobParameters(parameters));
   }
 
   private String buildBarcodesQuery(String fileName, int limit) throws IOException {
-    return String.format("barcode==(%s)", Files.lines(Paths.get(fileName))
-      .limit(limit)
-      .map(String::strip)
-      .map(i -> i.replace("\"", ""))
-      .collect(joining(" OR ")));
+    var barcodes = "";
+    try (var lines = Files.lines(Paths.get(fileName))) {
+      barcodes = lines.limit(limit)
+        .map(String::strip)
+        .map(i -> i.replace("\"", ""))
+        .collect(joining(" OR "));
+    }
+    return String.format("barcode==(%s)", barcodes);
+  }
+
+  private long countLines(Path path, boolean skipHeaders) throws IOException {
+    try (var lines = Files.lines(path)) {
+      return skipHeaders ? lines.count() - 1 : lines.count();
+    }
+  }
+
+  private boolean isBulkEditUpdate(JobCommand jobCommand) {
+    return jobCommand.getExportType() == BULK_EDIT_UPDATE;
   }
 }

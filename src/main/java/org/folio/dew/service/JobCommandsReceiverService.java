@@ -123,7 +123,7 @@ public class JobCommandsReceiverService {
     parameters.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
     var now = new Date();
     parameters.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH,
-      new JobParameter(String.format("%s%s_%tF_%tT_%s", workDir, jobCommand.getExportType(), now, now, jobId)));
+      new JobParameter(String.format("%s%s_%s_%tF_%tT", workDir, jobId, jobCommand.getExportType(), now, now)));
 
     normalizeParametersForBursarExport(parameters, jobId);
 
@@ -183,12 +183,12 @@ public class JobCommandsReceiverService {
     if (!objects.isEmpty()) {
       objectStorageRepository.removeObjects(objects);
     }
-
+    bulkEditJobCommands.remove(jobCommand.getId().toString());
     return true;
   }
 
   public void addBulkEditJobCommand(JobCommand jobCommand) {
-    bulkEditJobCommands.put(jobCommand.getId().toString(), jobCommand);
+    bulkEditJobCommands.putIfAbsent(jobCommand.getId().toString(), jobCommand);
   }
 
   public Optional<JobCommand> getBulkEditJobCommandById(String id) {

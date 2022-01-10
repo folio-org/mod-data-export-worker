@@ -11,7 +11,6 @@ public class CompositePOLineConverter {
   private static final String DEFAULT_PRODUCT_ID = "0393966518";
   private static final String DEFAULT_CONTRIBUTOR = "Stiglitz, Joseph E.";
   private static final String DEFAULT_TITLE = "Default Title";
-  private static final String DEFAULT_PLACE = "New York ?";
   private static final String DEFAULT_PUBLICATION_DATE = "1999";
   private static final String DEFAULT_MATERIAL_TYPE = "Book";
   private static final String DEFAULT_PRICE = "49.99";
@@ -36,9 +35,6 @@ public class CompositePOLineConverter {
 
     messageSegmentCount++;
     writePublisher(poLine, writer);
-
-    messageSegmentCount++;
-    writePlaceOfPublication(poLine, writer);
 
     messageSegmentCount++;
     writePublicationDate(poLine, writer);
@@ -140,20 +136,6 @@ public class CompositePOLineConverter {
       .writeComponent("")
       .writeComponent("")
       .writeComponent(poLine.getPublisher() != null ? poLine.getPublisher() : DEFAULT_PUBLISHER)
-      .endElement()
-      .writeEndSegment();
-  }
-
-  // Place of publication - Not available from FOLIO POL
-  private void writePlaceOfPublication(CompositePoLine poLine, EDIStreamWriter writer) throws EDIStreamException {
-    writer.writeStartSegment("IMD")
-      .writeElement("L")
-      .writeElement("110")
-      .writeStartElement()
-      .writeComponent("")
-      .writeComponent("")
-      .writeComponent("")
-      .writeComponent(DEFAULT_PLACE)
       .endElement()
       .writeEndSegment();
   }

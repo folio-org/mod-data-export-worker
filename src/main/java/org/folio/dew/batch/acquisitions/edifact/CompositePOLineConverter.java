@@ -8,9 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CompositePOLineConverter {
   private static final String DEFAULT_PUBLISHER = "Default Publisher";
-  private static final String DEFAULT_PRODUCT_ID = "0393966518";
-  private static final String DEFAULT_CONTRIBUTOR = "Stiglitz, Joseph E.";
-  private static final String DEFAULT_TITLE = "Default Title";
+  private static final String DEFAULT_PRODUCT_ID = "0993966518";
+  private static final String DEFAULT_CONTRIBUTOR = "Default Contributor";
   private static final String DEFAULT_PUBLICATION_DATE = "1999";
   private static final String DEFAULT_MATERIAL_TYPE = "Book";
   private static final String DEFAULT_PRICE = "49.99";
@@ -121,7 +120,7 @@ public class CompositePOLineConverter {
       .writeComponent("")
       .writeComponent("")
       .writeComponent("")
-      .writeComponent(poLine.getTitleOrPackage() != null ? poLine.getTitleOrPackage() : DEFAULT_TITLE)
+      .writeComponent(poLine.getTitleOrPackage())
       .endElement()
       .writeEndSegment();
   }

@@ -10,9 +10,14 @@ import java.util.UUID;
 import org.apache.commons.io.FileUtils;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.utils.Constants;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -34,10 +39,13 @@ import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 
+@ExtendWith(MockitoExtension.class)
 class BulkEditTest extends BaseBatchTest {
 
   private static final String BARCODES_CSV = "src/test/resources/upload/barcodes.csv";
   private static final String USER_RECORD_CSV = "src/test/resources/upload/bulk_edit_user_record.csv";
+  private static final String USER_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_user_record_not_found.csv";
+  private static final String USER_RECORD_CSV_BAD_CONTENT = "src/test/resources/upload/bulk_edit_user_record_bad_content.csv";
   private static final String USER_RECORD_ROLLBACK_CSV = "test-directory/bulk_edit_rollback.csv";
   private static final String BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/barcodesSomeNotFound.csv";
   private static final String QUERY_FILE_PATH = "src/test/resources/upload/users_by_group.cql";
@@ -53,6 +61,8 @@ class BulkEditTest extends BaseBatchTest {
   private Job bulkEditUpdateUserRecordsJob;
   @Autowired
   private Job bulkEditRollBackJob;
+  @Autowired
+  private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
 
   @Test
   @DisplayName("Run bulk-edit (identifiers) successfully")
@@ -101,14 +111,21 @@ class BulkEditTest extends BaseBatchTest {
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 
-  @Test
-  @DisplayName("Run update user records successfully")
-  void uploadUserRecordsJobTest() throws Exception {
+  @ParameterizedTest
+  @ValueSource(strings = {USER_RECORD_CSV, USER_RECORD_CSV_NOT_FOUND, USER_RECORD_CSV_BAD_CONTENT})
+  @DisplayName("Run update user records with errors")
+  void uploadUserRecordsJobTest(String csvFileName) throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateUserRecordsJob);
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, USER_RECORD_CSV, false);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, csvFileName, false);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
+    var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobExecution.getJobParameters().getString("jobId"), jobExecution.getJobParameters().getString(FILE_NAME), 10);
+
+    if (!USER_RECORD_CSV.equals(csvFileName)) {
+      assertThat(errors.getErrors().size()).isEqualTo(1);
+    }
   }
 
   @Test

@@ -116,6 +116,19 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/users/88a087b4-c3a1-485b-8a22-2fa8f7b661c3"
+      },
+      "response": {
+        "status": 500,
+        "body": "ISE",
+        "headers": {
+          "Content-Type": "text/plain"
+        }
+      }
     }
   ]
 }

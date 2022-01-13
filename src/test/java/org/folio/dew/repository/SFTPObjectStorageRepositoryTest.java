@@ -118,8 +118,8 @@ class SFTPObjectStorageRepositoryTest {
   @Test
   void testSuccessfulDownload() throws IOException {
     log.info("=== Test successful download ===");
-    String content = "Some string with content";
-    String path = EXPORT_FOLDER_NAME + "/test/long/path/creation";
+    String content = "Some string with content for download";
+    String path = EXPORT_FOLDER_NAME + "/test/download";
     SftpClient sftpClient = sftpRepository.getSftpClient(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT);
     boolean uploaded = sftpRepository.upload(sftpClient, path, FILENAME, content.getBytes(StandardCharsets.UTF_8));
     byte[] fileBytes = sftpRepository.download(sftpClient, path + "/" + FILENAME);

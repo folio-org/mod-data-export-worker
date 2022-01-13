@@ -73,12 +73,12 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       if (isBulkEditIdentifiersJob(jobExecution)) {
         handleProcessingErrors(jobExecution, jobId);
         bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId);
-        processJobAfter(jobId, jobParameters);
       }
       if ((BULK_EDIT_UPDATE.getValue() + "-" + USER.getValue()).equals(jobExecution.getJobInstance().getJobName())) {
         String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
         jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, downloadErrorLink);
       }
+      processJobAfter(jobId, jobParameters);
     } else {
       Optional<String> exportTypeOptional = Optional.ofNullable(jobExecution.getJobParameters().getString(EXPORT_TYPE));
       if (exportTypeOptional.isPresent()) {

@@ -46,7 +46,7 @@ public class BursarExportStepListener implements StepExecutionListener {
     String url;
     try {
       url = repository.objectWriteResponseToPresignedObjectUrl(
-          repository.uploadObject(FilenameUtils.getName(filename), filename, downloadFilename, MediaType.TEXT_MARKDOWN_VALUE));
+          repository.uploadObject(FilenameUtils.getName(filename), filename, downloadFilename, MediaType.TEXT_MARKDOWN_VALUE, true));
     } catch (Exception e) {
       log.error(e.toString(), e);
       jobExecution.addFailureException(e);

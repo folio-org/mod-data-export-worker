@@ -4,9 +4,9 @@ import io.xlate.edi.stream.EDIOutputFactory;
 import io.xlate.edi.stream.EDIStreamException;
 import io.xlate.edi.stream.EDIStreamWriter;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
-import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class MappingOrdersToEdifact {
@@ -42,6 +42,10 @@ public class MappingOrdersToEdifact {
     writer.close();
 
     return stream.toString();
+  }
+
+  public byte[] convertOrdersToEdifactArray(List<CompositePurchaseOrder> compPOs) throws EDIStreamException {
+    return convertOrdersToEdifact(compPOs).getBytes(StandardCharsets.UTF_8);
   }
 
   // Start of file - Can contain multiple order messages

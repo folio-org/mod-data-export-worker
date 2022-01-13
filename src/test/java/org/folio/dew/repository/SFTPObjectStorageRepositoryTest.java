@@ -3,7 +3,6 @@ package org.folio.dew.repository;
 import lombok.extern.log4j.Log4j2;
 import org.apache.sshd.common.SshException;
 import org.apache.sshd.sftp.client.SftpClient;
-import org.folio.dew.domain.dto.Transfer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +14,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -28,7 +28,7 @@ class SFTPObjectStorageRepositoryTest {
 
   private static final int PORT = 22;
   private static final String INVALID_HOST = "invalidhost123";
-  private static final String FILENAME = "exported.csv";
+  private static final String FILENAME = "exported.edi";
   private static final String USERNAME = "user";
   private static final String PASSWORD = "password";
   private static final String PASSWORD_INVALID = "dontLetMeIn";
@@ -92,9 +92,9 @@ class SFTPObjectStorageRepositoryTest {
   @Test
   void testSuccessfulUpload() throws IOException {
     log.info("=== Test successful upload ===");
-    Transfer testObject = new Transfer().id("1234").accountName("Test Account");
+    String content = "Some string with content";
     SftpClient sftpClient = sftpRepository.getSftpClient(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT);
-    boolean uploaded = sftpRepository.upload(sftpClient, EXPORT_FOLDER_NAME, FILENAME, testObject);
+    boolean uploaded = sftpRepository.upload(sftpClient, EXPORT_FOLDER_NAME, FILENAME, content.getBytes(StandardCharsets.UTF_8));
 
     assertTrue(uploaded);
 
@@ -105,11 +105,27 @@ class SFTPObjectStorageRepositoryTest {
   @Test
   void testSuccessfulUploadForLongPath() throws IOException {
     log.info("=== Test successful upload for long path ===");
-    Transfer testObject = new Transfer().id("1234").accountName("Test Account");
+    String content = "Some string with content";
     SftpClient sftpClient = sftpRepository.getSftpClient(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT);
-    boolean uploaded = sftpRepository.upload(sftpClient, EXPORT_FOLDER_NAME + "/test/long/path/creation", FILENAME, testObject);
+    boolean uploaded = sftpRepository.upload(sftpClient, EXPORT_FOLDER_NAME + "/test/long/path/creation", FILENAME, content.getBytes(StandardCharsets.UTF_8));
 
     assertTrue(uploaded);
+
+    sftpClient.close();
+    sftpRepository.logout();
+  }
+
+  @Test
+  void testSuccessfulDownload() throws IOException {
+    log.info("=== Test successful download ===");
+    String content = "Some string with content for download";
+    String path = EXPORT_FOLDER_NAME + "/test/download";
+    SftpClient sftpClient = sftpRepository.getSftpClient(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT);
+    boolean uploaded = sftpRepository.upload(sftpClient, path, FILENAME, content.getBytes(StandardCharsets.UTF_8));
+    byte[] fileBytes = sftpRepository.download(sftpClient, path + "/" + FILENAME);
+
+    assertTrue(uploaded);
+    assertNotNull(fileBytes);
 
     sftpClient.close();
     sftpRepository.logout();

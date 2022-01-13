@@ -33,6 +33,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
@@ -113,18 +114,22 @@ class BulkEditTest extends BaseBatchTest {
 
   @ParameterizedTest
   @ValueSource(strings = {USER_RECORD_CSV, USER_RECORD_CSV_NOT_FOUND, USER_RECORD_CSV_BAD_CONTENT})
-  @DisplayName("Run update user records with errors")
+  @DisplayName("Run update user records w/ and w/o errors")
   void uploadUserRecordsJobTest(String csvFileName) throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateUserRecordsJob);
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, csvFileName, false);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, csvFileName, true);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
-    var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobExecution.getJobParameters().getString("jobId"), jobExecution.getJobParameters().getString(FILE_NAME), 10);
+    var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobExecution.getJobParameters().getString("jobId"), csvFileName, 10);
 
     if (!USER_RECORD_CSV.equals(csvFileName)) {
       assertThat(errors.getErrors().size()).isEqualTo(1);
+      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
+    } else {
+      assertThat(errors.getErrors().size()).isEqualTo(0);
+      assertThat(jobExecution.getExecutionContext().get(OUTPUT_FILES_IN_STORAGE)).isNull();
     }
   }
 

@@ -31,6 +31,8 @@ import lombok.extern.log4j.Log4j2;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
+import static org.folio.dew.domain.dto.EntityType.USER;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_USERS;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
@@ -69,11 +71,14 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
     if (after) {
       if (isBulkEditIdentifiersJob(jobExecution)) {
-        String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
-        jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution) + (isNull(downloadErrorLink) ? "" : ";" + downloadErrorLink));
+        handleProcessingErrors(jobExecution, jobId);
         bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId);
+        processJobAfter(jobId, jobParameters);
       }
-      processJobAfter(jobId, jobParameters);
+      if ((BULK_EDIT_UPDATE.getValue() + "-" + USER.getValue()).equals(jobExecution.getJobInstance().getJobName())) {
+        String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
+        jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, downloadErrorLink);
+      }
     } else {
       Optional<String> exportTypeOptional = Optional.ofNullable(jobExecution.getJobParameters().getString(EXPORT_TYPE));
       if (exportTypeOptional.isPresent()) {
@@ -98,6 +103,11 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     if (after) {
       log.info("-----------------------------JOB---ENDS-----------------------------");
     }
+  }
+
+  private void handleProcessingErrors(JobExecution jobExecution, String jobId) {
+    String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
+    jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution) + (isNull(downloadErrorLink) ? "" : ";" + downloadErrorLink));
   }
 
   private void processJobAfter(String jobId, JobParameters jobParameters) {
@@ -182,7 +192,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     String path = jobExecution.getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH);
     try {
       return repository.objectWriteResponseToPresignedObjectUrl(
-        repository.uploadObject(FilenameUtils.getName(path) + CSV_EXTENSION, path, null, "text/csv"));
+        repository.uploadObject(FilenameUtils.getName(path) + CSV_EXTENSION, path, null, "text/csv", true));
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }

@@ -4,8 +4,6 @@ import io.minio.BucketExistsArgs;
 import io.minio.ComposeObjectArgs;
 import io.minio.ComposeSource;
 import io.minio.DownloadObjectArgs;
-import io.minio.GetObjectArgs;
-import io.minio.GetObjectResponse;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
@@ -87,7 +85,7 @@ public class MinIOObjectStorageRepository {
     }
   }
 
-  public ObjectWriteResponse uploadObject(String object, String filename, String downloadFilename, String contentType)
+  public ObjectWriteResponse uploadObject(String object, String filename, String downloadFilename, String contentType, boolean isSourceShouldBeDeleted)
       throws IOException, ServerException, InsufficientDataException, InternalException, InvalidResponseException,
       InvalidKeyException, NoSuchAlgorithmException, XmlParserException, ErrorResponseException {
     log.info("Uploading object {},filename {},downloadFilename {},contentType {}.", object, filename, downloadFilename,
@@ -95,7 +93,10 @@ public class MinIOObjectStorageRepository {
     ObjectWriteResponse result = client.uploadObject(
         createArgs(UploadObjectArgs.builder().filename(filename), object, downloadFilename, contentType));
 
-    FileUtils.deleteQuietly(new File(filename));
+    if (isSourceShouldBeDeleted) {
+      FileUtils.deleteQuietly(new File(filename));
+    }
+
     log.info("Deleted temp file {}.", filename);
 
     return result;

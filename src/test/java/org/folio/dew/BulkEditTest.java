@@ -128,7 +128,7 @@ class BulkEditTest extends BaseBatchTest {
       assertThat(errors.getErrors().size()).isEqualTo(1);
       assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
     } else {
-      assertThat(errors.getErrors().size()).isEqualTo(0);
+      assertThat(errors.getErrors().size()).isZero();
       assertThat(jobExecution.getExecutionContext().get(OUTPUT_FILES_IN_STORAGE)).isNull();
     }
   }

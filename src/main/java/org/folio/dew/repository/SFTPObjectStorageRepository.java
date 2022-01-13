@@ -1,6 +1,5 @@
 package org.folio.dew.repository;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -16,8 +15,8 @@ import org.springframework.stereotype.Repository;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -58,7 +57,7 @@ public class SFTPObjectStorageRepository {
     return SftpClientFactory.instance().createSftpClient(session);
   }
 
-  public boolean upload(SftpClient sftpClient, String folder, String filename, Object content) throws IOException {
+  public boolean upload(SftpClient sftpClient, String folder, String filename, byte[] content) throws IOException {
     String folderPath = StringUtils.isEmpty(folder) ? "" : (folder + File.separator);
     String fileAbsPath = folderPath + filename;
 
@@ -67,13 +66,26 @@ public class SFTPObjectStorageRepository {
     try (FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
       Path remotePath = fs.getPath(fileAbsPath);
       Files.createFile(remotePath);
-      Files.write(remotePath, getContentBytes(content));
+      Files.write(remotePath, content);
       log.info("successfully uploaded to SFTP: {}", fileAbsPath);
       return true;
     } catch (IOException e) {
       log.error(e);
     }
     return false;
+  }
+
+  public byte[] download(SftpClient sftpClient, String path) {
+    byte[] fileBytes = null;
+    try {
+      InputStream stream = sftpClient.read(path);
+      log.info("File found from path: {}", path);
+      fileBytes = stream.readAllBytes();
+      stream.close();
+    } catch (IOException e) {
+      log.error(e);
+    }
+    return fileBytes;
   }
 
   private void createRemoteDirectoryIfAbsent(SftpClient sftpClient, String folder) throws IOException {
@@ -101,11 +113,6 @@ public class SFTPObjectStorageRepository {
       } else throw sftpException;
     }
     return false;
-  }
-
-  private byte[] getContentBytes(Object content) throws JsonProcessingException {
-    String contentJson = objectMapper.writeValueAsString(content);
-    return contentJson.getBytes(StandardCharsets.UTF_8);
   }
 
   public void logout() {

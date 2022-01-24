@@ -1,0 +1,17 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/material-types/1a54b431-2e4f-452d-9cae-9cee66c9a892"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"id\": \"1a54b431-2e4f-452d-9cae-9cee66c9a892\",\n    \"name\": \"book\",\n    \"source\": \"folio\",\n    \"metadata\": {\n        \"createdDate\": \"2021-12-29T03:23:12.478+00:00\",\n        \"updatedDate\": \"2021-12-29T03:23:12.478+00:00\"\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

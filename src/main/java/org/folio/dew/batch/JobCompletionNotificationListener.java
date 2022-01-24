@@ -19,7 +19,7 @@ import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
-import org.folio.dew.service.SaveErrorService;
+import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
@@ -31,6 +31,8 @@ import lombok.extern.log4j.Log4j2;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
+import static org.folio.dew.domain.dto.EntityType.USER;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_USERS;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
@@ -45,7 +47,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
   private final IAcknowledgementRepository acknowledgementRepository;
   private final KafkaService kafka;
   private final MinIOObjectStorageRepository repository;
-  private final SaveErrorService saveErrorService;
+  private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
 
   @Override
   public void beforeJob(JobExecution jobExecution) {
@@ -69,9 +71,12 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
     if (after) {
       if (isBulkEditIdentifiersJob(jobExecution)) {
-        String downloadErrorLink = saveErrorService.saveErrorFileAndGetDownloadLink(jobId);
-        jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution) + (isNull(downloadErrorLink) ? "" : ";" + downloadErrorLink));
-        saveErrorService.removeTemporaryErrorStorage(jobId);
+        handleProcessingErrors(jobExecution, jobId);
+        bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId);
+      }
+      if ((BULK_EDIT_UPDATE.getValue() + "-" + USER.getValue()).equals(jobExecution.getJobInstance().getJobName())) {
+        String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
+        jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, downloadErrorLink);
       }
       processJobAfter(jobId, jobParameters);
     } else {
@@ -98,6 +103,11 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     if (after) {
       log.info("-----------------------------JOB---ENDS-----------------------------");
     }
+  }
+
+  private void handleProcessingErrors(JobExecution jobExecution, String jobId) {
+    String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
+    jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution) + (isNull(downloadErrorLink) ? "" : ";" + downloadErrorLink));
   }
 
   private void processJobAfter(String jobId, JobParameters jobParameters) {
@@ -182,7 +192,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     String path = jobExecution.getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH);
     try {
       return repository.objectWriteResponseToPresignedObjectUrl(
-        repository.uploadObject(FilenameUtils.getName(path) + CSV_EXTENSION, path, null, "text/csv"));
+        repository.uploadObject(FilenameUtils.getName(path) + CSV_EXTENSION, path, null, "text/csv", true));
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }

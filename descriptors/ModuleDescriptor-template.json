@@ -65,11 +65,17 @@
         },
         {
           "methods": [ "GET" ],
-          "pathPattern": "/bulk-edit/{id}/preview",
+          "pathPattern": "/bulk-edit/{jobId}/preview",
           "permissionsRequired": [ "bulk-edit.preview.collection.get" ],
           "modulePermissions": [
             "users.collection.get"
           ]
+        },
+        {
+          "methods": [ "GET" ],
+          "pathPattern": "/bulk-edit/{jobId}/errors",
+          "permissionsRequired": [ "bulk-edit.errors.collection.get" ],
+          "modulePermissions": []
         }
       ]
     },
@@ -139,6 +145,12 @@
 
     },
     {
+      "permissionName" : "bulk-edit.errors.collection.get",
+      "displayName" : "get errors for preview",
+      "description" : "Get errors for preview"
+
+    },
+    {
       "permissionName" : "bulk-edit.all",
       "displayName" : "bulk-edit all",
       "description" : "All permissions for bulk-edit module",
@@ -146,7 +158,8 @@
         "bulk-edit.item.post",
         "bulk-edit.start.item.post",
         "bulk-edit.roll-back.item.post",
-        "bulk-edit.preview.collection.get"
+        "bulk-edit.preview.collection.get",
+        "bulk-edit.errors.collection.get"
       ]
     }
   ],

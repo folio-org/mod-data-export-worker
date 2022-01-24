@@ -17,6 +17,8 @@ import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.error.BulkEditException;
+import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.openapitools.api.JobIdApi;
@@ -63,6 +65,7 @@ public class BulkEditController implements JobIdApi {
   private final JobCommandsReceiverService jobCommandsReceiverService;
   private final ExportJobManager exportJobManager;
   private final BulkEditRollBackService bulkEditRollBackService;
+  private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   private final List<Job> jobs;
 
   @Value("${spring.application.name}")
@@ -102,10 +105,25 @@ public class BulkEditController implements JobIdApi {
     }
   }
 
-  private String extractQueryFromJobCommand(JobCommand jobCommand, String parameterName) {
-    return BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())
-      ? (String) jobCommand.getJobParameters().getParameters().get(parameterName).getValue()
-      : jobCommand.getJobParameters().getString(parameterName);
+  @Override
+  public ResponseEntity<Object> getErrorsPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId, @NotNull @ApiParam(value = "The numbers of users to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
+    var optionalJobCommand = jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
+
+    if (optionalJobCommand.isEmpty()) {
+      String msg = format(JOB_COMMAND_NOT_FOUND_ERROR, jobId);
+      log.debug(msg);
+      return new ResponseEntity<>(msg, HttpStatus.NOT_FOUND);
+    }
+
+    var jobCommand = optionalJobCommand.get();
+    var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME));
+
+    try {
+      var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobId.toString(), fileName, limit);
+      return new ResponseEntity<>(errors, HttpStatus.OK);
+    } catch (BulkEditException e) {
+      return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @Override
@@ -130,13 +148,13 @@ public class BulkEditController implements JobIdApi {
       Files.write(uploadedPath, file.getBytes());
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
       prepareJobParameters(jobCommand, uploadedPath.toString(), jobId.toString());
-      if (jobCommand.getExportType() != BULK_EDIT_UPDATE) {
+      if (!isBulkEditUpdate(jobCommand)) {
         var job = getBulkEditJob(jobCommand.getExportType());
         var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
         log.info("Launching bulk edit identifiers job.");
         exportJobManager.launchJob(jobLaunchRequest);
       }
-      return new ResponseEntity<>(Long.toString(countLines(uploadedPath)), HttpStatus.OK);
+      return new ResponseEntity<>(Long.toString(countLines(uploadedPath, isBulkEditUpdate(jobCommand))), HttpStatus.OK);
     } catch (Exception e) {
       String errorMessage = format(FILE_UPLOAD_ERROR, e.getMessage());
       log.error(errorMessage);
@@ -173,6 +191,12 @@ public class BulkEditController implements JobIdApi {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
+  private String extractQueryFromJobCommand(JobCommand jobCommand, String parameterName) {
+    return BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())
+      ? (String) jobCommand.getJobParameters().getParameters().get(parameterName).getValue()
+      : jobCommand.getJobParameters().getString(parameterName);
+  }
+
   private Job getBulkEditJob(ExportType exportType) {
     return jobs.stream()
       .filter(job -> job.getName().contains(exportType.getValue()))
@@ -207,9 +231,13 @@ public class BulkEditController implements JobIdApi {
     return String.format("barcode==(%s)", barcodes);
   }
 
-  private long countLines(Path path) throws IOException {
+  private long countLines(Path path, boolean skipHeaders) throws IOException {
     try (var lines = Files.lines(path)) {
-      return lines.count();
+      return skipHeaders ? lines.count() - 1 : lines.count();
     }
+  }
+
+  private boolean isBulkEditUpdate(JobCommand jobCommand) {
+    return jobCommand.getExportType() == BULK_EDIT_UPDATE;
   }
 }

@@ -5,14 +5,20 @@ import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.User;
+import org.folio.dew.error.BulkEditException;
+import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import static org.folio.dew.utils.Constants.FILE_NAME;
 
 @Log4j2
 @Component
@@ -23,8 +29,12 @@ public class BulkEditUpdateUserRecordsWriter implements ItemWriter<User> {
 
   @Value("#{jobParameters['jobId']}")
   private String jobId;
+  @Value("#{jobExecution}")
+  private JobExecution jobExecution;
+
   private final UserClient userClient;
   private final BulkEditRollBackService bulkEditRollBackService;
+  private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
 
   @Override
   public void write(List<? extends User> items) throws Exception {
@@ -35,6 +45,7 @@ public class BulkEditUpdateUserRecordsWriter implements ItemWriter<User> {
         bulkEditRollBackService.putUserIdForJob(user.getId(), UUID.fromString(jobId));
       } catch (Exception e) {
         log.info("Cannot update user with id {}. Reason: {}",  user.getId(), e.getMessage());
+        bulkEditProcessingErrorsService.saveErrorInCSV(jobId, user.getBarcode(), new BulkEditException(e.getMessage()), FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
       }
     });
   }

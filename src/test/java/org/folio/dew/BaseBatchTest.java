@@ -99,7 +99,7 @@ public abstract class BaseBatchTest {
   protected static void setUpTenant(MockMvc mockMvc) {
     mockMvc.perform(post("/_/tenant").content(asJsonString(new TenantAttributes().moduleTo("mod-data-export-worker")))
         .headers(defaultHeaders())
-        .contentType(APPLICATION_JSON)).andExpect(status().isOk());
+        .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
   }
 
   public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)

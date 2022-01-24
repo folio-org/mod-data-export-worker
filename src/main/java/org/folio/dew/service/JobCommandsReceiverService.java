@@ -122,7 +122,7 @@ public class JobCommandsReceiverService {
     var jobId = jobCommand.getId().toString();
     paramsBuilder.addString(JobParameterNames.JOB_ID, jobId);
     var now = new Date();
-    parameters.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH,
+    paramsBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH,
       String.format("%s%s_%s_%tF_%tT", workDir, jobId, jobCommand.getExportType(), now, now));
 
     normalizeParametersForBursarExport(paramsBuilder, jobId);

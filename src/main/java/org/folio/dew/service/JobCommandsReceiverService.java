@@ -25,7 +25,7 @@ import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
-import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -118,21 +118,21 @@ public class JobCommandsReceiverService {
   }
 
   private void prepareJobParameters(JobCommand jobCommand) {
-    Map<String, JobParameter> parameters = jobCommand.getJobParameters().getParameters();
+    var paramsBuilder = new JobParametersBuilder(jobCommand.getJobParameters());
     var jobId = jobCommand.getId().toString();
-    parameters.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
+    paramsBuilder.addString(JobParameterNames.JOB_ID, jobId);
     var now = new Date();
-    parameters.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH,
-      new JobParameter(String.format("%s%s_%s_%tF_%tT", workDir, jobId, jobCommand.getExportType(), now, now)));
+    paramsBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH,
+      String.format("%s%s_%s_%tF_%tT", workDir, jobId, jobCommand.getExportType(), now, now));
 
-    normalizeParametersForBursarExport(parameters, jobId);
+    normalizeParametersForBursarExport(paramsBuilder, jobId);
 
-    jobCommand.setJobParameters(new JobParameters(parameters));
+    jobCommand.setJobParameters(paramsBuilder.toJobParameters());
   }
 
   @SneakyThrows
-  private void normalizeParametersForBursarExport(Map<String, JobParameter> parameters, String jobId) {
-    final JobParameter bursarFeeFines = parameters.get("bursarFeeFines");
+  private void normalizeParametersForBursarExport(JobParametersBuilder paramsBuilder, String jobId) {
+    final JobParameter bursarFeeFines = paramsBuilder.toJobParameters().getParameters().get("bursarFeeFines");
     if (bursarFeeFines == null) {
       return;
     }
@@ -140,7 +140,7 @@ public class JobCommandsReceiverService {
     var bff = extractBursarFeeFines(bursarFeeFines);
 
     BursarJobPrameterDto dto = replaceTypeMappingsCollectionWithHash(bff);
-    parameters.put("bursarFeeFines", new JobParameter(objectMapper.writeValueAsString(dto)));
+    paramsBuilder.addString("bursarFeeFines", objectMapper.writeValueAsString(dto));
 
     bursarExportService.addMapping(jobId, bff.getTypeMappings());
   }

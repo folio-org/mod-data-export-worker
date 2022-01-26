@@ -1,5 +1,5 @@
 server:
-  port: 8181
+  port: 8081
   tomcat.threads.max: 100
 spring:
   application:

@@ -410,7 +410,7 @@
                       <generateApiDocumentation>false</generateApiDocumentation>
                       <generateModels>true</generateModels>
                       <modelsToGenerate>
-                        ReferenceNumberItem,CompositePoLine,CompositePurchaseOrder,Alert,Claim,CloseReason,Contributor,Cost,Details,Eresource,FundDistribution,License,Location,Ongoing,Physical,ProductIdentifier,ReportingCode,VendorDetail
+                        ReferenceNumberItem,CompositePoLine,CompositePurchaseOrder,Alert,Claim,CloseReason,Contributor,Cost,Details,Eresource,FundDistribution,License,Location,Ongoing,Physical,ProductIdentifier,ReportingCode,VendorDetail,ExportHistory
                       </modelsToGenerate>
                       <generateModelTests>false</generateModelTests>
                       <generateSupportingFiles>false</generateSupportingFiles>

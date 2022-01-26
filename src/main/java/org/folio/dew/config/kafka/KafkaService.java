@@ -40,7 +40,8 @@ public class KafkaService {
   @Getter
   public enum Topic {
     JOB_COMMAND("data-export.job.command"),
-    JOB_UPDATE("data-export.job.update");
+    JOB_UPDATE("data-export.job.update"),
+    EXPORT_HISTORY_CREATE("data-export.export-history.create");
 
     private final String topicName;
   }

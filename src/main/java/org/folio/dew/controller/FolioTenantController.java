@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController("folioTenantController")
-@RequestMapping(value = "/_/")
+@RequestMapping
 @Log4j2
 public class FolioTenantController extends TenantController {
 
@@ -23,7 +23,7 @@ public class FolioTenantController extends TenantController {
   }
 
   @Override
-  public ResponseEntity<String> postTenant(TenantAttributes tenantAttributes) {
+  public ResponseEntity<Void> postTenant(TenantAttributes tenantAttributes) {
     var tenantInit = super.postTenant(tenantAttributes);
 
     if (tenantInit.getStatusCode() == HttpStatus.OK) {
@@ -32,7 +32,7 @@ public class FolioTenantController extends TenantController {
         kafka.restartEventListeners();
       } catch (Exception e) {
         log.error(e.getMessage(), e);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        return ResponseEntity.noContent().build();
       }
     }
 

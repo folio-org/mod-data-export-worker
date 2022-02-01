@@ -84,6 +84,9 @@ public abstract class BaseBatchTest {
   @Qualifier("exportJobManager")
   protected ExportJobManager exportJobManager;
   @MockBean
+  @Qualifier("exportJobManagerCirculationLog")
+  protected ExportJobManagerCirculationLog exportJobManagerCirculationLog;
+  @MockBean
   protected Acknowledgment acknowledgment;
 
   @Value("${spring.application.name}")

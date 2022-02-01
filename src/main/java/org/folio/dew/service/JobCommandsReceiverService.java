@@ -16,6 +16,7 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
+import org.folio.dew.batch.ExportJobManagerCirculationLog;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.BursarFeeFines;
@@ -42,6 +43,7 @@ import static java.util.Optional.ofNullable;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +52,7 @@ public class JobCommandsReceiverService {
 
   private final ObjectMapper objectMapper;
   private final ExportJobManager exportJobManager;
+  private final ExportJobManagerCirculationLog exportJobManagerCirculationLog;
   private final BursarExportService bursarExportService;
   private final IAcknowledgementRepository acknowledgementRepository;
   private final MinIOObjectStorageRepository objectStorageRepository;
@@ -111,7 +114,11 @@ public class JobCommandsReceiverService {
           jobCommand.getJobParameters());
 
       acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-      exportJobManager.launchJob(jobLaunchRequest);
+      if (jobCommand.getExportType() == CIRCULATION_LOG) {
+        exportJobManagerCirculationLog.launchJob(jobLaunchRequest);
+      } else {
+        exportJobManager.launchJob(jobLaunchRequest);
+      }
     } catch (Exception e) {
       log.error(e.toString(), e);
     }

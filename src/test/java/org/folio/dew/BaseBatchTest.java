@@ -81,8 +81,10 @@ public abstract class BaseBatchTest {
   @Autowired
   protected InMemoryAcknowledgementRepository repository;
   @MockBean
+  @Qualifier("exportJobManager")
   protected ExportJobManager exportJobManager;
   @MockBean
+  @Qualifier("exportJobManagerCirculationLog")
   protected ExportJobManagerCirculationLog exportJobManagerCirculationLog;
   @MockBean
   protected Acknowledgment acknowledgment;

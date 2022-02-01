@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
 import org.folio.dew.batch.ExportJobManager;
+import org.folio.dew.batch.ExportJobManagerCirculationLog;
 import org.folio.dew.repository.InMemoryAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.service.JobCommandsReceiverService;
@@ -81,6 +82,8 @@ public abstract class BaseBatchTest {
   protected InMemoryAcknowledgementRepository repository;
   @MockBean
   protected ExportJobManager exportJobManager;
+  @MockBean
+  protected ExportJobManagerCirculationLog exportJobManagerCirculationLog;
   @MockBean
   protected Acknowledgment acknowledgment;
 

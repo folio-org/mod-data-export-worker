@@ -19,7 +19,7 @@ public class ExportJobManager {
   private final JobExplorer jobExplorer;
 
   @Autowired
-  public ExportJobManager(@Qualifier("asyncJobLauncher") JobLauncher jobLauncher, JobExplorer jobExplorer) {
+  public ExportJobManager(JobLauncher jobLauncher, JobExplorer jobExplorer) {
     jobLaunchingMessageHandler = new JobLaunchingMessageHandler(jobLauncher);
     this.jobExplorer = jobExplorer;
   }

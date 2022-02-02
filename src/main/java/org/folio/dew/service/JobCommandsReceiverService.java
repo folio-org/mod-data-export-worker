@@ -1,5 +1,10 @@
 package org.folio.dew.service;
 
+import static java.util.Optional.ofNullable;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -12,7 +17,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+
 import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
@@ -34,14 +41,10 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
-
-import static java.util.Optional.ofNullable;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 
 @Service
 @RequiredArgsConstructor

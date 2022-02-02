@@ -1,7 +1,11 @@
 package org.folio.dew.batch.acquisitions.edifact.services;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import java.time.Instant;
+import java.util.Date;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.ExportHistory;
@@ -9,24 +13,21 @@ import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.util.Date;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 @Service
 @RequiredArgsConstructor
 @Log4j2
 public class ExportHistoryService {
   private final IAcknowledgementRepository acknowledgementRepository;
-  private final KafkaService kafka;
+  private final KafkaService kafkaService;
 
   void sendExportHistoryEvent(Set<CompositePoLine> compositePoLines, String jobId) {
     var exportHistory = buildExportHistoryRecord(compositePoLines, jobId);
     var id = UUID.randomUUID().toString();
 
-    kafka.send(KafkaService.Topic.EXPORT_HISTORY_CREATE, id, exportHistory);
+    kafkaService.send(KafkaService.Topic.EXPORT_HISTORY_CREATE, id, exportHistory);
   }
 
   private ExportHistory buildExportHistoryRecord(Set<CompositePoLine> compositePoLines, String jobId) {

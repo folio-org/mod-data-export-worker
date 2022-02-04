@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class TenantControllerTest extends BaseBatchTest {
+class TenantControllerTest extends BaseBatchTest {
   @Test
   @SneakyThrows
   void canDeleteTenantTest() {

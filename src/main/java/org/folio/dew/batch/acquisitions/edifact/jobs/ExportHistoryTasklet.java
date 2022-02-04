@@ -1,12 +1,10 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.ExportHistory;
@@ -19,6 +17,8 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -27,7 +27,6 @@ import lombok.extern.log4j.Log4j2;
 @StepScope
 @Log4j2
 public class ExportHistoryTasklet implements Tasklet {
-  private final ObjectMapper objectMapper;
 
   private final KafkaService kafkaService;
 

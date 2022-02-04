@@ -14,13 +14,13 @@ public class MaterialTypeService {
   private final MaterialTypeClient materialTypeClient;
 
   @Cacheable(cacheNames = "materialTypes")
-  private JSONObject getMaterialType(String id) {
+  public JSONObject getMaterialType(String id) {
     return materialTypeClient.getMaterialType(id);
   }
 
   public String getMaterialTypeName(String id) {
     JSONObject jsonObject = getMaterialType(id);
-    String materialType = "Book";
+    String materialType = "";
 
     if (!jsonObject.isEmpty() && jsonObject.getString("name") != null) {
       materialType = jsonObject.getString("name");

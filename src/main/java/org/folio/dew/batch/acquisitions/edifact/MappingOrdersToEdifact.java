@@ -7,6 +7,8 @@ import org.folio.dew.domain.dto.CompositePurchaseOrder;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class MappingOrdersToEdifact {
@@ -26,10 +28,13 @@ public class MappingOrdersToEdifact {
 
     // Count of messages (one message per purchase order)
     int messageCount = 0;
-
     writer.startInterchange();
     writeStartFile(writer);
-    writeInterchangeHeader(writer);
+
+    String dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("ddMMyyhhmm"));
+    String dateOfPreparation = dateTime.substring(0, 6);
+    String timeOfPreparation = dateTime.substring(6);
+    writeInterchangeHeader(writer, dateOfPreparation, timeOfPreparation);
 
     // Purchase orders
     for (CompositePurchaseOrder compPO : compPOs) {
@@ -55,7 +60,7 @@ public class MappingOrdersToEdifact {
   }
 
   // Interchange header (Library ID:ID type; Vendor ID:ID type)
-  private void writeInterchangeHeader(EDIStreamWriter writer) throws EDIStreamException {
+  private void writeInterchangeHeader(EDIStreamWriter writer, String dateOfPreparation, String timeOfPreparation) throws EDIStreamException {
     writer.writeStartSegment("UNB")
       .writeStartElement()
       .writeComponent("UNOC")
@@ -65,6 +70,14 @@ public class MappingOrdersToEdifact {
     writer.writeStartElement()
       .writeComponent("901494200")
       .writeComponent("31B")
+      .endElement()
+      .writeStartElement()
+      .writeComponent("12345")
+      .writeComponent("31B")
+      .endElement()
+      .writeStartElement()
+      .writeComponent(dateOfPreparation)
+      .writeComponent(timeOfPreparation)
       .endElement();
 
     writer.writeElement("1001")

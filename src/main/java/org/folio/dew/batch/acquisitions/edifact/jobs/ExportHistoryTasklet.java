@@ -17,8 +17,6 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 

@@ -521,6 +521,14 @@
                 </configuration>
             </plugin>
         </plugins>
+      <extensions>
+        <!-- Enabling the use of SSH -->
+        <extension>
+          <groupId>org.apache.maven.wagon</groupId>
+          <artifactId>wagon-ssh</artifactId>
+          <version>2.10</version>
+        </extension>
+      </extensions>
     </build>
 
     <scm>

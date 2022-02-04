@@ -19,22 +19,18 @@ public class OrdersService {
   private final PurchaseOrderClient purchaseOrderClient;
   private final PurchaseOrderLineClient purchaseOrderLineClient;
 
-  @Cacheable(cacheNames = "orders/composite-orders")
   public CompositePurchaseOrder getCompositePurchaseOrderById(String id) {
     return purchaseOrderClient.getCompositePurchaseOrderById(id);
   }
 
-  @Cacheable(cacheNames = "orders/composite-orders")
   public PurchaseOrderCollection getCompositePurchaseOrderByQuery(String query) {
     return purchaseOrderClient.getCompositePurchaseOrderByQuery(query);
   }
 
-  @Cacheable(cacheNames = "orders/order-lines")
   public CompositePoLine getCompositePoLineById(String id) {
     return purchaseOrderLineClient.getCompositePoLineById(id);
   }
 
-  @Cacheable(cacheNames = "orders/order-lines")
   public PoLineCollection getPoLineByQuery(String query) {
     return purchaseOrderLineClient.getPoLineByQuery(query);
   }

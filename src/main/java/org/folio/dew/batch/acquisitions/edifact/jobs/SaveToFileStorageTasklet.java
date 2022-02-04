@@ -43,7 +43,7 @@ public class SaveToFileStorageTasklet implements Tasklet {
     String password = ediExportConfig.getEdiFtp().getPassword();
     String host = ediExportConfig.getEdiFtp().getServerAddress();
     int port = ediExportConfig.getEdiFtp().getFtpPort();
-    String filename = UUID.randomUUID() +  ".txt";
+    String filename = UUID.randomUUID() +  ".edi";
 
     var fileContent = (String) ExecutionContextUtils.getExecutionVariable(stepExecutionContext,"edifactOrderAsString");
 

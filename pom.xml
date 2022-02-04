@@ -522,7 +522,7 @@
             </plugin>
         </plugins>
       <extensions>
-        <!-- Enabling the use of SSH -->
+        <!-- Enabling the use of SSH. This Wagon provider is deprecated and will be removed in Maven version 4.0.0 -->
         <extension>
           <groupId>org.apache.maven.wagon</groupId>
           <artifactId>wagon-ssh</artifactId>

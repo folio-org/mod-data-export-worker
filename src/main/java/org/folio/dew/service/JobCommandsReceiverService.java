@@ -4,6 +4,7 @@ import static java.util.Optional.ofNullable;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -46,12 +47,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
-
-import static java.util.Optional.ofNullable;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
-import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
 
 @Service
 @RequiredArgsConstructor

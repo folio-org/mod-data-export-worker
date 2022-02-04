@@ -1,5 +1,6 @@
 package org.folio.dew.config.kafka;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -37,12 +38,13 @@ public class KafkaService {
   private String environment;
 
   @RequiredArgsConstructor
+  @AllArgsConstructor
   @Getter
   public enum Topic {
     JOB_COMMAND("data-export.job.command"),
     JOB_UPDATE("data-export.job.update"),
-    EXPORT_HISTORY_CREATE("data-export.export-history.create");
-
+    EXPORT_HISTORY_CREATE("Default", "edi-export-history.create");
+    private String nameSpace;
     private final String topicName;
   }
 
@@ -73,7 +75,7 @@ public class KafkaService {
 
   private List<NewTopic> tenantSpecificTopics(String tenant) {
     return Arrays.stream(Topic.values())
-      .map(topic -> getTenantTopicName(topic.getTopicName(), tenant))
+      .map(topic -> getTenantTopicName(topic, tenant))
       .map(this::toKafkaTopic)
       .collect(Collectors.toList());
   }
@@ -85,11 +87,17 @@ public class KafkaService {
   /**
    * Returns topic name in the format - `{env}.{tenant}.topicName`
    *
-   * @param topicName initial topic name as {@link String}
+   * @param topic initial topic name as {@link String}
    * @param tenantId tenant id as {@link String}
    * @return topic name as {@link String} object
    */
-  private String getTenantTopicName(String topicName, String tenantId) {
+  private String getTenantTopicName(Topic topic, String tenantId) {
+    String topicName = topic.getTopicName();
+    String topicNameSpace = topic.getNameSpace();
+    if (StringUtils.isNotEmpty(topicNameSpace)) {
+      //Meet naming convension from folio-kafka-wrapper
+      return String.format("%s.%s.%s.%s", environment, topicNameSpace, tenantId, topicName);
+    }
     return String.format("%s.%s.%s", environment, tenantId, topicName);
   }
 
@@ -99,7 +107,7 @@ public class KafkaService {
     if (StringUtils.isBlank(tenant)) {
       throw new IllegalStateException("Can't send to Kafka because tenant is blank");
     }
-    kafkaTemplate.send(getTenantTopicName(topic.getTopicName(), tenant), key, data);
+    kafkaTemplate.send(getTenantTopicName(topic, tenant), key, data);
     log.info("Sent {}.", data);
   }
 }

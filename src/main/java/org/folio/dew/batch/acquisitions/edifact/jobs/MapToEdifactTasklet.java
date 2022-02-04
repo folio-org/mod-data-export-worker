@@ -1,10 +1,13 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
+import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.PoLineCollection;
 import org.folio.dew.domain.dto.PurchaseOrderCollection;
@@ -32,19 +35,14 @@ public class MapToEdifactTasklet implements Tasklet {
 
   private final OrdersService ordersService;
   private final PurchaseOrdersToEdifactMapper purchaseOrdersToEdifactMapper;
-  private final IAcknowledgementRepository acknowledgementRepository;
-  private final SFTPObjectStorageRepository sftpObjectStorageRepository;
 
   @Override
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
     log.info("Execute MapToEdifactTasklet");
+    var jobParameters = chunkContext.getStepContext().getJobParameters();
+    var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
 
-
-    var poQuery = "workflowStatus==Pending";
-    PurchaseOrderCollection orderCollection = ordersService.getCompositePurchaseOrderByQuery(poQuery);
-    var polineQuery = "purchaseOrder.workflowStatus==Pending";
-    PoLineCollection poLineCollection = ordersService.getPoLineByQuery(polineQuery);
-
+    var poList = getCompPOList(ediExportConfig);
     CompositePurchaseOrder compo = ordersService.getCompositePurchaseOrderById("cf4bfd64-e609-4ecb-b3e6-7a5a1ced1645");
 
     var orderList = new ArrayList<CompositePurchaseOrder>();
@@ -56,4 +54,40 @@ public class MapToEdifactTasklet implements Tasklet {
      .addToJobExecutionContext(chunkContext.getStepContext().getStepExecution(), "edifactOrderAsString", edifactOrderAsString, "");
     return RepeatStatus.FINISHED;
   }
+
+  private PurchaseOrderCollection getCompositePurchaseOrderByQuery(String poQuery) {
+    var polineQuery = "purchaseOrder.workflowStatus==Open";
+
+    return ordersService.getCompositePurchaseOrderByQuery(poQuery);
+  }
+
+  private PoLineCollection getPoLineCollection(String polineQuery) {
+    var poQuery = "workflowStatus==Open";
+
+    return  ordersService.getPoLineByQuery(polineQuery);
+  }
+
+  private List<CompositePurchaseOrder> getCompPOList(VendorEdiOrdersExportConfig ediConfig) {
+    var poQuery = "workflowStatus==Open"
+      + String.format("&vendor==%s", ediConfig.getVendorId());
+
+    var orders = ordersService.getCompositePurchaseOrderByQuery(poQuery);
+
+    var compOrders = orders.getPurchaseOrders()
+      .stream()
+      .map(order -> ordersService.getCompositePurchaseOrderById(order.getId()))
+      .map(order -> order.compositePoLines(poLineFilteredOrder(order, ediConfig)))
+      .filter(order-> !order.getCompositePoLines().isEmpty())
+      .collect(Collectors.toList());
+
+    log.info("comporders: {}", compOrders);
+    return compOrders;
+  }
+
+  private List<CompositePoLine> poLineFilteredOrder(CompositePurchaseOrder order, VendorEdiOrdersExportConfig ediConfig) {
+    return order.getCompositePoLines().stream()
+      .filter(CompositePoLine::getAutomaticExport)
+      .collect(Collectors.toList());
+  }
+
 }

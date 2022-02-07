@@ -35,7 +35,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 @RunWith(MockitoJUnitRunner.class)
 class MappingOrdersToEdifactTest {
   @Autowired
-  private MappingOrdersToEdifact mappingOrdersToEdifact;
+  private PurchaseOrdersToEdifactMapper purchaseOrdersToEdifactMapper;
   @MockBean
   private MaterialTypeService materialTypeService;
 
@@ -59,19 +59,20 @@ class MappingOrdersToEdifactTest {
     compPOs.add(compPo);
     compPOs.add(comprehensiveCompPo);
     compPOs.add(minimalisticCompPo);
-    String ediOrder = mappingOrdersToEdifact.convertOrdersToEdifact(compPOs);
+    String ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs);
     assertFalse(ediOrder.isEmpty());
     log.info(ediOrder);
   }
 
-  @Test void convertOrdersToEdifactByteArray() throws Exception {
+  @Test
+  void convertOrdersToEdifactByteArray() throws Exception {
     JSONObject jsonObject = new JSONObject(getMockData("edifact/acquisitions/composite_purchase_order.json"));
     ObjectMapper mapper = new ObjectMapper();
-    CompositePurchaseOrder reqData  = mapper.readValue(jsonObject.toString(), CompositePurchaseOrder.class);
+    CompositePurchaseOrder reqData = mapper.readValue(jsonObject.toString(), CompositePurchaseOrder.class);
 
     List<CompositePurchaseOrder> compPOs = new ArrayList<>();
     compPOs.add(reqData);
-    byte[] ediOrder = mappingOrdersToEdifact.convertOrdersToEdifactArray(compPOs);
+    byte[] ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifactArray(compPOs);
     assertNotNull(ediOrder);
     log.info(Arrays.toString(ediOrder));
   }

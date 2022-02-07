@@ -51,3 +51,13 @@ components:
       $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/reporting_code.json#/ReportingCode'
     vendorDetail:
       $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/vendor_detail.json#/VendorDetail'
+    exportHistory:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/export_history.json#/ExportHistory'
+    poLine:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/po_line.json#/PoLine'
+    poLineCollection:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/po_line_collection.json#/PoLineCollection'
+    purchaseOrder:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/purchase_order.json#/PurchaseOrder'
+    purchaseOrderCollection:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/purchase_order_collection.json#/PurchaseOrderCollection'

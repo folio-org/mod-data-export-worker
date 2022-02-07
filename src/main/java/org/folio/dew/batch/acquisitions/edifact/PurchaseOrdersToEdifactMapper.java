@@ -1,20 +1,21 @@
 package org.folio.dew.batch.acquisitions.edifact;
 
-import io.xlate.edi.stream.EDIOutputFactory;
-import io.xlate.edi.stream.EDIStreamException;
-import io.xlate.edi.stream.EDIStreamWriter;
-import org.folio.dew.domain.dto.CompositePurchaseOrder;
-
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-public class MappingOrdersToEdifact {
+import org.folio.dew.domain.dto.CompositePurchaseOrder;
+
+import io.xlate.edi.stream.EDIOutputFactory;
+import io.xlate.edi.stream.EDIStreamException;
+import io.xlate.edi.stream.EDIStreamWriter;
+
+public class PurchaseOrdersToEdifactMapper {
   private final CompositePOConverter compositePOConverter;
 
-  public MappingOrdersToEdifact(CompositePOConverter compositePOConverter) {
+  public PurchaseOrdersToEdifactMapper(CompositePOConverter compositePOConverter) {
     this.compositePOConverter = compositePOConverter;
   }
 

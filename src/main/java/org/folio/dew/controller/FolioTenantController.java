@@ -39,4 +39,8 @@ public class FolioTenantController extends TenantController {
     return tenantInit;
   }
 
+  @Override
+  public ResponseEntity<Void> deleteTenant(String operationId) {
+    return ResponseEntity.noContent().build();
+  }
 }

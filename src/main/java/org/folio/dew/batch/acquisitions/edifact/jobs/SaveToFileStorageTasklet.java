@@ -3,6 +3,7 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.sshd.sftp.client.SftpClient;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.domain.dto.EdiFtp;
@@ -31,6 +32,8 @@ public class SaveToFileStorageTasklet implements Tasklet {
   private final SFTPObjectStorageRepository sftpObjectStorageRepository;
   private final FTPObjectStorageRepository ftpObjectStorageRepository;
 
+  private static final String SFTP_PROTOCOL = "sftp://";
+
   @Override
   @SneakyThrows
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
@@ -40,20 +43,22 @@ public class SaveToFileStorageTasklet implements Tasklet {
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
 
     String username = ediExportConfig.getEdiFtp().getUsername();
+    String folder = ediExportConfig.getEdiFtp().getOrderDirectory();
     String password = ediExportConfig.getEdiFtp().getPassword();
-    String host = ediExportConfig.getEdiFtp().getServerAddress();
+    String host = ediExportConfig.getEdiFtp().getServerAddress().replace(SFTP_PROTOCOL, "");
     int port = ediExportConfig.getEdiFtp().getFtpPort();
     String filename = UUID.randomUUID() +  ".edi";
 
     // skip ftp upload if address not specified
-    if (host == null) {
+    if (StringUtils.isEmpty(host)) {
       return RepeatStatus.FINISHED;
     }
+
     var fileContent = (String) ExecutionContextUtils.getExecutionVariable(stepExecutionContext,"edifactOrderAsString");
 
     if (ediExportConfig.getEdiFtp().getFtpFormat().equals(EdiFtp.FtpFormatEnum.SFTP)) {
       SftpClient client = sftpObjectStorageRepository.getSftpClient(username, password, host, port);
-      sftpObjectStorageRepository.upload(client, "uploads", filename, fileContent.getBytes(StandardCharsets.UTF_8));
+      sftpObjectStorageRepository.upload(client, folder, filename, fileContent.getBytes(StandardCharsets.UTF_8));
     }
     else {
       ftpObjectStorageRepository.login(host, username,password);

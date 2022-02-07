@@ -10,6 +10,8 @@ import java.text.SimpleDateFormat;
 
 public class CompositePOConverter {
   private static final String DEFAULT_DATE = "20130620";
+  private static final String RUSH_ORDER = "224";
+  private static final String NOT_RUSH_ORDER = "220";
 
   private final CompositePOLineConverter compositePOLineConverter;
 
@@ -23,11 +25,14 @@ public class CompositePOConverter {
     messageSegmentCount++;
     writePOHeader(compPO, writer);
 
+    String rushOrderQualifier = compPO.getCompositePoLines().stream().anyMatch(CompositePoLine::getRush) ? RUSH_ORDER : NOT_RUSH_ORDER;
     messageSegmentCount++;
-    writePONumber(compPO, writer);
+    writePONumber(compPO, writer, rushOrderQualifier);
 
+//    if (compPO.getDateOrdered() != null) {//TODO do we really want to use default date?
     messageSegmentCount++;
     writeOrderDate(compPO, writer);
+//    }
 
     messageSegmentCount++;
     writeLibrary(compPO, writer);
@@ -35,8 +40,12 @@ public class CompositePOConverter {
     messageSegmentCount++;
     writeVendor(compPO, writer);
 
-    messageSegmentCount++;
-    writeSomething(compPO, writer);
+    if (!compPO.getCompositePoLines().isEmpty()
+        && compPO.getCompositePoLines().get(0).getVendorDetail() != null
+        && compPO.getCompositePoLines().get(0).getVendorDetail().getVendorAccount() != null){
+      messageSegmentCount++;
+      writeAccountNumber(compPO.getCompositePoLines().get(0).getVendorDetail().getVendorAccount(), writer);
+    }
 
     messageSegmentCount++;
     writeCurrency(compPO, writer);
@@ -45,9 +54,10 @@ public class CompositePOConverter {
     int totalQuantity = 0;
     int totalNumberOfLineItems = 0;
     for (CompositePoLine poLine : compPO.getCompositePoLines()) {
-      int segments = compositePOLineConverter.convertPOLine(poLine, writer, ++totalNumberOfLineItems);
+      int quantityOrdered = getPoLineQuantityOrdered(poLine);
+      int segments = compositePOLineConverter.convertPOLine(poLine, writer, ++totalNumberOfLineItems, quantityOrdered);
       messageSegmentCount += segments;
-      totalQuantity++; // supposed to be 'totalQuantity+=poLine.quantityOrdered;' but order line doesn't contain such field
+      totalQuantity += quantityOrdered;
     }
 
     messageSegmentCount++;
@@ -78,9 +88,9 @@ public class CompositePOConverter {
   }
 
   // FOLIO PO
-  private void writePONumber(CompositePurchaseOrder compPO, EDIStreamWriter writer) throws EDIStreamException {
+  private void writePONumber(CompositePurchaseOrder compPO, EDIStreamWriter writer, String rushOrderQualifier) throws EDIStreamException {
     writer.writeStartSegment("BGM")
-      .writeElement("220")
+      .writeElement(rushOrderQualifier)
       .writeElement(compPO.getPoNumber())
       .writeElement("9")
       .writeEndSegment();
@@ -122,12 +132,11 @@ public class CompositePOConverter {
       .writeEndSegment();
   }
 
-  //need to clarify what this field is? reference for what
-  private void writeSomething(CompositePurchaseOrder compPO, EDIStreamWriter writer) throws EDIStreamException {
+  private void writeAccountNumber(String accountNumber, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("RFF")
       .writeStartElement()
       .writeComponent("API")
-      .writeComponent("854674")
+      .writeComponent(accountNumber)
       .writeComponent("91")
       .endElement()
       .writeEndSegment();
@@ -181,5 +190,26 @@ public class CompositePOConverter {
       .writeElement(String.valueOf(messageSegmentCount))
       .writeElement(compPO.getPoNumber())
       .writeEndSegment();
+  }
+
+  private int getPoLineQuantityOrdered(CompositePoLine poLine) {
+    int quantity;
+
+    int quantityPhysical = 0;
+    if (poLine.getPhysical() != null && poLine.getCost().getQuantityPhysical() != null) {
+      quantityPhysical = poLine.getCost().getQuantityPhysical();
+    }
+    int quantityElectronic = 0;
+    if (poLine.getEresource() != null && poLine.getCost().getQuantityElectronic() != null) {
+      quantityElectronic = poLine.getCost().getQuantityElectronic();
+    }
+
+    if (quantityPhysical != 0 && quantityElectronic != 0) {
+      quantity = Math.max(quantityPhysical, quantityElectronic);
+    } else {
+      quantity = quantityPhysical + quantityElectronic;
+    }
+
+    return quantity;
   }
 }

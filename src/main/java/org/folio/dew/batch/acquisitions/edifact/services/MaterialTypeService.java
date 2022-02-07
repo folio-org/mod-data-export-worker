@@ -20,7 +20,7 @@ public class MaterialTypeService {
   @Cacheable(cacheNames = "materialTypes")
   public String getMaterialTypeName(String id) {
     JSONObject jsonObject = getMaterialType(id);
-    String materialType = "Book";
+    String materialType = "";
 
     if (!jsonObject.isEmpty() && jsonObject.getString("name") != null) {
       materialType = jsonObject.getString("name");

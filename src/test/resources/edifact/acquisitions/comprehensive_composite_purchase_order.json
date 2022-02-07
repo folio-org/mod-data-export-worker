@@ -64,6 +64,60 @@
           "fundId": "65032151-39a5-4cef-8810-5350eb316300",
           "distributionType": "percentage",
           "value": 100.0
+        },
+        {
+          "code": "USHIST2",
+          "fundId": "65032151-39a5-4cef-8810-5350eb316302",
+          "distributionType": "percentage",
+          "value": 100.0
+        },
+        {
+          "code": "USHIST3",
+          "fundId": "65032151-39a5-4cef-8810-5350eb316303",
+          "distributionType": "percentage",
+          "value": 100.0
+        },
+        {
+          "code": "USHIST4",
+          "fundId": "65032151-39a5-4cef-8810-5350eb316304",
+          "distributionType": "percentage",
+          "value": 100.0
+        },
+        {
+          "code": "USHIST5",
+          "fundId": "65032151-39a5-4cef-8810-5350eb316305",
+          "distributionType": "percentage",
+          "value": 100.0
+        },
+        {
+          "code": "USHIST6",
+          "fundId": "65032151-39a5-4cef-8810-5350eb316306",
+          "distributionType": "percentage",
+          "value": 100.0
+        },
+        {
+          "code": "USHIST7",
+          "fundId": "65032151-39a5-4cef-8810-5350eb316307",
+          "distributionType": "percentage",
+          "value": 100.0
+        },
+        {
+          "code": "USHIST8",
+          "fundId": "65032151-39a5-4cef-8810-5350eb316308",
+          "distributionType": "percentage",
+          "value": 100.0
+        },
+        {
+          "code": "USHIST9",
+          "fundId": "65032151-39a5-4cef-8810-5350eb316309",
+          "distributionType": "percentage",
+          "value": 100.0
+        },
+        {
+          "code": "USHIST10",
+          "fundId": "65032151-39a5-4cef-8810-5350eb316301",
+          "distributionType": "percentage",
+          "value": 100.0
         }
       ],
       "isPackage": false,

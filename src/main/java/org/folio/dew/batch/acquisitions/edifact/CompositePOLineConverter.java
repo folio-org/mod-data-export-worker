@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 
 public class CompositePOLineConverter {
   private static final int MAX_CHARS_PER_LINE = 70;
+  private static final int MAX_NUMBER_OF_REFS = 10;
   private static final String DEFAULT_PRODUCT_ID = "0993966518";
 
   @Autowired
@@ -88,7 +89,7 @@ public class CompositePOLineConverter {
     writePOLineNumber(poLine, writer);
 
     for (FundDistribution fundDistribution : poLine.getFundDistribution()) {
-      if (referenceQuantity >= 10) {
+      if (referenceQuantity >= MAX_NUMBER_OF_REFS) {
         //TODO show a warning
         break;
       }
@@ -97,9 +98,9 @@ public class CompositePOLineConverter {
       writeFundCode(fundDistribution, writer);
     }
 
-    if (poLine.getVendorDetail() != null && referenceQuantity < 10) {
+    if (poLine.getVendorDetail() != null && referenceQuantity < MAX_NUMBER_OF_REFS) {
       for (ReferenceNumberItem number : poLine.getVendorDetail().getReferenceNumbers()) {
-        if (referenceQuantity >= 10) {
+        if (referenceQuantity >= MAX_NUMBER_OF_REFS) {
           //TODO show a warning
           break;
         }

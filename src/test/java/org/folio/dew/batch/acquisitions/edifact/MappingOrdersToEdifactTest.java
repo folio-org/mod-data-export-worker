@@ -48,7 +48,9 @@ class MappingOrdersToEdifactTest {
     JSONObject secondJson = new JSONObject(getMockData("edifact/acquisitions/comprehensive_composite_purchase_order.json"));
     CompositePurchaseOrder comprehensiveCompPo = mapper.readValue(secondJson.toString(), CompositePurchaseOrder.class);
 
-    //TODO finish minimalistic po json (omitting as many fields as possible) and add it here
+    //TODO remove as many fields as possible from minimalistic po json
+    JSONObject thirdJson = new JSONObject(getMockData("edifact/acquisitions/minimalistic_composite_purchase_order.json"));
+    CompositePurchaseOrder minimalisticCompPo = mapper.readValue(thirdJson.toString(), CompositePurchaseOrder.class);
 
     Mockito.when(materialTypeService.getMaterialTypeName(anyString()))
       .thenReturn("Book");
@@ -56,6 +58,7 @@ class MappingOrdersToEdifactTest {
     List<CompositePurchaseOrder> compPOs = new ArrayList<>();
     compPOs.add(compPo);
     compPOs.add(comprehensiveCompPo);
+    compPOs.add(minimalisticCompPo);
     String ediOrder = mappingOrdersToEdifact.convertOrdersToEdifact(compPOs);
     assertFalse(ediOrder.isEmpty());
     log.info(ediOrder);

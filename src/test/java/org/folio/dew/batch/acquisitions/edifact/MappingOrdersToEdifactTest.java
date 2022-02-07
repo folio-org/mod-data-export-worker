@@ -3,13 +3,18 @@ package org.folio.dew.batch.acquisitions.edifact;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.IOUtils;
+import org.folio.dew.batch.acquisitions.edifact.services.MaterialTypeService;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,23 +27,39 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
 
 @Log4j2
 @SpringBootTest
 @AutoConfigureMockMvc
+@RunWith(MockitoJUnitRunner.class)
 class MappingOrdersToEdifactTest {
   @Autowired
-  private PurchaseOrdersToEdifactMapper mappingOrdersToEdifact;
+  private PurchaseOrdersToEdifactMapper purchaseOrdersToEdifactMapper;
+  @MockBean
+  private MaterialTypeService materialTypeService;
 
-  @Test
-  void convertOrdersToEdifact() throws Exception {
-    JSONObject jsonObject = new JSONObject(getMockData("edifact/acquisitions/composite_purchase_order.json"));
+  @Test void convertOrdersToEdifact() throws Exception {
     ObjectMapper mapper = new ObjectMapper();
-    CompositePurchaseOrder reqData = mapper.readValue(jsonObject.toString(), CompositePurchaseOrder.class);
+
+    JSONObject firstJson = new JSONObject(getMockData("edifact/acquisitions/composite_purchase_order.json"));
+    CompositePurchaseOrder compPo = mapper.readValue(firstJson.toString(), CompositePurchaseOrder.class);
+
+    JSONObject secondJson = new JSONObject(getMockData("edifact/acquisitions/comprehensive_composite_purchase_order.json"));
+    CompositePurchaseOrder comprehensiveCompPo = mapper.readValue(secondJson.toString(), CompositePurchaseOrder.class);
+
+    //TODO remove as many fields as possible from minimalistic po json
+    JSONObject thirdJson = new JSONObject(getMockData("edifact/acquisitions/minimalistic_composite_purchase_order.json"));
+    CompositePurchaseOrder minimalisticCompPo = mapper.readValue(thirdJson.toString(), CompositePurchaseOrder.class);
+
+    Mockito.when(materialTypeService.getMaterialTypeName(anyString()))
+      .thenReturn("Book");
 
     List<CompositePurchaseOrder> compPOs = new ArrayList<>();
-    compPOs.add(reqData);
-    String ediOrder = mappingOrdersToEdifact.convertOrdersToEdifact(compPOs);
+    compPOs.add(compPo);
+    compPOs.add(comprehensiveCompPo);
+    compPOs.add(minimalisticCompPo);
+    String ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs);
     assertFalse(ediOrder.isEmpty());
     log.info(ediOrder);
   }
@@ -51,7 +72,7 @@ class MappingOrdersToEdifactTest {
 
     List<CompositePurchaseOrder> compPOs = new ArrayList<>();
     compPOs.add(reqData);
-    byte[] ediOrder = mappingOrdersToEdifact.convertOrdersToEdifactArray(compPOs);
+    byte[] ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifactArray(compPOs);
     assertNotNull(ediOrder);
     log.info(Arrays.toString(ediOrder));
   }

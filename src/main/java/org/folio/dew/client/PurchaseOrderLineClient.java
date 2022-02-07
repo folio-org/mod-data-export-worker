@@ -16,7 +16,6 @@ public interface PurchaseOrderLineClient {
 
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  PoLineCollection getPoLineByQuery(@RequestParam String query);
-
+  PoLineCollection getPoLineByQuery(@RequestParam("query") String query);
 
 }

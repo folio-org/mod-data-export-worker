@@ -16,6 +16,6 @@ public interface PurchaseOrderClient {
   CompositePurchaseOrder getCompositePurchaseOrderById(@PathVariable String id);
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  PurchaseOrderCollection getCompositePurchaseOrderByQuery(@RequestParam String query);
+  PurchaseOrderCollection getCompositePurchaseOrderByQuery(@RequestParam("query") String query);
 
 }

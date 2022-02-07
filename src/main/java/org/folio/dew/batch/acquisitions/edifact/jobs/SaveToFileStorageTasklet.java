@@ -45,6 +45,10 @@ public class SaveToFileStorageTasklet implements Tasklet {
     int port = ediExportConfig.getEdiFtp().getFtpPort();
     String filename = UUID.randomUUID() +  ".edi";
 
+    // skip ftp upload if address not specified
+    if (host == null) {
+      return RepeatStatus.FINISHED;
+    }
     var fileContent = (String) ExecutionContextUtils.getExecutionVariable(stepExecutionContext,"edifactOrderAsString");
 
     if (ediExportConfig.getEdiFtp().getFtpFormat().equals(EdiFtp.FtpFormatEnum.SFTP)) {

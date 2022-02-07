@@ -13,11 +13,11 @@ public class MaterialTypeService {
   @Autowired
   private final MaterialTypeClient materialTypeClient;
 
-  @Cacheable(cacheNames = "materialTypes")
   private JSONObject getMaterialType(String id) {
     return materialTypeClient.getMaterialType(id);
   }
 
+  @Cacheable(cacheNames = "materialTypes")
   public String getMaterialTypeName(String id) {
     JSONObject jsonObject = getMaterialType(id);
     String materialType = "Book";

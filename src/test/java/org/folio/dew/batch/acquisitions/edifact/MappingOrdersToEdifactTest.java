@@ -28,12 +28,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @AutoConfigureMockMvc
 class MappingOrdersToEdifactTest {
   @Autowired
-  private MappingOrdersToEdifact mappingOrdersToEdifact;
+  private PurchaseOrdersToEdifactMapper mappingOrdersToEdifact;
 
-  @Test void convertOrdersToEdifact() throws Exception {
+  @Test
+  void convertOrdersToEdifact() throws Exception {
     JSONObject jsonObject = new JSONObject(getMockData("edifact/acquisitions/composite_purchase_order.json"));
     ObjectMapper mapper = new ObjectMapper();
-    CompositePurchaseOrder reqData  = mapper.readValue(jsonObject.toString(), CompositePurchaseOrder.class);
+    CompositePurchaseOrder reqData = mapper.readValue(jsonObject.toString(), CompositePurchaseOrder.class);
 
     List<CompositePurchaseOrder> compPOs = new ArrayList<>();
     compPOs.add(reqData);
@@ -42,10 +43,11 @@ class MappingOrdersToEdifactTest {
     log.info(ediOrder);
   }
 
-  @Test void convertOrdersToEdifactByteArray() throws Exception {
+  @Test
+  void convertOrdersToEdifactByteArray() throws Exception {
     JSONObject jsonObject = new JSONObject(getMockData("edifact/acquisitions/composite_purchase_order.json"));
     ObjectMapper mapper = new ObjectMapper();
-    CompositePurchaseOrder reqData  = mapper.readValue(jsonObject.toString(), CompositePurchaseOrder.class);
+    CompositePurchaseOrder reqData = mapper.readValue(jsonObject.toString(), CompositePurchaseOrder.class);
 
     List<CompositePurchaseOrder> compPOs = new ArrayList<>();
     compPOs.add(reqData);

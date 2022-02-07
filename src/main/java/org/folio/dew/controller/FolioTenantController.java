@@ -26,7 +26,7 @@ public class FolioTenantController extends TenantController {
   public ResponseEntity<Void> postTenant(TenantAttributes tenantAttributes) {
     var tenantInit = super.postTenant(tenantAttributes);
 
-    if (tenantInit.getStatusCode() == HttpStatus.OK) {
+    if (tenantInit.getStatusCode() == HttpStatus.OK || tenantInit.getStatusCode() == HttpStatus.NO_CONTENT) {
       try {
         kafka.createKafkaTopics();
         kafka.restartEventListeners();

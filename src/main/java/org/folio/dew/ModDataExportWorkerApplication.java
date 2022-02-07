@@ -11,6 +11,8 @@ import org.folio.dew.client.DepartmentClient;
 import org.folio.dew.client.FeefineactionsClient;
 import org.folio.dew.client.GroupClient;
 import org.folio.dew.client.ProxiesForClient;
+import org.folio.dew.client.PurchaseOrderClient;
+import org.folio.dew.client.PurchaseOrderLineClient;
 import org.folio.dew.client.ServicePointClient;
 import org.folio.dew.client.TransferClient;
 import org.folio.dew.client.UserClient;
@@ -34,7 +36,9 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
   TransferClient.class,
   UserClient.class,
   DataExportSpringClient.class,
-  MaterialTypeClient.class
+  MaterialTypeClient.class,
+  PurchaseOrderClient.class,
+  PurchaseOrderLineClient.class
 })
 @EnableBatchProcessing
 public class ModDataExportWorkerApplication {

@@ -21,6 +21,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.spi.FileSystemProvider;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
@@ -60,6 +61,11 @@ public class SFTPObjectStorageRepository {
   public boolean upload(SftpClient sftpClient, String folder, String filename, byte[] content) throws IOException {
     String folderPath = StringUtils.isEmpty(folder) ? "" : (folder + File.separator);
     String fileAbsPath = folderPath + filename;
+
+    log.info("Available FileSystemProviders");
+    for (FileSystemProvider provider: FileSystemProvider.installedProviders()){
+      log.info(provider);
+    }
 
     createRemoteDirectoryIfAbsent(sftpClient, folder);
     URI uri = SftpFileSystemProvider.createFileSystemURI(sshClient.getHost(), sshClient.getPort(), sshClient.getUsername(), sshClient.getPassword());

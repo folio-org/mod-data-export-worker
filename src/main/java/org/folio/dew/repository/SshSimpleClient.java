@@ -5,6 +5,8 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.future.ConnectFuture;
 import org.apache.sshd.client.session.ClientSession;
+import org.apache.sshd.sftp.client.SftpVersionSelector;
+import org.apache.sshd.sftp.client.fs.SftpFileSystemProvider;
 
 import java.io.IOException;
 
@@ -17,6 +19,7 @@ public class SshSimpleClient {
   private final String host;
   private final String password;
   private final int port;
+  private final SftpFileSystemProvider provider;
 
   public SshSimpleClient(String username, String password, String host, int port) {
     this.username = username;
@@ -24,7 +27,9 @@ public class SshSimpleClient {
     this.host = host;
     this.port = port;
 
-    sshClient = SshClient.setUpDefaultClient();
+    this.sshClient = SshClient.setUpDefaultClient();
+    this.provider = new SftpFileSystemProvider(sshClient, SftpVersionSelector.CURRENT);
+
     sshClient.addPasswordIdentity(password);
   }
 

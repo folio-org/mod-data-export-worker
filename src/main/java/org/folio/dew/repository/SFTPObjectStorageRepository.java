@@ -70,7 +70,7 @@ public class SFTPObjectStorageRepository {
     }
 
     createRemoteDirectoryIfAbsent(sftpClient, folder);
-    URI uri = SftpFileSystemProvider.createFileSystemURI(sshClient.getHost(), sshClient.getPort(), sshClient.getUsername(), sshClient.getPassword());
+    URI uri = sshClient.getProvider().createFileSystemURI(sshClient.getHost(), sshClient.getPort(), sshClient.getUsername(), sshClient.getPassword());
     try (FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
       Path remotePath = fs.getPath(fileAbsPath);
       Files.createFile(remotePath);

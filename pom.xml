@@ -131,7 +131,7 @@
       </dependency>
       <dependency>
         <groupId>org.apache.sshd</groupId>
-        <artifactId>sshd-netty</artifactId>
+        <artifactId>sshd-mina</artifactId>
         <version>2.8.0</version>
       </dependency>
 
@@ -509,9 +509,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M5</version>
-                <configuration>
-                    <useSystemClassLoader>false</useSystemClassLoader>
-                </configuration>
             </plugin>
 
             <plugin>

@@ -1,19 +1,8 @@
 package org.folio.dew.repository;
 
-import static org.apache.sshd.sftp.common.SftpHelper.DEFAULT_SUBSTATUS_MESSAGE;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.spi.FileSystemProvider;
-import java.util.Collections;
-import java.util.concurrent.TimeUnit;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sshd.client.future.AuthFuture;
 import org.apache.sshd.client.session.ClientSession;
@@ -24,10 +13,18 @@ import org.apache.sshd.sftp.common.SftpConstants;
 import org.apache.sshd.sftp.common.SftpException;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import static org.apache.sshd.sftp.common.SftpHelper.DEFAULT_SUBSTATUS_MESSAGE;
 
 @Log4j2
 @Repository
@@ -64,13 +61,8 @@ public class SFTPObjectStorageRepository {
     String folderPath = StringUtils.isEmpty(folder) ? "" : (folder + File.separator);
     String fileAbsPath = folderPath + filename;
 
-    log.info("Available FileSystemProviders");
-    for (FileSystemProvider provider: FileSystemProvider.installedProviders()){
-      log.info(provider);
-    }
-
     createRemoteDirectoryIfAbsent(sftpClient, folder);
-    URI uri = sshClient.getProvider().createFileSystemURI(sshClient.getHost(), sshClient.getPort(), sshClient.getUsername(), sshClient.getPassword());
+    URI uri = SftpFileSystemProvider.createFileSystemURI(sshClient.getHost(), sshClient.getPort(), sshClient.getUsername(), sshClient.getPassword());
     try (FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
       Path remotePath = fs.getPath(fileAbsPath);
       Files.createFile(remotePath);

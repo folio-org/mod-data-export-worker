@@ -52,7 +52,7 @@ public class MapToEdifactTasklet implements Tasklet {
   private List<CompositePurchaseOrder> getCompPOList(VendorEdiOrdersExportConfig ediConfig) {
     var poQuery = "workflowStatus==Open";
 
-    var orders = ordersService.getCompositePurchaseOrderByQuery(poQuery);
+    var orders = ordersService.getCompositePurchaseOrderByQuery(poQuery, Integer.MAX_VALUE);
 
     var compOrders = orders.getPurchaseOrders()
       .stream()
@@ -61,7 +61,7 @@ public class MapToEdifactTasklet implements Tasklet {
       .filter(order -> !order.getCompositePoLines().isEmpty())
       .collect(Collectors.toList());
 
-    log.info("comporders: {}", compOrders);
+    log.debug("composite purchase orders: {}", compOrders);
     return compOrders;
   }
 

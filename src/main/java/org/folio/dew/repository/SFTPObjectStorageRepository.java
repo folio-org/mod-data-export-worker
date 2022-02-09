@@ -16,6 +16,7 @@ import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.sftp.client.SftpClient;
 import org.apache.sshd.sftp.client.SftpClientFactory;
 import org.apache.sshd.sftp.spring.integration.ApacheSshdSftpSessionFactory;
+import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.stereotype.Repository;
 
@@ -78,11 +79,13 @@ public class SFTPObjectStorageRepository {
 
     try (InputStream inputStream = Files.newInputStream(srcFile); var session = sshdFactory.getSession()) {
       log.info("Start uploading file to SFTP path: {}", remoteAbsPath);
-      session.mkdir(folder);
+
+      createRemoteDirectoryIfAbsent(session, folder);
       session.write(inputStream, remoteAbsPath);
+
       return true;
     } catch (Exception e) {
-      log.error(e);
+      log.info("Error uploading the file", e);
       return false;
     } finally {
       Files.deleteIfExists(srcFile);
@@ -112,6 +115,22 @@ public class SFTPObjectStorageRepository {
       log.error(e);
     }
     return fileBytes;
+  }
+
+  private void createRemoteDirectoryIfAbsent(Session<SftpClient.DirEntry> session, String folder) throws IOException {
+    if (!session.exists(folder)) {
+      String[] folders = folder.split("/");
+      StringBuilder path = new StringBuilder(folders[0]).append("/");
+
+      for (int i = 0; i < folders.length; i++) {
+        if (!session.exists(path.toString())) {
+          session.mkdir(path.toString());
+        }
+        if (i == folders.length - 1) return;
+        path.append(folders[i + 1]).append("/");
+      }
+      log.info("A directory has been created: {}", folder);
+    }
   }
 
 

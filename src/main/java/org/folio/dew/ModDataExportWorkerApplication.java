@@ -1,6 +1,5 @@
 package org.folio.dew;
 
-import org.folio.dew.batch.acquisitions.edifact.client.MaterialTypeClient;
 import org.folio.dew.client.AccountBulkClient;
 import org.folio.dew.client.AccountClient;
 import org.folio.dew.client.AddressTypeClient;
@@ -10,9 +9,10 @@ import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.client.DepartmentClient;
 import org.folio.dew.client.FeefineactionsClient;
 import org.folio.dew.client.GroupClient;
+import org.folio.dew.client.MaterialTypeClient;
 import org.folio.dew.client.OrdersClient;
-import org.folio.dew.client.ProxiesForClient;
 import org.folio.dew.client.OrdersStorageClient;
+import org.folio.dew.client.ProxiesForClient;
 import org.folio.dew.client.PurchaseOrderLineClient;
 import org.folio.dew.client.ServicePointClient;
 import org.folio.dew.client.TransferClient;

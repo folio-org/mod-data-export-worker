@@ -57,8 +57,8 @@ public class SaveToFileStorageTasklet implements Tasklet {
     var fileContent = (String) ExecutionContextUtils.getExecutionVariable(stepExecutionContext,"edifactOrderAsString");
 
     if (ediExportConfig.getEdiFtp().getFtpFormat().equals(EdiFtp.FtpFormatEnum.SFTP)) {
-      SftpClient client = sftpObjectStorageRepository.getSftpClient(username, password, host, port);
-      sftpObjectStorageRepository.upload(client, folder, filename, fileContent.getBytes(StandardCharsets.UTF_8));
+     // SftpClient client = sftpObjectStorageRepository.getSftpClient(username, password, host, port);
+      sftpObjectStorageRepository.upload(username, password, host, port, folder, filename, fileContent);
     }
     else {
       ftpObjectStorageRepository.login(host, username,password);

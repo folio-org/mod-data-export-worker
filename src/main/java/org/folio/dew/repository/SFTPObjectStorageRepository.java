@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.future.AuthFuture;
 import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.sftp.client.SftpClient;
@@ -11,9 +12,12 @@ import org.apache.sshd.sftp.client.SftpClientFactory;
 import org.apache.sshd.sftp.client.fs.SftpFileSystemProvider;
 import org.apache.sshd.sftp.common.SftpConstants;
 import org.apache.sshd.sftp.common.SftpException;
+import org.apache.sshd.sftp.spring.integration.ApacheSshdSftpSessionFactory;
+import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.stereotype.Repository;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -21,6 +25,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
@@ -57,22 +62,52 @@ public class SFTPObjectStorageRepository {
     return SftpClientFactory.instance().createSftpClient(session);
   }
 
-  public boolean upload(SftpClient sftpClient, String folder, String filename, byte[] content) throws IOException {
-    String folderPath = StringUtils.isEmpty(folder) ? "" : (folder + File.separator);
-    String fileAbsPath = folderPath + filename;
+/*  protected ApacheSshdSftpSessionFactory getSshdSessionFactory(SshSimpleClient client) throws Exception {
+    return getSshdSessionFactory(client,false);
+  }*/
 
-    createRemoteDirectoryIfAbsent(sftpClient, folder);
-    URI uri = SftpFileSystemProvider.createFileSystemURI(sshClient.getHost(), sshClient.getPort(), sshClient.getUsername(), sshClient.getPassword());
-    try (FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
-      Path remotePath = fs.getPath(fileAbsPath);
-      Files.createFile(remotePath);
-      Files.write(remotePath, content);
-      log.info("successfully uploaded to SFTP: {}", fileAbsPath);
+  protected ApacheSshdSftpSessionFactory getSshdSessionFactory(String username, String password, String host, int port) throws Exception {
+    var ssh = SshClient.setUpDefaultClient();
+    ssh.start();
+    ApacheSshdSftpSessionFactory factory = new ApacheSshdSftpSessionFactory(false);
+    factory.setHost(host);
+    factory.setPort(port);
+    factory.setUsername(username);
+    factory.setPassword(password);
+    factory.setSshClient(ssh);
+    factory.setConnectTimeout(TimeUnit.SECONDS.toMillis(7L));
+    factory.setAuthenticationTimeout(TimeUnit.SECONDS.toMillis(11L));
+    factory.afterPropertiesSet();
+    return factory;
+  }
+
+  public boolean upload(String username, String password, String host, int port, String folder, String filename, String content) throws Exception {
+
+    Path srcFile = Paths.get(filename);
+    Files.deleteIfExists(srcFile);
+
+    var srcFilePath = Files.createFile(srcFile);
+    FileWriter myWriter = new FileWriter(filename);
+    myWriter.write(content);
+    myWriter.close();
+
+    String folderPath = StringUtils.isEmpty(folder) ? "" : (folder + File.separator);
+    String remoteAbsPath = folderPath + filename;
+
+    //createRemoteDirectoryIfAbsent(sftpClient, folder);
+    SessionFactory<SftpClient.DirEntry> sshdFactory = getSshdSessionFactory(username, password, host, port);
+
+    // URI uri = SftpFileSystemProvider.createFileSystemURI(sshClient.getHost(), sshClient.getPort(), sshClient.getUsername(), sshClient.getPassword());
+    var session = sshdFactory.getSession();
+    try (InputStream inputStream = Files.newInputStream(srcFile)) {
+      session.write(inputStream, remoteAbsPath);
+      session.close();
       return true;
-    } catch (IOException e) {
-      log.error(e);
+    } catch (Exception e){
+      session.close();
+      return false;
     }
-    return false;
+
   }
 
   public byte[] download(SftpClient sftpClient, String path) {

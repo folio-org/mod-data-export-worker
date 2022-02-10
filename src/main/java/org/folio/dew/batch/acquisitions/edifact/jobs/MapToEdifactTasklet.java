@@ -1,6 +1,7 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.folio.dew.batch.ExecutionContextUtils;
@@ -50,12 +51,12 @@ public class MapToEdifactTasklet implements Tasklet {
   }
 
   private List<CompositePurchaseOrder> getCompPOList(VendorEdiOrdersExportConfig ediConfig) {
-    var poQuery = "workflowStatus==Open";
+    var poQuery = buildCompositeOrderQuery(ediConfig);
 
     var orders = ordersService.getCompositePurchaseOrderByQuery(poQuery, Integer.MAX_VALUE);
 
     var compOrders = orders.getPurchaseOrders()
-      .stream()
+      .stream().sequential()
       .map(order -> ordersService.getCompositePurchaseOrderById(order.getId()))
       .map(order -> order.compositePoLines(poLineFilteredOrder(order, ediConfig)))
       .filter(order -> !order.getCompositePoLines().isEmpty())
@@ -63,6 +64,13 @@ public class MapToEdifactTasklet implements Tasklet {
 
     log.debug("composite purchase orders: {}", compOrders);
     return compOrders;
+  }
+
+  private String buildCompositeOrderQuery(VendorEdiOrdersExportConfig ediConfig) {
+    var vendorFilter = String.format(" and vendor==%s", ediConfig.getVendorId());
+    var resultQuery = "(" + "workflowStatus==Open" + vendorFilter + ")";
+    log.info("GET purchase orders query: {}", resultQuery);
+    return resultQuery;
   }
 
   private void persistPoLineIds(ChunkContext chunkContext, List<CompositePurchaseOrder> compOrders) throws JsonProcessingException {
@@ -75,7 +83,15 @@ public class MapToEdifactTasklet implements Tasklet {
 
   private List<CompositePoLine> poLineFilteredOrder(CompositePurchaseOrder order, VendorEdiOrdersExportConfig ediConfig) {
     return order.getCompositePoLines().stream()
-          .collect(Collectors.toList());
+     // .filter(CompositePoLine::getAutomaticExport)
+      .filter(poline -> ediConfig.getEdiConfig().getDefaultAcquisitionMethods().contains(poline.getAcquisitionMethod()))
+      //.map(poline -> poline.getAcquisitionMethod().equals(ediConfig.))
+      .collect(Collectors.toList());
   }
+
+   private static Predicate<CompositePoLine> containsAcqMethod (CompositePoLine poline, VendorEdiOrdersExportConfig ediConfig) {
+      return line -> ediConfig.getEdiConfig().getDefaultAcquisitionMethods().contains(poline.getAcquisitionMethod());
+   }
+
 
 }

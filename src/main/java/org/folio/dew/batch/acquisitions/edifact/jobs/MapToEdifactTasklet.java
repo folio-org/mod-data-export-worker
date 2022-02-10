@@ -68,7 +68,8 @@ public class MapToEdifactTasklet implements Tasklet {
 
   private String buildCompositeOrderQuery(VendorEdiOrdersExportConfig ediConfig) {
     var vendorFilter = String.format(" and vendor==%s", ediConfig.getVendorId());
-    var resultQuery = "(" + "workflowStatus==Open" + vendorFilter + ")";
+    var automaticExportFilter = "";// UNCOMMENT after gobi fix// "" and poLine.automaticExport==true";
+    var resultQuery = "(" + "workflowStatus==Open" + vendorFilter + automaticExportFilter + ")";
     log.info("GET purchase orders query: {}", resultQuery);
     return resultQuery;
   }

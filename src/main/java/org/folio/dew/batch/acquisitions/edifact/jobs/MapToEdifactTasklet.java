@@ -43,7 +43,7 @@ public class MapToEdifactTasklet implements Tasklet {
     // save poLineIds in memory
     persistPoLineIds(chunkContext, compOrders);
 
-    var edifactOrderAsString = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compOrders);
+    var edifactOrderAsString = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compOrders, ediExportConfig);
     //save edifact file content in memory
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, "edifactOrderAsString", edifactOrderAsString, "");
     return RepeatStatus.FINISHED;

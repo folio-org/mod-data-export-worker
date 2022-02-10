@@ -4,12 +4,12 @@ import io.xlate.edi.stream.EDIStreamException;
 import io.xlate.edi.stream.EDIStreamWriter;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
+import org.folio.dew.domain.dto.acquisitions.edifact.EdiFileConfig;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 public class CompositePOConverter {
-  private static final String DEFAULT_DATE = "20130620";
   private static final String RUSH_ORDER = "224";
   private static final String NOT_RUSH_ORDER = "220";
 
@@ -19,13 +19,13 @@ public class CompositePOConverter {
     this.compositePOLineConverter = compositePOLineConverter;
   }
 
-  public void convertPOtoEdifact(CompositePurchaseOrder compPO, EDIStreamWriter writer) throws EDIStreamException {
+  public void convertPOtoEdifact(EDIStreamWriter writer, CompositePurchaseOrder compPO, EdiFileConfig ediFileConfig) throws EDIStreamException {
     int messageSegmentCount = 0;
 
     messageSegmentCount++;
-    writePOHeader(compPO, writer);
+    writePOHeader(ediFileConfig.getFileId(), writer);
 
-    String rushOrderQualifier = compPO.getCompositePoLines().stream().anyMatch(CompositePoLine::getRush) ? RUSH_ORDER : NOT_RUSH_ORDER;
+    String rushOrderQualifier = compPO.getCompositePoLines().stream().filter(line -> line.getRush() != null).anyMatch(CompositePoLine::getRush) ? RUSH_ORDER : NOT_RUSH_ORDER;
     messageSegmentCount++;
     writePONumber(compPO, writer, rushOrderQualifier);
 
@@ -35,10 +35,10 @@ public class CompositePOConverter {
 //    }
 
     messageSegmentCount++;
-    writeLibrary(compPO, writer);
+    writeLibrary(ediFileConfig, writer);
 
     messageSegmentCount++;
-    writeVendor(compPO, writer);
+    writeVendor(ediFileConfig, writer);
 
     if (!compPO.getCompositePoLines().isEmpty()
         && compPO.getCompositePoLines().get(0).getVendorDetail() != null
@@ -48,7 +48,7 @@ public class CompositePOConverter {
     }
 
     messageSegmentCount++;
-    writeCurrency(compPO, writer);
+    writeCurrency(writer);
 
     // Order lines
     int totalQuantity = 0;
@@ -61,22 +61,22 @@ public class CompositePOConverter {
     }
 
     messageSegmentCount++;
-    writeEndPoLines(compPO, writer);
+    writeEndPoLines(writer);
 
     messageSegmentCount++;
-    writePoLinesQuantity(compPO, writer, totalQuantity);
+    writePoLinesQuantity(writer, totalQuantity);
 
     messageSegmentCount++;
-    writeNumberLineItems(compPO, writer, totalNumberOfLineItems);
+    writeNumberLineItems(writer, totalNumberOfLineItems);
 
     messageSegmentCount++;
     writePOFooter(compPO, writer, messageSegmentCount);
   }
 
   // Order header = Start of order; EDIFACT message type - There would be a new UNH for each FOLIO PO in the file
-  private void writePOHeader(CompositePurchaseOrder compPO, EDIStreamWriter writer) throws EDIStreamException {
+  private void writePOHeader(String fileId, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("UNH")
-      .writeElement("1001")
+      .writeElement(fileId)
       .writeStartElement()
       .writeComponent("ORDERS")
       .writeComponent("D")
@@ -102,32 +102,32 @@ public class CompositePOConverter {
     writer.writeStartSegment("DTM")
       .writeStartElement()
       .writeComponent("137")
-      .writeComponent(compPO.getDateOrdered() != null ? dateFormat.format(compPO.getDateOrdered()) : DEFAULT_DATE)
+      .writeComponent(compPO.getDateOrdered() != null ? dateFormat.format(compPO.getDateOrdered()) : "")
       .writeComponent("102")
       .endElement()
       .writeEndSegment();
   }
 
   // Library ID and ID type
-  private void writeLibrary(CompositePurchaseOrder compPO, EDIStreamWriter writer) throws EDIStreamException {
+  private void writeLibrary(EdiFileConfig ediFileConfig, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("NAD")
       .writeElement("BY")
       .writeStartElement()
-      .writeComponent("901494200")
+      .writeComponent(ediFileConfig.getLibEdiCode())
       .writeComponent("")
-      .writeComponent("31B")
+      .writeComponent(ediFileConfig.getLibEdiType())
       .endElement()
       .writeEndSegment();
   }
 
   // Vendor ID and ID type
-  private void writeVendor(CompositePurchaseOrder compPO, EDIStreamWriter writer) throws EDIStreamException {
+  private void writeVendor(EdiFileConfig ediFileConfig, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("NAD")
       .writeElement("SU")
       .writeStartElement()
-      .writeComponent("0142948")
+      .writeComponent(ediFileConfig.getVendorEdiCode())
       .writeComponent("")
-      .writeComponent("31B")
+      .writeComponent(ediFileConfig.getVendorEdiType())
       .endElement()
       .writeEndSegment();
   }
@@ -144,18 +144,18 @@ public class CompositePOConverter {
 
   // Order currency - If FOLIO default currency and vendor currency are not the same, this may include info about both currencies,
   // with different qualifiers
-  private void writeCurrency(CompositePurchaseOrder compPO, EDIStreamWriter writer) throws EDIStreamException {
+  private void writeCurrency(EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("CUX")
       .writeStartElement()
       .writeComponent("2")
-      .writeComponent("GBP")
+      .writeComponent("USD")//TODO get system currency from mod-configuration
       .writeComponent("9")
       .endElement()
       .writeEndSegment();
   }
 
   // Summary (footer) separator - Indicates that all the line items of the PO are above, and next will be the summary of the PO
-  private void writeEndPoLines(CompositePurchaseOrder compPO, EDIStreamWriter writer) throws EDIStreamException {
+  private void writeEndPoLines(EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("UNS")
       .writeElement("S")
       .writeEndSegment();
@@ -163,7 +163,7 @@ public class CompositePOConverter {
 
   // Total quantity
   // Calculated by adding all the QTY in the individual line items
-  private void writePoLinesQuantity(CompositePurchaseOrder compPO, EDIStreamWriter writer, int totalQuantity) throws EDIStreamException {
+  private void writePoLinesQuantity(EDIStreamWriter writer, int totalQuantity) throws EDIStreamException {
     writer.writeStartSegment("CNT")
       .writeStartElement()
       .writeComponent("1")
@@ -174,7 +174,7 @@ public class CompositePOConverter {
 
   // Total number of line items
   // 	If any line has QTY >1, then CNT+1 ≠ CNT+2
-  private void writeNumberLineItems(CompositePurchaseOrder compPO, EDIStreamWriter writer, int totalNumberOfLineItems) throws EDIStreamException {
+  private void writeNumberLineItems(EDIStreamWriter writer, int totalNumberOfLineItems) throws EDIStreamException {
     writer.writeStartSegment("CNT")
       .writeStartElement()
       .writeComponent("2")

@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.IOUtils;
 import org.folio.dew.batch.acquisitions.edifact.services.MaterialTypeService;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
+import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
@@ -40,41 +41,52 @@ class MappingOrdersToEdifactTest {
   private MaterialTypeService materialTypeService;
 
   @Test void convertOrdersToEdifact() throws Exception {
-    ObjectMapper mapper = new ObjectMapper();
-
-    JSONObject firstJson = new JSONObject(getMockData("edifact/acquisitions/composite_purchase_order.json"));
-    CompositePurchaseOrder compPo = mapper.readValue(firstJson.toString(), CompositePurchaseOrder.class);
-
-    JSONObject secondJson = new JSONObject(getMockData("edifact/acquisitions/comprehensive_composite_purchase_order.json"));
-    CompositePurchaseOrder comprehensiveCompPo = mapper.readValue(secondJson.toString(), CompositePurchaseOrder.class);
-
-    //TODO remove as many fields as possible from minimalistic po json
-    JSONObject thirdJson = new JSONObject(getMockData("edifact/acquisitions/minimalistic_composite_purchase_order.json"));
-    CompositePurchaseOrder minimalisticCompPo = mapper.readValue(thirdJson.toString(), CompositePurchaseOrder.class);
+    List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson();
 
     Mockito.when(materialTypeService.getMaterialTypeName(anyString()))
       .thenReturn("Book");
 
-    List<CompositePurchaseOrder> compPOs = new ArrayList<>();
-    compPOs.add(compPo);
-    compPOs.add(comprehensiveCompPo);
-    compPOs.add(minimalisticCompPo);
-    String ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs);
+    String ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, getTestEdiConfig());
     assertFalse(ediOrder.isEmpty());
     log.info(ediOrder);
   }
 
   @Test
   void convertOrdersToEdifactByteArray() throws Exception {
-    JSONObject jsonObject = new JSONObject(getMockData("edifact/acquisitions/composite_purchase_order.json"));
-    ObjectMapper mapper = new ObjectMapper();
-    CompositePurchaseOrder reqData = mapper.readValue(jsonObject.toString(), CompositePurchaseOrder.class);
+    List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson();
 
-    List<CompositePurchaseOrder> compPOs = new ArrayList<>();
-    compPOs.add(reqData);
-    byte[] ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifactArray(compPOs);
+    Mockito.when(materialTypeService.getMaterialTypeName(anyString()))
+      .thenReturn("Book");
+
+    byte[] ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifactArray(compPOs, getTestEdiConfig());
     assertNotNull(ediOrder);
     log.info(Arrays.toString(ediOrder));
+  }
+
+  private VendorEdiOrdersExportConfig getTestEdiConfig() throws IOException {
+    ObjectMapper mapper = new ObjectMapper();
+
+    JSONObject json = new JSONObject(getMockData("edifact/acquisitions/vendorEdiOrdersExportConfig.json"));
+    return mapper.readValue(json.toString(), VendorEdiOrdersExportConfig.class);
+  }
+
+  private List<CompositePurchaseOrder> getTestOrdersFromJson() throws IOException {
+    ObjectMapper mapper = new ObjectMapper();
+
+    JSONObject json = new JSONObject(getMockData("edifact/acquisitions/composite_purchase_order.json"));
+    CompositePurchaseOrder compPo = mapper.readValue(json.toString(), CompositePurchaseOrder.class);
+
+    JSONObject comprehensiveJson = new JSONObject(getMockData("edifact/acquisitions/comprehensive_composite_purchase_order.json"));
+    CompositePurchaseOrder comprehensiveCompPo = mapper.readValue(comprehensiveJson.toString(), CompositePurchaseOrder.class);
+
+    JSONObject minimalisticJson = new JSONObject(getMockData("edifact/acquisitions/minimalistic_composite_purchase_order.json"));
+    CompositePurchaseOrder minimalisticCompPo = mapper.readValue(minimalisticJson.toString(), CompositePurchaseOrder.class);
+
+    List<CompositePurchaseOrder> compPOs = new ArrayList<>();
+    compPOs.add(compPo);
+    compPOs.add(comprehensiveCompPo);
+    compPOs.add(minimalisticCompPo);
+    return compPOs;
   }
 
   public static String getMockData(String path) throws IOException {

@@ -63,6 +63,10 @@ public class MapToEdifactTasklet implements Tasklet {
       .collect(Collectors.toList());
 
     log.debug("composite purchase orders: {}", compOrders);
+
+    if (compOrders.isEmpty()) {
+      throw new RuntimeException("Orders for export not found");
+    }
     return compOrders;
   }
 
@@ -85,7 +89,7 @@ public class MapToEdifactTasklet implements Tasklet {
   private List<CompositePoLine> poLineFilteredOrder(CompositePurchaseOrder order, VendorEdiOrdersExportConfig ediConfig) {
     return order.getCompositePoLines().stream()
      // .filter(CompositePoLine::getAutomaticExport)
-      .filter(poline -> ediConfig.getEdiConfig().getDefaultAcquisitionMethods().contains(poline.getAcquisitionMethod()))
+        .filter(poline -> ediConfig.getEdiConfig().getDefaultAcquisitionMethods().contains(poline.getAcquisitionMethod()))
       //.map(poline -> poline.getAcquisitionMethod().equals(ediConfig.))
       .collect(Collectors.toList());
   }

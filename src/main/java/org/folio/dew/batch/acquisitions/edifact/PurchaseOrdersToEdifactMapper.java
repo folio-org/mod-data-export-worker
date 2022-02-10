@@ -31,7 +31,6 @@ public class PurchaseOrdersToEdifactMapper {
 
     // Count of messages (one message per purchase order)
     int messageCount = 0;
-
     writer.startInterchange();
     writeStartFile(writer);
 

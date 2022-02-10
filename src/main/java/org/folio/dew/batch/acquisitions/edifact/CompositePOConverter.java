@@ -29,8 +29,10 @@ public class CompositePOConverter {
     messageSegmentCount++;
     writePONumber(compPO, writer, rushOrderQualifier);
 
+//    if (compPO.getDateOrdered() != null) {//TODO do we really want to use default date?
     messageSegmentCount++;
     writeOrderDate(compPO, writer);
+//    }
 
     messageSegmentCount++;
     writeLibrary(ediFileConfig, writer);

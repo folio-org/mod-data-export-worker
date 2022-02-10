@@ -42,6 +42,7 @@ public class CompositePOLineConverter {
       }
     }
 
+    //TODO repeat previous field with PIA+5+, repeat the field and use PIA+1+ for everything after the first one
     messageSegmentCount++;
     writeOrderLine(isbnProductId, writer, currentLineNumber);
 

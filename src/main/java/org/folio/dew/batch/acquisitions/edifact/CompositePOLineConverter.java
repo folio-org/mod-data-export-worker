@@ -8,15 +8,20 @@ import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.Contributor;
 import org.folio.dew.domain.dto.FundDistribution;
 import org.folio.dew.domain.dto.Location;
+import org.folio.dew.domain.dto.ProductIdentifier;
 import org.folio.dew.domain.dto.ReferenceNumberItem;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CompositePOLineConverter {
   private static final int MAX_CHARS_PER_LINE = 70;
   private static final int MAX_NUMBER_OF_REFS = 10;
-  private static final String DEFAULT_PRODUCT_ID = "0993966518";
+  private static final String PRODUCT_ID_FUNCTION_CODE_MAIN_PRODUCT_IDNTIFICATION = "5";
+  private static final String PRODUCT_ID_FUNCTION_CODE_ADDITIONAL_IDNTIFICATION = "1";
+  private static final int ISBN_LENGTH = 13;
 
   @Autowired
   private MaterialTypeService materialTypeService;
@@ -24,15 +29,31 @@ public class CompositePOLineConverter {
   public int convertPOLine(CompositePoLine poLine, EDIStreamWriter writer, int currentLineNumber, int quantityOrdered) throws EDIStreamException {
     int messageSegmentCount = 0;
 
-    //TODO This should only be the 13 digit article number. Other identifiers should not be used here
-    messageSegmentCount++;
-    writeOrderLine(poLine, writer, currentLineNumber);
+    List<ProductIdentifier> products = new ArrayList<>();
+    String isbnProductId = "";
+    boolean isIsbnFound = false;
+    for (ProductIdentifier productId : getProductIds(poLine)) {
+      if (!isIsbnFound && productId.getProductId().length() == ISBN_LENGTH) {
+        //TODO lookup product id type by type id to make sure it's ISBN
+        isbnProductId = productId.getProductId();
+        isIsbnFound = true;
+      } else {
+        products.add(productId);
+      }
+    }
 
-    //TODO repeat previous field with PIA+5+, repeat the field and use PIA+1+ for everything after the first one
     messageSegmentCount++;
-    writeProductID(poLine, writer);
+    writeOrderLine(isbnProductId, writer, currentLineNumber);
 
-    for (Contributor contributor : poLine.getContributors()) {
+    messageSegmentCount++;
+    writeProductId(isbnProductId, writer, PRODUCT_ID_FUNCTION_CODE_MAIN_PRODUCT_IDNTIFICATION);
+
+    for (ProductIdentifier product : products) {
+      messageSegmentCount++;
+      writeProductId(product.getProductId(), writer, PRODUCT_ID_FUNCTION_CODE_ADDITIONAL_IDNTIFICATION);
+    }
+
+    for (Contributor contributor : getContributors(poLine)) {
       if (contributor.getContributor() != null) {
         messageSegmentCount++;
         writeContributor(contributor.getContributor(), writer);
@@ -88,9 +109,8 @@ public class CompositePOLineConverter {
     messageSegmentCount++;
     writePOLineNumber(poLine, writer);
 
-    for (FundDistribution fundDistribution : poLine.getFundDistribution()) {
+    for (FundDistribution fundDistribution : getFundDistribution(poLine)) {
       if (referenceQuantity >= MAX_NUMBER_OF_REFS) {
-        //TODO show a warning
         break;
       }
       referenceQuantity++;
@@ -101,7 +121,6 @@ public class CompositePOLineConverter {
     if (poLine.getVendorDetail() != null && referenceQuantity < MAX_NUMBER_OF_REFS) {
       for (ReferenceNumberItem number : poLine.getVendorDetail().getReferenceNumbers()) {
         if (referenceQuantity >= MAX_NUMBER_OF_REFS) {
-          //TODO show a warning
           break;
         }
         if (number.getRefNumber() != null) {
@@ -112,7 +131,7 @@ public class CompositePOLineConverter {
       }
     }
 
-    for (Location location : poLine.getLocations()) {
+    for (Location location : getLocations(poLine)) {
       messageSegmentCount++;
       writeDeliveryLocation(location, writer);
     }
@@ -124,12 +143,12 @@ public class CompositePOLineConverter {
   // May or may not be the same number as the POL line number, since the POLs may skip numbers, and the EDI order does not
   // Since ISBNs expanded to 13 digits, they are equivalent to UPC barcode numbers
   // Identifier qualifier not included
-  private void writeOrderLine(CompositePoLine poLine, EDIStreamWriter writer, int currentLineNumber) throws EDIStreamException {
+  private void writeOrderLine(String isbn, EDIStreamWriter writer, int currentLineNumber) throws EDIStreamException {
     writer.writeStartSegment("LIN")
       .writeElement(String.valueOf(currentLineNumber))
       .writeElement("")
       .writeStartElement()
-      .writeComponent(getProductID(poLine))
+      .writeComponent(isbn)
       .writeComponent("EN")
       .endElement()
       .writeEndSegment();
@@ -138,12 +157,12 @@ public class CompositePOLineConverter {
   // Product ID:ID type
   // ISBN-10 is no longer necessary
   // PIA includes whatever Product IDs are in the POL, not just an ISBN
-  private void writeProductID(CompositePoLine poLine, EDIStreamWriter writer) throws EDIStreamException {
+  private void writeProductId(String productId, EDIStreamWriter writer, String productIdFunctionCode) throws EDIStreamException {
     writer.writeStartSegment("PIA")
-      .writeElement("5")
+      .writeElement(productIdFunctionCode)
       .writeStartElement()
-      .writeComponent(getProductID(poLine))
-      .writeComponent("IB")
+      .writeComponent(productId)
+      .writeComponent("MF")
       .endElement()
       .writeEndSegment();
   }
@@ -255,11 +274,6 @@ public class CompositePOLineConverter {
       .writeEndSegment();
   }
 
-  private String[] getTitleParts(CompositePoLine poLine) {
-    String title = poLine.getTitleOrPackage();
-    return title.split("(?<=\\G.{" + MAX_CHARS_PER_LINE + "})");
-  }
-
   private void writePOLineNumber(CompositePoLine poLine, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("RFF")
       .writeStartElement()
@@ -302,21 +316,25 @@ public class CompositePOLineConverter {
       .writeEndSegment();
   }
 
-  private String getProductID(CompositePoLine poLine) {
-    String productId = DEFAULT_PRODUCT_ID;
-    if (poLine.getDetails() != null && poLine.getDetails()
-      .getProductIds() != null && !poLine.getDetails()
-      .getProductIds()
-      .isEmpty() && poLine.getDetails()
-      .getProductIds()
-      .get(0)
-      .getProductId() != null) {
-      productId = poLine.getDetails()
-        .getProductIds()
-        .get(0)
-        .getProductId();
+  private List<ProductIdentifier> getProductIds(CompositePoLine poLine) {
+    if (poLine.getDetails() != null && poLine.getDetails().getProductIds() != null) {
+      return poLine.getDetails().getProductIds();
+    } else {
+      return List.of();
     }
-    return productId;
+  }
+
+  private List<Contributor> getContributors(CompositePoLine poLine) {
+    if (poLine.getContributors() != null) {
+      return poLine.getContributors();
+    } else {
+      return List.of();
+    }
+  }
+
+  private String[] getTitleParts(CompositePoLine poLine) {
+    String title = poLine.getTitleOrPackage();
+    return title.split("(?<=\\G.{" + MAX_CHARS_PER_LINE + "})");
   }
 
   private String getPhysicalMaterial(CompositePoLine poLine) {
@@ -333,5 +351,21 @@ public class CompositePOLineConverter {
       return materialTypeService.getMaterialTypeName(materialTypeId);
     }
     return "";
+  }
+
+  private List<FundDistribution> getFundDistribution(CompositePoLine poLine) {
+    if (poLine.getFundDistribution() != null) {
+      return poLine.getFundDistribution();
+    } else {
+      return List.of();
+    }
+  }
+
+  private List<Location> getLocations(CompositePoLine poLine) {
+    if (poLine.getLocations() != null) {
+      return poLine.getLocations();
+    } else {
+      return List.of();
+    }
   }
 }

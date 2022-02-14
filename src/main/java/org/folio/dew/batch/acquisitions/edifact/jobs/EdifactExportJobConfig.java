@@ -62,7 +62,8 @@ public class EdifactExportJobConfig {
   public Step saveToFTP(SaveToFileStorageTasklet saveToFileStorageTasklet) {
     return stepBuilderFactory
       .get("saveToFTP")
-      .tasklet(saveToFileStorageTasklet).build();
+      .tasklet(saveToFileStorageTasklet)
+      .build();
   }
 
   @Bean

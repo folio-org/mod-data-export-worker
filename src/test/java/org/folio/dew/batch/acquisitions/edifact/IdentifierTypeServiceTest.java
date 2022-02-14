@@ -22,7 +22,7 @@ class IdentifierTypeServiceTest extends BaseBatchTest {
   @Test
   void getIdentifierTypeName() {
     String identifierTypeName = identifierTypeService.getIdentifierTypeName("8261054f-be78-422d-bd51-4ed9f33c3422");
-    assertEquals("ISBN", identifierTypeName);
+    assertEquals("", identifierTypeName);
   }
 
   @Test

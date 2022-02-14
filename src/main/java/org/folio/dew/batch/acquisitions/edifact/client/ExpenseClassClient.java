@@ -8,8 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 
 @FeignClient(name = "finance")
-public interface ExpenseClassClient
-{
+public interface ExpenseClassClient {
   @GetMapping(value = "/expense-classes/{expenseClassId}", produces = MediaType.APPLICATION_JSON_VALUE)
   JSONObject getExpenseClass(@PathVariable String expenseClassId);
 

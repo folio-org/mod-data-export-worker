@@ -8,8 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 
 @FeignClient(name = "locations")
-public interface LocationClient
-{
+public interface LocationClient {
   @GetMapping(value = "/{locationId}", produces = MediaType.APPLICATION_JSON_VALUE)
   JSONObject getLocation(@PathVariable String locationId);
 

@@ -8,8 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 
 @FeignClient(name = "holdings-storage")
-public interface HoldingClient
-{
+public interface HoldingClient {
   @GetMapping(value = "/holdings/{holdingId}", produces = MediaType.APPLICATION_JSON_VALUE)
   JSONObject getHolding(@PathVariable String holdingId);
 

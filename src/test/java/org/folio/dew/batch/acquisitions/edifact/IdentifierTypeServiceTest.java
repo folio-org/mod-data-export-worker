@@ -28,8 +28,8 @@ class IdentifierTypeServiceTest extends BaseBatchTest {
   @Test
   void getIdentifierTypeNameFromJson() {
     Mockito.when(client.getIdentifierType(anyString()))
-      .thenReturn(new JSONObject("{\"name\": \"ISBN\"}"));
-    String identifierTypeName = identifierTypeService.getIdentifierTypeName("8261054f-be78-422d-bd51-4ed9f33c3422");
-    assertEquals("ISBN", identifierTypeName);
+      .thenReturn(new JSONObject("{\"name\": \"ISSN\"}"));
+    String identifierTypeName = identifierTypeService.getIdentifierTypeName("913300b2-03ed-469a-8179-c1092c991227");
+    assertEquals("ISSN", identifierTypeName);
   }
 }

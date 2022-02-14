@@ -55,10 +55,10 @@ import org.springframework.util.SocketUtils;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
     "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @AutoConfigureMockMvc
-@EmbeddedKafka(topics = { "diku.data-export.job.update", "diku.data-export.job.command" })
+@EmbeddedKafka(topics = { "diku.data-export.job.update", "diku.data-export.job.command", "edi-export-history.create" })
 @EnableKafka
 @EnableBatchProcessing
-public abstract class BaseBatchTest {
+public abstract class BaseJobTest {
   protected static final String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjFkM2I1OGNiLTA3YjUtNWZjZC04YTJhLTNjZTA2YTBlYjkwZiIsImlhdCI6MTYxNjQyMDM5MywidGVuYW50IjoiZGlrdSJ9.2nvEYQBbJP1PewEgxixBWLHSX_eELiBEBpjufWiJZRs";
   protected static final String TENANT = "diku";
 

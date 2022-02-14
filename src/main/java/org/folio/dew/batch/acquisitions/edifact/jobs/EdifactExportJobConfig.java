@@ -32,7 +32,7 @@ public class EdifactExportJobConfig {
     Step createExportHistoryRecords) {
     return jobBuilderFactory
       .get(ExportType.EDIFACT_ORDERS_EXPORT.getValue())
-     // .repository(jobRepository)
+      .repository(jobRepository)
       .incrementer(new RunIdIncrementer())
       .listener(jobCompletionNotificationListener)
       .start(mapToEdifactStep)

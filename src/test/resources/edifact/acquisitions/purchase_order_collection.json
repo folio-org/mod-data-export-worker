@@ -1,0 +1,26 @@
+{
+  "purchaseOrders": [
+    {
+      "id": "91103993-acc5-46c4-a2e6-a79cae1959be",
+      "approved": false,
+      "notes": [],
+      "poNumber": "10000",
+      "orderType": "One-Time",
+      "reEncumber": false,
+      "totalEstimatedPrice": 1.8,
+      "totalEncumbered": 0.0,
+      "totalExpended": 0.0,
+      "totalItems": 1,
+      "vendor": "50fb6ae0-cdf1-11e8-a8d5-f2801f1b9fd1",
+      "workflowStatus": "Open",
+      "acqUnitIds": [],
+      "metadata": {
+        "createdDate": "2021-12-28T08:16:56.074+00:00",
+        "createdByUserId": "7a626480-284e-5b55-9cf2-db32f93956cf",
+        "updatedDate": "2021-12-28T08:16:56.074+00:00",
+        "updatedByUserId": "7a626480-284e-5b55-9cf2-db32f93956cf"
+      },
+      "needReEncumber": false
+    }
+  ]
+}

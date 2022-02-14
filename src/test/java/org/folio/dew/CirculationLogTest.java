@@ -29,7 +29,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
-class CirculationLogTest extends BaseBatchTest {
+class CirculationLogTest extends BaseJobTest {
 
   @Autowired private Job getCirculationLogJob;
 

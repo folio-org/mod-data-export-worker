@@ -13,7 +13,7 @@ import java.util.UUID;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.de.entity.JobCommand;
-import org.folio.dew.BaseBatchTest;
+import org.folio.dew.BaseJobTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.JobExecutionException;
@@ -21,7 +21,7 @@ import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.kafka.support.Acknowledgment;
 
-class JobCommandsReceiverServiceTest extends BaseBatchTest {
+class JobCommandsReceiverServiceTest extends BaseJobTest {
 
   @Test
   @DisplayName("Start job by kafka request")

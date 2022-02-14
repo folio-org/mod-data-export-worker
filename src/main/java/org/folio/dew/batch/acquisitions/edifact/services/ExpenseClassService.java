@@ -23,7 +23,7 @@ public class ExpenseClassService {
     JSONObject jsonObject = getExpenseClass(id);
     String expenseClassCode = "";
 
-    if (!jsonObject.isEmpty() && jsonObject.getString("code") != null) {
+    if (jsonObject != null && !jsonObject.isEmpty() && jsonObject.getString("code") != null) {
       expenseClassCode = jsonObject.getString("code");
     }
 

@@ -22,7 +22,7 @@ public class MaterialTypeService {
     JSONObject jsonObject = getMaterialType(id);
     String materialType = "";
 
-    if (!jsonObject.isEmpty() && jsonObject.getString("name") != null) {
+    if (jsonObject != null && !jsonObject.isEmpty() && jsonObject.getString("name") != null) {
       materialType = jsonObject.getString("name");
     }
 

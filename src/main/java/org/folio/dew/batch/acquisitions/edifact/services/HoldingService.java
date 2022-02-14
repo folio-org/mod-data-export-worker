@@ -23,7 +23,7 @@ public class HoldingService {
     JSONObject jsonObject = getHolding(id);
     String locationId = "";
 
-    if (!jsonObject.isEmpty() && jsonObject.getString("permanentLocationId") != null) {
+    if (jsonObject != null && !jsonObject.isEmpty() && jsonObject.getString("permanentLocationId") != null) {
       locationId = jsonObject.getString("permanentLocationId");
     }
 

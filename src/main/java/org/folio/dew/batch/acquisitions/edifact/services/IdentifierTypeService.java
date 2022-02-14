@@ -23,7 +23,7 @@ public class IdentifierTypeService {
     JSONObject jsonObject = getIdentifierType(id);
     String identifierType = "";
 
-    if (!jsonObject.isEmpty() && jsonObject.getString("name") != null) {
+    if (jsonObject != null && !jsonObject.isEmpty() && jsonObject.getString("name") != null) {
       identifierType = jsonObject.getString("name");
     }
 

@@ -22,7 +22,7 @@ class HoldingServiceTest extends BaseBatchTest {
   @Test
   void getPermanentLocationId() {
     String locationId = holdingService.getPermanentLocationId("65032151-39a5-4cef-8810-5350eb316300");
-    assertEquals("", locationId);
+    assertEquals("b241764c-1466-4e1d-a028-1a3684a5da87", locationId);
   }
 
   @Test

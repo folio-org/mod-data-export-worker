@@ -23,7 +23,7 @@ public class LocationService {
     JSONObject jsonObject = getLocation(id);
     String locationCode = "";
 
-    if (!jsonObject.isEmpty() && jsonObject.getString("code") != null) {
+    if (jsonObject != null && !jsonObject.isEmpty() && jsonObject.getString("code") != null) {
       locationCode = jsonObject.getString("code");
     }
 

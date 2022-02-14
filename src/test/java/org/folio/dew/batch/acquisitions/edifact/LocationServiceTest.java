@@ -22,7 +22,7 @@ class LocationServiceTest extends BaseBatchTest {
   @Test
   void getMaterialTypeName() {
     String locationCode = locationService.getLocationCode("b241764c-1466-4e1d-a028-1a3684a5da87");
-    assertEquals("", locationCode);
+    assertEquals("KU/CC/DI/P", locationCode);
   }
 
   @Test

@@ -21,7 +21,7 @@ class ExpenseClassServiceTest extends BaseBatchTest {
   @Test
   void getExpenseClassCode() {
     String expenseClassCode = expenseClassService.getExpenseClassCode("1bcc3247-99bf-4dca-9b0f-7bc51a2998c2");
-    assertEquals("", expenseClassCode);
+    assertEquals("Elec", expenseClassCode);
   }
 
   @Test

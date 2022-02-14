@@ -1,5 +1,9 @@
 package org.folio.dew;
 
+import org.folio.dew.batch.acquisitions.edifact.client.ExpenseClassClient;
+import org.folio.dew.batch.acquisitions.edifact.client.HoldingClient;
+import org.folio.dew.batch.acquisitions.edifact.client.IdentifierTypeClient;
+import org.folio.dew.batch.acquisitions.edifact.client.LocationClient;
 import org.folio.dew.batch.acquisitions.edifact.client.MaterialTypeClient;
 import org.folio.dew.client.AccountBulkClient;
 import org.folio.dew.client.AccountClient;
@@ -38,7 +42,11 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
   DataExportSpringClient.class,
   MaterialTypeClient.class,
   PurchaseOrderClient.class,
-  PurchaseOrderLineClient.class
+  PurchaseOrderLineClient.class,
+  IdentifierTypeClient.class,
+  LocationClient.class,
+  HoldingClient.class,
+  ExpenseClassClient.class
 })
 @EnableBatchProcessing
 public class ModDataExportWorkerApplication {

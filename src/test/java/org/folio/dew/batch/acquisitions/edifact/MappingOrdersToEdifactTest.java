@@ -3,6 +3,10 @@ package org.folio.dew.batch.acquisitions.edifact;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.IOUtils;
+import org.folio.dew.batch.acquisitions.edifact.services.ExpenseClassService;
+import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
+import org.folio.dew.batch.acquisitions.edifact.services.IdentifierTypeService;
+import org.folio.dew.batch.acquisitions.edifact.services.LocationService;
 import org.folio.dew.batch.acquisitions.edifact.services.MaterialTypeService;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
@@ -29,6 +33,8 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.AdditionalMatchers.not;
 
 @Log4j2
 @SpringBootTest
@@ -38,13 +44,31 @@ class MappingOrdersToEdifactTest {
   @Autowired
   private PurchaseOrdersToEdifactMapper purchaseOrdersToEdifactMapper;
   @MockBean
+  private IdentifierTypeService identifierTypeService;
+  @MockBean
   private MaterialTypeService materialTypeService;
+  @MockBean
+  private ExpenseClassService expenseClassService;
+  @MockBean
+  private LocationService locationService;
+  @MockBean
+  private HoldingService holdingService;
 
   @Test void convertOrdersToEdifact() throws Exception {
     List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson();
 
+    Mockito.when(identifierTypeService.getIdentifierTypeName(eq("8261054f-be78-422d-bd51-4ed9f33c3422")))
+      .thenReturn("ISBN");
+    Mockito.when(identifierTypeService.getIdentifierTypeName(not(eq("8261054f-be78-422d-bd51-4ed9f33c3422"))))
+      .thenReturn("Publisher or distributor number");
     Mockito.when(materialTypeService.getMaterialTypeName(anyString()))
       .thenReturn("Book");
+    Mockito.when(expenseClassService.getExpenseClassCode(anyString()))
+      .thenReturn("Elec");
+    Mockito.when(locationService.getLocationCode(anyString()))
+      .thenReturn("KU/CC/DI/M");
+    Mockito.when(holdingService.getPermanentLocationId(anyString()))
+      .thenReturn("fcd64ce1-6995-48f0-840e-89ffa2288371");
 
     String ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, getTestEdiConfig());
     assertFalse(ediOrder.isEmpty());
@@ -55,8 +79,18 @@ class MappingOrdersToEdifactTest {
   void convertOrdersToEdifactByteArray() throws Exception {
     List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson();
 
+    Mockito.when(identifierTypeService.getIdentifierTypeName(eq("8261054f-be78-422d-bd51-4ed9f33c3422")))
+      .thenReturn("ISBN");
+    Mockito.when(identifierTypeService.getIdentifierTypeName(not(eq("8261054f-be78-422d-bd51-4ed9f33c3422"))))
+      .thenReturn("Publisher or distributor number");
     Mockito.when(materialTypeService.getMaterialTypeName(anyString()))
       .thenReturn("Book");
+    Mockito.when(expenseClassService.getExpenseClassCode(anyString()))
+      .thenReturn("Elec");
+    Mockito.when(locationService.getLocationCode(anyString()))
+      .thenReturn("KU/CC/DI/M");
+    Mockito.when(holdingService.getPermanentLocationId(anyString()))
+      .thenReturn("fcd64ce1-6995-48f0-840e-89ffa2288371");
 
     byte[] ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifactArray(compPOs, getTestEdiConfig());
     assertNotNull(ediOrder);

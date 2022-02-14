@@ -32,6 +32,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static java.lang.String.format;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -65,7 +66,7 @@ class BulkEditControllerTest extends BaseJobTest {
   void shouldReturnErrorsPreview() throws Exception {
 
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_IDENTIFIERS));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS));
 
     int numOfErrorLines = 3;
     int errorsPreviewLimit = 2;
@@ -93,7 +94,7 @@ class BulkEditControllerTest extends BaseJobTest {
   void shouldReturnEmptyErrorsForErrorsPreview() throws Exception {
 
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_IDENTIFIERS));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS));
 
     var expectedErrorMsg = format("errors file for job id %s", jobId);
 
@@ -151,6 +152,7 @@ class BulkEditControllerTest extends BaseJobTest {
   @SneakyThrows
   @ParameterizedTest
   @CsvSource({"BULK_EDIT_IDENTIFIERS,barcode==(123 OR 456)",
+    "BULK_EDIT_UPDATE,barcode==(123 OR 456)",
     "BULK_EDIT_QUERY,(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName"})
   void shouldReturnCompletePreviewWithLimitControl(String exportType, String query) {
 
@@ -205,7 +207,7 @@ class BulkEditControllerTest extends BaseJobTest {
   @SneakyThrows
   void shouldLaunchJobAndReturnNumberOfRecordsOnIdentifiersFileUpload() {
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_IDENTIFIERS));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS));
 
     var headers = defaultHeaders();
 
@@ -249,7 +251,7 @@ class BulkEditControllerTest extends BaseJobTest {
   @SneakyThrows
   void shouldReturnBadRequestWhenIdentifiersFileIsEmpty() {
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_IDENTIFIERS));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS));
 
     var headers = defaultHeaders();
 
@@ -350,7 +352,8 @@ class BulkEditControllerTest extends BaseJobTest {
 
     Map<String, JobParameter> params = new HashMap<>();
     params.put("query", new JobParameter("(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName"));
-    params.put(FILE_NAME, new JobParameter("src/test/resources/upload/barcodes.csv"));
+    var fileName = BULK_EDIT_IDENTIFIERS == exportType ? "src/test/resources/upload/barcodes.csv" : "src/test/resources/upload/user_data.csv";
+    params.put(FILE_NAME, new JobParameter(fileName));
     jobCommand.setJobParameters(new JobParameters(params));
     return jobCommand;
   }

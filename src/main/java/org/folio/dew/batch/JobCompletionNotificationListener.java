@@ -43,6 +43,7 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 @RequiredArgsConstructor
 public class JobCompletionNotificationListener extends JobExecutionListenerSupport {
   private static final String CSV_EXTENSION = ".csv";
+  private static final String PATHS_DELIMITER = ";";
 
   private final IAcknowledgementRepository acknowledgementRepository;
   private final KafkaService kafka;
@@ -76,7 +77,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       }
       if ((BULK_EDIT_UPDATE.getValue() + "-" + USER.getValue()).equals(jobExecution.getJobInstance().getJobName())) {
         String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
-        jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, downloadErrorLink);
+        jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, PATHS_DELIMITER + downloadErrorLink);
       }
       processJobAfter(jobId, jobParameters);
     } else {
@@ -153,7 +154,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     String outputFilesInStorage = ExecutionContextUtils.getFromJobExecutionContext(jobExecution,
       OUTPUT_FILES_IN_STORAGE);
     if (StringUtils.isNotBlank(outputFilesInStorage)) {
-      result.setFiles(Arrays.asList(outputFilesInStorage.split(";")));
+      result.setFiles(Arrays.asList(outputFilesInStorage.split(PATHS_DELIMITER)));
     }
 
     result.setStartTime(jobExecution.getStartTime());

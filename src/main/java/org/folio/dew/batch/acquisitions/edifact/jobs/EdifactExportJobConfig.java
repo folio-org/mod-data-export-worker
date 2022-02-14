@@ -27,7 +27,7 @@ public class EdifactExportJobConfig {
     JobCompletionNotificationListener jobCompletionNotificationListener,
     JobRepository jobRepository,
     Step mapToEdifactStep,
-    Step saveToSFTP,
+    Step saveToFTP,
     Step saveToMinIO,
     Step createExportHistoryRecords) {
     return jobBuilderFactory
@@ -37,7 +37,7 @@ public class EdifactExportJobConfig {
       .listener(jobCompletionNotificationListener)
       .start(mapToEdifactStep)
       .next(saveToMinIO)
-      .next(saveToSFTP)
+      .next(saveToFTP)
       .next(createExportHistoryRecords)
       .build();
   }
@@ -59,9 +59,9 @@ public class EdifactExportJobConfig {
   }
 
   @Bean
-  public Step saveToSFTP(SaveToFileStorageTasklet saveToFileStorageTasklet) {
+  public Step saveToFTP(SaveToFileStorageTasklet saveToFileStorageTasklet) {
     return stepBuilderFactory
-      .get("saveToSFTP")
+      .get("saveToFTP")
       .tasklet(saveToFileStorageTasklet).build();
   }
 

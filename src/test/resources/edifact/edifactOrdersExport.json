@@ -1,47 +1,35 @@
 {
-  "id": "3363f529-300e-4d54-8279-399e61530779",
-  "description": "desc",
-  "source": "diku_admin",
-  "isSystemSource": false,
-  "type": "EDIFACT_ORDERS_EXPORT",
-  "exportTypeSpecificParameters": {
-    "vendorEdiOrdersExportConfig": {
-      "vendorId": "d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1",
-      "configName": "EDIFACT 1",
-      "configDescription": "EDI configuration for testing export",
-      "ediConfig": {
-        "accountNoList": [
-          "BRXXXXX-01"
-        ],
-        "defaultAcquisitionMethods": [
-          "306489dd-0053-49ee-a068-c316444a8f55"
-        ],
-        "ediNamingConvention": "*.edi",
-        "libEdiCode": "7659876",
-        "libEdiType": "31B/US-SAN",
-        "vendorEdiCode": "1694510",
-        "vendorEdiType": "31B/US-SAN",
-        "notes": "no EDI invoices for our tech services invoices",
-        "sendAccountNumber": true,
-        "supportOrder": true,
-        "supportInvoice": true
-      },
-      "ediFtp": {
-        "ftpConnMode": "Active",
-        "ftpFormat": "SFTP",
-        "ftpMode": "ASCII",
-        "ftpPort": 50022,
-        "invoiceDirectory": "/invoices",
-        "notes": "separate directories for EOCRs and cat records",
-        "orderDirectory": "/uploads",
-        "password": "12345",
-        "serverAddress": "sftp://random-address.com",
-        "username": "user"
-      },
-      "isDefaultConfig": false
-    }
+  "vendorId": "d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1",
+  "configName": "EDIFACT 1",
+  "configDescription": "EDI configuration for testing export",
+  "ediConfig": {
+    "accountNoList": [
+      "BRXXXXX-01"
+    ],
+    "defaultAcquisitionMethods": [
+      "306489dd-0053-49ee-a068-c316444a8f55"
+    ],
+    "ediNamingConvention": "*.edi",
+    "libEdiCode": "7659876",
+    "libEdiType": "31B/US-SAN",
+    "vendorEdiCode": "1694510",
+    "vendorEdiType": "31B/US-SAN",
+    "notes": "no EDI invoices for our tech services invoices",
+    "sendAccountNumber": true,
+    "supportOrder": true,
+    "supportInvoice": true
   },
-  "schedulePeriod": "NONE"
-}
-}
+  "ediFtp": {
+    "ftpConnMode": "Active",
+    "ftpFormat": "SFTP",
+    "ftpMode": "ASCII",
+    "ftpPort": 50022,
+    "invoiceDirectory": "/invoices",
+    "notes": "separate directories for EOCRs and cat records",
+    "orderDirectory": "/uploads",
+    "password": "12345",
+    "serverAddress": "sftp://random-address.com",
+    "username": "user"
+  },
+  "isDefaultConfig": false
 }

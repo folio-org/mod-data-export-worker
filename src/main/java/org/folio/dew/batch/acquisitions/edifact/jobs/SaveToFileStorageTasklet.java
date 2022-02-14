@@ -35,7 +35,7 @@ public class SaveToFileStorageTasklet implements Tasklet {
   @Override
   @SneakyThrows
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-    var stepExecutionContext = chunkContext.getStepContext().getStepExecution();
+    var stepExecution = chunkContext.getStepContext().getStepExecution();
 
     var jobParameters = chunkContext.getStepContext().getJobParameters();
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
@@ -52,7 +52,7 @@ public class SaveToFileStorageTasklet implements Tasklet {
       return RepeatStatus.FINISHED;
     }
 
-    var fileContent = (String) ExecutionContextUtils.getExecutionVariable(stepExecutionContext,"edifactOrderAsString");
+    var fileContent = (String) ExecutionContextUtils.getExecutionVariable(stepExecution,"edifactOrderAsString");
 
     if (ediExportConfig.getEdiFtp().getFtpFormat().equals(EdiFtp.FtpFormatEnum.SFTP)) {
       sftpObjectStorageRepository.upload(username, password, host, port, folder, filename, fileContent);
@@ -61,6 +61,9 @@ public class SaveToFileStorageTasklet implements Tasklet {
       ftpObjectStorageRepository.login(host, username,password);
       ftpObjectStorageRepository.upload(filename, fileContent);
     }
+
+    var downloadLink = ediExportConfig.getEdiFtp().getServerAddress() + ":" + port + folder + filename;
+    ExecutionContextUtils.addToJobExecutionContext(stepExecution, "edifactFileDownloadLink", downloadLink, "");
 
     return RepeatStatus.FINISHED;
   }

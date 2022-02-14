@@ -39,8 +39,8 @@ public class MapToEdifactTasklet implements Tasklet {
     log.info("Execute MapToEdifactTasklet");
     var stepExecution = chunkContext.getStepContext().getStepExecution();
     var jobParameters = chunkContext.getStepContext().getJobParameters();
-    Job ediExportJob = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), Job.class);
-    var ediExportConfig = ediExportJob.getExportTypeSpecificParameters().getVendorEdiOrdersExportConfig();
+    var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
+
     List<CompositePurchaseOrder> compOrders = getCompPOList(ediExportConfig);
     // save poLineIds in memory
     persistPoLineIds(chunkContext, compOrders);

@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -17,6 +19,7 @@ import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
@@ -41,6 +44,7 @@ import lombok.extern.log4j.Log4j2;
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
@@ -92,8 +96,10 @@ public class BulkEditController implements JobIdApi {
     var fileName = extractQueryFromJobCommand(jobCommand, FILE_NAME);
     var exportType = jobCommand.getExportType();
     try {
-      if (BULK_EDIT_IDENTIFIERS == exportType) {
-        return new ResponseEntity<>(userClient.getUserByQuery(buildBarcodesQuery(fileName, limit), limit), HttpStatus.OK);
+      if (BULK_EDIT_UPDATE == exportType) {
+        return new ResponseEntity<>(userClient.getUserByQuery(buildBarcodesQueryFromUpdatedRecordsFile(fileName, limit), limit), HttpStatus.OK);
+      } else if (BULK_EDIT_IDENTIFIERS == exportType) {
+        return new ResponseEntity<>(userClient.getUserByQuery(buildBarcodesQueryFromIdentifiersFile(fileName, limit), limit), HttpStatus.OK);
       } else if (BULK_EDIT_QUERY == exportType) {
         return new ResponseEntity<>(userClient.getUserByQuery(extractQueryFromJobCommand(jobCommand, "query"), limit), HttpStatus.OK);
       } else {
@@ -220,7 +226,7 @@ public class BulkEditController implements JobIdApi {
     jobCommand.setJobParameters(paramsBuilder.toJobParameters());
   }
 
-  private String buildBarcodesQuery(String fileName, int limit) throws IOException {
+  private String buildBarcodesQueryFromIdentifiersFile(String fileName, int limit) throws IOException {
     var barcodes = "";
     try (var lines = Files.lines(Paths.get(fileName))) {
       barcodes = lines.limit(limit)
@@ -229,6 +235,24 @@ public class BulkEditController implements JobIdApi {
         .collect(joining(" OR "));
     }
     return String.format("barcode==(%s)", barcodes);
+  }
+
+  private String buildBarcodesQueryFromUpdatedRecordsFile(String fileName, int limit) throws IOException {
+    var barcodes = "";
+    try (var lines = Files.lines(Paths.get(fileName))) {
+      barcodes = lines
+        .skip(1) // skip first line with headers
+        .limit(limit)
+        .map(this::extractBarcodeFromUserCsvLine)
+        .collect(Collectors.joining(" OR "));
+    }
+    return String.format("barcode==(%s)", barcodes);
+  }
+
+  private String extractBarcodeFromUserCsvLine(String csvLine) {
+    var tokens = csvLine.split(",");
+    var barcodeIndex = Arrays.asList(UserFormat.getUserFieldsArray()).indexOf("barcode");
+    return (tokens.length > barcodeIndex + 1) ? tokens[barcodeIndex] : EMPTY;
   }
 
   private long countLines(Path path, boolean skipHeaders) throws IOException {

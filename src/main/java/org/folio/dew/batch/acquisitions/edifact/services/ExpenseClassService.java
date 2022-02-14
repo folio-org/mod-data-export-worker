@@ -18,7 +18,7 @@ public class ExpenseClassService {
     return expenseClassClient.getExpenseClass(id);
   }
 
-  @Cacheable(cacheNames = "expense-classes")
+  @Cacheable(cacheNames = "expenseClasses")
   public String getExpenseClassCode(String id) {
     JSONObject jsonObject = getExpenseClass(id);
     String expenseClassCode = "";

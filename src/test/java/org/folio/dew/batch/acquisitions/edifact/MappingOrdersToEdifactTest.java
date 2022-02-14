@@ -57,18 +57,7 @@ class MappingOrdersToEdifactTest {
   @Test void convertOrdersToEdifact() throws Exception {
     List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson();
 
-    Mockito.when(identifierTypeService.getIdentifierTypeName(eq("8261054f-be78-422d-bd51-4ed9f33c3422")))
-      .thenReturn("ISBN");
-    Mockito.when(identifierTypeService.getIdentifierTypeName(not(eq("8261054f-be78-422d-bd51-4ed9f33c3422"))))
-      .thenReturn("Publisher or distributor number");
-    Mockito.when(materialTypeService.getMaterialTypeName(anyString()))
-      .thenReturn("Book");
-    Mockito.when(expenseClassService.getExpenseClassCode(anyString()))
-      .thenReturn("Elec");
-    Mockito.when(locationService.getLocationCode(anyString()))
-      .thenReturn("KU/CC/DI/M");
-    Mockito.when(holdingService.getPermanentLocationId(anyString()))
-      .thenReturn("fcd64ce1-6995-48f0-840e-89ffa2288371");
+    serviceMocks();
 
     String ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, getTestEdiConfig());
     assertFalse(ediOrder.isEmpty());
@@ -79,18 +68,7 @@ class MappingOrdersToEdifactTest {
   void convertOrdersToEdifactByteArray() throws Exception {
     List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson();
 
-    Mockito.when(identifierTypeService.getIdentifierTypeName(eq("8261054f-be78-422d-bd51-4ed9f33c3422")))
-      .thenReturn("ISBN");
-    Mockito.when(identifierTypeService.getIdentifierTypeName(not(eq("8261054f-be78-422d-bd51-4ed9f33c3422"))))
-      .thenReturn("Publisher or distributor number");
-    Mockito.when(materialTypeService.getMaterialTypeName(anyString()))
-      .thenReturn("Book");
-    Mockito.when(expenseClassService.getExpenseClassCode(anyString()))
-      .thenReturn("Elec");
-    Mockito.when(locationService.getLocationCode(anyString()))
-      .thenReturn("KU/CC/DI/M");
-    Mockito.when(holdingService.getPermanentLocationId(anyString()))
-      .thenReturn("fcd64ce1-6995-48f0-840e-89ffa2288371");
+    serviceMocks();
 
     byte[] ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifactArray(compPOs, getTestEdiConfig());
     assertNotNull(ediOrder);
@@ -135,5 +113,20 @@ class MappingOrdersToEdifactTest {
         return sb.toString();
       }
     }
+  }
+
+  private void serviceMocks(){
+    Mockito.when(identifierTypeService.getIdentifierTypeName(eq("8261054f-be78-422d-bd51-4ed9f33c3422")))
+      .thenReturn("ISSN", "ISMN", "ISBN");
+    Mockito.when(identifierTypeService.getIdentifierTypeName(not(eq("8261054f-be78-422d-bd51-4ed9f33c3422"))))
+      .thenReturn("Publisher or distributor number");
+    Mockito.when(materialTypeService.getMaterialTypeName(anyString()))
+      .thenReturn("Book");
+    Mockito.when(expenseClassService.getExpenseClassCode(anyString()))
+      .thenReturn("Elec");
+    Mockito.when(locationService.getLocationCode(anyString()))
+      .thenReturn("KU/CC/DI/M");
+    Mockito.when(holdingService.getPermanentLocationId(anyString()))
+      .thenReturn("fcd64ce1-6995-48f0-840e-89ffa2288371");
   }
 }

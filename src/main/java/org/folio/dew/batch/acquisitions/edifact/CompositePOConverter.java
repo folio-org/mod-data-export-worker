@@ -48,7 +48,8 @@ public class CompositePOConverter {
     }
 
     messageSegmentCount++;
-    writeCurrency(writer);
+    String currency = getCurrency(compPO);
+    writeCurrency(currency, writer);
 
     // Order lines
     int totalQuantity = 0;
@@ -144,11 +145,11 @@ public class CompositePOConverter {
 
   // Order currency - If FOLIO default currency and vendor currency are not the same, this may include info about both currencies,
   // with different qualifiers
-  private void writeCurrency(EDIStreamWriter writer) throws EDIStreamException {
+  private void writeCurrency(String currency, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("CUX")
       .writeStartElement()
       .writeComponent("2")
-      .writeComponent("USD")//TODO get system currency from mod-configuration
+      .writeComponent(currency)
       .writeComponent("9")
       .endElement()
       .writeEndSegment();
@@ -190,6 +191,10 @@ public class CompositePOConverter {
       .writeElement(String.valueOf(messageSegmentCount))
       .writeElement(compPO.getPoNumber())
       .writeEndSegment();
+  }
+
+  private String getCurrency(CompositePurchaseOrder compPO) {
+    return compPO.getCompositePoLines().get(0).getCost().getCurrency();
   }
 
   private int getPoLineQuantityOrdered(CompositePoLine poLine) {

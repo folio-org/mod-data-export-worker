@@ -1,0 +1,17 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/identifier-types/8261054f-be78-422d-bd51-4ed9f33c3422"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"id\": \"8261054f-be78-422d-bd51-4ed9f33c3422\",\n    \"name\": \"ISBN\",\n    \"source\": \"folio\",\n    \"metadata\": {\n        \"createdDate\": \"2022-02-14T03:22:50.668+00:00\",\n        \"updatedDate\": \"2022-02-14T03:22:50.668+00:00\"\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

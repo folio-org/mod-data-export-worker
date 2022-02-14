@@ -1,0 +1,17 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/holdings-storage/holdings/65032151-39a5-4cef-8810-5350eb316300"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"id\": \"65032151-39a5-4cef-8810-5350eb316300\",\n    \"_version\": 1,\n    \"hrid\": \"hold000000000006\",\n    \"formerIds\": [],\n    \"instanceId\": \"f31a36de-fcf8-44f9-87ef-a55d06ad21ae\",\n    \"permanentLocationId\": \"b241764c-1466-4e1d-a028-1a3684a5da87\",\n    \"effectiveLocationId\": \"b241764c-1466-4e1d-a028-1a3684a5da87\",\n    \"electronicAccess\": [],\n    \"callNumber\": \"MCN FICTION\",\n    \"administrativeNotes\": [],\n    \"notes\": [],\n    \"holdingsStatements\": [\n        {\n            \"statement\": \"Line 1b\"\n        },\n        {\n            \"statement\": \"Line 2b\"\n        }\n    ],\n    \"holdingsStatementsForIndexes\": [],\n    \"holdingsStatementsForSupplements\": [],\n    \"statisticalCodeIds\": [],\n    \"holdingsItems\": [],\n    \"bareHoldingsItems\": [],\n    \"metadata\": {\n        \"createdDate\": \"2022-02-14T03:22:53.457+00:00\",\n        \"updatedDate\": \"2022-02-14T03:22:53.457+00:00\"\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

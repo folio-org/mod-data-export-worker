@@ -438,13 +438,12 @@ public class CompositePOLineConverter {
   }
 
   private String getLocationCode(Location location) {
-    // fix holdings request
-/*    if (location.getLocationId() != null) {
+    if (location.getLocationId() != null) {
       return locationService.getLocationCodeById(location.getLocationId());
     } else if (location.getHoldingId() != null) {
-      String locationId =  holdingService.getPermanentLocationByHoldingId(location.getHoldingId().toString());
+      String locationId = holdingService.getPermanentLocationByHoldingId(location.getHoldingId().toString());
       return locationService.getLocationCodeById(locationId);
-    }*/
+    }
     return "";
   }
 }

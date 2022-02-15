@@ -118,7 +118,7 @@ class MappingOrdersToEdifactTest {
   }
 
   private void serviceMocks(){
-    Mockito.when(identifierTypeService.getIdentifierTypeName(eq("8261054f-be78-422d-bd51-4ed9f33c3422")))
+    Mockito.when(identifierTypeService.getIdentifierTypeName("8261054f-be78-422d-bd51-4ed9f33c3422"))
       .thenReturn("ISSN", "ISMN", "ISBN");
     Mockito.when(identifierTypeService.getIdentifierTypeName(not(eq("8261054f-be78-422d-bd51-4ed9f33c3422"))))
       .thenReturn("Publisher or distributor number");

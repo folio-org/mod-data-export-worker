@@ -4,7 +4,6 @@ import org.folio.dew.batch.acquisitions.edifact.client.ExpenseClassClient;
 import org.folio.dew.batch.acquisitions.edifact.client.HoldingClient;
 import org.folio.dew.batch.acquisitions.edifact.client.IdentifierTypeClient;
 import org.folio.dew.batch.acquisitions.edifact.client.LocationClient;
-import org.folio.dew.batch.acquisitions.edifact.client.MaterialTypeClient;
 import org.folio.dew.client.AccountBulkClient;
 import org.folio.dew.client.AccountClient;
 import org.folio.dew.client.AddressTypeClient;

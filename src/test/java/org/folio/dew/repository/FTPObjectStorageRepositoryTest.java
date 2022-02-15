@@ -2,6 +2,7 @@ package org.folio.dew.repository;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -10,6 +11,7 @@ import java.util.TimeZone;
 import org.apache.commons.net.ftp.FTPClient;
 import org.folio.dew.config.JacksonConfiguration;
 import org.folio.dew.config.properties.FTPProperties;
+import org.folio.dew.exceptions.FtpException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -83,7 +85,7 @@ class FTPObjectStorageRepositoryTest {
   }
 
   @Test
-  void testSuccessfulLogin() throws URISyntaxException {
+  void testSuccessfulLogin() throws URISyntaxException, IOException, FtpException {
     log.info("=== Test successful login ===");
 
     assertTrue(repository.login(uri, username_valid, password_valid));
@@ -105,15 +107,15 @@ class FTPObjectStorageRepositoryTest {
   }
 
   @Test
-  void testFailedLogin() throws URISyntaxException {
+  void testFailedLogin() {
     log.info("=== Test unsuccessful login ===");
 
-    assertFalse(repository.login(uri, username_valid, password_invalid));
+    assertThrows(FtpException.class, () -> repository.login(uri, username_valid, password_invalid));
     repository.logout();
   }
 
   @Test
-  void testSuccessfulUpload() throws URISyntaxException {
+  void testSuccessfulUpload() throws URISyntaxException, FtpException, IOException {
     log.info("=== Test successful upload ===");
 
     assertTrue(repository.login(uri, username_valid, password_valid));
@@ -123,7 +125,7 @@ class FTPObjectStorageRepositoryTest {
   }
 
   @Test
-  void testFailedUpload() throws URISyntaxException {
+  void testFailedUpload() throws URISyntaxException, FtpException, IOException {
     log.info("=== Test unsuccessful upload ===");
 
     assertTrue(repository.login(uri, username_valid, password_valid));

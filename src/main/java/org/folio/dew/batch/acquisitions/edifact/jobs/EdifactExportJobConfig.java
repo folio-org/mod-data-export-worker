@@ -27,18 +27,18 @@ public class EdifactExportJobConfig {
     JobCompletionNotificationListener jobCompletionNotificationListener,
     JobRepository jobRepository,
     Step mapToEdifactStep,
-    Step saveToSFTP,
-    Step saveToMinIO,
-    Step createExportHistoryRecords) {
+    Step saveToFTPStep,
+    Step saveToMinIOStep,
+    Step createExportHistoryRecordsStep) {
     return jobBuilderFactory
       .get(ExportType.EDIFACT_ORDERS_EXPORT.getValue())
-     // .repository(jobRepository)
+      .repository(jobRepository)
       .incrementer(new RunIdIncrementer())
       .listener(jobCompletionNotificationListener)
       .start(mapToEdifactStep)
-      .next(saveToMinIO)
-      .next(saveToSFTP)
-      .next(createExportHistoryRecords)
+      .next(saveToMinIOStep)
+      .next(saveToFTPStep)
+      .next(createExportHistoryRecordsStep)
       .build();
   }
 
@@ -51,24 +51,25 @@ public class EdifactExportJobConfig {
   }
 
   @Bean
-  public Step saveToMinIO(SaveToMinioTasklet saveToMinioTasklet) {
+  public Step saveToMinIOStep(SaveToMinioTasklet saveToMinioTasklet) {
     return stepBuilderFactory
-      .get("saveToMinIO")
+      .get("saveToMinIOStep")
       .tasklet(saveToMinioTasklet)
       .build();
   }
 
   @Bean
-  public Step saveToSFTP(SaveToFileStorageTasklet saveToFileStorageTasklet) {
+  public Step saveToFTPStep(SaveToFileStorageTasklet saveToFileStorageTasklet) {
     return stepBuilderFactory
-      .get("saveToSFTP")
-      .tasklet(saveToFileStorageTasklet).build();
+      .get("saveToFTPStep")
+      .tasklet(saveToFileStorageTasklet)
+      .build();
   }
 
   @Bean
-  public Step createExportHistoryRecords(ExportHistoryTasklet exportHistoryTasklet) {
+  public Step createExportHistoryRecordsStep(ExportHistoryTasklet exportHistoryTasklet) {
     return stepBuilderFactory
-      .get("createExportHistoryRecords")
+      .get("createExportHistoryRecordsStep")
       .tasklet(exportHistoryTasklet)
       .build();
   }

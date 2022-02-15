@@ -31,35 +31,31 @@ public class FTPObjectStorageRepository {
     this.ftpClientFactory = ftpClientFactory;
   }
 
-  public boolean login(String ftpUrl, String username, String password) throws URISyntaxException {
+  public boolean login(String ftpUrl, String username, String password) throws URISyntaxException, IOException, FtpException {
     ftpClient = ftpClientFactory.getObject();
     if (!isUriValid(ftpUrl)) {
       throw new URISyntaxException(ftpUrl, "URI should be valid ftp path");
     }
-    boolean isLogin = false;
-    try {
-      URI url = new URI(ftpUrl);
-      String server = url.getHost();
-      int port = url.getPort() > 0 ? url.getPort() : ftpProperties.getDefaultPort();
-      ftpClient.connect(server, port);
-      log.info("Connected to {}:{}", server, port);
-      int reply = ftpClient.getReplyCode();
-      if (!FTPReply.isPositiveCompletion(reply)) {
-        throw new FtpException(ftpClient.getReplyCode(), ftpClient.getReplyString().trim());
-      }
 
-      if (ftpClient.login(username, password)) {
-        log.info("Success login to FTP");
-        isLogin = true;
-      } else {
-        log.error("Failed login to FTP");
-      }
-
-    } catch (Exception e) {
-      log.error("Error Connecting", e);
-      disconnect();
+    URI url = new URI(ftpUrl);
+    String server = url.getHost();
+    int port = url.getPort() > 0 ? url.getPort() : ftpProperties.getDefaultPort();
+    ftpClient.connect(server, port);
+    log.info("Connected to {}:{}", server, port);
+    int reply = ftpClient.getReplyCode();
+    if (!FTPReply.isPositiveCompletion(reply)) {
+      throw new FtpException(ftpClient.getReplyCode(), ftpClient.getReplyString().trim());
     }
-    return isLogin;
+
+    if (ftpClient.login(username, password)) {
+      log.info("Success login to FTP");
+    } else {
+      log.error("Failed login to FTP");
+      disconnect();
+      throw new FtpException(ftpClient.getReplyCode(), "Failed login to FTP");
+    }
+
+    return true;
   }
 
   public void logout() {

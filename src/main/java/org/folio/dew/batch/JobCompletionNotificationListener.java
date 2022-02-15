@@ -77,7 +77,9 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       }
       if ((BULK_EDIT_UPDATE.getValue() + "-" + USER.getValue()).equals(jobExecution.getJobInstance().getJobName())) {
         String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
-        jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, PATHS_DELIMITER + downloadErrorLink);
+        if (StringUtils.isNotBlank(downloadErrorLink)) {
+          jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, PATHS_DELIMITER + downloadErrorLink);
+        }
       }
       processJobAfter(jobId, jobParameters);
     } else {

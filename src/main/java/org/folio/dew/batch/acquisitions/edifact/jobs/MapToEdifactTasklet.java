@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
+import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
@@ -35,34 +36,45 @@ public class MapToEdifactTasklet implements Tasklet {
   @Override
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
     log.info("Execute MapToEdifactTasklet");
-    var stepExecution = chunkContext.getStepContext().getStepExecution();
     var jobParameters = chunkContext.getStepContext().getJobParameters();
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
 
-    var compOrders = getCompPOList(ediExportConfig);
+    List<CompositePurchaseOrder> compOrders = getCompPOList(ediExportConfig);
     // save poLineIds in memory
     persistPoLineIds(chunkContext, compOrders);
 
-    var edifactOrderAsString = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compOrders, ediExportConfig);
-    //save edifact file content in memory
-    ExecutionContextUtils.addToJobExecutionContext(stepExecution, "edifactOrderAsString", edifactOrderAsString, "");
+    String edifactOrderAsString = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compOrders, ediExportConfig);
+    // save edifact file content in memory
+    ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), "edifactOrderAsString", edifactOrderAsString, "");
     return RepeatStatus.FINISHED;
   }
 
   private List<CompositePurchaseOrder> getCompPOList(VendorEdiOrdersExportConfig ediConfig) {
-    var poQuery = "workflowStatus==Open";
+    var poQuery = buildPurchaseOrderQuery(ediConfig);
 
-    var orders = ordersService.getCompositePurchaseOrderByQuery(poQuery);
+    var orders = ordersService.getCompositePurchaseOrderByQuery(poQuery, Integer.MAX_VALUE);
 
     var compOrders = orders.getPurchaseOrders()
-      .stream()
+      .stream().sequential()
       .map(order -> ordersService.getCompositePurchaseOrderById(order.getId()))
       .map(order -> order.compositePoLines(poLineFilteredOrder(order, ediConfig)))
       .filter(order -> !order.getCompositePoLines().isEmpty())
       .collect(Collectors.toList());
 
-    log.info("comporders: {}", compOrders);
+    log.debug("composite purchase orders: {}", compOrders);
+
+    if (compOrders.isEmpty()) {
+      throw new EdifactException("Orders not found");
+    }
     return compOrders;
+  }
+
+  private String buildPurchaseOrderQuery(VendorEdiOrdersExportConfig ediConfig) {
+    var vendorFilter = String.format(" and vendor==%s", ediConfig.getVendorId());
+    var automaticExportFilter = " and poLine.automaticExport==true";
+    var resultQuery = "(" + "workflowStatus==Open" + vendorFilter + automaticExportFilter + ")";
+    log.info("GET purchase orders query: {}", resultQuery);
+    return resultQuery;
   }
 
   private void persistPoLineIds(ChunkContext chunkContext, List<CompositePurchaseOrder> compOrders) throws JsonProcessingException {
@@ -75,7 +87,11 @@ public class MapToEdifactTasklet implements Tasklet {
 
   private List<CompositePoLine> poLineFilteredOrder(CompositePurchaseOrder order, VendorEdiOrdersExportConfig ediConfig) {
     return order.getCompositePoLines().stream()
-          .collect(Collectors.toList());
+      .filter(CompositePoLine::getAutomaticExport)
+      .filter(poLine -> ediConfig.getEdiConfig().getDefaultAcquisitionMethods().contains(poLine.getAcquisitionMethod()))
+      .filter(poLine -> ediConfig.getEdiConfig().getAccountNoList().contains(poLine.getVendorDetail().getVendorAccount()))
+      .collect(Collectors.toList());
   }
+
 
 }

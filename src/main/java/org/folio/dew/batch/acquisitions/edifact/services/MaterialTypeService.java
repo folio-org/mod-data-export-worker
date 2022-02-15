@@ -1,7 +1,7 @@
 package org.folio.dew.batch.acquisitions.edifact.services;
 
 import lombok.RequiredArgsConstructor;
-import org.folio.dew.batch.acquisitions.edifact.client.MaterialTypeClient;
+import org.folio.dew.client.MaterialTypeClient;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;

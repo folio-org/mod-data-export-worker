@@ -90,11 +90,11 @@ class SFTPObjectStorageRepositoryTest {
   }
 
   @Test
-  void testSuccessfulUpload() throws IOException {
+  void testSuccessfulUpload() throws Exception {
     log.info("=== Test successful upload ===");
     String content = "Some string with content";
     SftpClient sftpClient = sftpRepository.getSftpClient(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT);
-    boolean uploaded = sftpRepository.upload(sftpClient, EXPORT_FOLDER_NAME, FILENAME, content.getBytes(StandardCharsets.UTF_8));
+    boolean uploaded = sftpRepository.upload(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT, EXPORT_FOLDER_NAME, FILENAME, content);
 
     assertTrue(uploaded);
 
@@ -103,11 +103,11 @@ class SFTPObjectStorageRepositoryTest {
   }
 
   @Test
-  void testSuccessfulUploadForLongPath() throws IOException {
+  void testSuccessfulUploadForLongPath() throws Exception {
     log.info("=== Test successful upload for long path ===");
     String content = "Some string with content";
     SftpClient sftpClient = sftpRepository.getSftpClient(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT);
-    boolean uploaded = sftpRepository.upload(sftpClient, EXPORT_FOLDER_NAME + "/test/long/path/creation", FILENAME, content.getBytes(StandardCharsets.UTF_8));
+    boolean uploaded = sftpRepository.upload(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT, EXPORT_FOLDER_NAME + "/test/long/path/creation", FILENAME, content);
 
     assertTrue(uploaded);
 
@@ -116,12 +116,12 @@ class SFTPObjectStorageRepositoryTest {
   }
 
   @Test
-  void testSuccessfulDownload() throws IOException {
+  void testSuccessfulDownload() throws Exception {
     log.info("=== Test successful download ===");
     String content = "Some string with content for download";
     String path = EXPORT_FOLDER_NAME + "/test/download";
     SftpClient sftpClient = sftpRepository.getSftpClient(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT);
-    boolean uploaded = sftpRepository.upload(sftpClient, path, FILENAME, content.getBytes(StandardCharsets.UTF_8));
+    boolean uploaded = sftpRepository.upload(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT, path, FILENAME, content);
     byte[] fileBytes = sftpRepository.download(sftpClient, path + "/" + FILENAME);
 
     assertTrue(uploaded);

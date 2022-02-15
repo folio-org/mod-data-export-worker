@@ -10,15 +10,15 @@
   "totalExpended": 0.0,
   "totalItems": 1,
   "vendor": "50fb6ae0-cdf1-11e8-a8d5-f2801f1b9fd1",
-  "workflowStatus": "Pending",
+  "workflowStatus": "Open",
   "compositePoLines": [
     {
       "id": "f7cebba9-900d-4e46-ac96-9dfdb6da214e",
       "edition": "",
       "checkinItems": false,
       "instanceId": "69640328-788e-43fc-9c3c-af39e243f3b7",
-      "acquisitionMethod": "2ee31dec-4dab-4807-938c-b4d35b72f523",
-      "automaticExport": false,
+      "acquisitionMethod": "306489dd-0053-49ee-a068-c316444a8f55",
+      "automaticExport": true,
       "alerts": [],
       "claims": [],
       "collection": false,

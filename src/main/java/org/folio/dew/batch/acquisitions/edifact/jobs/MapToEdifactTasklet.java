@@ -88,6 +88,8 @@ public class MapToEdifactTasklet implements Tasklet {
   private List<CompositePoLine> poLineFilteredOrder(CompositePurchaseOrder order, VendorEdiOrdersExportConfig ediConfig) {
     return order.getCompositePoLines().stream()
       .filter(CompositePoLine::getAutomaticExport)
+      // fix filter after implementation of re-export logic
+      .filter(poLine -> poLine.getLastEDIExportDate() == null)
       .filter(poLine -> ediConfig.getEdiConfig().getDefaultAcquisitionMethods().contains(poLine.getAcquisitionMethod()))
       .filter(poLine -> ediConfig.getEdiConfig().getAccountNoList().contains(poLine.getVendorDetail().getVendorAccount()))
       .collect(Collectors.toList());

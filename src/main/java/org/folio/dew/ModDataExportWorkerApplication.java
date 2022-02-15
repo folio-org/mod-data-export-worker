@@ -14,8 +14,10 @@ import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.client.DepartmentClient;
 import org.folio.dew.client.FeefineactionsClient;
 import org.folio.dew.client.GroupClient;
+import org.folio.dew.client.MaterialTypeClient;
+import org.folio.dew.client.OrdersClient;
+import org.folio.dew.client.OrdersStorageClient;
 import org.folio.dew.client.ProxiesForClient;
-import org.folio.dew.client.PurchaseOrderClient;
 import org.folio.dew.client.PurchaseOrderLineClient;
 import org.folio.dew.client.ServicePointClient;
 import org.folio.dew.client.TransferClient;
@@ -41,7 +43,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
   UserClient.class,
   DataExportSpringClient.class,
   MaterialTypeClient.class,
-  PurchaseOrderClient.class,
+  OrdersClient.class,
+  OrdersStorageClient.class,
   PurchaseOrderLineClient.class,
   IdentifierTypeClient.class,
   LocationClient.class,

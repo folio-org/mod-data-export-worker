@@ -5,6 +5,12 @@ ENV APP_FILE mod-data-export-worker-fat.jar
 
 # - should be a single jar file
 ARG JAR_FILE=./target/*.jar
+
+# - install SFTP client
+USER root
+RUN apk add --update --no-cache openssh sshpass
+USER folio
+
 # - copy
 COPY ${JAR_FILE} ${JAVA_APP_DIR}/${APP_FILE}
 

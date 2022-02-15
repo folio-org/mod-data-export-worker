@@ -1,10 +1,11 @@
 package org.folio.dew.batch.acquisitions.edifact.services;
 
-import org.folio.dew.batch.acquisitions.edifact.client.IdentifierTypeClient;
-import org.json.JSONObject;
+import org.folio.dew.client.IdentifierTypeClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import lombok.RequiredArgsConstructor;
 
@@ -14,17 +15,17 @@ public class IdentifierTypeService {
   @Autowired
   private final IdentifierTypeClient identifierTypeClient;
 
-  private JSONObject getIdentifierType(String id) {
+  private JsonNode getIdentifierType(String id) {
     return identifierTypeClient.getIdentifierType(id);
   }
 
   @Cacheable(cacheNames = "identifierTypes")
   public String getIdentifierTypeName(String id) {
-    JSONObject jsonObject = getIdentifierType(id);
+    JsonNode jsonObject = getIdentifierType(id);
     String identifierType = "";
 
-    if (jsonObject != null && !jsonObject.isEmpty() && jsonObject.getString("name") != null) {
-      identifierType = jsonObject.getString("name");
+    if (jsonObject != null && !jsonObject.isEmpty()) {
+      identifierType = jsonObject.get("name").asText();
     }
 
     return identifierType;

@@ -249,8 +249,8 @@
         "referenceNumbers": [
           {
             "refNumber": "1234",
-            "refNumberType": "TITLE_NUMBER",
-            "vendorDetailsSource": "ORDER_LINE"
+            "refNumberType": "Vendor title number",
+            "vendorDetailsSource": "OrderLine"
           }
         ]
       },

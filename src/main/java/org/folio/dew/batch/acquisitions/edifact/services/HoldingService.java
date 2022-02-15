@@ -1,30 +1,27 @@
 package org.folio.dew.batch.acquisitions.edifact.services;
 
-import org.folio.dew.batch.acquisitions.edifact.client.HoldingClient;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
+import org.folio.dew.client.HoldingClient;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class HoldingService {
-  @Autowired
   private final HoldingClient holdingClient;
 
-  private JSONObject getHolding(String id) {
-    return holdingClient.getHolding(id);
+  public JsonNode getHoldingById(String id) {
+    return holdingClient.getHoldingById(id);
   }
 
-  @Cacheable(cacheNames = "holdings")
-  public String getPermanentLocationId(String id) {
-    JSONObject jsonObject = getHolding(id);
+  public String getPermanentLocationByHoldingId(String id) {
+    JsonNode jsonObject = getHoldingById(id);
     String locationId = "";
 
-    if (jsonObject != null && !jsonObject.isEmpty() && jsonObject.getString("permanentLocationId") != null) {
-      locationId = jsonObject.getString("permanentLocationId");
+    if (jsonObject != null && !jsonObject.isEmpty()) {
+      locationId = jsonObject.get("permanentLocationId").asText();
     }
 
     return locationId;

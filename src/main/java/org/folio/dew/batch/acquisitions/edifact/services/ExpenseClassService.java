@@ -1,30 +1,29 @@
 package org.folio.dew.batch.acquisitions.edifact.services;
 
-import org.folio.dew.batch.acquisitions.edifact.client.ExpenseClassClient;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.folio.dew.client.ExpenseClassClient;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class ExpenseClassService {
-  @Autowired
   private final ExpenseClassClient expenseClassClient;
 
-  private JSONObject getExpenseClass(String id) {
+  private JsonNode getExpenseClass(String id) {
     return expenseClassClient.getExpenseClass(id);
   }
 
   @Cacheable(cacheNames = "expenseClasses")
   public String getExpenseClassCode(String id) {
-    JSONObject jsonObject = getExpenseClass(id);
+    JsonNode jsonObject = getExpenseClass(id);
     String expenseClassCode = "";
 
-    if (jsonObject != null && !jsonObject.isEmpty() && jsonObject.getString("code") != null) {
-      expenseClassCode = jsonObject.getString("code");
+    if (jsonObject != null && !jsonObject.get("code").isEmpty()) {
+      expenseClassCode = jsonObject.get("code").asText();
     }
 
     return expenseClassCode;

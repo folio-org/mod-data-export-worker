@@ -17,6 +17,7 @@ import org.folio.dew.domain.dto.ReferenceNumberItem;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -351,7 +352,7 @@ public class CompositePOLineConverter {
     if (poLine.getDetails() != null && poLine.getDetails().getProductIds() != null) {
       return poLine.getDetails().getProductIds();
     } else {
-      return List.of();
+      return new ArrayList<>();
     }
   }
 
@@ -379,7 +380,7 @@ public class CompositePOLineConverter {
     if (poLine.getContributors() != null) {
       return poLine.getContributors();
     } else {
-      return List.of();
+      return new ArrayList<>();
     }
   }
 
@@ -408,7 +409,7 @@ public class CompositePOLineConverter {
     if (poLine.getFundDistribution() != null) {
       return poLine.getFundDistribution();
     }
-    return List.of();
+    return new ArrayList<>();
   }
 
   private String getFundAndExpenseClass(FundDistribution fundDistribution)
@@ -433,16 +434,17 @@ public class CompositePOLineConverter {
     if (poLine.getLocations() != null) {
       return poLine.getLocations();
     }
-    return List.of();
+    return new ArrayList<>();
   }
 
   private String getLocationCode(Location location) {
-    if (location.getLocationId() != null) {
-      return locationService.getLocationCode(location.getLocationId());
+    // fix holdings request
+/*    if (location.getLocationId() != null) {
+      return locationService.getLocationCodeById(location.getLocationId());
     } else if (location.getHoldingId() != null) {
-      String locationId =  holdingService.getPermanentLocationId(location.getHoldingId().toString());
-      return locationService.getLocationCode(locationId);
-    }
+      String locationId =  holdingService.getPermanentLocationByHoldingId(location.getHoldingId().toString());
+      return locationService.getLocationCodeById(locationId);
+    }*/
     return "";
   }
 }

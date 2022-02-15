@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 import org.folio.dew.BaseBatchTest;
+import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.repository.SFTPObjectStorageRepository;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -23,11 +24,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 class SaveToFileStorageTaskletTest extends BaseBatchTest {
   @Autowired
   private Job edifactExportJob;
   @MockBean
   private SFTPObjectStorageRepository sftpObjectStorageRepository;
+  @MockBean
+  private OrganizationsService organizationsService;
 
   @Test
   @DirtiesContext
@@ -35,6 +40,8 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
 
     doReturn(true).when(sftpObjectStorageRepository).upload(anyString(), anyString(), anyString(), anyInt(), anyString(), anyString(), anyString());
+    JsonNode vendorJson = objectMapper.readTree("{\"name\": \"GOBI\"}");
+    doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
 
     JobExecution jobExecution = testLauncher.launchStep("saveToFTPStep", getJobParameters());
 

@@ -15,6 +15,6 @@ class MaterialTypeServiceTest extends BaseBatchTest {
   @Test
   void getMaterialTypeName() {
     String materialTypeName = materialTypeService.getMaterialTypeName("1a54b431-2e4f-452d-9cae-9cee66c9a892");
-    assertEquals("", materialTypeName);
+    assertEquals("book", materialTypeName);
   }
 }

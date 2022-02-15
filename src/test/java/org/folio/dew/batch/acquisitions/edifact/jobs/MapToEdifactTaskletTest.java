@@ -11,8 +11,9 @@ import static org.mockito.Mockito.doReturn;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.UUID;
 
-import org.folio.dew.BaseJobTest;
+import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.PurchaseOrderCollection;
@@ -28,8 +29,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.test.annotation.DirtiesContext;
 
-class MapToEdifactTaskletTest extends BaseJobTest {
+class MapToEdifactTaskletTest extends BaseBatchTest {
 
   @MockBean
   private OrdersService ordersService;
@@ -39,6 +41,7 @@ class MapToEdifactTaskletTest extends BaseJobTest {
   Job edifactExportJob;
 
   @Test
+  @DirtiesContext
   void edifactExportJobTestSuccess() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
     PurchaseOrderCollection poCollection = objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_collection.json"), PurchaseOrderCollection.class);
@@ -71,6 +74,7 @@ class MapToEdifactTaskletTest extends BaseJobTest {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
     JSONObject edifactOrdersExportJson = new JSONObject(getMockData("edifact/edifactOrdersExport.json"));
 
+    paramsBuilder.addString("jobId", UUID.randomUUID().toString());
     paramsBuilder.addString("edifactOrdersExport", edifactOrdersExportJson.toString());
 
     return paramsBuilder.toJobParameters();

@@ -1,7 +1,7 @@
 package org.folio.dew.controller;
 
 import lombok.SneakyThrows;
-import org.folio.dew.BaseJobTest;
+import org.folio.dew.BaseBatchTest;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.folio.tenant.domain.dto.TenantAttributes;
 import org.junit.jupiter.api.Test;
@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class TenantControllerTest extends BaseJobTest {
+class TenantControllerTest extends BaseBatchTest {
   @Test
   @SneakyThrows
   void canDeleteTenantTest() {

@@ -1,6 +1,6 @@
 package org.folio.dew.service;
 
-import org.folio.dew.BaseJobTest;
+import org.folio.dew.BaseBatchTest;
 import org.folio.dew.error.BulkEditException;
 import static org.folio.dew.service.BulkEditProcessingErrorsService.CSV_NAME_DATE_FORMAT;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -24,7 +24,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
-class BulkEditProcessingErrorsServiceTest extends BaseJobTest {
+class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
 
   @Autowired
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;

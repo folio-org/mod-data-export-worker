@@ -34,7 +34,7 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 
-class BursarFeesFinesTest extends BaseJobTest {
+class BursarFeesFinesTest extends BaseBatchTest {
 
   private static final String USERS_GET_REQUEST =
       "/users?query=%28active%3D%3D%22true%22%20and%20patronGroup%3D%3D%283684a786-6671-4268-8ed0-9db82ebca60b%29%29&limit=10000";

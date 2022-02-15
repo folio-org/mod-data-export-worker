@@ -3,7 +3,7 @@ package org.folio.dew.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.folio.de.entity.JobCommand;
-import org.folio.dew.BaseJobTest;
+import org.folio.dew.BaseBatchTest;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.*;
 import org.folio.dew.error.BulkEditException;
@@ -43,7 +43,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class BulkEditControllerTest extends BaseJobTest {
+class BulkEditControllerTest extends BaseBatchTest {
   private static final String UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/upload";
   private static final String START_URL_TEMPLATE = "/bulk-edit/%s/start";
   private static final String PREVIEW_URL_TEMPLATE = "/bulk-edit/%s/preview";

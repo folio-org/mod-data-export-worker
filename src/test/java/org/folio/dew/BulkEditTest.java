@@ -41,7 +41,7 @@ import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 
 @ExtendWith(MockitoExtension.class)
-class BulkEditTest extends BaseJobTest {
+class BulkEditTest extends BaseBatchTest {
 
   private static final String BARCODES_CSV = "src/test/resources/upload/barcodes.csv";
   private static final String USER_RECORD_CSV = "src/test/resources/upload/bulk_edit_user_record.csv";

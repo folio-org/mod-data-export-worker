@@ -49,6 +49,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.SocketUtils;
 
@@ -58,7 +59,9 @@ import org.springframework.util.SocketUtils;
 @EmbeddedKafka(topics = { "diku.data-export.job.update", "diku.data-export.job.command", "edi-export-history.create" })
 @EnableKafka
 @EnableBatchProcessing
-public abstract class BaseJobTest {
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+
+public abstract class BaseBatchTest {
   protected static final String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjFkM2I1OGNiLTA3YjUtNWZjZC04YTJhLTNjZTA2YTBlYjkwZiIsImlhdCI6MTYxNjQyMDM5MywidGVuYW50IjoiZGlrdSJ9.2nvEYQBbJP1PewEgxixBWLHSX_eELiBEBpjufWiJZRs";
   protected static final String TENANT = "diku";
 

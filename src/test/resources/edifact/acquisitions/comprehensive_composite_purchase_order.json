@@ -246,7 +246,13 @@
       "vendorDetail": {
         "instructions": "Test vendor instruction text.",
         "vendorAccount": "BRXXXXX-01",
-        "referenceNumbers": []
+        "referenceNumbers": [
+          {
+            "refNumber": "1234",
+            "refNumberType": "Vendor title number",
+            "vendorDetailsSource": "OrderLine"
+          }
+        ]
       },
       "metadata": {
         "createdDate": "2021-12-28T08:17:02.171+00:00",

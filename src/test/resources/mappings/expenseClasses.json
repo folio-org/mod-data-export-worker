@@ -1,0 +1,17 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/finance/expense-classes/1bcc3247-99bf-4dca-9b0f-7bc51a2998c2"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"id\": \"1bcc3247-99bf-4dca-9b0f-7bc51a2998c2\",\n    \"code\": \"Elec\",\n    \"externalAccountNumberExt\": \"01\",\n    \"name\": \"Electronic\",\n    \"metadata\": {\n        \"createdDate\": \"2022-02-14T03:23:36.266+00:00\",\n        \"updatedDate\": \"2022-02-14T03:23:36.266+00:00\"\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

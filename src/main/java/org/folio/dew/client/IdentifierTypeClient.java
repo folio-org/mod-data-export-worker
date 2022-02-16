@@ -7,8 +7,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-@FeignClient(name = "material-types")
-public interface MaterialTypeClient {
-  @GetMapping(value = "/{materialTypeId}", produces = MediaType.APPLICATION_JSON_VALUE) JsonNode getMaterialType(@PathVariable String materialTypeId);
+
+@FeignClient(name = "identifier-types")
+public interface IdentifierTypeClient {
+  @GetMapping(value = "/{identifierTypeId}", produces = MediaType.APPLICATION_JSON_VALUE) JsonNode getIdentifierType(@PathVariable String identifierTypeId);
 
 }

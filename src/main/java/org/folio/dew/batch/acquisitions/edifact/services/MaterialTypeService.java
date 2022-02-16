@@ -1,29 +1,29 @@
 package org.folio.dew.batch.acquisitions.edifact.services;
 
-import lombok.RequiredArgsConstructor;
 import org.folio.dew.client.MaterialTypeClient;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class MaterialTypeService {
-  @Autowired
   private final MaterialTypeClient materialTypeClient;
 
-  private JSONObject getMaterialType(String id) {
+  private JsonNode getMaterialType(String id) {
     return materialTypeClient.getMaterialType(id);
   }
 
   @Cacheable(cacheNames = "materialTypes")
   public String getMaterialTypeName(String id) {
-    JSONObject jsonObject = getMaterialType(id);
+    JsonNode jsonObject = getMaterialType(id);
     String materialType = "";
 
-    if (!jsonObject.isEmpty() && jsonObject.getString("name") != null) {
-      materialType = jsonObject.getString("name");
+    if (jsonObject != null && !jsonObject.isEmpty()) {
+      materialType = jsonObject.get("name").asText();
     }
 
     return materialType;

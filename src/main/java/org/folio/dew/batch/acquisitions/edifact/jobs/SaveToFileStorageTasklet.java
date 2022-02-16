@@ -1,9 +1,8 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
-import java.util.UUID;
-
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
+import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.domain.dto.EdiFtp;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.repository.FTPObjectStorageRepository;
@@ -29,6 +28,7 @@ public class SaveToFileStorageTasklet implements Tasklet {
   private final ObjectMapper objectMapper;
   private final SFTPObjectStorageRepository sftpObjectStorageRepository;
   private final FTPObjectStorageRepository ftpObjectStorageRepository;
+  private final OrganizationsService organizationsService;
 
   private static final String SFTP_PROTOCOL = "sftp://";
 
@@ -45,7 +45,7 @@ public class SaveToFileStorageTasklet implements Tasklet {
     String password = ediExportConfig.getEdiFtp().getPassword();
     String host = ediExportConfig.getEdiFtp().getServerAddress().replace(SFTP_PROTOCOL, "");
     int port = ediExportConfig.getEdiFtp().getFtpPort();
-    String filename = UUID.randomUUID() +  ".edi";
+    String filename = generateFileName(ediExportConfig, chunkContext.getStepContext().getJobInstanceId());
 
     // skip ftp upload if address not specified
     if (StringUtils.isEmpty(host)) {
@@ -66,5 +66,11 @@ public class SaveToFileStorageTasklet implements Tasklet {
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, "edifactFileDownloadLink", downloadLink, "");
 
     return RepeatStatus.FINISHED;
+  }
+
+  private String generateFileName(VendorEdiOrdersExportConfig ediExportConfig, Long jobNumber) {
+    var orgName = organizationsService.getOrganizationById(ediExportConfig.getVendorId().toString()).get("code").asText();
+    var filename = orgName + "_" + ediExportConfig.getConfigName() + "_job_" + jobNumber;
+    return filename.replace(" ", "_");
   }
 }

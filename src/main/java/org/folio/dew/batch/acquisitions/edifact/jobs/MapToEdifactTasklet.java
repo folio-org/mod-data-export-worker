@@ -64,7 +64,7 @@ public class MapToEdifactTasklet implements Tasklet {
     log.debug("composite purchase orders: {}", compOrders);
 
     if (compOrders.isEmpty()) {
-      throw new EdifactException("Orders not found");
+      throw new EdifactException("Orders for export not found");
     }
     return compOrders;
   }
@@ -88,6 +88,9 @@ public class MapToEdifactTasklet implements Tasklet {
   private List<CompositePoLine> poLineFilteredOrder(CompositePurchaseOrder order, VendorEdiOrdersExportConfig ediConfig) {
     return order.getCompositePoLines().stream()
       .filter(CompositePoLine::getAutomaticExport)
+      // comment filters for development time
+      // fix filter after implementation of re-export logic
+      .filter(poLine -> poLine.getLastEDIExportDate() == null)
       .filter(poLine -> ediConfig.getEdiConfig().getDefaultAcquisitionMethods().contains(poLine.getAcquisitionMethod()))
       .filter(poLine -> ediConfig.getEdiConfig().getAccountNoList().contains(poLine.getVendorDetail().getVendorAccount()))
       .collect(Collectors.toList());

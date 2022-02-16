@@ -3,6 +3,10 @@ package org.folio.dew.batch.acquisitions.edifact;
 import io.xlate.edi.stream.EDIStreamException;
 import io.xlate.edi.stream.EDIStreamWriter;
 import liquibase.util.StringUtil;
+import org.folio.dew.batch.acquisitions.edifact.services.ExpenseClassService;
+import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
+import org.folio.dew.batch.acquisitions.edifact.services.IdentifierTypeService;
+import org.folio.dew.batch.acquisitions.edifact.services.LocationService;
 import org.folio.dew.batch.acquisitions.edifact.services.MaterialTypeService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.Contributor;
@@ -14,44 +18,48 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CompositePOLineConverter {
   private static final int MAX_CHARS_PER_LINE = 70;
   private static final int MAX_NUMBER_OF_REFS = 10;
   private static final String PRODUCT_ID_FUNCTION_CODE_MAIN_PRODUCT_IDNTIFICATION = "5";
   private static final String PRODUCT_ID_FUNCTION_CODE_ADDITIONAL_IDNTIFICATION = "1";
-  private static final int ISBN_LENGTH = 13;
+  private static final String FUND_CODE_EXPENSE_CLASS_SEPARATOR = ":";
+  private static final String ISBN_PRODUCT_ID_TYPE = "ISBN";
+  private static final String ISSN_PRODUCT_ID_TYPE = "ISSN";
+  private static final String ISMN_PRODUCT_ID_TYPE = "ISMN";
+  private static final String IB_PRODUCT_ID_QUALIFIER = "IB";
+  private static final String IS_PRODUCT_ID_QUALIFIER = "IS";
+  private static final String IM_PRODUCT_ID_QUALIFIER = "IM";
+  private static final String MF_PRODUCT_ID_QUALIFIER = "MF";
 
   @Autowired
+  private IdentifierTypeService identifierTypeService;
+  @Autowired
   private MaterialTypeService materialTypeService;
+  @Autowired
+  private ExpenseClassService expenseClassService;
+  @Autowired
+  private LocationService locationService;
+  @Autowired
+  private HoldingService holdingService;
 
   public int convertPOLine(CompositePoLine poLine, EDIStreamWriter writer, int currentLineNumber, int quantityOrdered) throws EDIStreamException {
     int messageSegmentCount = 0;
 
-    List<ProductIdentifier> products = new ArrayList<>();
-    String isbnProductId = "";
-    boolean isIsbnFound = false;
+    Map<String, ProductIdentifier> productTypeProductIdentifierMap = new HashMap<>();
     for (ProductIdentifier productId : getProductIds(poLine)) {
-      if (!isIsbnFound && productId.getProductId().length() == ISBN_LENGTH) {
-        //TODO lookup product id type by type id to make sure it's ISBN
-        isbnProductId = productId.getProductId();
-        isIsbnFound = true;
-      } else {
-        products.add(productId);
-      }
+      productTypeProductIdentifierMap.put(getProductIdType(productId), productId);
     }
 
-    //TODO repeat previous field with PIA+5+, repeat the field and use PIA+1+ for everything after the first one
-    messageSegmentCount++;
-    writeOrderLine(isbnProductId, writer, currentLineNumber);
+    messageSegmentCount += writeOrderLineAndMainProductId(productTypeProductIdentifierMap, writer, currentLineNumber);
 
-    messageSegmentCount++;
-    writeProductId(isbnProductId, writer, PRODUCT_ID_FUNCTION_CODE_MAIN_PRODUCT_IDNTIFICATION);
-
-    for (ProductIdentifier product : products) {
+    for (Map.Entry<String, ProductIdentifier> entry : productTypeProductIdentifierMap.entrySet()) {
       messageSegmentCount++;
-      writeProductId(product.getProductId(), writer, PRODUCT_ID_FUNCTION_CODE_ADDITIONAL_IDNTIFICATION);
+      writeProductId(entry.getValue().getProductId(), writer, PRODUCT_ID_FUNCTION_CODE_ADDITIONAL_IDNTIFICATION, getProductIdQualifier(entry.getKey()));
     }
 
     for (Contributor contributor : getContributors(poLine)) {
@@ -116,7 +124,7 @@ public class CompositePOLineConverter {
       }
       referenceQuantity++;
       messageSegmentCount++;
-      writeFundCode(fundDistribution, writer);
+      writeFundCode(getFundAndExpenseClass(fundDistribution), writer);
     }
 
     if (poLine.getVendorDetail() != null && referenceQuantity < MAX_NUMBER_OF_REFS) {
@@ -134,23 +142,49 @@ public class CompositePOLineConverter {
 
     for (Location location : getLocations(poLine)) {
       messageSegmentCount++;
-      writeDeliveryLocation(location, writer);
+      writeDeliveryLocation(getLocationCode(location), writer);
     }
 
     return messageSegmentCount;
+  }
+
+  private int writeOrderLineAndMainProductId(Map<String, ProductIdentifier> productTypeProductIdentifierMap, EDIStreamWriter writer,
+                              int currentLineNumber) throws EDIStreamException {
+    int numberOfLinesWritten;
+    if (productTypeProductIdentifierMap.get(ISBN_PRODUCT_ID_TYPE) != null) {
+      writeMainProduct(productTypeProductIdentifierMap, writer, currentLineNumber, IB_PRODUCT_ID_QUALIFIER, ISBN_PRODUCT_ID_TYPE);
+      numberOfLinesWritten = 2;
+    } else if (productTypeProductIdentifierMap.get(ISSN_PRODUCT_ID_TYPE) != null) {
+      writeMainProduct(productTypeProductIdentifierMap, writer, currentLineNumber, IS_PRODUCT_ID_QUALIFIER, ISSN_PRODUCT_ID_TYPE);
+      numberOfLinesWritten = 2;
+    } else if (productTypeProductIdentifierMap.get(ISMN_PRODUCT_ID_TYPE) != null) {
+      writeMainProduct(productTypeProductIdentifierMap, writer, currentLineNumber, IM_PRODUCT_ID_QUALIFIER, ISMN_PRODUCT_ID_TYPE);
+      numberOfLinesWritten = 2;
+    } else {
+      writeOrderLine("", writer, currentLineNumber, "");
+      numberOfLinesWritten = 1;
+    }
+    return numberOfLinesWritten;
+  }
+
+  private void writeMainProduct(Map<String, ProductIdentifier> productTypeProductIdentifierMap, EDIStreamWriter writer,
+                                int currentLineNumber, String qualifier, String productType) throws EDIStreamException {
+    writeOrderLine(productTypeProductIdentifierMap.get(productType).getProductId(), writer, currentLineNumber, qualifier);
+    writeProductId(productTypeProductIdentifierMap.get(productType).getProductId(), writer, PRODUCT_ID_FUNCTION_CODE_MAIN_PRODUCT_IDNTIFICATION, qualifier);
+    productTypeProductIdentifierMap.remove(productType);
   }
 
   // Product ID:ID type (EAN/UPC/barcode number)
   // May or may not be the same number as the POL line number, since the POLs may skip numbers, and the EDI order does not
   // Since ISBNs expanded to 13 digits, they are equivalent to UPC barcode numbers
   // Identifier qualifier not included
-  private void writeOrderLine(String isbn, EDIStreamWriter writer, int currentLineNumber) throws EDIStreamException {
+  private void writeOrderLine(String productId, EDIStreamWriter writer, int currentLineNumber, String qualifier) throws EDIStreamException {
     writer.writeStartSegment("LIN")
       .writeElement(String.valueOf(currentLineNumber))
       .writeElement("")
       .writeStartElement()
-      .writeComponent(isbn)
-      .writeComponent("EN")
+      .writeComponent(productId)
+      .writeComponent(qualifier)
       .endElement()
       .writeEndSegment();
   }
@@ -158,12 +192,12 @@ public class CompositePOLineConverter {
   // Product ID:ID type
   // ISBN-10 is no longer necessary
   // PIA includes whatever Product IDs are in the POL, not just an ISBN
-  private void writeProductId(String productId, EDIStreamWriter writer, String productIdFunctionCode) throws EDIStreamException {
+  private void writeProductId(String productId, EDIStreamWriter writer, String productIdFunctionCode, String qualifier) throws EDIStreamException {
     writer.writeStartSegment("PIA")
       .writeElement(productIdFunctionCode)
       .writeStartElement()
       .writeComponent(productId)
-      .writeComponent("MF")
+      .writeComponent(qualifier)
       .endElement()
       .writeEndSegment();
   }
@@ -285,13 +319,11 @@ public class CompositePOLineConverter {
   }
 
   // FOLIO fund code and expense class
-  private void writeFundCode(FundDistribution fundDistribution, EDIStreamWriter writer) throws EDIStreamException {
-    //TODO Make a call to get expense class by ID fundDistribution.getExpenseClassId()
-    //String fundCodeWithExpenseClass = fundDistribution.getCode() + "?:" + expenseClass;
+  private void writeFundCode(String fundAndExpenseClass, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("RFF")
       .writeStartElement()
       .writeComponent("BFN")
-      .writeComponent(fundDistribution.getCode())//fundCodeWithExpenseClass
+      .writeComponent(fundAndExpenseClass)
       .endElement()
       .writeEndSegment();
   }
@@ -305,14 +337,13 @@ public class CompositePOLineConverter {
       .writeEndSegment();
   }
 
-  private void writeDeliveryLocation(Location location, EDIStreamWriter writer) throws EDIStreamException {
-    //TODO Make a call to get location code for the ID found here (for holding we still need to get location code, not the holding code)
+  private void writeDeliveryLocation(String locationCode, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("LOC")
       .writeElement("20")
       .writeStartElement()
       .writeComponent("")
       .writeComponent("")
-      .writeComponent("92")//locationCode
+      .writeComponent(locationCode)
       .endElement()
       .writeEndSegment();
   }
@@ -321,7 +352,27 @@ public class CompositePOLineConverter {
     if (poLine.getDetails() != null && poLine.getDetails().getProductIds() != null) {
       return poLine.getDetails().getProductIds();
     } else {
-      return List.of();
+      return new ArrayList<>();
+    }
+  }
+
+  private String getProductIdType(ProductIdentifier productId) {
+    if (productId.getProductIdType() != null) {
+      return identifierTypeService.getIdentifierTypeName(productId.getProductIdType());
+    }
+    return "";
+  }
+
+  private String getProductIdQualifier(String productIdType) {
+    switch(productIdType) {
+      case "ISBN":
+        return IB_PRODUCT_ID_QUALIFIER;
+      case "ISSN":
+        return IS_PRODUCT_ID_QUALIFIER;
+      case "ISMN":
+        return IM_PRODUCT_ID_QUALIFIER;
+      default:
+        return MF_PRODUCT_ID_QUALIFIER;
     }
   }
 
@@ -329,7 +380,7 @@ public class CompositePOLineConverter {
     if (poLine.getContributors() != null) {
       return poLine.getContributors();
     } else {
-      return List.of();
+      return new ArrayList<>();
     }
   }
 
@@ -357,16 +408,42 @@ public class CompositePOLineConverter {
   private List<FundDistribution> getFundDistribution(CompositePoLine poLine) {
     if (poLine.getFundDistribution() != null) {
       return poLine.getFundDistribution();
-    } else {
-      return List.of();
     }
+    return new ArrayList<>();
+  }
+
+  private String getFundAndExpenseClass(FundDistribution fundDistribution)
+  {
+    String fundCode = fundDistribution.getCode();
+    String expenseClass = getExpenseClassCode(fundDistribution);
+    if (expenseClass.isEmpty()) {
+      return fundCode;
+    }
+    return fundCode + FUND_CODE_EXPENSE_CLASS_SEPARATOR + expenseClass;
+  }
+
+  private String getExpenseClassCode(FundDistribution fundDistribution) {
+    if (fundDistribution.getExpenseClassId() != null) {
+      String expenseClassId = fundDistribution.getExpenseClassId().toString();
+      return expenseClassService.getExpenseClassCode(expenseClassId);
+    }
+    return "";
   }
 
   private List<Location> getLocations(CompositePoLine poLine) {
     if (poLine.getLocations() != null) {
       return poLine.getLocations();
-    } else {
-      return List.of();
     }
+    return new ArrayList<>();
+  }
+
+  private String getLocationCode(Location location) {
+    if (location.getLocationId() != null) {
+      return locationService.getLocationCodeById(location.getLocationId());
+    } else if (location.getHoldingId() != null) {
+      String locationId = holdingService.getPermanentLocationByHoldingId(location.getHoldingId().toString());
+      return locationService.getLocationCodeById(locationId);
+    }
+    return "";
   }
 }

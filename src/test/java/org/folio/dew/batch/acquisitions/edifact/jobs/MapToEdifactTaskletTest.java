@@ -4,6 +4,7 @@ import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -14,6 +15,7 @@ import java.util.Collection;
 import java.util.UUID;
 
 import org.folio.dew.BaseBatchTest;
+import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.PurchaseOrderCollection;
@@ -29,19 +31,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.test.annotation.DirtiesContext;
 
 class MapToEdifactTaskletTest extends BaseBatchTest {
 
   @MockBean
   private OrdersService ordersService;
+  @MockBean
+  private PurchaseOrdersToEdifactMapper purchaseOrdersToEdifactMapper;
+
   @Autowired
   protected ObjectMapper objectMapper;
   @Autowired
   Job edifactExportJob;
 
   @Test
-  @DirtiesContext
   void edifactExportJobTestSuccess() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
     PurchaseOrderCollection poCollection = objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_collection.json"), PurchaseOrderCollection.class);
@@ -49,6 +52,7 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
 
     doReturn(poCollection).when(ordersService).getCompositePurchaseOrderByQuery(anyString(), anyInt());
     doReturn(comPO).when(ordersService).getCompositePurchaseOrderById(anyString());
+    doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any());
 
     JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters());
     Collection<StepExecution> actualStepExecutions = jobExecution.getStepExecutions();
@@ -67,7 +71,7 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters());
 
     // then
-    assertThat(jobExecution.getExitStatus().getExitDescription(), containsString("Orders not found"));
+    assertThat(jobExecution.getExitStatus().getExitDescription(), containsString("Orders for export not found"));
   }
 
   private JobParameters getJobParameters() throws IOException {

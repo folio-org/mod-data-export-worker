@@ -40,7 +40,7 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
 
     doReturn(true).when(sftpObjectStorageRepository).upload(anyString(), anyString(), anyString(), anyInt(), anyString(), anyString(), anyString());
-    JsonNode vendorJson = objectMapper.readTree("{\"name\": \"GOBI\"}");
+    JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
     doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
 
     JobExecution jobExecution = testLauncher.launchStep("saveToFTPStep", getJobParameters());

@@ -69,7 +69,7 @@ public class SaveToFileStorageTasklet implements Tasklet {
   }
 
   private String generateFileName(VendorEdiOrdersExportConfig ediExportConfig, Long jobNumber) {
-    var orgName = organizationsService.getOrganizationById(ediExportConfig.getVendorId().toString()).get("name").asText();
+    var orgName = organizationsService.getOrganizationById(ediExportConfig.getVendorId().toString()).get("code").asText();
     var filename = orgName + "_" + ediExportConfig.getConfigName() + "_job_" + jobNumber;
     return filename.replace(" ", "_");
   }

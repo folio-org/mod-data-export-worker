@@ -57,6 +57,10 @@ public class Job {
   @Column(columnDefinition = "jsonb")
   private List<String> files = null;
 
+  @Type(type = "jsonb")
+  @Column(columnDefinition = "jsonb")
+  private List<String> fileNames = null;
+
   private Date startTime;
 
   private Date endTime;

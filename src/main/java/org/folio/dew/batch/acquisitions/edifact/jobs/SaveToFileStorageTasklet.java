@@ -1,5 +1,9 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
@@ -45,7 +49,7 @@ public class SaveToFileStorageTasklet implements Tasklet {
     String password = ediExportConfig.getEdiFtp().getPassword();
     String host = ediExportConfig.getEdiFtp().getServerAddress().replace(SFTP_PROTOCOL, "");
     int port = ediExportConfig.getEdiFtp().getFtpPort();
-    String filename = generateFileName(ediExportConfig, chunkContext.getStepContext().getJobInstanceId());
+    String filename = generateFileName(ediExportConfig);
 
     // skip ftp upload if address not specified
     if (StringUtils.isEmpty(host)) {
@@ -61,16 +65,16 @@ public class SaveToFileStorageTasklet implements Tasklet {
       ftpObjectStorageRepository.login(host, username,password);
       ftpObjectStorageRepository.upload(filename, fileContent);
     }
-
-    var downloadLink = ediExportConfig.getEdiFtp().getServerAddress() + ":" + port + folder + filename;
-    ExecutionContextUtils.addToJobExecutionContext(stepExecution, "edifactFileDownloadLink", downloadLink, "");
+    ExecutionContextUtils.addToJobExecutionContext(stepExecution, "edifactFileName", filename, "");
 
     return RepeatStatus.FINISHED;
   }
 
-  private String generateFileName(VendorEdiOrdersExportConfig ediExportConfig, Long jobNumber) {
+  private String generateFileName(VendorEdiOrdersExportConfig ediExportConfig) {
     var orgName = organizationsService.getOrganizationById(ediExportConfig.getVendorId().toString()).get("code").asText();
-    var filename = orgName + "_" + ediExportConfig.getConfigName() + "_job_" + jobNumber;
-    return filename.replace(" ", "_");
+    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+    var fileDate = dateFormat.format(new Date());
+    // exclude restricted symbols after implementing naming convention feature
+    return orgName + "_" + ediExportConfig.getConfigName() + "_" + fileDate + ".edi";
   }
 }

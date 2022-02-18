@@ -1,6 +1,5 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
-import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.domain.dto.ExportType;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -24,7 +23,7 @@ public class EdifactExportJobConfig {
 
   @Bean
   public Job edifactExportJob(
-    JobCompletionNotificationListener jobCompletionNotificationListener,
+    EdiExportJobCompletionListener ediExportJobCompletionListener,
     JobRepository jobRepository,
     Step mapToEdifactStep,
     Step saveToFTPStep,
@@ -34,7 +33,7 @@ public class EdifactExportJobConfig {
       .get(ExportType.EDIFACT_ORDERS_EXPORT.getValue())
       .repository(jobRepository)
       .incrementer(new RunIdIncrementer())
-      .listener(jobCompletionNotificationListener)
+      .listener(ediExportJobCompletionListener)
       .start(mapToEdifactStep)
       .next(saveToMinIOStep)
       .next(saveToFTPStep)

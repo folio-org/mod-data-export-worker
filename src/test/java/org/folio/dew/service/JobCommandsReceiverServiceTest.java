@@ -72,7 +72,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     jobCommand.setType(JobCommand.Type.DELETE);
     jobCommand.setId(id);
     jobCommand.setJobParameters(
-        new JobParameters(Collections.singletonMap(JobParameterNames.OUTPUT_FILES_IN_STORAGE, new JobParameter(""))));
+        new JobParameters(Collections.singletonMap(JobParameterNames.OUTPUT_FILES_IN_STORAGE, new JobParameter("https://x-host.com/560b33d8-7220-4c97-bfd1-dbc5b9c49537_duplicate.csv"))));
     return jobCommand;
   }
 

@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 
@@ -52,7 +53,7 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
 
     doReturn(poCollection).when(ordersService).getCompositePurchaseOrderByQuery(anyString(), anyInt());
     doReturn(comPO).when(ordersService).getCompositePurchaseOrderById(anyString());
-    doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any());
+    doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyLong());
 
     JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters());
     Collection<StepExecution> actualStepExecutions = jobExecution.getStepExecutions();

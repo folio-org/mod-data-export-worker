@@ -2,6 +2,7 @@ package org.folio.dew.batch.acquisitions.edifact;
 
 import io.xlate.edi.stream.EDIStreamException;
 import io.xlate.edi.stream.EDIStreamWriter;
+import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.acquisitions.edifact.EdiFileConfig;
@@ -14,9 +15,11 @@ public class CompositePOConverter {
   private static final String NOT_RUSH_ORDER = "220";
 
   private final CompositePOLineConverter compositePOLineConverter;
+  private final ConfigurationService configurationService;
 
-  public CompositePOConverter(CompositePOLineConverter compositePOLineConverter) {
+  public CompositePOConverter(CompositePOLineConverter compositePOLineConverter, ConfigurationService configurationService) {
     this.compositePOLineConverter = compositePOLineConverter;
+    this.configurationService = configurationService;
   }
 
   public void convertPOtoEdifact(EDIStreamWriter writer, CompositePurchaseOrder compPO, EdiFileConfig ediFileConfig) throws EDIStreamException {
@@ -29,10 +32,8 @@ public class CompositePOConverter {
     messageSegmentCount++;
     writePONumber(compPO, writer, rushOrderQualifier);
 
-//    if (compPO.getDateOrdered() != null) {//TODO do we really want to use default date?
     messageSegmentCount++;
     writeOrderDate(compPO, writer);
-//    }
 
     messageSegmentCount++;
     writeLibrary(ediFileConfig, writer);
@@ -48,7 +49,7 @@ public class CompositePOConverter {
     }
 
     messageSegmentCount++;
-    String currency = getCurrency(compPO);
+    String currency = configurationService.getSystemCurrency();
     writeCurrency(currency, writer);
 
     // Order lines
@@ -191,10 +192,6 @@ public class CompositePOConverter {
       .writeElement(String.valueOf(messageSegmentCount))
       .writeElement(compPO.getPoNumber())
       .writeEndSegment();
-  }
-
-  private String getCurrency(CompositePurchaseOrder compPO) {
-    return compPO.getCompositePoLines().get(0).getCost().getCurrency();
   }
 
   private int getPoLineQuantityOrdered(CompositePoLine poLine) {

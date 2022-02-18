@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
+import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
 import org.folio.dew.batch.acquisitions.edifact.services.ExpenseClassService;
 import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
 import org.folio.dew.batch.acquisitions.edifact.services.IdentifierTypeService;
@@ -55,13 +56,15 @@ class MappingOrdersToEdifactTest {
   private LocationService locationService;
   @MockBean
   private HoldingService holdingService;
+  @MockBean
+  private ConfigurationService configurationService;
 
   @Test void convertOrdersToEdifact() throws Exception {
     List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson();
 
     serviceMocks();
 
-    String ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, getTestEdiConfig());
+    String ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, getTestEdiConfig(), 123456789012345L);
     assertFalse(ediOrder.isEmpty());
     log.info(ediOrder);
   }
@@ -72,7 +75,7 @@ class MappingOrdersToEdifactTest {
 
     serviceMocks();
 
-    byte[] ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifactArray(compPOs, getTestEdiConfig());
+    byte[] ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifactArray(compPOs, getTestEdiConfig(), 12345L);
     assertNotNull(ediOrder);
     log.info(Arrays.toString(ediOrder));
   }
@@ -130,5 +133,7 @@ class MappingOrdersToEdifactTest {
       .thenReturn("KU/CC/DI/M");
     Mockito.when(holdingService.getPermanentLocationByHoldingId(anyString()))
       .thenReturn("fcd64ce1-6995-48f0-840e-89ffa2288371");
+    Mockito.when(configurationService.getSystemCurrency())
+      .thenReturn("GBP");
   }
 }

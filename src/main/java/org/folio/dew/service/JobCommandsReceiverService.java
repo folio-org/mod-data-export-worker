@@ -58,7 +58,8 @@ public class JobCommandsReceiverService {
   private final ExportJobManagerCirculationLog exportJobManagerCirculationLog;
   private final BursarExportService bursarExportService;
   private final IAcknowledgementRepository acknowledgementRepository;
-  private final MinIOObjectStorageRepository objectStorageRepository;
+  private final MinIOObjectStorageRepository remoteObjectStorageRepository;
+  private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   private final List<Job> jobs;
   private Map<String, Job> jobMap;
   private Map<String, JobCommand> bulkEditJobCommands;
@@ -191,9 +192,10 @@ public class JobCommandsReceiverService {
       }
     }).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
     if (!objects.isEmpty()) {
-      objectStorageRepository.removeObjects(objects);
+      remoteObjectStorageRepository.removeObjects(objects);
     }
     bulkEditJobCommands.remove(jobCommand.getId().toString());
+    bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobCommand.getId().toString());
     return true;
   }
 

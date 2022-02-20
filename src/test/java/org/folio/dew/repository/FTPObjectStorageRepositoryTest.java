@@ -129,7 +129,7 @@ class FTPObjectStorageRepositoryTest {
     log.info("=== Test unsuccessful upload ===");
 
     assertTrue(repository.login(uri, username_valid, password_valid));
-    assertFalse(repository.upload("/invalid/path/" + filename, "Some text"));
+    assertThrows(FtpException.class, () -> repository.upload("/invalid/path/" + filename, "Some text"));
     repository.logout();
   }
 }

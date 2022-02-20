@@ -74,32 +74,25 @@ public class FTPObjectStorageRepository {
     }
   }
 
-  public boolean upload(String filename, String content) {
-    boolean isUpload = false;
+  public boolean upload(String filename, String content) throws IOException, FtpException {
     try (InputStream is = new ByteArrayInputStream(content.getBytes())) {
       ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
       ftpClient.enterLocalPassiveMode();
       changeWorkingDirectory();
+
       if (ftpClient.storeFile(filename, is)) {
         log.debug("File uploaded on FTP");
-        isUpload = true;
-      } else {
-        log.debug("File NOT uploaded on FTP");
-        throw new FtpException(ftpClient.getReplyCode(),
-          ftpClient.getReplyString().trim());
-      }
-    } catch (Exception e) {
-      log.error("Error uploading", e);
-    } finally {
-      try {
         ftpClient.logout();
-      } catch (IOException e) {
-        log.error("Error logout from FTP", e);
-      } finally {
         disconnect();
+        return true;
+      } else {
+        var errMessage = ftpClient.getReplyString().trim();
+        log.debug("File NOT uploaded on FTP: {}", errMessage);
+        ftpClient.logout();
+        disconnect();
+        throw new FtpException(ftpClient.getReplyCode(), errMessage);
       }
     }
-    return isUpload;
   }
 
   private void changeWorkingDirectory() throws IOException {

@@ -50,7 +50,9 @@ class BulkEditTest extends BaseBatchTest {
   private static final String USER_RECORD_ROLLBACK_CSV = "test-directory/bulk_edit_rollback.csv";
   private static final String BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/barcodesSomeNotFound.csv";
   private static final String QUERY_FILE_PATH = "src/test/resources/upload/users_by_group.cql";
+  private static final String QUERY_NO_GROUP_FILE_PATH = "src/test/resources/upload/active_no_group.cql";
   private static final String EXPECTED_BULK_EDIT_OUTPUT = "src/test/resources/output/bulk_edit_identifiers_output.csv";
+  private static final String EXPECTED_NO_GROUP_OUTPUT = "src/test/resources/output/bulk_edit_no_group_output.csv";
   private final static String EXPECTED_BULK_EDIT_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_identifiers_output_some_not_found.csv";
   private final static String EXPECTED_BULK_EDIT_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_identifiers_errors_output.csv";
 
@@ -108,6 +110,19 @@ class BulkEditTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_OUTPUT);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  @Test
+  @DisplayName("Process users without patron group id successfully")
+  void shouldProcessUsersWithoutPatronGroupIdSuccessfully() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditCqlJob);
+
+    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, QUERY_NO_GROUP_FILE_PATH, true);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    verifyFileOutput(jobExecution, EXPECTED_NO_GROUP_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }

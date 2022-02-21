@@ -25,6 +25,7 @@ public class FTPObjectStorageRepository {
 
   private final ObjectFactory<FTPClient> ftpClientFactory;
   private final FTPProperties ftpProperties;
+  private static final String FILE_UPLOAD_FAILED = "File upload failed. ";
 
   public FTPObjectStorageRepository(ObjectFactory<FTPClient> ftpClientFactory, FTPProperties ftpProperties) {
     this.ftpProperties = ftpProperties;
@@ -83,7 +84,7 @@ public class FTPObjectStorageRepository {
         log.debug("File uploaded on FTP");
       } else {
         log.debug("File NOT uploaded on FTP");
-        throw new FtpException(ftpClient.getReplyCode(), ftpClient.getReplyString());
+        throw new FtpException(ftpClient.getReplyCode(), getReplyMessage(ftpClient.getReplyCode(), ftpClient.getReplyString()));
       }
     } catch (IOException ioException) {
       log.error("Error uploading file", ioException);
@@ -123,6 +124,15 @@ public class FTPObjectStorageRepository {
       ftpClient.disconnect();
     } catch (IOException e) {
       log.error("Error disconnect from FTP", e);
+    }
+  }
+
+  private static String getReplyMessage(Integer replyCode, String replyMessage) {
+    switch (replyCode) {
+    case 550:
+      return FILE_UPLOAD_FAILED + "Please check if user has write permissions";
+    default:
+      return FILE_UPLOAD_FAILED + replyMessage;
     }
   }
 

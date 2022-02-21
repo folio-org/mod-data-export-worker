@@ -119,7 +119,7 @@ class FTPObjectStorageRepositoryTest {
     log.info("=== Test successful upload ===");
 
     assertTrue(repository.login(uri, username_valid, password_valid));
-    assertTrue(repository.upload(filename, "Some text"));
+    assertDoesNotThrow(() -> repository.upload(filename, "Some text"));
     assertTrue(fakeFtpServer.getFileSystem().exists(user_home_dir + "/" + filename));
     repository.logout();
   }

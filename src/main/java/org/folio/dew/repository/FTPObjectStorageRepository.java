@@ -25,6 +25,7 @@ public class FTPObjectStorageRepository {
 
   private final ObjectFactory<FTPClient> ftpClientFactory;
   private final FTPProperties ftpProperties;
+  private static final String FILE_UPLOAD_FAILED = "File upload failed. ";
 
   public FTPObjectStorageRepository(ObjectFactory<FTPClient> ftpClientFactory, FTPProperties ftpProperties) {
     this.ftpProperties = ftpProperties;
@@ -74,22 +75,20 @@ public class FTPObjectStorageRepository {
     }
   }
 
-  public boolean upload(String filename, String content) {
-    boolean isUpload = false;
+  public void upload(String filename, String content) throws IOException {
     try (InputStream is = new ByteArrayInputStream(content.getBytes())) {
       ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
       ftpClient.enterLocalPassiveMode();
       changeWorkingDirectory();
       if (ftpClient.storeFile(filename, is)) {
         log.debug("File uploaded on FTP");
-        isUpload = true;
       } else {
         log.debug("File NOT uploaded on FTP");
-        throw new FtpException(ftpClient.getReplyCode(),
-          ftpClient.getReplyString().trim());
+        throw new FtpException(ftpClient.getReplyCode(), getReplyMessage(ftpClient.getReplyCode(), ftpClient.getReplyString()));
       }
-    } catch (Exception e) {
-      log.error("Error uploading", e);
+    } catch (IOException ioException) {
+      log.error("Error uploading file", ioException);
+      throw ioException;
     } finally {
       try {
         ftpClient.logout();
@@ -99,7 +98,6 @@ public class FTPObjectStorageRepository {
         disconnect();
       }
     }
-    return isUpload;
   }
 
   private void changeWorkingDirectory() throws IOException {
@@ -126,6 +124,15 @@ public class FTPObjectStorageRepository {
       ftpClient.disconnect();
     } catch (IOException e) {
       log.error("Error disconnect from FTP", e);
+    }
+  }
+
+  private static String getReplyMessage(Integer replyCode, String replyMessage) {
+    switch (replyCode) {
+    case 550:
+      return FILE_UPLOAD_FAILED + "Please check if user has write permissions";
+    default:
+      return FILE_UPLOAD_FAILED + replyMessage;
     }
   }
 

@@ -1,6 +1,8 @@
 package org.folio.dew.exceptions;
 
-public class FtpException extends Exception {
+import java.io.IOException;
+
+public class FtpException extends IOException {
 
   private static final long serialVersionUID = 1951421211166849200L;
   private final String replyMessage;
@@ -19,4 +21,5 @@ public class FtpException extends Exception {
   public Integer getReplyCode() {
     return replyCode;
   }
+
 }

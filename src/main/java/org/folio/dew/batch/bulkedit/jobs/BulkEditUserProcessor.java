@@ -12,7 +12,7 @@ import java.util.TimeZone;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
-import org.eclipse.aether.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.Address;
 import org.folio.dew.domain.dto.ItemIdentifier;

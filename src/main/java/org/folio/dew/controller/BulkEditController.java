@@ -52,6 +52,7 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 
@@ -212,7 +213,7 @@ public class BulkEditController implements JobIdApi {
   private void prepareJobParameters(JobCommand jobCommand, String fileName) {
     var paramsBuilder = new JobParametersBuilder(jobCommand.getJobParameters());
     paramsBuilder.addString(FILE_NAME, fileName);
-    paramsBuilder.addString(TEMP_OUTPUT_FILE_PATH, workDir + LocalDate.now() + "-Matched-Records-" + FilenameUtils.getBaseName(fileName));
+    paramsBuilder.addString(TEMP_OUTPUT_FILE_PATH, workDir + LocalDate.now() + MATCHED_RECORDS + FilenameUtils.getBaseName(fileName));
     paramsBuilder.addString(EXPORT_TYPE, jobCommand.getExportType().getValue());
     ofNullable(jobCommand.getIdentifierType()).ifPresent(type ->
       paramsBuilder.addString("identifierType", type.getValue()));

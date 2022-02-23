@@ -9,6 +9,7 @@ public class Constants {
   public static final String TMP_DIR_PROPERTY = "java.io.tmpdir";
   public static final String PATH_SEPARATOR = "/";
   public static final String JOB_ID_SEPARATOR = "_";
+  public static final String MATCHED_RECORDS = "-Matched-Records-";
 
   public static final String ARRAY_DELIMITER = ";";
   public static final String ITEM_DELIMITER = "|";

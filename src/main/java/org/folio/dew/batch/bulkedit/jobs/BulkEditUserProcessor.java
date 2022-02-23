@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
+
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.Address;
 import org.folio.dew.domain.dto.ItemIdentifier;
@@ -52,7 +54,6 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
 
   @Override
   public UserFormat process(User user) {
-    var patronGroup = userReferenceService.getUserGroupById(user.getPatronGroup());
     return UserFormat.builder()
       .userName(user.getUsername())
       .id(user.getId())
@@ -60,7 +61,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       .barcode(user.getBarcode())
       .active(user.getActive().toString())
       .type(user.getType())
-      .patronGroup(patronGroup.getGroup())
+      .patronGroup(StringUtils.isEmpty(user.getPatronGroup()) ? EMPTY : userReferenceService.getUserGroupById(user.getPatronGroup()).getGroup())
       .departments(fetchDepartments(user))
       .proxyFor(fetchProxyFor(user))
       .lastName(user.getPersonal().getLastName())

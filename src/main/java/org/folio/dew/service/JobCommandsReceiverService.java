@@ -5,10 +5,12 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
+import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -133,8 +135,10 @@ public class JobCommandsReceiverService {
     var jobId = jobCommand.getId().toString();
     paramsBuilder.addString(JobParameterNames.JOB_ID, jobId);
     var now = new Date();
-    paramsBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH,
-      String.format("%s%s_%s_%tF_%tT", workDir, jobId, jobCommand.getExportType(), now, now));
+    var outputFileName = BULK_EDIT_QUERY == jobCommand.getExportType() ?
+      workDir + LocalDate.now() + MATCHED_RECORDS + "query" :
+      String.format("%s%s_%tF_%tT_%s", workDir, jobCommand.getExportType(), now, now, jobId);
+    paramsBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFileName);
 
     normalizeParametersForBursarExport(paramsBuilder, jobId);
 

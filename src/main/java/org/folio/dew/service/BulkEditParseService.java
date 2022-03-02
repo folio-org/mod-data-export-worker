@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 
 import static java.time.ZoneOffset.UTC;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
@@ -58,8 +59,8 @@ public class BulkEditParseService {
   private void populateUserFields(User user, UserFormat userFormat) {
     user.setId(userFormat.getId());
     user.setUsername(userFormat.getUserName());
-    user.setExternalSystemId(userFormat.getExternalSystemId());
-    user.setBarcode(userFormat.getBarcode());
+    user.setExternalSystemId(isBlank(userFormat.getExternalSystemId()) ? null : userFormat.getExternalSystemId());
+    user.setBarcode(isBlank(userFormat.getBarcode()) ? null : userFormat.getBarcode());
     user.setActive(getIsActive(userFormat));
     user.setType(userFormat.getType());
     user.setPatronGroup(getPatronGroupId(userFormat));

@@ -14,9 +14,10 @@ class BulkEditParseServiceTest extends BaseBatchTest {
 
   @ParameterizedTest
   @ValueSource(strings = {"", " "})
-  void userExternalSystemIdShouldNotBeEmptyString(String extSysId) {
+  void shouldIgnoreBlankBarcodeAndExternalSystemId(String val) {
     var userFormat = UserFormat.builder()
-      .externalSystemId(extSysId)
+      .externalSystemId(val)
+      .barcode(val)
       .active("true")
       .departments("")
       .proxyFor("")
@@ -24,5 +25,6 @@ class BulkEditParseServiceTest extends BaseBatchTest {
       .build();
 
     assertThat(bulkEditParseService.mapUserFormatToUser(userFormat).getExternalSystemId()).isNull();
+    assertThat(bulkEditParseService.mapUserFormatToUser(userFormat).getBarcode()).isNull();
   }
 }

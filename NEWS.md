@@ -1,4 +1,32 @@
-## v1.3.0 - Unreleased
+## 2022-03-03 v1.3.0
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.2.2...v1.3.0)
+
+### Technical tasks
+* [MODEXPW-66](https://issues.folio.org/browse/MODEXPW-66) mod-data-export-worker: folio-spring-base v3 update
+
+### Stroies
+* [MODEXPW-32](https://issues.folio.org/browse/MODEXPW-32) Copy FTP upload service from mod-invoice into mod-data-export-worker
+* [MODEXPW-42](https://issues.folio.org/browse/MODEXPW-42) Implement export flow Mapping FOLIO orders to EDIFACT order file
+* [MODEXPW-44](https://issues.folio.org/browse/MODEXPW-44) Implement the preview of matched records
+* [MODEXPW-45](https://issues.folio.org/browse/MODEXPW-45) Get matching records based on provided identifiers
+* [MODEXPW-46](https://issues.folio.org/browse/MODEXPW-46) Get matching records based on provided query
+* [MODEXPW-48](https://issues.folio.org/browse/MODEXPW-48) Remove uploaded edit records if user cancel editing
+* [MODEXPW-51](https://issues.folio.org/browse/MODEXPW-51) Records processing errors handling
+* [MODEXPW-52](https://issues.folio.org/browse/MODEXPW-52) Reuse export-common library
+* [MODEXPW-56](https://issues.folio.org/browse/MODEXPW-56) Return the number of records in a file
+* [MODEXPW-59](https://issues.folio.org/browse/MODEXPW-59) Create API to start bulk-edit job execution
+* [MODEXPW-69](https://issues.folio.org/browse/MODEXPW-69) Records processing preview handling
+* [MODEXPW-71](https://issues.folio.org/browse/MODEXPW-71) Uploading file with modified name fails
+* [MODEXPW-72](https://issues.folio.org/browse/MODEXPW-72) Update mod-data-export-worker API documentation
+
+### Bug fixes
+* [MODEXPW-28](https://issues.folio.org/browse/MODEXPW-28) Tenant deletion failed due to hsql error
+* [MODEXPW-67](https://issues.folio.org/browse/MODEXPW-67) FolioExecutionContext is initialized with wrong tenant id if Spring Batch job launches asynchronously in multi tenant cluster
+* [MODEXPW-68](https://issues.folio.org/browse/MODEXPW-68) Remaining fixes and improvements for FOLIO orders to EDIFACT format mapping
+* [MODEXPW-70](https://issues.folio.org/browse/MODEXPW-70) Name of downloaded file does not adhere to the naming standard
+* [MODEXPW-76](https://issues.folio.org/browse/MODEXPW-76) Download matched records (CSV)  does not appear in query search screen
+* [MODEXPW-79](https://issues.folio.org/browse/MODEXPW-79) Errors upon bulk-edit user update
 
 ## 2021-11-10 v1.2.0
 * [MODEXPW-38](https://issues.folio.org/browse/MODEXPW-38) Saving circulation log with notices "send error" fails

@@ -14,13 +14,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.de.entity.JobCommand;
+import org.folio.des.domain.dto.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.ExportJobManagerCirculationLog;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
-import org.folio.dew.config.kafka.KafkaService;
-import org.folio.dew.domain.dto.BursarFeeFines;
-import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.des.config.kafka.KafkaService;
+import org.folio.des.domain.dto.BursarFeeFines;
+import org.folio.des.domain.JobParameterNames;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
@@ -40,10 +40,7 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 
 import static java.util.Optional.ofNullable;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
-import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
+import static org.folio.des.domain.dto.ExportType.CIRCULATION_LOG;
 
 @Service
 @RequiredArgsConstructor
@@ -99,14 +96,6 @@ public class JobCommandsReceiverService {
       log.info("-----------------------------JOB---STARTS-----------------------------");
 
       prepareJobParameters(jobCommand);
-
-      if (Set.of(BULK_EDIT_IDENTIFIERS, BULK_EDIT_QUERY, BULK_EDIT_UPDATE).contains(jobCommand.getExportType())) {
-        addBulkEditJobCommand(jobCommand);
-        if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
-          acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-          return;
-        }
-      }
 
       var jobLaunchRequest =
         new JobLaunchRequest(

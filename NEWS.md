@@ -1,5 +1,13 @@
 ## v1.3.0 - Unreleased
 
+## v1.2.3 - Released
+The primary focus of this release is fixing several tenants usage errors for data export process
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.2.2...v1.2.3)
+
+### Bug fixes
+* [MODEXPW-83](https://issues.folio.org/browse/MODEXPW-83) - Backport for Kiwi HF#2: FolioExecutionContext is initialized with wrong tenant id if Spring Batch job launches asynchronously in multi tenant cluster
+
 ## v1.2.2 - Released
 The primary focus of this release is log4j upgrade to 2.17.0
 

@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
 import org.folio.dew.batch.ExportJobManager;
+import org.folio.dew.batch.ExportJobManagerCirculationLog;
 import org.folio.dew.repository.InMemoryAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.service.JobCommandsReceiverService;
@@ -37,6 +38,7 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -79,7 +81,11 @@ public abstract class BaseBatchTest {
   @Autowired
   protected InMemoryAcknowledgementRepository repository;
   @MockBean
+  @Qualifier("exportJobManager")
   protected ExportJobManager exportJobManager;
+  @MockBean
+  @Qualifier("exportJobManagerCirculationLog")
+  protected ExportJobManagerCirculationLog exportJobManagerCirculationLog;
   @MockBean
   protected Acknowledgment acknowledgment;
 

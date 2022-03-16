@@ -392,7 +392,7 @@
                       <generateApiDocumentation>false</generateApiDocumentation>
                       <generateModels>true</generateModels>
                       <modelsToGenerate>
-                        Department,DepartmentCollection,ProxyFor,ProxyForCollection,AddressType,AddressTypeCollection,UserGroup,UserGroupCollection,Parameter,Error,Errors
+                        CallNumberType,DamagedStatus,NoteType,ContributorName,EffectiveCallNumberComponents,ItemNote,CirculationNote,Source,Status,MaterialType,BriefHoldingsRecord,BriefInstance,Title,LoanType,ItemLocation,ElectronicAccess,ElectronicAccessRelationship,LastCheckIn,StatisticalCode,Item,ItemCollection,Department,DepartmentCollection,ProxyFor,ProxyForCollection,AddressType,AddressTypeCollection,UserGroup,UserGroupCollection,Parameter,Error,Errors
                       </modelsToGenerate>
                       <generateModelTests>false</generateModelTests>
                       <generateSupportingFiles>false</generateSupportingFiles>

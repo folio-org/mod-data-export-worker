@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
 
+import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
@@ -53,7 +54,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .itemLevelCallNumber(item.getItemLevelCallNumber())
       .itemLevelCallNumberPrefix(item.getItemLevelCallNumberPrefix())
       .itemLevelCallNumberSuffix(item.getItemLevelCallNumberSuffix())
-      .itemLevelCallNumberType(isEmpty(callNumberType) ? EMPTY : callNumberType.getName())
+      .itemLevelCallNumberType(isNull(callNumberType) ? EMPTY : callNumberType.getName())
       .effectiveCallNumberComponents(effectiveCallNumberComponentsToString(item.getEffectiveCallNumberComponents()))
       .volume(item.getVolume())
       .enumeration(item.getEnumeration())
@@ -66,7 +67,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .numberOfMissingPieces(item.getNumberOfMissingPieces())
       .missingPieces(item.getMissingPieces())
       .missingPiecesDate(item.getMissingPiecesDate())
-      .itemDamagedStatus(isEmpty(damagedStatus) ? EMPTY : damagedStatus.getName())
+      .itemDamagedStatus(isNull(damagedStatus) ? EMPTY : damagedStatus.getName())
       .itemDamagedStatusDate(item.getItemDamagedStatusDate())
       .administrativeNotes(isEmpty(item.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, item.getAdministrativeNotes()))
       .notes(fetchNotes(item))
@@ -81,7 +82,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .temporaryLocation(isEmpty(item.getTemporaryLocation()) ? EMPTY : item.getTemporaryLocation().getName())
       .effectiveLocation(isEmpty(item.getEffectiveLocation()) ? EMPTY : item.getEffectiveLocation().getName())
       .electronicAccess(fetchElectronicAccess(item))
-      .inTransitDestinationServicePoint(isEmpty(inTransitServicePoint) ? EMPTY : inTransitServicePoint.getName())
+      .inTransitDestinationServicePoint(isNull(inTransitServicePoint) ? EMPTY : inTransitServicePoint.getName())
       .statisticalCodes(fetchStatisticalCodes(item))
       .purchaseOrderLineIdentifier(item.getPurchaseOrderLineIdentifier())
       .tags(isEmpty(item.getTags().getTagList()) ? EMPTY : String.join(ARRAY_DELIMITER, item.getTags().getTagList()))
@@ -106,7 +107,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       isEmpty(components.getCallNumber()) ? EMPTY : components.getCallNumber(),
       isEmpty(components.getPrefix()) ? EMPTY : components.getPrefix(),
       isEmpty(components.getSuffix()) ? EMPTY : components.getSuffix(),
-      isEmpty(callNumberType) ? EMPTY : callNumberType.getName());
+      isNull(callNumberType) ? EMPTY : callNumberType.getName());
   }
 
   private String fetchNotes(Item item) {
@@ -120,7 +121,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
   private String itemNoteToString(ItemNote itemNote) {
     var noteType = isEmpty(itemNote.getItemNoteTypeId()) ? null : itemReferenceService.getNoteTypeById(itemNote.getItemNoteTypeId());
     return String.join(ARRAY_DELIMITER,
-      isEmpty(noteType) ? null : noteType.getName(),
+      isNull(noteType) ? null : noteType.getName(),
       itemNote.getNote(),
       itemNote.getStaffOnly().toString());
   }
@@ -174,7 +175,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       isEmpty(access.getLinkText()) ? EMPTY : access.getLinkText(),
       isEmpty(access.getMaterialsSpecification()) ? EMPTY : access.getMaterialsSpecification(),
       isEmpty(access.getPublicNote()) ? EMPTY : access.getPublicNote(),
-      isEmpty(relationship) ? EMPTY : relationship.getName());
+      isNull(relationship) ? EMPTY : relationship.getName());
   }
 
   private String fetchStatisticalCodes(Item item) {
@@ -193,8 +194,8 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       var servicePoint = isEmpty(lastCheckIn.getServicePointId()) ? null : itemReferenceService.getServicePointById(lastCheckIn.getServicePointId());
       var staffMember = isEmpty(lastCheckIn.getStaffMemberId()) ? null : itemReferenceService.getStaffMemberById(lastCheckIn.getStaffMemberId());
       return String.join(ARRAY_DELIMITER,
-        isEmpty(servicePoint) ? EMPTY : servicePoint.getName(),
-        isEmpty(staffMember) ? EMPTY : staffMember.getUsername(),
+        isNull(servicePoint) ? EMPTY : servicePoint.getName(),
+        isNull(staffMember) ? EMPTY : staffMember.getUsername(),
         lastCheckIn.getDateTime());
   }
 }

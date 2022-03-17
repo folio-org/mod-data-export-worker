@@ -160,7 +160,7 @@ public class BulkEditController implements JobIdApi {
       Files.write(uploadedPath, file.getBytes());
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
       prepareJobParameters(jobCommand, uploadedPath.toString());
-      if (!isBulkEditUpdate(jobCommand) || ITEM != jobCommand.getEntityType()) {
+      if (!isBulkEditUpdate(jobCommand) && ITEM != jobCommand.getEntityType()) {
         var job = getBulkEditJob(jobCommand);
         var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
         log.info("Launching bulk edit user identifiers job.");

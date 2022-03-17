@@ -1,8 +1,12 @@
 package org.folio.dew;
 
+import org.folio.dew.client.CallNumberTypeClient;
+import org.folio.dew.client.DamagedStatusClient;
+import org.folio.dew.client.ElectronicAccessRelationshipClient;
 import org.folio.dew.client.ExpenseClassClient;
 import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.IdentifierTypeClient;
+import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.LocationClient;
 import org.folio.dew.client.AccountBulkClient;
 import org.folio.dew.client.AccountClient;
@@ -14,12 +18,14 @@ import org.folio.dew.client.DepartmentClient;
 import org.folio.dew.client.FeefineactionsClient;
 import org.folio.dew.client.GroupClient;
 import org.folio.dew.client.MaterialTypeClient;
+import org.folio.dew.client.ItemNoteTypeClient;
 import org.folio.dew.client.OrdersClient;
 import org.folio.dew.client.OrdersStorageClient;
 import org.folio.dew.client.OrganizationsClient;
 import org.folio.dew.client.ProxiesForClient;
 import org.folio.dew.client.PurchaseOrderLineClient;
 import org.folio.dew.client.ServicePointClient;
+import org.folio.dew.client.StatisticalCodeClient;
 import org.folio.dew.client.TransferClient;
 import org.folio.dew.client.UserClient;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -50,7 +56,14 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
   LocationClient.class,
   HoldingClient.class,
   ExpenseClassClient.class,
-  OrganizationsClient.class
+  OrganizationsClient.class,
+  InventoryClient.class,
+  CallNumberTypeClient.class,
+  DamagedStatusClient.class,
+  ItemNoteTypeClient.class,
+  ElectronicAccessRelationshipClient.class,
+  InventoryClient.class,
+  StatisticalCodeClient.class
 })
 @EnableBatchProcessing
 public class ModDataExportWorkerApplication {

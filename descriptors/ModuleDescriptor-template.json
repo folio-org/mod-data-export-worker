@@ -39,7 +39,14 @@
             "proxiesfor.item.get",
             "departments.item.get",
             "usergroups.collection.get",
-            "addresstypes.collection.get"
+            "addresstypes.collection.get",
+            "inventory.items.collection.get",
+            "inventory-storage.call-number-types.item.get",
+            "inventory-storage.item-damaged-statuses.item.get",
+            "inventory-storage.electronic-access-relationships.item.get",
+            "inventory-storage.item-note-types.item.get",
+            "inventory-storage.service-points.item.get",
+            "inventory-storage.statistical-codes.item.get"
           ]
         },
         {
@@ -68,7 +75,8 @@
           "pathPattern": "/bulk-edit/{jobId}/preview",
           "permissionsRequired": [ "bulk-edit.preview.collection.get" ],
           "modulePermissions": [
-            "users.collection.get"
+            "users.collection.get",
+            "inventory.items.collection.get"
           ]
         },
         {

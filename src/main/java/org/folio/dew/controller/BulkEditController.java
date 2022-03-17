@@ -18,13 +18,14 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
+import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
-import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.JobCommandsReceiverService;
+import org.folio.dew.utils.BulkEditProcessorHelper;
 import org.openapitools.api.JobIdApi;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -46,6 +47,8 @@ import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.domain.dto.EntityType.ITEM;
+import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
@@ -66,6 +69,7 @@ public class BulkEditController implements JobIdApi {
   private static final String JOB_COMMAND_NOT_FOUND_ERROR = "JobCommand with id %s doesn't exist.";
 
   private final UserClient userClient;
+  private final InventoryClient inventoryClient;
   private final JobCommandsReceiverService jobCommandsReceiverService;
   private final ExportJobManager exportJobManager;
   private final BulkEditRollBackService bulkEditRollBackService;
@@ -99,7 +103,9 @@ public class BulkEditController implements JobIdApi {
       if (BULK_EDIT_UPDATE == exportType) {
         return new ResponseEntity<>(userClient.getUserByQuery(buildBarcodesQueryFromUpdatedRecordsFile(fileName, limit), limit), HttpStatus.OK);
       } else if (BULK_EDIT_IDENTIFIERS == exportType) {
-        return new ResponseEntity<>(userClient.getUserByQuery(buildBarcodesQueryFromIdentifiersFile(fileName, limit), limit), HttpStatus.OK);
+        return USER == jobCommand.getEntityType() ?
+          new ResponseEntity<>(userClient.getUserByQuery(buildQueryFromIdentifiersFile(jobCommand.getIdentifierType().getValue(), fileName, limit), limit), HttpStatus.OK) :
+          new ResponseEntity<>(inventoryClient.getItemByQuery(buildQueryFromIdentifiersFile(jobCommand.getIdentifierType().getValue(), fileName, limit), limit), HttpStatus.OK);
       } else if (BULK_EDIT_QUERY == exportType) {
         return new ResponseEntity<>(userClient.getUserByQuery(extractQueryFromJobCommand(jobCommand, "query"), limit), HttpStatus.OK);
       } else {
@@ -154,10 +160,10 @@ public class BulkEditController implements JobIdApi {
       Files.write(uploadedPath, file.getBytes());
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
       prepareJobParameters(jobCommand, uploadedPath.toString());
-      if (!isBulkEditUpdate(jobCommand)) {
-        var job = getBulkEditJob(jobCommand.getExportType());
+      if (!isBulkEditUpdate(jobCommand) && ITEM != jobCommand.getEntityType()) {
+        var job = getBulkEditJob(jobCommand);
         var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
-        log.info("Launching bulk edit identifiers job.");
+        log.info("Launching bulk edit user identifiers job.");
         exportJobManager.launchJob(jobLaunchRequest);
       }
       return new ResponseEntity<>(Long.toString(countLines(uploadedPath, isBulkEditUpdate(jobCommand))), HttpStatus.OK);
@@ -175,7 +181,7 @@ public class BulkEditController implements JobIdApi {
   }
 
   @Override
-  public ResponseEntity<String> startUpdateJob(UUID jobId) {
+  public ResponseEntity<String> startJob(UUID jobId) {
     var optionalJobCommand = jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
     if (optionalJobCommand.isEmpty()) {
       String msg = format(JOB_COMMAND_NOT_FOUND_ERROR, jobId);
@@ -183,12 +189,14 @@ public class BulkEditController implements JobIdApi {
       return new ResponseEntity<>(msg, HttpStatus.NOT_FOUND);
     }
     var jobCommand = optionalJobCommand.get();
-    var job =  getBulkEditJob(jobCommand.getExportType());
+    var job =  getBulkEditJob(jobCommand);
     var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
     try {
-      log.info("Launching bulk update job.");
+      log.info("Launching bulk-edit job.");
       var execution = exportJobManager.launchJob(jobLaunchRequest);
-      bulkEditRollBackService.putExecutionInfoPerJob(execution.getId(), jobId);
+      if (isBulkEditUpdate(jobCommand)) {
+        bulkEditRollBackService.putExecutionInfoPerJob(execution.getId(), jobId);
+      }
     } catch (Exception e) {
       var errorMessage = e.getMessage();
       log.error(errorMessage);
@@ -203,9 +211,12 @@ public class BulkEditController implements JobIdApi {
       : jobCommand.getJobParameters().getString(parameterName);
   }
 
-  private Job getBulkEditJob(ExportType exportType) {
+  private Job getBulkEditJob(JobCommand jobCommand) {
+    var jobName = BULK_EDIT_IDENTIFIERS == jobCommand.getExportType() ?
+      jobCommand.getExportType().getValue().concat("_").concat(jobCommand.getEntityType().getValue()) :
+      jobCommand.getExportType().getValue();
     return jobs.stream()
-      .filter(job -> job.getName().contains(exportType.getValue()))
+      .filter(job -> job.getName().contains(jobName))
       .findFirst()
       .orElseThrow(() -> new IllegalStateException("Job was not found, aborting"));
   }
@@ -222,15 +233,15 @@ public class BulkEditController implements JobIdApi {
     jobCommand.setJobParameters(paramsBuilder.toJobParameters());
   }
 
-  private String buildBarcodesQueryFromIdentifiersFile(String fileName, int limit) throws IOException {
-    var barcodes = "";
+  private String buildQueryFromIdentifiersFile(String identifierName, String fileName, int limit) throws IOException {
+    var identifiers = "";
     try (var lines = Files.lines(Paths.get(fileName))) {
-      barcodes = lines.limit(limit)
+      identifiers = lines.limit(limit)
         .map(String::strip)
         .map(i -> i.replace("\"", ""))
         .collect(joining(" OR "));
     }
-    return String.format("barcode==(%s)", barcodes);
+    return String.format("%s==(%s)", BulkEditProcessorHelper.resolveIdentifier(identifierName), identifiers);
   }
 
   private String buildBarcodesQueryFromUpdatedRecordsFile(String fileName, int limit) throws IOException {

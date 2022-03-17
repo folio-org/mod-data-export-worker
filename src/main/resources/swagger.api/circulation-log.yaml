@@ -25,11 +25,11 @@ components:
     exportType:
       $ref: '../../../../folio-export-common/schemas/exportType.json#/ExportType'
     entityType:
-      $ref: '../../../../folio-export-common/schemas/entityType.json#/EntityType'
+      $ref: '../../../../folio-export-common/schemas/bulk-edit/entityType.json#/EntityType'
     progress:
       $ref: '../../../../folio-export-common/schemas/progress.json#/Progress'
     identifierType:
-      $ref: '../../../../folio-export-common/schemas/identifierType.json#/IdentifierType'
+      $ref: '../../../../folio-export-common/schemas/bulk-edit/identifierType.json#/IdentifierType'
     jobStatus:
       $ref: '../../../../folio-export-common/schemas/jobStatus.json#/JobStatus'
     exportTypeSpecificParameters:

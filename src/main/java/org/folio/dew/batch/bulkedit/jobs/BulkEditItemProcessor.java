@@ -19,8 +19,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
@@ -38,11 +36,11 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
   public ItemFormat process(Item item) {
     return ItemFormat.builder()
       .id(item.getId())
-      .version(isNull(item.getVersion()) ? EMPTY : Integer.toString(item.getVersion()))
+      .version(isEmpty(item.getVersion()) ? EMPTY : Integer.toString(item.getVersion()))
       .hrid(item.getHrid())
       .holdingsRecordId(item.getHoldingsRecordId())
-      .formerIds(item.getFormerIds().isEmpty() ? EMPTY : String.join(ARRAY_DELIMITER, item.getFormerIds()))
-      .discoverySuppress(isNull(item.getDiscoverySuppress()) ? EMPTY : item.getDiscoverySuppress().toString())
+      .formerIds(isEmpty(item.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, item.getFormerIds()))
+      .discoverySuppress(isEmpty(item.getDiscoverySuppress()) ? EMPTY : item.getDiscoverySuppress().toString())
       .title(item.getTitle())
       .contributorNames(fetchContributorNames(item))
       .callNumber(item.getCallNumber())
@@ -57,7 +55,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .volume(item.getVolume())
       .enumeration(item.getEnumeration())
       .chronology(item.getChronology())
-      .yearCaption(item.getYearCaption().isEmpty() ? EMPTY : String.join(ARRAY_DELIMITER, item.getYearCaption()))
+      .yearCaption(isEmpty(item.getYearCaption()) ? EMPTY : String.join(ARRAY_DELIMITER, item.getYearCaption()))
       .itemIdentifier(item.getItemIdentifier())
       .copyNumber(item.getCopyNumber())
       .numberOfPieces(item.getNumberOfPieces())
@@ -67,55 +65,52 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .missingPiecesDate(item.getMissingPiecesDate())
       .itemDamagedStatus(isEmpty(item.getItemDamagedStatusId()) ? EMPTY : itemReferenceService.getDamagedStatusById(item.getItemDamagedStatusId()).getName())
       .itemDamagedStatusDate(item.getItemDamagedStatusDate())
-      .administrativeNotes(item.getAdministrativeNotes().isEmpty() ? EMPTY : String.join(ARRAY_DELIMITER, item.getAdministrativeNotes()))
+      .administrativeNotes(isEmpty(item.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, item.getAdministrativeNotes()))
       .notes(fetchNotes(item))
       .circulationNotes(fetchCirculationNotes(item))
       .status(String.join(ARRAY_DELIMITER, item.getStatus().getName().getValue(), dateToString(item.getStatus().getDate())))
       .materialType(item.getMaterialType().getName())
       .isBoundWith(item.getIsBoundWith().toString())
       .boundWithTitles(fetchBoundWithTitles(item))
-      .permanentLoanType(isNull(item.getPermanentLoanType()) ? EMPTY : item.getPermanentLoanType().getName())
-      .temporaryLoanType(isNull(item.getTemporaryLoanType()) ? EMPTY : item.getTemporaryLoanType().getName())
-      .permanentLocation(isNull(item.getPermanentLocation()) ? EMPTY : item.getPermanentLocation().getName())
-      .temporaryLocation(isNull(item.getTemporaryLocation()) ? EMPTY : item.getTemporaryLocation().getName())
-      .effectiveLocation(isNull(item.getEffectiveLocation()) ? EMPTY : item.getEffectiveLocation().getName())
+      .permanentLoanType(isEmpty(item.getPermanentLoanType()) ? EMPTY : item.getPermanentLoanType().getName())
+      .temporaryLoanType(isEmpty(item.getTemporaryLoanType()) ? EMPTY : item.getTemporaryLoanType().getName())
+      .permanentLocation(isEmpty(item.getPermanentLocation()) ? EMPTY : item.getPermanentLocation().getName())
+      .temporaryLocation(isEmpty(item.getTemporaryLocation()) ? EMPTY : item.getTemporaryLocation().getName())
+      .effectiveLocation(isEmpty(item.getEffectiveLocation()) ? EMPTY : item.getEffectiveLocation().getName())
       .electronicAccess(fetchElectronicAccess(item))
       .inTransitDestinationServicePoint(isEmpty(item.getInTransitDestinationServicePointId()) ? EMPTY : itemReferenceService.getServicePointById(item.getInTransitDestinationServicePointId()).getName())
       .statisticalCodes(fetchStatisticalCodes(item))
       .purchaseOrderLineIdentifier(item.getPurchaseOrderLineIdentifier())
-      .tags(isNull(item.getTags().getTagList()) ? EMPTY : String.join(ARRAY_DELIMITER, item.getTags().getTagList()))
+      .tags(isEmpty(item.getTags().getTagList()) ? EMPTY : String.join(ARRAY_DELIMITER, item.getTags().getTagList()))
       .lastCheckIn(lastCheckInToString(item.getLastCheckIn()))
       .build();
   }
 
   private String fetchContributorNames(Item item) {
-    if (nonNull(item.getContributorNames())) {
-      return item.getContributorNames().stream()
+    return isEmpty(item.getContributorNames()) ?
+      EMPTY :
+      item.getContributorNames().stream()
         .map(ContributorName::getName)
-        .map(name -> name.replace(",", "/"))
         .collect(Collectors.joining(ARRAY_DELIMITER));
-    }
-    return EMPTY;
   }
 
   private String effectiveCallNumberComponentsToString(EffectiveCallNumberComponents components) {
-    if (nonNull(components)) {
-      return String.join(ARRAY_DELIMITER,
-        components.getCallNumber(),
-        components.getPrefix(),
-        components.getSuffix(),
-        itemReferenceService.getCallNumberTypeById(components.getTypeId()).getName());
+    if (isEmpty(components)) {
+      return EMPTY;
     }
-    return EMPTY;
+    return String.join(ARRAY_DELIMITER,
+      isEmpty(components.getCallNumber()) ? EMPTY : components.getCallNumber(),
+      isEmpty(components.getPrefix()) ? EMPTY : components.getPrefix(),
+      isEmpty(components.getSuffix()) ? EMPTY : components.getSuffix(),
+      isEmpty(components.getTypeId()) ? EMPTY : itemReferenceService.getCallNumberTypeById(components.getTypeId()).getName());
   }
 
   private String fetchNotes(Item item) {
-    if (nonNull(item.getNotes())) {
-      return item.getNotes().stream()
+    return isEmpty(item.getNotes()) ?
+      EMPTY :
+      item.getNotes().stream()
         .map(this::itemNoteToString)
         .collect(Collectors.joining(ITEM_DELIMITER));
-    }
-    return EMPTY;
   }
 
   private String itemNoteToString(ItemNote itemNote) {
@@ -126,12 +121,11 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
   }
 
   private String fetchCirculationNotes(Item item) {
-    if (nonNull(item.getCirculationNotes())) {
-      return item.getCirculationNotes().stream()
+    return isEmpty(item.getCirculationNotes()) ?
+      EMPTY :
+      item.getCirculationNotes().stream()
         .map(this::circulationNotesToString)
         .collect(Collectors.joining(ITEM_DELIMITER));
-    }
-    return EMPTY;
   }
 
   private String circulationNotesToString(CirculationNote note) {
@@ -140,19 +134,17 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       note.getNoteType().getValue(),
       note.getNote(),
       note.getStaffOnly().toString(),
-      note.getSource().getId(),
       isEmpty(note.getSource().getPersonal().getLastName()) ? EMPTY : note.getSource().getPersonal().getLastName(),
       isEmpty(note.getSource().getPersonal().getFirstName()) ? EMPTY : note.getSource().getPersonal().getFirstName(),
       dateToString(note.getDate()));
   }
 
   private String fetchBoundWithTitles(Item item) {
-    if (nonNull(item.getBoundWithTitles())) {
-      return item.getBoundWithTitles().stream()
+    return isEmpty(item.getBoundWithTitles()) ?
+      EMPTY :
+      item.getBoundWithTitles().stream()
         .map(this::titleToString)
         .collect(Collectors.joining(ITEM_DELIMITER));
-    }
-    return EMPTY;
   }
 
   private String titleToString(Title title) {
@@ -163,42 +155,40 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
   }
 
   private String fetchElectronicAccess(Item item) {
-    if (nonNull(item.getElectronicAccess())) {
-      return item.getElectronicAccess().stream()
+    return isEmpty(item.getElectronicAccess()) ?
+      EMPTY :
+      item.getElectronicAccess().stream()
         .map(this::electronicAccessToString)
         .collect(Collectors.joining(ITEM_DELIMITER));
-    }
-    return EMPTY;
   }
 
   private String electronicAccessToString(ElectronicAccess access) {
     return String.join(ARRAY_DELIMITER,
       access.getUri(),
-      access.getLinkText(),
-      access.getMaterialsSpecification(),
-      access.getPublicNote(),
+      isEmpty(access.getLinkText()) ? EMPTY : access.getLinkText(),
+      isEmpty(access.getMaterialsSpecification()) ? EMPTY : access.getMaterialsSpecification(),
+      isEmpty(access.getPublicNote()) ? EMPTY : access.getPublicNote(),
       isEmpty(access.getRelationshipId()) ? EMPTY : itemReferenceService.getRelationshipById(access.getRelationshipId()).getName());
   }
 
   private String fetchStatisticalCodes(Item item) {
-    if (nonNull(item.getStatisticalCodeIds())) {
-      return item.getStatisticalCodeIds().stream()
+    return isEmpty(item.getStatisticalCodeIds()) ?
+      EMPTY :
+      item.getStatisticalCodeIds().stream()
         .map(itemReferenceService::getStatisticalCodeById)
         .map(StatisticalCode::getCode)
         .collect(Collectors.joining(ARRAY_DELIMITER));
-    }
-    return EMPTY;
   }
 
   private String lastCheckInToString(LastCheckIn lastCheckIn) {
-    if (nonNull(lastCheckIn)) {
+    if (isEmpty(lastCheckIn)) {
+      return EMPTY;
+    }
       var servicePoint = itemReferenceService.getServicePointById(lastCheckIn.getServicePointId());
       var staffMember = itemReferenceService.getStaffMemberById(lastCheckIn.getStaffMemberId());
       return String.join(ARRAY_DELIMITER,
-        isNull(servicePoint) ? EMPTY : servicePoint.getName(),
-        isNull(staffMember) ? EMPTY : staffMember.getUsername(),
+        isEmpty(servicePoint) ? EMPTY : servicePoint.getName(),
+        isEmpty(staffMember) ? EMPTY : staffMember.getUsername(),
         lastCheckIn.getDateTime());
-    }
-    return EMPTY;
   }
 }

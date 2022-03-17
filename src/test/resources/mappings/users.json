@@ -155,6 +155,19 @@
           "Content-Type": "text/plain"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/users/bec20636-fb68-41fd-84ea-2cf910673599"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"username\": \"morty\",\n    \"id\": \"bec20636-fb68-41fd-84ea-2cf910673599\",\n    \"barcode\": \"456\",\n    \"active\": true,\n    \"patronGroup\": \"3684a786-6671-4268-8ed0-9db82ebca60b\",\n    \"departments\": [],\n    \"proxyFor\": [],\n    \"personal\": {\n        \"lastName\": \"morty\",\n        \"firstName\": \"panic\",\n        \"email\": \"morty@example.com\",\n        \"addresses\": [],\n        \"preferredContactTypeId\": \"002\"\n    },\n    \"enrollmentDate\": \"2020-10-07T04:00:00.000+00:00\",\n    \"createdDate\": \"2022-03-16T01:51:57.264+00:00\",\n    \"updatedDate\": \"2022-03-16T01:51:57.264+00:00\",\n    \"metadata\": {\n        \"createdDate\": \"2022-03-16T01:51:57.257+00:00\",\n        \"updatedDate\": \"2022-03-16T01:51:57.257+00:00\"\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

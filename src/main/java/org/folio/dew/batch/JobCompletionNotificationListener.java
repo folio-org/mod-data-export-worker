@@ -32,6 +32,7 @@ import lombok.extern.log4j.Log4j2;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static org.folio.dew.domain.dto.EntityType.USER;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_USERS;
@@ -187,7 +188,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
   }
 
   private boolean isBulkEditIdentifiersJob(JobExecution jobExecution) {
-    return ExportType.BULK_EDIT_IDENTIFIERS.getValue().equals(jobExecution.getJobInstance().getJobName());
+    return jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_IDENTIFIERS.getValue());
   }
 
   private String saveResult(JobExecution jobExecution) {

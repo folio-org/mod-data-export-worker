@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.BaseBatchTest;
+import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.*;
 import org.folio.dew.error.BulkEditException;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionException;
@@ -32,7 +34,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static java.lang.String.format;
+import static org.folio.dew.domain.dto.EntityType.ITEM;
+import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
+import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -57,7 +63,10 @@ class BulkEditControllerTest extends BaseBatchTest {
   private BulkEditRollBackService bulkEditRollBackService;
 
   @MockBean
-  private UserClient client;
+  private UserClient userClient;
+
+  @MockBean
+  private InventoryClient inventoryClient;
 
   @Autowired
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
@@ -66,7 +75,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   void shouldReturnErrorsPreview() throws Exception {
 
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE));
 
     int numOfErrorLines = 3;
     int errorsPreviewLimit = 2;
@@ -94,7 +103,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   void shouldReturnEmptyErrorsForErrorsPreview() throws Exception {
 
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE));
 
     var expectedErrorMsg = format("errors file for job id %s", jobId);
 
@@ -130,12 +139,12 @@ class BulkEditControllerTest extends BaseBatchTest {
   @ParameterizedTest
   @CsvSource({"BULK_EDIT_IDENTIFIERS,barcode==(123 OR 456 OR 789)",
     "BULK_EDIT_QUERY,(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName"})
-  void shouldReturnCompletePreview(String exportType, String query) {
+  void shouldReturnCompleteUserPreview(String exportType, String query) {
 
-    when(client.getUserByQuery(query, 3)).thenReturn(buildUserCollection());
+    when(userClient.getUserByQuery(query, 3)).thenReturn(buildUserCollection());
 
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType)));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType), USER, BARCODE));
 
     var headers = defaultHeaders();
 
@@ -149,17 +158,39 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(users.getUsers(), hasSize(3));
   }
 
+  @ParameterizedTest
+  @EnumSource(IdentifierType.class)
+  @SneakyThrows
+  void shouldReturnCompleteItemPreview(IdentifierType identifierType) {
+
+    when(inventoryClient.getItemByQuery(String.format("%s==(123 OR 456 OR 789)", resolveIdentifier(identifierType.getValue())), 3)).thenReturn(buildItemCollection());
+
+    var jobId = UUID.randomUUID();
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, ITEM, identifierType));
+
+    var headers = defaultHeaders();
+
+    var response = mockMvc.perform(get(format(PREVIEW_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(3)))
+      .andExpect(status().isOk());
+
+    var items = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), ItemCollection.class);
+    assertThat(items.getTotalRecords(), equalTo(3));
+    assertThat(items.getItems(), hasSize(3));
+  }
+
   @SneakyThrows
   @ParameterizedTest
   @CsvSource({"BULK_EDIT_IDENTIFIERS,barcode==(123 OR 456)",
     "BULK_EDIT_UPDATE,barcode==(123 OR 456)",
     "BULK_EDIT_QUERY,(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName"})
-  void shouldReturnCompletePreviewWithLimitControl(String exportType, String query) {
+  void shouldReturnCompleteUserPreviewWithLimitControl(String exportType, String query) {
 
-    when(client.getUserByQuery(query, 2)).thenReturn(buildUserCollection());
+    when(userClient.getUserByQuery(query, 2)).thenReturn(buildUserCollection());
 
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType)));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType), USER, BARCODE));
 
     var headers = defaultHeaders();
 
@@ -170,7 +201,32 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     ArgumentCaptor<String> queryCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<Long> limitCaptor = ArgumentCaptor.forClass(Long.class);
-    verify(client).getUserByQuery(queryCaptor.capture(), limitCaptor.capture());
+    verify(userClient).getUserByQuery(queryCaptor.capture(), limitCaptor.capture());
+    assertThat(query, equalTo(queryCaptor.getValue()));
+    assertThat(2L, equalTo(limitCaptor.getValue()));
+  }
+
+  @ParameterizedTest
+  @EnumSource(IdentifierType.class)
+  @SneakyThrows
+  void shouldReturnCompleteItemPreviewWithLimitControl(IdentifierType identifierType) {
+
+    var query = String.format("%s==(123 OR 456)", resolveIdentifier(identifierType.getValue()));
+    when(inventoryClient.getItemByQuery(query, 2)).thenReturn(buildItemCollection());
+
+    var jobId = UUID.randomUUID();
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, ITEM, identifierType));
+
+    var headers = defaultHeaders();
+
+    var response = mockMvc.perform(get(format(PREVIEW_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(2)))
+      .andExpect(status().isOk());
+
+    ArgumentCaptor<String> queryCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<Long> limitCaptor = ArgumentCaptor.forClass(Long.class);
+    verify(inventoryClient).getItemByQuery(queryCaptor.capture(), limitCaptor.capture());
     assertThat(query, equalTo(queryCaptor.getValue()));
     assertThat(2L, equalTo(limitCaptor.getValue()));
   }
@@ -180,7 +236,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   void shouldReturnErrorForInvalidExportType() {
 
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.ORDERS_EXPORT));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.ORDERS_EXPORT, USER, BARCODE));
 
     var headers = defaultHeaders();
 
@@ -207,7 +263,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @SneakyThrows
   void shouldLaunchJobAndReturnNumberOfRecordsOnIdentifiersFileUpload() {
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE));
 
     var headers = defaultHeaders();
 
@@ -230,7 +286,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @SneakyThrows
   void shouldSkipHeadersWhileCountingRecordsForUpdate() {
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_UPDATE));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_UPDATE, USER, BARCODE));
 
     var headers = defaultHeaders();
 
@@ -251,7 +307,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @SneakyThrows
   void shouldReturnBadRequestWhenIdentifiersFileIsEmpty() {
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE));
 
     var headers = defaultHeaders();
 
@@ -340,15 +396,15 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andExpect(status().isInternalServerError());
   }
 
-  private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType) {
+  private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType, EntityType entityType, IdentifierType identifierType) {
     JobCommand jobCommand = new JobCommand();
     jobCommand.setType(JobCommand.Type.START);
     jobCommand.setId(id);
     jobCommand.setName(exportType.toString());
     jobCommand.setDescription("Job description");
     jobCommand.setExportType(exportType);
-    jobCommand.setIdentifierType(IdentifierType.BARCODE);
-    jobCommand.setEntityType(EntityType.USER);
+    jobCommand.setIdentifierType(identifierType);
+    jobCommand.setEntityType(entityType);
 
     Map<String, JobParameter> params = new HashMap<>();
     params.put("query", new JobParameter("(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName"));
@@ -363,6 +419,14 @@ class BulkEditControllerTest extends BaseBatchTest {
       .addUsersItem(new User().barcode("123").patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b"))
       .addUsersItem(new User().barcode("456").patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b"))
       .addUsersItem(new User().barcode("789").patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b"))
+      .totalRecords(3);
+  }
+
+  private ItemCollection buildItemCollection() {
+    return new ItemCollection()
+      .addItemsItem(new Item().barcode("123"))
+      .addItemsItem(new Item().barcode("456"))
+      .addItemsItem(new Item().barcode("789"))
       .totalRecords(3);
   }
 }

@@ -135,8 +135,8 @@ paths:
                 $ref: "#/components/schemas/errors"
   /{jobId}/start:
     post:
-      description: Start update job
-      operationId: startUpdateJob
+      description: Start job
+      operationId: startJob
       parameters:
         - name: jobId
           in: path
@@ -146,7 +146,7 @@ paths:
             $ref: "#/components/schemas/UUID"
       responses:
         "200":
-          description: Update is started
+          description: Job is started
           content:
             application/json:
               schema:
@@ -217,6 +217,18 @@ components:
       $ref: '../../../../folio-export-common/schemas/user/departmentCollection.json#/DepartmentCollection'
     userCollection:
       $ref: '../../../../folio-export-common/schemas/user/userCollection.json'
+    itemCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/itemCollection.json#/ItemCollection'
+    callNumberType:
+      $ref: '../../../../folio-export-common/schemas/inventory/callNumberType.json#/CallNumberType'
+    damagedStatus:
+      $ref: '../../../../folio-export-common/schemas/inventory/damagedStatus.json#/DamagedStatus'
+    noteType:
+      $ref: '../../../../folio-export-common/schemas/inventory/itemNoteType.json#/NoteType'
+    electronicAccessRelationship:
+      $ref: '../../../../folio-export-common/schemas/inventory/electronicAccessRelationship.json#/ElectronicAccessRelationship'
+    statisticalCode:
+      $ref: '../../../../folio-export-common/schemas/inventory/statisticalCode.json#/StatisticalCode'
   examples:
     errors:
       value:

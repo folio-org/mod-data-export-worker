@@ -34,6 +34,9 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
 
   @Override
   public ItemFormat process(Item item) {
+    var callNumberType = isEmpty(item.getItemLevelCallNumberTypeId()) ? null : itemReferenceService.getCallNumberTypeById(item.getItemLevelCallNumberTypeId());
+    var damagedStatus = isEmpty(item.getItemDamagedStatusId()) ? null : itemReferenceService.getDamagedStatusById(item.getItemDamagedStatusId());
+    var inTransitServicePoint = isEmpty(item.getInTransitDestinationServicePointId()) ? null : itemReferenceService.getServicePointById(item.getInTransitDestinationServicePointId());
     return ItemFormat.builder()
       .id(item.getId())
       .version(isEmpty(item.getVersion()) ? EMPTY : Integer.toString(item.getVersion()))
@@ -50,7 +53,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .itemLevelCallNumber(item.getItemLevelCallNumber())
       .itemLevelCallNumberPrefix(item.getItemLevelCallNumberPrefix())
       .itemLevelCallNumberSuffix(item.getItemLevelCallNumberSuffix())
-      .itemLevelCallNumberType(isEmpty(item.getItemLevelCallNumberTypeId()) ? EMPTY : itemReferenceService.getCallNumberTypeById(item.getItemLevelCallNumberTypeId()).getName())
+      .itemLevelCallNumberType(isEmpty(callNumberType) ? EMPTY : callNumberType.getName())
       .effectiveCallNumberComponents(effectiveCallNumberComponentsToString(item.getEffectiveCallNumberComponents()))
       .volume(item.getVolume())
       .enumeration(item.getEnumeration())
@@ -63,7 +66,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .numberOfMissingPieces(item.getNumberOfMissingPieces())
       .missingPieces(item.getMissingPieces())
       .missingPiecesDate(item.getMissingPiecesDate())
-      .itemDamagedStatus(isEmpty(item.getItemDamagedStatusId()) ? EMPTY : itemReferenceService.getDamagedStatusById(item.getItemDamagedStatusId()).getName())
+      .itemDamagedStatus(isEmpty(damagedStatus) ? EMPTY : damagedStatus.getName())
       .itemDamagedStatusDate(item.getItemDamagedStatusDate())
       .administrativeNotes(isEmpty(item.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, item.getAdministrativeNotes()))
       .notes(fetchNotes(item))
@@ -78,7 +81,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .temporaryLocation(isEmpty(item.getTemporaryLocation()) ? EMPTY : item.getTemporaryLocation().getName())
       .effectiveLocation(isEmpty(item.getEffectiveLocation()) ? EMPTY : item.getEffectiveLocation().getName())
       .electronicAccess(fetchElectronicAccess(item))
-      .inTransitDestinationServicePoint(isEmpty(item.getInTransitDestinationServicePointId()) ? EMPTY : itemReferenceService.getServicePointById(item.getInTransitDestinationServicePointId()).getName())
+      .inTransitDestinationServicePoint(isEmpty(inTransitServicePoint) ? EMPTY : inTransitServicePoint.getName())
       .statisticalCodes(fetchStatisticalCodes(item))
       .purchaseOrderLineIdentifier(item.getPurchaseOrderLineIdentifier())
       .tags(isEmpty(item.getTags().getTagList()) ? EMPTY : String.join(ARRAY_DELIMITER, item.getTags().getTagList()))
@@ -98,11 +101,12 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
     if (isEmpty(components)) {
       return EMPTY;
     }
+    var callNumberType = isEmpty(components.getTypeId()) ? null : itemReferenceService.getCallNumberTypeById(components.getTypeId());
     return String.join(ARRAY_DELIMITER,
       isEmpty(components.getCallNumber()) ? EMPTY : components.getCallNumber(),
       isEmpty(components.getPrefix()) ? EMPTY : components.getPrefix(),
       isEmpty(components.getSuffix()) ? EMPTY : components.getSuffix(),
-      isEmpty(components.getTypeId()) ? EMPTY : itemReferenceService.getCallNumberTypeById(components.getTypeId()).getName());
+      isEmpty(callNumberType) ? EMPTY : callNumberType.getName());
   }
 
   private String fetchNotes(Item item) {
@@ -114,8 +118,9 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
   }
 
   private String itemNoteToString(ItemNote itemNote) {
+    var noteType = isEmpty(itemNote.getItemNoteTypeId()) ? null : itemReferenceService.getNoteTypeById(itemNote.getItemNoteTypeId());
     return String.join(ARRAY_DELIMITER,
-      itemReferenceService.getNoteTypeById(itemNote.getItemNoteTypeId()).getName(),
+      isEmpty(noteType) ? null : noteType.getName(),
       itemNote.getNote(),
       itemNote.getStaffOnly().toString());
   }
@@ -163,12 +168,13 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
   }
 
   private String electronicAccessToString(ElectronicAccess access) {
+    var relationship = isEmpty(access.getRelationshipId()) ? null : itemReferenceService.getRelationshipById(access.getRelationshipId());
     return String.join(ARRAY_DELIMITER,
       access.getUri(),
       isEmpty(access.getLinkText()) ? EMPTY : access.getLinkText(),
       isEmpty(access.getMaterialsSpecification()) ? EMPTY : access.getMaterialsSpecification(),
       isEmpty(access.getPublicNote()) ? EMPTY : access.getPublicNote(),
-      isEmpty(access.getRelationshipId()) ? EMPTY : itemReferenceService.getRelationshipById(access.getRelationshipId()).getName());
+      isEmpty(relationship) ? EMPTY : relationship.getName());
   }
 
   private String fetchStatisticalCodes(Item item) {
@@ -184,8 +190,8 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
     if (isEmpty(lastCheckIn)) {
       return EMPTY;
     }
-      var servicePoint = itemReferenceService.getServicePointById(lastCheckIn.getServicePointId());
-      var staffMember = itemReferenceService.getStaffMemberById(lastCheckIn.getStaffMemberId());
+      var servicePoint = isEmpty(lastCheckIn.getServicePointId()) ? null : itemReferenceService.getServicePointById(lastCheckIn.getServicePointId());
+      var staffMember = isEmpty(lastCheckIn.getStaffMemberId()) ? null : itemReferenceService.getStaffMemberById(lastCheckIn.getStaffMemberId());
       return String.join(ARRAY_DELIMITER,
         isEmpty(servicePoint) ? EMPTY : servicePoint.getName(),
         isEmpty(staffMember) ? EMPTY : staffMember.getUsername(),

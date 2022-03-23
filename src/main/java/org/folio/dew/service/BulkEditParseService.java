@@ -30,6 +30,8 @@ import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_PATTERN;
 import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
+import static org.folio.dew.utils.Constants.LINE_BREAK;
+import static org.folio.dew.utils.Constants.LINE_BREAK_REPLACEMENT;
 
 @Component
 @RequiredArgsConstructor
@@ -196,7 +198,7 @@ public class BulkEditParseService {
       Arrays.stream(customFieldsArray)
         .forEach(customField -> {
           List<String> customFieldKeyValue = Arrays.asList(customField.split(KEY_VALUE_DELIMITER));
-          customFields.put(customFieldKeyValue.get(CF_KEY_INDEX), customFieldKeyValue.get(CF_VALUE_INDEX));
+          customFields.put(customFieldKeyValue.get(CF_KEY_INDEX), customFieldKeyValue.get(CF_VALUE_INDEX).replace(LINE_BREAK_REPLACEMENT, LINE_BREAK));
         });
       return customFields;
     }

@@ -1,3 +1,10 @@
+## 2022-03-24 v1.3.1
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.3.0...v1.3.1)
+
+### Bug fixes
+* [MODEXPW-87](https://issues.folio.org/browse/MODEXPW-87) bugfest order export jobs showing "Currency" not found error
+
 ## 2022-03-03 v1.3.0
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.2.2...v1.3.0)

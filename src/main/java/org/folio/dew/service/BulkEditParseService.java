@@ -210,7 +210,11 @@ public class BulkEditParseService {
 
   private Object restoreCustomFieldValue(String s) {
     s = s.replace(LINE_BREAK_REPLACEMENT, LINE_BREAK);
-    return s.startsWith(START_ARRAY) && s.endsWith(END_ARRAY) ? Arrays.asList(s.substring(1, s.length() - 1).split(", ")) : s;
+    if (s.startsWith(START_ARRAY) && s.endsWith(END_ARRAY)) {
+      var str = s.substring(1, s.length() - 1);
+      return isNotEmpty(str) ? Arrays.asList(str.split(", ")) : Collections.emptyList();
+    }
+    return s;
   }
 
 }

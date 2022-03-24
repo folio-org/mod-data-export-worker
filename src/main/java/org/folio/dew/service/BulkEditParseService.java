@@ -52,6 +52,9 @@ public class BulkEditParseService {
   private static final int CF_KEY_INDEX = 0;
   private static final int CF_VALUE_INDEX = 1;
 
+  private static final String START_ARRAY = "[";
+  private static final String END_ARRAY = "]";
+
   public User mapUserFormatToUser(UserFormat userFormat) {
     User user = new User();
     populateUserFields(user, userFormat);
@@ -198,11 +201,16 @@ public class BulkEditParseService {
       Arrays.stream(customFieldsArray)
         .forEach(customField -> {
           List<String> customFieldKeyValue = Arrays.asList(customField.split(KEY_VALUE_DELIMITER));
-          customFields.put(customFieldKeyValue.get(CF_KEY_INDEX), customFieldKeyValue.get(CF_VALUE_INDEX).replace(LINE_BREAK_REPLACEMENT, LINE_BREAK));
+          customFields.put(customFieldKeyValue.get(CF_KEY_INDEX), restoreCustomFieldValue(customFieldKeyValue.get(CF_VALUE_INDEX)));
         });
       return customFields;
     }
     return Collections.emptyMap();
+  }
+
+  private Object restoreCustomFieldValue(String s) {
+    s = s.replace(LINE_BREAK_REPLACEMENT, LINE_BREAK);
+    return s.startsWith(START_ARRAY) && s.endsWith(END_ARRAY) ? Arrays.asList(s.substring(1, s.length() - 1).split(", ")) : s;
   }
 
 }

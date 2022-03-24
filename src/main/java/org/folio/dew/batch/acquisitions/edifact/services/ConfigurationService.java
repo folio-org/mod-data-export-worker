@@ -24,6 +24,11 @@ public class ConfigurationService {
     }
 
     JSONObject jsonObject = new JSONObject(configs.getConfigs().get(0).getValue());
+
+    if (!jsonObject.has("currency")) {
+      return "USD";
+    }
+
     return String.valueOf(jsonObject.get("currency"));
   }
 }

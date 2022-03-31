@@ -24,6 +24,8 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Arrays;
 
+import static org.folio.dew.domain.dto.EntityType.ITEM;
+
 @Configuration
 @RequiredArgsConstructor
 public class BulkEditItemIdentifiersJobConfig {
@@ -46,7 +48,7 @@ public class BulkEditItemIdentifiersJobConfig {
   @Bean
   public Job bulkEditProcessItemIdentifiersJob(JobCompletionNotificationListener listener, Step bulkEditItemStep) {
     return jobBuilderFactory
-      .get(ExportType.BULK_EDIT_IDENTIFIERS.toString().concat("_ITEM"))
+      .get(ExportType.BULK_EDIT_IDENTIFIERS + "-" + ITEM.getValue())
       .incrementer(new RunIdIncrementer())
       .listener(listener)
       .flow(bulkEditItemStep)

@@ -229,6 +229,26 @@ components:
       $ref: '../../../../folio-export-common/schemas/inventory/electronicAccessRelationship.json#/ElectronicAccessRelationship'
     statisticalCode:
       $ref: '../../../../folio-export-common/schemas/inventory/statisticalCode.json#/StatisticalCode'
+    itemLocationCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/locationCollection.json#/ItemLocationCollection'
+    callNumberTypes:
+      $ref: '../../../../folio-export-common/schemas/inventory/callNumberTypeCollection.json#/CallNumberTypeCollection'
+    damagedStatuses:
+      $ref: '../../../../folio-export-common/schemas/inventory/damagedStatusCollection.json#/DamagedStatusCollection'
+    noteTypes:
+      $ref: '../../../../folio-export-common/schemas/inventory/itemNoteTypeCollection.json#/NoteTypeCollection'
+    materialTypes:
+      $ref: '../../../../folio-export-common/schemas/inventory/materialTypeCollection.json#/MaterialTypeCollection'
+    briefHoldings:
+      $ref: '../../../../folio-export-common/schemas/inventory/briefHoldingCollection.json#/BriefHoldingsRecordCollection'
+    briefInstances:
+      $ref: '../../../../folio-export-common/schemas/inventory/briefInstanceCollection.json#/BriefInstanceCollection'
+    loanTypes:
+      $ref: '../../../../folio-export-common/schemas/inventory/loanTypeCollection.json#/LoanTypeCollection'
+    electronicAccessRelationShips:
+      $ref: '../../../../folio-export-common/schemas/inventory/electronicAccessRelationshipCollection.json#/ElectronicAccessRelationshipCollection'
+    statisticalCodes:
+      $ref: '../../../../folio-export-common/schemas/inventory/statisticalCodeCollection.json#/StatisticalCodeCollection'
   examples:
     errors:
       value:

@@ -168,6 +168,19 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/users?query=username%3D%3Dmorty"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"users\": [\n        {\n            \"username\": \"morty\",\n            \"id\": \"bec20636-fb68-41fd-84ea-2cf910673599\",\n            \"barcode\": \"456\",\n            \"active\": true,\n            \"type\": \"\",\n            \"patronGroup\": \"3684a786-6671-4268-8ed0-9db82ebca60b\",\n            \"departments\": [],\n            \"proxyFor\": [],\n            \"personal\": {\n                \"lastName\": \"morty\",\n                \"firstName\": \"panic\",\n                \"middleName\": \"\",\n                \"preferredFirstName\": \"\",\n                \"email\": \"morty@example.com\",\n                \"phone\": \"\",\n                \"mobilePhone\": \"\",\n                \"addresses\": [],\n                \"preferredContactTypeId\": \"002\"\n            },\n            \"enrollmentDate\": \"2020-10-07T04:00:00.000+00:00\",\n            \"createdDate\": \"2022-03-31T09:05:38.808+00:00\",\n            \"updatedDate\": \"2022-03-31T09:05:38.808+00:00\",\n            \"metadata\": {\n                \"createdDate\": \"2022-03-31T01:50:51.864+00:00\",\n                \"updatedDate\": \"2022-03-31T09:05:38.806+00:00\",\n                \"updatedByUserId\": \"63d08cb9-669b-56d5-9735-527b802878de\"\n            },\n            \"customFields\": {}\n        }\n    ],\n    \"totalRecords\": 1,\n    \"resultInfo\": {\n        \"totalRecords\": 1,\n        \"facets\": [],\n        \"diagnostics\": []\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

@@ -1,0 +1,43 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/item-note-types/8d0a5eca-25de-4391-81a9-236eeefdd20b"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"id\": \"8d0a5eca-25de-4391-81a9-236eeefdd20b\",\n    \"name\": \"Note\",\n    \"source\": \"folio\",\n    \"metadata\": {\n        \"createdDate\": \"2022-03-15T01:50:24.094+00:00\",\n        \"updatedDate\": \"2022-03-15T01:50:24.094+00:00\"\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/item-note-types?query=name%3D%3DNote"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"itemNoteTypes\": [\n        {\n            \"id\": \"8d0a5eca-25de-4391-81a9-236eeefdd20b\",\n            \"name\": \"Note\",\n            \"source\": \"folio\",\n            \"metadata\": {\n                \"createdDate\": \"2022-03-31T01:50:46.558+00:00\",\n                \"updatedDate\": \"2022-03-31T01:50:46.558+00:00\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/item-note-types?query=name%3D%3DNote2"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"itemNoteTypes\": [],\n    \"totalRecords\": 0\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

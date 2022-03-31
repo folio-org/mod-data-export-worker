@@ -38,6 +38,19 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/service-points?query=name%3D%3DCirc%20Desk%202&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"servicepoints\": [\n        {\n            \"id\": \"c4c90014-c8c9-4ade-8f24-b5e313319f4b\",\n            \"name\": \"Circ Desk 2\",\n            \"code\": \"cd2\",\n            \"discoveryDisplayName\": \"Circulation Desk -- Back Entrance\",\n            \"pickupLocation\": true,\n            \"holdShelfExpiryPeriod\": {\n                \"duration\": 5,\n                \"intervalId\": \"Days\"\n            },\n            \"staffSlips\": [],\n            \"metadata\": {\n                \"createdDate\": \"2022-03-31T01:50:45.579+00:00\",\n                \"updatedDate\": \"2022-03-31T01:50:45.579+00:00\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

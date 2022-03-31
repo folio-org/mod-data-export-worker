@@ -56,8 +56,11 @@ class BulkEditTest extends BaseBatchTest {
   private static final String BARCODES_CSV = "src/test/resources/upload/barcodes.csv";
   private static final String ITEM_BARCODES_CSV = "src/test/resources/upload/item_barcodes.csv";
   private static final String USER_RECORD_CSV = "src/test/resources/upload/bulk_edit_user_record.csv";
+  private static final String ITEM_RECORD_CSV = "src/test/resources/upload/bulk_edit_item_record.csv";
   private static final String USER_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_user_record_not_found.csv";
+  private static final String ITEM_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_item_record_not_found.csv";
   private static final String USER_RECORD_CSV_BAD_CONTENT = "src/test/resources/upload/bulk_edit_user_record_bad_content.csv";
+  private static final String ITEM_RECORD_CSV_BAD_CONTENT = "src/test/resources/upload/bulk_edit_item_record_bad_content.csv";
   private static final String USER_RECORD_ROLLBACK_CSV = "test-directory/bulk_edit_rollback.csv";
   private static final String BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/barcodesSomeNotFound.csv";
   private static final String ITEM_BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/item_barcodes_some_not_found.csv";
@@ -79,6 +82,8 @@ class BulkEditTest extends BaseBatchTest {
   private Job bulkEditCqlJob;
   @Autowired
   private Job bulkEditUpdateUserRecordsJob;
+  @Autowired
+  private Job bulkEditUpdateItemRecordsJob;
   @Autowired
   private Job bulkEditRollBackJob;
   @Autowired
@@ -207,6 +212,27 @@ class BulkEditTest extends BaseBatchTest {
     }
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = {ITEM_RECORD_CSV, ITEM_RECORD_CSV_NOT_FOUND, ITEM_RECORD_CSV_BAD_CONTENT})
+  @DisplayName("Run update item records w/ and w/o errors")
+  void uploadItemRecordsJobTest(String csvFileName) throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateItemRecordsJob);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, ITEM, BARCODE, csvFileName, true);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
+    var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobExecution.getJobParameters().getString("jobId"), csvFileName, 10);
+
+    if (!ITEM_RECORD_CSV.equals(csvFileName)) {
+      assertThat(errors.getErrors().size()).isEqualTo(1);
+      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
+    } else {
+      assertThat(errors.getErrors().size()).isZero();
+      assertThat(jobExecution.getExecutionContext().get(OUTPUT_FILES_IN_STORAGE)).isNull();
+    }
+  }
+
   @Test
   @DisplayName("Run rollback user records successfully")
   void rollBackUserRecordsJobTest() throws Exception {
@@ -231,7 +257,7 @@ class BulkEditTest extends BaseBatchTest {
       String errorInStorage = links[1];
       System.out.println("output: " + output);
       final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
-      final FileSystemResource expectedResultWithErrors = jobExecution.getJobInstance().getJobName().contains("_USER") ?
+      final FileSystemResource expectedResultWithErrors = jobExecution.getJobInstance().getJobName().contains("-USER") ?
         new FileSystemResource(EXPECTED_BULK_EDIT_OUTPUT_ERRORS) :
         new FileSystemResource(EXPECTED_BULK_EDIT_ITEM_OUTPUT_ERRORS);
       assertFileEquals(expectedResultWithErrors, actualResultWithErrors);

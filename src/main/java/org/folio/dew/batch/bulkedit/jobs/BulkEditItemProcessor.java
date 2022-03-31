@@ -140,6 +140,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       note.getNoteType().getValue(),
       note.getNote(),
       note.getStaffOnly().toString(),
+      isEmpty(note.getSource().getId()) ? EMPTY : note.getSource().getId(),
       isEmpty(note.getSource().getPersonal().getLastName()) ? EMPTY : note.getSource().getPersonal().getLastName(),
       isEmpty(note.getSource().getPersonal().getFirstName()) ? EMPTY : note.getSource().getPersonal().getFirstName(),
       dateToString(note.getDate()));

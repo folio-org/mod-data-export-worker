@@ -212,8 +212,8 @@ public class BulkEditController implements JobIdApi {
   }
 
   private Job getBulkEditJob(JobCommand jobCommand) {
-    var jobName = BULK_EDIT_IDENTIFIERS == jobCommand.getExportType() ?
-      jobCommand.getExportType().getValue().concat("_").concat(jobCommand.getEntityType().getValue()) :
+    var jobName = BULK_EDIT_IDENTIFIERS == jobCommand.getExportType() || BULK_EDIT_UPDATE == jobCommand.getExportType() ?
+      jobCommand.getExportType().getValue() + "-" + jobCommand.getEntityType() :
       jobCommand.getExportType().getValue();
     return jobs.stream()
       .filter(job -> job.getName().contains(jobName))

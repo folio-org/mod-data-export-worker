@@ -32,7 +32,8 @@
         "url": "/locations?query=name%3D%3DMainLibrary"
       },
       "response": {
-        "status": 404,
+        "status": 200,
+        "body": "{\n    \"locations\": [],\n    \"totalRecords\": 0\n}",
         "headers": {
           "Content-Type": "application/json"
         }

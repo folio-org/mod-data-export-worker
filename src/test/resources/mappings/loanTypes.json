@@ -19,7 +19,8 @@
         "url": "/loan-types?query=name%3D%3DCancirculate"
       },
       "response": {
-        "status": 404,
+        "status": 200,
+        "body": "{\n    \"loantypes\": [],\n    \"totalRecords\": 0\n}",
         "headers": {
           "Content-Type": "application/json"
         }

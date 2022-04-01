@@ -32,7 +32,8 @@
         "url": "/electronic-access-relationships?query=name%3D%3DBad%20relationship"
       },
       "response": {
-        "status": 404,
+        "status": 200,
+        "body": "{\n    \"electronicAccessRelationships\": [],\n    \"totalRecords\": 0\n}",
         "headers": {
           "Content-Type": "application/json"
         }

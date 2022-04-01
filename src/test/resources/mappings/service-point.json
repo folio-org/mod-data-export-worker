@@ -58,7 +58,8 @@
         "url": "/service-points?query=name%3D%3DCirc%20Desk&limit=1"
       },
       "response": {
-        "status": 404,
+        "status": 200,
+        "body": "{\n    \"servicepoints\": [],\n    \"totalRecords\": 0\n}",
         "headers": {
           "Content-Type": "application/json"
         }

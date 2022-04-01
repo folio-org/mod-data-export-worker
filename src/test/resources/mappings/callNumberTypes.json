@@ -32,7 +32,8 @@
         "url": "/call-number-types?query=name%3D%3DLCModified"
       },
       "response": {
-        "status": 404,
+        "status": 200,
+        "body": "{\n    \"callNumberTypes\": [],\n    \"totalRecords\": 0\n}",
         "headers": {
           "Content-Type": "application/json"
         }

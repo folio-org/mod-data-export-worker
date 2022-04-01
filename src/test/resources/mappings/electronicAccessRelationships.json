@@ -25,6 +25,18 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/electronic-access-relationships?query=name%3D%3DBad%20relationship"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

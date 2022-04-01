@@ -29,6 +29,18 @@
     {
       "request": {
         "method": "GET",
+        "url": "/locations?query=name%3D%3DMainLibrary"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
         "url": "/locations?query=name%3D%3DAnnex"
       },
       "response": {

@@ -25,6 +25,18 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/item-damaged-statuses?query=name%3D%3DNotDamaged"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

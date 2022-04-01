@@ -36,6 +36,7 @@ public class UpdateRecordWriteListener<T> implements ItemWriteListener<T> {
 
   @Override
   public void beforeWrite(List<? extends T> items) {
+    // do nothing
   }
 
   @Override
@@ -46,6 +47,7 @@ public class UpdateRecordWriteListener<T> implements ItemWriteListener<T> {
 
   @Override
   public void onWriteError(Exception exception, List<? extends T> items) {
+    // do nothing
   }
 
   private Job prepareJobWithProgress() {

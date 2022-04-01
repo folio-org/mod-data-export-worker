@@ -46,6 +46,23 @@
     {
       "request": {
         "method": "PUT",
+        "url": "/inventory/items/b7a9718a-0c26-4d43-ace9-52234ff74ad8",
+        "bodyPatterns": [
+          {
+            "equalToJson": "{\"id\":\"b7a9718a-0c26-4d43-ace9-52234ff74ad8\",\"_version\":1,\"hrid\":\"it00000000002\",\"holdingsRecordId\":\"4929e3d5-8de5-4bb2-8818-3c23695e7505\",\"formerIds\":[],\"discoverySuppress\":null,\"title\":\"Sample instance\",\"contributorNames\":[],\"callNumber\":null,\"barcode\":\"0001\",\"effectiveShelvingOrder\":null,\"accessionNumber\":null,\"itemLevelCallNumber\":null,\"itemLevelCallNumberPrefix\":null,\"itemLevelCallNumberSuffix\":null,\"itemLevelCallNumberTypeId\":null,\"effectiveCallNumberComponents\":null,\"volume\":null,\"enumeration\":null,\"chronology\":null,\"yearCaption\":[],\"itemIdentifier\":null,\"copyNumber\":null,\"numberOfPieces\":null,\"descriptionOfPieces\":null,\"numberOfMissingPieces\":null,\"missingPieces\":null,\"missingPiecesDate\":null,\"itemDamagedStatusId\":null,\"itemDamagedStatusDate\":null,\"administrativeNotes\":[],\"notes\":[],\"circulationNotes\":[],\"status\":{\"name\":\"Available\",\"date\":1648798996737},\"materialType\":{\"id\":\"1a54b431-2e4f-452d-9cae-9cee66c9a892\",\"name\":\"book\"},\"isBoundWith\":false,\"boundWithTitles\":[],\"permanentLoanType\":{\"id\":\"2b94c631-fca9-4892-a730-03ee529ffe27\",\"name\":\"Can circulate\"},\"temporaryLoanType\":null,\"permanentLocation\":null,\"temporaryLocation\":null,\"effectiveLocation\":null,\"electronicAccess\":[],\"inTransitDestinationServicePointId\":null,\"statisticalCodeIds\":[],\"purchaseOrderLineIdentifier\":null,\"metadata\":null,\"tags\":null,\"lastCheckIn\":null}"
+          }
+        ]
+      },
+      "response": {
+        "status": 204,
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
         "url": "/inventory/items/100d10bf-2f06-4aa0-be15-0b95b2d9f9e2"
       },
       "response": {

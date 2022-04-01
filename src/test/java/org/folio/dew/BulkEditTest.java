@@ -225,10 +225,10 @@ class BulkEditTest extends BaseBatchTest {
     var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobExecution.getJobParameters().getString("jobId"), csvFileName, 10);
 
     if (!ITEM_RECORD_CSV.equals(csvFileName)) {
-      assertThat(errors.getErrors().size()).isEqualTo(1);
+      assertThat(errors.getErrors()).hasSize(1);
       assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
     } else {
-      assertThat(errors.getErrors().size()).isZero();
+      assertThat(errors.getErrors()).isEmpty();
       assertThat(jobExecution.getExecutionContext().get(OUTPUT_FILES_IN_STORAGE)).isNull();
     }
   }

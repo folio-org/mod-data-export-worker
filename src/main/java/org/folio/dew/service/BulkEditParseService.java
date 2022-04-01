@@ -48,6 +48,8 @@ import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_PATTERN;
 import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
+import static org.folio.dew.utils.Constants.LINE_BREAK;
+import static org.folio.dew.utils.Constants.LINE_BREAK_REPLACEMENT;
 
 @Component
 @RequiredArgsConstructor
@@ -109,6 +111,10 @@ public class BulkEditParseService {
   private static final int LAST_CHECK_IN_SERVICE_POINT_NAME_INDEX = 0;
   private static final int LAST_CHECK_IN_USERNAME_INDEX = 1;
   private static final int LAST_CHECK_IN_DATE_TIME_INDEX = 2;
+
+  private static final String START_ARRAY = "[";
+  private static final String END_ARRAY = "]";
+
 
   public User mapUserFormatToUser(UserFormat userFormat) {
     User user = new User();
@@ -256,11 +262,20 @@ public class BulkEditParseService {
       Arrays.stream(customFieldsArray)
         .forEach(customField -> {
           List<String> customFieldKeyValue = Arrays.asList(customField.split(KEY_VALUE_DELIMITER));
-          customFields.put(customFieldKeyValue.get(CF_KEY_INDEX), customFieldKeyValue.get(CF_VALUE_INDEX));
+          customFields.put(customFieldKeyValue.get(CF_KEY_INDEX), restoreCustomFieldValue(customFieldKeyValue.get(CF_VALUE_INDEX)));
         });
       return customFields;
     }
     return Collections.emptyMap();
+  }
+  
+  private Object restoreCustomFieldValue(String s) {
+    s = s.replace(LINE_BREAK_REPLACEMENT, LINE_BREAK);
+    if (s.startsWith(START_ARRAY) && s.endsWith(END_ARRAY)) {
+      var str = s.substring(1, s.length() - 1);
+      return isNotEmpty(str) ? Arrays.asList(str.split(", ")) : Collections.emptyList();
+    }
+    return s;
   }
 
   public Item mapItemFormatToItem(ItemFormat itemFormat) {

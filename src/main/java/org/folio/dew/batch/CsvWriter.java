@@ -8,6 +8,9 @@ import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.core.io.FileSystemResource;
 
+import static org.folio.dew.utils.Constants.LINE_BREAK;
+import static org.folio.dew.utils.Constants.LINE_BREAK_REPLACEMENT;
+
 @Log4j2
 public class CsvWriter<T> extends FlatFileItemWriter<T> {
 
@@ -41,7 +44,7 @@ public class CsvWriter<T> extends FlatFileItemWriter<T> {
 
           var s = o.toString();
           if (s.contains(",") || s.contains("\n")) {
-            s = "\"" + s.replace("\"", "\"\"") + "\"";
+            s = "\"" + s.replace("\"", "\"\"").replace(LINE_BREAK, LINE_BREAK_REPLACEMENT) + "\"";
           }
 
           result[i] = s;

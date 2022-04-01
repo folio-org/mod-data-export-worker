@@ -353,17 +353,15 @@ public class BulkEditParseService {
 
   private EffectiveCallNumberComponents restoreEffectiveCallNumberComponents(String s) {
     if (isNotEmpty(s)) {
-      var tokens = s.split(ARRAY_DELIMITER);
-      if (tokens.length > 0) {
-        if (NUMBER_OF_CALL_NUMBER_COMPONENTS == tokens.length) {
-          return new EffectiveCallNumberComponents()
-            .callNumber(restoreStringValue(tokens[CALL_NUMBER_INDEX]))
-            .prefix(restoreStringValue(tokens[CALL_NUMBER_PREFIX_INDEX]))
-            .suffix(restoreStringValue(tokens[CALL_NUMBER_SUFFIX_INDEX]))
-            .typeId(restoreItemLevelCallNumberTypeId(tokens[CALL_NUMBER_TYPE_INDEX]));
-        }
-        throw new BulkEditException(String.format("Illegal number of effective call number elements: %d, expected: %d", tokens.length, NUMBER_OF_CALL_NUMBER_COMPONENTS));
+      var tokens = s.split(ARRAY_DELIMITER, -1);
+      if (NUMBER_OF_CALL_NUMBER_COMPONENTS == tokens.length) {
+        return new EffectiveCallNumberComponents()
+          .callNumber(restoreStringValue(tokens[CALL_NUMBER_INDEX]))
+          .prefix(restoreStringValue(tokens[CALL_NUMBER_PREFIX_INDEX]))
+          .suffix(restoreStringValue(tokens[CALL_NUMBER_SUFFIX_INDEX]))
+          .typeId(restoreItemLevelCallNumberTypeId(tokens[CALL_NUMBER_TYPE_INDEX]));
       }
+      throw new BulkEditException(String.format("Illegal number of effective call number elements: %d, expected: %d", tokens.length, NUMBER_OF_CALL_NUMBER_COMPONENTS));
     }
     return null;
   }
@@ -382,16 +380,14 @@ public class BulkEditParseService {
 
   private ItemNote restoreItemNote(String s) {
     if (isNotEmpty(s)) {
-      var tokens = s.split(ARRAY_DELIMITER);
-      if (tokens.length > 0) {
-        if (NUMBER_OF_ITEM_NOTE_COMPONENTS == tokens.length) {
-          return new ItemNote()
-            .itemNoteTypeId(restoreNoteTypeId(tokens[NOTE_TYPE_NAME_INDEX]))
-            .note(tokens[NOTE_INDEX])
-            .staffOnly(Boolean.valueOf(tokens[STAFF_ONLY_INDEX]));
-        }
-        throw new BulkEditException(String.format("Illegal number of item note elements: %d, expected: %d", tokens.length, NUMBER_OF_ITEM_NOTE_COMPONENTS));
+      var tokens = s.split(ARRAY_DELIMITER, -1);
+      if (NUMBER_OF_ITEM_NOTE_COMPONENTS == tokens.length) {
+        return new ItemNote()
+          .itemNoteTypeId(restoreNoteTypeId(tokens[NOTE_TYPE_NAME_INDEX]))
+          .note(tokens[NOTE_INDEX])
+          .staffOnly(Boolean.valueOf(tokens[STAFF_ONLY_INDEX]));
       }
+      throw new BulkEditException(String.format("Illegal number of item note elements: %d, expected: %d", tokens.length, NUMBER_OF_ITEM_NOTE_COMPONENTS));
     }
     return null;
   }
@@ -410,38 +406,34 @@ public class BulkEditParseService {
 
   private CirculationNote restoreCirculationNote(String s) {
     if (isNotEmpty(s)) {
-      var tokens = s.split(ARRAY_DELIMITER);
-      if (tokens.length > 0) {
-        if (NUMBER_OF_CIRCULATION_NOTE_COMPONENTS == tokens.length) {
-          return new CirculationNote()
-            .id(tokens[CIRC_NOTE_ID_INDEX])
-            .noteType(CirculationNote.NoteTypeEnum.fromValue(tokens[CIRC_NOTE_TYPE_INDEX]))
-            .note(tokens[CIRC_NOTE_NOTE_INDEX])
-            .staffOnly(Boolean.valueOf(tokens[CIRC_NOTE_STAFF_ONLY_INDEX]))
-            .source(new Source()
-              .id(tokens[CIRC_NOTE_SOURCE_ID_INDEX])
-              .personal(new Personal()
-                .lastName(tokens[CIRC_NOTE_LAST_NAME_INDEX])
-                .firstName(tokens[CIRC_NOTE_FIRST_NAME_INDEX])))
-            .date(getDate(tokens[CIRC_NOTE_DATE_INDEX]));
-        }
-        throw new BulkEditException(String.format("Illegal number of circulation note elements: %d, expected: %d", tokens.length, NUMBER_OF_CIRCULATION_NOTE_COMPONENTS));
+      var tokens = s.split(ARRAY_DELIMITER, -1);
+      if (NUMBER_OF_CIRCULATION_NOTE_COMPONENTS == tokens.length) {
+        return new CirculationNote()
+          .id(tokens[CIRC_NOTE_ID_INDEX])
+          .noteType(CirculationNote.NoteTypeEnum.fromValue(tokens[CIRC_NOTE_TYPE_INDEX]))
+          .note(tokens[CIRC_NOTE_NOTE_INDEX])
+          .staffOnly(Boolean.valueOf(tokens[CIRC_NOTE_STAFF_ONLY_INDEX]))
+          .source(new Source()
+            .id(tokens[CIRC_NOTE_SOURCE_ID_INDEX])
+            .personal(new Personal()
+              .lastName(tokens[CIRC_NOTE_LAST_NAME_INDEX])
+              .firstName(tokens[CIRC_NOTE_FIRST_NAME_INDEX])))
+          .date(getDate(tokens[CIRC_NOTE_DATE_INDEX]));
       }
+      throw new BulkEditException(String.format("Illegal number of circulation note elements: %d, expected: %d", tokens.length, NUMBER_OF_CIRCULATION_NOTE_COMPONENTS));
     }
     return null;
   }
 
   private InventoryItemStatus restoreStatus(String s) {
     if (isNotEmpty(s)) {
-      var tokens = s.split(ARRAY_DELIMITER);
-      if (tokens.length > 0) {
-        if (NUMBER_OF_STATUS_COMPONENTS == tokens.length) {
-          return new InventoryItemStatus()
-            .name(InventoryItemStatus.NameEnum.fromValue(tokens[STATUS_NAME_INDEX]))
-            .date(getDate(tokens[STATUS_DATE_INDEX]));
-        }
-        throw new BulkEditException(String.format("Illegal number of item status elements: %d, expected: %d", tokens.length, NUMBER_OF_STATUS_COMPONENTS));
+      var tokens = s.split(ARRAY_DELIMITER, -1);
+      if (NUMBER_OF_STATUS_COMPONENTS == tokens.length) {
+        return new InventoryItemStatus()
+          .name(InventoryItemStatus.NameEnum.fromValue(tokens[STATUS_NAME_INDEX]))
+          .date(getDate(tokens[STATUS_DATE_INDEX]));
       }
+      throw new BulkEditException(String.format("Illegal number of item status elements: %d, expected: %d", tokens.length, NUMBER_OF_STATUS_COMPONENTS));
     }
     return null;
   }
@@ -460,15 +452,13 @@ public class BulkEditParseService {
 
   private Title restoreTitle(String s) {
     if (isNotEmpty(s)) {
-      var tokens = s.split(ARRAY_DELIMITER);
-      if (tokens.length > 0) {
-        if (NUMBER_OF_TITLE_COMPONENTS == tokens.length) {
-          return new Title()
-            .briefHoldingsRecord(itemReferenceService.getBriefHoldingsRecordByHrid(tokens[HOLDING_HRID_INDEX]))
-            .briefInstance(itemReferenceService.getBriefInstanceByHrid(tokens[INSTANCE_HRID_INDEX]));
-        }
-        throw new BulkEditException(String.format("Illegal number of title elements: %d, expected: %d", tokens.length, NUMBER_OF_TITLE_COMPONENTS));
+      var tokens = s.split(ARRAY_DELIMITER, -1);
+      if (NUMBER_OF_TITLE_COMPONENTS == tokens.length) {
+        return new Title()
+          .briefHoldingsRecord(itemReferenceService.getBriefHoldingsRecordByHrid(tokens[HOLDING_HRID_INDEX]))
+          .briefInstance(itemReferenceService.getBriefInstanceByHrid(tokens[INSTANCE_HRID_INDEX]));
       }
+      throw new BulkEditException(String.format("Illegal number of title elements: %d, expected: %d", tokens.length, NUMBER_OF_TITLE_COMPONENTS));
     }
     return null;
   }
@@ -491,18 +481,16 @@ public class BulkEditParseService {
 
   private ElectronicAccess restoreElectronicAccessItem(String s) {
     if (isNotEmpty(s)) {
-      var tokens = s.split(ARRAY_DELIMITER);
-      if (tokens.length > 0) {
-        if (NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS == tokens.length) {
-          return new ElectronicAccess()
-            .uri(tokens[ELECTRONIC_ACCESS_URI_INDEX])
-            .linkText(tokens[ELECTRONIC_ACCESS_LINK_TEXT_INDEX])
-            .materialsSpecification(tokens[ELECTRONIC_ACCESS_MATERIAL_SPECIFICATION_INDEX])
-            .publicNote(tokens[ELECTRONIC_ACCESS_PUBLIC_NOTE_INDEX])
-            .relationshipId(itemReferenceService.getElectronicAccessRelationshipByName(tokens[ELECTRONIC_ACCESS_RELATIONSHIP_INDEX]).getId());
-        }
-        throw new BulkEditException(String.format("Illegal number of electronic access elements: %d, expected: %d", tokens.length, NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS));
+      var tokens = s.split(ARRAY_DELIMITER, -1);
+      if (NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS == tokens.length) {
+        return new ElectronicAccess()
+          .uri(tokens[ELECTRONIC_ACCESS_URI_INDEX])
+          .linkText(tokens[ELECTRONIC_ACCESS_LINK_TEXT_INDEX])
+          .materialsSpecification(tokens[ELECTRONIC_ACCESS_MATERIAL_SPECIFICATION_INDEX])
+          .publicNote(tokens[ELECTRONIC_ACCESS_PUBLIC_NOTE_INDEX])
+          .relationshipId(itemReferenceService.getElectronicAccessRelationshipByName(tokens[ELECTRONIC_ACCESS_RELATIONSHIP_INDEX]).getId());
       }
+      throw new BulkEditException(String.format("Illegal number of electronic access elements: %d, expected: %d", tokens.length, NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS));
     }
     return null;
   }
@@ -525,16 +513,14 @@ public class BulkEditParseService {
 
   private LastCheckIn restoreLastCheckIn(String s) {
     if (isNotEmpty(s)) {
-      var tokens = s.split(ARRAY_DELIMITER);
-      if (tokens.length > 0) {
-        if (NUMBER_OF_LAST_CHECK_IN_COMPONENTS == tokens.length) {
-          return new LastCheckIn()
-            .servicePointId(itemReferenceService.getServicePointByName(tokens[LAST_CHECK_IN_SERVICE_POINT_NAME_INDEX]).getId())
-            .staffMemberId(itemReferenceService.getUserByUserName(tokens[LAST_CHECK_IN_USERNAME_INDEX]).getId())
-            .dateTime(restoreStringValue(tokens[LAST_CHECK_IN_DATE_TIME_INDEX]));
-        }
-        throw new BulkEditException(String.format("Illegal number of last check in elements: %d, expected: %d", tokens.length, NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS));
+      var tokens = s.split(ARRAY_DELIMITER, -1);
+      if (NUMBER_OF_LAST_CHECK_IN_COMPONENTS == tokens.length) {
+        return new LastCheckIn()
+          .servicePointId(itemReferenceService.getServicePointByName(tokens[LAST_CHECK_IN_SERVICE_POINT_NAME_INDEX]).getId())
+          .staffMemberId(itemReferenceService.getUserByUserName(tokens[LAST_CHECK_IN_USERNAME_INDEX]).getId())
+          .dateTime(restoreStringValue(tokens[LAST_CHECK_IN_DATE_TIME_INDEX]));
       }
+      throw new BulkEditException(String.format("Illegal number of last check in elements: %d, expected: %d", tokens.length, NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS));
     }
     return null;
   }

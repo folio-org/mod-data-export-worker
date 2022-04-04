@@ -1,5 +1,16 @@
 package org.folio.dew.service;
 
+import static java.time.ZoneOffset.UTC;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
+import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
+import static org.folio.dew.utils.Constants.ITEM_DELIMITER_PATTERN;
+import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
+import static org.folio.dew.utils.Constants.LINE_BREAK;
+import static org.folio.dew.utils.Constants.LINE_BREAK_REPLACEMENT;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -39,17 +50,6 @@ import org.folio.dew.error.BulkEditException;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
-
-import static java.time.ZoneOffset.UTC;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
-import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
-import static org.folio.dew.utils.Constants.ITEM_DELIMITER_PATTERN;
-import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
-import static org.folio.dew.utils.Constants.LINE_BREAK;
-import static org.folio.dew.utils.Constants.LINE_BREAK_REPLACEMENT;
 
 @Component
 @RequiredArgsConstructor

@@ -1,5 +1,8 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
+import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
+
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -14,9 +17,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
-import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 
 @Component
 @StepScope

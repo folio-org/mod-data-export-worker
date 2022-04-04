@@ -26,6 +26,7 @@ import org.springframework.core.io.FileSystemResource;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
 @Configuration
 public class BulkEditUpdateUserRecordsJobConfig {
@@ -37,7 +38,7 @@ public class BulkEditUpdateUserRecordsJobConfig {
     BulkEditUpdateUserRecordsListener updateUserRecordsListener,
     JobCompletionNotificationListener completionListener) {
     return jobBuilderFactory
-      .get(BULK_EDIT_UPDATE.getValue() + "-" + USER.getValue())
+      .get(BULK_EDIT_UPDATE.getValue() + JOB_NAME_POSTFIX_SEPARATOR + USER.getValue())
       .incrementer(new RunIdIncrementer())
       .listener(updateUserRecordsListener)
       .listener(completionListener)

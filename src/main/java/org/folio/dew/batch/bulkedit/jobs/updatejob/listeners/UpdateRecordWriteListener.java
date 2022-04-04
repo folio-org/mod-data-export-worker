@@ -1,5 +1,8 @@
 package org.folio.dew.batch.bulkedit.jobs.updatejob.listeners;
 
+import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
+import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
+
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -17,9 +20,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
-
-import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
-import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
 
 @Component
 @JobScope

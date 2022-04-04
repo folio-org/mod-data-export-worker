@@ -1,5 +1,7 @@
 package org.folio.dew.batch.bulkedit.jobs.updatejob;
 
+import static org.folio.dew.utils.Constants.FILE_NAME;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
@@ -15,8 +17,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-
-import static org.folio.dew.utils.Constants.FILE_NAME;
 
 @Log4j2
 @Component

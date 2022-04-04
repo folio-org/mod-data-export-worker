@@ -1,5 +1,7 @@
 package org.folio.dew.batch.bulkedit.jobs.updatejob;
 
+import static org.folio.dew.utils.Constants.FILE_NAME;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -17,8 +19,6 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import static org.folio.dew.utils.Constants.FILE_NAME;
 
 @Log4j2
 @Component

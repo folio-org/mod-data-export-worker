@@ -1,5 +1,10 @@
 package org.folio.dew.batch.bulkedit.jobs.updatejob;
 
+import static org.folio.dew.domain.dto.EntityType.ITEM;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
+
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.bulkedit.jobs.JobConfigReaderHelper;
 import org.folio.dew.domain.dto.Item;
@@ -23,20 +28,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 
-import static org.folio.dew.domain.dto.EntityType.ITEM;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
-import static org.folio.dew.utils.Constants.FILE_NAME;
+@Configuration public class BulkEditUpdateItemRecordsJobConfig {
 
-@Configuration
-public class BulkEditUpdateItemRecordsJobConfig {
-
-  @Bean
-  public Job bulkEditUpdateItemRecordsJob(
-    Step bulkEditUpdateItemRecordsStep,
-    JobBuilderFactory jobBuilderFactory,
+  @Bean public Job bulkEditUpdateItemRecordsJob(Step bulkEditUpdateItemRecordsStep, JobBuilderFactory jobBuilderFactory,
     JobCompletionNotificationListener completionListener) {
-    return jobBuilderFactory
-      .get(BULK_EDIT_UPDATE.getValue() + "-" + ITEM.getValue())
+    return jobBuilderFactory.get(BULK_EDIT_UPDATE.getValue() + JOB_NAME_POSTFIX_SEPARATOR + ITEM.getValue())
       .incrementer(new RunIdIncrementer())
       .listener(completionListener)
       .flow(bulkEditUpdateItemRecordsStep)
@@ -44,16 +40,12 @@ public class BulkEditUpdateItemRecordsJobConfig {
       .build();
   }
 
-  @Bean
-  public Step bulkEditUpdateItemRecordsStep(
-    ItemReader<ItemFormat> csvItemRecordsReader,
-    @Qualifier("bulkEditUpdateItemRecordsProcessor")
-    ItemProcessor<ItemFormat, Item> processor,
+  @Bean public Step bulkEditUpdateItemRecordsStep(ItemReader<ItemFormat> csvItemRecordsReader,
+    @Qualifier("bulkEditUpdateItemRecordsProcessor") ItemProcessor<ItemFormat, Item> processor,
     @Qualifier("updateItemRecordsWriter") ItemWriter<Item> writer,
     @Qualifier("updateRecordWriteListener") ItemWriteListener<Item> updateRecordWriteListener,
     StepBuilderFactory stepBuilderFactory) {
-    return stepBuilderFactory
-      .get("bulkEditUpdateRecordsStep")
+    return stepBuilderFactory.get("bulkEditUpdateRecordsStep")
       .<ItemFormat, Item>chunk(10)
       .reader(csvItemRecordsReader)
       .processor(processor)
@@ -62,12 +54,10 @@ public class BulkEditUpdateItemRecordsJobConfig {
       .build();
   }
 
-  @Bean
-  @StepScope
-  public FlatFileItemReader<ItemFormat> csvItemRecordsReader(@Value("#{jobParameters['" + FILE_NAME + "']}") String fileName) {
+  @Bean @StepScope public FlatFileItemReader<ItemFormat> csvItemRecordsReader(
+    @Value("#{jobParameters['" + FILE_NAME + "']}") String fileName) {
     LineMapper<ItemFormat> itemLineMapper = JobConfigReaderHelper.createItemLineMapper();
-    return new FlatFileItemReaderBuilder<ItemFormat>()
-      .name("itemReader")
+    return new FlatFileItemReaderBuilder<ItemFormat>().name("itemReader")
       .resource(new FileSystemResource(fileName))
       .linesToSkip(1)
       .lineMapper(itemLineMapper)

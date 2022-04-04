@@ -1,5 +1,7 @@
 package org.folio.dew.batch.bulkedit.jobs.updatejob;
 
+import static org.folio.dew.utils.Constants.FILE_NAME;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
@@ -14,8 +16,6 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import static org.folio.dew.utils.Constants.FILE_NAME;
 
 @Log4j2
 @Component
@@ -37,7 +37,7 @@ public class BulkEditUpdateItemRecordsProcessor implements ItemProcessor<ItemFor
     try {
       return bulkEditParseService.mapItemFormatToItem(itemFormat);
     } catch (Exception e) {
-      log.info("Error process item format {} : {}",  itemFormat.getId(), e.getMessage());
+      log.error("Error process item format {} : {}",  itemFormat.getId(), e.getMessage());
       bulkEditProcessingErrorsService.saveErrorInCSV(jobId, itemFormat.getId(), new BulkEditException(e.getMessage()), FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
       return null;
     }

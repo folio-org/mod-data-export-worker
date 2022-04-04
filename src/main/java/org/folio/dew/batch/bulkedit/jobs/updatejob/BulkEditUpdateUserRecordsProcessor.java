@@ -1,7 +1,8 @@
 package org.folio.dew.batch.bulkedit.jobs.updatejob;
 
+import static org.folio.dew.utils.Constants.FILE_NAME;
+
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
@@ -16,8 +17,6 @@ import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-
-import static org.folio.dew.utils.Constants.FILE_NAME;
 
 @Log4j2
 @Component

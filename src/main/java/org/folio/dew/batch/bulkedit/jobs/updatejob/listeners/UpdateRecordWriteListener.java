@@ -1,5 +1,8 @@
 package org.folio.dew.batch.bulkedit.jobs.updatejob.listeners;
 
+import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
+import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
+
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -9,7 +12,6 @@ import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.Progress;
-import org.folio.dew.domain.dto.User;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.JobExecution;
@@ -19,13 +21,10 @@ import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 
-import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
-import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_USERS;
-
 @Component
 @JobScope
 @RequiredArgsConstructor
-public class UpdateUserWriteListener implements ItemWriteListener<User> {
+public class UpdateRecordWriteListener<T> implements ItemWriteListener<T> {
 
   private static final int BATCH_SIZE = 10;
 
@@ -33,33 +32,35 @@ public class UpdateUserWriteListener implements ItemWriteListener<User> {
 
   @Value("#{jobExecution}")
   private JobExecution jobExecution;
-  private AtomicLong processedUsers = new AtomicLong();
+  private AtomicLong processedRecords = new AtomicLong();
 
   @Override
-  public void beforeWrite(List<? extends User> items) {
+  public void beforeWrite(List<? extends T> items) {
+    // do nothing
   }
 
   @Override
-  public void afterWrite(List<? extends User> items) {
+  public void afterWrite(List<? extends T> items) {
     var job = prepareJobWithProgress();
     kafka.send(KafkaService.Topic.JOB_UPDATE, job.getId().toString(), job);
   }
 
   @Override
-  public void onWriteError(Exception exception, List<? extends User> items) {
+  public void onWriteError(Exception exception, List<? extends T> items) {
+    // do nothing
   }
 
   private Job prepareJobWithProgress() {
-    long totalUsers = jobExecution.getExecutionContext().getLong(TOTAL_USERS);
-    if (totalUsers < BATCH_SIZE) {
-      processedUsers.addAndGet(totalUsers);
+    long totalRecords = jobExecution.getExecutionContext().getLong(TOTAL_RECORDS);
+    if (totalRecords < BATCH_SIZE) {
+      processedRecords.addAndGet(totalRecords);
     } else {
-      processedUsers.addAndGet(BATCH_SIZE);
+      processedRecords.addAndGet(BATCH_SIZE);
     }
     var job = new Job();
     job.setId(UUID.fromString(jobExecution.getJobParameters().getString(JOB_ID)));
     job.setType(ExportType.BULK_EDIT_UPDATE);
-    job.setEntityType(EntityType.USER);
+    job.setEntityType(EntityType.fromValue(jobExecution.getJobInstance().getJobName().split("-")[1]));
     job.setBatchStatus(BatchStatus.STARTED);
     job.setStartTime(new Date());
     job.setCreatedDate(new Date());
@@ -67,17 +68,17 @@ public class UpdateUserWriteListener implements ItemWriteListener<User> {
     job.setUpdatedDate(new Date());
 
     Progress progress = new Progress();
-    progress.setTotal((int) totalUsers);
-    progress.setProcessed((int) processedUsers.get());
-    progress.setProgress((int) getProgressBarValue(processedUsers.get(), totalUsers));
+    progress.setTotal((int) totalRecords);
+    progress.setProcessed((int) processedRecords.get());
+    progress.setProgress((int) getProgressBarValue(processedRecords.get(), totalRecords));
     job.setProgress(progress);
     return job;
   }
 
-  private long getProgressBarValue(long processed, long totalUsers) {
-    if (totalUsers < BATCH_SIZE) {
+  private long getProgressBarValue(long processed, long totalRecords) {
+    if (totalRecords < BATCH_SIZE) {
       return 100;
     }
-    return processed / totalUsers * 100;
+    return processed / totalRecords * 100;
   }
 }

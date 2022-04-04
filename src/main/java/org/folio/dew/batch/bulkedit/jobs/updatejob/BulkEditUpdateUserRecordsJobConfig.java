@@ -26,33 +26,34 @@ import org.springframework.core.io.FileSystemResource;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
 @Configuration
 public class BulkEditUpdateUserRecordsJobConfig {
 
   @Bean
   public Job bulkEditUpdateUserRecordsJob(
-    Step bulkEditUpdateRecordsStep,
+    Step bulkEditUpdateUserRecordsStep,
     JobBuilderFactory jobBuilderFactory,
     BulkEditUpdateUserRecordsListener updateUserRecordsListener,
     JobCompletionNotificationListener completionListener) {
     return jobBuilderFactory
-      .get(BULK_EDIT_UPDATE.getValue() + "-" + USER.getValue())
+      .get(BULK_EDIT_UPDATE.getValue() + JOB_NAME_POSTFIX_SEPARATOR + USER.getValue())
       .incrementer(new RunIdIncrementer())
       .listener(updateUserRecordsListener)
       .listener(completionListener)
-      .flow(bulkEditUpdateRecordsStep)
+      .flow(bulkEditUpdateUserRecordsStep)
       .end()
       .build();
   }
 
   @Bean
-  public Step bulkEditUpdateRecordsStep(
+  public Step bulkEditUpdateUserRecordsStep(
     ItemReader<UserFormat> csvUserRecordsReader,
     @Qualifier("bulkEditUpdateUserRecordsProcessor")
     ItemProcessor<UserFormat, User> processor,
     @Qualifier("updateUserRecordsWriter") ItemWriter<User> writer,
-    @Qualifier("updateUserWriteListener") ItemWriteListener<User> updateUserWriteListener,
+    @Qualifier("updateRecordWriteListener") ItemWriteListener<User> updateRecordWriteListener,
     StepBuilderFactory stepBuilderFactory) {
     return stepBuilderFactory
       .get("bulkEditUpdateRecordsStep")
@@ -60,7 +61,7 @@ public class BulkEditUpdateUserRecordsJobConfig {
       .reader(csvUserRecordsReader)
       .processor(processor)
       .writer(writer)
-      .listener(updateUserWriteListener)
+      .listener(updateRecordWriteListener)
       .build();
   }
 

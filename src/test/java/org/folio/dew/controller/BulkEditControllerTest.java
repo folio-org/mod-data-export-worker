@@ -343,6 +343,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var jobId = UUID.fromString("edd30136-9a7b-4226-9e82-83024dbeac4a");
     var jobCommand = new JobCommand();
     jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
+    jobCommand.setEntityType(USER);
     jobCommand.setJobParameters(new JobParameters(new HashMap<String, JobParameter>()));
     var executionId = 0l;
     var jobExecution = new JobExecution(executionId);
@@ -384,6 +385,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var jobId = UUID.fromString("edd30136-9a7b-4226-9e82-83024dbeac4a");
     var jobCommand = new JobCommand();
     jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
+    jobCommand.setEntityType(USER);
     jobCommand.setJobParameters(new JobParameters(new HashMap<String, JobParameter>()));
 
     var headers = defaultHeaders();

@@ -1,6 +1,7 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
 import lombok.experimental.UtilityClass;
+import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.domain.dto.UserFormat;
 import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
@@ -37,5 +38,32 @@ public class JobConfigReaderHelper {
       new BeanWrapperFieldSetMapper<>();
     userInformationMapper.setTargetType(UserFormat.class);
     return userInformationMapper;
+  }
+
+  public static LineMapper<ItemFormat> createItemLineMapper() {
+    DefaultLineMapper<ItemFormat> itemLineMapper = new DefaultLineMapper<>();
+
+    LineTokenizer itemLineTokenizer = createItemLineTokenizer();
+    itemLineMapper.setLineTokenizer(itemLineTokenizer);
+
+    FieldSetMapper<ItemFormat> itemInformationMapper =
+      createItemInformationMapper();
+    itemLineMapper.setFieldSetMapper(itemInformationMapper);
+
+    return itemLineMapper;
+  }
+
+  private static LineTokenizer createItemLineTokenizer() {
+    DelimitedLineTokenizer itemLineTokenizer = new DelimitedLineTokenizer();
+    itemLineTokenizer.setDelimiter(",");
+    itemLineTokenizer.setNames(ItemFormat.getItemFieldsArray());
+    return itemLineTokenizer;
+  }
+
+  private static FieldSetMapper<ItemFormat> createItemInformationMapper() {
+    BeanWrapperFieldSetMapper<ItemFormat> itemInformationMapper =
+      new BeanWrapperFieldSetMapper<>();
+    itemInformationMapper.setTargetType(ItemFormat.class);
+    return itemInformationMapper;
   }
 }

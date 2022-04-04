@@ -1,7 +1,9 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
+import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.UserFormat.getUserColumnHeaders;
 import static org.folio.dew.domain.dto.UserFormat.getUserFieldsArray;
+import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
 import lombok.RequiredArgsConstructor;
 import org.folio.dew.domain.dto.ExportType;
@@ -49,7 +51,7 @@ public class BulkEditUserIdentifiersJobConfig {
   @Bean
   public Job bulkEditProcessUserIdentifiersJob(JobCompletionNotificationListener listener, Step bulkEditUserStep) {
     return jobBuilderFactory
-      .get(ExportType.BULK_EDIT_IDENTIFIERS.toString().concat("_USER"))
+      .get(ExportType.BULK_EDIT_IDENTIFIERS + JOB_NAME_POSTFIX_SEPARATOR + USER.getValue())
       .incrementer(new RunIdIncrementer())
       .listener(listener)
       .flow(bulkEditUserStep)

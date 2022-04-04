@@ -12,6 +12,32 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/electronic-access-relationships?query=name%3D%3DVersion%20of%20resource"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"electronicAccessRelationships\": [\n        {\n            \"id\": \"3b430592-2e09-4b48-9a0c-0636d66b9fb3\",\n            \"name\": \"Version of resource\",\n            \"metadata\": {\n                \"createdDate\": \"2022-03-31T01:50:46.237+00:00\",\n                \"updatedDate\": \"2022-03-31T01:50:46.237+00:00\"\n            },\n            \"source\": \"folio\"\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/electronic-access-relationships?query=name%3D%3DBad%20relationship"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"electronicAccessRelationships\": [],\n    \"totalRecords\": 0\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

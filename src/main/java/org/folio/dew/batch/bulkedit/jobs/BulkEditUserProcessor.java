@@ -1,5 +1,13 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
+import static java.util.Objects.nonNull;
+import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
+import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
+import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
+import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,14 +25,6 @@ import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-
-import static java.util.Objects.nonNull;
-import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
-import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
-import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
-import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
 
 @Component
 @StepScope

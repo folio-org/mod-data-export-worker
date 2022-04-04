@@ -1,5 +1,8 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
+import static org.folio.dew.domain.dto.EntityType.ITEM;
+import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
+
 import lombok.RequiredArgsConstructor;
 import org.folio.dew.batch.CsvWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
@@ -46,7 +49,7 @@ public class BulkEditItemIdentifiersJobConfig {
   @Bean
   public Job bulkEditProcessItemIdentifiersJob(JobCompletionNotificationListener listener, Step bulkEditItemStep) {
     return jobBuilderFactory
-      .get(ExportType.BULK_EDIT_IDENTIFIERS.toString().concat("_ITEM"))
+      .get(ExportType.BULK_EDIT_IDENTIFIERS + JOB_NAME_POSTFIX_SEPARATOR + ITEM.getValue())
       .incrementer(new RunIdIncrementer())
       .listener(listener)
       .flow(bulkEditItemStep)

@@ -31,11 +31,10 @@ import lombok.extern.log4j.Log4j2;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
-import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
-import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_USERS;
+import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 
@@ -75,7 +74,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       if (isBulkEditIdentifiersJob(jobExecution)) {
         handleProcessingErrors(jobExecution, jobId);
       }
-      if ((BULK_EDIT_UPDATE.getValue() + "-" + USER.getValue()).equals(jobExecution.getJobInstance().getJobName())) {
+      if (jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue())) {
         String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
         if (StringUtils.isNotBlank(downloadErrorLink)) {
           jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, PATHS_DELIMITER + downloadErrorLink);
@@ -90,7 +89,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
           try {
             String filePath = requireNonNull(jobExecution.getJobParameters().getString(FILE_NAME));
             int totalUsers = (int) Files.lines(Paths.get(filePath)).count() - 1;
-            jobExecution.getExecutionContext().putLong(TOTAL_USERS, totalUsers);
+            jobExecution.getExecutionContext().putLong(TOTAL_RECORDS, totalUsers);
           } catch (IOException | NullPointerException e) {
             String msg = String.format("Couldn't open a required for the job file. File path '%s'", FILE_NAME);
             log.debug(msg);

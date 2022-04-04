@@ -12,6 +12,19 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/material-types?query=name%3D%3Dbook"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"mtypes\": [\n        {\n            \"id\": \"1a54b431-2e4f-452d-9cae-9cee66c9a892\",\n            \"name\": \"book\",\n            \"source\": \"folio\",\n            \"metadata\": {\n                \"createdDate\": \"2022-03-31T01:50:44.172+00:00\",\n                \"updatedDate\": \"2022-03-31T01:50:44.172+00:00\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

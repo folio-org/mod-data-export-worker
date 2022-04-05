@@ -325,7 +325,7 @@ public class BulkEditParseService {
       .inTransitDestinationServicePointId(restoreServicePointId(itemFormat.getInTransitDestinationServicePoint()))
       .statisticalCodeIds(restoreStatisticalCodeIds(itemFormat.getStatisticalCodes()))
       .purchaseOrderLineIdentifier(restoreStringValue(itemFormat.getPurchaseOrderLineIdentifier()))
-      .tags(isEmpty(itemFormat.getTags()) ? null : new Tags().tagList(restoreListValue(itemFormat.getTags())))
+      .tags(isEmpty(itemFormat.getTags()) ? new Tags().tagList(Collections.emptyList()) : new Tags().tagList(restoreListValue(itemFormat.getTags())))
       .lastCheckIn(restoreLastCheckIn(itemFormat.getLastCheckIn()));
   }
 

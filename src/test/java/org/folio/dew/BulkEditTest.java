@@ -208,7 +208,7 @@ class BulkEditTest extends BaseBatchTest {
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
     var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobExecution.getJobParameters().getString("jobId"), csvFileName, 10);
-
+    var events = wireMockServer.getServeEvents();
     if (!USER_RECORD_CSV.equals(csvFileName)) {
       assertThat(errors.getErrors().size()).isEqualTo(1);
       assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();

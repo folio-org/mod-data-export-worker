@@ -5,6 +5,7 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
+import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 
 import java.io.File;
@@ -140,9 +141,17 @@ public class JobCommandsReceiverService {
       String.format("%s%s_%tF_%tT_%s", workDir, jobCommand.getExportType(), now, now, jobId);
     paramsBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFileName);
 
+    addOrderExportSpecificParameters(jobCommand, paramsBuilder);
+
     normalizeParametersForBursarExport(paramsBuilder, jobId);
 
     jobCommand.setJobParameters(paramsBuilder.toJobParameters());
+  }
+
+  private void addOrderExportSpecificParameters(JobCommand jobCommand, JobParametersBuilder paramsBuilder) {
+    if (jobCommand.getExportType().equals(EDIFACT_ORDERS_EXPORT)) {
+      paramsBuilder.addString(JobParameterNames.JOB_NAME, jobCommand.getName());
+    }
   }
 
   @SneakyThrows

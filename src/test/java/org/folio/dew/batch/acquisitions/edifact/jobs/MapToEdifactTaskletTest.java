@@ -81,6 +81,7 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
 
     paramsBuilder.addString("jobId", UUID.randomUUID().toString());
     paramsBuilder.addString("edifactOrdersExport", edifactOrdersExportJson.toString());
+    paramsBuilder.addString("jobName", "000015");
 
     return paramsBuilder.toJobParameters();
   }

@@ -22,7 +22,7 @@ public class PurchaseOrdersToEdifactMapper {
     this.compositePOConverter = compositePOConverter;
   }
 
-  public String convertOrdersToEdifact(List<CompositePurchaseOrder> compPOs, VendorEdiOrdersExportConfig ediExportConfig, long jobId) throws EDIStreamException {
+  public String convertOrdersToEdifact(List<CompositePurchaseOrder> compPOs, VendorEdiOrdersExportConfig ediExportConfig, String jobName) throws EDIStreamException {
     ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
     EDIOutputFactory factory = EDIOutputFactory.newFactory();
@@ -36,7 +36,7 @@ public class PurchaseOrdersToEdifactMapper {
     writeStartFile(writer);
 
     EdiFileConfig ediFileConfig = new EdiFileConfig();
-    ediFileConfig.setFileId(StringUtils.right(String.valueOf(jobId), 14));
+    ediFileConfig.setFileId(StringUtils.right(jobName, 14));
     ediFileConfig.setLibEdiCode(ediExportConfig.getEdiConfig().getLibEdiCode());
     ediFileConfig.setLibEdiType(ediExportConfig.getEdiConfig().getLibEdiType().getValue().substring(0, 3));
     ediFileConfig.setVendorEdiCode(ediExportConfig.getEdiConfig().getVendorEdiCode());
@@ -57,8 +57,8 @@ public class PurchaseOrdersToEdifactMapper {
     return stream.toString();
   }
 
-  public byte[] convertOrdersToEdifactArray(List<CompositePurchaseOrder> compPOs, VendorEdiOrdersExportConfig ediExportConfig, long jobId) throws EDIStreamException {
-    return convertOrdersToEdifact(compPOs, ediExportConfig, jobId).getBytes(StandardCharsets.UTF_8);
+  public byte[] convertOrdersToEdifactArray(List<CompositePurchaseOrder> compPOs, VendorEdiOrdersExportConfig ediExportConfig, String jobName) throws EDIStreamException {
+    return convertOrdersToEdifact(compPOs, ediExportConfig, jobName).getBytes(StandardCharsets.UTF_8);
   }
 
   // Start of file - Can contain multiple order messages

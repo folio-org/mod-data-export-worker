@@ -9,6 +9,7 @@ import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
+import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -43,7 +44,8 @@ public class MapToEdifactTasklet implements Tasklet {
     // save poLineIds in memory
     persistPoLineIds(chunkContext, compOrders);
 
-    String edifactOrderAsString = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compOrders, ediExportConfig, chunkContext.getStepContext().getJobInstanceId());
+    String jobName = jobParameters.get(JobParameterNames.JOB_NAME).toString();
+    String edifactOrderAsString = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compOrders, ediExportConfig, jobName);
     // save edifact file content in memory
     ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), "edifactOrderAsString", edifactOrderAsString, "");
     return RepeatStatus.FINISHED;

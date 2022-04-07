@@ -53,7 +53,7 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
 
     doReturn(poCollection).when(ordersService).getCompositePurchaseOrderByQuery(anyString(), anyInt());
     doReturn(comPO).when(ordersService).getCompositePurchaseOrderById(anyString());
-    doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyLong());
+    doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
 
     JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters());
     Collection<StepExecution> actualStepExecutions = jobExecution.getStepExecutions();

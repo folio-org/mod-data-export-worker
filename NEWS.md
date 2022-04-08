@@ -1,3 +1,10 @@
+## 2022-04-08 v1.3.2
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.3.1...v1.3.2)
+
+### Bug fixes
+* [MODEXPW-93](https://issues.folio.org/browse/MODEXPW-93) Job ID is not set correctly during EDIFACT mapping
+
 ## 2022-03-24 v1.3.1
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.3.0...v1.3.1)

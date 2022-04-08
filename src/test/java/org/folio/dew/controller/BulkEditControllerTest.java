@@ -52,7 +52,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class BulkEditControllerTest extends BaseBatchTest {
   private static final String UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/upload";
   private static final String START_URL_TEMPLATE = "/bulk-edit/%s/start";
-  private static final String PREVIEW_URL_TEMPLATE = "/bulk-edit/%s/preview";
+  private static final String PREVIEW_URL_TEMPLATE = "/bulk-edit/%s/preview/users";
   private static final String ERRORS_URL_TEMPLATE = "/bulk-edit/%s/errors";
   public static final String LIMIT = "limit";
 

@@ -84,8 +84,8 @@
         },
         {
           "methods": [ "GET" ],
-          "pathPattern": "/bulk-edit/{jobId}/preview",
-          "permissionsRequired": [ "bulk-edit.preview.collection.get" ],
+          "pathPattern": "/bulk-edit/{jobId}/preview/users",
+          "permissionsRequired": [ "bulk-edit.preview-users.collection.get" ],
           "modulePermissions": [
             "users.collection.get",
             "inventory.items.collection.get"
@@ -159,9 +159,9 @@
       "description": "Roll back list of uploaded items"
     },
     {
-      "permissionName" : "bulk-edit.preview.collection.get",
-      "displayName" : "get N items for preview",
-      "description" : "Get N items for preview"
+      "permissionName" : "bulk-edit.preview-users.collection.get",
+      "displayName" : "get N users for preview",
+      "description" : "Get N users for preview"
 
     },
     {
@@ -178,7 +178,7 @@
         "bulk-edit.item.post",
         "bulk-edit.start.item.post",
         "bulk-edit.roll-back.item.post",
-        "bulk-edit.preview.collection.get",
+        "bulk-edit.preview-users.collection.get",
         "bulk-edit.errors.collection.get"
       ]
     }

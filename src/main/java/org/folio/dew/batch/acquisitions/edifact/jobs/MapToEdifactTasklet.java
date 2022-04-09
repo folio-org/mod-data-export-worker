@@ -3,6 +3,7 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
@@ -97,7 +98,7 @@ public class MapToEdifactTasklet implements Tasklet {
       .filter(poLine -> ediConfig.getEdiConfig().getDefaultAcquisitionMethods().contains(poLine.getAcquisitionMethod()))
       .filter(poLine -> {
         if (ediConfig.getIsDefaultConfig() != null && ediConfig.getIsDefaultConfig()) {
-          return poLine.getVendorDetail().getVendorAccount().isEmpty();
+          return StringUtils.isEmpty(poLine.getVendorDetail().getVendorAccount());
         }
         return ediConfig.getEdiConfig().getAccountNoList().contains(poLine.getVendorDetail().getVendorAccount());
       })

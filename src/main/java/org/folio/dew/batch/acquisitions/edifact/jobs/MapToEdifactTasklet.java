@@ -95,7 +95,12 @@ public class MapToEdifactTasklet implements Tasklet {
       // fix filter after implementation of re-export logic
       .filter(poLine -> poLine.getLastEDIExportDate() == null)
       .filter(poLine -> ediConfig.getEdiConfig().getDefaultAcquisitionMethods().contains(poLine.getAcquisitionMethod()))
-      .filter(poLine -> ediConfig.getEdiConfig().getAccountNoList().contains(poLine.getVendorDetail().getVendorAccount()))
+      .filter(poLine -> {
+        if (ediConfig.getIsDefaultConfig()) {
+          return poLine.getVendorDetail().getVendorAccount().isEmpty();
+        }
+        return ediConfig.getEdiConfig().getAccountNoList().contains(poLine.getVendorDetail().getVendorAccount());
+      })
       .collect(Collectors.toList());
   }
 

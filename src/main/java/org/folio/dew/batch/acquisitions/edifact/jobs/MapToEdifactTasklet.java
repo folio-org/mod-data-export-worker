@@ -96,7 +96,7 @@ public class MapToEdifactTasklet implements Tasklet {
       .filter(poLine -> poLine.getLastEDIExportDate() == null)
       .filter(poLine -> ediConfig.getEdiConfig().getDefaultAcquisitionMethods().contains(poLine.getAcquisitionMethod()))
       .filter(poLine -> {
-        if (ediConfig.getIsDefaultConfig()) {
+        if (ediConfig.getIsDefaultConfig() != null && ediConfig.getIsDefaultConfig()) {
           return poLine.getVendorDetail().getVendorAccount().isEmpty();
         }
         return ediConfig.getEdiConfig().getAccountNoList().contains(poLine.getVendorDetail().getVendorAccount());

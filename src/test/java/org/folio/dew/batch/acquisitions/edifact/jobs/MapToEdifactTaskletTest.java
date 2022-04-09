@@ -68,7 +68,7 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
     PurchaseOrderCollection poCollection = objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_collection.json"), PurchaseOrderCollection.class);
     CompositePurchaseOrder comPO = objectMapper.readValue(getMockData("edifact/acquisitions/composite_purchase_order.json"), CompositePurchaseOrder.class);
-
+    comPO.getCompositePoLines().get(0).getVendorDetail().setVendorAccount(null);
     doReturn(poCollection).when(ordersService).getCompositePurchaseOrderByQuery(anyString(), anyInt());
     doReturn(comPO).when(ordersService).getCompositePurchaseOrderById(anyString());
     doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());

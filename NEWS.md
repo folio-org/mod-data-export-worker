@@ -1,3 +1,10 @@
+## 2022-04-08 v1.3.3
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.3.2...v1.3.3)
+
+### Bug fixes
+* [MODEXPW-96](https://issues.folio.org/browse/MODEXPW-96) Orders with no Account number not exported with "Default integration"
+
 ## 2022-04-08 v1.3.2
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.3.1...v1.3.2)

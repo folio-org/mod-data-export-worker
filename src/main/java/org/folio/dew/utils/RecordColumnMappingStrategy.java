@@ -17,7 +17,7 @@ public class RecordColumnMappingStrategy<T> extends ColumnPositionMappingStrateg
       .toArray(String[]::new);
   }
 
-  private String extractHeaderName(BeanField beanField) {
+  private String extractHeaderName(BeanField<T, ? extends Object> beanField) {
     return  beanField == null || beanField.getField() == null || beanField.getField().getDeclaredAnnotationsByType(CsvBindByName.class).length == 0 ?
       EMPTY :
       beanField.getField().getDeclaredAnnotationsByType(CsvBindByName.class)[0].column();

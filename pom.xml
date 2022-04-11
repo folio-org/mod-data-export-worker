@@ -50,6 +50,7 @@
         <commons-collections4.version>4.4</commons-collections4.version>
         <lombok.version>1.18.18</lombok.version>
         <hibernate-types-52.version>2.10.3</hibernate-types-52.version>
+        <opencsv.version>5.6</opencsv.version>
 
         <sonar.exclusions>
             **/src/main/java/org/folio/dew/ModDataExportWorkerApplication.java,
@@ -191,6 +192,12 @@
         <groupId>io.xlate</groupId>
         <artifactId>staedi</artifactId>
         <version>1.16.0</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.opencsv</groupId>
+        <artifactId>opencsv</artifactId>
+        <version>${opencsv.version}</version>
       </dependency>
 
         <!-- Test dependencies -->
@@ -392,10 +399,10 @@
                       <generateApiDocumentation>false</generateApiDocumentation>
                       <generateModels>true</generateModels>
                       <modelsToGenerate>
-                        CallNumberType,CallNumberTypeCollection,DamagedStatus,DamagedStatusCollection,NoteType,NoteTypeCollection,ContributorName,EffectiveCallNumberComponents,ItemNote,CirculationNote,Source,InventoryItemStatus,MaterialType,MaterialTypeCollection,BriefHoldingsRecord,BriefHoldingsRecordCollection,BriefInstance,BriefInstanceCollection,Title,LoanType,LoanTypeCollection,ItemLocation,ItemLocationCollection,ElectronicAccess,ElectronicAccessRelationship,ElectronicAccessRelationshipCollection,LastCheckIn,StatisticalCode,StatisticalCodeCollection,Item,ItemCollection,Department,DepartmentCollection,ProxyFor,ProxyForCollection,AddressType,AddressTypeCollection,UserGroup,UserGroupCollection,Parameter,Error,Errors
+                        ContentUpdate,ContentUpdateCollection,CallNumberType,CallNumberTypeCollection,DamagedStatus,DamagedStatusCollection,NoteType,NoteTypeCollection,ContributorName,EffectiveCallNumberComponents,ItemNote,CirculationNote,Source,InventoryItemStatus,MaterialType,MaterialTypeCollection,BriefHoldingsRecord,BriefHoldingsRecordCollection,BriefInstance,BriefInstanceCollection,Title,LoanType,LoanTypeCollection,ItemLocation,ItemLocationCollection,ElectronicAccess,ElectronicAccessRelationship,ElectronicAccessRelationshipCollection,LastCheckIn,StatisticalCode,StatisticalCodeCollection,Item,ItemCollection,Department,DepartmentCollection,ProxyFor,ProxyForCollection,AddressType,AddressTypeCollection,UserGroup,UserGroupCollection,Parameter,Error,Errors
                       </modelsToGenerate>
                       <generateModelTests>false</generateModelTests>
-                      <generateSupportingFiles>false</generateSupportingFiles>
+                      <generateSupportingFiles>true</generateSupportingFiles>
                       <generateModelDocumentation>true</generateModelDocumentation>
                       <configOptions>
                         <java8>true</java8>

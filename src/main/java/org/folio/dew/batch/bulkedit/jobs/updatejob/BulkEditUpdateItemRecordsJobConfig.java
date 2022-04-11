@@ -1,7 +1,9 @@
 package org.folio.dew.batch.bulkedit.jobs.updatejob;
 
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
@@ -55,10 +57,11 @@ import org.springframework.core.io.FileSystemResource;
   }
 
   @Bean @StepScope public FlatFileItemReader<ItemFormat> csvItemRecordsReader(
-    @Value("#{jobParameters['" + FILE_NAME + "']}") String fileName) {
+    @Value("#{jobParameters['" + FILE_NAME + "']}") String fileName,
+    @Value("#{jobParameters['" + UPDATED_FILE_NAME + "']}") String updatedFileName) {
     LineMapper<ItemFormat> itemLineMapper = JobConfigReaderHelper.createItemLineMapper();
     return new FlatFileItemReaderBuilder<ItemFormat>().name("itemReader")
-      .resource(new FileSystemResource(fileName))
+      .resource(new FileSystemResource(isEmpty(updatedFileName) ? fileName : updatedFileName))
       .linesToSkip(1)
       .lineMapper(itemLineMapper)
       .build();

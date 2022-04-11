@@ -1,5 +1,23 @@
 package org.folio.dew;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.domain.dto.EntityType.ITEM;
+import static org.folio.dew.domain.dto.EntityType.USER;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
+import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
+import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.ENTITY_TYPE;
+import static org.folio.dew.utils.Constants.EXPORT_TYPE;
+import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
+import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
+import static org.springframework.batch.test.AssertFile.assertFileEquals;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -26,29 +44,12 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import lombok.SneakyThrows;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.folio.dew.domain.dto.EntityType.ITEM;
-import static org.folio.dew.domain.dto.EntityType.USER;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
-import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
-import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
-import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
-import static org.folio.dew.utils.Constants.ENTITY_TYPE;
-import static org.folio.dew.utils.Constants.EXPORT_TYPE;
-import static org.folio.dew.utils.Constants.FILE_NAME;
-import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
-import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
-import static org.springframework.batch.test.AssertFile.assertFileEquals;
-
 
 @ExtendWith(MockitoExtension.class)
 class BulkEditTest extends BaseBatchTest {
@@ -67,6 +68,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String ITEM_RECORD_CSV_BAD_NOTE_TYPE = "src/test/resources/upload/bulk_edit_item_record_bad_note_type.csv";
   private static final String ITEM_RECORD_CSV_BAD_RELATIONSHIP = "src/test/resources/upload/bulk_edit_item_record_bad_relationship.csv";
   private static final String ITEM_RECORD_CSV_BAD_SERVICE_POINT = "src/test/resources/upload/bulk_edit_item_record_bad_service_point.csv";
+  private static final String ITEM_RECORD_IN_APP_UPDATED = "src/test/resources/upload/bulk_edit_item_record_in_app_updated.csv";
   private static final String USER_RECORD_ROLLBACK_CSV = "test-directory/bulk_edit_rollback.csv";
   private static final String BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/barcodesSomeNotFound.csv";
   private static final String ITEM_BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/item_barcodes_some_not_found.csv";
@@ -208,7 +210,7 @@ class BulkEditTest extends BaseBatchTest {
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
     var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobExecution.getJobParameters().getString("jobId"), csvFileName, 10);
-    var events = wireMockServer.getServeEvents();
+
     if (!USER_RECORD_CSV.equals(csvFileName)) {
       assertThat(errors.getErrors().size()).isEqualTo(1);
       assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
@@ -238,6 +240,22 @@ class BulkEditTest extends BaseBatchTest {
       assertThat(errors.getErrors()).isEmpty();
       assertThat(jobExecution.getExecutionContext().get(OUTPUT_FILES_IN_STORAGE)).isNull();
     }
+  }
+
+  @Test
+  @DisplayName("Run item records update when in-app updates available - successful")
+  @SneakyThrows
+  void shouldUseInAppUpdatesFileIfPresent() {
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateItemRecordsJob);
+    var builder = new JobParametersBuilder(prepareJobParameters(BULK_EDIT_UPDATE, ITEM, BARCODE, ITEM_RECORD_CSV, true));
+    builder.addString(UPDATED_FILE_NAME, ITEM_RECORD_IN_APP_UPDATED);
+    JobExecution jobExecution = testLauncher.launchJob(builder.toJobParameters());
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
+    var request = wireMockServer.getAllServeEvents().get(0).getRequest();
+    assertThat(request.getMethod().getName()).isEqualTo("PUT");
+    assertThat(request.getUrl()).isEqualTo("/inventory/items/8a29baff-b703-4c3a-8b7b-ef476b2cd583");
   }
 
   @Test

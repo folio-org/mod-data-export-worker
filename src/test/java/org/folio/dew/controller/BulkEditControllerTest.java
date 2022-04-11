@@ -424,10 +424,10 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @EnumSource(ContentUpdatesTestData.class)
+  @EnumSource(ItemsContentUpdateTestData.class)
   @DisplayName("Post content updates - successful")
   @SneakyThrows
-  void shouldUpdateEffectiveLocationOnChangeLocationContentUpdate(ContentUpdatesTestData testData) {
+  void shouldUpdateEffectiveLocationOnChangeLocationContentUpdate(ItemsContentUpdateTestData testData) {
     repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();

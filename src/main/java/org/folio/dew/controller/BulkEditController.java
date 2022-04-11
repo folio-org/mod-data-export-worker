@@ -42,7 +42,7 @@ import org.folio.dew.domain.dto.ItemCollection;
 import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.JobCommandNotFoundException;
-import org.folio.dew.error.NonSupportedEntityType;
+import org.folio.dew.error.NonSupportedEntityTypeException;
 import org.folio.dew.service.BulkEditItemContentUpdateService;
 import org.folio.dew.service.BulkEditParseService;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
@@ -100,7 +100,7 @@ public class BulkEditController implements JobIdApi {
       var itemFormats = itemContentUpdateService.processContentUpdates(getJobCommandById(jobId.toString()), contentUpdateCollection);
       return new ResponseEntity<>(prepareItemContentUpdateResponse(itemFormats, limit), HttpStatus.OK);
     }
-    throw new NonSupportedEntityType(format("Non-supported entity type: %s", contentUpdateCollection.getEntityType()));
+    throw new NonSupportedEntityTypeException(format("Non-supported entity type: %s", contentUpdateCollection.getEntityType()));
   }
 
   @Override

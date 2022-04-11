@@ -11,7 +11,7 @@ import org.folio.dew.domain.dto.ContentUpdate;
 
 @AllArgsConstructor
 @Getter
-public enum ContentUpdatesTestData {
+public enum ItemsContentUpdateTestData {
   REPLACE_WITH_PERMANENT_LOCATION(PERMANENT_LOCATION, REPLACE_WITH, "Annex", "src/test/resources/output/expected_items_with_updated_permanent_location.json", "src/test/resources/output/expected_items_with_updated_permanent_location.csv"),
   REPLACE_WITH_TEMPORARY_LOCATION(TEMPORARY_LOCATION, REPLACE_WITH, "Annex", "src/test/resources/output/expected_items_with_updated_temporary_location.json", "src/test/resources/output/expected_items_with_updated_temporary_location.csv"),
   REPLACE_WITH_NULL_PERMANENT_LOCATION(PERMANENT_LOCATION, REPLACE_WITH, null, "src/test/resources/output/expected_items_with_deleted_permanent_location.json", "src/test/resources/output/expected_items_with_deleted_permanent_location.csv"),

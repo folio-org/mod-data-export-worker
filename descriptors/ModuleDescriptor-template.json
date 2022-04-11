@@ -156,8 +156,8 @@
     },
     {
       "permissionName" : "bulk-edit.items-content-update.collection.post",
-      "displayName" : "upload content update collection",
-      "description" : "Upload collection of content updates"
+      "displayName" : "upload items content update collection",
+      "description" : "Upload collection of item content updates"
     },
     {
       "permissionName": "bulk-edit.start.item.post",

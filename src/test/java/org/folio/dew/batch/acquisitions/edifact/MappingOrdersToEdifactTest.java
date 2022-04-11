@@ -64,7 +64,7 @@ class MappingOrdersToEdifactTest {
 
     serviceMocks();
 
-    String ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, getTestEdiConfig(), 123456789012345L);
+    String ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, getTestEdiConfig(), "123456789012345");
     assertFalse(ediOrder.isEmpty());
     log.info(ediOrder);
   }
@@ -75,9 +75,9 @@ class MappingOrdersToEdifactTest {
 
     serviceMocks();
 
-    byte[] ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifactArray(compPOs, getTestEdiConfig(), 12345L);
+    byte[] ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifactArray(compPOs, getTestEdiConfig(), "12345");
     assertNotNull(ediOrder);
-    log.info(Arrays.toString(ediOrder));
+    log.info(new String(ediOrder));
   }
 
   private VendorEdiOrdersExportConfig getTestEdiConfig() throws IOException {

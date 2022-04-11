@@ -3,12 +3,14 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
+import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -43,7 +45,8 @@ public class MapToEdifactTasklet implements Tasklet {
     // save poLineIds in memory
     persistPoLineIds(chunkContext, compOrders);
 
-    String edifactOrderAsString = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compOrders, ediExportConfig, chunkContext.getStepContext().getJobInstanceId());
+    String jobName = jobParameters.get(JobParameterNames.JOB_NAME).toString();
+    String edifactOrderAsString = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compOrders, ediExportConfig, jobName);
     // save edifact file content in memory
     ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), "edifactOrderAsString", edifactOrderAsString, "");
     return RepeatStatus.FINISHED;
@@ -93,7 +96,12 @@ public class MapToEdifactTasklet implements Tasklet {
       // fix filter after implementation of re-export logic
       .filter(poLine -> poLine.getLastEDIExportDate() == null)
       .filter(poLine -> ediConfig.getEdiConfig().getDefaultAcquisitionMethods().contains(poLine.getAcquisitionMethod()))
-      .filter(poLine -> ediConfig.getEdiConfig().getAccountNoList().contains(poLine.getVendorDetail().getVendorAccount()))
+      .filter(poLine -> {
+        if (ediConfig.getIsDefaultConfig() != null && ediConfig.getIsDefaultConfig()) {
+          return StringUtils.isEmpty(poLine.getVendorDetail().getVendorAccount());
+        }
+        return ediConfig.getEdiConfig().getAccountNoList().contains(poLine.getVendorDetail().getVendorAccount());
+      })
       .collect(Collectors.toList());
   }
 

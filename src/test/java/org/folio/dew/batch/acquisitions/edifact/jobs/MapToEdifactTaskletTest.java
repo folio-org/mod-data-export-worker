@@ -53,9 +53,27 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
 
     doReturn(poCollection).when(ordersService).getCompositePurchaseOrderByQuery(anyString(), anyInt());
     doReturn(comPO).when(ordersService).getCompositePurchaseOrderById(anyString());
-    doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyLong());
+    doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
 
-    JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters());
+    JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters(false));
+    Collection<StepExecution> actualStepExecutions = jobExecution.getStepExecutions();
+
+    var status = new ArrayList<>(actualStepExecutions).get(0).getStatus().getBatchStatus().name();
+    assertEquals("COMPLETED", status);
+
+  }
+
+  @Test
+  void edifactExportJobIfDefaultConfigTestSuccess() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    PurchaseOrderCollection poCollection = objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_collection.json"), PurchaseOrderCollection.class);
+    CompositePurchaseOrder comPO = objectMapper.readValue(getMockData("edifact/acquisitions/composite_purchase_order.json"), CompositePurchaseOrder.class);
+    comPO.getCompositePoLines().get(0).getVendorDetail().setVendorAccount(null);
+    doReturn(poCollection).when(ordersService).getCompositePurchaseOrderByQuery(anyString(), anyInt());
+    doReturn(comPO).when(ordersService).getCompositePurchaseOrderById(anyString());
+    doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
+
+    JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters(true));
     Collection<StepExecution> actualStepExecutions = jobExecution.getStepExecutions();
 
     var status = new ArrayList<>(actualStepExecutions).get(0).getStatus().getBatchStatus().name();
@@ -69,18 +87,20 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
     PurchaseOrderCollection poCollection = new PurchaseOrderCollection();
     doReturn(poCollection).when(ordersService).getCompositePurchaseOrderByQuery(anyString(), anyInt());
     // when
-    JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters());
+    JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters(false));
 
     // then
     assertThat(jobExecution.getExitStatus().getExitDescription(), containsString("Orders for export not found"));
   }
 
-  private JobParameters getJobParameters() throws IOException {
+  private JobParameters getJobParameters(boolean isDefaultConfig) throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
     JSONObject edifactOrdersExportJson = new JSONObject(getMockData("edifact/edifactOrdersExport.json"));
+    edifactOrdersExportJson.put("isDefaultConfig", isDefaultConfig);
 
     paramsBuilder.addString("jobId", UUID.randomUUID().toString());
     paramsBuilder.addString("edifactOrdersExport", edifactOrdersExportJson.toString());
+    paramsBuilder.addString("jobName", "000015");
 
     return paramsBuilder.toJobParameters();
   }

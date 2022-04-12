@@ -1,126 +1,225 @@
 package org.folio.dew.domain.dto;
 
+import com.opencsv.bean.CsvBindByName;
+import com.opencsv.bean.CsvBindByPosition;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.With;
+import org.apache.commons.lang3.reflect.FieldUtils;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.lang.reflect.Field;
+import java.util.stream.Collectors;
 
 @Data
 @Builder
+@With
 @NoArgsConstructor
 @AllArgsConstructor
 public class ItemFormat {
-  private static final Map<String, String> map = new LinkedHashMap<>();
-
-  static {
-    map.put("id", "Item id");
-    map.put("version", "Version");
-    map.put("hrid", "Item HRID");
-    map.put("holdingsRecordId", "Holdings Record Id");
-    map.put("formerIds", "Former Ids");
-    map.put("discoverySuppress", "Discovery Suppress");
-    map.put("title", "Title");
-    map.put("contributorNames", "Contributor Names");
-    map.put("callNumber", "Call Number");
-    map.put("barcode", "Barcode");
-    map.put("effectiveShelvingOrder", "Effective Shelving Order");
-    map.put("accessionNumber", "Accession Number");
-    map.put("itemLevelCallNumber", "Item Level Call Number");
-    map.put("itemLevelCallNumberPrefix", "Item Level Call Number Prefix");
-    map.put("itemLevelCallNumberSuffix", "Item Level Call Number Suffix");
-    map.put("itemLevelCallNumberType", "Item Level Call Number Type");
-    map.put("effectiveCallNumberComponents", "Effective Call Number Components");
-    map.put("volume", "Volume");
-    map.put("enumeration", "Enumeration");
-    map.put("chronology", "Chronology");
-    map.put("yearCaption", "Year Caption");
-    map.put("itemIdentifier", "Item Identifier");
-    map.put("copyNumber", "Copy Number");
-    map.put("numberOfPieces", "Number Of Pieces");
-    map.put("descriptionOfPieces", "Description Of Pieces");
-    map.put("numberOfMissingPieces", "Number Of Missing Pieces");
-    map.put("missingPieces", "Missing Pieces");
-    map.put("missingPiecesDate", "Missing Pieces Date");
-    map.put("itemDamagedStatus", "Item Damaged Status");
-    map.put("itemDamagedStatusDate", "Item Damaged Status Date");
-    map.put("administrativeNotes", "Administrative Notes");
-    map.put("notes", "Notes");
-    map.put("circulationNotes", "Circulation Notes");
-    map.put("status", "Status");
-    map.put("materialType", "Material Type");
-    map.put("isBoundWith", "Is Bound With");
-    map.put("boundWithTitles", "Bound With Titles");
-    map.put("permanentLoanType", "Permanent Loan Type");
-    map.put("temporaryLoanType", "Temporary Loan Type");
-    map.put("permanentLocation", "Permanent Location");
-    map.put("temporaryLocation", "Temporary Location");
-    map.put("effectiveLocation", "Effective Location");
-    map.put("electronicAccess", "Electronic Access");
-    map.put("inTransitDestinationServicePoint", "In Transit Destination Service Point");
-    map.put("statisticalCodes", "Statistical Codes");
-    map.put("purchaseOrderLineIdentifier", "Purchase Order LineIdentifier");
-    map.put("tags", "Tags");
-    map.put("lastCheckIn", "Last CheckIn");
-  }
-
+  @CsvBindByName(column = "Item id")
+  @CsvBindByPosition(position = 0)
   private String id;
+
+  @CsvBindByName(column = "Version")
+  @CsvBindByPosition(position = 1)
   private String version;
+
+  @CsvBindByName(column = "Item HRID")
+  @CsvBindByPosition(position = 2)
   private String hrid;
+
+  @CsvBindByName(column = "Holdings Record Id")
+  @CsvBindByPosition(position = 3)
   private String holdingsRecordId;
+
+  @CsvBindByName(column = "Former Ids")
+  @CsvBindByPosition(position = 4)
   private String formerIds;
+
+  @CsvBindByName(column = "Discovery Suppress")
+  @CsvBindByPosition(position = 5)
   private String discoverySuppress;
+
+  @CsvBindByName(column = "Title")
+  @CsvBindByPosition(position = 6)
   private String title;
+
+  @CsvBindByName(column = "Contributor Names")
+  @CsvBindByPosition(position = 7)
   private String contributorNames;
+
+  @CsvBindByName(column = "Call Number")
+  @CsvBindByPosition(position = 8)
   private String callNumber;
+
+  @CsvBindByName(column = "Barcode")
+  @CsvBindByPosition(position = 9)
   private String barcode;
+
+  @CsvBindByName(column = "Effective Shelving Order")
+  @CsvBindByPosition(position = 10)
   private String effectiveShelvingOrder;
+
+  @CsvBindByName(column = "Accession Number")
+  @CsvBindByPosition(position = 11)
   private String accessionNumber;
+
+  @CsvBindByName(column = "Item Level Call Number")
+  @CsvBindByPosition(position = 12)
   private String itemLevelCallNumber;
+
+  @CsvBindByName(column = "Item Level Call Number Prefix")
+  @CsvBindByPosition(position = 13)
   private String itemLevelCallNumberPrefix;
+
+  @CsvBindByName(column = "Item Level Call Number Suffix")
+  @CsvBindByPosition(position = 14)
   private String itemLevelCallNumberSuffix;
+
+  @CsvBindByName(column = "Item Level Call Number Type")
+  @CsvBindByPosition(position = 15)
   private String itemLevelCallNumberType;
+
+  @CsvBindByName(column = "Effective Call Number Components")
+  @CsvBindByPosition(position = 16)
   private String effectiveCallNumberComponents;
+
+  @CsvBindByName(column = "Volume")
+  @CsvBindByPosition(position = 17)
   private String volume;
+
+  @CsvBindByName(column = "Enumeration")
+  @CsvBindByPosition(position = 18)
   private String enumeration;
+
+  @CsvBindByName(column = "Chronology")
+  @CsvBindByPosition(position = 19)
   private String chronology;
+
+  @CsvBindByName(column = "Year Caption")
+  @CsvBindByPosition(position = 20)
   private String yearCaption;
+
+  @CsvBindByName(column = "Item Identifier")
+  @CsvBindByPosition(position = 21)
   private String itemIdentifier;
+
+  @CsvBindByName(column = "Copy Number")
+  @CsvBindByPosition(position = 22)
   private String copyNumber;
+
+  @CsvBindByName(column = "Number Of Pieces")
+  @CsvBindByPosition(position = 23)
   private String numberOfPieces;
+
+  @CsvBindByName(column = "Description Of Pieces")
+  @CsvBindByPosition(position = 24)
   private String descriptionOfPieces;
+
+  @CsvBindByName(column = "Number Of Missing Pieces")
+  @CsvBindByPosition(position = 25)
   private String numberOfMissingPieces;
+
+  @CsvBindByName(column = "Missing Pieces")
+  @CsvBindByPosition(position = 26)
   private String missingPieces;
+
+  @CsvBindByName(column = "Missing Pieces Date")
+  @CsvBindByPosition(position = 27)
   private String missingPiecesDate;
+
+  @CsvBindByName(column = "Item Damaged Status")
+  @CsvBindByPosition(position = 28)
   private String itemDamagedStatus;
+
+  @CsvBindByName(column = "Item Damaged Status Date")
+  @CsvBindByPosition(position = 29)
   private String itemDamagedStatusDate;
+
+  @CsvBindByName(column = "Administrative Notes")
+  @CsvBindByPosition(position = 30)
   private String administrativeNotes;
+
+  @CsvBindByName(column = "Notes")
+  @CsvBindByPosition(position = 31)
   private String notes;
+
+  @CsvBindByName(column = "Circulation Notes")
+  @CsvBindByPosition(position = 32)
   private String circulationNotes;
+
+  @CsvBindByName(column = "Status")
+  @CsvBindByPosition(position = 33)
   private String status;
+
+  @CsvBindByName(column = "Material Type")
+  @CsvBindByPosition(position = 34)
   private String materialType;
+
+  @CsvBindByName(column = "Is Bound With")
+  @CsvBindByPosition(position = 35)
   private String isBoundWith;
+
+  @CsvBindByName(column = "Bound With Titles")
+  @CsvBindByPosition(position = 36)
   private String boundWithTitles;
+
+  @CsvBindByName(column = "Permanent Loan Type")
+  @CsvBindByPosition(position = 37)
   private String permanentLoanType;
+
+  @CsvBindByName(column = "Temporary Loan Type")
+  @CsvBindByPosition(position = 38)
   private String temporaryLoanType;
+
+  @CsvBindByName(column = "Permanent Location")
+  @CsvBindByPosition(position = 39)
   private String permanentLocation;
+
+  @CsvBindByName(column = "Temporary Location")
+  @CsvBindByPosition(position = 40)
   private String temporaryLocation;
+
+  @CsvBindByName(column = "Effective Location")
+  @CsvBindByPosition(position = 41)
   private String effectiveLocation;
+
+  @CsvBindByName(column = "Electronic Access")
+  @CsvBindByPosition(position = 42)
   private String electronicAccess;
+
+  @CsvBindByName(column = "In Transit Destination Service Point")
+  @CsvBindByPosition(position = 43)
   private String inTransitDestinationServicePoint;
+
+  @CsvBindByName(column = "Statistical Codes")
+  @CsvBindByPosition(position = 44)
   private String statisticalCodes;
+
+  @CsvBindByName(column = "Purchase Order LineIdentifier")
+  @CsvBindByPosition(position = 45)
   private String purchaseOrderLineIdentifier;
+
+  @CsvBindByName(column = "Tags")
+  @CsvBindByPosition(position = 46)
   private String tags;
+
+  @CsvBindByName(column = "Last CheckIn")
+  @CsvBindByPosition(position = 47)
   private String lastCheckIn;
 
-  public static String getItemColumnHeaders() {
-    return String.join(",", map.values());
+  public static String[] getItemFieldsArray() {
+    return FieldUtils.getFieldsListWithAnnotation(ItemFormat.class, CsvBindByName.class).stream()
+      .map(Field::getName)
+      .toArray(String[]::new);
   }
 
-  public static String[] getItemFieldsArray() {
-    return map.keySet().toArray(new String[0]);
+  public static String getItemColumnHeaders() {
+    return FieldUtils.getFieldsListWithAnnotation(ItemFormat.class, CsvBindByName.class).stream()
+      .map(field -> field.getAnnotation(CsvBindByName.class).column())
+      .collect(Collectors.joining(","));
   }
 }
 

@@ -28,6 +28,12 @@
         },
         {
           "methods": [ "POST" ],
+          "pathPattern": "/bulk-edit/{id}/items-content-update/upload",
+          "permissionsRequired": [ "bulk-edit.items-content-update.collection.post" ],
+          "modulePermissions": [ ]
+        },
+        {
+          "methods": [ "POST" ],
           "pathPattern": "/bulk-edit/{id}/start",
           "permissionsRequired": [ "bulk-edit.start.item.post" ],
           "modulePermissions": [
@@ -149,6 +155,11 @@
       "description" : "Upload list of item identifiers"
     },
     {
+      "permissionName" : "bulk-edit.items-content-update.collection.post",
+      "displayName" : "upload items content update collection",
+      "description" : "Upload collection of item content updates"
+    },
+    {
       "permissionName": "bulk-edit.start.item.post",
       "displayName": "start update items",
       "description": "Start update items"
@@ -176,6 +187,7 @@
       "description" : "All permissions for bulk-edit module",
       "subPermissions" : [
         "bulk-edit.item.post",
+        "bulk-edit.items-content-update.collection.post",
         "bulk-edit.start.item.post",
         "bulk-edit.roll-back.item.post",
         "bulk-edit.preview.collection.get",

@@ -11,6 +11,8 @@ public class Constants {
   public static final String JOB_ID_SEPARATOR = "_";
   public static final String JOB_NAME_POSTFIX_SEPARATOR = "-";
   public static final String MATCHED_RECORDS = "-Matched-Records-";
+  public static final String UPDATED_PREFIX = "UPDATED-";
+  public static final String CSV_EXTENSION = ".csv";
 
   public static final String ARRAY_DELIMITER = ";";
   public static final String ITEM_DELIMITER = "|";

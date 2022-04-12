@@ -1,5 +1,15 @@
 package org.folio.dew.batch;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.requireNonNull;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
+import static org.folio.dew.utils.Constants.CSV_EXTENSION;
+import static org.folio.dew.utils.Constants.EXPORT_TYPE;
+import static org.folio.dew.utils.Constants.FILE_NAME;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,20 +39,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.requireNonNull;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
-import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
-import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
-import static org.folio.dew.utils.Constants.EXPORT_TYPE;
-import static org.folio.dew.utils.Constants.FILE_NAME;
-
 @Component
 @Log4j2
 @RequiredArgsConstructor
 public class JobCompletionNotificationListener extends JobExecutionListenerSupport {
-  private static final String CSV_EXTENSION = ".csv";
   private static final String PATHS_DELIMITER = ";";
 
   private final IAcknowledgementRepository acknowledgementRepository;

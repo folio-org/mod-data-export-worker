@@ -1,0 +1,41 @@
+{
+  "items": [
+    {
+      "id": "b7a9718a-0c26-4d43-ace9-52234ff74ad8",
+      "effectiveLocation": {
+        "id": "fcd64ce1-6995-48f0-840e-89ffa2288371",
+        "name": "Main Library"
+      }
+    },
+    {
+      "id": "f84325f4-7d2a-495f-b15e-fa822354a932",
+      "effectiveLocation": {
+        "id": "fcd64ce1-6995-48f0-840e-89ffa2288371",
+        "name": "Main Library"
+      }
+    },
+    {
+      "id": "42c6e3a2-774b-46e3-b76d-9385e908550e",
+      "temporaryLocation": {
+        "id": "fcd64ce1-6995-48f0-840e-89ffa2288371",
+        "name": "Main Library"
+      },
+      "effectiveLocation": {
+        "id": "fcd64ce1-6995-48f0-840e-89ffa2288371",
+        "name": "Main Library"
+      }
+    },
+    {
+      "id": "14475730-a4a0-4c1a-b4b4-67ad458e711d",
+      "temporaryLocation": {
+        "id": "fcd64ce1-6995-48f0-840e-89ffa2288371",
+        "name": "Main Library"
+      },
+      "effectiveLocation": {
+        "id": "fcd64ce1-6995-48f0-840e-89ffa2288371",
+        "name": "Main Library"
+      }
+    }
+  ],
+  "totalRecords": 4
+}

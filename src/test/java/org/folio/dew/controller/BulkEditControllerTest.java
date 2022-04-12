@@ -1,15 +1,48 @@
 package org.folio.dew.controller;
 
+import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.domain.dto.EntityType.ITEM;
+import static org.folio.dew.domain.dto.EntityType.USER;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
+import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
+import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
+import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.CSV_EXTENSION;
+import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.isA;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.batch.test.AssertFile.assertFileEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.*;
 import org.folio.dew.error.BulkEditException;
+import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
+import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.tenant.domain.dto.Errors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,43 +54,29 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionException;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.FileInputStream;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
-import static java.lang.String.format;
-import static org.folio.dew.domain.dto.EntityType.ITEM;
-import static org.folio.dew.domain.dto.EntityType.USER;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
-import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
-import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
-import static org.folio.dew.utils.Constants.FILE_NAME;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class BulkEditControllerTest extends BaseBatchTest {
   private static final String UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/upload";
   private static final String START_URL_TEMPLATE = "/bulk-edit/%s/start";
   private static final String PREVIEW_URL_TEMPLATE = "/bulk-edit/%s/preview";
   private static final String ERRORS_URL_TEMPLATE = "/bulk-edit/%s/errors";
+  private static final String ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/items-content-update/upload";
+  private static final String ITEMS_FOR_LOCATION_UPDATE = "src/test/resources/upload/bulk_edit_items_for_location_update.csv";
   public static final String LIMIT = "limit";
-
-  @Autowired
-  private ObjectMapper mapper;
 
   @MockBean
   private BulkEditRollBackService bulkEditRollBackService;
@@ -70,6 +89,12 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @Autowired
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
+
+  @Autowired
+  private MinIOObjectStorageRepository repository;
+
+  @Autowired
+  private JobCommandsReceiverService jobCommandsReceiverService;
 
   @Test
   void shouldReturnErrorsPreview() throws Exception {
@@ -124,7 +149,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   void shouldReturnErrorsFileNotFoundErrorForErrorsPreview() throws Exception {
 
     var jobId = UUID.randomUUID();
-    var expectedErrorMsg = format("JobCommand with id %s doesn't exist.", jobId);
+    var expectedJson = String.format("{\"errors\":[{\"message\":\"JobCommand with id %s doesn't exist.\",\"type\":\"-1\",\"code\":\"Not found\",\"parameters\":null}],\"total_records\":1}", jobId);
 
     var headers = defaultHeaders();
 
@@ -132,7 +157,7 @@ class BulkEditControllerTest extends BaseBatchTest {
         .headers(headers)
         .queryParam(LIMIT, String.valueOf(2)))
       .andExpect(status().isNotFound())
-      .andExpect(content().string(expectedErrorMsg));
+      .andExpect(content().json(expectedJson));
   }
 
   @SneakyThrows
@@ -398,6 +423,138 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andExpect(status().isInternalServerError());
   }
 
+  @ParameterizedTest
+  @EnumSource(ItemsContentUpdateTestData.class)
+  @DisplayName("Post content updates - successful")
+  @SneakyThrows
+  void shouldUpdateEffectiveLocationOnChangeLocationContentUpdate(ItemsContentUpdateTestData testData) {
+    repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
+    jobCommand.setEntityType(ITEM);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_LOCATION_UPDATE.replace(CSV_EXTENSION, EMPTY))
+      .toJobParameters());
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+
+    var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
+      .entityType(ITEM)
+      .contentUpdates(Collections.singletonList(new ContentUpdate()
+        .option(testData.getOption())
+        .action(testData.getAction())
+        .value(testData.getValue())))
+      .totalRecords(1));
+
+    var response = mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+      .headers(defaultHeaders())
+      .content(updates))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    var updatedJobCommand = jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
+    assertFalse(updatedJobCommand.isEmpty());
+    assertNotNull(updatedJobCommand.get().getJobParameters().getString(UPDATED_FILE_NAME));
+
+    var expectedCsv = new FileSystemResource(testData.getExpectedCsvPath());
+    var actualCsv = new FileSystemResource(updatedJobCommand.get().getJobParameters().getString(UPDATED_FILE_NAME));
+    assertFileEquals(expectedCsv, actualCsv);
+
+    var actualItems = objectMapper.readValue(response.getResponse().getContentAsString(), ItemCollection.class);
+    var expectedItems = objectMapper.readValue(new FileSystemResource(testData.getExpectedJsonPath()).getInputStream(), ItemCollection.class);
+    verifyLocationUpdate(expectedItems, actualItems);
+  }
+
+  @Test
+  @DisplayName("Post content updates with limit - successful")
+  @SneakyThrows
+  void shouldLimitItemsInResponseWhenLimitIsNotNull() {
+    repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
+    jobCommand.setEntityType(ITEM);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_LOCATION_UPDATE.replace(CSV_EXTENSION, EMPTY))
+      .toJobParameters());
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
+    var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
+      .entityType(ITEM)
+      .contentUpdates(Collections.singletonList(new ContentUpdate()
+        .option(ContentUpdate.OptionEnum.TEMPORARY_LOCATION)
+        .action(ContentUpdate.ActionEnum.REPLACE_WITH)
+        .value("Annex")))
+      .totalRecords(1));
+
+    var response = mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE + "?limit=2", jobId))
+        .headers(defaultHeaders())
+        .content(updates))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    var actualItems = objectMapper.readValue(response.getResponse().getContentAsString(), ItemCollection.class);
+
+    assertThat(actualItems.getItems(), hasSize(2));
+  }
+
+  @Test
+  @DisplayName("Post non-supported entity type content update - BAD REQUEST")
+  @SneakyThrows
+  void shouldReturnBadRequestForNonSupportedEntityTypeContentUpdates() {
+    var updates = new ObjectMapper().writeValueAsString(new ContentUpdateCollection()
+      .entityType(USER)
+      .contentUpdates(Collections.singletonList(new ContentUpdate()
+        .option(ContentUpdate.OptionEnum.TEMPORARY_LOCATION)
+        .action(ContentUpdate.ActionEnum.REPLACE_WITH)))
+      .totalRecords(1));
+
+    var expectedJson = "{\"errors\":[{\"message\":\"Non-supported entity type: USER\",\"type\":\"-1\",\"code\":\"Validation error\",\"parameters\":null}],\"total_records\":1}";
+
+    mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, UUID.randomUUID()))
+        .headers(defaultHeaders())
+        .content(updates))
+      .andExpect(status().isBadRequest())
+      .andExpect(content().json(expectedJson));
+  }
+
+  @Test
+  @DisplayName("Post invalid content updates - BAD REQUEST")
+  @SneakyThrows
+  void shouldReturnBadRequestForInvalidContentUpdates() {
+    var updates = new ObjectMapper().writeValueAsString(new ContentUpdateCollection()
+      .contentUpdates(Collections.singletonList(new ContentUpdate()
+        .option(ContentUpdate.OptionEnum.TEMPORARY_LOCATION)
+        .action(ContentUpdate.ActionEnum.REPLACE_WITH)))
+      .totalRecords(1));
+
+    var expectedJson = "{\"errors\":[{\"message\":\"Invalid request body\",\"type\":\"-1\",\"code\":\"Validation error\",\"parameters\":[{\"key\":\"entityType\",\"value\":\"must not be null\"}]}],\"total_records\":1}";
+
+    mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, UUID.randomUUID()))
+      .headers(defaultHeaders())
+      .content(updates))
+      .andExpect(status().isBadRequest())
+      .andExpect(content().json(expectedJson));
+  }
+
+  @Test
+  @DisplayName("Post empty content updates - BAD REQUEST")
+  @SneakyThrows
+  void shouldReturnBadRequestForEmptyContentUpdates() {
+    var updates = new ObjectMapper().writeValueAsString(new ContentUpdateCollection().entityType(ITEM).totalRecords(0));
+
+    var expectedJson = "{\"errors\":[{\"message\":\"Invalid request body\",\"type\":\"-1\",\"code\":\"Validation error\",\"parameters\":[{\"key\":\"contentUpdates\",\"value\":\"size must be between 1 and 2147483647\"}]}],\"total_records\":1}";
+
+    mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, UUID.randomUUID()))
+        .headers(defaultHeaders())
+        .content(updates))
+      .andExpect(status().isBadRequest())
+      .andExpect(content().string(expectedJson));
+  }
+
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType, EntityType entityType, IdentifierType identifierType) {
     JobCommand jobCommand = new JobCommand();
     jobCommand.setType(JobCommand.Type.START);
@@ -430,5 +587,14 @@ class BulkEditControllerTest extends BaseBatchTest {
       .addItemsItem(new Item().barcode("456"))
       .addItemsItem(new Item().barcode("789"))
       .totalRecords(3);
+  }
+
+  private void verifyLocationUpdate(ItemCollection expectedItems, ItemCollection actualItems) {
+    for (int i = 0; i < expectedItems.getItems().size(); i++) {
+      assertThat(expectedItems.getItems().get(i).getId(), equalTo(actualItems.getItems().get(i).getId()));
+      assertThat(expectedItems.getItems().get(i).getPermanentLocation(), equalTo(actualItems.getItems().get(i).getPermanentLocation()));
+      assertThat(expectedItems.getItems().get(i).getTemporaryLocation(), equalTo(actualItems.getItems().get(i).getTemporaryLocation()));
+      assertThat(expectedItems.getItems().get(i).getEffectiveLocation(), equalTo(actualItems.getItems().get(i).getEffectiveLocation()));
+    }
   }
 }

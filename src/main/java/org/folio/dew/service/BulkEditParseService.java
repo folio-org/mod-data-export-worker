@@ -321,6 +321,7 @@ public class BulkEditParseService {
       .temporaryLoanType(restoreLoanType(itemFormat.getTemporaryLoanType()))
       .permanentLocation(restoreLocation(itemFormat.getPermanentLocation()))
       .temporaryLocation(restoreLocation(itemFormat.getTemporaryLocation()))
+      .effectiveLocation(restoreLocation(itemFormat.getEffectiveLocation()))
       .electronicAccess(restoreElectronicAccess(itemFormat.getElectronicAccess()))
       .inTransitDestinationServicePointId(restoreServicePointId(itemFormat.getInTransitDestinationServicePoint()))
       .statisticalCodeIds(restoreStatisticalCodeIds(itemFormat.getStatisticalCodes()))

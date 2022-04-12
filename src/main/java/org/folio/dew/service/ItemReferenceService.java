@@ -252,4 +252,11 @@ public class ItemReferenceService {
     }
     return loanTypes.getLoantypes().get(0);
   }
+
+  @Cacheable(cacheNames = "holdings")
+  public String getHoldingEffectiveLocationCodeById(String id) {
+    var holdingJson = holdingClient.getHoldingById(id);
+    var locationJson = locationClient.getLocation(holdingJson.get("effectiveLocationId").asText());
+    return locationJson.get("name").asText();
+  }
 }

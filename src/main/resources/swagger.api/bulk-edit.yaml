@@ -5,6 +5,60 @@ info:
 servers:
   - url: /bulk-edit/
 paths:
+  /{jobId}/items-content-update/upload:
+    post:
+      description: Upload content updates
+      operationId: postContentUpdates
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: UUID of the JobCommand
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+          description: The numbers of records to return
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/contentUpdateCollection"
+      responses:
+        "200":
+          description: Collection of items for preview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/itemCollection"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "500":
+          description: Internal server errors, e.g. due to misconfiguration
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
   /{jobId}/preview/users:
     get:
       description: Get a list of users for preview
@@ -29,7 +83,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/userCollection"
-                example: "{}"
         '400':
           description: Bad Request
           content:
@@ -73,9 +126,10 @@ paths:
           description: Collection of users for preview
           content:
             application/json:
+              example:
+                $ref: "#/components/examples/errors"
               schema:
-                $ref: "../../../../folio-export-common/schemas/common/errors.json"
-                example: "{}"
+                $ref: "#/components/schemas/errors"
         '404':
           description: No found
           content:
@@ -207,6 +261,8 @@ components:
       format: uuid
     errors:
       $ref: '../../../../folio-export-common/schemas/common/errors.json#/Errors'
+    parameter:
+      $ref: '../../../../folio-export-common/schemas/common/parameter.json#/Parameter'
     userGroupCollections:
       $ref: '../../../../folio-export-common/schemas/user/userGroupCollection.json#/UserGroupCollection'
     addressTypeCollection:
@@ -249,6 +305,8 @@ components:
       $ref: '../../../../folio-export-common/schemas/inventory/electronicAccessRelationshipCollection.json#/ElectronicAccessRelationshipCollection'
     statisticalCodes:
       $ref: '../../../../folio-export-common/schemas/inventory/statisticalCodeCollection.json#/StatisticalCodeCollection'
+    contentUpdateCollection:
+      $ref: '../../../../folio-export-common/schemas/bulk-edit/contentUpdateCollection.json#/ContentUpdateCollection'
   examples:
     errors:
       value:

@@ -142,6 +142,24 @@ public class BulkEditController implements JobIdApi {
   }
 
   @Override
+  public ResponseEntity<Resource> downloadPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId) {
+    var jobCommand = getJobCommandById(jobId.toString());
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+    try {
+      var updatedFileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(UPDATED_FILE_NAME));
+      var updatedFullPath = FilenameUtils.getFullPath(jobCommand.getJobParameters().getString(UPDATED_FILE_NAME));
+      Path updatedFilePath = Paths.get(updatedFullPath + updatedFileName);
+      ByteArrayResource updatedFileResource = new ByteArrayResource(Files.readAllBytes(updatedFilePath));
+      headers.setContentLength(updatedFilePath.toFile().length());
+      headers.setContentDispositionFormData(updatedFileName, updatedFileName);
+      return ResponseEntity.ok().headers(headers).body(updatedFileResource);
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError().body(new DescriptiveResource(e.getMessage()));
+    }
+  }
+
+  @Override
   public ResponseEntity<Errors> getErrorsPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId, @NotNull @ApiParam(value = "The numbers of users to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
     var jobCommand = getJobCommandById(jobId.toString());
     var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME));

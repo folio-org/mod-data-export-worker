@@ -102,10 +102,10 @@ paths:
                 $ref: "#/components/examples/errors"
               schema:
                 $ref: "#/components/schemas/errors"
-  /{jobId}/preview:
+  /{jobId}/preview/users:
     get:
       description: Get a list of users for preview
-      operationId: getPreviewByJobId
+      operationId: getPreviewUsersByJobId
       parameters:
         - name: jobId
           in: path

@@ -236,10 +236,35 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(2L, equalTo(limitCaptor.getValue()));
   }
 
+  @SneakyThrows
+  @ParameterizedTest
+  @CsvSource({"BULK_EDIT_IDENTIFIERS,barcode==(123 OR 456)",
+    "BULK_EDIT_UPDATE,barcode==(123 OR 456)"})
+  void shouldReturnCompleteItemsPreviewWithLimitControl(String exportType, String query) {
+
+    when(inventoryClient.getItemByQuery(query, 2)).thenReturn(buildItemCollection());
+
+    var jobId = UUID.randomUUID();
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType), ITEM, BARCODE));
+
+    var headers = defaultHeaders();
+
+    var response = mockMvc.perform(get(format(PREVIEW_ITEMS_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(2)))
+      .andExpect(status().isOk());
+
+    ArgumentCaptor<String> queryCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<Long> limitCaptor = ArgumentCaptor.forClass(Long.class);
+    verify(inventoryClient).getItemByQuery(queryCaptor.capture(), limitCaptor.capture());
+    assertThat(query, equalTo(queryCaptor.getValue()));
+    assertThat(2L, equalTo(limitCaptor.getValue()));
+  }
+
   @ParameterizedTest
   @EnumSource(IdentifierType.class)
   @SneakyThrows
-  void shouldReturnCompleteItemPreviewWithLimitControl(IdentifierType identifierType) {
+  void shouldReturnCompleteItemPreviewWithDifferentIdentifiers(IdentifierType identifierType) {
 
     var query = String.format("%s==(123 OR 456)", resolveIdentifier(identifierType.getValue()));
     when(inventoryClient.getItemByQuery(query, 2)).thenReturn(buildItemCollection());
@@ -658,7 +683,12 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     Map<String, JobParameter> params = new HashMap<>();
     params.put("query", new JobParameter("(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName"));
-    var fileName = BULK_EDIT_IDENTIFIERS == exportType ? "src/test/resources/upload/barcodes.csv" : "src/test/resources/upload/user_data.csv";
+    String fileName;
+    if (BULK_EDIT_IDENTIFIERS == exportType) {
+      fileName = "src/test/resources/upload/barcodes.csv";
+    } else {
+      fileName = USER == entityType ? "src/test/resources/upload/user_data.csv" : "src/test/resources/upload/item_data.csv";
+    }
     params.put(FILE_NAME, new JobParameter(fileName));
     jobCommand.setJobParameters(new JobParameters(params));
     return jobCommand;

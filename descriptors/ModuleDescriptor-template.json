@@ -102,6 +102,12 @@
           "pathPattern": "/bulk-edit/{jobId}/errors",
           "permissionsRequired": [ "bulk-edit.errors.collection.get" ],
           "modulePermissions": []
+        },
+        {
+          "methods": [ "GET" ],
+          "pathPattern": "/bulk-edit/{jobId}/preview/updated-items/download",
+          "permissionsRequired": [ "bulk-edit.preview.updated-items.download.get" ],
+          "modulePermissions": []
         }
       ]
     },
@@ -160,6 +166,11 @@
       "description" : "Upload collection of item content updates"
     },
     {
+      "permissionName" : "bulk-edit.preview.updated-items.download.get",
+      "displayName" : "download updated items preview csv",
+      "description" : "Download csv of preview updated items"
+    },
+    {
       "permissionName": "bulk-edit.start.item.post",
       "displayName": "start update items",
       "description": "Start update items"
@@ -188,6 +199,7 @@
       "subPermissions" : [
         "bulk-edit.item.post",
         "bulk-edit.items-content-update.collection.post",
+        "bulk-edit.preview.updated-items.download.get",
         "bulk-edit.start.item.post",
         "bulk-edit.roll-back.item.post",
         "bulk-edit.preview.collection.get",

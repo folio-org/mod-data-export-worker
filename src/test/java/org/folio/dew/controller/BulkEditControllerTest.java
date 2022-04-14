@@ -75,7 +75,7 @@ import java.util.UUID;
 class BulkEditControllerTest extends BaseBatchTest {
   private static final String UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/upload";
   private static final String START_URL_TEMPLATE = "/bulk-edit/%s/start";
-  private static final String PREVIEW_URL_TEMPLATE = "/bulk-edit/%s/preview";
+  private static final String PREVIEW_URL_TEMPLATE = "/bulk-edit/%s/preview/users";
   private static final String ERRORS_URL_TEMPLATE = "/bulk-edit/%s/errors";
   private static final String ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/items-content-update/upload";
   private static final String ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-items/download";

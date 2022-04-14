@@ -63,6 +63,9 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.FileInputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -75,6 +78,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String PREVIEW_URL_TEMPLATE = "/bulk-edit/%s/preview";
   private static final String ERRORS_URL_TEMPLATE = "/bulk-edit/%s/errors";
   private static final String ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/items-content-update/upload";
+  private static final String ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-items/download";
   private static final String ITEMS_FOR_LOCATION_UPDATE = "src/test/resources/upload/bulk_edit_items_for_location_update.csv";
   public static final String LIMIT = "limit";
 
@@ -465,6 +469,92 @@ class BulkEditControllerTest extends BaseBatchTest {
     var actualItems = objectMapper.readValue(response.getResponse().getContentAsString(), ItemCollection.class);
     var expectedItems = objectMapper.readValue(new FileSystemResource(testData.getExpectedJsonPath()).getInputStream(), ItemCollection.class);
     verifyLocationUpdate(expectedItems, actualItems);
+  }
+
+  @ParameterizedTest
+  @EnumSource(ItemsContentUpdateTestData.class)
+  @DisplayName("Download preview - successful")
+  @SneakyThrows
+  void shouldDownloadPreviewAfterContentUpdate(ItemsContentUpdateTestData testData) {
+    repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
+    jobCommand.setEntityType(ITEM);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_LOCATION_UPDATE.replace(CSV_EXTENSION, EMPTY))
+      .toJobParameters());
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+
+    var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
+      .entityType(ITEM)
+      .contentUpdates(Collections.singletonList(new ContentUpdate()
+        .option(testData.getOption())
+        .action(testData.getAction())
+        .value(testData.getValue())))
+      .totalRecords(1));
+
+    var response = mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+      .headers(defaultHeaders())
+      .content(updates))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    response = mockMvc.perform(get(format(ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE, jobId))
+      .headers(defaultHeaders()))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    var expectedCsv = new FileSystemResource(testData.getExpectedCsvPath());
+    var actualCsvByteArr = response.getResponse().getContentAsByteArray();
+    Path actualDownloadedCsvTmp = Paths.get("actualDownloaded.csv");
+    Files.write(actualDownloadedCsvTmp, actualCsvByteArr);
+    var actualCsv = new FileSystemResource(actualDownloadedCsvTmp);
+
+    assertFileEquals(expectedCsv, actualCsv);
+
+    Files.delete(actualDownloadedCsvTmp);
+  }
+
+  @ParameterizedTest
+  @EnumSource(ItemsContentUpdateTestData.class)
+  @DisplayName("Download preview - Job not found by ID - NOT FOUND")
+  @SneakyThrows
+  void shouldReturn404causeJobNotFoundById(ItemsContentUpdateTestData testData) {
+    repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
+    jobCommand.setEntityType(ITEM);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_LOCATION_UPDATE.replace(CSV_EXTENSION, EMPTY))
+      .toJobParameters());
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+
+    var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
+      .entityType(ITEM)
+      .contentUpdates(Collections.singletonList(new ContentUpdate()
+        .option(testData.getOption())
+        .action(testData.getAction())
+        .value(testData.getValue())))
+      .totalRecords(1));
+
+    mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+      .headers(defaultHeaders())
+      .content(updates))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    UUID jobByThisIdCannotBeFound = UUID.randomUUID();
+
+    mockMvc.perform(get(format(ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE, jobByThisIdCannotBeFound))
+      .headers(defaultHeaders()))
+      .andExpect(status().isNotFound())
+      .andReturn();
   }
 
   @Test

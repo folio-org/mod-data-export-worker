@@ -129,24 +129,75 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/plain:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
               schema:
-                type: string
-                example: Invalid query
+                $ref: "#/components/schemas/errors"
         '404':
           description: Bad Request
           content:
-            text/plain:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
               schema:
-                type: string
-                example: Job not found
+                $ref: "#/components/schemas/errors"
         '500':
            description: Internal server errors, e.g. due to misconfiguration
            content:
-             text/plain:
+             application/json:
+               example:
+                 $ref: "#/components/examples/errors"
                schema:
-                 type: string
-                 example: Internal server error
+                 $ref: "#/components/schemas/errors"
+  /{jobId}/preview/items:
+    get:
+      description: Get a list of items for preview
+      operationId: getPreviewItemsByJobId
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: UUID of the JobCommand
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+          description: The numbers of items to return
+      responses:
+        '200':
+          description: Collection of items for preview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/itemCollection"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        '404':
+          description: Not found
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        '500':
+          description: Internal server errors, e.g. due to misconfiguration
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
   /{jobId}/errors:
     get:
       description: Get a list of errors for preview

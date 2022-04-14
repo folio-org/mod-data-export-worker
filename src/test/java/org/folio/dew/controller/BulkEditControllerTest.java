@@ -75,7 +75,8 @@ import java.util.UUID;
 class BulkEditControllerTest extends BaseBatchTest {
   private static final String UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/upload";
   private static final String START_URL_TEMPLATE = "/bulk-edit/%s/start";
-  private static final String PREVIEW_URL_TEMPLATE = "/bulk-edit/%s/preview/users";
+  private static final String PREVIEW_USERS_URL_TEMPLATE = "/bulk-edit/%s/preview/users";
+  private static final String PREVIEW_ITEMS_URL_TEMPLATE = "/bulk-edit/%s/preview/items";
   private static final String ERRORS_URL_TEMPLATE = "/bulk-edit/%s/errors";
   private static final String ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/items-content-update/upload";
   private static final String ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-items/download";
@@ -177,7 +178,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     var headers = defaultHeaders();
 
-    var response = mockMvc.perform(get(format(PREVIEW_URL_TEMPLATE, jobId))
+    var response = mockMvc.perform(get(format(PREVIEW_USERS_URL_TEMPLATE, jobId))
         .headers(headers)
         .queryParam(LIMIT, String.valueOf(3)))
       .andExpect(status().isOk());
@@ -199,7 +200,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     var headers = defaultHeaders();
 
-    var response = mockMvc.perform(get(format(PREVIEW_URL_TEMPLATE, jobId))
+    var response = mockMvc.perform(get(format(PREVIEW_ITEMS_URL_TEMPLATE, jobId))
         .headers(headers)
         .queryParam(LIMIT, String.valueOf(3)))
       .andExpect(status().isOk());
@@ -223,7 +224,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     var headers = defaultHeaders();
 
-    var response = mockMvc.perform(get(format(PREVIEW_URL_TEMPLATE, jobId))
+    var response = mockMvc.perform(get(format(PREVIEW_USERS_URL_TEMPLATE, jobId))
         .headers(headers)
         .queryParam(LIMIT, String.valueOf(2)))
       .andExpect(status().isOk());
@@ -248,7 +249,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     var headers = defaultHeaders();
 
-    var response = mockMvc.perform(get(format(PREVIEW_URL_TEMPLATE, jobId))
+    var response = mockMvc.perform(get(format(PREVIEW_ITEMS_URL_TEMPLATE, jobId))
         .headers(headers)
         .queryParam(LIMIT, String.valueOf(2)))
       .andExpect(status().isOk());
@@ -269,7 +270,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     var headers = defaultHeaders();
 
-    mockMvc.perform(get(format(PREVIEW_URL_TEMPLATE, jobId))
+    mockMvc.perform(get(format(PREVIEW_USERS_URL_TEMPLATE, jobId))
         .headers(headers)
         .queryParam(LIMIT, String.valueOf(2)))
       .andExpect(status().isBadRequest());
@@ -281,7 +282,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     var headers = defaultHeaders();
 
-    mockMvc.perform(get(format(PREVIEW_URL_TEMPLATE, UUID.randomUUID()))
+    mockMvc.perform(get(format(PREVIEW_USERS_URL_TEMPLATE, UUID.randomUUID()))
         .headers(headers)
         .queryParam(LIMIT, String.valueOf(2)))
       .andExpect(status().isNotFound());

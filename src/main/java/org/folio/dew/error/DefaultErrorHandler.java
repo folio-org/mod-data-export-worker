@@ -43,8 +43,8 @@ public class DefaultErrorHandler {
       HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
-  @ExceptionHandler(NonSupportedEntityTypeException.class)
-  public ResponseEntity<Errors> handleNonSupportedEntityTypeException(final NonSupportedEntityTypeException e) {
+  @ExceptionHandler(NonSupportedEntityException.class)
+  public ResponseEntity<Errors> handleNonSupportedEntityTypeException(final NonSupportedEntityException e) {
     return new ResponseEntity<>(new Errors()
       .errors(Collections.singletonList(new Error()
         .message(e.getMessage())

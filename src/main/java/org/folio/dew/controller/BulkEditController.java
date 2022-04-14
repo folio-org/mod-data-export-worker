@@ -3,15 +3,16 @@ package org.folio.dew.controller;
 import static java.lang.String.format;
 import static java.util.Objects.isNull;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.domain.dto.JobParameterNames.QUERY;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
+import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.DOUBLE_QUOTE;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
@@ -25,6 +26,7 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -42,14 +44,14 @@ import org.folio.dew.domain.dto.Errors;
 import org.folio.dew.domain.dto.ItemCollection;
 import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.domain.dto.UserFormat;
+import org.folio.dew.error.FileOperationException;
 import org.folio.dew.error.JobCommandNotFoundException;
-import org.folio.dew.error.NonSupportedEntityTypeException;
+import org.folio.dew.error.NonSupportedEntityException;
 import org.folio.dew.service.BulkEditItemContentUpdateService;
 import org.folio.dew.service.BulkEditParseService;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.JobCommandsReceiverService;
-import org.folio.dew.utils.BulkEditProcessorHelper;
 import org.openapitools.api.JobIdApi;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -107,30 +109,18 @@ public class BulkEditController implements JobIdApi {
       var itemFormats = itemContentUpdateService.processContentUpdates(getJobCommandById(jobId.toString()), contentUpdateCollection);
       return new ResponseEntity<>(prepareItemContentUpdateResponse(itemFormats, limit), HttpStatus.OK);
     }
-    throw new NonSupportedEntityTypeException(format("Non-supported entity type: %s", contentUpdateCollection.getEntityType()));
+    throw new NonSupportedEntityException(format("Non-supported entity type: %s", contentUpdateCollection.getEntityType()));
   }
 
   @Override
   public ResponseEntity<Object> getPreviewUsersByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId, @NotNull @ApiParam(value = "The numbers of items to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
     var jobCommand = getJobCommandById(jobId.toString());
-    var fileName = extractQueryFromJobCommand(jobCommand, FILE_NAME);
-    var exportType = jobCommand.getExportType();
-    try {
-      if (BULK_EDIT_UPDATE == exportType) {
-        return new ResponseEntity<>(userClient.getUserByQuery(buildBarcodesQueryFromUpdatedRecordsFile(fileName, limit), limit), HttpStatus.OK);
-      } else if (BULK_EDIT_IDENTIFIERS == exportType) {
-        return USER == jobCommand.getEntityType() ?
-          new ResponseEntity<>(userClient.getUserByQuery(buildQueryFromIdentifiersFile(jobCommand.getIdentifierType().getValue(), fileName, limit), limit), HttpStatus.OK) :
-          new ResponseEntity<>(inventoryClient.getItemByQuery(buildQueryFromIdentifiersFile(jobCommand.getIdentifierType().getValue(), fileName, limit), limit), HttpStatus.OK);
-      } else if (BULK_EDIT_QUERY == exportType) {
-        return new ResponseEntity<>(userClient.getUserByQuery(extractQueryFromJobCommand(jobCommand, "query"), limit), HttpStatus.OK);
-      } else {
-        log.error(format("Non-supported export type: %s of the jobId=%s", exportType.getValue(), jobId));
-        return new ResponseEntity<>(format("Non-supported export type: %s", exportType.getValue()), HttpStatus.BAD_REQUEST);
-      }
-    } catch (Exception e) {
-      return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    return new ResponseEntity<>(userClient.getUserByQuery(buildPreviewQueryFromJobCommand(jobCommand, limit), limit), HttpStatus.OK);
+  }
+
+  @Override public ResponseEntity<ItemCollection> getPreviewItemsByJobId(UUID jobId, Integer limit) {
+    var jobCommand = getJobCommandById(jobId.toString());
+    return new ResponseEntity<>(inventoryClient.getItemByQuery(buildPreviewQueryFromJobCommand(jobCommand, limit), limit), HttpStatus.OK);
   }
 
   @Override
@@ -215,12 +205,6 @@ public class BulkEditController implements JobIdApi {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
-  private String extractQueryFromJobCommand(JobCommand jobCommand, String parameterName) {
-    return BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())
-      ? (String) jobCommand.getJobParameters().getParameters().get(parameterName).getValue()
-      : jobCommand.getJobParameters().getString(parameterName);
-  }
-
   private Job getBulkEditJob(JobCommand jobCommand) {
     var jobName = BULK_EDIT_IDENTIFIERS == jobCommand.getExportType() || BULK_EDIT_UPDATE == jobCommand.getExportType() ?
       jobCommand.getExportType().getValue() + "-" + jobCommand.getEntityType() :
@@ -241,35 +225,6 @@ public class BulkEditController implements JobIdApi {
     ofNullable(jobCommand.getEntityType()).ifPresent(type ->
       paramsBuilder.addString("entityType", type.getValue()));
     jobCommand.setJobParameters(paramsBuilder.toJobParameters());
-  }
-
-  private String buildQueryFromIdentifiersFile(String identifierName, String fileName, int limit) throws IOException {
-    var identifiers = "";
-    try (var lines = Files.lines(Paths.get(fileName))) {
-      identifiers = lines.limit(limit)
-        .map(String::strip)
-        .map(i -> i.replace("\"", ""))
-        .collect(joining(" OR "));
-    }
-    return String.format("%s==(%s)", BulkEditProcessorHelper.resolveIdentifier(identifierName), identifiers);
-  }
-
-  private String buildBarcodesQueryFromUpdatedRecordsFile(String fileName, int limit) throws IOException {
-    var barcodes = "";
-    try (var lines = Files.lines(Paths.get(fileName))) {
-      barcodes = lines
-        .skip(1) // skip first line with headers
-        .limit(limit)
-        .map(this::extractBarcodeFromUserCsvLine)
-        .collect(Collectors.joining(" OR "));
-    }
-    return String.format("barcode==(%s)", barcodes);
-  }
-
-  private String extractBarcodeFromUserCsvLine(String csvLine) {
-    var tokens = csvLine.split(",");
-    var barcodeIndex = Arrays.asList(UserFormat.getUserFieldsArray()).indexOf("barcode");
-    return (tokens.length > barcodeIndex + 1) ? tokens[barcodeIndex] : EMPTY;
   }
 
   private long countLines(Path path, boolean skipHeaders) throws IOException {
@@ -298,5 +253,60 @@ public class BulkEditController implements JobIdApi {
         .map(bulkEditParseService::mapItemFormatToItem)
         .collect(Collectors.toList());
       return new ItemCollection().items(items).totalRecords(items.size());
+  }
+
+  private String buildPreviewQueryFromJobCommand(JobCommand jobCommand, int limit) {
+    switch(jobCommand.getExportType()) {
+    case BULK_EDIT_UPDATE:
+    case BULK_EDIT_IDENTIFIERS:
+      return buildPreviewQueryFromCsv(jobCommand, limit);
+    case BULK_EDIT_QUERY:
+      return jobCommand.getJobParameters().getString(QUERY);
+    default:
+      throw new NonSupportedEntityException(format("Non-supported export type: %s", jobCommand.getExportType()));
+    }
+  }
+
+  private String buildPreviewQueryFromCsv(JobCommand jobCommand, int limit) {
+    var fileName = extractFileName(jobCommand);
+    try (var lines = Files.lines(Paths.get(fileName))) {
+      var values = lines
+        .skip(BULK_EDIT_UPDATE == jobCommand.getExportType() ? 1 : 0)
+        .limit(limit)
+        .map(line -> BULK_EDIT_UPDATE == jobCommand.getExportType() ?
+          extractIdentifierFromUpdateCsv(line, jobCommand) :
+          extractIdentifierFromCsv(line))
+        .collect(Collectors.joining(" OR "));
+      return format("%s==(%s)", resolveIdentifier(jobCommand.getIdentifierType().getValue()), values);
+    } catch (IOException e) {
+      throw new FileOperationException(format("Failed to read %s file, reason: %s", fileName, e.getMessage()));
+    }
+  }
+
+  private String extractFileName(JobCommand jobCommand) {
+    return Optional.ofNullable(jobCommand.getJobParameters().getString(FILE_NAME))
+      .orElseThrow(() -> new FileOperationException("File for preview is not present or was not uploaded"));
+  }
+
+  private String extractIdentifierFromCsv(String line) {
+    return line.startsWith(DOUBLE_QUOTE) && line.endsWith(DOUBLE_QUOTE) ?
+      line.substring(1, line.length() - 1) :
+      line;
+  }
+
+  private String extractIdentifierFromUpdateCsv(String line, JobCommand jobCommand) {
+    var identifierIndex = getIdentifierIndex(jobCommand);
+    var tokens = line.split(",");
+    return (tokens.length > identifierIndex + 1) ? tokens[identifierIndex] : EMPTY;
+  }
+
+  private int getIdentifierIndex(JobCommand jobCommand) {
+    if (USER == jobCommand.getEntityType()) {
+      return Arrays.asList(UserFormat.getUserFieldsArray()).indexOf(resolveIdentifier(jobCommand.getIdentifierType().getValue()));
+    } else if (ITEM == jobCommand.getEntityType()) {
+      return Arrays.asList(ItemFormat.getItemFieldsArray()).indexOf(resolveIdentifier(jobCommand.getIdentifierType().getValue()));
+    } else {
+      throw new NonSupportedEntityException(format("Non-supported entity type: %s", jobCommand.getEntityType()));
+    }
   }
 }

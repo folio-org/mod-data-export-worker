@@ -12,13 +12,13 @@ import static org.folio.dew.domain.dto.JobParameterNames.QUERY;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
-import static org.folio.dew.utils.Constants.DOUBLE_QUOTE;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,6 +33,7 @@ import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.opencsv.CSVReader;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
@@ -269,8 +270,8 @@ public class BulkEditController implements JobIdApi {
 
   private String buildPreviewQueryFromCsv(JobCommand jobCommand, int limit) {
     var fileName = extractFileName(jobCommand);
-    try (var lines = Files.lines(Paths.get(fileName))) {
-      var values = lines
+    try (var reader = new CSVReader(new FileReader(fileName))) {
+      var values = reader.readAll().stream()
         .skip(BULK_EDIT_UPDATE == jobCommand.getExportType() ? 1 : 0)
         .limit(limit)
         .map(line -> BULK_EDIT_UPDATE == jobCommand.getExportType() ?
@@ -278,7 +279,7 @@ public class BulkEditController implements JobIdApi {
           extractIdentifierFromCsv(line))
         .collect(Collectors.joining(" OR "));
       return format("%s==(%s)", resolveIdentifier(jobCommand.getIdentifierType().getValue()), values);
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new FileOperationException(format("Failed to read %s file, reason: %s", fileName, e.getMessage()));
     }
   }
@@ -288,16 +289,13 @@ public class BulkEditController implements JobIdApi {
       .orElseThrow(() -> new FileOperationException("File for preview is not present or was not uploaded"));
   }
 
-  private String extractIdentifierFromCsv(String line) {
-    return line.startsWith(DOUBLE_QUOTE) && line.endsWith(DOUBLE_QUOTE) ?
-      line.substring(1, line.length() - 1) :
-      line;
+  private String extractIdentifierFromCsv(String[] line) {
+    return line.length > 0 ? line[0] : EMPTY;
   }
 
-  private String extractIdentifierFromUpdateCsv(String line, JobCommand jobCommand) {
+  private String extractIdentifierFromUpdateCsv(String[] line, JobCommand jobCommand) {
     var identifierIndex = getIdentifierIndex(jobCommand);
-    var tokens = line.split(",");
-    return (tokens.length > identifierIndex + 1) ? tokens[identifierIndex] : EMPTY;
+    return (line.length > identifierIndex + 1 ? line[identifierIndex] : EMPTY);
   }
 
   private int getIdentifierIndex(JobCommand jobCommand) {

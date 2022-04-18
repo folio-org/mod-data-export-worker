@@ -43,6 +43,17 @@ public class DefaultErrorHandler {
       HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
+  @ExceptionHandler(ConfigurationException.class)
+  public ResponseEntity<Errors> handleConfigurationException(final ConfigurationException e) {
+    return new ResponseEntity<>(new Errors()
+      .errors(Collections.singletonList(new Error()
+        .message(e.getMessage())
+        .code(IO_ERROR.getDescription())
+        .type(INTERNAL.getValue())))
+      .totalRecords(1),
+      HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
   @ExceptionHandler(NonSupportedEntityException.class)
   public ResponseEntity<Errors> handleNonSupportedEntityTypeException(final NonSupportedEntityException e) {
     return new ResponseEntity<>(new Errors()
@@ -55,7 +66,7 @@ public class DefaultErrorHandler {
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<Errors> handleConstraintViolationException(final MethodArgumentNotValidException e) {
+  public ResponseEntity<Errors> handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
     var parameters = e.getBindingResult().getAllErrors().stream()
       .map(this::processValidationError)
       .collect(Collectors.toList());

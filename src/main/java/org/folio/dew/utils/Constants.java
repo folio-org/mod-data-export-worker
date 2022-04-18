@@ -28,7 +28,10 @@ public class Constants {
 
   public static final String LINE_BREAK = "\n";
   public static final String LINE_BREAK_REPLACEMENT = "\\n";
-  public static final String DOUBLE_QUOTE = "\"";
 
   public static final String NO_MATCH_FOUND_MESSAGE = "No match found";
+
+  public static final String MODULE_NAME = "BULKEDIT";
+  public static final String STATUSES_CONFIG_NAME = "statuses";
+  public static final String BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE = "module==%s and configName==%s";
 }

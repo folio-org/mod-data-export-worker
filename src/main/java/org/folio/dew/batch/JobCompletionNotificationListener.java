@@ -2,12 +2,13 @@ package org.folio.dew.batch;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
+import static java.util.Optional.ofNullable;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
+import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
-import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 
 import java.io.File;
@@ -16,7 +17,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
@@ -24,7 +24,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.Job;
 import org.folio.dew.config.kafka.KafkaService;
-import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.repository.IAcknowledgementRepository;
@@ -82,12 +81,11 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       }
       processJobAfter(jobId, jobParameters);
     } else {
-      Optional<String> exportTypeOptional = Optional.ofNullable(jobExecution.getJobParameters().getString(EXPORT_TYPE));
-      if (exportTypeOptional.isPresent()) {
-        ExportType exportType = ExportType.fromValue(exportTypeOptional.get());
-        if (exportType == ExportType.BULK_EDIT_UPDATE) {
+      ofNullable(jobExecution.getJobInstance().getJobName()).ifPresent(jobName -> {
+        if (jobName.contains(BULK_EDIT_UPDATE.getValue())) {
           try {
-            String filePath = requireNonNull(jobExecution.getJobParameters().getString(FILE_NAME));
+            String updatedFilePath = jobExecution.getJobParameters().getString(UPDATED_FILE_NAME);
+            String filePath = requireNonNull(isNull(updatedFilePath) ? jobExecution.getJobParameters().getString(FILE_NAME) : updatedFilePath);
             int totalUsers = (int) Files.lines(Paths.get(filePath)).count() - 1;
             jobExecution.getExecutionContext().putLong(TOTAL_RECORDS, totalUsers);
           } catch (IOException | NullPointerException e) {
@@ -96,7 +94,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
             throw new BulkEditException(msg);
           }
         }
-      }
+      });
     }
 
     var jobExecutionUpdate = createJobExecutionUpdate(jobId, jobExecution);

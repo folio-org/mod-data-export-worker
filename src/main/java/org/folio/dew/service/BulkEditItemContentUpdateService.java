@@ -108,7 +108,7 @@ public class BulkEditItemContentUpdateService {
       applyReplaceWith(itemFormat, contentUpdate, jobCommand);
     } else if (CLEAR_FIELD == contentUpdate.getAction()) {
       if (STATUS == contentUpdate.getOption()) {
-        var msg = String.format("Error updating item id=%s: status field can not be cleared", itemFormat.getId());
+        var msg = "Status field can not be cleared";
         log.error(msg);
         errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
       } else {
@@ -157,7 +157,7 @@ public class BulkEditItemContentUpdateService {
       if (itemReferenceService.getAllowedStatuses(currentStatus).contains(newStatus)) {
         itemFormat.setStatus(String.join(ARRAY_DELIMITER, newStatus, dateToString(Date.from(LocalDateTime.now().atZone(UTC).toInstant()))));
       } else {
-        var msg = String.format("Error replacing status for item id=%s: value \"%s\" is not allowed", itemFormat.getId(), newStatus);
+        var msg = String.format("New status value \"%s\" is not allowed", newStatus);
         log.error(msg);
         errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
       }

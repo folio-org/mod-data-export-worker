@@ -135,7 +135,9 @@
             "feefineactions.collection.get",
             "users.collection.get",
             "transfers.collection.get",
-            "inventory-storage.service-points.collection.get"
+            "inventory-storage.service-points.collection.get",
+            "configuration.entries.collection.get",
+            "configuration.entries.item.post"
           ]
         },
         {

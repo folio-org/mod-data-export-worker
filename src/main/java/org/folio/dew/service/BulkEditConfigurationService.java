@@ -23,7 +23,7 @@ import org.folio.dew.domain.dto.ModelConfiguration;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +33,7 @@ import java.util.Map;
 public class BulkEditConfigurationService {
   private final ConfigurationClient configurationClient;
 
-  private static final Map<InventoryItemStatus.NameEnum, List<InventoryItemStatus.NameEnum>> allowedStatuses = new HashMap<>();
+  private static final Map<InventoryItemStatus.NameEnum, List<InventoryItemStatus.NameEnum>> allowedStatuses = new EnumMap<>(InventoryItemStatus.NameEnum.class);
 
   static {
     allowedStatuses.put(AVAILABLE,

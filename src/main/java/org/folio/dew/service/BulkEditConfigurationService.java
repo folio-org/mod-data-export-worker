@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.ConfigurationClient;
+import org.folio.dew.domain.dto.InventoryItemStatus;
 import org.folio.dew.domain.dto.ModelConfiguration;
 import org.springframework.stereotype.Service;
 
@@ -32,90 +33,90 @@ import java.util.Map;
 public class BulkEditConfigurationService {
   private final ConfigurationClient configurationClient;
 
-  private static final Map<String, List<String>> allowedStatuses = new HashMap<>();
+  private static final Map<InventoryItemStatus.NameEnum, List<InventoryItemStatus.NameEnum>> allowedStatuses = new HashMap<>();
 
   static {
-    allowedStatuses.put(AVAILABLE.getValue(),
-      Arrays.asList(MISSING.getValue(),
-        WITHDRAWN.getValue(),
-        IN_PROCESS_NON_REQUESTABLE_.getValue(),
-        INTELLECTUAL_ITEM.getValue(),
-        LONG_MISSING.getValue(),
-        RESTRICTED.getValue(),
-        UNAVAILABLE.getValue(),
-        UNKNOWN.getValue()));
-    allowedStatuses.put(MISSING.getValue(),
-      Arrays.asList(AVAILABLE.getValue(),
-        WITHDRAWN.getValue(),
-        IN_PROCESS_NON_REQUESTABLE_.getValue(),
-        INTELLECTUAL_ITEM.getValue(),
-        LONG_MISSING.getValue(),
-        RESTRICTED.getValue(),
-        UNAVAILABLE.getValue(),
-        UNKNOWN.getValue()));
-    allowedStatuses.put(WITHDRAWN.getValue(),
-      Arrays.asList(AVAILABLE.getValue(),
-        MISSING.getValue(),
-        IN_PROCESS_NON_REQUESTABLE_.getValue(),
-        INTELLECTUAL_ITEM.getValue(),
-        LONG_MISSING.getValue(),
-        RESTRICTED.getValue(),
-        UNAVAILABLE.getValue(),
-        UNKNOWN.getValue()));
-    allowedStatuses.put(IN_PROCESS_NON_REQUESTABLE_.getValue(),
-      Arrays.asList(AVAILABLE.getValue(),
-        MISSING.getValue(),
-        WITHDRAWN.getValue(),
-        INTELLECTUAL_ITEM.getValue(),
-        LONG_MISSING.getValue(),
-        RESTRICTED.getValue(),
-        UNAVAILABLE.getValue(),
-        UNKNOWN.getValue()));
-    allowedStatuses.put(INTELLECTUAL_ITEM.getValue(),
-      Arrays.asList(AVAILABLE.getValue(),
-        MISSING.getValue(),
-        WITHDRAWN.getValue(),
-        IN_PROCESS_NON_REQUESTABLE_.getValue(),
-        LONG_MISSING.getValue(),
-        RESTRICTED.getValue(),
-        UNAVAILABLE.getValue(),
-        UNKNOWN.getValue()));
-    allowedStatuses.put(LONG_MISSING.getValue(),
-      Arrays.asList(AVAILABLE.getValue(),
-        MISSING.getValue(),
-        WITHDRAWN.getValue(),
-        IN_PROCESS_NON_REQUESTABLE_.getValue(),
-        INTELLECTUAL_ITEM.getValue(),
-        RESTRICTED.getValue(),
-        UNAVAILABLE.getValue(),
-        UNKNOWN.getValue()));
-    allowedStatuses.put(RESTRICTED.getValue(),
-      Arrays.asList(AVAILABLE.getValue(),
-        MISSING.getValue(),
-        WITHDRAWN.getValue(),
-        IN_PROCESS_NON_REQUESTABLE_.getValue(),
-        INTELLECTUAL_ITEM.getValue(),
-        LONG_MISSING.getValue(),
-        UNAVAILABLE.getValue(),
-        UNKNOWN.getValue()));
-    allowedStatuses.put(UNAVAILABLE.getValue(),
-      Arrays.asList(AVAILABLE.getValue(),
-        MISSING.getValue(),
-        WITHDRAWN.getValue(),
-        IN_PROCESS_NON_REQUESTABLE_.getValue(),
-        INTELLECTUAL_ITEM.getValue(),
-        LONG_MISSING.getValue(),
-        RESTRICTED.getValue(),
-        UNKNOWN.getValue()));
-    allowedStatuses.put(UNKNOWN.getValue(),
-      Arrays.asList(AVAILABLE.getValue(),
-        MISSING.getValue(),
-        WITHDRAWN.getValue(),
-        IN_PROCESS_NON_REQUESTABLE_.getValue(),
-        INTELLECTUAL_ITEM.getValue(),
-        LONG_MISSING.getValue(),
-        RESTRICTED.getValue(),
-        UNAVAILABLE.getValue()));
+    allowedStatuses.put(AVAILABLE,
+      Arrays.asList(MISSING,
+        WITHDRAWN,
+        IN_PROCESS_NON_REQUESTABLE_,
+        INTELLECTUAL_ITEM,
+        LONG_MISSING,
+        RESTRICTED,
+        UNAVAILABLE,
+        UNKNOWN));
+    allowedStatuses.put(MISSING,
+      Arrays.asList(AVAILABLE,
+        WITHDRAWN,
+        IN_PROCESS_NON_REQUESTABLE_,
+        INTELLECTUAL_ITEM,
+        LONG_MISSING,
+        RESTRICTED,
+        UNAVAILABLE,
+        UNKNOWN));
+    allowedStatuses.put(WITHDRAWN,
+      Arrays.asList(AVAILABLE,
+        MISSING,
+        IN_PROCESS_NON_REQUESTABLE_,
+        INTELLECTUAL_ITEM,
+        LONG_MISSING,
+        RESTRICTED,
+        UNAVAILABLE,
+        UNKNOWN));
+    allowedStatuses.put(IN_PROCESS_NON_REQUESTABLE_,
+      Arrays.asList(AVAILABLE,
+        MISSING,
+        WITHDRAWN,
+        INTELLECTUAL_ITEM,
+        LONG_MISSING,
+        RESTRICTED,
+        UNAVAILABLE,
+        UNKNOWN));
+    allowedStatuses.put(INTELLECTUAL_ITEM,
+      Arrays.asList(AVAILABLE,
+        MISSING,
+        WITHDRAWN,
+        IN_PROCESS_NON_REQUESTABLE_,
+        LONG_MISSING,
+        RESTRICTED,
+        UNAVAILABLE,
+        UNKNOWN));
+    allowedStatuses.put(LONG_MISSING,
+      Arrays.asList(AVAILABLE,
+        MISSING,
+        WITHDRAWN,
+        IN_PROCESS_NON_REQUESTABLE_,
+        INTELLECTUAL_ITEM,
+        RESTRICTED,
+        UNAVAILABLE,
+        UNKNOWN));
+    allowedStatuses.put(RESTRICTED,
+      Arrays.asList(AVAILABLE,
+        MISSING,
+        WITHDRAWN,
+        IN_PROCESS_NON_REQUESTABLE_,
+        INTELLECTUAL_ITEM,
+        LONG_MISSING,
+        UNAVAILABLE,
+        UNKNOWN));
+    allowedStatuses.put(UNAVAILABLE,
+      Arrays.asList(AVAILABLE,
+        MISSING,
+        WITHDRAWN,
+        IN_PROCESS_NON_REQUESTABLE_,
+        INTELLECTUAL_ITEM,
+        LONG_MISSING,
+        RESTRICTED,
+        UNKNOWN));
+    allowedStatuses.put(UNKNOWN,
+      Arrays.asList(AVAILABLE,
+        MISSING,
+        WITHDRAWN,
+        IN_PROCESS_NON_REQUESTABLE_,
+        INTELLECTUAL_ITEM,
+        LONG_MISSING,
+        RESTRICTED,
+        UNAVAILABLE));
   }
 
   public void checkBulkEditConfiguration() {
@@ -136,7 +137,7 @@ public class BulkEditConfigurationService {
       .value(new ObjectMapper().writeValueAsString(allowedStatuses));
   }
 
-  public static Map<String, List<String>> getAllowedStatuses() {
+  public static Map<InventoryItemStatus.NameEnum, List<InventoryItemStatus.NameEnum>> getAllowedStatuses() {
     return allowedStatuses;
   }
 }

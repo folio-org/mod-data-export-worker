@@ -4,9 +4,9 @@ import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 
@@ -64,6 +64,17 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
   }
 
   @Test
+  void testShouldReturnEdifactException() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getNotFullJobParameters());
+    String expectedMessage = "Export configuration is incomplete, missing library EDI code/Vendor EDI code";
+    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0).getStatus().getBatchStatus().name();
+
+    assertTrue(jobExecution.getExitStatus().getExitDescription().contains(expectedMessage));
+    assertEquals("FAILED", status);
+  }
+
+  @Test
   void edifactExportJobIfDefaultConfigTestSuccess() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
     PurchaseOrderCollection poCollection = objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_collection.json"), PurchaseOrderCollection.class);
@@ -97,6 +108,18 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
     JSONObject edifactOrdersExportJson = new JSONObject(getMockData("edifact/edifactOrdersExport.json"));
     edifactOrdersExportJson.put("isDefaultConfig", isDefaultConfig);
+
+    paramsBuilder.addString("jobId", UUID.randomUUID().toString());
+    paramsBuilder.addString("edifactOrdersExport", edifactOrdersExportJson.toString());
+    paramsBuilder.addString("jobName", "000015");
+
+    return paramsBuilder.toJobParameters();
+  }
+
+  private JobParameters getNotFullJobParameters() throws IOException {
+    JobParametersBuilder paramsBuilder = new JobParametersBuilder();
+    JSONObject edifactOrdersExportJson = new JSONObject(getMockData("edifact/edifactOrdersExportWithoutRequiredFilds.json"));
+    edifactOrdersExportJson.put("isDefaultConfig", false);
 
     paramsBuilder.addString("jobId", UUID.randomUUID().toString());
     paramsBuilder.addString("edifactOrdersExport", edifactOrdersExportJson.toString());

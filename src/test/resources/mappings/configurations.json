@@ -12,6 +12,37 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "scenarioName": "First call should return empty collection",
+      "requiredScenarioState": "Started",
+      "newScenarioState": "Configuration is present",
+      "request": {
+        "method": "GET",
+        "url": "/configurations/entries?query=module%3D%3DBULKEDIT%20and%20configName%3D%3Dstatuses"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"configs\": [],\n    \"totalRecords\": 0,\n    \"resultInfo\": {\n        \"totalRecords\": 0,\n        \"facets\": [],\n        \"diagnostics\": []\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "scenarioName": "First call should return empty collection",
+      "requiredScenarioState": "Configuration is present",
+      "request": {
+        "method": "GET",
+        "url": "/configurations/entries?query=module%3D%3DBULKEDIT%20and%20configName%3D%3Dstatuses"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"configs\": [\n        {\n            \"id\": \"a143fe98-cc6a-4006-82c5-66672b9ce4fa\",\n            \"module\": \"BULKEDIT\",\n            \"configName\": \"statuses\",\n            \"default\": true,\n            \"enabled\": true,\n            \"value\": \"{\\\"Missing\\\":[\\\"Available\\\",\\\"Withdrawn\\\",\\\"In process (non-requestable)\\\",\\\"Intellectual item\\\",\\\"Long missing\\\",\\\"Restricted\\\",\\\"Unavailable\\\",\\\"Unknown\\\"],\\\"Long missing\\\":[\\\"Available\\\",\\\"Missing\\\",\\\"Withdrawn\\\",\\\"In process (non-requestable)\\\",\\\"Intellectual item\\\",\\\"Restricted\\\",\\\"Unavailable\\\",\\\"Unknown\\\"],\\\"Unknown\\\":[\\\"Available\\\",\\\"Missing\\\",\\\"Withdrawn\\\",\\\"In process (non-requestable)\\\",\\\"Intellectual item\\\",\\\"Long missing\\\",\\\"Restricted\\\",\\\"Unavailable\\\"],\\\"Restricted\\\":[\\\"Available\\\",\\\"Missing\\\",\\\"Withdrawn\\\",\\\"In process (non-requestable)\\\",\\\"Intellectual item\\\",\\\"Long missing\\\",\\\"Unavailable\\\",\\\"Unknown\\\"],\\\"In process (non-requestable)\\\":[\\\"Available\\\",\\\"Missing\\\",\\\"Withdrawn\\\",\\\"Intellectual item\\\",\\\"Long missing\\\",\\\"Restricted\\\",\\\"Unavailable\\\",\\\"Unknown\\\"],\\\"Available\\\":[\\\"Missing\\\",\\\"Withdrawn\\\",\\\"In process (non-requestable)\\\",\\\"Intellectual item\\\",\\\"Long missing\\\",\\\"Restricted\\\",\\\"Unavailable\\\",\\\"Unknown\\\"],\\\"Withdrawn\\\":[\\\"Available\\\",\\\"Missing\\\",\\\"In process (non-requestable)\\\",\\\"Intellectual item\\\",\\\"Long missing\\\",\\\"Restricted\\\",\\\"Unavailable\\\",\\\"Unknown\\\"],\\\"Intellectual item\\\":[\\\"Available\\\",\\\"Missing\\\",\\\"Withdrawn\\\",\\\"In process (non-requestable)\\\",\\\"Long missing\\\",\\\"Restricted\\\",\\\"Unavailable\\\",\\\"Unknown\\\"],\\\"Unavailable\\\":[\\\"Available\\\",\\\"Missing\\\",\\\"Withdrawn\\\",\\\"In process (non-requestable)\\\",\\\"Intellectual item\\\",\\\"Long missing\\\",\\\"Restricted\\\",\\\"Unknown\\\"]}\",\n            \"metadata\": {\n                \"createdDate\": \"2022-04-17T14:45:46.622+00:00\",\n                \"createdByUserId\": \"3096e76a-aac3-5ee2-b7e3-05db58f5b83e\",\n                \"updatedDate\": \"2022-04-17T14:45:46.622+00:00\",\n                \"updatedByUserId\": \"3096e76a-aac3-5ee2-b7e3-05db58f5b83e\"\n            }\n        }\n    ],\n    \"totalRecords\": 1,\n    \"resultInfo\": {\n        \"totalRecords\": 1,\n        \"facets\": [],\n        \"diagnostics\": []\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

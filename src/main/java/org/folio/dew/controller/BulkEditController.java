@@ -46,7 +46,7 @@ import org.folio.dew.domain.dto.ItemCollection;
 import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.FileOperationException;
-import org.folio.dew.error.JobCommandNotFoundException;
+import org.folio.dew.error.NotFoundException;
 import org.folio.dew.error.NonSupportedEntityException;
 import org.folio.dew.service.BulkEditItemContentUpdateService;
 import org.folio.dew.service.BulkEditParseService;
@@ -243,7 +243,7 @@ public class BulkEditController implements JobIdApi {
     if (jobCommandOptional.isEmpty()) {
       String msg = format(JOB_COMMAND_NOT_FOUND_ERROR, jobId);
       log.debug(msg);
-      throw new JobCommandNotFoundException(msg);
+      throw new NotFoundException(msg);
     }
     return jobCommandOptional.get();
   }

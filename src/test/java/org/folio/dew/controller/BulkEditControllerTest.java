@@ -2,9 +2,11 @@ package org.folio.dew.controller;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_ALLOWED_STATUS;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
@@ -16,8 +18,10 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.times;
@@ -81,6 +85,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/items-content-update/upload";
   private static final String ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-items/download";
   private static final String ITEMS_FOR_LOCATION_UPDATE = "src/test/resources/upload/bulk_edit_items_for_location_update.csv";
+  private static final String ITEMS_FOR_STATUS_UPDATE = "src/test/resources/upload/bulk_edit_items_for_status_update.csv";
   public static final String LIMIT = "limit";
 
   @MockBean
@@ -100,6 +105,9 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @Autowired
   private JobCommandsReceiverService jobCommandsReceiverService;
+
+  @Autowired
+  private BulkEditProcessingErrorsService errorsService;
 
   @Test
   void shouldReturnErrorsPreview() throws Exception {
@@ -454,7 +462,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @EnumSource(ItemsContentUpdateTestData.class)
+  @EnumSource(value = ItemsContentUpdateTestData.class, names = ".+_LOCATION", mode = EnumSource.Mode.MATCH_ANY)
   @DisplayName("Post content updates - successful")
   @SneakyThrows
   void shouldUpdateEffectiveLocationOnChangeLocationContentUpdate(ItemsContentUpdateTestData testData) {
@@ -462,7 +470,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
-    jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
     jobCommand.setEntityType(ITEM);
     jobCommand.setJobParameters(new JobParametersBuilder()
       .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_LOCATION_UPDATE.replace(CSV_EXTENSION, EMPTY))
@@ -486,6 +494,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     var updatedJobCommand = jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
     assertFalse(updatedJobCommand.isEmpty());
+    assertEquals(BULK_EDIT_UPDATE, updatedJobCommand.get().getExportType());
     assertNotNull(updatedJobCommand.get().getJobParameters().getString(UPDATED_FILE_NAME));
 
     var expectedCsv = new FileSystemResource(testData.getExpectedCsvPath());
@@ -498,7 +507,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @EnumSource(ItemsContentUpdateTestData.class)
+  @EnumSource(value = ItemsContentUpdateTestData.class, names = ".+_LOCATION", mode = EnumSource.Mode.MATCH_ANY)
   @DisplayName("Download preview - successful")
   @SneakyThrows
   void shouldDownloadPreviewAfterContentUpdate(ItemsContentUpdateTestData testData) {
@@ -506,7 +515,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
-    jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
     jobCommand.setEntityType(ITEM);
     jobCommand.setJobParameters(new JobParametersBuilder()
       .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_LOCATION_UPDATE.replace(CSV_EXTENSION, EMPTY))
@@ -553,7 +562,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
-    jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
     jobCommand.setEntityType(ITEM);
     jobCommand.setJobParameters(new JobParametersBuilder()
       .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_LOCATION_UPDATE.replace(CSV_EXTENSION, EMPTY))
@@ -591,7 +600,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
-    jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
     jobCommand.setEntityType(ITEM);
     jobCommand.setJobParameters(new JobParametersBuilder()
       .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_LOCATION_UPDATE.replace(CSV_EXTENSION, EMPTY))
@@ -615,6 +624,59 @@ class BulkEditControllerTest extends BaseBatchTest {
     var actualItems = objectMapper.readValue(response.getResponse().getContentAsString(), ItemCollection.class);
 
     assertThat(actualItems.getItems(), hasSize(2));
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = ItemsContentUpdateTestData.class, names = ".+_STATUS", mode = EnumSource.Mode.MATCH_ANY)
+  @DisplayName("Post status content updates with allowed and not allowed values")
+  @SneakyThrows
+  void shouldChangeItemStatusIfAllowedOrAddErrorIfNot(ItemsContentUpdateTestData testData) {
+    var itemId = "b7a9718a-0c26-4d43-ace9-52234ff74ad8";
+    repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_STATUS_UPDATE), ITEMS_FOR_STATUS_UPDATE, null, "text/plain", false);
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(ITEM);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(FILE_NAME, "fileName.csv")
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_STATUS_UPDATE.replace(CSV_EXTENSION, EMPTY))
+      .toJobParameters());
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+
+    var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
+      .entityType(ITEM)
+      .contentUpdates(Collections.singletonList(new ContentUpdate()
+        .option(testData.getOption())
+        .action(testData.getAction())
+        .value(testData.getValue())))
+      .totalRecords(1));
+
+    var response = mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+        .headers(defaultHeaders())
+        .content(updates))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    var updatedJobCommand = jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
+    assertFalse(updatedJobCommand.isEmpty());
+    assertEquals(BULK_EDIT_UPDATE, updatedJobCommand.get().getExportType());
+    assertNotNull(updatedJobCommand.get().getJobParameters().getString(UPDATED_FILE_NAME));
+
+    if (REPLACE_WITH_ALLOWED_STATUS != testData) {
+      var erros = errorsService.readErrorsFromCSV(jobId.toString(), jobCommand.getJobParameters().getString(FILE_NAME), 10);
+      assertThat(erros
+        .getErrors(), hasSize(1));
+    }
+
+    var actualItem = objectMapper.readValue(response.getResponse().getContentAsString(), ItemCollection.class).getItems().get(0);
+    var expectedItem = objectMapper.readValue(new FileSystemResource(testData.getExpectedJsonPath()).getInputStream(), ItemCollection.class).getItems().get(0);
+    assertThat(expectedItem.getId(), equalTo(actualItem.getId()));
+    assertThat(expectedItem.getStatus().getName(), equalTo(actualItem.getStatus().getName()));
+    assertTrue(REPLACE_WITH_ALLOWED_STATUS == testData ?
+      actualItem.getStatus().getDate().after(expectedItem.getStatus().getDate()) :
+      actualItem.getStatus().getDate().equals(expectedItem.getStatus().getDate()));
   }
 
   @Test

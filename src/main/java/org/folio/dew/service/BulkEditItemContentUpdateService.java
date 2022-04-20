@@ -1,15 +1,21 @@
 package org.folio.dew.service;
 
+import static java.time.ZoneOffset.UTC;
 import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.domain.dto.ContentUpdate.ActionEnum.CLEAR_FIELD;
 import static org.folio.dew.domain.dto.ContentUpdate.ActionEnum.REPLACE_WITH;
 import static org.folio.dew.domain.dto.ContentUpdate.OptionEnum.PERMANENT_LOCATION;
+import static org.folio.dew.domain.dto.ContentUpdate.OptionEnum.STATUS;
 import static org.folio.dew.domain.dto.ContentUpdate.OptionEnum.TEMPORARY_LOCATION;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
+import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
+import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
+import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
@@ -21,6 +27,7 @@ import org.folio.de.entity.JobCommand;
 import org.folio.dew.domain.dto.ContentUpdate;
 import org.folio.dew.domain.dto.ContentUpdateCollection;
 import org.folio.dew.domain.dto.ItemFormat;
+import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.utils.CsvHelper;
@@ -31,7 +38,9 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -45,6 +54,7 @@ public class BulkEditItemContentUpdateService {
 
   private final ItemReferenceService itemReferenceService;
   private final MinIOObjectStorageRepository repository;
+  private final BulkEditProcessingErrorsService errorsService;
 
   @PostConstruct
   public void postConstruct() {
@@ -57,9 +67,10 @@ public class BulkEditItemContentUpdateService {
       outputFileName = workdir + UPDATED_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       Files.deleteIfExists(Path.of(outputFileName));
       repository.downloadObject(FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION, outputFileName);
-      var updatedItems = applyContentUpdates(CsvHelper.readRecordsFromFile(outputFileName, ItemFormat.class, true), contentUpdates);
-      saveResultToFile(updatedItems, jobCommand);
-      return updatedItems;
+      var updatedItemFormats = applyContentUpdates(CsvHelper.readRecordsFromFile(outputFileName, ItemFormat.class, true), contentUpdates, jobCommand);
+      saveResultToFile(updatedItemFormats, jobCommand);
+      jobCommand.setExportType(BULK_EDIT_UPDATE);
+      return updatedItemFormats;
     } catch (Exception e) {
       var msg = String.format("Failed to read %s item records file for job id %s, reason: %s", outputFileName, jobCommand.getId(), e.getMessage());
       log.error(msg);
@@ -80,30 +91,40 @@ public class BulkEditItemContentUpdateService {
     }
   }
 
-  private List<ItemFormat> applyContentUpdates(List<ItemFormat> itemFormats, ContentUpdateCollection contentUpdates) {
+  private List<ItemFormat> applyContentUpdates(List<ItemFormat> itemFormats, ContentUpdateCollection contentUpdates, JobCommand jobCommand) {
     List<ItemFormat> result = new ArrayList<>();
     itemFormats.forEach(itemFormat -> {
-      contentUpdates.getContentUpdates().forEach(contentUpdate -> applyContentUpdate(itemFormat, contentUpdate));
+      contentUpdates.getContentUpdates().forEach(contentUpdate -> applyContentUpdate(itemFormat, contentUpdate, jobCommand));
+      if (isLocationChange(contentUpdates)) {
+        updateEffectiveLocation(itemFormat);
+      }
       result.add(itemFormat);
     });
     return result;
   }
 
-  private void applyContentUpdate(ItemFormat itemFormat, ContentUpdate contentUpdate) {
+  private void applyContentUpdate(ItemFormat itemFormat, ContentUpdate contentUpdate, JobCommand jobCommand) {
     if (REPLACE_WITH == contentUpdate.getAction()) {
-      applyReplaceWith(itemFormat, contentUpdate);
+      applyReplaceWith(itemFormat, contentUpdate, jobCommand);
     } else if (CLEAR_FIELD == contentUpdate.getAction()) {
-      applyClearField(itemFormat, contentUpdate);
+      if (STATUS == contentUpdate.getOption()) {
+        var msg = "Status field can not be cleared";
+        log.error(msg);
+        errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
+      } else {
+        applyClearField(itemFormat, contentUpdate);
+      }
     }
   }
 
-  private void applyReplaceWith(ItemFormat itemFormat, ContentUpdate contentUpdate) {
+  private void applyReplaceWith(ItemFormat itemFormat, ContentUpdate contentUpdate, JobCommand jobCommand) {
     if (TEMPORARY_LOCATION == contentUpdate.getOption()) {
       itemFormat.setTemporaryLocation(isNull(contentUpdate.getValue()) ? EMPTY : contentUpdate.getValue().toString());
     } else if (PERMANENT_LOCATION == contentUpdate.getOption()) {
       itemFormat.setPermanentLocation(isNull(contentUpdate.getValue()) ? EMPTY : contentUpdate.getValue().toString());
+    } else if (STATUS == contentUpdate.getOption()) {
+      replaceStatusIfAllowed(itemFormat, contentUpdate.getValue(), jobCommand);
     }
-    calculateEffectiveLocation(itemFormat);
   }
 
   private void applyClearField(ItemFormat itemFormat, ContentUpdate contentUpdate) {
@@ -112,10 +133,9 @@ public class BulkEditItemContentUpdateService {
     } else if (PERMANENT_LOCATION == contentUpdate.getOption()) {
       itemFormat.setPermanentLocation(EMPTY);
     }
-    calculateEffectiveLocation(itemFormat);
   }
 
-  private void calculateEffectiveLocation(ItemFormat itemFormat) {
+  private void updateEffectiveLocation(ItemFormat itemFormat) {
     if (isEmpty(itemFormat.getTemporaryLocation())) {
       itemFormat.setEffectiveLocation(isEmpty(itemFormat.getPermanentLocation()) ?
         itemReferenceService.getHoldingEffectiveLocationCodeById(itemFormat.getHoldingsRecordId()) :
@@ -123,5 +143,29 @@ public class BulkEditItemContentUpdateService {
     } else {
       itemFormat.setEffectiveLocation(itemFormat.getTemporaryLocation());
     }
+  }
+
+  private boolean isLocationChange(ContentUpdateCollection contentUpdates) {
+    return contentUpdates.getContentUpdates().stream()
+      .anyMatch(update -> TEMPORARY_LOCATION == update.getOption() || PERMANENT_LOCATION == update.getOption());
+  }
+
+  private void  replaceStatusIfAllowed(ItemFormat itemFormat, Object value, JobCommand jobCommand) {
+    var currentStatus = extractStatusName(itemFormat.getStatus());
+    var newStatus = isNull(value) ? EMPTY : value.toString();
+    if (!currentStatus.equals(newStatus)) {
+      if (itemReferenceService.getAllowedStatuses(currentStatus).contains(newStatus)) {
+        itemFormat.setStatus(String.join(ARRAY_DELIMITER, newStatus, dateToString(Date.from(LocalDateTime.now().atZone(UTC).toInstant()))));
+      } else {
+        var msg = String.format("New status value \"%s\" is not allowed", newStatus);
+        log.error(msg);
+        errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
+      }
+    }
+  }
+
+  private String extractStatusName(String s) {
+    var tokens = s.split(ARRAY_DELIMITER, -1);
+    return tokens.length > 0 ? tokens[0] : EMPTY;
   }
 }

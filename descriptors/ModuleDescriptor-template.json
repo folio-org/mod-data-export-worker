@@ -48,6 +48,7 @@
             "addresstypes.collection.get",
             "inventory.items.item.get",
             "inventory.items.collection.get",
+            "inventory.items.item.put",
             "inventory-storage.call-number-types.item.get",
             "inventory-storage.call-number-types.collection.get",
             "inventory-storage.item-damaged-statuses.item.get",

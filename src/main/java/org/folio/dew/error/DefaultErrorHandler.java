@@ -2,6 +2,7 @@ package org.folio.dew.error;
 
 import static org.folio.dew.error.ErrorCode.IO_ERROR;
 import static org.folio.dew.error.ErrorCode.NOT_FOUND_ERROR;
+import static org.folio.dew.error.ErrorCode.PROCESSING_ERROR;
 import static org.folio.dew.error.ErrorCode.VALIDATION_ERROR;
 import static org.folio.dew.error.ErrorType.INTERNAL;
 
@@ -21,8 +22,8 @@ import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class DefaultErrorHandler {
-  @ExceptionHandler(JobCommandNotFoundException.class)
-  public ResponseEntity<Errors> handleJobNotFoundException(final JobCommandNotFoundException e) {
+  @ExceptionHandler(NotFoundException.class)
+  public ResponseEntity<Errors> handleNotFoundException(final NotFoundException e) {
     return new ResponseEntity<>(new Errors()
       .errors(Collections.singletonList(new Error()
         .message(e.getMessage())
@@ -48,7 +49,7 @@ public class DefaultErrorHandler {
     return new ResponseEntity<>(new Errors()
       .errors(Collections.singletonList(new Error()
         .message(e.getMessage())
-        .code(IO_ERROR.getDescription())
+        .code(PROCESSING_ERROR.getDescription())
         .type(INTERNAL.getValue())))
       .totalRecords(1),
       HttpStatus.INTERNAL_SERVER_ERROR);

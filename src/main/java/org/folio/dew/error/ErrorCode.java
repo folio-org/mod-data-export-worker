@@ -4,7 +4,8 @@ public enum ErrorCode {
   UNKNOWN_ERROR("Unknown error"),
   VALIDATION_ERROR("Validation error"),
   NOT_FOUND_ERROR("Not found"),
-  IO_ERROR("I/O error");
+  IO_ERROR("I/O error"),
+  PROCESSING_ERROR("Processing error");
 
   private final String description;
 

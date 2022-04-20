@@ -44,6 +44,7 @@ import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserCollection;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.ConfigurationException;
+import org.folio.dew.error.NotFoundException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -280,7 +281,7 @@ public class ItemReferenceService {
   public List<String> getAllowedStatuses(String statusName) {
     var configurations = configurationClient.getConfigurations(String.format(BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE, MODULE_NAME, STATUSES_CONFIG_NAME));
     if (configurations.getConfigs().isEmpty()) {
-      throw new ConfigurationException("Statuses configuration was not found");
+      throw new NotFoundException("Statuses configuration was not found");
     }
     try {
       var statuses = new ObjectMapper()

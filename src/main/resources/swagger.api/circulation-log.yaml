@@ -34,3 +34,9 @@ components:
       $ref: '../../../../folio-export-common/schemas/jobStatus.json#/JobStatus'
     exportTypeSpecificParameters:
       $ref: '../../../../folio-export-common/schemas/exportTypeSpecificParameters.json#/ExportTypeSpecificParameters'
+    eHoldingsPackage:
+      $ref: '../../../../folio-export-common/schemas/eholdings/eHoldingsPackage.json#/EHoldingsPackage'
+    eHoldingsTitle:
+      $ref: '../../../../folio-export-common/schemas/eholdings/eHoldingsTitle.json#/EHoldingsTitle'
+    eHoldingsRecord:
+      $ref: '../../../../folio-export-common/schemas/eholdings/eHoldingsRecord.json#/EHoldingsRecord'

@@ -345,7 +345,7 @@
                             <generateApiDocumentation>false</generateApiDocumentation>
                             <generateModels>true</generateModels>
                             <modelsToGenerate>
-                              JobStatus,ExportTypeSpecificParameters,IdentifierType,EntityType,Progress,ExportType,Job,Configuration,ConfigurationCollection,LoggedObjectType,ActionType,LogRecord,logRecord_items,logRecord_linkToIds,LogRecordCollection
+                              JobStatus,ExportTypeSpecificParameters,IdentifierType,EntityType,Progress,ExportType,Job,Configuration,ConfigurationCollection,LoggedObjectType,ActionType,LogRecord,logRecord_items,logRecord_linkToIds,LogRecordCollection,EHoldingsExportConfig,EHoldingsPackage,EHoldingsTitle,EHoldingsRecord
                             </modelsToGenerate>
                             <generateModelTests>false</generateModelTests>
                             <generateSupportingFiles>false</generateSupportingFiles>

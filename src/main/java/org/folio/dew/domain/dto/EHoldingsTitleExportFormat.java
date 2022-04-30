@@ -10,11 +10,11 @@ public class EHoldingsTitleExportFormat {
   private String packageName;
   private String titleId;
   private String titleName;
-  private List<String> alternateTitles;
+  private List<Object> alternateTitles;
   private String titleHoldingsStatus;
   private String publicationType;
   private String titleType;
-  private List<String> contributors;
+  private List<Object> contributors;
   private String edition;
   private String publisher;
   private List<String> ISSN_Print;
@@ -25,10 +25,8 @@ public class EHoldingsTitleExportFormat {
   private String peerReviewed;
   private String description;
   private String title;
-  private String startManagedCoverage;
-  private String endManagedCoverage;
-  private List<String> startCustomCoverage;
-  private List<String> endCustomCoverage;
+  private List<Object> managedCoverage;
+  private List<Object> customCoverage;
   private String coverageStatement;
   private String managedEmbargo;
   private String customEmbargo;

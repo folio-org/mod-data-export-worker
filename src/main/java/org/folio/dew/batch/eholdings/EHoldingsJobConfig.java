@@ -14,9 +14,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.TaskExecutor;
 
-import org.folio.dew.batch.CsvFileAssembler;
 import org.folio.dew.batch.CsvPartStepExecutionListener;
 import org.folio.dew.batch.CsvWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
@@ -52,40 +50,13 @@ public class EHoldingsJobConfig {
   }
 
   @Bean("getEHoldingsStep")
-  public Step getEHoldingsStep(
-    @Qualifier("getEHoldingsPartStep") Step getEHoldingsPartStep,
-    EHoldingsPartitioner partitioner,
-    @Qualifier("asyncTaskExecutor") TaskExecutor taskExecutor,
-    CsvFileAssembler csvFileAssembler) {
-    return stepBuilderFactory
-      .get("getEHoldingsChunkStep")
-      .partitioner("getEHoldingsPartStep", partitioner)
-      .taskExecutor(taskExecutor)
-      .step(getEHoldingsPartStep)
-      .aggregator(csvFileAssembler)
-      .build();
-  }
-
-  @Bean
-  @StepScope
-  public EHoldingsPartitioner getEHoldingsPartitioner(
-    @Value("#{jobParameters['offset']}") Long offset,
-    @Value("#{jobParameters['limit']}") Long limit,
-    @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
-    @Value("#{jobParameters['recordId']}") String recordId,
-    @Value("#{jobParameters['recordType']}") String recordType,
-    @Value("#{jobParameters['titleSearchFilters']}") String titleSearchFilters) {
-    return new EHoldingsPartitioner(offset, limit, tempOutputFilePath, kbEbscoClient, recordId, recordType, titleSearchFilters);
-  }
-
-  @Bean("getEHoldingsPartStep")
   public Step getEHoldingsPartStep(
     @Qualifier("eHoldingsReader") EHoldingsCsvItemReader eHoldingsCsvItemReader,
     @Qualifier("eHoldingsWriter") FlatFileItemWriter<EHoldingsExportFormat> flatFileItemWriter,
     EHoldingsItemProcessor eHoldingsItemProcessor,
     CsvPartStepExecutionListener csvPartStepExecutionListener) {
     return stepBuilderFactory
-      .get("getEHoldingsPartStep")
+      .get("getEHoldingsStep")
       .<EHoldingsRecord, EHoldingsExportFormat>chunk(100)
       .reader(eHoldingsCsvItemReader)
       .processor(eHoldingsItemProcessor)

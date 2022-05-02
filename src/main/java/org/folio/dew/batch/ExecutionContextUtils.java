@@ -3,8 +3,10 @@ package org.folio.dew.batch;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.scope.context.ChunkContext;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ExecutionContextUtils {
@@ -21,6 +23,11 @@ public class ExecutionContextUtils {
     var jobExecution = stepExecution.getJobExecution();
     String oldUrl = getFromJobExecutionContext(jobExecution, key);
     jobExecution.getExecutionContext().putString(key, StringUtils.isBlank(oldUrl) ? value : oldUrl + delimiter + value);
+  }
+
+  public static void setStepExitStatus(ChunkContext chunkContext, ExitStatus exitStatus) {
+    StepExecution stepExecution = chunkContext.getStepContext().getStepExecution();
+    stepExecution.setExitStatus(exitStatus);
   }
 
 }

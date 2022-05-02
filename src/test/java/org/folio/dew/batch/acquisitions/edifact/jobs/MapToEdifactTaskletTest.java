@@ -22,6 +22,7 @@ import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.PurchaseOrderCollection;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
@@ -90,7 +91,8 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters(false));
 
     // then
-    assertThat(jobExecution.getExitStatus().getExitDescription(), containsString("Orders for export not found"));
+    assertEquals(jobExecution.getExitStatus().getExitCode(), ExitStatus.FAILED.getExitCode());
+    assertThat(jobExecution.getExitStatus().getExitDescription(), containsString("Orders for export not found (EdifactException)"));
   }
 
   private JobParameters getJobParameters(boolean isDefaultConfig) throws IOException {

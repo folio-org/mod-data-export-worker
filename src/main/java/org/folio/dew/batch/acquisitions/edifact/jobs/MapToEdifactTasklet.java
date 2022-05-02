@@ -6,12 +6,12 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
-import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -42,6 +42,14 @@ public class MapToEdifactTasklet implements Tasklet {
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
 
     List<CompositePurchaseOrder> compOrders = getCompPOList(ediExportConfig);
+
+    if (compOrders.isEmpty()) {
+      log.warn("Orders for export not found");
+      ExitStatus exitStatus = new ExitStatus(ExitStatus.FAILED.getExitCode(), "Orders for export not found (EdifactException)");
+      ExecutionContextUtils.setStepExitStatus(chunkContext, exitStatus);
+      return RepeatStatus.FINISHED;
+    }
+
     // save poLineIds in memory
     persistPoLineIds(chunkContext, compOrders);
 
@@ -66,9 +74,6 @@ public class MapToEdifactTasklet implements Tasklet {
 
     log.debug("composite purchase orders: {}", compOrders);
 
-    if (compOrders.isEmpty()) {
-      throw new EdifactException("Orders for export not found");
-    }
     return compOrders;
   }
 

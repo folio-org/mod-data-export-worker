@@ -12,13 +12,12 @@ public class EHoldingsExportFormat {
   private String packageId;
   private String packageType;
   private String packageContentType;
-  private String packageStartCustomCoverage;
-  private String packageEndCustomCoverage;
+  private String packageCustomCoverage;
   private String packageShowToPatrons;
   private String packageAutomaticallySelect;
   private String packageProxy;
   private String packageAccessStatusType;
-  private List<String> packageTags;
+  private String packageTags;
   private String packageAgreementStartDate;
   private String packageAgreementName;
   private String packageAgreementStatus;

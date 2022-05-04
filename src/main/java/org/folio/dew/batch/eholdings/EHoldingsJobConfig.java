@@ -20,7 +20,6 @@ import org.folio.dew.batch.CsvWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.client.KbEbscoClient;
 import org.folio.dew.domain.dto.EHoldingsExportFormat;
-import org.folio.dew.domain.dto.EHoldingsRecord;
 import org.folio.dew.domain.dto.ExportType;
 
 @Log4j2
@@ -57,7 +56,7 @@ public class EHoldingsJobConfig {
     CsvPartStepExecutionListener csvPartStepExecutionListener) {
     return stepBuilderFactory
       .get("getEHoldingsStep")
-      .<EHoldingsRecord, EHoldingsExportFormat>chunk(100)
+      .<EHoldingsExportFormat, EHoldingsExportFormat>chunk(100)
       .reader(eHoldingsCsvItemReader)
       .processor(eHoldingsItemProcessor)
       .writer(flatFileItemWriter)
@@ -75,8 +74,9 @@ public class EHoldingsJobConfig {
     @Value("#{jobParameters['limit']}") Long limit,
     @Value("#{jobParameters['recordId']}") String recordId,
     @Value("#{jobParameters['recordType']}") String recordType,
+    @Value("#{jobParameters['titleFields']}") String titleFields,
     @Value("#{jobParameters['titleSearchFilters']}") String titleSearchFilters) {
-    return new EHoldingsCsvItemReader(offset, limit, kbEbscoClient, recordId, recordType, titleSearchFilters);
+    return new EHoldingsCsvItemReader(offset, limit, kbEbscoClient, recordId, recordType, titleFields, titleSearchFilters);
   }
 
   @Bean("eHoldingsWriter")

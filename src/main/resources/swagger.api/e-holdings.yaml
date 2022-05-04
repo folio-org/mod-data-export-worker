@@ -1,0 +1,22 @@
+openapi: 3.0.0
+info:
+  title: E-holdings export schemas
+  version: v1
+servers:
+  - url: https://stub.com/
+paths:
+  /stub:
+    get:
+      responses:
+        "200":
+          description: stub
+components:
+  schemas:
+    ePackage:
+      $ref: '../../../../folio-export-common/schemas/eholdings/e-package/package.json#/EPackage'
+    eTitle:
+      $ref: '../../../../folio-export-common/schemas/eholdings/e-title/title.json#/ETitle'
+    eResource:
+      $ref: '../../../../folio-export-common/schemas/eholdings/e-resources/resource.json#/EResource'
+    eResources:
+      $ref: '../../../../folio-export-common/schemas/eholdings/e-resources/resources.json#/EResources'

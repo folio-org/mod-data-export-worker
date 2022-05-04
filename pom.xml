@@ -36,10 +36,12 @@
         <bulk-edit.yaml.file>
           ${project.basedir}/src/main/resources/swagger.api/bulk-edit.yaml
         </bulk-edit.yaml.file>
-      <order-export.yaml.file>
-        ${project.basedir}/src/main/resources/swagger.api/order-export.yaml
-      </order-export.yaml.file>
-
+        <order-export.yaml.file>
+          ${project.basedir}/src/main/resources/swagger.api/order-export.yaml
+        </order-export.yaml.file>
+        <e-holdings.yaml.file>
+          ${project.basedir}/src/main/resources/swagger.api/e-holdings.yaml
+        </e-holdings.yaml.file>
         <folio-spring-base.version>3.0.1</folio-spring-base.version>
         <folio-spring-tenant.version>1.0.0</folio-spring-tenant.version>
 
@@ -345,7 +347,7 @@
                             <generateApiDocumentation>false</generateApiDocumentation>
                             <generateModels>true</generateModels>
                             <modelsToGenerate>
-                              JobStatus,ExportTypeSpecificParameters,IdentifierType,EntityType,Progress,ExportType,Job,Configuration,ConfigurationCollection,LoggedObjectType,ActionType,LogRecord,logRecord_items,logRecord_linkToIds,LogRecordCollection,EHoldingsExportConfig,EHoldingsPackage,EHoldingsTitle,EHoldingsRecord
+                              JobStatus,ExportTypeSpecificParameters,IdentifierType,EntityType,Progress,ExportType,Job,Configuration,ConfigurationCollection,LoggedObjectType,ActionType,LogRecord,logRecord_items,logRecord_linkToIds,LogRecordCollection
                             </modelsToGenerate>
                             <generateModelTests>false</generateModelTests>
                             <generateSupportingFiles>false</generateSupportingFiles>
@@ -356,6 +358,34 @@
                                 <interfaceOnly>true</interfaceOnly>
                             </configOptions>
                         </configuration>
+                    </execution>
+                    <execution>
+                      <id>e-holdings-worker</id>
+                      <goals>
+                        <goal>generate</goal>
+                      </goals>
+                      <configuration>
+                        <inputSpec>${e-holdings.yaml.file}</inputSpec>
+                        <output>${project.build.directory}/generated-sources</output>
+                        <generatorName>spring</generatorName>
+                        <modelPackage>${project.groupId}.dew.domain.dto.eholdings</modelPackage>
+                        <generateApis>false</generateApis>
+                        <generateApiTests>false</generateApiTests>
+                        <generateApiDocumentation>false</generateApiDocumentation>
+                        <generateModels>true</generateModels>
+                        <modelsToGenerate>
+                          EResources,EResource,ResourcesData,ResourcesAttributes,ResourcesRelationships,EPackage,PackageData,PackageAttributes,PackageRelationships,ETitle,TitleData,TitleAttributes,AlternateTitle,Contributor,Identifier,PublicationType,Subject,Tags,ContentTypeEnum,Coverage,Proxy,Token,VisibilityData,EmbargoPeriod,RelationshipData,HasManyRelationship,HasOneRelationship,MetaDataIncluded,MetaIncluded
+                        </modelsToGenerate>
+                        <generateModelTests>false</generateModelTests>
+                        <generateSupportingFiles>false</generateSupportingFiles>
+                        <generateModelDocumentation>true</generateModelDocumentation>
+                        <skipValidateSpec>true</skipValidateSpec>
+                        <configOptions>
+                          <java8>true</java8>
+                          <dateLibrary>java</dateLibrary>
+                          <interfaceOnly>true</interfaceOnly>
+                        </configOptions>
+                      </configuration>
                     </execution>
                     <execution>
                         <id>bursar-export-worker</id>
@@ -372,7 +402,7 @@
                             <generateApiDocumentation>false</generateApiDocumentation>
                             <generateModels>true</generateModels>
                             <modelsToGenerate>
-                              Edi,EdiConfig,EdiEmail,EdiFtp,EdiSchedule,ScheduleParameters,VendorEdiOrdersExportConfig,BursarFeeFinesTypeMapping,BursarFeeFines,Metadata,Tags,User,UserCollection,ResultInfo,Personal,Diagnostic,Facet,Address,FacetValue,Account,AccountdataCollection,ItemStatus,Status,PaymentStatus,Feefineaction,FeefineactionCollection,Transfer,TransferdataCollection,TimePeriod,StaffSlip,ServicePoint,ServicePoints
+                              Edi,EdiConfig,EdiEmail,EdiFtp,EdiSchedule,ScheduleParameters,VendorEdiOrdersExportConfig,EHoldingsExportConfig,BursarFeeFinesTypeMapping,BursarFeeFines,Metadata,Tags,User,UserCollection,ResultInfo,Personal,Diagnostic,Facet,Address,FacetValue,Account,AccountdataCollection,ItemStatus,Status,PaymentStatus,Feefineaction,FeefineactionCollection,Transfer,TransferdataCollection,TimePeriod,StaffSlip,ServicePoint,ServicePoints
                             </modelsToGenerate>
                             <generateModelTests>false</generateModelTests>
                             <generateSupportingFiles>false</generateSupportingFiles>

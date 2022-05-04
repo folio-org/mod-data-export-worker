@@ -1,7 +1,5 @@
 package org.folio.dew.domain.dto;
 
-import java.util.List;
-
 import lombok.Data;
 
 @Data
@@ -10,23 +8,23 @@ public class EHoldingsTitleExportFormat {
   private String packageName;
   private String titleId;
   private String titleName;
-  private List<Object> alternateTitles;
+  private String alternateTitles;
   private String titleHoldingsStatus;
   private String publicationType;
   private String titleType;
-  private List<Object> contributors;
+  private String contributors;
   private String edition;
   private String publisher;
-  private List<String> ISSN_Print;
-  private List<String> ISSN_Online;
-  private List<String> ISBN_Print;
-  private List<String> ISBN_Online;
-  private List<String> Subjects;
+  private String ISSN_Print;
+  private String ISSN_Online;
+  private String ISBN_Print;
+  private String ISBN_Online;
+  private String Subjects;
   private String peerReviewed;
   private String description;
   private String title;
-  private List<Object> managedCoverage;
-  private List<Object> customCoverage;
+  private String managedCoverage;
+  private String customCoverage;
   private String coverageStatement;
   private String managedEmbargo;
   private String customEmbargo;
@@ -39,7 +37,7 @@ public class EHoldingsTitleExportFormat {
   private String CustomValue3;
   private String CustomValue4;
   private String CustomValue5;
-  private List<String> titleTags;
+  private String titleTags;
   private String titleAgreementStartDate;
   private String titleAgreementName;
   private String titleAgreementStatus;

@@ -11,17 +11,19 @@ public class EHoldingsCsvItemReader extends CsvItemReader<EHoldingsExportFormat>
 
   private final KbEbscoClient kbEbscoClient;
   private final String recordId;
+  private final String titleFields;
   private final String titlesSearchFilters;
   private final EHoldingsExportConfig.RecordTypeEnum recordType;
-  private final JsonToEHoldingsExportFormatMapper mapper;
+  private final EHoldingsToExportFormatMapper mapper;
 
   protected EHoldingsCsvItemReader(Long offset, Long limit, KbEbscoClient kbEbscoClient,
-                                   String recordId, String recordType, String titlesSearchFilters) {
+                                   String recordId, String recordType, String titleFields, String titlesSearchFilters) {
     super(offset, limit);
     this.recordId = recordId;
+    this.titleFields = titleFields;
     this.kbEbscoClient = kbEbscoClient;
     this.titlesSearchFilters = titlesSearchFilters;
-    this.mapper = new JsonToEHoldingsExportFormatMapper();
+    this.mapper = new EHoldingsToExportFormatMapper();
     this.recordType = EHoldingsExportConfig.RecordTypeEnum.valueOf(recordType);
   }
 
@@ -31,20 +33,19 @@ public class EHoldingsCsvItemReader extends CsvItemReader<EHoldingsExportFormat>
 
     if (recordType == EHoldingsExportConfig.RecordTypeEnum.RESOURCE) {
       var packageId = recordId.split("-")[1];
-      var titleId = recordId.split("-")[2];
-
-      var packageById = kbEbscoClient.getPackageById(packageId).getBody();
-      var titleById = kbEbscoClient.getTitleById(titleId).getBody();
+      var resourceById = kbEbscoClient.getResourceById(recordId);
+      var packageById = kbEbscoClient.getPackageById(packageId);
 
       eHoldingsExportFormat = mapper.convertPackageToExportFormat(packageById);
-      eHoldingsExportFormat.setTitles(List.of(mapper.convertTitleToExportFormat(titleById)));
+      eHoldingsExportFormat.setTitles(List.of(mapper.convertResourceDataToExportFormat(resourceById.getData())));
     } else if (recordType == EHoldingsExportConfig.RecordTypeEnum.PACKAGE) {
-      var packageById = kbEbscoClient.getPackageById(recordId).getBody();
-      var titles = kbEbscoClient.getResourcesByPackageId(recordId, titlesSearchFilters).getBody();
-
+      var packageById = kbEbscoClient.getPackageById(recordId);
       eHoldingsExportFormat = mapper.convertPackageToExportFormat(packageById);
-      //TODO: should get tiles from resources
-      eHoldingsExportFormat.setTitles(List.of(mapper.convertTitleToExportFormat(titles)));
+
+      if (titleFields != null && !titleFields.isBlank()) {
+        var titles = kbEbscoClient.getResourcesByPackageId(recordId, titlesSearchFilters);
+        eHoldingsExportFormat.setTitles(mapper.convertResourcesToExportFormat(titles));
+      }
     }
 
     return List.of(eHoldingsExportFormat);

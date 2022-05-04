@@ -17,6 +17,7 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
+import static org.folio.dew.utils.Constants.PREVIEW_USERS_QUERY;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -116,7 +117,8 @@ public class BulkEditController implements JobIdApi {
   @Override
   public ResponseEntity<Object> getPreviewUsersByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId, @NotNull @ApiParam(value = "The numbers of items to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
     var jobCommand = getJobCommandById(jobId.toString());
-    return new ResponseEntity<>(userClient.getUserByQuery(buildPreviewQueryFromJobCommand(jobCommand, limit), limit), HttpStatus.OK);
+    String previewQuery = getPreviewUsersQueryFromJobParameters(jobCommand, limit);
+    return new ResponseEntity<>(userClient.getUserByQuery(previewQuery, limit), HttpStatus.OK);
   }
 
   @Override public ResponseEntity<ItemCollection> getPreviewItemsByJobId(UUID jobId, Integer limit) {
@@ -219,7 +221,8 @@ public class BulkEditController implements JobIdApi {
   private void prepareJobParameters(JobCommand jobCommand, String fileName) {
     var paramsBuilder = new JobParametersBuilder(jobCommand.getJobParameters());
     paramsBuilder.addString(FILE_NAME, fileName);
-    paramsBuilder.addString(TEMP_OUTPUT_FILE_PATH, workDir + LocalDate.now() + MATCHED_RECORDS + FilenameUtils.getBaseName(fileName));
+    paramsBuilder.addString(TEMP_OUTPUT_FILE_PATH,
+      workDir + (isBulkEditUpdate(jobCommand) ? EMPTY : LocalDate.now() + MATCHED_RECORDS) + FilenameUtils.getBaseName(fileName));
     paramsBuilder.addString(EXPORT_TYPE, jobCommand.getExportType().getValue());
     ofNullable(jobCommand.getIdentifierType()).ifPresent(type ->
       paramsBuilder.addString("identifierType", type.getValue()));
@@ -266,6 +269,17 @@ public class BulkEditController implements JobIdApi {
     default:
       throw new NonSupportedEntityException(format("Non-supported export type: %s", jobCommand.getExportType()));
     }
+  }
+
+  private String getPreviewUsersQueryFromJobParameters(JobCommand jobCommand, int limit) {
+    String query = jobCommand.getJobParameters().getString(PREVIEW_USERS_QUERY);
+    if (isNull(query)) {
+      query = buildPreviewQueryFromJobCommand(jobCommand, limit);
+      var paramsBuilder = new JobParametersBuilder(jobCommand.getJobParameters());
+      paramsBuilder.addString(PREVIEW_USERS_QUERY, query);
+      jobCommand.setJobParameters(paramsBuilder.toJobParameters());
+    }
+    return query;
   }
 
   private String buildPreviewQueryFromCsv(JobCommand jobCommand, int limit) {

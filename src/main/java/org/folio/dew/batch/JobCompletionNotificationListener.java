@@ -73,6 +73,9 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       if (isBulkEditIdentifiersJob(jobExecution)) {
         handleProcessingErrors(jobExecution, jobId);
       }
+      if (isBulkEditUpdateJob(jobExecution)) {
+        handleProcessingChangedRecords(jobExecution);
+      }
       if (jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue())) {
         String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
         if (StringUtils.isNotBlank(downloadErrorLink)) {
@@ -108,6 +111,10 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
   private void handleProcessingErrors(JobExecution jobExecution, String jobId) {
     String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
     jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution) + (isNull(downloadErrorLink) ? "" : ";" + downloadErrorLink));
+  }
+
+  private void handleProcessingChangedRecords(JobExecution jobExecution) {
+    jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution));
   }
 
   private void processJobAfter(String jobId, JobParameters jobParameters) {
@@ -188,11 +195,16 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     return jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_IDENTIFIERS.getValue());
   }
 
+  private boolean isBulkEditUpdateJob(JobExecution jobExecution) {
+    return jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue());
+  }
+
   private String saveResult(JobExecution jobExecution) {
     String path = jobExecution.getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH);
     try {
       return repository.objectWriteResponseToPresignedObjectUrl(
-        repository.uploadObject(FilenameUtils.getName(path) + CSV_EXTENSION, path, null, "text/csv", true));
+        repository.uploadObject(FilenameUtils.getName(path) + CSV_EXTENSION,
+          isBulkEditUpdateJob(jobExecution) ? path + CSV_EXTENSION : path, null, "text/csv", true));
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }

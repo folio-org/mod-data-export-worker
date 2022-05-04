@@ -25,6 +25,7 @@ public class Constants {
   public static final String ENTITY_TYPE = "entityType";
   public static final String IDENTIFIER_TYPE = "identifierType";
   public static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss.SSSX";
+  public static final String PREVIEW_USERS_QUERY = "previewUsersQuery";
 
   public static final String LINE_BREAK = "\n";
   public static final String LINE_BREAK_REPLACEMENT = "\\n";

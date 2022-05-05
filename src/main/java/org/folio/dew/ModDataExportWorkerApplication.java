@@ -8,6 +8,7 @@ import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.IdentifierTypeClient;
 import org.folio.dew.client.InstanceClient;
 import org.folio.dew.client.InventoryClient;
+import org.folio.dew.client.KbEbscoClient;
 import org.folio.dew.client.LoanTypeClient;
 import org.folio.dew.client.LocationClient;
 import org.folio.dew.client.AccountBulkClient;
@@ -67,7 +68,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
   InventoryClient.class,
   StatisticalCodeClient.class,
   InstanceClient.class,
-  LoanTypeClient.class
+  LoanTypeClient.class,
+  KbEbscoClient.class
 })
 @EnableBatchProcessing
 public class ModDataExportWorkerApplication {

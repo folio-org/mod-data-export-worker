@@ -1,11 +1,22 @@
 package org.folio.dew.batch.eholdings;
 
+import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACKAGE;
+import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESOURCE;
+
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.folio.dew.batch.CsvItemReader;
 import org.folio.dew.client.KbEbscoClient;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.EHoldingsExportFormat;
+import org.folio.dew.domain.dto.eholdings.EPackage;
+import org.folio.dew.domain.dto.eholdings.EResource;
+import org.folio.dew.domain.dto.eholdings.EResources;
+import org.folio.dew.domain.dto.eholdings.PackageData;
 
 public class EHoldingsCsvItemReader extends CsvItemReader<EHoldingsExportFormat> {
 
@@ -29,25 +40,46 @@ public class EHoldingsCsvItemReader extends CsvItemReader<EHoldingsExportFormat>
 
   @Override
   protected List<EHoldingsExportFormat> getItems(int offset, int limit) {
-    var eHoldingsExportFormat = new EHoldingsExportFormat();
+    if (recordType == RESOURCE) {
+      ObjectMapper mapperO = new ObjectMapper();
+      var resourceById = kbEbscoClient.getResourceById(recordId, "package");
+      var includedPackage = mapperO.convertValue(resourceById.getIncluded().get(0), PackageData.class);
 
-    if (recordType == EHoldingsExportConfig.RecordTypeEnum.RESOURCE) {
-      var packageId = recordId.split("-\\d+$")[0];
-      var resourceById = kbEbscoClient.getResourceById(recordId);
-      var packageById = kbEbscoClient.getPackageById(packageId);
-
-      eHoldingsExportFormat = mapper.convertPackageToExportFormat(packageById);
-      eHoldingsExportFormat.setTitles(List.of(mapper.convertResourceDataToExportFormat(resourceById.getData())));
-    } else if (recordType == EHoldingsExportConfig.RecordTypeEnum.PACKAGE) {
-      var packageById = kbEbscoClient.getPackageById(recordId);
-      eHoldingsExportFormat = mapper.convertPackageToExportFormat(packageById);
-
-      if (titleFields != null && !titleFields.isBlank()) {
-        var titles = kbEbscoClient.getResourcesByPackageId(recordId, titlesSearchFilters);
-        eHoldingsExportFormat.setTitles(mapper.convertResourcesToExportFormat(titles));
-      }
+      return buildEHoldingsExportFormat(includedPackage, resourceById);
     }
 
+    if (recordType == PACKAGE) {
+      var packageById = kbEbscoClient.getPackageById(recordId);
+
+      if (titleFields != null && !titleFields.isBlank()) {
+        var packageResources = kbEbscoClient.getResourcesByPackageId(recordId, titlesSearchFilters);
+        return buildEHoldingsExportFormat(packageById, packageResources);
+      }
+      return buildEHoldingsExportFormat(packageById);
+    }
+
+    return Collections.emptyList();
+  }
+
+  private List<EHoldingsExportFormat> buildEHoldingsExportFormat(PackageData packageData, EResource eResource) {
+    var eHoldingsExportFormat = mapper.convertPackageToExportFormat(packageData);
+    var titleInfo = mapper.convertResourceDataToExportFormat(eResource.getData());
+
+    eHoldingsExportFormat.setTitles(List.of(titleInfo));
     return List.of(eHoldingsExportFormat);
+  }
+
+  private List<EHoldingsExportFormat> buildEHoldingsExportFormat(EPackage ePackage, EResources eResources) {
+    var eHoldingsExportFormat = mapper.convertPackageToExportFormat(ePackage.getData());
+    var titlesInfo = eResources.getData().stream()
+      .map(mapper::convertResourceDataToExportFormat)
+      .collect(Collectors.toList());
+
+    eHoldingsExportFormat.setTitles(titlesInfo);
+    return List.of(eHoldingsExportFormat);
+  }
+
+  private List<EHoldingsExportFormat> buildEHoldingsExportFormat(EPackage ePackage) {
+    return List.of(mapper.convertPackageToExportFormat(ePackage.getData()));
   }
 }

@@ -379,7 +379,6 @@
                         <generateModelTests>false</generateModelTests>
                         <generateSupportingFiles>false</generateSupportingFiles>
                         <generateModelDocumentation>true</generateModelDocumentation>
-                        <skipValidateSpec>true</skipValidateSpec>
                         <configOptions>
                           <java8>true</java8>
                           <dateLibrary>java</dateLibrary>

@@ -1,18 +1,19 @@
 package org.folio.dew.domain.dto;
 
+import java.util.List;
+
 import lombok.Data;
 
 @Data
 public class EHoldingsTitleExportFormat {
-  private String packageId;
-  private String packageName;
+  private String resourceId;
   private String titleId;
   private String titleName;
   private String alternateTitles;
   private String titleHoldingsStatus;
   private String publicationType;
   private String titleType;
-  private String contributors;
+  private List<String> contributors;
   private String edition;
   private String publisher;
   private String ISSN_Print;

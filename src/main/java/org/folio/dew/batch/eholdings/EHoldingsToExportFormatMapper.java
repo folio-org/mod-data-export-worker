@@ -14,7 +14,6 @@ import org.folio.dew.domain.dto.eholdings.Identifier;
 import org.folio.dew.domain.dto.eholdings.Identifier.TypeEnum;
 import org.folio.dew.domain.dto.eholdings.Identifier.SubtypeEnum;
 
-
 @Component
 public class EHoldingsToExportFormatMapper {
 
@@ -34,8 +33,8 @@ public class EHoldingsToExportFormatMapper {
     eHoldingsExportFormat.setPackageShowToPatrons(getShowToPatrons(packageAtr.getVisibilityData().getIsHidden()));
     eHoldingsExportFormat.setPackageAutomaticallySelect(getAutomaticallySelect(packageAtr.getAllowKbToAddTitles()));
 
-/*    Can't find fields
-    eHoldingsExportFormat.setPackageAccessStatusType(ePackage.getData().getRelationships().getAccessType().toString());
+/*  Need to add mod-notes and mod-agreements integration
+    eHoldingsExportFormat.setPackageAccessStatusType("");
     eHoldingsExportFormat.setPackageAgreementStartDate("");
     eHoldingsExportFormat.setPackageAgreementName("");
     eHoldingsExportFormat.setPackageAgreementStatus("");
@@ -85,7 +84,7 @@ public class EHoldingsToExportFormatMapper {
     eHoldingsTitleExportFormat.setISSN_Online(
       getIdentifierId(resourcesAtr.getIdentifiers(), TypeEnum.ISSN, SubtypeEnum.ONLINE));
 
-/*    Can't find fields
+/*  Need to add mod-notes and mod-agreements integration
     eHoldingsTitleExportFormat.setTitleAccessStatusType("");
     eHoldingsTitleExportFormat.setTitleAgreementStartDate(json.getString(""));
     eHoldingsTitleExportFormat.setTitleAgreementName(json.getString(""));

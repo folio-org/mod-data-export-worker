@@ -14,8 +14,6 @@ components:
   schemas:
     ePackage:
       $ref: '../../../../folio-export-common/schemas/eholdings/e-package/package.json#/EPackage'
-    eTitle:
-      $ref: '../../../../folio-export-common/schemas/eholdings/e-title/title.json#/ETitle'
     eResource:
       $ref: '../../../../folio-export-common/schemas/eholdings/e-resources/resource.json#/EResource'
     eResources:

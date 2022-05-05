@@ -32,7 +32,7 @@ public class EHoldingsCsvItemReader extends CsvItemReader<EHoldingsExportFormat>
     var eHoldingsExportFormat = new EHoldingsExportFormat();
 
     if (recordType == EHoldingsExportConfig.RecordTypeEnum.RESOURCE) {
-      var packageId = recordId.split("-")[1];
+      var packageId = recordId.split("-\\d+$")[0];
       var resourceById = kbEbscoClient.getResourceById(recordId);
       var packageById = kbEbscoClient.getPackageById(packageId);
 

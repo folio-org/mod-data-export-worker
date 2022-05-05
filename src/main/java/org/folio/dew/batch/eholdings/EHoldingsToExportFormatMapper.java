@@ -10,6 +10,10 @@ import org.folio.dew.domain.dto.EHoldingsTitleExportFormat;
 import org.folio.dew.domain.dto.eholdings.EPackage;
 import org.folio.dew.domain.dto.eholdings.EResources;
 import org.folio.dew.domain.dto.eholdings.ResourcesData;
+import org.folio.dew.domain.dto.eholdings.Identifier;
+import org.folio.dew.domain.dto.eholdings.Identifier.TypeEnum;
+import org.folio.dew.domain.dto.eholdings.Identifier.SubtypeEnum;
+
 
 @Component
 public class EHoldingsToExportFormatMapper {
@@ -22,21 +26,23 @@ public class EHoldingsToExportFormatMapper {
     eHoldingsExportFormat.setProviderName(packageAtr.getProviderName());
     eHoldingsExportFormat.setPackageId(ePackage.getData().getId());
     eHoldingsExportFormat.setPackageName(packageAtr.getName());
-    eHoldingsExportFormat.setPackageType(ePackage.getData().getType());
+    eHoldingsExportFormat.setPackageType(packageAtr.getPackageType());
     eHoldingsExportFormat.setPackageContentType(packageAtr.getContentType().getValue());
     eHoldingsExportFormat.setPackageCustomCoverage(packageAtr.getCustomCoverage().toString());
     eHoldingsExportFormat.setPackageProxy(packageAtr.getProxy().toString());
-    eHoldingsExportFormat.setPackageAccessStatusType(ePackage.getData().getRelationships().getAccessType().toString());
     eHoldingsExportFormat.setPackageTags(packageAtr.getTags().toString());
-    eHoldingsExportFormat.setPackageShowToPatrons("");
-    eHoldingsExportFormat.setPackageAutomaticallySelect("");
+    eHoldingsExportFormat.setPackageShowToPatrons(getShowToPatrons(packageAtr.getVisibilityData().getIsHidden()));
+    eHoldingsExportFormat.setPackageAutomaticallySelect(getAutomaticallySelect(packageAtr.getAllowKbToAddTitles()));
+
+/*    Can't find fields
+    eHoldingsExportFormat.setPackageAccessStatusType(ePackage.getData().getRelationships().getAccessType().toString());
     eHoldingsExportFormat.setPackageAgreementStartDate("");
     eHoldingsExportFormat.setPackageAgreementName("");
     eHoldingsExportFormat.setPackageAgreementStatus("");
     eHoldingsExportFormat.setPackageNoteLastUpdatedDate("");
     eHoldingsExportFormat.setPackageNoteType("");
     eHoldingsExportFormat.setPackageNoteTitle("");
-    eHoldingsExportFormat.setPackageNoteDetails("");
+    eHoldingsExportFormat.setPackageNoteDetails("");*/
 
     return eHoldingsExportFormat;
   }
@@ -48,19 +54,12 @@ public class EHoldingsToExportFormatMapper {
     eHoldingsTitleExportFormat.setTitleId(resourcesAtr.getTitleId().toString());
     eHoldingsTitleExportFormat.setTitleName(resourcesAtr.getName());
     eHoldingsTitleExportFormat.setAlternateTitles(resourcesAtr.getAlternateTitles().toString());
-//    Can't find field
-//    eHoldingsTitleExportFormat.setTitleHoldingsStatus(json.getString(""));
+    eHoldingsTitleExportFormat.setTitleHoldingsStatus(getHoldingsStatus(resourcesAtr.getIsSelected()));
     eHoldingsTitleExportFormat.setPublicationType(resourcesAtr.getPublicationType().getValue());
-    eHoldingsTitleExportFormat.setTitleType("");
+    eHoldingsTitleExportFormat.setTitleType(getTitleType(resourcesAtr.getIsTitleCustom()));
     eHoldingsTitleExportFormat.setContributors(resourcesAtr.getContributors().toString());
     eHoldingsTitleExportFormat.setEdition(resourcesAtr.getEdition());
     eHoldingsTitleExportFormat.setPublisher(resourcesAtr.getPublisherName());
-//    Can't find fields
-//    eHoldingsTitleExportFormat.setISBN_Print(List.of(json.getString("")));
-//    eHoldingsTitleExportFormat.setISBN_Online(List.of(json.getString("")));
-//    eHoldingsTitleExportFormat.setISSN_Print(List.of(json.getString("")));
-//    eHoldingsTitleExportFormat.setISSN_Online(List.of(json.getString("")));
-
     eHoldingsTitleExportFormat.setPeerReviewed(resourcesAtr.getIsPeerReviewed().toString());
     eHoldingsTitleExportFormat.setDescription(resourcesAtr.getDescription());
     eHoldingsTitleExportFormat.setManagedCoverage(resourcesAtr.getManagedCoverages().toString());
@@ -68,27 +67,33 @@ public class EHoldingsToExportFormatMapper {
     eHoldingsTitleExportFormat.setCoverageStatement(resourcesAtr.getCoverageStatement());
     eHoldingsTitleExportFormat.setManagedEmbargo(resourcesAtr.getManagedEmbargoPeriod().toString());
     eHoldingsTitleExportFormat.setCustomEmbargo(resourcesAtr.getCustomEmbargoPeriod().toString());
-
-//    Can't find field
-//    eHoldingsTitleExportFormat.setTitleShowToPatrons(json.getString(""));
+    eHoldingsTitleExportFormat.setTitleShowToPatrons(getShowToPatrons(resourcesAtr.getVisibilityData().getIsHidden()));
     eHoldingsTitleExportFormat.setTitleProxy(resourcesAtr.getProxy().toString());
     eHoldingsTitleExportFormat.setUrl(resourcesAtr.getUrl());
-    eHoldingsTitleExportFormat.setTitleAccessStatusType("");
     eHoldingsTitleExportFormat.setCustomValue1(resourcesAtr.getUserDefinedField1());
     eHoldingsTitleExportFormat.setCustomValue2(resourcesAtr.getUserDefinedField2());
     eHoldingsTitleExportFormat.setCustomValue3(resourcesAtr.getUserDefinedField3());
     eHoldingsTitleExportFormat.setCustomValue4(resourcesAtr.getUserDefinedField4());
     eHoldingsTitleExportFormat.setCustomValue5(resourcesAtr.getUserDefinedField5());
     eHoldingsTitleExportFormat.setTitleTags(resourcesAtr.getTags().toString());
+    eHoldingsTitleExportFormat.setISBN_Print(
+      getIdentifierId(resourcesAtr.getIdentifiers(), TypeEnum.ISBN, SubtypeEnum.PRINT));
+    eHoldingsTitleExportFormat.setISBN_Online(
+      getIdentifierId(resourcesAtr.getIdentifiers(), TypeEnum.ISBN, SubtypeEnum.ONLINE));
+    eHoldingsTitleExportFormat.setISSN_Print(
+      getIdentifierId(resourcesAtr.getIdentifiers(), TypeEnum.ISSN, SubtypeEnum.PRINT));
+    eHoldingsTitleExportFormat.setISSN_Online(
+      getIdentifierId(resourcesAtr.getIdentifiers(), TypeEnum.ISSN, SubtypeEnum.ONLINE));
 
-//    Can't find fields
-//    eHoldingsTitleExportFormat.setTitleAgreementStartDate(json.getString(""));
-//    eHoldingsTitleExportFormat.setTitleAgreementName(json.getString(""));
-//    eHoldingsTitleExportFormat.setTitleAgreementStatus(json.getString(""));
-//    eHoldingsTitleExportFormat.setTitleNoteLastUpdatedDate(json.getString(""));
-//    eHoldingsTitleExportFormat.setTitleNoteType(json.getString(""));
-//    eHoldingsTitleExportFormat.setTitleNoteTitle(json.getString(""));
-//    eHoldingsTitleExportFormat.setTitleNoteDetails(json.getString(""));
+/*    Can't find fields
+    eHoldingsTitleExportFormat.setTitleAccessStatusType("");
+    eHoldingsTitleExportFormat.setTitleAgreementStartDate(json.getString(""));
+    eHoldingsTitleExportFormat.setTitleAgreementName(json.getString(""));
+    eHoldingsTitleExportFormat.setTitleAgreementStatus(json.getString(""));
+    eHoldingsTitleExportFormat.setTitleNoteLastUpdatedDate(json.getString(""));
+    eHoldingsTitleExportFormat.setTitleNoteType(json.getString(""));
+    eHoldingsTitleExportFormat.setTitleNoteTitle(json.getString(""));
+    eHoldingsTitleExportFormat.setTitleNoteDetails(json.getString(""));*/
 
     return eHoldingsTitleExportFormat;
   }
@@ -97,5 +102,31 @@ public class EHoldingsToExportFormatMapper {
     return eResources.getData().stream()
       .map(this::convertResourceDataToExportFormat)
       .collect(Collectors.toList());
+  }
+
+  private String getIdentifierId(List<Identifier> identifiers, TypeEnum type, SubtypeEnum subtype) {
+    var idOptional = identifiers.stream()
+      .filter(identifier -> identifier.getType().equals(type))
+      .filter(identifier -> identifier.getSubtype().equals(subtype))
+      .map(Identifier::getId)
+      .findFirst();
+
+    return idOptional.orElse("");
+  }
+
+  private String getShowToPatrons(boolean isHidden) {
+    return isHidden ? "No" : "Yes";
+  }
+
+  private String getAutomaticallySelect(boolean isAllowKbToAddTitles) {
+    return isAllowKbToAddTitles ? "Yes" : "No";
+  }
+
+  private String getHoldingsStatus(boolean isSelected) {
+    return isSelected ? "Selected" : "Not selected";
+  }
+
+  private String getTitleType(boolean isCustom) {
+    return isCustom ? "Custom" : "Managed";
   }
 }

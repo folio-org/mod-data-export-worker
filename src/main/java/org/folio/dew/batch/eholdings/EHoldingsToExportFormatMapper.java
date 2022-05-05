@@ -32,9 +32,9 @@ public class EHoldingsToExportFormatMapper {
     eHoldingsExportFormat.setPackageTags(packageAtr.getTags().toString());
     eHoldingsExportFormat.setPackageShowToPatrons(getShowToPatrons(packageAtr.getVisibilityData().getIsHidden()));
     eHoldingsExportFormat.setPackageAutomaticallySelect(getAutomaticallySelect(packageAtr.getAllowKbToAddTitles()));
+    eHoldingsExportFormat.setPackageAccessStatusType(ePackage.getData().getRelationships().getAccessType().toString());
 
 /*  Need to add mod-notes and mod-agreements integration
-    eHoldingsExportFormat.setPackageAccessStatusType("");
     eHoldingsExportFormat.setPackageAgreementStartDate("");
     eHoldingsExportFormat.setPackageAgreementName("");
     eHoldingsExportFormat.setPackageAgreementStatus("");
@@ -75,6 +75,7 @@ public class EHoldingsToExportFormatMapper {
     eHoldingsTitleExportFormat.setCustomValue4(resourcesAtr.getUserDefinedField4());
     eHoldingsTitleExportFormat.setCustomValue5(resourcesAtr.getUserDefinedField5());
     eHoldingsTitleExportFormat.setTitleTags(resourcesAtr.getTags().toString());
+    eHoldingsTitleExportFormat.setTitleAccessStatusType(data.getRelationships().getAccessType().toString());
     eHoldingsTitleExportFormat.setISBN_Print(
       getIdentifierId(resourcesAtr.getIdentifiers(), TypeEnum.ISBN, SubtypeEnum.PRINT));
     eHoldingsTitleExportFormat.setISBN_Online(
@@ -85,7 +86,6 @@ public class EHoldingsToExportFormatMapper {
       getIdentifierId(resourcesAtr.getIdentifiers(), TypeEnum.ISSN, SubtypeEnum.ONLINE));
 
 /*  Need to add mod-notes and mod-agreements integration
-    eHoldingsTitleExportFormat.setTitleAccessStatusType("");
     eHoldingsTitleExportFormat.setTitleAgreementStartDate(json.getString(""));
     eHoldingsTitleExportFormat.setTitleAgreementName(json.getString(""));
     eHoldingsTitleExportFormat.setTitleAgreementStatus(json.getString(""));

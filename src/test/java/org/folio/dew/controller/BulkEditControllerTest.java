@@ -666,17 +666,21 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     if (REPLACE_WITH_ALLOWED_STATUS != testData) {
       var erros = errorsService.readErrorsFromCSV(jobId.toString(), jobCommand.getJobParameters().getString(FILE_NAME), 10);
-      assertThat(erros
-        .getErrors(), hasSize(1));
+      assertThat(erros.getErrors(), hasSize(2));
     }
 
-    var actualItem = objectMapper.readValue(response.getResponse().getContentAsString(), ItemCollection.class).getItems().get(0);
-    var expectedItem = objectMapper.readValue(new FileSystemResource(testData.getExpectedJsonPath()).getInputStream(), ItemCollection.class).getItems().get(0);
-    assertThat(expectedItem.getId(), equalTo(actualItem.getId()));
-    assertThat(expectedItem.getStatus().getName(), equalTo(actualItem.getStatus().getName()));
-    assertTrue(REPLACE_WITH_ALLOWED_STATUS == testData ?
-      actualItem.getStatus().getDate().after(expectedItem.getStatus().getDate()) :
-      actualItem.getStatus().getDate().equals(expectedItem.getStatus().getDate()));
+    var actualItems = objectMapper.readValue(response.getResponse().getContentAsString(), ItemCollection.class).getItems();
+    var expectedItems = objectMapper.readValue(new FileSystemResource(testData.getExpectedJsonPath()).getInputStream(), ItemCollection.class).getItems();
+    if (REPLACE_WITH_ALLOWED_STATUS == testData) {
+      var actualItem = actualItems.get(0);
+      var expectedItem = expectedItems.get(0);
+      assertThat(expectedItem.getId(), equalTo(actualItem.getId()));
+      assertThat(expectedItem.getStatus().getName(), equalTo(actualItem.getStatus().getName()));
+      assertTrue(actualItem.getStatus().getDate().after(expectedItem.getStatus().getDate()));
+    } else {
+      assertThat(actualItems, hasSize(0));
+    }
+
   }
 
   @Test
@@ -773,6 +777,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   private void verifyLocationUpdate(ItemCollection expectedItems, ItemCollection actualItems) {
+    assertThat(expectedItems.getItems(), hasSize(actualItems.getItems().size()));
     for (int i = 0; i < expectedItems.getItems().size(); i++) {
       assertThat(expectedItems.getItems().get(i).getId(), equalTo(actualItems.getItems().get(i).getId()));
       assertThat(expectedItems.getItems().get(i).getPermanentLocation(), equalTo(actualItems.getItems().get(i).getPermanentLocation()));

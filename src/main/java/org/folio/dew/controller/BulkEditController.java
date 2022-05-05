@@ -256,7 +256,7 @@ public class BulkEditController implements JobIdApi {
         .limit(isNull(limit) ? Integer.MAX_VALUE : limit)
         .map(bulkEditParseService::mapItemFormatToItem)
         .collect(Collectors.toList());
-      return new ItemCollection().items(items).totalRecords(items.size());
+      return new ItemCollection().items(items).totalRecords(itemFormats.size());
   }
 
   private String buildPreviewQueryFromJobCommand(JobCommand jobCommand, int limit) {

@@ -8,12 +8,15 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
-import static org.folio.dew.utils.Constants.CSV_EXTENSION;
+import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
+import static org.folio.dew.utils.Constants.CHANGED_RECORDS;
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
@@ -202,9 +205,12 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
   private String saveResult(JobExecution jobExecution) {
     String path = jobExecution.getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH);
     try {
+      var fileNameBulkEditUpdate = path + CSV_EXTENSION;
       return repository.objectWriteResponseToPresignedObjectUrl(
         repository.uploadObject(FilenameUtils.getName(path) + CSV_EXTENSION,
-          isBulkEditUpdateJob(jobExecution) ? path + CSV_EXTENSION : path, null, "text/csv", true));
+          isBulkEditUpdateJob(jobExecution) ? fileNameBulkEditUpdate : path,
+          isBulkEditUpdateJob(jobExecution) ? Path.of(fileNameBulkEditUpdate).getFileName().toString().replace(MATCHED_RECORDS, CHANGED_RECORDS) : null,
+          "text/csv", true));
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }

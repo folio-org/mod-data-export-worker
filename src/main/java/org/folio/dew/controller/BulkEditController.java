@@ -125,7 +125,7 @@ public class BulkEditController implements JobIdApi {
   @Override
   public ResponseEntity<Object> getPreviewUsersByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId, @NotNull @ApiParam(value = "The numbers of items to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
     var jobCommand = getJobCommandById(jobId.toString());
-    String previewQuery = getPreviewUsersQueryFromJobParameters(isBulkEditIdentifiers(jobCommand) ? jobCommand : lastJobIdentifiers, limit);
+    String previewQuery = getPreviewUsersQueryFromJobParameters(!isBulkEditUpdate(jobCommand) || isNull(lastJobIdentifiers) ? jobCommand : lastJobIdentifiers, limit);
     return new ResponseEntity<>(userClient.getUserByQuery(previewQuery, limit), HttpStatus.OK);
   }
 

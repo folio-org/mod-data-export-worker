@@ -47,6 +47,7 @@ import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.JobCommandsReceiverService;
+import org.folio.spring.FolioExecutionContext;
 import org.folio.tenant.domain.dto.Errors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -86,6 +87,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-items/download";
   private static final String ITEMS_FOR_LOCATION_UPDATE = "src/test/resources/upload/bulk_edit_items_for_location_update.csv";
   private static final String ITEMS_FOR_STATUS_UPDATE = "src/test/resources/upload/bulk_edit_items_for_status_update.csv";
+  private static final UUID JOB_ID = UUID.randomUUID();
   public static final String LIMIT = "limit";
 
   @MockBean
@@ -109,10 +111,13 @@ class BulkEditControllerTest extends BaseBatchTest {
   @Autowired
   private BulkEditProcessingErrorsService errorsService;
 
+  @Autowired
+  private FolioExecutionContext folioExecutionContext;
+
   @Test
   void shouldReturnErrorsPreview() throws Exception {
 
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE));
 
     int numOfErrorLines = 3;
@@ -140,7 +145,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @Test
   void shouldReturnEmptyErrorsForErrorsPreview() throws Exception {
 
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE));
 
     var expectedErrorMsg = format("errors file for job id %s", jobId);
@@ -161,7 +166,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @Test
   void shouldReturnErrorsFileNotFoundErrorForErrorsPreview() throws Exception {
 
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     var expectedJson = String.format("{\"errors\":[{\"message\":\"JobCommand with id %s doesn't exist.\",\"type\":\"-1\",\"code\":\"Not found\",\"parameters\":null}],\"total_records\":1}", jobId);
 
     var headers = defaultHeaders();
@@ -181,7 +186,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     when(userClient.getUserByQuery(query, 3)).thenReturn(buildUserCollection());
 
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType), USER, BARCODE));
 
     var headers = defaultHeaders();
@@ -203,7 +208,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     when(inventoryClient.getItemByQuery(String.format("%s==(123 OR 456 OR 789)", resolveIdentifier(identifierType.getValue())), 3)).thenReturn(buildItemCollection());
 
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, ITEM, identifierType));
 
     var headers = defaultHeaders();
@@ -227,7 +232,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     when(userClient.getUserByQuery(query, 2)).thenReturn(buildUserCollection());
 
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType), USER, BARCODE));
 
     var headers = defaultHeaders();
@@ -252,7 +257,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     when(inventoryClient.getItemByQuery(query, 2)).thenReturn(buildItemCollection());
 
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType), ITEM, BARCODE));
 
     var headers = defaultHeaders();
@@ -277,7 +282,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var query = String.format("%s==(123 OR 456)", resolveIdentifier(identifierType.getValue()));
     when(inventoryClient.getItemByQuery(query, 2)).thenReturn(buildItemCollection());
 
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, ITEM, identifierType));
 
     var headers = defaultHeaders();
@@ -298,7 +303,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @Test
   void shouldReturnErrorForInvalidExportType() {
 
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.ORDERS_EXPORT, USER, BARCODE));
 
     var headers = defaultHeaders();
@@ -325,7 +330,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Launch job on upload file with identifiers successfully")
   @SneakyThrows
   void shouldLaunchJobAndReturnNumberOfRecordsOnIdentifiersFileUpload() {
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE));
 
     var headers = defaultHeaders();
@@ -348,7 +353,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Skip headers while counting records for update")
   @SneakyThrows
   void shouldSkipHeadersWhileCountingRecordsForUpdate() {
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_UPDATE, USER, BARCODE));
 
     var headers = defaultHeaders();
@@ -362,14 +367,14 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andExpect(status().isOk())
       .andReturn();
 
-    assertThat(result.getResponse().getContentAsString(), equalTo("1"));
+    assertThat(result.getResponse().getContentAsString(), equalTo("2"));
   }
 
   @Test
   @DisplayName("Upload empty file - BAD REQUEST")
   @SneakyThrows
   void shouldReturnBadRequestWhenIdentifiersFileIsEmpty() {
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE));
 
     var headers = defaultHeaders();
@@ -386,7 +391,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Job doesn't exist - NOT FOUND")
   @SneakyThrows
   void shouldReturnNotFoundIfJobDoesNotExist() {
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
 
     var headers = defaultHeaders();
 
@@ -467,7 +472,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @SneakyThrows
   void shouldUpdateEffectiveLocationOnChangeLocationContentUpdate(ItemsContentUpdateTestData testData) {
     repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
     jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
@@ -512,7 +517,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @SneakyThrows
   void shouldDownloadPreviewAfterContentUpdate(ItemsContentUpdateTestData testData) {
     repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
     jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
@@ -559,7 +564,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @SneakyThrows
   void shouldReturn404causeJobNotFoundById(ItemsContentUpdateTestData testData) {
     repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
     jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
@@ -597,7 +602,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @SneakyThrows
   void shouldLimitItemsInResponseWhenLimitIsNotNull() {
     repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
     jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
@@ -633,7 +638,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   void shouldChangeItemStatusIfAllowedOrAddErrorIfNot(ItemsContentUpdateTestData testData) {
     var itemId = "b7a9718a-0c26-4d43-ace9-52234ff74ad8";
     repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_STATUS_UPDATE), ITEMS_FOR_STATUS_UPDATE, null, "text/plain", false);
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
     jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);

@@ -19,6 +19,7 @@ import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.PREVIEW_USERS_QUERY;
+import static org.folio.dew.utils.Constants.PREVIEW_ITEMS_QUERY;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -33,12 +34,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.opencsv.CSVReader;
 import com.opencsv.bean.CsvToBeanBuilder;
+import com.opencsv.exceptions.CsvDataTypeMismatchException;
+import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
@@ -60,6 +65,7 @@ import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.dew.utils.CsvHelper;
+import org.folio.spring.FolioExecutionContext;
 import org.openapitools.api.JobIdApi;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -102,11 +108,12 @@ public class BulkEditController implements JobIdApi {
   private final BulkEditItemContentUpdateService itemContentUpdateService;
   private final BulkEditParseService bulkEditParseService;
   private final DataExportSpringClient dataExportSpringClient;
+  private final FolioExecutionContext folioExecutionContext;
 
   @Value("${spring.application.name}")
   private String springApplicationName;
   private String workDir;
-  private JobCommand lastJobIdentifiers;
+  private final Map<UUID, UUID> lastJobIdentifiersByCurrentUser = new ConcurrentHashMap<>();
 
   @PostConstruct
   public void postConstruct() {
@@ -125,13 +132,18 @@ public class BulkEditController implements JobIdApi {
   @Override
   public ResponseEntity<Object> getPreviewUsersByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId, @NotNull @ApiParam(value = "The numbers of items to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
     var jobCommand = getJobCommandById(jobId.toString());
-    String previewQuery = getPreviewUsersQueryFromJobParameters(!isBulkEditUpdate(jobCommand) || isNull(lastJobIdentifiers) ? jobCommand : lastJobIdentifiers, limit);
+    var lastJobIdentifiersId = lastJobIdentifiersByCurrentUser.get(folioExecutionContext.getUserId());
+    String previewQuery = getPreviewQueryFromJobParameters(
+      !isBulkEditUpdate(jobCommand) || isNull(lastJobIdentifiersId) ? jobCommand : getJobCommandById(lastJobIdentifiersId.toString()), limit, PREVIEW_USERS_QUERY);
     return new ResponseEntity<>(userClient.getUserByQuery(previewQuery, limit), HttpStatus.OK);
   }
 
   @Override public ResponseEntity<ItemCollection> getPreviewItemsByJobId(UUID jobId, Integer limit) {
     var jobCommand = getJobCommandById(jobId.toString());
-    return new ResponseEntity<>(inventoryClient.getItemByQuery(buildPreviewQueryFromJobCommand(jobCommand, limit), limit), HttpStatus.OK);
+    var lastJobIdentifiersId = lastJobIdentifiersByCurrentUser.get(folioExecutionContext.getUserId());
+    String previewQuery = getPreviewQueryFromJobParameters(
+      !isBulkEditUpdate(jobCommand) || isNull(lastJobIdentifiersId) ? jobCommand : getJobCommandById(lastJobIdentifiersId.toString()), limit, PREVIEW_ITEMS_QUERY);
+    return new ResponseEntity<>(inventoryClient.getItemByQuery(previewQuery, limit), HttpStatus.OK);
   }
 
   @Override
@@ -169,7 +181,7 @@ public class BulkEditController implements JobIdApi {
 
     var jobCommand = getJobCommandById(jobId.toString());
     if (isBulkEditIdentifiers(jobCommand)) {
-      lastJobIdentifiers = jobCommand;
+      lastJobIdentifiersByCurrentUser.put(folioExecutionContext.getUserId(), jobId);
     }
     var uploadedPath = Path.of(workDir, file.getOriginalFilename());
 
@@ -177,16 +189,8 @@ public class BulkEditController implements JobIdApi {
       if (Files.exists(uploadedPath)) {
         FileUtils.forceDelete(uploadedPath.toFile());
       }
-      if (isBulkEditUpdate(jobCommand) && nonNull(lastJobIdentifiers)) {
-        var files = dataExportSpringClient.getJobById(lastJobIdentifiers.getId().toString()).getFiles();
-        if (!files.isEmpty()) {
-          var csvLines = getDifferenceBetweenInitialAndEditedUsersCSV(file.getInputStream());
-          if (csvLines.isEmpty()) { // If no records changed, just write column headers.
-            Files.write(uploadedPath, UserFormat.getUserColumnHeaders().getBytes());
-          } else {
-            CsvHelper.saveRecordsToCsv(getDifferenceBetweenInitialAndEditedUsersCSV(file.getInputStream()), UserFormat.class, uploadedPath.toFile().getAbsolutePath());
-          }
-        }
+      if (isBulkEditUpdate(jobCommand)) {
+        processBulkEditUpdateUploadCSV(uploadedPath, jobCommand, file);
       } else {
         Files.write(uploadedPath, file.getBytes());
       }
@@ -299,13 +303,13 @@ public class BulkEditController implements JobIdApi {
     }
   }
 
-  private String getPreviewUsersQueryFromJobParameters(JobCommand jobCommand, int limit) {
-    String query = jobCommand.getJobParameters().getString(PREVIEW_USERS_QUERY);
+  private String getPreviewQueryFromJobParameters(JobCommand jobCommand, int limit, String previewQuery) {
+    String query = jobCommand.getJobParameters().getString(previewQuery);
     if (isNull(query)) {
       query = buildPreviewQueryFromJobCommand(jobCommand, limit);
       if (nonNull(query)) {
         var paramsBuilder = new JobParametersBuilder(jobCommand.getJobParameters());
-        paramsBuilder.addString(PREVIEW_USERS_QUERY, query);
+        paramsBuilder.addString(previewQuery, query);
         jobCommand.setJobParameters(paramsBuilder.toJobParameters());
       }
     }
@@ -352,18 +356,53 @@ public class BulkEditController implements JobIdApi {
     }
   }
 
-  private List<UserFormat> getDifferenceBetweenInitialAndEditedUsersCSV(InputStream edited) {
-    return new CsvToBeanBuilder<UserFormat>(new InputStreamReader(edited))
-      .withType(UserFormat.class)
+  private <T> List<T> getDifferenceBetweenInitialAndEditedRecordsCSV(InputStream edited, Class<T> clazz) {
+    return new CsvToBeanBuilder<T>(new InputStreamReader(edited))
+      .withType(clazz)
       .withSkipLines(1)
       .build()
       .parse()
       .stream()
-      .filter(userFormat -> {
-        var userFromDB = userClient.getUserById(userFormat.getId());
-        userFromDB.setMetadata(null); // Exclude metadata from comparing users.
-        return !userFromDB.equals(bulkEditParseService.mapUserFormatToUser(userFormat));
+      .filter(record -> {
+        if (clazz == UserFormat.class) {
+          return applyUserFilter((UserFormat) record);
+        } else if (clazz == ItemFormat.class) {
+          return applyItemFilter((ItemFormat) record);
+        }
+        throw new UnsupportedOperationException("Only UserFormat or ItemFormat is supported, but not " + clazz);
       })
       .collect(Collectors.toList());
+  }
+
+  private boolean applyUserFilter(UserFormat userFormat) {
+    var userFromDB = userClient.getUserById(userFormat.getId());
+    userFromDB.setMetadata(null); // Exclude metadata from comparing users.
+    return !userFromDB.equals(bulkEditParseService.mapUserFormatToUser(userFormat));
+  }
+
+  private boolean applyItemFilter(ItemFormat itemFormat) {
+    var itemFromDB = inventoryClient.getItemById(itemFormat.getId());
+    itemFromDB.setMetadata(null); // Exclude metadata from comparing items.
+    return !itemFromDB.equals(bulkEditParseService.mapItemFormatToItem(itemFormat));
+  }
+
+  private void processBulkEditUpdateUploadCSV(Path uploadedPath, JobCommand jobCommand, MultipartFile file) throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
+    var lastIdentifiersJob = dataExportSpringClient.getJobById(lastJobIdentifiersByCurrentUser.get(folioExecutionContext.getUserId()).toString());
+    if (nonNull(lastIdentifiersJob)) {
+      var files = lastIdentifiersJob.getFiles();
+      if (!files.isEmpty()) {
+        Class clazz = jobCommand.getEntityType() == ITEM ? ItemFormat.class : UserFormat.class;
+        var csvLines = getDifferenceBetweenInitialAndEditedRecordsCSV(file.getInputStream(), clazz);
+        if (csvLines.isEmpty()) { // If no records changed, just write column headers.
+          Files.write(uploadedPath, UserFormat.getUserColumnHeaders().getBytes());
+        } else {
+          CsvHelper.saveRecordsToCsv(getDifferenceBetweenInitialAndEditedRecordsCSV(file.getInputStream(), clazz), clazz, uploadedPath.toFile().getAbsolutePath());
+        }
+      } else {
+        log.error("Job with id {} and {} type does not contain files in storage.", lastIdentifiersJob.getId(), lastIdentifiersJob.getType());
+      }
+    } else {
+      log.error("Last job with id {} and {} type cannot be found.", lastIdentifiersJob.getId(), lastIdentifiersJob.getType());
+    }
   }
 }

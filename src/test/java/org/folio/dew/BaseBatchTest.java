@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.ExportJobManagerCirculationLog;
@@ -64,6 +65,7 @@ import lombok.SneakyThrows;
 public abstract class BaseBatchTest {
   protected static final String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjFkM2I1OGNiLTA3YjUtNWZjZC04YTJhLTNjZTA2YTBlYjkwZiIsImlhdCI6MTYxNjQyMDM5MywidGVuYW50IjoiZGlrdSJ9.2nvEYQBbJP1PewEgxixBWLHSX_eELiBEBpjufWiJZRs";
   protected static final String TENANT = "diku";
+  protected static final String USER_ID = UUID.randomUUID().toString();
 
   public static final int WIRE_MOCK_PORT = SocketUtils.findAvailableTcpPort();
   public static WireMockServer wireMockServer;
@@ -127,6 +129,7 @@ public abstract class BaseBatchTest {
     httpHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
     httpHeaders.add(XOkapiHeaders.URL, wireMockServer.baseUrl());
     httpHeaders.add(XOkapiHeaders.TOKEN, TOKEN);
+    httpHeaders.add(XOkapiHeaders.USER_ID, USER_ID);
 
     return httpHeaders;
   }
@@ -137,6 +140,7 @@ public abstract class BaseBatchTest {
     okapiHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
     okapiHeaders.put(XOkapiHeaders.TOKEN, List.of(TOKEN));
     okapiHeaders.put(XOkapiHeaders.URL, List.of(wireMockServer.baseUrl()));
+    okapiHeaders.put(XOkapiHeaders.USER_ID, List.of(USER_ID));
     var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
     FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
 

@@ -200,6 +200,7 @@ public class BulkEditController implements JobIdApi {
       }
       return new ResponseEntity<>(Long.toString(countLines(uploadedPath, isBulkEditUpdate(jobCommand))), HttpStatus.OK);
     } catch (Exception e) {
+      e.printStackTrace();
       String errorMessage = format(FILE_UPLOAD_ERROR, e.getMessage());
       log.error(errorMessage);
       return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);

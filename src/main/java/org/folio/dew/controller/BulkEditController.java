@@ -48,7 +48,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
-import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.ContentUpdateCollection;
@@ -107,7 +106,6 @@ public class BulkEditController implements JobIdApi {
   private final List<Job> jobs;
   private final BulkEditItemContentUpdateService itemContentUpdateService;
   private final BulkEditParseService bulkEditParseService;
-  private final DataExportSpringClient dataExportSpringClient;
   private final FolioExecutionContext folioExecutionContext;
 
   @Value("${spring.application.name}")
@@ -363,11 +361,11 @@ public class BulkEditController implements JobIdApi {
       .build()
       .parse()
       .stream()
-      .filter(record -> {
+      .filter(recordFormat -> {
         if (clazz == UserFormat.class) {
-          return applyUserFilter((UserFormat) record);
+          return applyUserFilter((UserFormat) recordFormat);
         } else if (clazz == ItemFormat.class) {
-          return applyItemFilter((ItemFormat) record);
+          return applyItemFilter((ItemFormat) recordFormat);
         }
         throw new UnsupportedOperationException("Only UserFormat or ItemFormat is supported, but not " + clazz);
       })
@@ -387,22 +385,12 @@ public class BulkEditController implements JobIdApi {
   }
 
   private void processBulkEditUpdateUploadCSV(Path uploadedPath, JobCommand jobCommand, MultipartFile file) throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
-    var lastIdentifiersJob = dataExportSpringClient.getJobById(lastJobIdentifiersByCurrentUser.get(folioExecutionContext.getUserId()).toString());
-    if (nonNull(lastIdentifiersJob)) {
-      var files = lastIdentifiersJob.getFiles();
-      if (!files.isEmpty()) {
-        Class clazz = jobCommand.getEntityType() == ITEM ? ItemFormat.class : UserFormat.class;
-        var csvLines = getDifferenceBetweenInitialAndEditedRecordsCSV(file.getInputStream(), clazz);
-        if (csvLines.isEmpty()) { // If no records changed, just write column headers.
-          Files.write(uploadedPath, UserFormat.getUserColumnHeaders().getBytes());
-        } else {
-          CsvHelper.saveRecordsToCsv(getDifferenceBetweenInitialAndEditedRecordsCSV(file.getInputStream(), clazz), clazz, uploadedPath.toFile().getAbsolutePath());
-        }
-      } else {
-        log.error("Job with id {} and {} type does not contain files in storage.", lastIdentifiersJob.getId(), lastIdentifiersJob.getType());
-      }
+    Class clazz = jobCommand.getEntityType() == ITEM ? ItemFormat.class : UserFormat.class;
+    var csvLines = getDifferenceBetweenInitialAndEditedRecordsCSV(file.getInputStream(), clazz);
+    if (csvLines.isEmpty()) { // If no records changed, just write column headers.
+      Files.write(uploadedPath, UserFormat.getUserColumnHeaders().getBytes());
     } else {
-      log.error("Last job with id {} and {} type cannot be found.", lastIdentifiersJob.getId(), lastIdentifiersJob.getType());
+      CsvHelper.saveRecordsToCsv(csvLines, clazz, uploadedPath.toFile().getAbsolutePath());
     }
   }
 }

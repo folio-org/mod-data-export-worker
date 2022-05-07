@@ -202,7 +202,6 @@ public class BulkEditController implements JobIdApi {
       }
       return new ResponseEntity<>(Long.toString(countLines(uploadedPath, isBulkEditUpdate(jobCommand))), HttpStatus.OK);
     } catch (Exception e) {
-      e.printStackTrace();
       String errorMessage = format(FILE_UPLOAD_ERROR, e.getMessage());
       log.error(errorMessage);
       return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -354,6 +353,23 @@ public class BulkEditController implements JobIdApi {
     }
   }
 
+  private void processBulkEditUpdateUploadCSV(Path uploadedPath, JobCommand jobCommand, MultipartFile file) throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
+    if (jobCommand.getEntityType() == ITEM) {
+      processBulkEditUpdateUploadCSV(uploadedPath, file, ItemFormat.class);
+    } else {
+      processBulkEditUpdateUploadCSV(uploadedPath, file, UserFormat.class);
+    }
+  }
+
+  private <T> void processBulkEditUpdateUploadCSV(Path uploadedPath, MultipartFile file, Class<T> clazz) throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
+    List<T> csvLines = getDifferenceBetweenInitialAndEditedRecordsCSV(file.getInputStream(), clazz);
+    if (csvLines.isEmpty()) { // If no records changed, just write column headers.
+      Files.write(uploadedPath, clazz == ItemFormat.class ? ItemFormat.getItemColumnHeaders().getBytes() : UserFormat.getUserColumnHeaders().getBytes());
+    } else {
+      CsvHelper.saveRecordsToCsv(csvLines, clazz, uploadedPath.toFile().getAbsolutePath());
+    }
+  }
+
   private <T> List<T> getDifferenceBetweenInitialAndEditedRecordsCSV(InputStream edited, Class<T> clazz) {
     return new CsvToBeanBuilder<T>(new InputStreamReader(edited))
       .withType(clazz)
@@ -364,10 +380,9 @@ public class BulkEditController implements JobIdApi {
       .filter(recordFormat -> {
         if (clazz == UserFormat.class) {
           return applyUserFilter((UserFormat) recordFormat);
-        } else if (clazz == ItemFormat.class) {
+        } else {
           return applyItemFilter((ItemFormat) recordFormat);
         }
-        throw new UnsupportedOperationException("Only UserFormat or ItemFormat is supported, but not " + clazz);
       })
       .collect(Collectors.toList());
   }
@@ -382,15 +397,5 @@ public class BulkEditController implements JobIdApi {
     var itemFromDB = inventoryClient.getItemById(itemFormat.getId());
     itemFromDB.setMetadata(null); // Exclude metadata from comparing items.
     return !itemFromDB.equals(bulkEditParseService.mapItemFormatToItem(itemFormat));
-  }
-
-  private void processBulkEditUpdateUploadCSV(Path uploadedPath, JobCommand jobCommand, MultipartFile file) throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
-    Class clazz = jobCommand.getEntityType() == ITEM ? ItemFormat.class : UserFormat.class;
-    var csvLines = getDifferenceBetweenInitialAndEditedRecordsCSV(file.getInputStream(), clazz);
-    if (csvLines.isEmpty()) { // If no records changed, just write column headers.
-      Files.write(uploadedPath, UserFormat.getUserColumnHeaders().getBytes());
-    } else {
-      CsvHelper.saveRecordsToCsv(csvLines, clazz, uploadedPath.toFile().getAbsolutePath());
-    }
   }
 }

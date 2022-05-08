@@ -283,7 +283,6 @@ class BulkEditTest extends BaseBatchTest {
       String[] links = fileInStorage.split(";");
       fileInStorage = links[0];
       String errorInStorage = links[1];
-      System.out.println("output: " + output);
       final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
       final FileSystemResource expectedResultWithErrors = jobExecution.getJobInstance().getJobName().contains("-USER") ?
         new FileSystemResource(EXPECTED_BULK_EDIT_OUTPUT_ERRORS) :

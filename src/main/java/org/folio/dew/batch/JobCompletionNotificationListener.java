@@ -212,7 +212,6 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
   private String saveResult(JobExecution jobExecution) {
     String path = jobExecution.getJobParameters().getString(isBulkEditContentUpdateJob(jobExecution) ? UPDATED_FILE_NAME : TEMP_OUTPUT_FILE_PATH);
-    jobExecution.getJobParameters().getParameters().forEach((k, v) -> System.out.println(k + " <> " + v));
     try {
       var fileNameBulkEditUpdate = path + (isBulkEditContentUpdateJob(jobExecution) ? EMPTY : CSV_EXTENSION);
       return repository.objectWriteResponseToPresignedObjectUrl(

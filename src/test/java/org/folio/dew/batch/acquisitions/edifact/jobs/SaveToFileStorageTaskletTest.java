@@ -2,6 +2,7 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -52,6 +53,29 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
     assertEquals("COMPLETED", status);
   }
 
+  @Test
+  void testShouldReturnEdifactException() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
+    doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
+
+    JobExecution jobExecution = testLauncher.launchStep("saveToFTPStep", getNotFullJobParameters());
+    String expectedMessage = "Export configuration is incomplete, missing FTP/SFTP Port";
+    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0).getStatus().getBatchStatus().name();
+
+    assertTrue(jobExecution.getExitStatus().getExitDescription().contains(expectedMessage));
+    assertEquals("FAILED", status);
+  }
+
+  private JobParameters getNotFullJobParameters() throws IOException {
+    JobParametersBuilder paramsBuilder = new JobParametersBuilder();
+    JSONObject edifactOrdersExportJson = new JSONObject(getMockData("edifact/edifactOrdersExportWithoutPort.json"));
+
+    paramsBuilder.addString("edifactOrdersExport", edifactOrdersExportJson.toString());
+    paramsBuilder.addString("jobId", UUID.randomUUID().toString());
+
+    return paramsBuilder.toJobParameters();
+  }
 
   private JobParameters getJobParameters() throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();

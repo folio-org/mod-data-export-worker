@@ -25,6 +25,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
+import static org.codehaus.plexus.util.StringUtils.isEmpty;
+
 @RequiredArgsConstructor
 @Component
 @StepScope
@@ -40,6 +42,12 @@ public class MapToEdifactTasklet implements Tasklet {
     log.info("Execute MapToEdifactTasklet");
     var jobParameters = chunkContext.getStepContext().getJobParameters();
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
+    var ediConfig = ediExportConfig.getEdiConfig();
+
+    if (isEmpty(ediConfig.getLibEdiCode()) || ediConfig.getLibEdiType() == null
+      || isEmpty(ediConfig.getVendorEdiCode()) || ediConfig.getVendorEdiType() == null) {
+      throw new EdifactException("Export configuration is incomplete, missing library EDI code/Vendor EDI code");
+    }
 
     List<CompositePurchaseOrder> compOrders = getCompPOList(ediExportConfig);
     // save poLineIds in memory

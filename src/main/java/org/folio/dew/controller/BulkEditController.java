@@ -2,6 +2,7 @@ package org.folio.dew.controller;
 
 import static java.lang.String.format;
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
@@ -272,11 +273,9 @@ public class BulkEditController implements JobIdApi {
     var fileName = extractFileName(jobCommand);
     try (var reader = new CSVReader(new FileReader(fileName))) {
       var values = reader.readAll().stream()
-        .skip(BULK_EDIT_UPDATE == jobCommand.getExportType() ? 1 : 0)
+        .skip(getNumberOfLinesToSkip(jobCommand))
         .limit(limit)
-        .map(line -> BULK_EDIT_UPDATE == jobCommand.getExportType() ?
-          extractIdentifierFromUpdateCsv(line, jobCommand) :
-          extractIdentifierFromCsv(line))
+        .map(line -> extractIdentifiersFromLine(line, jobCommand))
         .collect(Collectors.joining(" OR "));
       return format("%s==(%s)", resolveIdentifier(jobCommand.getIdentifierType().getValue()), values);
     } catch (Exception e) {
@@ -284,18 +283,26 @@ public class BulkEditController implements JobIdApi {
     }
   }
 
+  private String extractIdentifiersFromLine(String[] line, JobCommand jobCommand) {
+    var identifierIndex = getIdentifierIndex(jobCommand);
+    if (line.length > identifierIndex + 1) {
+      return line[identifierIndex];
+    } else if (line.length == 1) {
+      return line[0];
+    }
+    return EMPTY;
+  }
+
+  private int getNumberOfLinesToSkip(JobCommand jobCommand) {
+    if (BULK_EDIT_UPDATE == jobCommand.getExportType()) {
+      return nonNull(jobCommand.getJobParameters().getString(UPDATED_FILE_NAME)) ? 0 : 1;
+    }
+    return 0;
+  }
+
   private String extractFileName(JobCommand jobCommand) {
     return Optional.ofNullable(jobCommand.getJobParameters().getString(FILE_NAME))
       .orElseThrow(() -> new FileOperationException("File for preview is not present or was not uploaded"));
-  }
-
-  private String extractIdentifierFromCsv(String[] line) {
-    return line.length > 0 ? line[0] : EMPTY;
-  }
-
-  private String extractIdentifierFromUpdateCsv(String[] line, JobCommand jobCommand) {
-    var identifierIndex = getIdentifierIndex(jobCommand);
-    return (line.length > identifierIndex + 1 ? line[identifierIndex] : EMPTY);
   }
 
   private int getIdentifierIndex(JobCommand jobCommand) {

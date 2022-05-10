@@ -25,6 +25,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -370,32 +371,34 @@ public class BulkEditController implements JobIdApi {
     }
   }
 
-  private <T> List<T> getDifferenceBetweenInitialAndEditedRecordsCSV(InputStream edited, Class<T> clazz) {
-    return new CsvToBeanBuilder<T>(new InputStreamReader(edited))
-      .withType(clazz)
-      .withSkipLines(1)
-      .build()
-      .parse()
-      .stream()
-      .filter(recordFormat -> {
-        if (clazz == UserFormat.class) {
-          return applyUserFilter((UserFormat) recordFormat);
-        } else {
-          return applyItemFilter((ItemFormat) recordFormat);
-        }
-      })
-      .collect(Collectors.toList());
+  private <T> List<T> getDifferenceBetweenInitialAndEditedRecordsCSV(InputStream edited, Class<T> clazz) throws IOException {
+    try (Reader csvReader = new InputStreamReader(edited)) {
+      return new CsvToBeanBuilder<T>(csvReader)
+        .withType(clazz)
+        .withSkipLines(1)
+        .build()
+        .parse()
+        .stream()
+        .filter(editedRecordFormat -> {
+          if (clazz == UserFormat.class) {
+            return applyUserFilter((UserFormat) editedRecordFormat);
+          } else {
+            return applyItemFilter((ItemFormat) editedRecordFormat);
+          }
+        })
+        .collect(Collectors.toList());
+    }
   }
 
-  private boolean applyUserFilter(UserFormat userFormat) {
-    var userFromDB = userClient.getUserById(userFormat.getId());
-    userFromDB.setMetadata(null); // Exclude metadata from comparing users.
-    return !userFromDB.equals(bulkEditParseService.mapUserFormatToUser(userFormat));
+  private boolean applyUserFilter(UserFormat editedUserFormat) {
+    var initialUser = userClient.getUserById(editedUserFormat.getId());
+    initialUser.setMetadata(null); // Exclude metadata from comparing users.
+    return !initialUser.equals(bulkEditParseService.mapUserFormatToUser(editedUserFormat));
   }
 
-  private boolean applyItemFilter(ItemFormat itemFormat) {
-    var itemFromDB = inventoryClient.getItemById(itemFormat.getId());
-    itemFromDB.setMetadata(null); // Exclude metadata from comparing items.
-    return !itemFromDB.equals(bulkEditParseService.mapItemFormatToItem(itemFormat));
+  private boolean applyItemFilter(ItemFormat editedItemFormat) {
+    var initialItem = inventoryClient.getItemById(editedItemFormat.getId());
+    initialItem.setMetadata(null); // Exclude metadata from comparing items.
+    return !initialItem.equals(bulkEditParseService.mapItemFormatToItem(editedItemFormat));
   }
 }

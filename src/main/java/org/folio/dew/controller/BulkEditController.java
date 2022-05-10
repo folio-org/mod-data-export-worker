@@ -278,8 +278,7 @@ public class BulkEditController implements JobIdApi {
         .limit(limit)
         .map(line -> extractIdentifiersFromLine(line, jobCommand))
         .collect(Collectors.joining(" OR "));
-      var res = format("%s==(%s)", resolveIdentifier(jobCommand.getIdentifierType().getValue()), values);
-      return res;
+      return format("%s==(%s)", resolveIdentifier(jobCommand.getIdentifierType().getValue()), values);
     } catch (Exception e) {
       throw new FileOperationException(format("Failed to read %s file, reason: %s", fileName, e.getMessage()));
     }

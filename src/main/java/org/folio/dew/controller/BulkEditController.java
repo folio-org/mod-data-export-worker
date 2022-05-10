@@ -272,8 +272,7 @@ public class BulkEditController implements JobIdApi {
   private String buildPreviewQueryFromCsv(JobCommand jobCommand, int limit) {
     var fileName = extractFileName(jobCommand);
     try (var reader = new CSVReader(new FileReader(fileName))) {
-      var vs = reader.readAll();
-      var values = vs.stream()
+      var values = reader.readAll().stream()
         .skip(getNumberOfLinesToSkip(jobCommand))
         .limit(limit)
         .map(line -> extractIdentifiersFromLine(line, jobCommand))

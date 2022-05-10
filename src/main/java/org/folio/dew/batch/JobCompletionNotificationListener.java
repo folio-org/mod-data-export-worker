@@ -3,6 +3,7 @@ package org.folio.dew.batch;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
@@ -14,6 +15,7 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
@@ -191,6 +193,9 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
   private String saveResult(JobExecution jobExecution) {
     String path = jobExecution.getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH);
     try {
+      if (Files.lines(Path.of(path)).count() == 1) {
+        return EMPTY;
+      }
       return repository.objectWriteResponseToPresignedObjectUrl(
         repository.uploadObject(FilenameUtils.getName(path) + CSV_EXTENSION, path, null, "text/csv", true));
     } catch (Exception e) {

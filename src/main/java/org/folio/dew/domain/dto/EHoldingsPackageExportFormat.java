@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class EHoldingsExportFormat {
+public class EHoldingsPackageExportFormat {
   private String providerName;
   private String providerId;
   private String packageName;
@@ -25,5 +25,5 @@ public class EHoldingsExportFormat {
   private String packageNoteType;
   private String packageNoteTitle;
   private String packageNoteDetails;
-  private List<EHoldingsTitleExportFormat> titles;
+  private List<EHoldingsResourceExportFormat> titles;
 }

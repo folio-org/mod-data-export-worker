@@ -19,7 +19,7 @@ import org.folio.dew.batch.CsvPartStepExecutionListener;
 import org.folio.dew.batch.CsvWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.client.KbEbscoClient;
-import org.folio.dew.domain.dto.EHoldingsExportFormat;
+import org.folio.dew.domain.dto.EHoldingsPackageExportFormat;
 import org.folio.dew.domain.dto.ExportType;
 
 @Log4j2
@@ -51,12 +51,12 @@ public class EHoldingsJobConfig {
   @Bean("getEHoldingsStep")
   public Step getEHoldingsPartStep(
     @Qualifier("eHoldingsReader") EHoldingsCsvItemReader eHoldingsCsvItemReader,
-    @Qualifier("eHoldingsWriter") FlatFileItemWriter<EHoldingsExportFormat> flatFileItemWriter,
+    @Qualifier("eHoldingsWriter") FlatFileItemWriter<EHoldingsPackageExportFormat> flatFileItemWriter,
     EHoldingsItemProcessor eHoldingsItemProcessor,
     CsvPartStepExecutionListener csvPartStepExecutionListener) {
     return stepBuilderFactory
       .get("getEHoldingsStep")
-      .<EHoldingsExportFormat, EHoldingsExportFormat>chunk(100)
+      .<EHoldingsPackageExportFormat, EHoldingsPackageExportFormat>chunk(100)
       .reader(eHoldingsCsvItemReader)
       .processor(eHoldingsItemProcessor)
       .writer(flatFileItemWriter)
@@ -81,7 +81,7 @@ public class EHoldingsJobConfig {
 
   @Bean("eHoldingsWriter")
   @StepScope
-  public FlatFileItemWriter<EHoldingsExportFormat> writer(
+  public FlatFileItemWriter<EHoldingsPackageExportFormat> writer(
     @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath,
     @Value("#{stepExecutionContext['partition']}") Long partition,
     @Value("#{stepExecutionContext['packageFields']}") String packageFields,

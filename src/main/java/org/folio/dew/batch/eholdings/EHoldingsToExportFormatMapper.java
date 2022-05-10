@@ -2,16 +2,22 @@ package org.folio.dew.batch.eholdings;
 
 import static java.util.Objects.isNull;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
-import org.folio.dew.domain.dto.EHoldingsExportFormat;
-import org.folio.dew.domain.dto.EHoldingsTitleExportFormat;
+import org.folio.dew.domain.dto.EHoldingsPackageExportFormat;
+import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
+import org.folio.dew.domain.dto.eholdings.AccessTypeData;
 import org.folio.dew.domain.dto.eholdings.AlternateTitle;
 import org.folio.dew.domain.dto.eholdings.Contributor;
 import org.folio.dew.domain.dto.eholdings.Coverage;
+import org.folio.dew.domain.dto.eholdings.EPackage;
+import org.folio.dew.domain.dto.eholdings.EResource;
 import org.folio.dew.domain.dto.eholdings.EmbargoPeriod;
 import org.folio.dew.domain.dto.eholdings.Identifier;
 import org.folio.dew.domain.dto.eholdings.Identifier.SubtypeEnum;
@@ -26,8 +32,19 @@ import org.folio.dew.domain.dto.eholdings.VisibilityData;
 @Component
 public class EHoldingsToExportFormatMapper {
 
-  public EHoldingsExportFormat convertPackageToExportFormat(PackageData data) {
-    var packageExportFormat = new EHoldingsExportFormat();
+  private static final String ACCESS_TYPE_INCLUDED = "accessTypes";
+
+  private final ObjectMapper objectMapper = new ObjectMapper()
+    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+  public EHoldingsPackageExportFormat convertPackageToExportFormat(EPackage ePackage) {
+    var eHoldingsExportFormat = convertPackageToExportFormat(ePackage.getData());
+    eHoldingsExportFormat.setPackageAccessStatusType(mapAccessType(ePackage.getIncluded()));
+    return eHoldingsExportFormat;
+  }
+
+  public EHoldingsPackageExportFormat convertPackageToExportFormat(PackageData data) {
+    var packageExportFormat = new EHoldingsPackageExportFormat();
     var packageAtr = data.getAttributes();
 
     packageExportFormat.setProviderId(packageAtr.getProviderId().toString());
@@ -43,7 +60,6 @@ public class EHoldingsToExportFormatMapper {
     packageExportFormat.setPackageAutomaticallySelect(convertBoolToStr(packageAtr.getAllowKbToAddTitles()));
 
 /*  Need to add mod-notes and mod-agreements integration
-    packageExportFormat.setPackageAccessStatusType(data.getRelationships().getAccessType());
     packageExportFormat.setPackageAgreementStartDate("");
     packageExportFormat.setPackageAgreementName("");
     packageExportFormat.setPackageAgreementStatus("");
@@ -55,11 +71,16 @@ public class EHoldingsToExportFormatMapper {
     return packageExportFormat;
   }
 
-  public EHoldingsTitleExportFormat convertResourceDataToExportFormat(ResourcesData data) {
-    var titleExportFormat = new EHoldingsTitleExportFormat();
+  public EHoldingsResourceExportFormat convertResourceToExportFormat(EResource eResource) {
+    var eHoldingsExportFormat = convertResourceToExportFormat(eResource.getData());
+    eHoldingsExportFormat.setTitleAccessStatusType(mapAccessType(eResource.getIncluded()));
+    return eHoldingsExportFormat;
+  }
+
+  public EHoldingsResourceExportFormat convertResourceToExportFormat(ResourcesData data) {
+    var titleExportFormat = new EHoldingsResourceExportFormat();
     var resourceAtr = data.getAttributes();
 
-    titleExportFormat.setResourceId(data.getId());
     titleExportFormat.setTitleId(resourceAtr.getTitleId().toString());
     titleExportFormat.setTitleName(resourceAtr.getName());
     titleExportFormat.setAlternateTitles(mapAlternateTitles(resourceAtr.getAlternateTitles()));
@@ -85,6 +106,7 @@ public class EHoldingsToExportFormatMapper {
     titleExportFormat.setCustomValue3(resourceAtr.getUserDefinedField3());
     titleExportFormat.setCustomValue4(resourceAtr.getUserDefinedField4());
     titleExportFormat.setCustomValue5(resourceAtr.getUserDefinedField5());
+    titleExportFormat.setTitleAccessStatusType(mapAccessType(data.getIncluded()));
     titleExportFormat.setTitleTags(mapTags(resourceAtr.getTags()));
     titleExportFormat.setISBN_Print(
       mapIdentifierId(resourceAtr.getIdentifiers(), TypeEnum.ISBN, SubtypeEnum.PRINT));
@@ -96,7 +118,6 @@ public class EHoldingsToExportFormatMapper {
       mapIdentifierId(resourceAtr.getIdentifiers(), TypeEnum.ISSN, SubtypeEnum.ONLINE));
 
 /*  Need to add mod-notes and mod-agreements integration
-    titleExportFormat.setTitleAccessStatusType(data.getRelationships().getAccessType());
     titleExportFormat.setTitleAgreementStartDate(json.getString(""));
     titleExportFormat.setTitleAgreementName(json.getString(""));
     titleExportFormat.setTitleAgreementStatus(json.getString(""));
@@ -108,9 +129,26 @@ public class EHoldingsToExportFormatMapper {
     return titleExportFormat;
   }
 
+  private Object getIncludedObject(List<Object> included, String type) {
+    if (isNull(included)) return null;
+    return included.stream()
+      .map(LinkedHashMap.class::cast)
+      .filter(o -> o.get("type").equals(type))
+      .findFirst().orElse(null);
+  }
+
   private String convertBoolToStr(Boolean isTrue) {
     if (isNull(isTrue)) return "";
     return isTrue ? "Yes" : "No";
+  }
+
+  private String mapAccessType(List<Object> included) {
+    var accessTypeJson = getIncludedObject(included, ACCESS_TYPE_INCLUDED);
+    var accessType = objectMapper.convertValue(accessTypeJson, AccessTypeData.class);
+    if (accessType == null) {
+      return "-";
+    }
+    return accessType.getAttributes().getName();
   }
 
   private String mapTitleType(boolean isCustom) {

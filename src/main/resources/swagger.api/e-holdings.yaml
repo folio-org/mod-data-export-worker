@@ -18,3 +18,5 @@ components:
       $ref: '../../../../folio-export-common/schemas/eholdings/e-resources/resource.json#/EResource'
     eResources:
       $ref: '../../../../folio-export-common/schemas/eholdings/e-resources/resources.json#/EResources'
+    accessTypeData:
+      $ref: '../../../../folio-export-common/schemas/eholdings/accessTypes/accessTypeData.json#/AccessTypeData'

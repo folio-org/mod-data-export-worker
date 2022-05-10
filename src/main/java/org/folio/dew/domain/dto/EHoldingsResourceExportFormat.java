@@ -5,8 +5,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class EHoldingsTitleExportFormat {
-  private String resourceId;
+public class EHoldingsResourceExportFormat {
   private String titleId;
   private String titleName;
   private String alternateTitles;
@@ -20,7 +19,7 @@ public class EHoldingsTitleExportFormat {
   private String ISSN_Online;
   private String ISBN_Print;
   private String ISBN_Online;
-  private String Subjects;
+  private String subjects;
   private String peerReviewed;
   private String description;
   private String title;
@@ -33,11 +32,11 @@ public class EHoldingsTitleExportFormat {
   private String titleProxy;
   private String url;
   private String titleAccessStatusType;
-  private String CustomValue1;
-  private String CustomValue2;
-  private String CustomValue3;
-  private String CustomValue4;
-  private String CustomValue5;
+  private String customValue1;
+  private String customValue2;
+  private String customValue3;
+  private String customValue4;
+  private String customValue5;
   private String titleTags;
   private String titleAgreementStartDate;
   private String titleAgreementName;

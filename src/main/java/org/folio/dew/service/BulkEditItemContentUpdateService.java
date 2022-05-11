@@ -94,15 +94,18 @@ public class BulkEditItemContentUpdateService {
 
   private List<ItemFormat> applyContentUpdates(List<ItemFormat> itemFormats, ContentUpdateCollection contentUpdates, JobCommand jobCommand) {
     List<ItemFormat> result = new ArrayList<>();
-    itemFormats.forEach(itemFormat -> contentUpdates.getContentUpdates().forEach(contentUpdate -> {
-      var updatedItemFormat = applyContentUpdate(itemFormat, contentUpdate, jobCommand);
+    for (ItemFormat itemFormat: itemFormats) {
+      var updatedItemFormat = itemFormat;
+      for (ContentUpdate contentUpdate: contentUpdates.getContentUpdates()) {
+        updatedItemFormat = applyContentUpdate(updatedItemFormat, contentUpdate, jobCommand);
+      }
       if (!Objects.equals(itemFormat, updatedItemFormat)) {
         if (isLocationChange(contentUpdates)) {
           updateEffectiveLocation(updatedItemFormat);
         }
         result.add(updatedItemFormat);
       }
-    }));
+    }
     return result;
   }
 

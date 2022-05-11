@@ -72,6 +72,7 @@ import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -532,17 +533,18 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
 
-    var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
+    var updates = Arrays.asList(
+      new ContentUpdate().option(testData.getOption()).action(testData.getAction()).value(testData.getValue()),
+      new ContentUpdate().option(testData.getOption()).action(testData.getAction()).value(testData.getValue()));
+
+    var updatesString = objectMapper.writeValueAsString(new ContentUpdateCollection()
       .entityType(ITEM)
-      .contentUpdates(Collections.singletonList(new ContentUpdate()
-        .option(testData.getOption())
-        .action(testData.getAction())
-        .value(testData.getValue())))
+      .contentUpdates(updates)
       .totalRecords(1));
 
     var response = mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
       .headers(defaultHeaders())
-      .content(updates))
+      .content(updatesString))
       .andExpect(status().isOk())
       .andReturn();
 

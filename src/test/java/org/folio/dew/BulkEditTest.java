@@ -305,7 +305,10 @@ class BulkEditTest extends BaseBatchTest {
           + File.separator;
       params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
       try {
-        Files.createFile(Path.of(workDir + "out.csv"));
+        if (Files.notExists(Path.of(workDir + "out"))) {
+          Files.createFile(Path.of(workDir + "out"));
+          Files.createFile(Path.of(workDir + "out.csv"));
+        }
       } catch (IOException e) {
         fail(e.getMessage());
       }

@@ -16,6 +16,9 @@ public interface InventoryClient {
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   ItemCollection getItemByQuery(@RequestParam String query);
 
+  @GetMapping(value = "/{itemId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  Item getItemById(@PathVariable String itemId);
+
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   ItemCollection getItemByQuery(@RequestParam("query") String query, @RequestParam long limit);
 

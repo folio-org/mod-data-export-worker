@@ -3,6 +3,7 @@ package org.folio.dew;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
@@ -21,6 +22,9 @@ import static org.springframework.batch.test.AssertFile.assertFileEquals;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -211,12 +215,12 @@ class BulkEditTest extends BaseBatchTest {
 
     var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobExecution.getJobParameters().getString("jobId"), csvFileName, 10);
 
+    assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
+
     if (!USER_RECORD_CSV.equals(csvFileName)) {
       assertThat(errors.getErrors().size()).isEqualTo(1);
-      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
     } else {
       assertThat(errors.getErrors().size()).isZero();
-      assertThat(jobExecution.getExecutionContext().get(OUTPUT_FILES_IN_STORAGE)).isNull();
     }
   }
 
@@ -231,14 +235,13 @@ class BulkEditTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+    assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
 
     var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobExecution.getJobParameters().getString("jobId"), csvFileName, 10);
     if (!ITEM_RECORD_CSV.equals(csvFileName)) {
       assertThat(errors.getErrors()).hasSize(1);
-      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
     } else {
       assertThat(errors.getErrors()).isEmpty();
-      assertThat(jobExecution.getExecutionContext().get(OUTPUT_FILES_IN_STORAGE)).isNull();
     }
   }
 
@@ -280,7 +283,6 @@ class BulkEditTest extends BaseBatchTest {
       String[] links = fileInStorage.split(";");
       fileInStorage = links[0];
       String errorInStorage = links[1];
-      System.out.println("output: " + output);
       final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
       final FileSystemResource expectedResultWithErrors = jobExecution.getJobInstance().getJobName().contains("-USER") ?
         new FileSystemResource(EXPECTED_BULK_EDIT_OUTPUT_ERRORS) :
@@ -302,6 +304,14 @@ class BulkEditTest extends BaseBatchTest {
           + springApplicationName
           + File.separator;
       params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
+      try {
+        if (Files.notExists(Path.of(workDir + "out"))) {
+          Files.createFile(Path.of(workDir + "out"));
+          Files.createFile(Path.of(workDir + "out.csv"));
+        }
+      } catch (IOException e) {
+        fail(e.getMessage());
+      }
     }
     if (ExportType.BULK_EDIT_UPDATE == exportType) {
       params.put(ROLLBACK_FILE, new JobParameter("rollback/file/path"));

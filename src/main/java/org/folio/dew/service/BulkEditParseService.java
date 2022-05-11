@@ -289,7 +289,7 @@ public class BulkEditParseService {
   }
 
   private Pair<String, String> stringToPair(String value) {
-    var tokens = value.split(KEY_VALUE_DELIMITER);
+    var tokens = value.split(KEY_VALUE_DELIMITER, -1);
     if (tokens.length == 2) {
       return Pair.of(tokens[0], tokens[1]);
     } else {
@@ -300,10 +300,9 @@ public class BulkEditParseService {
   }
 
   private List<String> restoreValueIds(CustomField customField, String values) {
-    var tokens = values.split(ARRAY_DELIMITER);
-    return tokens.length == 0 ?
+    return isEmpty(values) ?
       Collections.emptyList() :
-      Arrays.stream(tokens)
+      Arrays.stream(values.split(ARRAY_DELIMITER))
         .map(token -> restoreValueId(customField, token))
         .collect(Collectors.toList());
   }

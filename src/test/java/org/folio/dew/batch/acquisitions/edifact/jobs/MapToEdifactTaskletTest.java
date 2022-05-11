@@ -22,7 +22,6 @@ import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.PurchaseOrderCollection;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
-import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;

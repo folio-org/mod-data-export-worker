@@ -374,7 +374,7 @@
                         <generateApiDocumentation>false</generateApiDocumentation>
                         <generateModels>true</generateModels>
                         <modelsToGenerate>
-                          EResources,EResource,ResourcesData,ResourcesAttributes,EPackage,PackageData,PackageAttributes,AlternateTitle,Contributor,Identifier,PublicationType,Subject,Tags,ContentTypeEnum,Coverage,Proxy,Token,VisibilityData,EmbargoPeriod,AccessTypeData,AccessTypeAttributes
+                          EResources,EResource,ResourcesData,ResourcesAttributes,EPackage,PackageData,PackageAttributes,AlternateTitle,Contributor,Identifier,PublicationType,Subject,Tags,ContentTypeEnum,Coverage,Proxy,Token,VisibilityData,EmbargoPeriod,AccessTypeData,AccessTypeAttributes,MetaTotalResults
                         </modelsToGenerate>
                         <generateModelTests>false</generateModelTests>
                         <generateSupportingFiles>false</generateSupportingFiles>

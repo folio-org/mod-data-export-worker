@@ -17,12 +17,10 @@ import org.folio.dew.domain.dto.eholdings.AlternateTitle;
 import org.folio.dew.domain.dto.eholdings.Contributor;
 import org.folio.dew.domain.dto.eholdings.Coverage;
 import org.folio.dew.domain.dto.eholdings.EPackage;
-import org.folio.dew.domain.dto.eholdings.EResource;
 import org.folio.dew.domain.dto.eholdings.EmbargoPeriod;
 import org.folio.dew.domain.dto.eholdings.Identifier;
 import org.folio.dew.domain.dto.eholdings.Identifier.SubtypeEnum;
 import org.folio.dew.domain.dto.eholdings.Identifier.TypeEnum;
-import org.folio.dew.domain.dto.eholdings.PackageData;
 import org.folio.dew.domain.dto.eholdings.Proxy;
 import org.folio.dew.domain.dto.eholdings.ResourcesData;
 import org.folio.dew.domain.dto.eholdings.Subject;
@@ -38,18 +36,12 @@ public class EHoldingsToExportFormatMapper {
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   public EHoldingsPackageExportFormat convertPackageToExportFormat(EPackage ePackage) {
-    var eHoldingsExportFormat = convertPackageToExportFormat(ePackage.getData());
-    eHoldingsExportFormat.setPackageAccessStatusType(mapAccessType(ePackage.getIncluded()));
-    return eHoldingsExportFormat;
-  }
-
-  public EHoldingsPackageExportFormat convertPackageToExportFormat(PackageData data) {
     var packageExportFormat = new EHoldingsPackageExportFormat();
-    var packageAtr = data.getAttributes();
+    var packageAtr = ePackage.getData().getAttributes();
 
     packageExportFormat.setProviderId(packageAtr.getProviderId().toString());
     packageExportFormat.setProviderName(packageAtr.getProviderName());
-    packageExportFormat.setPackageId(data.getId());
+    packageExportFormat.setPackageId(ePackage.getData().getId());
     packageExportFormat.setPackageName(packageAtr.getName());
     packageExportFormat.setPackageType(packageAtr.getPackageType());
     packageExportFormat.setPackageContentType(packageAtr.getContentType().getValue());
@@ -58,26 +50,12 @@ public class EHoldingsToExportFormatMapper {
     packageExportFormat.setPackageTags(mapTags(packageAtr.getTags()));
     packageExportFormat.setPackageShowToPatrons(mapShowToPatrons(packageAtr.getVisibilityData()));
     packageExportFormat.setPackageAutomaticallySelect(convertBoolToStr(packageAtr.getAllowKbToAddTitles()));
-
-/*  Need to add mod-notes and mod-agreements integration
-    packageExportFormat.setPackageAgreementStartDate("");
-    packageExportFormat.setPackageAgreementName("");
-    packageExportFormat.setPackageAgreementStatus("");
-    packageExportFormat.setPackageNoteLastUpdatedDate("");
-    packageExportFormat.setPackageNoteType("");
-    packageExportFormat.setPackageNoteTitle("");
-    packageExportFormat.setPackageNoteDetails("");*/
+    packageExportFormat.setPackageAccessStatusType(mapAccessType(ePackage.getIncluded()));
 
     return packageExportFormat;
   }
 
-  public EHoldingsResourceExportFormat convertResourceToExportFormat(EResource eResource) {
-    var eHoldingsExportFormat = convertResourceToExportFormat(eResource.getData());
-    eHoldingsExportFormat.setTitleAccessStatusType(mapAccessType(eResource.getIncluded()));
-    return eHoldingsExportFormat;
-  }
-
-  public EHoldingsResourceExportFormat convertResourceToExportFormat(ResourcesData data) {
+  public EHoldingsResourceExportFormat convertResourceDataToExportFormat(ResourcesData data) {
     var titleExportFormat = new EHoldingsResourceExportFormat();
     var resourceAtr = data.getAttributes();
 
@@ -117,15 +95,6 @@ public class EHoldingsToExportFormatMapper {
     titleExportFormat.setISSN_Online(
       mapIdentifierId(resourceAtr.getIdentifiers(), TypeEnum.ISSN, SubtypeEnum.ONLINE));
 
-/*  Need to add mod-notes and mod-agreements integration
-    titleExportFormat.setTitleAgreementStartDate(json.getString(""));
-    titleExportFormat.setTitleAgreementName(json.getString(""));
-    titleExportFormat.setTitleAgreementStatus(json.getString(""));
-    titleExportFormat.setTitleNoteLastUpdatedDate(json.getString(""));
-    titleExportFormat.setTitleNoteType(json.getString(""));
-    titleExportFormat.setTitleNoteTitle(json.getString(""));
-    titleExportFormat.setTitleNoteDetails(json.getString(""));*/
-
     return titleExportFormat;
   }
 
@@ -161,7 +130,7 @@ public class EHoldingsToExportFormatMapper {
 
   private String mapTags(Tags tags) {
     if (isNull(tags)) return "";
-    return String.join(", ", tags.getTagList());
+    return String.join(" | ", tags.getTagList());
   }
 
   private String mapEmbargo(EmbargoPeriod embargo) {
@@ -173,8 +142,8 @@ public class EHoldingsToExportFormatMapper {
     if (proxy.getId().equals("<n>")) {
       return "None";
     }
-    var inherited = proxy.getInherited() ? "Inherited - " : "";
-    return inherited + proxy.getId();
+    var inherited = proxy.getInherited() ? "(inherited)" : "";
+    return proxy.getId() + inherited;
   }
 
   private String mapCoverage(Coverage coverage) {
@@ -198,19 +167,19 @@ public class EHoldingsToExportFormatMapper {
   private String mapSubjects(List<Subject> subjects) {
     return subjects.stream()
       .map(Subject::getSubject)
-      .collect(Collectors.joining("; "));
+      .collect(Collectors.joining(" | "));
   }
 
   private String mapCoverage(List<Coverage> coverages) {
     return coverages.stream()
       .map(this::mapCoverage)
-      .collect(Collectors.joining(", "));
+      .collect(Collectors.joining(" | "));
   }
 
   private String mapAlternateTitles(List<AlternateTitle> alternateTitles) {
     return alternateTitles.stream()
       .map(title -> title.getTitleType() + " - " + title.getAlternateTitle())
-      .collect(Collectors.joining(", "));
+      .collect(Collectors.joining(" | "));
   }
 
   private String mapIdentifierId(List<Identifier> identifiers, TypeEnum type, SubtypeEnum subtype) {
@@ -218,7 +187,7 @@ public class EHoldingsToExportFormatMapper {
       .filter(identifier -> identifier.getType().equals(type))
       .filter(identifier -> identifier.getSubtype().equals(subtype))
       .map(Identifier::getId)
-      .collect(Collectors.joining(", "));
+      .collect(Collectors.joining(" | "));
   }
 
   private String mapShowToPatrons(VisibilityData visibility) {

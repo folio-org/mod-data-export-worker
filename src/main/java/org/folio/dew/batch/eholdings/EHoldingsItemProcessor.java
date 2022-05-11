@@ -5,15 +5,15 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
-import org.folio.dew.domain.dto.EHoldingsPackageExportFormat;
+import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
 
 @Log4j2
 @Component
 @StepScope
-public class EHoldingsItemProcessor implements ItemProcessor<EHoldingsPackageExportFormat, EHoldingsPackageExportFormat> {
+public class EHoldingsItemProcessor implements ItemProcessor<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat> {
 
   @Override
-  public EHoldingsPackageExportFormat process(EHoldingsPackageExportFormat eHoldingsRecord) throws Exception {
+  public EHoldingsResourceExportFormat process(EHoldingsResourceExportFormat eHoldingsRecord) throws Exception {
     return eHoldingsRecord;
   }
 }

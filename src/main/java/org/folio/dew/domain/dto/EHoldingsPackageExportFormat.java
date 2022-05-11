@@ -1,7 +1,5 @@
 package org.folio.dew.domain.dto;
 
-import java.util.List;
-
 import lombok.Data;
 
 @Data
@@ -25,5 +23,4 @@ public class EHoldingsPackageExportFormat {
   private String packageNoteType;
   private String packageNoteTitle;
   private String packageNoteDetails;
-  private List<EHoldingsResourceExportFormat> titles;
 }

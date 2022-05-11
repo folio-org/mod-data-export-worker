@@ -38,11 +38,5 @@ public class EHoldingsResourceExportFormat {
   private String customValue4;
   private String customValue5;
   private String titleTags;
-  private String titleAgreementStartDate;
-  private String titleAgreementName;
-  private String titleAgreementStatus;
-  private String titleNoteLastUpdatedDate;
-  private String titleNoteType;
-  private String titleNoteTitle;
-  private String titleNoteDetails;
+  private EHoldingsPackageExportFormat eHoldingsPackageExportFormat;
 }

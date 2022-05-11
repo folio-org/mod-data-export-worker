@@ -91,8 +91,7 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters(false));
 
     // then
-    assertEquals(jobExecution.getExitStatus().getExitCode(), ExitStatus.FAILED.getExitCode());
-    assertThat(jobExecution.getExitStatus().getExitDescription(), containsString("Orders for export not found (EdifactException)"));
+    assertThat(jobExecution.getExitStatus().getExitDescription(), containsString("Orders for export not found"));
   }
 
   private JobParameters getJobParameters(boolean isDefaultConfig) throws IOException {

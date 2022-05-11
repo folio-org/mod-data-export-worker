@@ -1,17 +1,18 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
+import org.folio.dew.batch.acquisitions.edifact.exceptions.OrderNotFoundException;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
-import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -19,11 +20,8 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Component
@@ -42,14 +40,6 @@ public class MapToEdifactTasklet implements Tasklet {
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
 
     List<CompositePurchaseOrder> compOrders = getCompPOList(ediExportConfig);
-
-    if (compOrders.isEmpty()) {
-      log.warn("Orders for export not found");
-      ExitStatus exitStatus = new ExitStatus(ExitStatus.FAILED.getExitCode(), "Orders for export not found (EdifactException)");
-      ExecutionContextUtils.setStepExitStatus(chunkContext, exitStatus);
-      return RepeatStatus.FINISHED;
-    }
-
     // save poLineIds in memory
     persistPoLineIds(chunkContext, compOrders);
 
@@ -74,6 +64,9 @@ public class MapToEdifactTasklet implements Tasklet {
 
     log.debug("composite purchase orders: {}", compOrders);
 
+    if (compOrders.isEmpty()) {
+      throw new OrderNotFoundException("Orders for export not found", false);
+    }
     return compOrders;
   }
 

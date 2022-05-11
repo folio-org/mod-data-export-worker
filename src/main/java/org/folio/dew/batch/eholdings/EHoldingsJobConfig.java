@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import org.folio.dew.batch.CsvPartStepExecutionListener;
 import org.folio.dew.batch.CsvWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.client.KbEbscoClient;
@@ -44,22 +43,24 @@ public class EHoldingsJobConfig {
       .repository(jobRepository)
       .incrementer(new RunIdIncrementer())
       .listener(jobCompletionNotificationListener)
-      .start(getEHoldingsStep)
+      .flow(getEHoldingsStep)
+      .end()
       .build();
   }
 
   @Bean("getEHoldingsStep")
-  public Step getEHoldingsPartStep(
+  public Step getEHoldingsStep(
     @Qualifier("eHoldingsReader") EHoldingsPaginatedReader eHoldingsCsvItemReader,
     @Qualifier("eHoldingsWriter") FlatFileItemWriter<EHoldingsResourceExportFormat> flatFileItemWriter,
     EHoldingsItemProcessor eHoldingsItemProcessor,
-    CsvPartStepExecutionListener csvPartStepExecutionListener) {
-    return stepBuilderFactory.get("getEHoldingsStep")
+    EHoldingsStepListener eHoldingsStepListener) {
+    return stepBuilderFactory
+      .get("getEHoldingsStep")
       .<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat>chunk(PROCESSING_RECORD_CHUNK_SIZE)
       .reader(eHoldingsCsvItemReader)
       .processor(eHoldingsItemProcessor)
       .writer(flatFileItemWriter)
-      .listener(csvPartStepExecutionListener)
+      .listener(eHoldingsStepListener)
       .build();
   }
 
@@ -74,10 +75,10 @@ public class EHoldingsJobConfig {
   @Bean("eHoldingsWriter")
   @StepScope
   public FlatFileItemWriter<EHoldingsResourceExportFormat> writer(
-    @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath,
+    @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
     @Value("#{stepExecutionContext['partition']}") Long partition,
-    @Value("#{stepExecutionContext['packageFields']}") String packageFields,
-    @Value("#{stepExecutionContext['titleFields']}") String titleFields) {
+    @Value("#{jobParameters['packageFields']}") String packageFields,
+    @Value("#{jobParameters['titleFields']}") String titleFields) {
     return new CsvWriter<>(tempOutputFilePath, partition,
       packageFields + ',' + titleFields,
       ArrayUtils.addAll(packageFields.split(","), titleFields.split(",")),

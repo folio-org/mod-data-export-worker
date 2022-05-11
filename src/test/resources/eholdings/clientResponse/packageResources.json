@@ -1,0 +1,203 @@
+{
+  "data": [
+    {
+      "id": "123355-3228463-19888492",
+      "type": "resources",
+      "attributes": {
+        "alternateTitles": [],
+        "isTitleCustom": true,
+        "publisherName": "",
+        "titleId": 19888492,
+        "contributors": [],
+        "identifiers": [],
+        "name": "custom title-6c77efee-b5ee-47b4-a4f1-014dee6b26d9",
+        "publicationType": "Database",
+        "subjects": [],
+        "coverageStatement": "Test Coverage Statement",
+        "customEmbargoPeriod": {
+          "embargoValue": 5
+        },
+        "isPackageCustom": true,
+        "isSelected": true,
+        "isTokenNeeded": false,
+        "locationId": 1022377620,
+        "managedEmbargoPeriod": {
+          "embargoValue": 0
+        },
+        "packageId": "123355-3228463",
+        "packageName": "custom-package-c2c5be92-0850-437e-aac4-26f4954070d4 13",
+        "url": "https://test",
+        "providerId": 123355,
+        "providerName": "API DEV CORPORATE CUSTOMER",
+        "visibilityData": {
+          "isHidden": false,
+          "reason": ""
+        },
+        "managedCoverages": [],
+        "customCoverages": [
+          {
+            "beginCoverage": "2001-01-01",
+            "endCoverage": "9999-12-31"
+          }
+        ],
+        "proxy": {
+          "id": "ezproxy",
+          "inherited": true
+        },
+        "tags": {
+          "tagList": []
+        }
+      },
+      "relationships": {
+        "provider": {
+          "meta": {
+            "included": false
+          }
+        },
+        "title": {
+          "meta": {
+            "included": false
+          }
+        },
+        "package": {
+          "meta": {
+            "included": false
+          }
+        }
+      },
+      "included": [
+        {
+          "id": "31ba067b-280c-49ec-a76d-ca7deacd6ff6",
+          "type": "accessTypes",
+          "attributes": {
+            "name": "Test",
+            "credentialsId": "80898dee-449f-44dd-9c8e-37d5eb469b1d"
+          },
+          "creator": {},
+          "usageNumber": 0,
+          "metadata": {
+            "createdDate": "2022-05-10T05:45:33.560+00:00",
+            "createdByUserId": "548a5d79-f628-5a0d-a304-11d0e41ce7b7"
+          }
+        }
+      ]
+    },
+    {
+      "id": "123355-3228463-1113826",
+      "type": "resources",
+      "attributes": {
+        "alternateTitles": [],
+        "isTitleCustom": false,
+        "publisherName": "Wiley-Blackwell",
+        "titleId": 1113826,
+        "contributors": [
+          {
+            "type": "Author",
+            "contributor": "Tim Holt"
+          },
+          {
+            "type": "Author",
+            "contributor": "Sudhesh Kumar"
+          }
+        ],
+        "identifiers": [
+          {
+            "id": "978-1-4051-7784-9",
+            "subtype": "Print",
+            "type": "ISBN"
+          },
+          {
+            "id": "978-1-4443-1697-1",
+            "subtype": "Online",
+            "type": "ISBN"
+          },
+          {
+            "id": "978-1-282-46121-5",
+            "subtype": "Online",
+            "type": "ISBN"
+          },
+          {
+            "id": "978-1-118-68486-3",
+            "subtype": "Online",
+            "type": "ISBN"
+          }
+        ],
+        "name": "ABC of Diabetes (ABC Series)",
+        "publicationType": "Book",
+        "subjects": [
+          {
+            "subject": "Specialties of internal medicine",
+            "type": "Library of Congress"
+          },
+          {
+            "subject": "Internal Medicine",
+            "type": "Medical"
+          },
+          {
+            "subject": "Internal Medicine",
+            "type": "TLI"
+          },
+          {
+            "subject": "MEDICAL / Endocrinology & Metabolism",
+            "type": "BISAC"
+          },
+          {
+            "subject": "Internal medicine",
+            "type": "Library of Congress"
+          },
+          {
+            "subject": "Medicine and Health Sciences",
+            "type": "Medical"
+          },
+          {
+            "subject": "Medicine",
+            "type": "Library of Congress"
+          }
+        ],
+        "customEmbargoPeriod": {
+          "embargoValue": 0
+        },
+        "isPackageCustom": true,
+        "isSelected": true,
+        "isTokenNeeded": false,
+        "locationId": 1034558143,
+        "managedEmbargoPeriod": {
+          "embargoValue": 0
+        },
+        "packageId": "123355-3228463",
+        "packageName": "custom-package-c2c5be92-0850-437e-aac4-26f4954070d4 13",
+        "url": "",
+        "providerId": 123355,
+        "providerName": "API DEV CORPORATE CUSTOMER",
+        "visibilityData": {
+          "isHidden": false,
+          "reason": ""
+        },
+        "managedCoverages": [],
+        "customCoverages": [
+          {
+            "beginCoverage": "2019-03-20",
+            "endCoverage": "2019-03-23"
+          },
+          {
+            "beginCoverage": "2019-03-07",
+            "endCoverage": "2019-03-08"
+          }
+        ],
+        "proxy": {
+          "id": "ezproxy",
+          "inherited": true
+        },
+        "tags": {
+          "tagList": []
+        }
+      }
+    }
+  ],
+  "meta": {
+    "totalResults": 2
+  },
+  "jsonapi": {
+    "version": "1.0"
+  }
+}

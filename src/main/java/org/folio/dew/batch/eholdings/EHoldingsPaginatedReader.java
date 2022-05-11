@@ -96,6 +96,6 @@ public class EHoldingsPaginatedReader extends AbstractPaginatedReader<EHoldingsR
   }
 
   private String getContextValue(StepExecution stepExecution, String name) {
-    return (String) stepExecution.getExecutionContext().get(name);
+    return stepExecution.getJobParameters().getString(name);
   }
 }

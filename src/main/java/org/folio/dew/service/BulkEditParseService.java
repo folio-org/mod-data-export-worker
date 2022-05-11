@@ -16,17 +16,19 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.folio.dew.domain.dto.Address;
 import org.folio.dew.domain.dto.CirculationNote;
 import org.folio.dew.domain.dto.ContributorName;
+import org.folio.dew.domain.dto.CustomField;
 import org.folio.dew.domain.dto.Department;
 import org.folio.dew.domain.dto.EffectiveCallNumberComponents;
 import org.folio.dew.domain.dto.ElectronicAccess;
@@ -53,6 +55,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
+@Log4j2
 public class BulkEditParseService {
 
   private final UserReferenceService userReferenceService;
@@ -257,25 +260,65 @@ public class BulkEditParseService {
 
   private Map<String, Object> getCustomFields(UserFormat userFormat) {
     if (isNotEmpty(userFormat.getCustomFields())) {
-      Map<String, Object> customFields = new HashMap<>();
-      String[] customFieldsArray = userFormat.getCustomFields().split(ITEM_DELIMITER_PATTERN);
-      Arrays.stream(customFieldsArray)
-        .forEach(customField -> {
-          List<String> customFieldKeyValue = Arrays.asList(customField.split(KEY_VALUE_DELIMITER));
-          customFields.put(customFieldKeyValue.get(CF_KEY_INDEX), restoreCustomFieldValue(customFieldKeyValue.get(CF_VALUE_INDEX)));
-        });
-      return customFields;
+      return Arrays.stream(userFormat.getCustomFields().split(ITEM_DELIMITER_PATTERN))
+        .map(this::restoreCustomFieldValue)
+        .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
     }
     return Collections.emptyMap();
   }
 
-  private Object restoreCustomFieldValue(String s) {
-    s = s.replace(LINE_BREAK_REPLACEMENT, LINE_BREAK);
-    if (s.startsWith(START_ARRAY) && s.endsWith(END_ARRAY)) {
-      var str = s.substring(1, s.length() - 1);
-      return isNotEmpty(str) ? Arrays.asList(str.split(", ")) : Collections.emptyList();
+  private Pair<String, Object> restoreCustomFieldValue(String s) {
+    var valuePair = stringToPair(s);
+    var fieldName = valuePair.getKey();
+    var fieldValue = valuePair.getValue();
+    var customField = userReferenceService.getCustomFieldByName(fieldName);
+    switch (customField.getType()) {
+    case SINGLE_CHECKBOX:
+      return Pair.of(customField.getRefId(), Boolean.parseBoolean(fieldValue));
+    case TEXTBOX_LONG:
+    case TEXTBOX_SHORT:
+      return Pair.of(customField.getRefId(), fieldValue.replace(LINE_BREAK_REPLACEMENT, LINE_BREAK));
+    case SINGLE_SELECT_DROPDOWN:
+    case RADIO_BUTTON:
+      return Pair.of(customField.getRefId(), restoreValueId(customField, fieldValue));
+    case MULTI_SELECT_DROPDOWN:
+      return Pair.of(customField.getRefId(), restoreValueIds(customField, fieldValue));
+    default:
+      throw new BulkEditException("Invalid custom field: " + s);
     }
-    return s;
+  }
+
+  private Pair<String, String> stringToPair(String value) {
+    var tokens = value.split(KEY_VALUE_DELIMITER);
+    if (tokens.length == 2) {
+      return Pair.of(tokens[0], tokens[1]);
+    } else {
+      var msg = "Invalid key/value pair: " + value;
+      log.error(msg);
+      throw new BulkEditException(msg);
+    }
+  }
+
+  private List<String> restoreValueIds(CustomField customField, String values) {
+    var tokens = values.split(ARRAY_DELIMITER);
+    return tokens.length == 0 ?
+      Collections.emptyList() :
+      Arrays.stream(tokens)
+        .map(token -> restoreValueId(customField, token))
+        .collect(Collectors.toList());
+  }
+
+  private String restoreValueId(CustomField customField, String value) {
+    var optionalValue = customField.getSelectField().getOptions().getValues().stream()
+      .filter(selectFieldOption -> Objects.equals(value, selectFieldOption.getValue()))
+      .findFirst();
+    if (optionalValue.isPresent()) {
+      return optionalValue.get().getId();
+    } else {
+      var msg = "Invalid custom field value: " + value;
+      log.error(msg);
+      throw new BulkEditException(msg);
+    }
   }
 
   public Item mapItemFormatToItem(ItemFormat itemFormat) {

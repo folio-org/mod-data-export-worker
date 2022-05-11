@@ -1,0 +1,131 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "urlPattern": "/custom-fields\\?query=(refId%3D%3Dtestcheckbox|name%3D%3DTestCheckbox)",
+        "headers": {
+          "x-okapi-module-id": {
+            "contains": "mod-users-1.2.3"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"customFields\" : [ {\n    \"id\" : \"0619e6e9-2b60-4263-8e2d-3d98aa03eb45\",\n    \"name\" : \"TestCheckbox\",\n    \"refId\" : \"testcheckbox\",\n    \"type\" : \"SINGLE_CHECKBOX\",\n    \"entityType\" : \"user\",\n    \"visible\" : true,\n    \"required\" : false,\n    \"isRepeatable\" : false,\n    \"order\" : 1,\n    \"helpText\" : \"\",\n    \"checkboxField\" : {\n      \"default\" : false\n    },\n    \"metadata\" : {\n      \"createdDate\" : \"2022-05-05T18:12:52.775+00:00\",\n      \"createdByUserId\" : \"b7648ef6-a41e-50b0-a4a0-325a7ac43a84\",\n      \"createdByUsername\" : \"diku_admin\",\n      \"updatedDate\" : \"2022-05-05T18:12:52.775+00:00\",\n      \"updatedByUserId\" : \"b7648ef6-a41e-50b0-a4a0-325a7ac43a84\"\n    }\n  }], \"totalRecords\": 1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPattern": "/custom-fields\\?query=(refId%3D%3Dtestmultiselect|name%3D%3DTestMultiSelect)",
+        "headers": {
+          "x-okapi-module-id": {
+            "contains": "mod-users-1.2.3"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"customFields\" : [ {\n    \"id\" : \"2f9b5e58-777c-4b97-8059-c6955bf652cb\",\n    \"name\" : \"TestMultiSelect\",\n    \"refId\" : \"testmultiselect\",\n    \"type\" : \"MULTI_SELECT_DROPDOWN\",\n    \"entityType\" : \"user\",\n    \"visible\" : true,\n    \"required\" : false,\n    \"isRepeatable\" : false,\n    \"order\" : 2,\n    \"helpText\" : \"\",\n    \"selectField\" : {\n      \"multiSelect\" : true,\n      \"options\" : {\n        \"values\" : [ {\n          \"id\" : \"opt_0\",\n          \"value\" : \"ms1\",\n          \"default\" : false\n        }, {\n          \"id\" : \"opt_1\",\n          \"value\" : \"ms2\",\n          \"default\" : false\n        } ],\n        \"sortingOrder\" : \"CUSTOM\"\n      }\n    },\n    \"metadata\" : {\n      \"createdDate\" : \"2022-05-05T18:12:52.775+00:00\",\n      \"createdByUserId\" : \"b7648ef6-a41e-50b0-a4a0-325a7ac43a84\",\n      \"createdByUsername\" : \"diku_admin\",\n      \"updatedDate\" : \"2022-05-05T18:12:52.775+00:00\",\n      \"updatedByUserId\" : \"b7648ef6-a41e-50b0-a4a0-325a7ac43a84\"\n    }\n  }], \"totalRecords\": 1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPattern": "/custom-fields\\?query=(refId%3D%3Dtestradio|name%3D%3DTestRadio)",
+        "headers": {
+          "x-okapi-module-id": {
+            "contains": "mod-users-1.2.3"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"customFields\" : [ {\n    \"id\" : \"0138b080-59c3-47a3-add5-fa7fd0230b6e\",\n    \"name\" : \"TestRadio\",\n    \"refId\" : \"testradio\",\n    \"type\" : \"RADIO_BUTTON\",\n    \"entityType\" : \"user\",\n    \"visible\" : true,\n    \"required\" : false,\n    \"isRepeatable\" : false,\n    \"order\" : 3,\n    \"helpText\" : \"\",\n    \"selectField\" : {\n      \"multiSelect\" : false,\n      \"options\" : {\n        \"values\" : [ {\n          \"id\" : \"opt_0\",\n          \"value\" : \"r1\",\n          \"default\" : false\n        }, {\n          \"id\" : \"opt_1\",\n          \"value\" : \"r2\",\n          \"default\" : false\n        } ],\n        \"sortingOrder\" : \"CUSTOM\"\n      }\n    },\n    \"metadata\" : {\n      \"createdDate\" : \"2022-05-05T18:12:52.775+00:00\",\n      \"createdByUserId\" : \"b7648ef6-a41e-50b0-a4a0-325a7ac43a84\",\n      \"createdByUsername\" : \"diku_admin\",\n      \"updatedDate\" : \"2022-05-05T18:12:52.775+00:00\",\n      \"updatedByUserId\" : \"b7648ef6-a41e-50b0-a4a0-325a7ac43a84\"\n    }\n  }], \"totalRecords\": 1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPattern": "/custom-fields\\?query=(refId%3D%3Dtestsingleselect|name%3D%3DTestSingleSelect)",
+        "headers": {
+          "x-okapi-module-id": {
+            "contains": "mod-users-1.2.3"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"customFields\" : [ {\n    \"id\" : \"2e4a5259-3f56-4acf-9236-a66a62d6c05d\",\n    \"name\" : \"TestSingleSelect\",\n    \"refId\" : \"testsingleselect\",\n    \"type\" : \"SINGLE_SELECT_DROPDOWN\",\n    \"entityType\" : \"user\",\n    \"visible\" : true,\n    \"required\" : false,\n    \"isRepeatable\" : false,\n    \"order\" : 4,\n    \"helpText\" : \"\",\n    \"selectField\" : {\n      \"multiSelect\" : false,\n      \"options\" : {\n        \"values\" : [ {\n          \"id\" : \"opt_0\",\n          \"value\" : \"ss1\",\n          \"default\" : false\n        }, {\n          \"id\" : \"opt_1\",\n          \"value\" : \"ss2\",\n          \"default\" : false\n        } ],\n        \"sortingOrder\" : \"CUSTOM\"\n      }\n    },\n    \"metadata\" : {\n      \"createdDate\" : \"2022-05-05T18:12:52.775+00:00\",\n      \"createdByUserId\" : \"b7648ef6-a41e-50b0-a4a0-325a7ac43a84\",\n      \"createdByUsername\" : \"diku_admin\",\n      \"updatedDate\" : \"2022-05-05T18:12:52.775+00:00\",\n      \"updatedByUserId\" : \"b7648ef6-a41e-50b0-a4a0-325a7ac43a84\"\n    }\n  }], \"totalRecords\": 1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPattern": "/custom-fields\\?query=(refId%3D%3Dtesttextarea|name%3D%3DTestTextArea)",
+        "headers": {
+          "x-okapi-module-id": {
+            "contains": "mod-users-1.2.3"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"customFields\" : [ {\n    \"id\" : \"916bba77-3327-4f7b-b9a4-3f2aab5ee9a7\",\n    \"name\" : \"TestTextArea\",\n    \"refId\" : \"testtextarea\",\n    \"type\" : \"TEXTBOX_LONG\",\n    \"entityType\" : \"user\",\n    \"visible\" : true,\n    \"required\" : false,\n    \"isRepeatable\" : false,\n    \"order\" : 5,\n    \"helpText\" : \"\",\n    \"textField\" : {\n      \"fieldFormat\" : \"TEXT\"\n    },\n    \"metadata\" : {\n      \"createdDate\" : \"2022-05-05T18:12:52.775+00:00\",\n      \"createdByUserId\" : \"b7648ef6-a41e-50b0-a4a0-325a7ac43a84\",\n      \"createdByUsername\" : \"diku_admin\",\n      \"updatedDate\" : \"2022-05-05T18:12:52.775+00:00\",\n      \"updatedByUserId\" : \"b7648ef6-a41e-50b0-a4a0-325a7ac43a84\"\n    }\n  }], \"totalRecords\": 1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPattern": "/custom-fields\\?query=(refId%3D%3Dtesttextfield|name%3D%3DTestTextField)",
+        "headers": {
+          "x-okapi-module-id": {
+            "contains": "mod-users-1.2.3"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"customFields\" : [ {\n    \"id\" : \"07a5b3a4-e74b-4c26-a7ad-2d4b63198cb6\",\n    \"name\" : \"TestTextField\",\n    \"refId\" : \"testtextfield\",\n    \"type\" : \"TEXTBOX_SHORT\",\n    \"entityType\" : \"user\",\n    \"visible\" : true,\n    \"required\" : false,\n    \"isRepeatable\" : false,\n    \"order\" : 6,\n    \"helpText\" : \"\",\n    \"textField\" : {\n      \"fieldFormat\" : \"TEXT\"\n    },\n    \"metadata\" : {\n      \"createdDate\" : \"2022-05-05T18:12:52.775+00:00\",\n      \"createdByUserId\" : \"b7648ef6-a41e-50b0-a4a0-325a7ac43a84\",\n      \"createdByUsername\" : \"diku_admin\",\n      \"updatedDate\" : \"2022-05-05T18:12:52.775+00:00\",\n      \"updatedByUserId\" : \"b7648ef6-a41e-50b0-a4a0-325a7ac43a84\"\n    }\n  }], \"totalRecords\": 1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/custom-fields?query=name%3D%3DCustom",
+        "headers": {
+          "x-okapi-module-id": {
+            "contains": "mod-users-1.2.3"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"customFields\" : [ ], \"totalRecords\": 0}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}
+

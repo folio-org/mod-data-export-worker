@@ -1,6 +1,7 @@
 package org.folio.dew;
 
 import org.folio.dew.client.CallNumberTypeClient;
+import org.folio.dew.client.CustomFieldsClient;
 import org.folio.dew.client.DamagedStatusClient;
 import org.folio.dew.client.ElectronicAccessRelationshipClient;
 import org.folio.dew.client.ExpenseClassClient;
@@ -21,6 +22,7 @@ import org.folio.dew.client.FeefineactionsClient;
 import org.folio.dew.client.GroupClient;
 import org.folio.dew.client.MaterialTypeClient;
 import org.folio.dew.client.ItemNoteTypeClient;
+import org.folio.dew.client.OkapiClient;
 import org.folio.dew.client.OrdersClient;
 import org.folio.dew.client.OrdersStorageClient;
 import org.folio.dew.client.OrganizationsClient;
@@ -67,7 +69,9 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
   InventoryClient.class,
   StatisticalCodeClient.class,
   InstanceClient.class,
-  LoanTypeClient.class
+  LoanTypeClient.class,
+  CustomFieldsClient.class,
+  OkapiClient.class
 })
 @EnableBatchProcessing
 public class ModDataExportWorkerApplication {

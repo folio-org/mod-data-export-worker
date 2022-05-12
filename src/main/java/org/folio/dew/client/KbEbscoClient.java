@@ -19,9 +19,9 @@ public interface KbEbscoClient {
   @GetMapping(value = "/resources/{resourceId}", produces = MediaType.APPLICATION_JSON_VALUE)
   EResource getResourceById(@PathVariable String resourceId, @RequestParam String include);
 
-  @GetMapping(value = "/packages/{packageId}/resources?{query}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/packages/{packageId}/resources?{filters}", produces = MediaType.APPLICATION_JSON_VALUE)
   EResources getResourcesByPackageId(@PathVariable String packageId,
-                                     @PathVariable String query,
+                                     @PathVariable String filters,
                                      @RequestParam String include,
                                      @RequestParam int page,
                                      @RequestParam int count);

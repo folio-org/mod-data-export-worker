@@ -50,7 +50,7 @@ public class EHoldingsJobConfig {
 
   @Bean("getEHoldingsStep")
   public Step getEHoldingsStep(
-    @Qualifier("eHoldingsReader") EHoldingsPaginatedReader eHoldingsCsvItemReader,
+    @Qualifier("eHoldingsReader") EHoldingsItemReader eHoldingsCsvItemReader,
     @Qualifier("eHoldingsWriter") FlatFileItemWriter<EHoldingsResourceExportFormat> flatFileItemWriter,
     EHoldingsItemProcessor eHoldingsItemProcessor,
     EHoldingsStepListener eHoldingsStepListener) {
@@ -66,10 +66,9 @@ public class EHoldingsJobConfig {
 
   @Bean("eHoldingsReader")
   @StepScope
-  public EHoldingsPaginatedReader reader(
-    @Value("#{jobParameters['titleFields']}") String titleFields,
-    @Value("#{jobParameters['titleSearchFilters']}") String titleSearchFilters) {
-    return new EHoldingsPaginatedReader(kbEbscoClient, titleFields, titleSearchFilters);
+  public EHoldingsItemReader reader(
+    @Value("#{jobParameters['titleFields']}") String titleFields) {
+    return new EHoldingsItemReader(kbEbscoClient, titleFields);
   }
 
   @Bean("eHoldingsWriter")
@@ -79,9 +78,16 @@ public class EHoldingsJobConfig {
     @Value("#{stepExecutionContext['partition']}") Long partition,
     @Value("#{jobParameters['packageFields']}") String packageFields,
     @Value("#{jobParameters['titleFields']}") String titleFields) {
-    return new CsvWriter<>(tempOutputFilePath, partition,
-      packageFields + ',' + titleFields,
-      ArrayUtils.addAll(packageFields.split(","), titleFields.split(",")),
-      (field, i) -> field);
+    String headers = packageFields;
+    String[] fields = packageFields.split(",");
+    if (!titleFields.isBlank()) {
+      if (!packageFields.isBlank()) {
+        headers += ',';
+        ArrayUtils.addAll(fields, titleFields.split(","));
+      }
+      headers += titleFields;
+      fields = titleFields.split(",");
+    }
+    return new CsvWriter<>(tempOutputFilePath, partition, headers, fields, (field, i) -> field);
   }
 }

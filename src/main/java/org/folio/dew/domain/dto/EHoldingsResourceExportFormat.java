@@ -6,6 +6,28 @@ import lombok.Data;
 
 @Data
 public class EHoldingsResourceExportFormat {
+  //Package fields
+  private String providerName;
+  private String providerId;
+  private String packageName;
+  private String packageId;
+  private String packageType;
+  private String packageContentType;
+  private String packageCustomCoverage;
+  private String packageShowToPatrons;
+  private String packageAutomaticallySelect;
+  private String packageProxy;
+  private String packageAccessStatusType;
+  private String packageTags;
+  private String packageAgreementStartDate;
+  private String packageAgreementName;
+  private String packageAgreementStatus;
+  private String packageNoteLastUpdatedDate;
+  private String packageNoteType;
+  private String packageNoteTitle;
+  private String packageNoteDetails;
+
+  //Title fields
   private String titleId;
   private String titleName;
   private String alternateTitles;
@@ -38,5 +60,4 @@ public class EHoldingsResourceExportFormat {
   private String customValue4;
   private String customValue5;
   private String titleTags;
-  private EHoldingsPackageExportFormat eHoldingsPackageExportFormat;
 }

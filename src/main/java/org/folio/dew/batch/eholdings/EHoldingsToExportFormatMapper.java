@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
-import org.folio.dew.domain.dto.EHoldingsPackageExportFormat;
 import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
 import org.folio.dew.domain.dto.eholdings.AccessTypeData;
 import org.folio.dew.domain.dto.eholdings.AlternateTitle;
@@ -35,67 +34,72 @@ public class EHoldingsToExportFormatMapper {
   private final ObjectMapper objectMapper = new ObjectMapper()
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-  public EHoldingsPackageExportFormat convertPackageToExportFormat(EPackage ePackage) {
-    var packageExportFormat = new EHoldingsPackageExportFormat();
-    var packageAtr = ePackage.getData().getAttributes();
-
-    packageExportFormat.setProviderId(packageAtr.getProviderId().toString());
-    packageExportFormat.setProviderName(packageAtr.getProviderName());
-    packageExportFormat.setPackageId(ePackage.getData().getId());
-    packageExportFormat.setPackageName(packageAtr.getName());
-    packageExportFormat.setPackageType(packageAtr.getPackageType());
-    packageExportFormat.setPackageContentType(packageAtr.getContentType().getValue());
-    packageExportFormat.setPackageCustomCoverage(mapCoverage(packageAtr.getCustomCoverage()));
-    packageExportFormat.setPackageProxy(mapProxy(packageAtr.getProxy()));
-    packageExportFormat.setPackageTags(mapTags(packageAtr.getTags()));
-    packageExportFormat.setPackageShowToPatrons(mapShowToPatrons(packageAtr.getVisibilityData()));
-    packageExportFormat.setPackageAutomaticallySelect(convertBoolToStr(packageAtr.getAllowKbToAddTitles()));
-    packageExportFormat.setPackageAccessStatusType(mapAccessType(ePackage.getIncluded()));
-
-    return packageExportFormat;
+  public EHoldingsResourceExportFormat convertToExportFormat(EPackage ePackage, ResourcesData data) {
+    var exportFormat = new EHoldingsResourceExportFormat();
+    mapPackageToExportFormat(exportFormat, ePackage);
+    mapResourceDataToExportFormat(exportFormat, data);
+    return exportFormat;
   }
 
-  public EHoldingsResourceExportFormat convertResourceDataToExportFormat(ResourcesData data) {
-    var titleExportFormat = new EHoldingsResourceExportFormat();
+  private EHoldingsResourceExportFormat mapPackageToExportFormat(EHoldingsResourceExportFormat exportFormat, EPackage ePackage) {
+    var packageAtr = ePackage.getData().getAttributes();
+
+    exportFormat.setProviderId(packageAtr.getProviderId().toString());
+    exportFormat.setProviderName(packageAtr.getProviderName());
+    exportFormat.setPackageId(ePackage.getData().getId());
+    exportFormat.setPackageName(packageAtr.getName());
+    exportFormat.setPackageType(packageAtr.getPackageType());
+    exportFormat.setPackageContentType(packageAtr.getContentType().getValue());
+    exportFormat.setPackageCustomCoverage(mapCoverage(packageAtr.getCustomCoverage()));
+    exportFormat.setPackageProxy(mapProxy(packageAtr.getProxy()));
+    exportFormat.setPackageTags(mapTags(packageAtr.getTags()));
+    exportFormat.setPackageShowToPatrons(mapShowToPatrons(packageAtr.getVisibilityData()));
+    exportFormat.setPackageAutomaticallySelect(convertBoolToStr(packageAtr.getAllowKbToAddTitles()));
+    exportFormat.setPackageAccessStatusType(mapAccessType(ePackage.getIncluded()));
+
+    return exportFormat;
+  }
+
+  private EHoldingsResourceExportFormat mapResourceDataToExportFormat(EHoldingsResourceExportFormat exportFormat, ResourcesData data) {
     var resourceAtr = data.getAttributes();
 
-    titleExportFormat.setTitleId(resourceAtr.getTitleId().toString());
-    titleExportFormat.setTitleName(resourceAtr.getName());
-    titleExportFormat.setAlternateTitles(mapAlternateTitles(resourceAtr.getAlternateTitles()));
-    titleExportFormat.setTitleHoldingsStatus(mapHoldingsStatus(resourceAtr.getIsSelected()));
-    titleExportFormat.setPublicationType(resourceAtr.getPublicationType().getValue());
-    titleExportFormat.setTitleType(mapTitleType(resourceAtr.getIsTitleCustom()));
-    titleExportFormat.setContributors(mapContributors(resourceAtr.getContributors()));
-    titleExportFormat.setEdition(resourceAtr.getEdition());
-    titleExportFormat.setPublisher(resourceAtr.getPublisherName());
-    titleExportFormat.setPeerReviewed(convertBoolToStr(resourceAtr.getIsPeerReviewed()));
-    titleExportFormat.setDescription(resourceAtr.getDescription());
-    titleExportFormat.setManagedCoverage(mapCoverage(resourceAtr.getManagedCoverages()));
-    titleExportFormat.setCustomCoverage(mapCoverage(resourceAtr.getManagedCoverages()));
-    titleExportFormat.setCoverageStatement(resourceAtr.getCoverageStatement());
-    titleExportFormat.setManagedEmbargo(mapEmbargo(resourceAtr.getManagedEmbargoPeriod()));
-    titleExportFormat.setCustomEmbargo(mapEmbargo(resourceAtr.getCustomEmbargoPeriod()));
-    titleExportFormat.setTitleShowToPatrons(mapShowToPatrons(resourceAtr.getVisibilityData()));
-    titleExportFormat.setTitleProxy(mapProxy(resourceAtr.getProxy()));
-    titleExportFormat.setUrl(resourceAtr.getUrl());
-    titleExportFormat.setSubjects(mapSubjects(resourceAtr.getSubjects()));
-    titleExportFormat.setCustomValue1(resourceAtr.getUserDefinedField1());
-    titleExportFormat.setCustomValue2(resourceAtr.getUserDefinedField2());
-    titleExportFormat.setCustomValue3(resourceAtr.getUserDefinedField3());
-    titleExportFormat.setCustomValue4(resourceAtr.getUserDefinedField4());
-    titleExportFormat.setCustomValue5(resourceAtr.getUserDefinedField5());
-    titleExportFormat.setTitleAccessStatusType(mapAccessType(data.getIncluded()));
-    titleExportFormat.setTitleTags(mapTags(resourceAtr.getTags()));
-    titleExportFormat.setISBN_Print(
+    exportFormat.setTitleId(resourceAtr.getTitleId().toString());
+    exportFormat.setTitleName(resourceAtr.getName());
+    exportFormat.setAlternateTitles(mapAlternateTitles(resourceAtr.getAlternateTitles()));
+    exportFormat.setTitleHoldingsStatus(mapHoldingsStatus(resourceAtr.getIsSelected()));
+    exportFormat.setPublicationType(resourceAtr.getPublicationType().getValue());
+    exportFormat.setTitleType(mapTitleType(resourceAtr.getIsTitleCustom()));
+    exportFormat.setContributors(mapContributors(resourceAtr.getContributors()));
+    exportFormat.setEdition(resourceAtr.getEdition());
+    exportFormat.setPublisher(resourceAtr.getPublisherName());
+    exportFormat.setPeerReviewed(convertBoolToStr(resourceAtr.getIsPeerReviewed()));
+    exportFormat.setDescription(resourceAtr.getDescription());
+    exportFormat.setManagedCoverage(mapCoverage(resourceAtr.getManagedCoverages()));
+    exportFormat.setCustomCoverage(mapCoverage(resourceAtr.getManagedCoverages()));
+    exportFormat.setCoverageStatement(resourceAtr.getCoverageStatement());
+    exportFormat.setManagedEmbargo(mapEmbargo(resourceAtr.getManagedEmbargoPeriod()));
+    exportFormat.setCustomEmbargo(mapEmbargo(resourceAtr.getCustomEmbargoPeriod()));
+    exportFormat.setTitleShowToPatrons(mapShowToPatrons(resourceAtr.getVisibilityData()));
+    exportFormat.setTitleProxy(mapProxy(resourceAtr.getProxy()));
+    exportFormat.setUrl(resourceAtr.getUrl());
+    exportFormat.setSubjects(mapSubjects(resourceAtr.getSubjects()));
+    exportFormat.setCustomValue1(resourceAtr.getUserDefinedField1());
+    exportFormat.setCustomValue2(resourceAtr.getUserDefinedField2());
+    exportFormat.setCustomValue3(resourceAtr.getUserDefinedField3());
+    exportFormat.setCustomValue4(resourceAtr.getUserDefinedField4());
+    exportFormat.setCustomValue5(resourceAtr.getUserDefinedField5());
+    exportFormat.setTitleAccessStatusType(mapAccessType(data.getIncluded()));
+    exportFormat.setTitleTags(mapTags(resourceAtr.getTags()));
+    exportFormat.setISBN_Print(
       mapIdentifierId(resourceAtr.getIdentifiers(), TypeEnum.ISBN, SubtypeEnum.PRINT));
-    titleExportFormat.setISBN_Online(
+    exportFormat.setISBN_Online(
       mapIdentifierId(resourceAtr.getIdentifiers(), TypeEnum.ISBN, SubtypeEnum.ONLINE));
-    titleExportFormat.setISSN_Print(
+    exportFormat.setISSN_Print(
       mapIdentifierId(resourceAtr.getIdentifiers(), TypeEnum.ISSN, SubtypeEnum.PRINT));
-    titleExportFormat.setISSN_Online(
+    exportFormat.setISSN_Online(
       mapIdentifierId(resourceAtr.getIdentifiers(), TypeEnum.ISSN, SubtypeEnum.ONLINE));
 
-    return titleExportFormat;
+    return exportFormat;
   }
 
   private Object getIncludedObject(List<Object> included, String type) {

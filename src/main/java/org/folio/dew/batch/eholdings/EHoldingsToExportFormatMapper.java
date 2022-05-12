@@ -41,7 +41,7 @@ public class EHoldingsToExportFormatMapper {
     return exportFormat;
   }
 
-  private EHoldingsResourceExportFormat mapPackageToExportFormat(EHoldingsResourceExportFormat exportFormat, EPackage ePackage) {
+  private void mapPackageToExportFormat(EHoldingsResourceExportFormat exportFormat, EPackage ePackage) {
     var packageAtr = ePackage.getData().getAttributes();
 
     exportFormat.setProviderId(packageAtr.getProviderId().toString());
@@ -56,11 +56,9 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setPackageShowToPatrons(mapShowToPatrons(packageAtr.getVisibilityData()));
     exportFormat.setPackageAutomaticallySelect(convertBoolToStr(packageAtr.getAllowKbToAddTitles()));
     exportFormat.setPackageAccessStatusType(mapAccessType(ePackage.getIncluded()));
-
-    return exportFormat;
   }
 
-  private EHoldingsResourceExportFormat mapResourceDataToExportFormat(EHoldingsResourceExportFormat exportFormat, ResourcesData data) {
+  private void mapResourceDataToExportFormat(EHoldingsResourceExportFormat exportFormat, ResourcesData data) {
     var resourceAtr = data.getAttributes();
 
     exportFormat.setTitleId(resourceAtr.getTitleId().toString());
@@ -98,8 +96,6 @@ public class EHoldingsToExportFormatMapper {
       mapIdentifierId(resourceAtr.getIdentifiers(), TypeEnum.ISSN, SubtypeEnum.PRINT));
     exportFormat.setISSN_Online(
       mapIdentifierId(resourceAtr.getIdentifiers(), TypeEnum.ISSN, SubtypeEnum.ONLINE));
-
-    return exportFormat;
   }
 
   private Object getIncludedObject(List<Object> included, String type) {
@@ -112,7 +108,7 @@ public class EHoldingsToExportFormatMapper {
 
   private String convertBoolToStr(Boolean isTrue) {
     if (isNull(isTrue)) return "";
-    return isTrue ? "Yes" : "No";
+    return Boolean.TRUE.equals(isTrue) ? "Yes" : "No";
   }
 
   private String mapAccessType(List<Object> included) {
@@ -146,7 +142,7 @@ public class EHoldingsToExportFormatMapper {
     if (proxy.getId().equals("<n>")) {
       return "None";
     }
-    var inherited = proxy.getInherited() ? "(inherited)" : "";
+    var inherited = Boolean.TRUE.equals(proxy.getInherited()) ? "(inherited)" : "";
     return proxy.getId() + inherited;
   }
 
@@ -195,7 +191,7 @@ public class EHoldingsToExportFormatMapper {
   }
 
   private String mapShowToPatrons(VisibilityData visibility) {
-    var result = visibility.getIsHidden() ? "No" : "Yes";
+    var result = Boolean.TRUE.equals(visibility.getIsHidden()) ? "No" : "Yes";
     var reason = visibility.getReason();
 
     if (reason != null && !reason.isBlank()) {

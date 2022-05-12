@@ -19,6 +19,7 @@ import org.folio.dew.domain.dto.eholdings.ResourcesData;
 
 public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFormat> {
 
+  private static final int QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST = 20;
   private static final String ACCESS_TYPE_INCLUDE = "accessType";
 
   private final String titleFields;
@@ -31,7 +32,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
   private EPackage ePackage;
 
   protected EHoldingsItemReader(KbEbscoClient kbEbscoClient, String titleFields) {
-    super(0L, 1L, 20);
+    super(0L, 1L, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST);
     this.kbEbscoClient = kbEbscoClient;
     this.titleFields = titleFields;
     this.mapper = new EHoldingsToExportFormatMapper();

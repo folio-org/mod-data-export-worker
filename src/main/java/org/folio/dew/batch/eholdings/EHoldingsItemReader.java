@@ -26,7 +26,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
   private final EHoldingsToExportFormatMapper mapper;
 
   private String recordId;
-  private String titlesSearchFilters;
+  private String titleSearchFilters;
   private RecordTypeEnum recordType;
   private EPackage ePackage;
 
@@ -50,7 +50,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
 
     if (recordType == PACKAGE && !titleFields.isBlank()) {
       var packageResources = kbEbscoClient
-        .getResourcesByPackageId(recordId, titlesSearchFilters, ACCESS_TYPE_INCLUDE, offset, limit);
+        .getResourcesByPackageId(recordId, titleSearchFilters, ACCESS_TYPE_INCLUDE, offset, limit);
 
       return buildEHoldingsExportFormat(ePackage, packageResources.getData());
     }
@@ -66,7 +66,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
   @BeforeStep
   public void readPackage(StepExecution stepExecution) {
     this.recordId = getContextValue(stepExecution, "recordId");
-    this.titlesSearchFilters = getContextValue(stepExecution, "titlesSearchFilters");
+    this.titleSearchFilters = getContextValue(stepExecution, "titleSearchFilters");
     this.recordType = RecordTypeEnum.valueOf(getContextValue(stepExecution, "recordType"));
     if (recordType == RESOURCE) {
       var packageId = recordId.split("-\\d+$")[0];
@@ -85,7 +85,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
 
   private int getTotalCount() {
     if (recordType == PACKAGE) {
-      var resources = kbEbscoClient.getResourcesByPackageId(recordId, titlesSearchFilters, null, 1, 1);
+      var resources = kbEbscoClient.getResourcesByPackageId(recordId, titleSearchFilters, null, 1, 1);
       return resources.getMeta().getTotalResults();
     } else if (recordType == RESOURCE) {
       return 1;

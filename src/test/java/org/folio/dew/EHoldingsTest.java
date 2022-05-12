@@ -79,7 +79,7 @@ class EHoldingsTest extends BaseBatchTest {
     params.put("recordType", new JobParameter(recordType));
     params.put("titleFields", new JobParameter(getClassFields(EHoldingsResourceExportFormat.class)));
     params.put("packageFields", new JobParameter(""));
-    params.put("titleFilters", new JobParameter("filter[name]=*"));
+    params.put("titleSearchFilters", new JobParameter("filter[name]=*"));
 
     String jobId = UUID.randomUUID().toString();
     params.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
@@ -87,7 +87,7 @@ class EHoldingsTest extends BaseBatchTest {
     Date now = new Date();
     String workDir =
       System.getProperty("java.io.tmpdir")
-        //     + File.separator
+        + File.separator
         + springApplicationName
         + File.separator;
     final String outputFile =

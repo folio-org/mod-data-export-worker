@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.ExportJobManagerCirculationLog;
@@ -127,6 +128,7 @@ public abstract class BaseBatchTest {
     httpHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
     httpHeaders.add(XOkapiHeaders.URL, wireMockServer.baseUrl());
     httpHeaders.add(XOkapiHeaders.TOKEN, TOKEN);
+    httpHeaders.add(XOkapiHeaders.USER_ID, UUID.randomUUID().toString());
 
     return httpHeaders;
   }
@@ -137,6 +139,7 @@ public abstract class BaseBatchTest {
     okapiHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
     okapiHeaders.put(XOkapiHeaders.TOKEN, List.of(TOKEN));
     okapiHeaders.put(XOkapiHeaders.URL, List.of(wireMockServer.baseUrl()));
+    okapiHeaders.put(XOkapiHeaders.USER_ID, List.of(UUID.randomUUID().toString()));
     var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
     FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
 

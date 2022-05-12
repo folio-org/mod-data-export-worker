@@ -42,6 +42,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -93,46 +94,54 @@ public class BulkEditItemContentUpdateService {
 
   private List<ItemFormat> applyContentUpdates(List<ItemFormat> itemFormats, ContentUpdateCollection contentUpdates, JobCommand jobCommand) {
     List<ItemFormat> result = new ArrayList<>();
-    itemFormats.forEach(itemFormat -> {
-      contentUpdates.getContentUpdates().forEach(contentUpdate -> applyContentUpdate(itemFormat, contentUpdate, jobCommand));
-      if (isLocationChange(contentUpdates)) {
-        updateEffectiveLocation(itemFormat);
+    for (ItemFormat itemFormat: itemFormats) {
+      var updatedItemFormat = itemFormat;
+      for (ContentUpdate contentUpdate: contentUpdates.getContentUpdates()) {
+        updatedItemFormat = applyContentUpdate(updatedItemFormat, contentUpdate, jobCommand);
       }
-      result.add(itemFormat);
-    });
+      if (!Objects.equals(itemFormat, updatedItemFormat)) {
+        if (isLocationChange(contentUpdates)) {
+          updateEffectiveLocation(updatedItemFormat);
+        }
+        result.add(updatedItemFormat);
+      }
+    }
     return result;
   }
 
-  private void applyContentUpdate(ItemFormat itemFormat, ContentUpdate contentUpdate, JobCommand jobCommand) {
+  private ItemFormat applyContentUpdate(ItemFormat itemFormat, ContentUpdate contentUpdate, JobCommand jobCommand) {
     if (REPLACE_WITH == contentUpdate.getAction()) {
-      applyReplaceWith(itemFormat, contentUpdate, jobCommand);
+      return applyReplaceWith(itemFormat, contentUpdate, jobCommand);
     } else if (CLEAR_FIELD == contentUpdate.getAction()) {
       if (STATUS == contentUpdate.getOption()) {
         var msg = "Status field can not be cleared";
         log.error(msg);
         errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
       } else {
-        applyClearField(itemFormat, contentUpdate);
+        return applyClearField(itemFormat, contentUpdate);
       }
     }
+    return itemFormat;
   }
 
-  private void applyReplaceWith(ItemFormat itemFormat, ContentUpdate contentUpdate, JobCommand jobCommand) {
+  private ItemFormat applyReplaceWith(ItemFormat itemFormat, ContentUpdate contentUpdate, JobCommand jobCommand) {
     if (TEMPORARY_LOCATION == contentUpdate.getOption()) {
-      itemFormat.setTemporaryLocation(isNull(contentUpdate.getValue()) ? EMPTY : contentUpdate.getValue().toString());
+      return itemFormat.withTemporaryLocation(isNull(contentUpdate.getValue()) ? EMPTY : contentUpdate.getValue().toString());
     } else if (PERMANENT_LOCATION == contentUpdate.getOption()) {
-      itemFormat.setPermanentLocation(isNull(contentUpdate.getValue()) ? EMPTY : contentUpdate.getValue().toString());
+      return itemFormat.withPermanentLocation(isNull(contentUpdate.getValue()) ? EMPTY : contentUpdate.getValue().toString());
     } else if (STATUS == contentUpdate.getOption()) {
-      replaceStatusIfAllowed(itemFormat, contentUpdate.getValue(), jobCommand);
+      return replaceStatusIfAllowed(itemFormat, contentUpdate.getValue(), jobCommand);
     }
+    return itemFormat;
   }
 
-  private void applyClearField(ItemFormat itemFormat, ContentUpdate contentUpdate) {
+  private ItemFormat applyClearField(ItemFormat itemFormat, ContentUpdate contentUpdate) {
     if (TEMPORARY_LOCATION == contentUpdate.getOption()) {
-      itemFormat.setTemporaryLocation(EMPTY);
+      return itemFormat.withTemporaryLocation(EMPTY);
     } else if (PERMANENT_LOCATION == contentUpdate.getOption()) {
-      itemFormat.setPermanentLocation(EMPTY);
+      return itemFormat.withPermanentLocation(EMPTY);
     }
+    return itemFormat;
   }
 
   private void updateEffectiveLocation(ItemFormat itemFormat) {
@@ -150,18 +159,19 @@ public class BulkEditItemContentUpdateService {
       .anyMatch(update -> TEMPORARY_LOCATION == update.getOption() || PERMANENT_LOCATION == update.getOption());
   }
 
-  private void  replaceStatusIfAllowed(ItemFormat itemFormat, Object value, JobCommand jobCommand) {
+  private ItemFormat replaceStatusIfAllowed(ItemFormat itemFormat, Object value, JobCommand jobCommand) {
     var currentStatus = extractStatusName(itemFormat.getStatus());
     var newStatus = isNull(value) ? EMPTY : value.toString();
     if (!currentStatus.equals(newStatus)) {
       if (itemReferenceService.getAllowedStatuses(currentStatus).contains(newStatus)) {
-        itemFormat.setStatus(String.join(ARRAY_DELIMITER, newStatus, dateToString(Date.from(LocalDateTime.now().atZone(UTC).toInstant()))));
+        return itemFormat.withStatus(String.join(ARRAY_DELIMITER, newStatus, dateToString(Date.from(LocalDateTime.now().atZone(UTC).toInstant()))));
       } else {
         var msg = String.format("New status value \"%s\" is not allowed", newStatus);
         log.error(msg);
         errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
       }
     }
+    return itemFormat;
   }
 
   private String extractStatusName(String s) {

@@ -51,7 +51,33 @@
         "id": "fcd64ce1-6995-48f0-840e-89ffa2288371",
         "name": "Main Library"
       }
+    },
+    {
+      "id": "18f746e4-7c9c-48be-86a4-ff1c96934203",
+      "permanentLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      },
+      "effectiveLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      }
+    },
+    {
+      "id": "94803587-275f-449b-8208-ea626d85d522",
+      "permanentLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      },
+      "temporaryLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      },
+      "effectiveLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      }
     }
   ],
-  "totalRecords": 4
+  "totalRecords": 6
 }

@@ -12,7 +12,7 @@ public class BulkEditCqlItemReader extends CsvItemReader<User> {
   private final String query;
 
   public BulkEditCqlItemReader(UserClient userClient, String query, Long offset, Long limit) {
-    super(offset, limit);
+    super(offset, limit, 100);
 
     this.userClient = userClient;
     this.query = query;

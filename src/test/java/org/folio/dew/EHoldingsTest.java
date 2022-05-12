@@ -99,7 +99,7 @@ class EHoldingsTest extends BaseBatchTest {
     Date now = new Date();
     String workDir =
       System.getProperty("java.io.tmpdir")
-      //  + File.separator
+        + File.separator
         + springApplicationName
         + File.separator;
     final String outputFile =

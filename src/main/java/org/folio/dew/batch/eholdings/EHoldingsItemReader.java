@@ -31,7 +31,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
   private EPackage ePackage;
 
   protected EHoldingsItemReader(KbEbscoClient kbEbscoClient, String titleFields) {
-    super(0L, 1L);
+    super(0L, 1L, 20);
     this.kbEbscoClient = kbEbscoClient;
     this.titleFields = titleFields;
     this.mapper = new EHoldingsToExportFormatMapper();

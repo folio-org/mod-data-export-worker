@@ -12,7 +12,7 @@ public class CirculationLogCsvItemReader extends CsvItemReader<LogRecord> {
   private final String query;
 
   public CirculationLogCsvItemReader(AuditClient auditClient, String query, Long offset, Long limit) {
-    super(offset, limit);
+    super(offset, limit, 100);
 
     this.auditClient = auditClient;
     this.query = query;

@@ -213,7 +213,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
   private String saveResult(JobExecution jobExecution) {
     String path = jobExecution.getJobParameters().getString(isBulkEditContentUpdateJob(jobExecution) ? UPDATED_FILE_NAME : TEMP_OUTPUT_FILE_PATH);
     try {
-      if (Files.lines(Path.of(path)).count() == 1) {
+      if (noRecordsFound(path)) {
         return EMPTY;
       }
       var fileNameBulkEditUpdate = path + (isBulkEditContentUpdateJob(jobExecution) ? EMPTY : CSV_EXTENSION);
@@ -225,6 +225,11 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }
+  }
+
+  private boolean noRecordsFound(String path) throws IOException {
+    Path pathToFoundRecords = Path.of(path);
+    return Files.exists(pathToFoundRecords) && Files.lines(pathToFoundRecords).count() == 1;
   }
 
 }

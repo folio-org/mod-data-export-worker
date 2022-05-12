@@ -34,7 +34,7 @@ public class EHoldingsResourceExportFormat {
   private String titleHoldingsStatus;
   private String publicationType;
   private String titleType;
-  private List<String> contributors;
+  private String contributors;
   private String edition;
   private String publisher;
   private String ISSN_Print;

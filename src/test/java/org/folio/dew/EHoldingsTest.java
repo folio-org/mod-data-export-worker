@@ -1,5 +1,7 @@
 package org.folio.dew;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
@@ -49,6 +51,11 @@ class EHoldingsTest extends BaseBatchTest {
     verifyFileOutput(jobExecution, EXPECTED_RESOURCE_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
+    wireMockServer.verify(
+      getRequestedFor(
+        urlEqualTo(
+          "/eholdings/packages/1-22?include=accessType")));
   }
 
   @Test
@@ -62,11 +69,16 @@ class EHoldingsTest extends BaseBatchTest {
     verifyFileOutput(jobExecution, EXPECTED_PACKAGE_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
+    wireMockServer.verify(
+      getRequestedFor(
+        urlEqualTo(
+          "/eholdings/packages/1-22/resources?filter%5Bname%5D%3D%2A&page=1&count=1")));
   }
 
   private void verifyFileOutput(JobExecution jobExecution, String expectedFile) throws Exception {
     final ExecutionContext executionContext = jobExecution.getExecutionContext();
-    final String fileInStorage = (String) executionContext.get("outputFilesInStorage");
+    final String fileInStorage = executionContext.getString("outputFilesInStorage");
 
     final FileSystemResource actualChargeFeesFinesOutput = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(expectedFile);
@@ -87,7 +99,7 @@ class EHoldingsTest extends BaseBatchTest {
     Date now = new Date();
     String workDir =
       System.getProperty("java.io.tmpdir")
-        + File.separator
+      //  + File.separator
         + springApplicationName
         + File.separator;
     final String outputFile =

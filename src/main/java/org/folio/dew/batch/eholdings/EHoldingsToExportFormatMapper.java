@@ -162,10 +162,10 @@ public class EHoldingsToExportFormatMapper {
     return start + " - " + end;
   }
 
-  private List<String> mapContributors(List<Contributor> contributors) {
+  private String mapContributors(List<Contributor> contributors) {
     return contributors.stream()
-      .map(contributor -> contributor.getType() + ": " + contributor.getContributor())
-      .collect(Collectors.toList());
+      .map(contributor -> contributor.getContributor() + " (" + contributor.getType() + ')')
+      .collect(Collectors.joining(" | "));
   }
 
   private String mapSubjects(List<Subject> subjects) {

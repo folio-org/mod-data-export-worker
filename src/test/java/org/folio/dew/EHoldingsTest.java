@@ -1,13 +1,7 @@
 package org.folio.dew;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
-
-import static org.folio.test.util.TestUtil.readFile;
 
 import java.io.File;
 import java.util.Date;
@@ -40,24 +34,11 @@ class EHoldingsTest extends BaseBatchTest {
   @Test
   @DisplayName("Run EHoldingsJob successfully")
   void eHoldingsJobTest() throws Exception {
-    stubFor(
-      get(urlPathEqualTo("/eholdings/packages/" + "1-22"))
-        .willReturn(aResponse()
-          .withStatus(200)
-          .withHeader("Content-Type", "application/json")
-          .withBody(readFile("eholdings/clientResponse/packageById.json"))));
-
-    stubFor(
-      get(urlPathEqualTo("/eholdings/resources/" + "1-22-333"))
-        .willReturn(aResponse()
-          .withStatus(200)
-          .withHeader("Content-Type", "application/json")
-          .withBody(readFile("eholdings/clientResponse/resourceById.json"))));
-
     JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
 
     final JobParameters jobParameters = prepareJobParameters();
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
     verifyFileOutput(jobExecution);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);

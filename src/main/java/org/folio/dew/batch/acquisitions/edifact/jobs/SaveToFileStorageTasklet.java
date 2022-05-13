@@ -3,9 +3,11 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
+import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
 import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.domain.dto.EdiFtp;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
@@ -48,8 +50,8 @@ public class SaveToFileStorageTasklet implements Tasklet {
     String folder = ediExportConfig.getEdiFtp().getOrderDirectory();
     String password = ediExportConfig.getEdiFtp().getPassword();
     String host = ediExportConfig.getEdiFtp().getServerAddress().replace(SFTP_PROTOCOL, "");
-    int port = ediExportConfig.getEdiFtp().getFtpPort();
     String filename = generateFileName(ediExportConfig);
+    Optional<Integer> port = Optional.ofNullable(ediExportConfig.getEdiFtp().getFtpPort());
 
     // skip ftp upload if address not specified
     if (StringUtils.isEmpty(host)) {
@@ -58,8 +60,12 @@ public class SaveToFileStorageTasklet implements Tasklet {
 
     var fileContent = (String) ExecutionContextUtils.getExecutionVariable(stepExecution,"edifactOrderAsString");
 
+    if (port.isEmpty()) {
+      throw new EdifactException("Export configuration is incomplete, missing FTP/SFTP Port");
+    }
+
     if (ediExportConfig.getEdiFtp().getFtpFormat().equals(EdiFtp.FtpFormatEnum.SFTP)) {
-      sftpObjectStorageRepository.upload(username, password, host, port, folder, filename, fileContent);
+      sftpObjectStorageRepository.upload(username, password, host, port.get(), folder, filename, fileContent);
     }
     else {
       ftpObjectStorageRepository.login(host, username,password);

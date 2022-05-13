@@ -5,6 +5,10 @@
     {
       "id": "users",
       "version": "15.4"
+    },
+    {
+      "id": "custom-fields",
+      "version": "2.0"
     }
   ],
   "provides": [
@@ -23,7 +27,9 @@
             "addresstypes.item.get",
             "proxiesfor.item.get",
             "departments.item.get",
-            "data-export.job.item.get"
+            "data-export.job.item.get",
+            "okapi.proxy.tenants.modules.list",
+            "user-settings.custom-fields.collection.get"
           ]
         },
         {

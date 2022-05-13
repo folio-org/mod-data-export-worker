@@ -38,4 +38,5 @@ components:
       $ref: '../../../../folio-export-common/schemas/acquisitions/scheduleParameters.json#/ScheduleParameters'
     vendorEdiOrdersExportConfig:
       $ref: '../../../../folio-export-common/schemas/acquisitions/vendorEdiOrdersExportConfig.json#/VendorEdiOrdersExportConfig'
-
+    eHoldingsExportConfig:
+      $ref: '../../../../folio-export-common/schemas/eholdings/eHoldingsExportConfig.json#/EHoldingsExportConfig'

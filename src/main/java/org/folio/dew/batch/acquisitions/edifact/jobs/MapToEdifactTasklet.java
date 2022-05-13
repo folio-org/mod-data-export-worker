@@ -41,6 +41,20 @@ public class MapToEdifactTasklet implements Tasklet {
     log.info("Execute MapToEdifactTasklet");
     var jobParameters = chunkContext.getStepContext().getJobParameters();
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
+    validateEdiExportConfig(ediExportConfig);
+
+    List<CompositePurchaseOrder> compOrders = getCompPOList(ediExportConfig);
+    // save poLineIds in memory
+    persistPoLineIds(chunkContext, compOrders);
+
+    String jobName = jobParameters.get(JobParameterNames.JOB_NAME).toString();
+    String edifactOrderAsString = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compOrders, ediExportConfig, jobName);
+    // save edifact file content in memory
+    ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), "edifactOrderAsString", edifactOrderAsString, "");
+    return RepeatStatus.FINISHED;
+  }
+
+  private void validateEdiExportConfig(VendorEdiOrdersExportConfig ediExportConfig) {
     var ediConfig = ediExportConfig.getEdiConfig();
     Optional<Integer> port = Optional.ofNullable(ediExportConfig.getEdiFtp().getFtpPort());
 
@@ -52,16 +66,6 @@ public class MapToEdifactTasklet implements Tasklet {
     if (port.isEmpty()) {
       throw new EdifactException("Export configuration is incomplete, missing FTP/SFTP Port");
     }
-
-    List<CompositePurchaseOrder> compOrders = getCompPOList(ediExportConfig);
-    // save poLineIds in memory
-    persistPoLineIds(chunkContext, compOrders);
-
-    String jobName = jobParameters.get(JobParameterNames.JOB_NAME).toString();
-    String edifactOrderAsString = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compOrders, ediExportConfig, jobName);
-    // save edifact file content in memory
-    ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), "edifactOrderAsString", edifactOrderAsString, "");
-    return RepeatStatus.FINISHED;
   }
 
   private List<CompositePurchaseOrder> getCompPOList(VendorEdiOrdersExportConfig ediConfig) {

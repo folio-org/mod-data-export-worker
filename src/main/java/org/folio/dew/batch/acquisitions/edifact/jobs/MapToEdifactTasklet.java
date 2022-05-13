@@ -25,8 +25,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
-import static org.apache.commons.lang3.ObjectUtils.isEmpty;
-
 @RequiredArgsConstructor
 @Component
 @StepScope
@@ -44,8 +42,8 @@ public class MapToEdifactTasklet implements Tasklet {
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
     var ediConfig = ediExportConfig.getEdiConfig();
 
-    if (isEmpty(ediConfig.getLibEdiCode()) || ediConfig.getLibEdiType() == null
-      || isEmpty(ediConfig.getVendorEdiCode()) || ediConfig.getVendorEdiType() == null) {
+    if (StringUtils.isEmpty(ediConfig.getLibEdiCode()) || ediConfig.getLibEdiType() == null
+      || StringUtils.isEmpty(ediConfig.getVendorEdiCode()) || ediConfig.getVendorEdiType() == null) {
       throw new EdifactException("Export configuration is incomplete, missing library EDI code/Vendor EDI code");
     }
 

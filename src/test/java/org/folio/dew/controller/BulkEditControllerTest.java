@@ -372,7 +372,7 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andExpect(status().isOk())
       .andReturn();
 
-    assertThat(result.getResponse().getContentAsString(), equalTo("2"));
+    assertThat(result.getResponse().getContentAsString(), equalTo("3"));
   }
 
   @Test

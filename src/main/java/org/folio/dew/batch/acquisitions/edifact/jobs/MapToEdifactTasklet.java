@@ -1,6 +1,7 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -41,10 +42,15 @@ public class MapToEdifactTasklet implements Tasklet {
     var jobParameters = chunkContext.getStepContext().getJobParameters();
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
     var ediConfig = ediExportConfig.getEdiConfig();
+    Optional<Integer> port = Optional.ofNullable(ediExportConfig.getEdiFtp().getFtpPort());
 
     if (StringUtils.isEmpty(ediConfig.getLibEdiCode()) || ediConfig.getLibEdiType() == null
       || StringUtils.isEmpty(ediConfig.getVendorEdiCode()) || ediConfig.getVendorEdiType() == null) {
       throw new EdifactException("Export configuration is incomplete, missing library EDI code/Vendor EDI code");
+    }
+
+    if (port.isEmpty()) {
+      throw new EdifactException("Export configuration is incomplete, missing FTP/SFTP Port");
     }
 
     List<CompositePurchaseOrder> compOrders = getCompPOList(ediExportConfig);

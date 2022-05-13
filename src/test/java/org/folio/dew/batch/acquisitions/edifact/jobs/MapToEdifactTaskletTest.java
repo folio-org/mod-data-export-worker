@@ -64,10 +64,21 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
   }
 
   @Test
-  void testShouldReturnEdifactException() throws Exception {
+  void testShouldReturnEdifactExceptionBecauseRequiredFieldsIsNull() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
-    JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getNotFullJobParameters());
+    JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParametersWithoutRequiredFields());
     String expectedMessage = "Export configuration is incomplete, missing library EDI code/Vendor EDI code";
+    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0).getStatus().getBatchStatus().name();
+
+    assertTrue(jobExecution.getExitStatus().getExitDescription().contains(expectedMessage));
+    assertEquals("FAILED", status);
+  }
+
+  @Test
+  void testShouldReturnEdifactExceptionBecauseFtpPortIsNull() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParametersWithoutPort());
+    String expectedMessage = "Export configuration is incomplete, missing FTP/SFTP Port";
     var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0).getStatus().getBatchStatus().name();
 
     assertTrue(jobExecution.getExitStatus().getExitDescription().contains(expectedMessage));
@@ -116,14 +127,24 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
     return paramsBuilder.toJobParameters();
   }
 
-  private JobParameters getNotFullJobParameters() throws IOException {
+  private JobParameters getJobParametersWithoutRequiredFields() throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
-    JSONObject edifactOrdersExportJson = new JSONObject(getMockData("edifact/edifactOrdersExportWithoutRequiredFilds.json"));
+    JSONObject edifactOrdersExportJson = new JSONObject(getMockData("edifact/edifactOrdersExportWithoutRequiredFields.json"));
     edifactOrdersExportJson.put("isDefaultConfig", false);
 
     paramsBuilder.addString("jobId", UUID.randomUUID().toString());
     paramsBuilder.addString("edifactOrdersExport", edifactOrdersExportJson.toString());
     paramsBuilder.addString("jobName", "000015");
+
+    return paramsBuilder.toJobParameters();
+  }
+
+  private JobParameters getJobParametersWithoutPort() throws IOException {
+    JobParametersBuilder paramsBuilder = new JobParametersBuilder();
+    JSONObject edifactOrdersExportJson = new JSONObject(getMockData("edifact/edifactOrdersExportWithoutPort.json"));
+
+    paramsBuilder.addString("edifactOrdersExport", edifactOrdersExportJson.toString());
+    paramsBuilder.addString("jobId", UUID.randomUUID().toString());
 
     return paramsBuilder.toJobParameters();
   }

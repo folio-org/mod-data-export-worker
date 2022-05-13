@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
-import static org.codehaus.plexus.util.StringUtils.isEmpty;
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 
 @RequiredArgsConstructor
 @Component

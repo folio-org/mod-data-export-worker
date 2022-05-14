@@ -40,7 +40,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
   @Override
   public UserFormat process(User user) {
     return UserFormat.builder()
-      .userName(user.getUsername())
+      .username(user.getUsername())
       .id(user.getId())
       .externalSystemId(user.getExternalSystemId())
       .barcode(user.getBarcode())

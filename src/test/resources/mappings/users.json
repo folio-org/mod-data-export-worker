@@ -55,7 +55,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/users?query=barcode%3D%3D123&limit=1"
+        "urlPattern": "/users\\?query=(barcode|id|username|externalSystemId)%3D%3D123&limit=1"
       },
       "response": {
         "status": 200,
@@ -68,7 +68,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/users?query=barcode%3D%3D456&limit=1"
+        "urlPattern": "/users\\?query=(barcode|id|username|externalSystemId)%3D%3D456&limit=1"
       },
       "response": {
         "status": 200,
@@ -81,7 +81,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/users?query=barcode%3D%3D789&limit=1"
+        "urlPattern": "/users\\?query=(barcode|id|username|externalSystemId)%3D%3D789&limit=1"
       },
       "response": {
         "status": 200,

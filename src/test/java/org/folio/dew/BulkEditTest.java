@@ -25,6 +25,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -76,6 +77,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String ITEM_RECORD_CSV_INVALID_NOTES = "src/test/resources/upload/bulk_edit_item_record_invalid_notes.csv";
   private static final String ITEM_RECORD_CSV_INVALID_CIRCULATION_NOTES = "src/test/resources/upload/bulk_edit_item_record_invalid_circulation_notes.csv";
   private static final String ITEM_RECORD_IN_APP_UPDATED = "src/test/resources/upload/bulk_edit_item_record_in_app_updated.csv";
+  private static final String ITEM_RECORD_IN_APP_UPDATED_COPY = "storage/bulk_edit_item_record_in_app_updated.csv";
   private static final String USER_RECORD_ROLLBACK_CSV = "test-directory/bulk_edit_rollback.csv";
   private static final String BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/barcodesSomeNotFound.csv";
   private static final String ITEM_BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/item_barcodes_some_not_found.csv";
@@ -257,9 +259,12 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run item records update when in-app updates available - successful")
   @SneakyThrows
   void shouldUseInAppUpdatesFileIfPresent() {
+    // create a copy of file since it will be deleted and consequent test runs will fail
+    Files.copy(Path.of(ITEM_RECORD_IN_APP_UPDATED), Path.of(ITEM_RECORD_IN_APP_UPDATED_COPY), StandardCopyOption.REPLACE_EXISTING);
+
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateItemRecordsJob);
     var builder = new JobParametersBuilder(prepareJobParameters(BULK_EDIT_UPDATE, ITEM, BARCODE, ITEM_RECORD_CSV, true));
-    builder.addString(UPDATED_FILE_NAME, ITEM_RECORD_IN_APP_UPDATED);
+    builder.addString(UPDATED_FILE_NAME, ITEM_RECORD_IN_APP_UPDATED_COPY);
     JobExecution jobExecution = testLauncher.launchJob(builder.toJobParameters());
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);

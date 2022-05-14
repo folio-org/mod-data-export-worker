@@ -124,7 +124,7 @@ public class BulkEditParseService {
 
   private void populateUserFields(User user, UserFormat userFormat) {
     user.setId(userFormat.getId());
-    user.setUsername(userFormat.getUserName());
+    user.setUsername(userFormat.getUsername());
     user.setExternalSystemId(isBlank(userFormat.getExternalSystemId()) ? null : userFormat.getExternalSystemId());
     user.setBarcode(isBlank(userFormat.getBarcode()) ? null : userFormat.getBarcode());
     user.setActive(getIsActive(userFormat));

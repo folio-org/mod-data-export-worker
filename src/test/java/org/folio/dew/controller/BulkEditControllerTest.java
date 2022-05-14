@@ -6,6 +6,7 @@ import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_A
 import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
@@ -184,15 +185,38 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @SneakyThrows
-  @ParameterizedTest
-  @CsvSource({"BULK_EDIT_IDENTIFIERS,barcode==(123 OR 456 OR 789)",
-    "BULK_EDIT_QUERY,(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName"})
-  void shouldReturnCompleteUserPreview(String exportType, String query) {
-
+  @Test
+  void shouldReturnCompleteUserPreviewForQuery() {
+    var query = "(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName";
     when(userClient.getUserByQuery(query, 3)).thenReturn(buildUserCollection());
 
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType), USER, BARCODE));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_QUERY, USER, BARCODE));
+
+    var headers = defaultHeaders();
+
+    var response = mockMvc.perform(get(format(PREVIEW_USERS_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(3)))
+      .andExpect(status().isOk());
+
+    var users = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), UserCollection.class);
+    assertThat(users.getTotalRecords(), equalTo(3));
+    assertThat(users.getUsers(), hasSize(3));
+  }
+
+  @SneakyThrows
+  @ParameterizedTest
+  @EnumSource(value = IdentifierType.class,
+    names = {"ID", "BARCODE", "EXTERNAL_SYSTEM_ID", "USER_NAME"},
+    mode = EnumSource.Mode.INCLUDE)
+  void shouldReturnCompleteUserPreviewForAnyIdentifier(IdentifierType identifierType) {
+
+    var query = resolveIdentifier(identifierType.getValue()) + "==(123 OR 456 OR 789)";
+    when(userClient.getUserByQuery(query, 3)).thenReturn(buildUserCollection());
+
+    var jobId = UUID.randomUUID();
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, identifierType));
 
     var headers = defaultHeaders();
 
@@ -207,7 +231,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @EnumSource(IdentifierType.class)
+  @EnumSource(value = IdentifierType.class, names = { "EXTERNAL_SYSTEM_ID", "USER_NAME" }, mode = EnumSource.Mode.EXCLUDE)
   @SneakyThrows
   void shouldReturnCompleteItemPreview(IdentifierType identifierType) {
 
@@ -280,7 +304,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @EnumSource(IdentifierType.class)
+  @EnumSource(value = IdentifierType.class, names = { "EXTERNAL_SYSTEM_ID", "USER_NAME" }, mode = EnumSource.Mode.EXCLUDE)
   @SneakyThrows
   void shouldReturnCompleteItemPreviewWithDifferentIdentifiers(IdentifierType identifierType) {
 

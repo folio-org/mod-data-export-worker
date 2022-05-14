@@ -18,7 +18,7 @@ public class UserFormat {
   private static final Map<String, String> map = new LinkedHashMap<>();
 
   static {
-    map.put("userName", "User name");
+    map.put("username", "User name");
     map.put("id", "User id");
     map.put("externalSystemId", "External system id");
     map.put("barcode", "Barcode");
@@ -47,7 +47,7 @@ public class UserFormat {
 
   @CsvBindByName(column = "User name")
   @CsvBindByPosition(position = 0)
-  private String userName;
+  private String username;
 
   @CsvBindByName(column = "User id")
   @CsvBindByPosition(position = 1)

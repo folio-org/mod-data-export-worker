@@ -201,7 +201,7 @@ public class BulkEditController implements JobIdApi {
         log.info("Launching bulk edit user identifiers job.");
         exportJobManager.launchJob(jobLaunchRequest);
       }
-      return new ResponseEntity<>(Long.toString(countLines(uploadedPath)), HttpStatus.OK);
+      return new ResponseEntity<>(Long.toString(countLines(uploadedPath, isBulkEditUpdate(jobCommand))), HttpStatus.OK);
     } catch (Exception e) {
       String errorMessage = format(FILE_UPLOAD_ERROR, e.getMessage());
       log.error(errorMessage);
@@ -257,10 +257,10 @@ public class BulkEditController implements JobIdApi {
     jobCommand.setJobParameters(paramsBuilder.toJobParameters());
   }
 
-  private long countLines(Path path) throws IOException {
+  private long countLines(Path path, boolean skipHeaders) throws IOException {
     try (var lines = Files.lines(path)) {
       var numLines = lines.count();
-      return numLines <= 1 ? 0 : numLines - 1;
+      return skipHeaders ? numLines <= 1 ? 0 : numLines - 1 : numLines;
     }
   }
 

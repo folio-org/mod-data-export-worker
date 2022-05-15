@@ -1,5 +1,6 @@
 package org.folio.dew.client;
 
+import feign.Headers;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +12,7 @@ import org.folio.dew.domain.dto.eholdings.EResources;
 import org.folio.dew.domain.dto.eholdings.EResource;
 
 @FeignClient(name = "eholdings")
+@Headers("Accept: application/vnd.api+json")
 public interface KbEbscoClient {
 
   @GetMapping(value = "/packages/{packageId}", produces = MediaType.APPLICATION_JSON_VALUE)

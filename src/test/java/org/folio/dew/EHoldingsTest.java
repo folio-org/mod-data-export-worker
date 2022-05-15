@@ -5,15 +5,21 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
+import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACKAGE;
+import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESOURCE;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -26,6 +32,7 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 
+import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
@@ -45,7 +52,7 @@ class EHoldingsTest extends BaseBatchTest {
   void eHoldingsJobResourceTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
 
-    final JobParameters jobParameters = prepareJobParameters(RESOURCE_ID, "RESOURCE");
+    final JobParameters jobParameters = prepareJobParameters(RESOURCE_ID, RESOURCE);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_RESOURCE_OUTPUT);
@@ -63,7 +70,7 @@ class EHoldingsTest extends BaseBatchTest {
   void eHoldingsJobPackageTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
 
-    final JobParameters jobParameters = prepareJobParameters(PACKAGE_ID, "PACKAGE");
+    final JobParameters jobParameters = prepareJobParameters(PACKAGE_ID, PACKAGE);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_PACKAGE_OUTPUT);
@@ -85,13 +92,16 @@ class EHoldingsTest extends BaseBatchTest {
     assertFileEquals(expectedCharges, actualChargeFeesFinesOutput);
   }
 
-  private JobParameters prepareJobParameters(String id, String recordType) {
+  private JobParameters prepareJobParameters(String id, EHoldingsExportConfig.RecordTypeEnum recordType) throws JsonProcessingException {
+    var eHoldingsExportConfig = new EHoldingsExportConfig();
+    eHoldingsExportConfig.setRecordId(id);
+    eHoldingsExportConfig.setRecordType(recordType);
+    eHoldingsExportConfig.setTitleFields(getClassFields(EHoldingsResourceExportFormat.class));
+    eHoldingsExportConfig.setPackageFields(Collections.emptyList());
+    eHoldingsExportConfig.setTitleSearchFilters("filter[name]=*");
+
     Map<String, JobParameter> params = new HashMap<>();
-    params.put("recordId", new JobParameter(id));
-    params.put("recordType", new JobParameter(recordType));
-    params.put("titleFields", new JobParameter(getClassFields(EHoldingsResourceExportFormat.class)));
-    params.put("packageFields", new JobParameter(""));
-    params.put("titleSearchFilters", new JobParameter("filter[name]=*"));
+    params.put("eHoldingsExportConfig", new JobParameter(objectMapper.writeValueAsString(eHoldingsExportConfig)));
 
     String jobId = UUID.randomUUID().toString();
     params.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
@@ -111,9 +121,9 @@ class EHoldingsTest extends BaseBatchTest {
     return new JobParameters(params);
   }
 
-  private String getClassFields(Class clazz) {
+  private List<String> getClassFields(Class clazz) {
     return Arrays.stream(clazz.getDeclaredFields())
       .map(Field::getName)
-      .collect(Collectors.joining(","));
+      .collect(Collectors.toList());
   }
 }

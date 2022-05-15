@@ -1,7 +1,9 @@
 package org.folio.dew.batch.eholdings;
 
-import java.util.StringJoiner;
+import java.util.ArrayList;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.batch.core.Job;
@@ -21,6 +23,7 @@ import org.springframework.core.io.FileSystemResource;
 
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.client.KbEbscoClient;
+import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
 import org.folio.dew.domain.dto.ExportType;
 
@@ -34,6 +37,7 @@ public class EHoldingsJobConfig {
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
   private final KbEbscoClient kbEbscoClient;
+  private final ObjectMapper objectMapper;
 
   @Bean
   public Job getEHoldingsJob(
@@ -52,8 +56,8 @@ public class EHoldingsJobConfig {
 
   @Bean("getEHoldingsStep")
   public Step getEHoldingsStep(
-    @Qualifier("eHoldingsReader") EHoldingsItemReader eHoldingsCsvItemReader,
     @Qualifier("eHoldingsWriter") FlatFileItemWriter<EHoldingsResourceExportFormat> flatFileItemWriter,
+    EHoldingsItemReader eHoldingsCsvItemReader,
     EHoldingsItemProcessor eHoldingsItemProcessor,
     EHoldingsStepListener eHoldingsStepListener) {
     return stepBuilderFactory
@@ -69,30 +73,31 @@ public class EHoldingsJobConfig {
   @Bean("eHoldingsReader")
   @StepScope
   public EHoldingsItemReader reader(
-    @Value("#{jobParameters['titleFields']}") String titleFields) {
-    return new EHoldingsItemReader(kbEbscoClient, titleFields);
+    @Value("#{jobParameters['eHoldingsExportConfig']}") String exportConfigStr) throws JsonProcessingException {
+    var eHoldingsExportConfig = objectMapper.readValue(exportConfigStr, EHoldingsExportConfig.class);
+    return new EHoldingsItemReader(kbEbscoClient, eHoldingsExportConfig);
   }
 
   @Bean("eHoldingsWriter")
   @StepScope
   public FlatFileItemWriter<EHoldingsResourceExportFormat> writer(
     @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
-    @Value("#{jobParameters['packageFields']}") String packageFields,
-    @Value("#{jobParameters['titleFields']}") String titleFields) {
-    StringJoiner names = new StringJoiner(",");
-    if (!packageFields.isBlank()) {
-      names.add(packageFields);
-    }
-    if (!titleFields.isBlank()) {
-      names.add(titleFields);
-    }
+    @Value("#{jobParameters['eHoldingsExportConfig']}") String exportConfigStr) throws JsonProcessingException {
+    var eHoldingsExportConfig = objectMapper.readValue(exportConfigStr, EHoldingsExportConfig.class);
+
+    var exportFields = new ArrayList<String>();
+    exportFields.addAll(eHoldingsExportConfig.getPackageFields());
+    exportFields.addAll(eHoldingsExportConfig.getTitleFields());
+
+    var headers = String.join(",", exportFields);
+
     return new FlatFileItemWriterBuilder<EHoldingsResourceExportFormat>()
       .name("eHoldingsWriter")
       .resource(new FileSystemResource(tempOutputFilePath))
       .delimited()
       .delimiter(",")
-      .names(names.toString().split(","))
-      .headerCallback(writer -> writer.write(names.toString()))
+      .names(exportFields.toArray(String[]::new))
+      .headerCallback(writer -> writer.write(headers))
       .build();
   }
 }

@@ -7,11 +7,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 
 import org.folio.dew.batch.CsvItemReader;
 import org.folio.dew.client.KbEbscoClient;
+import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum;
 import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
 import org.folio.dew.domain.dto.eholdings.EPackage;
@@ -22,20 +22,23 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
   private static final int QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST = 20;
   private static final String ACCESS_TYPE_INCLUDE = "accessType";
 
-  private final String titleFields;
   private final KbEbscoClient kbEbscoClient;
   private final EHoldingsToExportFormatMapper mapper;
+  private final RecordTypeEnum recordType;
+  private final List<String> titleFields;
+  private final String titleSearchFilters;
+  private final String recordId;
 
-  private String recordId;
-  private String titleSearchFilters;
-  private RecordTypeEnum recordType;
   private EPackage ePackage;
 
-  protected EHoldingsItemReader(KbEbscoClient kbEbscoClient, String titleFields) {
-    super(0L, 1L, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST);
-    this.kbEbscoClient = kbEbscoClient;
-    this.titleFields = titleFields;
+  protected EHoldingsItemReader(KbEbscoClient kbEbscoClient, EHoldingsExportConfig exportConfig) {
+    super(1L, 1L, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST);
     this.mapper = new EHoldingsToExportFormatMapper();
+    this.kbEbscoClient = kbEbscoClient;
+    this.recordId = exportConfig.getRecordId();
+    this.recordType = exportConfig.getRecordType();
+    this.titleFields = exportConfig.getTitleFields();
+    this.titleSearchFilters = exportConfig.getTitleSearchFilters();
   }
 
   @Override
@@ -49,7 +52,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
       return buildEHoldingsExportFormat(ePackage, List.of(resourceData));
     }
 
-    if (recordType == PACKAGE && !titleFields.isBlank()) {
+    if (recordType == PACKAGE && !titleFields.isEmpty()) {
       var packageResources = kbEbscoClient
         .getResourcesByPackageId(recordId, titleSearchFilters, ACCESS_TYPE_INCLUDE, offset, limit);
 
@@ -65,10 +68,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
   }
 
   @BeforeStep
-  public void readPackage(StepExecution stepExecution) {
-    this.recordId = getContextValue(stepExecution, "recordId");
-    this.titleSearchFilters = getContextValue(stepExecution, "titleSearchFilters");
-    this.recordType = RecordTypeEnum.valueOf(getContextValue(stepExecution, "recordType"));
+  public void readPackage() {
     if (recordType == RESOURCE) {
       var packageId = recordId.split("-\\d+$")[0];
       this.ePackage = kbEbscoClient.getPackageById(packageId, ACCESS_TYPE_INCLUDE);
@@ -93,9 +93,5 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
     } else {
       return 0;
     }
-  }
-
-  private String getContextValue(StepExecution stepExecution, String name) {
-    return stepExecution.getJobParameters().getString(name);
   }
 }

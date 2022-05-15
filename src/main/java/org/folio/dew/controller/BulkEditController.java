@@ -201,7 +201,7 @@ public class BulkEditController implements JobIdApi {
         log.info("Launching bulk edit user identifiers job.");
         exportJobManager.launchJob(jobLaunchRequest);
       }
-      return new ResponseEntity<>(Long.toString(countLines(uploadedPath, isBulkEditUpdate(jobCommand))), HttpStatus.OK);
+      return new ResponseEntity<>(Long.toString(countLines(uploadedPath)), HttpStatus.OK);
     } catch (Exception e) {
       String errorMessage = format(FILE_UPLOAD_ERROR, e.getMessage());
       log.error(errorMessage);
@@ -257,9 +257,10 @@ public class BulkEditController implements JobIdApi {
     jobCommand.setJobParameters(paramsBuilder.toJobParameters());
   }
 
-  private long countLines(Path path, boolean skipHeaders) throws IOException {
+  private long countLines(Path path) throws IOException {
     try (var lines = Files.lines(path)) {
-      return skipHeaders ? lines.count() - 1 : lines.count();
+      var numLines = lines.count();
+      return numLines <= 1 ? 0 : numLines - 1;
     }
   }
 
@@ -369,12 +370,8 @@ public class BulkEditController implements JobIdApi {
   }
 
   private <T> void processBulkEditUpdateUploadCSV(Path uploadedPath, MultipartFile file, Class<T> clazz) throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
-    List<T> csvLines = getDifferenceBetweenInitialAndEditedRecordsCSV(file.getInputStream(), clazz);
-    if (csvLines.isEmpty()) { // If no records changed, just write column headers.
-      Files.write(uploadedPath, clazz == ItemFormat.class ? ItemFormat.getItemColumnHeaders().getBytes() : UserFormat.getUserColumnHeaders().getBytes());
-    } else {
-      CsvHelper.saveRecordsToCsv(csvLines, clazz, uploadedPath.toFile().getAbsolutePath());
-    }
+    List<T> updatedRecords = getDifferenceBetweenInitialAndEditedRecordsCSV(file.getInputStream(), clazz);
+    CsvHelper.saveRecordsToCsv(updatedRecords, clazz, uploadedPath.toFile().getAbsolutePath());
   }
 
   private <T> List<T> getDifferenceBetweenInitialAndEditedRecordsCSV(InputStream edited, Class<T> clazz) throws IOException {

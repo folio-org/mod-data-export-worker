@@ -86,8 +86,9 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       if (jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue())) {
         String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
         if (StringUtils.isNotBlank(downloadErrorLink)) {
-          jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, PATHS_DELIMITER + downloadErrorLink);
-        }
+          var isChangedRecordsLinkPresent = jobExecution.getExecutionContext().containsKey(OUTPUT_FILES_IN_STORAGE);
+          jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE,
+            (isChangedRecordsLinkPresent ? jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE) : EMPTY) + PATHS_DELIMITER + downloadErrorLink);        }
       }
       processJobAfter(jobId, jobParameters);
     } else {
@@ -117,7 +118,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
   private void handleProcessingErrors(JobExecution jobExecution, String jobId) {
     String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
-    jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution) + (isNull(downloadErrorLink) ? "" : ";" + downloadErrorLink));
+    jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution) + (isNull(downloadErrorLink) ? EMPTY : PATHS_DELIMITER + downloadErrorLink));
   }
 
   private void handleProcessingChangedRecords(JobExecution jobExecution) {
@@ -212,16 +213,16 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
   private String saveResult(JobExecution jobExecution) {
     String path = jobExecution.getJobParameters().getString(isBulkEditContentUpdateJob(jobExecution) ? UPDATED_FILE_NAME : TEMP_OUTPUT_FILE_PATH);
+    if (Files.notExists(Path.of(path))) {
+      path += CSV_EXTENSION;
+    }
     try {
       if (noRecordsFound(path)) {
         return EMPTY;
       }
-      var fileNameBulkEditUpdate = path + (isBulkEditContentUpdateJob(jobExecution) ? EMPTY : CSV_EXTENSION);
       return repository.objectWriteResponseToPresignedObjectUrl(
-        repository.uploadObject(FilenameUtils.getName(path) + CSV_EXTENSION,
-          isBulkEditUpdateJob(jobExecution) ? fileNameBulkEditUpdate : path,
-          isBulkEditUpdateJob(jobExecution) ? Path.of(fileNameBulkEditUpdate).getFileName().toString().replace(MATCHED_RECORDS, CHANGED_RECORDS).replace(UPDATED_PREFIX, EMPTY) : null,
-          "text/csv", true));
+        repository.uploadObject(FilenameUtils.getName(!path.endsWith(CSV_EXTENSION) ? path + CSV_EXTENSION : path),
+          path, prepareDownloadFilename(jobExecution, path), "text/csv", true));
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }
@@ -229,7 +230,18 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
   private boolean noRecordsFound(String path) throws IOException {
     Path pathToFoundRecords = Path.of(path);
-    return Files.exists(pathToFoundRecords) && Files.lines(pathToFoundRecords).count() == 1;
+    return Files.exists(pathToFoundRecords) && Files.lines(pathToFoundRecords).count() <= 1;
+  }
+
+  private String prepareDownloadFilename(JobExecution jobExecution, String path) {
+    path = FilenameUtils.getName(path);
+    if (isBulkEditUpdateJob(jobExecution)) {
+      path = path.replace(MATCHED_RECORDS, CHANGED_RECORDS).replace(UPDATED_PREFIX, EMPTY);
+    }
+    if (!path.endsWith(CSV_EXTENSION)) {
+      path += CSV_EXTENSION;
+    }
+    return path;
   }
 
 }

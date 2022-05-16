@@ -260,7 +260,10 @@ public class BulkEditController implements JobIdApi {
   private long countLines(Path path, boolean skipHeaders) throws IOException {
     try (var lines = Files.lines(path)) {
       var numLines = lines.count();
-      return skipHeaders ? numLines <= 1 ? 0 : numLines - 1 : numLines;
+      if (skipHeaders) {
+        return numLines <= 1 ? 0 : numLines - 1;
+      }
+      return numLines;
     }
   }
 

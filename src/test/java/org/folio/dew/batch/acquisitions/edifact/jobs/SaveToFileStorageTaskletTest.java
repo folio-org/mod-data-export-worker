@@ -2,6 +2,7 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -51,7 +52,6 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
       .name();
     assertEquals("COMPLETED", status);
   }
-
 
   private JobParameters getJobParameters() throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();

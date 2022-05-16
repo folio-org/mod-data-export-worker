@@ -17,13 +17,6 @@ public class EHoldingsResourceExportFormat {
   private String packageProxy;
   private String packageAccessStatusType;
   private String packageTags;
-  private String packageAgreementStartDate;
-  private String packageAgreementName;
-  private String packageAgreementStatus;
-  private String packageNoteLastUpdatedDate;
-  private String packageNoteType;
-  private String packageNoteTitle;
-  private String packageNoteDetails;
 
   //Title fields
   private String titleId;

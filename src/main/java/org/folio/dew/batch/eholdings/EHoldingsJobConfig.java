@@ -102,7 +102,6 @@ public class EHoldingsJobConfig {
       .name("eHoldingsWriter")
       .resource(new FileSystemResource(tempOutputFilePath))
       .delimited()
-      .delimiter(",")
       .names(exportFields.toArray(String[]::new))
       .headerCallback(writer -> writer.write(headers))
       .build();

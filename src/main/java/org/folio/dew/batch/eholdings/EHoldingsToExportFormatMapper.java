@@ -45,9 +45,9 @@ public class EHoldingsToExportFormatMapper {
     var packageAtr = ePackage.getData().getAttributes();
 
     exportFormat.setProviderId(packageAtr.getProviderId().toString());
-    exportFormat.setProviderName(packageAtr.getProviderName());
+    exportFormat.setProviderName(mapName(packageAtr.getProviderName()));
     exportFormat.setPackageId(ePackage.getData().getId());
-    exportFormat.setPackageName(packageAtr.getName());
+    exportFormat.setPackageName(mapName(packageAtr.getName()));
     exportFormat.setPackageType(packageAtr.getPackageType());
     exportFormat.setPackageContentType(packageAtr.getContentType().getValue());
     exportFormat.setPackageCustomCoverage(mapCoverage(packageAtr.getCustomCoverage()));
@@ -62,7 +62,7 @@ public class EHoldingsToExportFormatMapper {
     var resourceAtr = data.getAttributes();
 
     exportFormat.setTitleId(resourceAtr.getTitleId().toString());
-    exportFormat.setTitleName(resourceAtr.getName());
+    exportFormat.setTitleName(mapName(resourceAtr.getName()));
     exportFormat.setAlternateTitles(mapAlternateTitles(resourceAtr.getAlternateTitles()));
     exportFormat.setTitleHoldingsStatus(mapHoldingsStatus(resourceAtr.getIsSelected()));
     exportFormat.setPublicationType(resourceAtr.getPublicationType().getValue());
@@ -118,6 +118,10 @@ public class EHoldingsToExportFormatMapper {
       return "-";
     }
     return accessType.getAttributes().getName();
+  }
+
+  private String mapName(String name) {
+    return String.format("\"%s\"", name);
   }
 
   private String mapTitleType(boolean isCustom) {

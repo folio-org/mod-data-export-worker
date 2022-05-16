@@ -14,13 +14,12 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.item.file.FlatFileItemWriter;
-import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
 
+import org.folio.dew.batch.CsvWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.client.KbEbscoClient;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
@@ -97,14 +96,8 @@ public class EHoldingsJobConfig {
     }
 
     var headers = String.join(",", exportFields);
+    var names = exportFields.toArray(String[]::new);
 
-    return new FlatFileItemWriterBuilder<EHoldingsResourceExportFormat>()
-      .name("eHoldingsWriter")
-      .resource(new FileSystemResource(tempOutputFilePath))
-      .delimited()
-      .delimiter(",")
-      .names(exportFields.toArray(String[]::new))
-      .headerCallback(writer -> writer.write(headers))
-      .build();
+    return new CsvWriter<>(tempOutputFilePath, headers, names, (field, i) -> field);
   }
 }

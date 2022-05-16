@@ -86,8 +86,15 @@ public class EHoldingsJobConfig {
     var eHoldingsExportConfig = objectMapper.readValue(exportConfigStr, EHoldingsExportConfig.class);
 
     var exportFields = new ArrayList<String>();
-    exportFields.addAll(eHoldingsExportConfig.getPackageFields());
-    exportFields.addAll(eHoldingsExportConfig.getTitleFields());
+    if (eHoldingsExportConfig.getPackageFields() != null) {
+      exportFields.addAll(eHoldingsExportConfig.getPackageFields());
+    }
+    if (eHoldingsExportConfig.getTitleFields() != null) {
+      exportFields.addAll(eHoldingsExportConfig.getTitleFields());
+    }
+    if (exportFields.isEmpty()) {
+      throw new IllegalArgumentException("Export fields is empty");
+    }
 
     var headers = String.join(",", exportFields);
 

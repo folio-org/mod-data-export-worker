@@ -20,6 +20,7 @@ import org.folio.dew.domain.dto.eholdings.ResourcesData;
 public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFormat> {
 
   private static final int QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST = 20;
+  private static final int PAGE_OFFSET_STEP = 1;
   private static final String ACCESS_TYPE_INCLUDE = "accessType";
 
   private final KbEbscoClient kbEbscoClient;
@@ -33,6 +34,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
 
   protected EHoldingsItemReader(KbEbscoClient kbEbscoClient, EHoldingsExportConfig exportConfig) {
     super(1L, 1L, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST);
+    setOffsetStep(PAGE_OFFSET_STEP);
     this.mapper = new EHoldingsToExportFormatMapper();
     this.kbEbscoClient = kbEbscoClient;
     this.recordId = exportConfig.getRecordId();

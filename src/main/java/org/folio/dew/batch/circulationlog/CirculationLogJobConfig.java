@@ -106,9 +106,8 @@ public class CirculationLogJobConfig {
   @Bean("circulationLog")
   @StepScope
   public FlatFileItemWriter<CirculationLogExportFormat> writer(
-      @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath,
-      @Value("#{stepExecutionContext['partition']}") Long partition) {
-    return new CsvWriter<>(tempOutputFilePath, partition,
+      @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath) {
+    return new CsvWriter<>(tempOutputFilePath,
         "User barcode,Item barcode,Object,Circ action,Date,Service point,Source,Description",
         new String[] { "userBarcode", "items", "objectField", "action", "date", "servicePointId", "source", "description" },
         (field, i) -> field);

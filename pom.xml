@@ -40,7 +40,7 @@
         ${project.basedir}/src/main/resources/swagger.api/order-export.yaml
       </order-export.yaml.file>
 
-        <folio-spring-base.version>3.0.1</folio-spring-base.version>
+        <folio-spring-base.version>3.0.2</folio-spring-base.version>
         <folio-spring-tenant.version>1.0.0</folio-spring-tenant.version>
 
         <commons-io.version>2.11.0</commons-io.version>

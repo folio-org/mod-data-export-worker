@@ -13,6 +13,7 @@ public class Constants {
   public static final String MATCHED_RECORDS = "-Matched-Records-";
   public static final String CHANGED_RECORDS = "-Changed-Records-";
   public static final String UPDATED_PREFIX = "UPDATED-";
+  public static final String INITIAL_PREFIX = "INITIAL-";
   public static final String CSV_EXTENSION = ".csv";
 
   public static final String ARRAY_DELIMITER = ";";
@@ -26,8 +27,6 @@ public class Constants {
   public static final String ENTITY_TYPE = "entityType";
   public static final String IDENTIFIER_TYPE = "identifierType";
   public static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss.SSSX";
-  public static final String PREVIEW_USERS_QUERY = "previewUsersQuery";
-  public static final String PREVIEW_ITEMS_QUERY = "previewItemsQuery";
 
   public static final String LINE_BREAK = "\n";
   public static final String LINE_BREAK_REPLACEMENT = "\\n";

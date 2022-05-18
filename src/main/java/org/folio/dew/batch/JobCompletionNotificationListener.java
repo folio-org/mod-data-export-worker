@@ -16,6 +16,7 @@ import static org.folio.dew.utils.Constants.CHANGED_RECORDS;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
+import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 
 import java.io.File;
 import java.io.IOException;
@@ -134,7 +135,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     }
 
     var tempOutputFilePath = jobParameters.getString(TEMP_OUTPUT_FILE_PATH);
-    if (StringUtils.isBlank(tempOutputFilePath)) {
+    if (StringUtils.isBlank(tempOutputFilePath) || jobParameters.getString(EXPORT_TYPE).equals(BULK_EDIT_UPDATE.getValue())) {
       return;
     }
     String path = FilenameUtils.getFullPath(tempOutputFilePath);
@@ -213,36 +214,44 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
   }
 
   private String saveResult(JobExecution jobExecution) {
-    String path = jobExecution.getJobParameters().getString(isBulkEditContentUpdateJob(jobExecution) ? UPDATED_FILE_NAME : TEMP_OUTPUT_FILE_PATH);
-    if (Files.notExists(Path.of(path))) {
-      path += CSV_EXTENSION;
-    }
+    var path = preparePath(jobExecution);
     try {
       if (noRecordsFound(path)) {
-        return EMPTY;
+        return EMPTY; // To prevent downloading empty file.
       }
       return repository.objectWriteResponseToPresignedObjectUrl(
-        repository.uploadObject(FilenameUtils.getName(!path.endsWith(CSV_EXTENSION) ? path + CSV_EXTENSION : path),
-          path, prepareDownloadFilename(jobExecution, path), "text/csv", true));
+        repository.uploadObject(prepareObject(jobExecution, path), path, prepareDownloadFilename(jobExecution, path), "text/csv", !isBulkEditUpdateJob(jobExecution)));
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }
   }
 
+  private String preparePath(JobExecution jobExecution) {
+    if (isBulkEditContentUpdateJob(jobExecution)) {
+      return jobExecution.getJobParameters().getString(UPDATED_FILE_NAME);
+    } else if (isBulkEditUpdateJob(jobExecution)) {
+      return jobExecution.getJobParameters().getString(FILE_NAME);
+    }
+    return jobExecution.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH);
+  }
   private boolean noRecordsFound(String path) throws IOException {
     Path pathToFoundRecords = Path.of(path);
-    return Files.exists(pathToFoundRecords) && Files.lines(pathToFoundRecords).count() <= 1;
+    if (Files.notExists(pathToFoundRecords)) {
+      log.error("Path to found records does not exist: {}", path);
+      return true;
+    }
+    return Files.lines(pathToFoundRecords).count() <= 1;
+  }
+
+  private String prepareObject(JobExecution jobExecution, String path) {
+    return FilenameUtils.getName(path) + (!isBulkEditUpdateJob(jobExecution) ? CSV_EXTENSION : EMPTY);
   }
 
   private String prepareDownloadFilename(JobExecution jobExecution, String path) {
-    path = FilenameUtils.getName(path);
-    if (isBulkEditUpdateJob(jobExecution)) {
-      path = path.replace(MATCHED_RECORDS, CHANGED_RECORDS).replace(UPDATED_PREFIX, EMPTY);
+    if (isBulkEditIdentifiersJob(jobExecution)) {
+      return null;
     }
-    if (!path.endsWith(CSV_EXTENSION)) {
-      path += CSV_EXTENSION;
-    }
-    return path;
+    return FilenameUtils.getName(path).replace(MATCHED_RECORDS, CHANGED_RECORDS).replace(UPDATED_PREFIX, EMPTY);
   }
 
 }

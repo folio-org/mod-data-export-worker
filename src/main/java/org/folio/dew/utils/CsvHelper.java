@@ -17,7 +17,7 @@ import java.util.List;
 @UtilityClass
 public class CsvHelper {
   public static <T> List<T> readRecordsFromFile(String fileName, Class<T> clazz, boolean skipHeaders) throws IOException {
-    try (Reader fileReader = new FileReader(fileName)) {
+    try (var fileReader = new FileReader(fileName)) {
       return new CsvToBeanBuilder<T>(fileReader)
         .withType(clazz)
         .withSkipLines(skipHeaders ? 1 : 0)

@@ -95,9 +95,8 @@ public class MinIOObjectStorageRepository {
 
     if (isSourceShouldBeDeleted) {
       FileUtils.deleteQuietly(new File(filename));
+      log.info("Deleted temp file {}.", filename);
     }
-
-    log.info("Deleted temp file {}.", filename);
 
     return result;
   }

@@ -3,6 +3,7 @@ package org.folio.dew;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
@@ -21,6 +22,10 @@ import static org.springframework.batch.test.AssertFile.assertFileEquals;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -61,6 +66,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String USER_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_user_record_not_found.csv";
   private static final String ITEM_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_item_record_not_found.csv";
   private static final String USER_RECORD_CSV_BAD_CONTENT = "src/test/resources/upload/bulk_edit_user_record_bad_content.csv";
+  private static final String USER_RECORD_CSV_BAD_CUSTOM_FIELD = "src/test/resources/upload/bulk_edit_user_record_bad_custom_field.csv";
   private static final String ITEM_RECORD_CSV_BAD_CALL_NUMBER_TYPE = "src/test/resources/upload/bulk_edit_item_record_bad_call_number_type.csv";
   private static final String ITEM_RECORD_CSV_BAD_DAMAGED_STATUS = "src/test/resources/upload/bulk_edit_item_record_bad_damaged_status.csv";
   private static final String ITEM_RECORD_CSV_BAD_LOAN_TYPE = "src/test/resources/upload/bulk_edit_item_record_bad_loan_type.csv";
@@ -68,7 +74,10 @@ class BulkEditTest extends BaseBatchTest {
   private static final String ITEM_RECORD_CSV_BAD_NOTE_TYPE = "src/test/resources/upload/bulk_edit_item_record_bad_note_type.csv";
   private static final String ITEM_RECORD_CSV_BAD_RELATIONSHIP = "src/test/resources/upload/bulk_edit_item_record_bad_relationship.csv";
   private static final String ITEM_RECORD_CSV_BAD_SERVICE_POINT = "src/test/resources/upload/bulk_edit_item_record_bad_service_point.csv";
+  private static final String ITEM_RECORD_CSV_INVALID_NOTES = "src/test/resources/upload/bulk_edit_item_record_invalid_notes.csv";
+  private static final String ITEM_RECORD_CSV_INVALID_CIRCULATION_NOTES = "src/test/resources/upload/bulk_edit_item_record_invalid_circulation_notes.csv";
   private static final String ITEM_RECORD_IN_APP_UPDATED = "src/test/resources/upload/bulk_edit_item_record_in_app_updated.csv";
+  private static final String ITEM_RECORD_IN_APP_UPDATED_COPY = "storage/bulk_edit_item_record_in_app_updated.csv";
   private static final String USER_RECORD_ROLLBACK_CSV = "test-directory/bulk_edit_rollback.csv";
   private static final String BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/barcodesSomeNotFound.csv";
   private static final String ITEM_BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/item_barcodes_some_not_found.csv";
@@ -200,7 +209,7 @@ class BulkEditTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {USER_RECORD_CSV, USER_RECORD_CSV_NOT_FOUND, USER_RECORD_CSV_BAD_CONTENT})
+  @ValueSource(strings = {USER_RECORD_CSV, USER_RECORD_CSV_NOT_FOUND, USER_RECORD_CSV_BAD_CONTENT, USER_RECORD_CSV_BAD_CUSTOM_FIELD})
   @DisplayName("Run update user records w/ and w/o errors")
   void uploadUserRecordsJobTest(String csvFileName) throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateUserRecordsJob);
@@ -211,19 +220,24 @@ class BulkEditTest extends BaseBatchTest {
 
     var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobExecution.getJobParameters().getString("jobId"), csvFileName, 10);
 
+    assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
+
     if (!USER_RECORD_CSV.equals(csvFileName)) {
-      assertThat(errors.getErrors().size()).isEqualTo(1);
-      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
+      if (USER_RECORD_CSV_BAD_CUSTOM_FIELD.equals(csvFileName)) {
+        assertThat(errors.getErrors()).hasSize(2);
+      } else {
+        assertThat(errors.getErrors()).hasSize(1);
+      }
     } else {
-      assertThat(errors.getErrors().size()).isZero();
-      assertThat(jobExecution.getExecutionContext().get(OUTPUT_FILES_IN_STORAGE)).isNull();
+      assertThat(errors.getErrors()).isEmpty();
     }
   }
 
   @ParameterizedTest
   @ValueSource(strings = {ITEM_RECORD_CSV, ITEM_RECORD_CSV_NOT_FOUND, ITEM_RECORD_CSV_BAD_CALL_NUMBER_TYPE,
     ITEM_RECORD_CSV_BAD_DAMAGED_STATUS, ITEM_RECORD_CSV_BAD_LOAN_TYPE, ITEM_RECORD_CSV_BAD_LOCATION,
-    ITEM_RECORD_CSV_BAD_NOTE_TYPE, ITEM_RECORD_CSV_BAD_RELATIONSHIP, ITEM_RECORD_CSV_BAD_SERVICE_POINT})
+    ITEM_RECORD_CSV_BAD_NOTE_TYPE, ITEM_RECORD_CSV_BAD_RELATIONSHIP, ITEM_RECORD_CSV_BAD_SERVICE_POINT,
+    ITEM_RECORD_CSV_INVALID_NOTES, ITEM_RECORD_CSV_INVALID_CIRCULATION_NOTES})
   @DisplayName("Run update item records w/ and w/o errors")
   void uploadItemRecordsJobTest(String csvFileName) throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateItemRecordsJob);
@@ -231,14 +245,13 @@ class BulkEditTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+    assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
 
     var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobExecution.getJobParameters().getString("jobId"), csvFileName, 10);
     if (!ITEM_RECORD_CSV.equals(csvFileName)) {
       assertThat(errors.getErrors()).hasSize(1);
-      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
     } else {
       assertThat(errors.getErrors()).isEmpty();
-      assertThat(jobExecution.getExecutionContext().get(OUTPUT_FILES_IN_STORAGE)).isNull();
     }
   }
 
@@ -246,9 +259,12 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run item records update when in-app updates available - successful")
   @SneakyThrows
   void shouldUseInAppUpdatesFileIfPresent() {
+    // create a copy of file since it will be deleted and consequent test runs will fail
+    Files.copy(Path.of(ITEM_RECORD_IN_APP_UPDATED), Path.of(ITEM_RECORD_IN_APP_UPDATED_COPY), StandardCopyOption.REPLACE_EXISTING);
+
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateItemRecordsJob);
     var builder = new JobParametersBuilder(prepareJobParameters(BULK_EDIT_UPDATE, ITEM, BARCODE, ITEM_RECORD_CSV, true));
-    builder.addString(UPDATED_FILE_NAME, ITEM_RECORD_IN_APP_UPDATED);
+    builder.addString(UPDATED_FILE_NAME, ITEM_RECORD_IN_APP_UPDATED_COPY);
     JobExecution jobExecution = testLauncher.launchJob(builder.toJobParameters());
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
@@ -280,7 +296,6 @@ class BulkEditTest extends BaseBatchTest {
       String[] links = fileInStorage.split(";");
       fileInStorage = links[0];
       String errorInStorage = links[1];
-      System.out.println("output: " + output);
       final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
       final FileSystemResource expectedResultWithErrors = jobExecution.getJobInstance().getJobName().contains("-USER") ?
         new FileSystemResource(EXPECTED_BULK_EDIT_OUTPUT_ERRORS) :
@@ -302,6 +317,14 @@ class BulkEditTest extends BaseBatchTest {
           + springApplicationName
           + File.separator;
       params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
+      try {
+        if (Files.notExists(Path.of(workDir + "out"))) {
+          Files.createFile(Path.of(workDir + "out"));
+          Files.createFile(Path.of(workDir + "out.csv"));
+        }
+      } catch (IOException e) {
+        fail(e.getMessage());
+      }
     }
     if (ExportType.BULK_EDIT_UPDATE == exportType) {
       params.put(ROLLBACK_FILE, new JobParameter("rollback/file/path"));

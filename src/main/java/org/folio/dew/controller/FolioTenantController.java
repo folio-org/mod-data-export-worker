@@ -2,6 +2,7 @@ package org.folio.dew.controller;
 
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.config.kafka.KafkaService;
+import org.folio.dew.service.BulkEditConfigurationService;
 import org.folio.spring.controller.TenantController;
 import org.folio.spring.service.TenantService;
 import org.folio.tenant.domain.dto.TenantAttributes;
@@ -16,10 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class FolioTenantController extends TenantController {
 
   private final KafkaService kafka;
+  private final BulkEditConfigurationService configurationService;
 
-  public FolioTenantController(TenantService baseTenantService, KafkaService kafka) {
+  public FolioTenantController(TenantService baseTenantService, KafkaService kafka, BulkEditConfigurationService configurationService) {
     super(baseTenantService);
     this.kafka = kafka;
+    this.configurationService = configurationService;
   }
 
   @Override
@@ -30,6 +33,7 @@ public class FolioTenantController extends TenantController {
       try {
         kafka.createKafkaTopics();
         kafka.restartEventListeners();
+        configurationService.checkBulkEditConfiguration();
       } catch (Exception e) {
         log.error(e.getMessage(), e);
         return ResponseEntity.noContent().build();

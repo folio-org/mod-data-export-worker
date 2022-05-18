@@ -11,13 +11,16 @@ import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.Address;
+import org.folio.dew.domain.dto.CustomField;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
+import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.UserReferenceService;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
@@ -37,7 +40,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
   @Override
   public UserFormat process(User user) {
     return UserFormat.builder()
-      .userName(user.getUsername())
+      .username(user.getUsername())
       .id(user.getId())
       .externalSystemId(user.getExternalSystemId())
       .barcode(user.getBarcode())
@@ -111,7 +114,34 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
 
   private String customFieldsToString(Map<String, Object> map) {
     return map.entrySet().stream()
-      .map(e -> e.getKey() + KEY_VALUE_DELIMITER + e.getValue().toString())
+      .map(this::customFieldToString)
       .collect(Collectors.joining(ITEM_DELIMITER));
+  }
+
+  private String customFieldToString(Map.Entry<String, Object> entry) {
+    var customField = userReferenceService.getCustomFieldByRefId(entry.getKey());
+    switch (customField.getType()) {
+    case TEXTBOX_LONG:
+    case TEXTBOX_SHORT:
+    case SINGLE_CHECKBOX:
+      return customField.getName() + KEY_VALUE_DELIMITER + entry.getValue();
+    case SINGLE_SELECT_DROPDOWN:
+    case RADIO_BUTTON:
+      return customField.getName() + KEY_VALUE_DELIMITER + extractValueById(customField, entry.getValue().toString());
+    case MULTI_SELECT_DROPDOWN:
+      var values = (ArrayList) entry.getValue();
+      return customField.getName() + KEY_VALUE_DELIMITER + values.stream()
+        .map(v -> extractValueById(customField, v.toString()))
+        .collect(Collectors.joining(ARRAY_DELIMITER));
+    default:
+      throw new BulkEditException("Invalid custom field: " + entry);
+    }
+  }
+
+  private String extractValueById(CustomField customField, String id) {
+    var optionalValue = customField.getSelectField().getOptions().getValues().stream()
+      .filter(selectFieldOption -> Objects.equals(id, selectFieldOption.getId()))
+      .findFirst();
+    return optionalValue.isPresent() ? optionalValue.get().getValue() : EMPTY;
   }
 }

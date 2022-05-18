@@ -1,7 +1,12 @@
 package org.folio.dew.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.CallNumberTypeClient;
+import org.folio.dew.client.ConfigurationClient;
 import org.folio.dew.client.DamagedStatusClient;
 import org.folio.dew.client.ElectronicAccessRelationshipClient;
 import org.folio.dew.client.HoldingClient;
@@ -38,10 +43,21 @@ import org.folio.dew.domain.dto.StatisticalCodeCollection;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserCollection;
 import org.folio.dew.error.BulkEditException;
+import org.folio.dew.error.ConfigurationException;
+import org.folio.dew.error.NotFoundException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+
+import static org.folio.dew.utils.Constants.BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE;
+import static org.folio.dew.utils.Constants.MODULE_NAME;
+import static org.folio.dew.utils.Constants.STATUSES_CONFIG_NAME;
+
 @Service
+@Log4j2
 @RequiredArgsConstructor
 public class ItemReferenceService {
   private static final String NAME = "name==";
@@ -61,6 +77,7 @@ public class ItemReferenceService {
   private final HoldingClient holdingClient;
   private final InstanceClient instanceClient;
   private final LoanTypeClient loanTypeClient;
+  private final ConfigurationClient configurationClient;
 
   @Cacheable(cacheNames = "callNumberTypes")
   public CallNumberType getCallNumberTypeById(String id) {
@@ -258,5 +275,22 @@ public class ItemReferenceService {
     var holdingJson = holdingClient.getHoldingById(id);
     var locationJson = locationClient.getLocation(holdingJson.get("effectiveLocationId").asText());
     return locationJson.get("name").asText();
+  }
+
+  @Cacheable(cacheNames = "allowedStatuses")
+  public List<String> getAllowedStatuses(String statusName) {
+    var configurations = configurationClient.getConfigurations(String.format(BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE, MODULE_NAME, STATUSES_CONFIG_NAME));
+    if (configurations.getConfigs().isEmpty()) {
+      throw new NotFoundException("Statuses configuration was not found");
+    }
+    try {
+      var statuses = new ObjectMapper()
+        .readValue(configurations.getConfigs().get(0).getValue(), new TypeReference<HashMap<String, List<String>>>() {});
+      return statuses.getOrDefault(statusName, Collections.emptyList());
+    } catch (JsonProcessingException e) {
+      var msg = String.format("Error reading configuration, reason: %s", e.getMessage());
+      log.error(msg);
+      throw new ConfigurationException(msg);
+    }
   }
 }

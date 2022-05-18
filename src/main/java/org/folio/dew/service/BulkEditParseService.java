@@ -16,17 +16,19 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.folio.dew.domain.dto.Address;
 import org.folio.dew.domain.dto.CirculationNote;
 import org.folio.dew.domain.dto.ContributorName;
+import org.folio.dew.domain.dto.CustomField;
 import org.folio.dew.domain.dto.Department;
 import org.folio.dew.domain.dto.EffectiveCallNumberComponents;
 import org.folio.dew.domain.dto.ElectronicAccess;
@@ -53,6 +55,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
+@Log4j2
 public class BulkEditParseService {
 
   private final UserReferenceService userReferenceService;
@@ -68,9 +71,6 @@ public class BulkEditParseService {
   private static final int ADDRESS_PRIMARY_ADDRESS = 7;
   private static final int ADDRESS_TYPE = 8;
 
-  private static final int CF_KEY_INDEX = 0;
-  private static final int CF_VALUE_INDEX = 1;
-
   private static final int NUMBER_OF_CALL_NUMBER_COMPONENTS = 4;
   private static final int CALL_NUMBER_INDEX = 0;
   private static final int CALL_NUMBER_PREFIX_INDEX = 1;
@@ -80,17 +80,17 @@ public class BulkEditParseService {
   private static final int NUMBER_OF_ITEM_NOTE_COMPONENTS = 3;
   private static final int NOTE_TYPE_NAME_INDEX = 0;
   private static final int NOTE_INDEX = 1;
-  private static final int STAFF_ONLY_INDEX = 2;
+  private static final int STAFF_ONLY_OFFSET = 1;
 
   private static final int NUMBER_OF_CIRCULATION_NOTE_COMPONENTS = 8;
   private static final int CIRC_NOTE_ID_INDEX = 0;
   private static final int CIRC_NOTE_TYPE_INDEX = 1;
   private static final int CIRC_NOTE_NOTE_INDEX = 2;
-  private static final int CIRC_NOTE_STAFF_ONLY_INDEX = 3;
-  private static final int CIRC_NOTE_SOURCE_ID_INDEX = 4;
-  private static final int CIRC_NOTE_LAST_NAME_INDEX = 5;
-  private static final int CIRC_NOTE_FIRST_NAME_INDEX = 6;
-  private static final int CIRC_NOTE_DATE_INDEX = 7;
+  private static final int CIRC_NOTE_STAFF_ONLY_OFFSET = 5;
+  private static final int CIRC_NOTE_SOURCE_ID_OFFSET = 4;
+  private static final int CIRC_NOTE_LAST_NAME_OFFSET = 3;
+  private static final int CIRC_NOTE_FIRST_NAME_OFFSET = 2;
+  private static final int CIRC_NOTE_DATE_OFFSET = 1;
 
   private static final int NUMBER_OF_STATUS_COMPONENTS = 2;
   private static final int STATUS_NAME_INDEX = 0;
@@ -124,7 +124,7 @@ public class BulkEditParseService {
 
   private void populateUserFields(User user, UserFormat userFormat) {
     user.setId(userFormat.getId());
-    user.setUsername(userFormat.getUserName());
+    user.setUsername(userFormat.getUsername());
     user.setExternalSystemId(isBlank(userFormat.getExternalSystemId()) ? null : userFormat.getExternalSystemId());
     user.setBarcode(isBlank(userFormat.getBarcode()) ? null : userFormat.getBarcode());
     user.setActive(getIsActive(userFormat));
@@ -257,25 +257,64 @@ public class BulkEditParseService {
 
   private Map<String, Object> getCustomFields(UserFormat userFormat) {
     if (isNotEmpty(userFormat.getCustomFields())) {
-      Map<String, Object> customFields = new HashMap<>();
-      String[] customFieldsArray = userFormat.getCustomFields().split(ITEM_DELIMITER_PATTERN);
-      Arrays.stream(customFieldsArray)
-        .forEach(customField -> {
-          List<String> customFieldKeyValue = Arrays.asList(customField.split(KEY_VALUE_DELIMITER));
-          customFields.put(customFieldKeyValue.get(CF_KEY_INDEX), restoreCustomFieldValue(customFieldKeyValue.get(CF_VALUE_INDEX)));
-        });
-      return customFields;
+      return Arrays.stream(userFormat.getCustomFields().split(ITEM_DELIMITER_PATTERN))
+        .map(this::restoreCustomFieldValue)
+        .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
     }
     return Collections.emptyMap();
   }
 
-  private Object restoreCustomFieldValue(String s) {
-    s = s.replace(LINE_BREAK_REPLACEMENT, LINE_BREAK);
-    if (s.startsWith(START_ARRAY) && s.endsWith(END_ARRAY)) {
-      var str = s.substring(1, s.length() - 1);
-      return isNotEmpty(str) ? Arrays.asList(str.split(", ")) : Collections.emptyList();
+  private Pair<String, Object> restoreCustomFieldValue(String s) {
+    var valuePair = stringToPair(s);
+    var fieldName = valuePair.getKey();
+    var fieldValue = valuePair.getValue();
+    var customField = userReferenceService.getCustomFieldByName(fieldName);
+    switch (customField.getType()) {
+    case SINGLE_CHECKBOX:
+      return Pair.of(customField.getRefId(), Boolean.parseBoolean(fieldValue));
+    case TEXTBOX_LONG:
+    case TEXTBOX_SHORT:
+      return Pair.of(customField.getRefId(), fieldValue.replace(LINE_BREAK_REPLACEMENT, LINE_BREAK));
+    case SINGLE_SELECT_DROPDOWN:
+    case RADIO_BUTTON:
+      return Pair.of(customField.getRefId(), restoreValueId(customField, fieldValue));
+    case MULTI_SELECT_DROPDOWN:
+      return Pair.of(customField.getRefId(), restoreValueIds(customField, fieldValue));
+    default:
+      throw new BulkEditException("Invalid custom field: " + s);
     }
-    return s;
+  }
+
+  private Pair<String, String> stringToPair(String value) {
+    var tokens = value.split(KEY_VALUE_DELIMITER, -1);
+    if (tokens.length == 2) {
+      return Pair.of(tokens[0], tokens[1]);
+    } else {
+      var msg = "Invalid key/value pair: " + value;
+      log.error(msg);
+      throw new BulkEditException(msg);
+    }
+  }
+
+  private List<String> restoreValueIds(CustomField customField, String values) {
+    return isEmpty(values) ?
+      Collections.emptyList() :
+      Arrays.stream(values.split(ARRAY_DELIMITER))
+        .map(token -> restoreValueId(customField, token))
+        .collect(Collectors.toList());
+  }
+
+  private String restoreValueId(CustomField customField, String value) {
+    var optionalValue = customField.getSelectField().getOptions().getValues().stream()
+      .filter(selectFieldOption -> Objects.equals(value, selectFieldOption.getValue()))
+      .findFirst();
+    if (optionalValue.isPresent()) {
+      return optionalValue.get().getId();
+    } else {
+      var msg = "Invalid custom field value: " + value;
+      log.error(msg);
+      throw new BulkEditException(msg);
+    }
   }
 
   public Item mapItemFormatToItem(ItemFormat itemFormat) {
@@ -382,13 +421,15 @@ public class BulkEditParseService {
   private ItemNote restoreItemNote(String s) {
     if (isNotEmpty(s)) {
       var tokens = s.split(ARRAY_DELIMITER, -1);
-      if (NUMBER_OF_ITEM_NOTE_COMPONENTS == tokens.length) {
-        return new ItemNote()
-          .itemNoteTypeId(restoreNoteTypeId(tokens[NOTE_TYPE_NAME_INDEX]))
-          .note(tokens[NOTE_INDEX])
-          .staffOnly(Boolean.valueOf(tokens[STAFF_ONLY_INDEX]));
+      if (tokens.length < NUMBER_OF_ITEM_NOTE_COMPONENTS) {
+        throw new BulkEditException(String.format("Illegal number of item note elements: %d, expected: %d", tokens.length, NUMBER_OF_ITEM_NOTE_COMPONENTS));
       }
-      throw new BulkEditException(String.format("Illegal number of item note elements: %d, expected: %d", tokens.length, NUMBER_OF_ITEM_NOTE_COMPONENTS));
+      return new ItemNote()
+        .itemNoteTypeId(restoreNoteTypeId(tokens[NOTE_TYPE_NAME_INDEX]))
+        .note(Arrays.stream(tokens, NOTE_INDEX, tokens.length - STAFF_ONLY_OFFSET)
+          .collect(Collectors.joining(";")))
+        .staffOnly(Boolean.valueOf(tokens[tokens.length - STAFF_ONLY_OFFSET]));
+
     }
     return null;
   }
@@ -408,20 +449,21 @@ public class BulkEditParseService {
   private CirculationNote restoreCirculationNote(String s) {
     if (isNotEmpty(s)) {
       var tokens = s.split(ARRAY_DELIMITER, -1);
-      if (NUMBER_OF_CIRCULATION_NOTE_COMPONENTS == tokens.length) {
-        return new CirculationNote()
-          .id(tokens[CIRC_NOTE_ID_INDEX])
-          .noteType(CirculationNote.NoteTypeEnum.fromValue(tokens[CIRC_NOTE_TYPE_INDEX]))
-          .note(tokens[CIRC_NOTE_NOTE_INDEX])
-          .staffOnly(Boolean.valueOf(tokens[CIRC_NOTE_STAFF_ONLY_INDEX]))
-          .source(new Source()
-            .id(tokens[CIRC_NOTE_SOURCE_ID_INDEX])
-            .personal(new Personal()
-              .lastName(tokens[CIRC_NOTE_LAST_NAME_INDEX])
-              .firstName(tokens[CIRC_NOTE_FIRST_NAME_INDEX])))
-          .date(getDate(tokens[CIRC_NOTE_DATE_INDEX]));
+      if (tokens.length < NUMBER_OF_CIRCULATION_NOTE_COMPONENTS) {
+        throw new BulkEditException(String.format("Illegal number of circulation note elements: %d, expected: %d", tokens.length, NUMBER_OF_CIRCULATION_NOTE_COMPONENTS));
       }
-      throw new BulkEditException(String.format("Illegal number of circulation note elements: %d, expected: %d", tokens.length, NUMBER_OF_CIRCULATION_NOTE_COMPONENTS));
+      return new CirculationNote()
+        .id(tokens[CIRC_NOTE_ID_INDEX])
+        .noteType(CirculationNote.NoteTypeEnum.fromValue(tokens[CIRC_NOTE_TYPE_INDEX]))
+        .note(Arrays.stream(tokens, CIRC_NOTE_NOTE_INDEX, tokens.length - CIRC_NOTE_STAFF_ONLY_OFFSET)
+          .collect(Collectors.joining(";")))
+        .staffOnly(Boolean.valueOf(tokens[tokens.length - CIRC_NOTE_STAFF_ONLY_OFFSET]))
+        .source(new Source()
+          .id(tokens[tokens.length - CIRC_NOTE_SOURCE_ID_OFFSET])
+          .personal(new Personal()
+            .lastName(tokens[tokens.length - CIRC_NOTE_LAST_NAME_OFFSET])
+            .firstName(tokens[tokens.length - CIRC_NOTE_FIRST_NAME_OFFSET])))
+        .date(getDate(tokens[tokens.length - CIRC_NOTE_DATE_OFFSET]));
     }
     return null;
   }

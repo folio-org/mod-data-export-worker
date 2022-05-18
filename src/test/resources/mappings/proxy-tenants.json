@@ -1,0 +1,18 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/_/proxy/tenants/diku/modules?filter=mod-users"
+      },
+      "response": {
+        "status": 200,
+        "body": "[\n    {\n        \"id\": \"mod-users-1.2.3\"\n    }\n]",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}
+

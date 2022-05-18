@@ -33,7 +33,6 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class BulkEditUserIdentifiersJobConfig {
   private static final int CHUNKS = 100;
-  private static final long ZERO = 0L;
 
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
@@ -45,7 +44,7 @@ public class BulkEditUserIdentifiersJobConfig {
   @StepScope
   public FlatFileItemWriter<UserFormat> csvUserWriter(
     @Value("#{jobParameters['tempOutputFilePath']}") String outputFileName) {
-    return new CsvWriter<>(outputFileName, ZERO, getUserColumnHeaders(), getUserFieldsArray(), (field, i) -> field);
+    return new CsvWriter<>(outputFileName, getUserColumnHeaders(), getUserFieldsArray(), (field, i) -> field);
   }
 
   @Bean

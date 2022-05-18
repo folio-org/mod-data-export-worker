@@ -2,22 +2,28 @@ package org.folio.dew.controller;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_ALLOWED_STATUS;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.times;
@@ -35,6 +41,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.BaseBatchTest;
+import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.*;
@@ -66,11 +73,14 @@ import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.text.SimpleDateFormat;
+import java.util.List;
 
 class BulkEditControllerTest extends BaseBatchTest {
   private static final String UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/upload";
@@ -81,6 +91,9 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/items-content-update/upload";
   private static final String ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-items/download";
   private static final String ITEMS_FOR_LOCATION_UPDATE = "src/test/resources/upload/bulk_edit_items_for_location_update.csv";
+  private static final String ITEMS_FOR_STATUS_UPDATE = "src/test/resources/upload/bulk_edit_items_for_status_update.csv";
+  private static final SimpleDateFormat itemStatusDateFormat = new SimpleDateFormat(DATE_TIME_PATTERN);
+  private static final UUID JOB_ID = UUID.randomUUID();
   public static final String LIMIT = "limit";
 
   @MockBean
@@ -101,10 +114,16 @@ class BulkEditControllerTest extends BaseBatchTest {
   @Autowired
   private JobCommandsReceiverService jobCommandsReceiverService;
 
+  @Autowired
+  private BulkEditProcessingErrorsService errorsService;
+
+  @Autowired
+  private DataExportSpringClient dataExportSpringClient;
+
   @Test
   void shouldReturnErrorsPreview() throws Exception {
 
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE));
 
     int numOfErrorLines = 3;
@@ -132,7 +151,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @Test
   void shouldReturnEmptyErrorsForErrorsPreview() throws Exception {
 
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE));
 
     var expectedErrorMsg = format("errors file for job id %s", jobId);
@@ -153,7 +172,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @Test
   void shouldReturnErrorsFileNotFoundErrorForErrorsPreview() throws Exception {
 
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     var expectedJson = String.format("{\"errors\":[{\"message\":\"JobCommand with id %s doesn't exist.\",\"type\":\"-1\",\"code\":\"Not found\",\"parameters\":null}],\"total_records\":1}", jobId);
 
     var headers = defaultHeaders();
@@ -166,15 +185,38 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @SneakyThrows
-  @ParameterizedTest
-  @CsvSource({"BULK_EDIT_IDENTIFIERS,barcode==(123 OR 456 OR 789)",
-    "BULK_EDIT_QUERY,(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName"})
-  void shouldReturnCompleteUserPreview(String exportType, String query) {
-
+  @Test
+  void shouldReturnCompleteUserPreviewForQuery() {
+    var query = "(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName";
     when(userClient.getUserByQuery(query, 3)).thenReturn(buildUserCollection());
 
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType), USER, BARCODE));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_QUERY, USER, BARCODE));
+
+    var headers = defaultHeaders();
+
+    var response = mockMvc.perform(get(format(PREVIEW_USERS_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(3)))
+      .andExpect(status().isOk());
+
+    var users = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), UserCollection.class);
+    assertThat(users.getTotalRecords(), equalTo(3));
+    assertThat(users.getUsers(), hasSize(3));
+  }
+
+  @SneakyThrows
+  @ParameterizedTest
+  @EnumSource(value = IdentifierType.class,
+    names = {"ID", "BARCODE", "EXTERNAL_SYSTEM_ID", "USER_NAME"},
+    mode = EnumSource.Mode.INCLUDE)
+  void shouldReturnCompleteUserPreviewForAnyIdentifier(IdentifierType identifierType) {
+
+    var query = resolveIdentifier(identifierType.getValue()) + "==(123 OR 456 OR 789)";
+    when(userClient.getUserByQuery(query, 3)).thenReturn(buildUserCollection());
+
+    var jobId = UUID.randomUUID();
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, identifierType));
 
     var headers = defaultHeaders();
 
@@ -189,7 +231,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @EnumSource(IdentifierType.class)
+  @EnumSource(value = IdentifierType.class, names = { "EXTERNAL_SYSTEM_ID", "USER_NAME" }, mode = EnumSource.Mode.EXCLUDE)
   @SneakyThrows
   void shouldReturnCompleteItemPreview(IdentifierType identifierType) {
 
@@ -244,7 +286,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     when(inventoryClient.getItemByQuery(query, 2)).thenReturn(buildItemCollection());
 
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType), ITEM, BARCODE));
 
     var headers = defaultHeaders();
@@ -262,7 +304,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @EnumSource(IdentifierType.class)
+  @EnumSource(value = IdentifierType.class, names = { "EXTERNAL_SYSTEM_ID", "USER_NAME" }, mode = EnumSource.Mode.EXCLUDE)
   @SneakyThrows
   void shouldReturnCompleteItemPreviewWithDifferentIdentifiers(IdentifierType identifierType) {
 
@@ -340,7 +382,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Skip headers while counting records for update")
   @SneakyThrows
   void shouldSkipHeadersWhileCountingRecordsForUpdate() {
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_UPDATE, USER, BARCODE));
 
     var headers = defaultHeaders();
@@ -354,14 +396,14 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andExpect(status().isOk())
       .andReturn();
 
-    assertThat(result.getResponse().getContentAsString(), equalTo("1"));
+    assertThat(result.getResponse().getContentAsString(), equalTo("3"));
   }
 
   @Test
   @DisplayName("Upload empty file - BAD REQUEST")
   @SneakyThrows
   void shouldReturnBadRequestWhenIdentifiersFileIsEmpty() {
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE));
 
     var headers = defaultHeaders();
@@ -454,7 +496,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @EnumSource(ItemsContentUpdateTestData.class)
+  @EnumSource(value = ItemsContentUpdateTestData.class, names = ".+_LOCATION", mode = EnumSource.Mode.MATCH_ANY)
   @DisplayName("Post content updates - successful")
   @SneakyThrows
   void shouldUpdateEffectiveLocationOnChangeLocationContentUpdate(ItemsContentUpdateTestData testData) {
@@ -462,7 +504,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
-    jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
     jobCommand.setEntityType(ITEM);
     jobCommand.setJobParameters(new JobParametersBuilder()
       .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_LOCATION_UPDATE.replace(CSV_EXTENSION, EMPTY))
@@ -486,6 +528,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     var updatedJobCommand = jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
     assertFalse(updatedJobCommand.isEmpty());
+    assertEquals(BULK_EDIT_UPDATE, updatedJobCommand.get().getExportType());
     assertNotNull(updatedJobCommand.get().getJobParameters().getString(UPDATED_FILE_NAME));
 
     var expectedCsv = new FileSystemResource(testData.getExpectedCsvPath());
@@ -498,7 +541,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @EnumSource(ItemsContentUpdateTestData.class)
+  @EnumSource(value = ItemsContentUpdateTestData.class, names = ".+_LOCATION", mode = EnumSource.Mode.MATCH_ANY)
   @DisplayName("Download preview - successful")
   @SneakyThrows
   void shouldDownloadPreviewAfterContentUpdate(ItemsContentUpdateTestData testData) {
@@ -506,7 +549,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
-    jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
     jobCommand.setEntityType(ITEM);
     jobCommand.setJobParameters(new JobParametersBuilder()
       .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_LOCATION_UPDATE.replace(CSV_EXTENSION, EMPTY))
@@ -514,17 +557,18 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
 
-    var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
+    var updates = Arrays.asList(
+      new ContentUpdate().option(testData.getOption()).action(testData.getAction()).value(testData.getValue()),
+      new ContentUpdate().option(testData.getOption()).action(testData.getAction()).value(testData.getValue()));
+
+    var updatesString = objectMapper.writeValueAsString(new ContentUpdateCollection()
       .entityType(ITEM)
-      .contentUpdates(Collections.singletonList(new ContentUpdate()
-        .option(testData.getOption())
-        .action(testData.getAction())
-        .value(testData.getValue())))
+      .contentUpdates(updates)
       .totalRecords(1));
 
     var response = mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
       .headers(defaultHeaders())
-      .content(updates))
+      .content(updatesString))
       .andExpect(status().isOk())
       .andReturn();
 
@@ -553,7 +597,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
-    jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
     jobCommand.setEntityType(ITEM);
     jobCommand.setJobParameters(new JobParametersBuilder()
       .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_LOCATION_UPDATE.replace(CSV_EXTENSION, EMPTY))
@@ -588,10 +632,10 @@ class BulkEditControllerTest extends BaseBatchTest {
   @SneakyThrows
   void shouldLimitItemsInResponseWhenLimitIsNotNull() {
     repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
-    var jobId = UUID.randomUUID();
+    var jobId = JOB_ID;
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
-    jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
     jobCommand.setEntityType(ITEM);
     jobCommand.setJobParameters(new JobParametersBuilder()
       .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_LOCATION_UPDATE.replace(CSV_EXTENSION, EMPTY))
@@ -615,6 +659,63 @@ class BulkEditControllerTest extends BaseBatchTest {
     var actualItems = objectMapper.readValue(response.getResponse().getContentAsString(), ItemCollection.class);
 
     assertThat(actualItems.getItems(), hasSize(2));
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = ItemsContentUpdateTestData.class, names = ".+_STATUS", mode = EnumSource.Mode.MATCH_ANY)
+  @DisplayName("Post status content updates with allowed and not allowed values")
+  @SneakyThrows
+  void shouldChangeItemStatusIfAllowedOrAddErrorIfNot(ItemsContentUpdateTestData testData) {
+    var itemId = "b7a9718a-0c26-4d43-ace9-52234ff74ad8";
+    repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_STATUS_UPDATE), ITEMS_FOR_STATUS_UPDATE, null, "text/plain", false);
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(ITEM);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(FILE_NAME, "fileName.csv")
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_STATUS_UPDATE.replace(CSV_EXTENSION, EMPTY))
+      .toJobParameters());
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+
+    var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
+      .entityType(ITEM)
+      .contentUpdates(Collections.singletonList(new ContentUpdate()
+        .option(testData.getOption())
+        .action(testData.getAction())
+        .value(testData.getValue())))
+      .totalRecords(1));
+
+    var response = mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+        .headers(defaultHeaders())
+        .content(updates))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    var updatedJobCommand = jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
+    assertFalse(updatedJobCommand.isEmpty());
+    assertEquals(BULK_EDIT_UPDATE, updatedJobCommand.get().getExportType());
+    assertNotNull(updatedJobCommand.get().getJobParameters().getString(UPDATED_FILE_NAME));
+
+    if (REPLACE_WITH_ALLOWED_STATUS != testData) {
+      var erros = errorsService.readErrorsFromCSV(jobId.toString(), jobCommand.getJobParameters().getString(FILE_NAME), 10);
+      assertThat(erros.getErrors(), hasSize(2));
+    }
+
+    var actualItems = objectMapper.readValue(response.getResponse().getContentAsString(), ItemCollection.class).getItems();
+    var expectedItems = objectMapper.readValue(new FileSystemResource(testData.getExpectedJsonPath()).getInputStream(), ItemCollection.class).getItems();
+    if (REPLACE_WITH_ALLOWED_STATUS == testData) {
+      var actualItem = actualItems.get(0);
+      var expectedItem = expectedItems.get(0);
+      assertThat(expectedItem.getId(), equalTo(actualItem.getId()));
+      assertThat(expectedItem.getStatus().getName(), equalTo(actualItem.getStatus().getName()));
+      assertTrue(actualItem.getStatus().getDate().after(expectedItem.getStatus().getDate()));
+    } else {
+      assertThat(actualItems, hasSize(0));
+    }
+
   }
 
   @Test
@@ -671,6 +772,170 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andExpect(content().string(expectedJson));
   }
 
+  @Test
+  @DisplayName("Skip non edited lines when downloading changed users")
+  @SneakyThrows
+  void shouldSkipNonEditedLinesWhenDownloadingChangedUsers() {
+    when(userClient.getUserById("88a087b4-c3a1-485b-8a22-2fa8f7b661c4"))
+      .thenReturn(new User().id("88a087b4-c3a1-485b-8a22-2fa8f7b661c4").username("User name").active(true).barcode("456")
+        .departments(List.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
+          .preferredFirstName("").email("").phone("").mobilePhone("").addresses(List.of()).preferredContactTypeId("")).type("")
+        .customFields(Map.of()).metadata(new Metadata().createdByUsername("abcd")));
+    when(userClient.getUserById("88a087b4-c3a1-485b-8a22-2fa8f7b661c5"))
+      .thenReturn(new User().id("88a087b4-c3a1-485b-8a22-2fa8f7b661c5").username("User name2").active(true).barcode("4567")
+        .departments(List.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
+          .preferredFirstName("").email("").phone("").mobilePhone("").addresses(List.of()).preferredContactTypeId("")).type("")
+        .customFields(Map.of()).metadata(new Metadata().createdByUsername("abcde")));
+    when(userClient.getUserById("88a087b4-c3a1-485b-8a22-2fa8f7b661c6"))
+      .thenReturn(new User().id("88a087b4-c3a1-485b-8a22-2fa8f7b661c6").username("User name3").active(true).barcode("45678")
+        .departments(List.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
+          .preferredFirstName("").email("").phone("").mobilePhone("").addresses(List.of()).preferredContactTypeId("")).type("")
+        .customFields(Map.of()).metadata(new Metadata().createdByUsername("abcdef")));
+
+    var jobId = UUID.randomUUID();
+
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE));
+
+    var headers = defaultHeaders();
+
+    var bytes = new FileInputStream("src/test/resources/upload/bulk_edit_user_record_3_lines.csv").readAllBytes();
+    var file = new MockMultipartFile("file", "bulk_edit_user_record_3_lines.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    var result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
+      .file(file)
+      .headers(headers))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    // 3 lines loaded (+1 header because of BULK_EDIT_IDENTIFIERS job).
+    assertThat(result.getResponse().getContentAsString(), equalTo("4"));
+
+    jobId = UUID.randomUUID();
+
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, USER, BARCODE));
+
+    headers = defaultHeaders();
+
+    bytes = new FileInputStream("src/test/resources/upload/bulk_edit_user_record_3_lines_edited_1_line.csv").readAllBytes();
+    file = new MockMultipartFile("file", "bulk_edit_user_record_3_lines_edited_1_line.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
+      .file(file)
+      .headers(headers))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    // Edited only 1 line.
+    assertThat(result.getResponse().getContentAsString(), equalTo("1"));
+
+    jobId = UUID.randomUUID();
+
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, USER, BARCODE));
+
+    headers = defaultHeaders();
+
+    // Load initial file with no edited lines.
+    bytes = new FileInputStream("src/test/resources/upload/bulk_edit_user_record_3_lines.csv").readAllBytes();
+    file = new MockMultipartFile("file", "bulk_edit_user_record_3_lines.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
+      .file(file)
+      .headers(headers))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    // Edited 0 lines.
+    assertThat(result.getResponse().getContentAsString(), equalTo("0"));
+  }
+
+  @Test
+  @DisplayName("Skip non edited lines when downloading changed items")
+  @SneakyThrows
+  void shouldSkipNonEditedLinesWhenDownloadingChangedItems() {
+    when(inventoryClient.getItemById("b7a9718a-0c26-4d43-ace9-52234ff74ad7"))
+      .thenReturn(new Item().id("b7a9718a-0c26-4d43-ace9-52234ff74ad7").version(1).formerIds(List.of()).contributorNames(List.of())
+      .hrid("it00000000002").title("Sample instance1").barcode("0001").status(new InventoryItemStatus()
+          .name(InventoryItemStatus.NameEnum.AVAILABLE).date(itemStatusDateFormat.parse("2022-04-01 07:43:16.737Z")))
+      .materialType(new MaterialType().name("book").id("1a54b431-2e4f-452d-9cae-9cee66c9a892")).isBoundWith(false)
+        .permanentLoanType(new LoanType().name("Can circulate").id("2b94c631-fca9-4892-a730-03ee529ffe27"))
+      .effectiveLocation(new ItemLocation().name("Main Library").id("fcd64ce1-6995-48f0-840e-89ffa2288371")).holdingsRecordId("4929e3d5-8de5-4bb2-8818-3c23695e7505")
+      .yearCaption(List.of()).administrativeNotes(List.of()).notes(List.of()).circulationNotes(List.of()).boundWithTitles(List.of())
+      .electronicAccess(List.of()).statisticalCodeIds(List.of()).tags(new Tags().tagList(List.of())));
+    when(inventoryClient.getItemById("b7a9718a-0c26-4d43-ace9-52234ff74ad8"))
+      .thenReturn(new Item().id("b7a9718a-0c26-4d43-ace9-52234ff74ad8").version(1).formerIds(List.of()).contributorNames(List.of())
+        .hrid("it00000000003").title("Sample instance2").barcode("0002").status(new InventoryItemStatus()
+          .name(InventoryItemStatus.NameEnum.AVAILABLE).date(itemStatusDateFormat.parse("2022-04-01 07:43:16.737Z")))
+        .materialType(new MaterialType().name("book").id("1a54b431-2e4f-452d-9cae-9cee66c9a892")).isBoundWith(false)
+        .permanentLoanType(new LoanType().name("Can circulate").id("2b94c631-fca9-4892-a730-03ee529ffe27"))
+        .effectiveLocation(new ItemLocation().name("Main Library").id("fcd64ce1-6995-48f0-840e-89ffa2288371")).holdingsRecordId("4929e3d5-8de5-4bb2-8818-3c23695e7505")
+        .yearCaption(List.of()).administrativeNotes(List.of()).notes(List.of()).circulationNotes(List.of()).boundWithTitles(List.of())
+        .electronicAccess(List.of()).statisticalCodeIds(List.of()).tags(new Tags().tagList(List.of())));
+    when(inventoryClient.getItemById("b7a9718a-0c26-4d43-ace9-52234ff74ad9"))
+      .thenReturn(new Item().id("b7a9718a-0c26-4d43-ace9-52234ff74ad9").version(1).formerIds(List.of()).contributorNames(List.of())
+        .hrid("it00000000004").title("Sample instance3").barcode("0003").status(new InventoryItemStatus()
+          .name(InventoryItemStatus.NameEnum.AVAILABLE).date(itemStatusDateFormat.parse("2022-04-01 07:43:16.737Z")))
+        .materialType(new MaterialType().name("book").id("1a54b431-2e4f-452d-9cae-9cee66c9a892")).isBoundWith(false)
+        .permanentLoanType(new LoanType().name("Can circulate").id("2b94c631-fca9-4892-a730-03ee529ffe27"))
+        .effectiveLocation(new ItemLocation().name("Main Library").id("fcd64ce1-6995-48f0-840e-89ffa2288371")).holdingsRecordId("4929e3d5-8de5-4bb2-8818-3c23695e7505")
+        .yearCaption(List.of()).administrativeNotes(List.of()).notes(List.of()).circulationNotes(List.of()).boundWithTitles(List.of())
+        .electronicAccess(List.of()).statisticalCodeIds(List.of()).tags(new Tags().tagList(List.of())));
+
+    var jobId = UUID.randomUUID();
+
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, ITEM, BARCODE));
+
+    var headers = defaultHeaders();
+
+    var bytes = new FileInputStream("src/test/resources/upload/bulk_edit_item_record_3_lines.csv").readAllBytes();
+    var file = new MockMultipartFile("file", "bulk_edit_item_record_3_lines.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    var result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
+      .file(file)
+      .headers(headers))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    // 3 lines loaded (+1 header because of BULK_EDIT_IDENTIFIERS job).
+    assertThat(result.getResponse().getContentAsString(), equalTo("4"));
+
+    jobId = UUID.randomUUID();
+
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, ITEM, BARCODE));
+
+    headers = defaultHeaders();
+
+    bytes = new FileInputStream("src/test/resources/upload/bulk_edit_item_record_3_lines_edited_1_line.csv").readAllBytes();
+    file = new MockMultipartFile("file", "bulk_edit_item_record_3_lines_edited_1_line.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
+      .file(file)
+      .headers(headers))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    // Edited only 1 line.
+    assertThat(result.getResponse().getContentAsString(), equalTo("1"));
+
+    jobId = UUID.randomUUID();
+
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, ITEM, BARCODE));
+
+    headers = defaultHeaders();
+
+    // Load initial file with no edited lines.
+    bytes = new FileInputStream("src/test/resources/upload/bulk_edit_item_record_3_lines.csv").readAllBytes();
+    file = new MockMultipartFile("file", "bulk_edit_item_record_3_lines.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
+      .file(file)
+      .headers(headers))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    // Edited 0 lines.
+    assertThat(result.getResponse().getContentAsString(), equalTo("0"));
+  }
+
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType, EntityType entityType, IdentifierType identifierType) {
     JobCommand jobCommand = new JobCommand();
     jobCommand.setType(JobCommand.Type.START);
@@ -711,6 +976,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   private void verifyLocationUpdate(ItemCollection expectedItems, ItemCollection actualItems) {
+    assertThat(expectedItems.getItems(), hasSize(actualItems.getItems().size()));
     for (int i = 0; i < expectedItems.getItems().size(); i++) {
       assertThat(expectedItems.getItems().get(i).getId(), equalTo(actualItems.getItems().get(i).getId()));
       assertThat(expectedItems.getItems().get(i).getPermanentLocation(), equalTo(actualItems.getItems().get(i).getPermanentLocation()));

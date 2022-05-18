@@ -1,24 +1,6 @@
 {
   "items": [
     {
-      "id": "b7a9718a-0c26-4d43-ace9-52234ff74ad8",
-      "effectiveLocation": {
-        "id": "fcd64ce1-6995-48f0-840e-89ffa2288371",
-        "name": "Main Library"
-      }
-    },
-    {
-      "id": "f84325f4-7d2a-495f-b15e-fa822354a932",
-      "permanentLocation": {
-        "id": "fcd64ce1-6995-48f0-840e-89ffa2288371",
-        "name": "Main Library"
-      },
-      "effectiveLocation": {
-        "id": "fcd64ce1-6995-48f0-840e-89ffa2288371",
-        "name": "Main Library"
-      }
-    },
-    {
       "id": "42c6e3a2-774b-46e3-b76d-9385e908550e",
       "effectiveLocation": {
         "id": "fcd64ce1-6995-48f0-840e-89ffa2288371",
@@ -34,6 +16,24 @@
       "effectiveLocation": {
         "id": "fcd64ce1-6995-48f0-840e-89ffa2288371",
         "name": "Main Library"
+      }
+    },
+    {
+      "id": "94803587-275f-449b-8208-ea626d85d522",
+      "effectiveLocation": {
+        "id": "fcd64ce1-6995-48f0-840e-89ffa2288371",
+        "name": "Main Library"
+      }
+    },
+    {
+      "id": "11ecf520-3fc2-49c2-aeb7-bf19e1eec2c9",
+      "permanentLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      },
+      "effectiveLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
       }
     }
   ],

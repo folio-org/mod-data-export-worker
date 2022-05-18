@@ -401,6 +401,8 @@ components:
       $ref: '../../../../folio-export-common/schemas/inventory/statisticalCodeCollection.json#/StatisticalCodeCollection'
     contentUpdateCollection:
       $ref: '../../../../folio-export-common/schemas/bulk-edit/contentUpdateCollection.json#/ContentUpdateCollection'
+    customFieldCollection:
+      $ref: '../../../../folio-export-common/schemas/user/customFieldCollection.json#/CustomFieldCollection'
   examples:
     errors:
       value:

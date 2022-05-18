@@ -2,6 +2,7 @@ package org.folio.dew.error;
 
 import static org.folio.dew.error.ErrorCode.IO_ERROR;
 import static org.folio.dew.error.ErrorCode.NOT_FOUND_ERROR;
+import static org.folio.dew.error.ErrorCode.PROCESSING_ERROR;
 import static org.folio.dew.error.ErrorCode.VALIDATION_ERROR;
 import static org.folio.dew.error.ErrorType.INTERNAL;
 
@@ -21,8 +22,8 @@ import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class DefaultErrorHandler {
-  @ExceptionHandler(JobCommandNotFoundException.class)
-  public ResponseEntity<Errors> handleJobNotFoundException(final JobCommandNotFoundException e) {
+  @ExceptionHandler(NotFoundException.class)
+  public ResponseEntity<Errors> handleNotFoundException(final NotFoundException e) {
     return new ResponseEntity<>(new Errors()
       .errors(Collections.singletonList(new Error()
         .message(e.getMessage())
@@ -43,6 +44,17 @@ public class DefaultErrorHandler {
       HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
+  @ExceptionHandler(ConfigurationException.class)
+  public ResponseEntity<Errors> handleConfigurationException(final ConfigurationException e) {
+    return new ResponseEntity<>(new Errors()
+      .errors(Collections.singletonList(new Error()
+        .message(e.getMessage())
+        .code(PROCESSING_ERROR.getDescription())
+        .type(INTERNAL.getValue())))
+      .totalRecords(1),
+      HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
   @ExceptionHandler(NonSupportedEntityException.class)
   public ResponseEntity<Errors> handleNonSupportedEntityTypeException(final NonSupportedEntityException e) {
     return new ResponseEntity<>(new Errors()
@@ -55,7 +67,7 @@ public class DefaultErrorHandler {
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<Errors> handleConstraintViolationException(final MethodArgumentNotValidException e) {
+  public ResponseEntity<Errors> handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
     var parameters = e.getBindingResult().getAllErrors().stream()
       .map(this::processValidationError)
       .collect(Collectors.toList());

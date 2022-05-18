@@ -18,8 +18,7 @@ public class CsvWriter<T> extends FlatFileItemWriter<T> {
     Object process(Object field, int i);
   }
 
-  public CsvWriter(String tempOutputFilePath, Long partition, String columnHeaders, String[] extractedFieldNames,
-      FieldProcessor fieldProcessor) {
+  public CsvWriter(String tempOutputFilePath, String columnHeaders, String[] extractedFieldNames, FieldProcessor fieldProcessor) {
     if (StringUtils.isBlank(tempOutputFilePath)) {
       throw new IllegalArgumentException("tempOutputFilePath is blank");
     }
@@ -62,7 +61,7 @@ public class CsvWriter<T> extends FlatFileItemWriter<T> {
 
     setAppendAllowed(true);
 
-    if (StringUtils.isNotBlank(columnHeaders) && partition != null && partition == 0) {
+    if (StringUtils.isNotBlank(columnHeaders)) {
       setHeaderCallback(writer -> writer.write(columnHeaders));
     }
 

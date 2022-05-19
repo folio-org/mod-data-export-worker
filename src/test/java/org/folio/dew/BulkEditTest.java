@@ -11,6 +11,7 @@ import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.CsvHelper.countLines;
 import static org.folio.dew.utils.Constants.ENTITY_TYPE;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;

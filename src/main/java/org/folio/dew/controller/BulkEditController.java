@@ -18,8 +18,6 @@ import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
-import static org.folio.dew.utils.Constants.PREVIEW_ITEMS_QUERY;
-import static org.folio.dew.utils.Constants.PREVIEW_USERS_QUERY;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.CsvHelper.countLines;

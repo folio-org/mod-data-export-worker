@@ -1,0 +1,30 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/statistical-codes/b5968c9e-cddc-4576-99e3-8e60aed8b0dd"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"id\": \"b5968c9e-cddc-4576-99e3-8e60aed8b0dd\",\n    \"code\": \"books\",\n    \"name\": \"Book, print (books)\",\n    \"statisticalCodeTypeId\": \"3abd6fc2-b3e4-4879-b1e1-78be41769fe3\",\n    \"source\": \"UC\",\n    \"metadata\": {\n        \"createdDate\": \"2022-03-15T01:50:23.674+00:00\",\n        \"updatedDate\": \"2022-03-15T01:50:23.674+00:00\"\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/statistical-codes?query=code%3D%3Dbooks"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"statisticalCodes\": [\n        {\n            \"id\": \"b5968c9e-cddc-4576-99e3-8e60aed8b0dd\",\n            \"code\": \"books\",\n            \"name\": \"Book, print (books)\",\n            \"statisticalCodeTypeId\": \"3abd6fc2-b3e4-4879-b1e1-78be41769fe3\",\n            \"source\": \"UC\",\n            \"metadata\": {\n                \"createdDate\": \"2022-03-31T01:50:46.148+00:00\",\n                \"updatedDate\": \"2022-03-31T01:50:46.148+00:00\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

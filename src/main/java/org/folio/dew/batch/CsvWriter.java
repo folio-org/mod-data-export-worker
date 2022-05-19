@@ -8,6 +8,9 @@ import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.core.io.FileSystemResource;
 
+import static org.folio.dew.utils.Constants.LINE_BREAK;
+import static org.folio.dew.utils.Constants.LINE_BREAK_REPLACEMENT;
+
 @Log4j2
 public class CsvWriter<T> extends FlatFileItemWriter<T> {
 
@@ -15,8 +18,7 @@ public class CsvWriter<T> extends FlatFileItemWriter<T> {
     Object process(Object field, int i);
   }
 
-  public CsvWriter(String tempOutputFilePath, Long partition, String columnHeaders, String[] extractedFieldNames,
-      FieldProcessor fieldProcessor) {
+  public CsvWriter(String tempOutputFilePath, String columnHeaders, String[] extractedFieldNames, FieldProcessor fieldProcessor) {
     if (StringUtils.isBlank(tempOutputFilePath)) {
       throw new IllegalArgumentException("tempOutputFilePath is blank");
     }
@@ -41,7 +43,7 @@ public class CsvWriter<T> extends FlatFileItemWriter<T> {
 
           var s = o.toString();
           if (s.contains(",") || s.contains("\n")) {
-            s = "\"" + s.replace("\"", "\"\"") + "\"";
+            s = "\"" + s.replace("\"", "\"\"").replace(LINE_BREAK, LINE_BREAK_REPLACEMENT) + "\"";
           }
 
           result[i] = s;
@@ -59,7 +61,7 @@ public class CsvWriter<T> extends FlatFileItemWriter<T> {
 
     setAppendAllowed(true);
 
-    if (StringUtils.isNotBlank(columnHeaders) && partition != null && partition == 0) {
+    if (StringUtils.isNotBlank(columnHeaders)) {
       setHeaderCallback(writer -> writer.write(columnHeaders));
     }
 

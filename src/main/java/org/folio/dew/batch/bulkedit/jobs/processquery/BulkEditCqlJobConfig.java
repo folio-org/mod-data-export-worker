@@ -109,8 +109,7 @@ public class BulkEditCqlJobConfig {
   @Bean
   @StepScope
   public FlatFileItemWriter<UserFormat> writer(
-    @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath,
-    @Value("#{stepExecutionContext['partition']}") Long partition) {
-    return new CsvWriter<>(tempOutputFilePath, partition, getUserColumnHeaders(), getUserFieldsArray(), (field, i) -> field);
+    @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath) {
+    return new CsvWriter<>(tempOutputFilePath, getUserColumnHeaders(), getUserFieldsArray(), (field, i) -> field);
   }
 }

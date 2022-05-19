@@ -10,7 +10,7 @@
   "provides": [
     {
       "id": "bulk-edit",
-      "version": "1.0",
+      "version": "2.0",
       "handlers": [
         {
           "methods": [ "POST" ],
@@ -23,7 +23,38 @@
             "addresstypes.item.get",
             "proxiesfor.item.get",
             "departments.item.get",
-            "data-export.job.item.get"
+            "data-export.job.item.get",
+            "okapi.proxy.tenants.modules.list",
+            "user-settings.custom-fields.collection.get"
+          ]
+        },
+        {
+          "methods": [ "POST" ],
+          "pathPattern": "/bulk-edit/{id}/items-content-update/upload",
+          "permissionsRequired": [ "bulk-edit.items-content-update.collection.post" ],
+          "modulePermissions": [
+            "inventory-storage.call-number-types.item.get",
+            "inventory-storage.call-number-types.collection.get",
+            "inventory-storage.item-damaged-statuses.item.get",
+            "inventory-storage.item-damaged-statuses.collection.get",
+            "inventory-storage.electronic-access-relationships.item.get",
+            "inventory-storage.electronic-access-relationships.collection.get",
+            "inventory-storage.item-note-types.item.get",
+            "inventory-storage.item-note-types.collection.get",
+            "inventory-storage.service-points.item.get",
+            "inventory-storage.service-points.collection.get",
+            "inventory-storage.statistical-codes.item.get",
+            "inventory-storage.statistical-codes.collection.get",
+            "inventory-storage.material-types.item.get",
+            "inventory-storage.material-types.collection.get",
+            "inventory-storage.loan-types.item.get",
+            "inventory-storage.loan-types.collection.get",
+            "inventory-storage.locations.item.get",
+            "inventory-storage.locations.collection.get",
+            "inventory-storage.instances.item.get",
+            "inventory-storage.instances.collection.get",
+            "inventory-storage.holdings.item.get",
+            "inventory-storage.holdings.collection.get"
           ]
         },
         {
@@ -39,7 +70,32 @@
             "proxiesfor.item.get",
             "departments.item.get",
             "usergroups.collection.get",
-            "addresstypes.collection.get"
+            "addresstypes.collection.get",
+            "inventory.items.item.get",
+            "inventory.items.collection.get",
+            "inventory.items.item.put",
+            "inventory-storage.call-number-types.item.get",
+            "inventory-storage.call-number-types.collection.get",
+            "inventory-storage.item-damaged-statuses.item.get",
+            "inventory-storage.item-damaged-statuses.collection.get",
+            "inventory-storage.electronic-access-relationships.item.get",
+            "inventory-storage.electronic-access-relationships.collection.get",
+            "inventory-storage.item-note-types.item.get",
+            "inventory-storage.item-note-types.collection.get",
+            "inventory-storage.service-points.item.get",
+            "inventory-storage.service-points.collection.get",
+            "inventory-storage.statistical-codes.item.get",
+            "inventory-storage.statistical-codes.collection.get",
+            "inventory-storage.material-types.item.get",
+            "inventory-storage.material-types.collection.get",
+            "inventory-storage.loan-types.item.get",
+            "inventory-storage.loan-types.collection.get",
+            "inventory-storage.locations.item.get",
+            "inventory-storage.locations.collection.get",
+            "inventory-storage.instances.item.get",
+            "inventory-storage.instances.collection.get",
+            "inventory-storage.holdings.item.get",
+            "inventory-storage.holdings.collection.get"
           ]
         },
         {
@@ -65,16 +121,30 @@
         },
         {
           "methods": [ "GET" ],
-          "pathPattern": "/bulk-edit/{jobId}/preview",
-          "permissionsRequired": [ "bulk-edit.preview.collection.get" ],
+          "pathPattern": "/bulk-edit/{jobId}/preview/users",
+          "permissionsRequired": [ "bulk-edit.preview-users.collection.get" ],
           "modulePermissions": [
             "users.collection.get"
           ]
         },
         {
           "methods": [ "GET" ],
+          "pathPattern": "/bulk-edit/{jobId}/preview/items",
+          "permissionsRequired": [ "bulk-edit.preview-items.collection.get" ],
+          "modulePermissions": [
+            "inventory.items.collection.get"
+          ]
+        },
+        {
+          "methods": [ "GET" ],
           "pathPattern": "/bulk-edit/{jobId}/errors",
           "permissionsRequired": [ "bulk-edit.errors.collection.get" ],
+          "modulePermissions": []
+        },
+        {
+          "methods": [ "GET" ],
+          "pathPattern": "/bulk-edit/{jobId}/preview/updated-items/download",
+          "permissionsRequired": [ "bulk-edit.preview.updated-items.collection.get" ],
           "modulePermissions": []
         }
       ]
@@ -96,7 +166,9 @@
             "feefineactions.collection.get",
             "users.collection.get",
             "transfers.collection.get",
-            "inventory-storage.service-points.collection.get"
+            "inventory-storage.service-points.collection.get",
+            "configuration.entries.collection.get",
+            "configuration.entries.item.post"
           ]
         },
         {
@@ -129,6 +201,16 @@
       "description" : "Upload list of item identifiers"
     },
     {
+      "permissionName" : "bulk-edit.items-content-update.collection.post",
+      "displayName" : "upload items content update collection",
+      "description" : "Upload collection of item content updates"
+    },
+    {
+      "permissionName" : "bulk-edit.preview.updated-items.collection.get",
+      "displayName" : "download updated items preview csv",
+      "description" : "Download csv of preview updated items"
+    },
+    {
       "permissionName": "bulk-edit.start.item.post",
       "displayName": "start update items",
       "description": "Start update items"
@@ -139,10 +221,14 @@
       "description": "Roll back list of uploaded items"
     },
     {
-      "permissionName" : "bulk-edit.preview.collection.get",
+      "permissionName" : "bulk-edit.preview-users.collection.get",
+      "displayName" : "get N users for preview",
+      "description" : "Get N users for preview"
+    },
+    {
+      "permissionName" : "bulk-edit.preview-items.collection.get",
       "displayName" : "get N items for preview",
       "description" : "Get N items for preview"
-
     },
     {
       "permissionName" : "bulk-edit.errors.collection.get",
@@ -156,9 +242,12 @@
       "description" : "All permissions for bulk-edit module",
       "subPermissions" : [
         "bulk-edit.item.post",
+        "bulk-edit.items-content-update.collection.post",
+        "bulk-edit.preview.updated-items.collection.get",
         "bulk-edit.start.item.post",
         "bulk-edit.roll-back.item.post",
-        "bulk-edit.preview.collection.get",
+        "bulk-edit.preview-users.collection.get",
+        "bulk-edit.preview-items.collection.get",
         "bulk-edit.errors.collection.get"
       ]
     }

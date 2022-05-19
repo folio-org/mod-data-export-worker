@@ -1,0 +1,43 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/call-number-types/512173a7-bd09-490e-b773-17d83f2b63fe"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"id\": \"512173a7-bd09-490e-b773-17d83f2b63fe\",\n    \"name\": \"LC Modified\",\n    \"source\": \"folio\",\n    \"metadata\": {\n        \"createdDate\": \"2022-03-15T01:50:23.882+00:00\",\n        \"updatedDate\": \"2022-03-15T01:50:23.882+00:00\"\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/call-number-types?query=name%3D%3DLC%20Modified"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"callNumberTypes\": [\n        {\n            \"id\": \"512173a7-bd09-490e-b773-17d83f2b63fe\",\n            \"name\": \"LC Modified\",\n            \"source\": \"folio\",\n            \"metadata\": {\n                \"createdDate\": \"2022-03-31T01:50:46.346+00:00\",\n                \"updatedDate\": \"2022-03-31T01:50:46.346+00:00\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/call-number-types?query=name%3D%3DLCModified"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"callNumberTypes\": [],\n    \"totalRecords\": 0\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

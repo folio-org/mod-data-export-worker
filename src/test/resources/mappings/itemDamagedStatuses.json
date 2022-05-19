@@ -1,0 +1,43 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/item-damaged-statuses/516b82eb-1f19-4a63-8c48-8f1a3e9ff311"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"id\": \"516b82eb-1f19-4a63-8c48-8f1a3e9ff311\",\n    \"name\": \"Not Damaged\",\n    \"source\": \"local\",\n    \"metadata\": {\n        \"createdDate\": \"2022-03-15T01:50:24.122+00:00\",\n        \"updatedDate\": \"2022-03-15T01:50:24.122+00:00\"\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/item-damaged-statuses?query=name%3D%3DNot%20Damaged"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"itemDamageStatuses\": [\n        {\n            \"id\": \"516b82eb-1f19-4a63-8c48-8f1a3e9ff311\",\n            \"name\": \"Not Damaged\",\n            \"source\": \"local\",\n            \"metadata\": {\n                \"createdDate\": \"2022-03-31T01:50:46.578+00:00\",\n                \"updatedDate\": \"2022-03-31T01:50:46.578+00:00\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/item-damaged-statuses?query=name%3D%3DNotDamaged"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"itemDamageStatuses\": [],\n    \"totalRecords\": 0\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

@@ -1,13 +1,19 @@
 package org.folio.dew.service;
 
+import static java.lang.String.format;
+import static java.util.Collections.emptyList;
+import static java.util.Objects.isNull;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
+
 import io.minio.ObjectWriteResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
-import org.folio.dew.error.BulkEditException;
+import org.folio.dew.domain.dto.Error;
+import org.folio.dew.domain.dto.Errors;
+import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
-import org.folio.tenant.domain.dto.Error;
-import org.folio.tenant.domain.dto.Errors;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -25,12 +31,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
-
-import static java.lang.String.format;
-import static java.util.Collections.emptyList;
-import static java.util.Objects.isNull;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
 
 @Service
 @Log4j2
@@ -68,7 +68,7 @@ public class BulkEditProcessingErrorsService {
     }
   }
 
-  public Errors readErrorsFromCSV(String jobId, String fileName, Integer limit) throws BulkEditException {
+  public Errors readErrorsFromCSV(String jobId, String fileName, Integer limit) {
 
     var csvFileName = getCsvFileName(jobId, fileName);
     var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
@@ -82,7 +82,7 @@ public class BulkEditProcessingErrorsService {
         return new Errors().errors(errors).totalRecords(errors.size());
       } catch (IOException e) {
         log.error("Failed to read {} errors file for job id {} cause {}", csvFileName, jobId, e);
-        throw new BulkEditException(format("Failed to read %s errors file for job id %s", csvFileName, jobId));
+        throw new FileOperationException(format("Failed to read %s errors file for job id %s", csvFileName, jobId));
       }
     } else {
       log.debug("Errors file {} doesn't exist - empty error list returned", csvFileName);

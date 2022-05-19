@@ -1,8 +1,9 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
+import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.UserFormat.getUserColumnHeaders;
 import static org.folio.dew.domain.dto.UserFormat.getUserFieldsArray;
-import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
 import lombok.RequiredArgsConstructor;
 import org.folio.dew.domain.dto.ExportType;
@@ -21,24 +22,17 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileItemWriter;
-import org.springframework.batch.item.file.LineMapper;
-import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
-import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
-import org.springframework.batch.item.file.mapping.DefaultLineMapper;
-import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
 
 import java.util.Arrays;
 
 @Configuration
 @RequiredArgsConstructor
-public class BulkEditIdentifiersJobConfig {
+public class BulkEditUserIdentifiersJobConfig {
   private static final int CHUNKS = 100;
-  private static final long ZERO = 0L;
 
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
@@ -48,49 +42,25 @@ public class BulkEditIdentifiersJobConfig {
 
   @Bean
   @StepScope
-  public FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader(
-    @Value("#{jobParameters['" + FILE_NAME + "']}") String uploadedFileName) {
-    return new FlatFileItemReaderBuilder<ItemIdentifier>()
-      .name("userItemIdentifierReader")
-      .resource(new FileSystemResource(uploadedFileName))
-      .linesToSkip(0)
-      .lineMapper(lineMapper())
-      .build();
-  }
-
-  @Bean
-  public LineMapper<ItemIdentifier> lineMapper() {
-    var lineMapper = new DefaultLineMapper<ItemIdentifier>();
-    var tokenizer = new DelimitedLineTokenizer();
-    tokenizer.setNames("itemId");
-    var fieldSetMapper = new BeanWrapperFieldSetMapper<ItemIdentifier>();
-    fieldSetMapper.setTargetType(ItemIdentifier.class);
-    lineMapper.setLineTokenizer(tokenizer);
-    lineMapper.setFieldSetMapper(fieldSetMapper);
-    return lineMapper;
-  }
-
-  @Bean
-  @StepScope
-  public FlatFileItemWriter<UserFormat> csvItemWriter(
+  public FlatFileItemWriter<UserFormat> csvUserWriter(
     @Value("#{jobParameters['tempOutputFilePath']}") String outputFileName) {
-    return new CsvWriter<>(outputFileName, ZERO, getUserColumnHeaders(), getUserFieldsArray(), (field, i) -> field);
+    return new CsvWriter<>(outputFileName, getUserColumnHeaders(), getUserFieldsArray(), (field, i) -> field);
   }
 
   @Bean
-  public Job bulkEditProcessIdentifiersJob(JobCompletionNotificationListener listener, Step bulkEditStep) {
+  public Job bulkEditProcessUserIdentifiersJob(JobCompletionNotificationListener listener, Step bulkEditUserStep) {
     return jobBuilderFactory
-      .get(ExportType.BULK_EDIT_IDENTIFIERS.toString())
+      .get(ExportType.BULK_EDIT_IDENTIFIERS + JOB_NAME_POSTFIX_SEPARATOR + USER.getValue())
       .incrementer(new RunIdIncrementer())
       .listener(listener)
-      .flow(bulkEditStep)
+      .flow(bulkEditUserStep)
       .end()
       .build();
   }
 
   @Bean
-  public Step bulkEditStep(FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader, FlatFileItemWriter<UserFormat> csvItemWriter) {
-    return stepBuilderFactory.get("bulkEditStep")
+  public Step bulkEditUserStep(FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader, FlatFileItemWriter<UserFormat> csvUserWriter) {
+    return stepBuilderFactory.get("bulkEditUserStep")
       .<ItemIdentifier, UserFormat> chunk(CHUNKS)
       .reader(csvItemIdentifierReader)
       .processor(identifierUserProcessor())
@@ -99,7 +69,7 @@ public class BulkEditIdentifiersJobConfig {
       .processorNonTransactional() // Required to avoid repeating BulkEditItemProcessor#process after skip.
       .skip(BulkEditException.class)
       .listener(bulkEditSkipListener)
-      .writer(csvItemWriter)
+      .writer(csvUserWriter)
       .build();
   }
 

@@ -6,15 +6,17 @@ import org.springframework.batch.item.support.AbstractItemCountingItemStreamItem
 
 public abstract class CsvItemReader<T> extends AbstractItemCountingItemStreamItemReader<T> {
 
-  private static final int QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST = 100;
-
+  private final int quantityToRetrievePerHttpRequest;
   private int currentOffset;
+  private int offsetStep;
 
   private List<T> currentChunk;
   private int currentChunkOffset;
 
-  protected CsvItemReader(Long offset, Long limit) {
+  protected CsvItemReader(Long offset, Long limit, Integer perRequest) {
     currentOffset = offset.intValue();
+    quantityToRetrievePerHttpRequest = perRequest;
+    offsetStep = perRequest;
 
     setCurrentItemCount(0);
     setMaxItemCount(limit.intValue());
@@ -25,8 +27,8 @@ public abstract class CsvItemReader<T> extends AbstractItemCountingItemStreamIte
   @Override
   protected T doRead() {
     if (currentChunk == null || currentChunkOffset >= currentChunk.size()) {
-      currentChunk = getItems(currentOffset, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST);
-      currentOffset += QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST;
+      currentChunk = getItems(currentOffset, quantityToRetrievePerHttpRequest);
+      currentOffset += offsetStep;
       currentChunkOffset = 0;
     }
 
@@ -48,6 +50,10 @@ public abstract class CsvItemReader<T> extends AbstractItemCountingItemStreamIte
   @Override
   protected void doClose() {
     // Nothing to do
+  }
+
+  protected void setOffsetStep(int offsetStep){
+    this.offsetStep = offsetStep;
   }
 
   protected abstract List<T> getItems(int offset, int limit);

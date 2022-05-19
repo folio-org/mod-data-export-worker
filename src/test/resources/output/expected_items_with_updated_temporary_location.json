@@ -1,0 +1,83 @@
+{
+  "items": [
+    {
+      "id": "b7a9718a-0c26-4d43-ace9-52234ff74ad8",
+      "temporaryLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      },
+      "effectiveLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      }
+    },
+    {
+      "id": "f84325f4-7d2a-495f-b15e-fa822354a932",
+      "permanentLocation": {
+        "id": "fcd64ce1-6995-48f0-840e-89ffa2288371",
+        "name": "Main Library"
+      },
+      "temporaryLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      },
+      "effectiveLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      }
+    },
+    {
+      "id": "42c6e3a2-774b-46e3-b76d-9385e908550e",
+      "temporaryLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      },
+      "effectiveLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      }
+    },
+    {
+      "id": "14475730-a4a0-4c1a-b4b4-67ad458e711d",
+      "permanentLocation": {
+        "id": "fcd64ce1-6995-48f0-840e-89ffa2288371",
+        "name": "Main Library"
+      },
+      "temporaryLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      },
+      "effectiveLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      }
+    },
+    {
+      "id": "18f746e4-7c9c-48be-86a4-ff1c96934203",
+      "temporaryLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      },
+      "effectiveLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      }
+    },
+    {
+      "id": "a869598f-9085-4470-949f-1f33f7cb74bf",
+      "permanentLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      },
+      "temporaryLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      },
+      "effectiveLocation": {
+        "id": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+        "name": "Annex"
+      }
+    }
+  ],
+  "totalRecords": 6
+}

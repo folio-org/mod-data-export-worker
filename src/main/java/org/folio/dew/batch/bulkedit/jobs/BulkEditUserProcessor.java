@@ -1,23 +1,26 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import static java.util.Objects.nonNull;
+import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
+import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
+import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
+import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
+
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
+import java.util.Objects;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.Address;
-import org.folio.dew.domain.dto.ItemIdentifier;
+import org.folio.dew.domain.dto.CustomField;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
+import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.UserReferenceService;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
@@ -26,36 +29,18 @@ import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
-import static java.util.Objects.nonNull;
-import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
-import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
-import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
-import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
-
 @Component
 @StepScope
 @RequiredArgsConstructor
 @Log4j2
 public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
-
   private final UserClient userClient;
   private final UserReferenceService userReferenceService;
-
-  private DateFormat dateFormat;
-  private Set<ItemIdentifier> identifiersToCheckDuplication = new HashSet<>();
-
-  @PostConstruct
-  public void postConstruct() {
-    dateFormat = new SimpleDateFormat(DATE_TIME_PATTERN);
-    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-  }
 
   @Override
   public UserFormat process(User user) {
     return UserFormat.builder()
-      .userName(user.getUsername())
+      .username(user.getUsername())
       .id(user.getId())
       .externalSystemId(user.getExternalSystemId())
       .barcode(user.getBarcode())
@@ -129,11 +114,34 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
 
   private String customFieldsToString(Map<String, Object> map) {
     return map.entrySet().stream()
-      .map(e -> e.getKey() + KEY_VALUE_DELIMITER + e.getValue().toString())
+      .map(this::customFieldToString)
       .collect(Collectors.joining(ITEM_DELIMITER));
   }
 
-  private String dateToString(Date date) {
-    return nonNull(date) ? dateFormat.format(date) : EMPTY;
+  private String customFieldToString(Map.Entry<String, Object> entry) {
+    var customField = userReferenceService.getCustomFieldByRefId(entry.getKey());
+    switch (customField.getType()) {
+    case TEXTBOX_LONG:
+    case TEXTBOX_SHORT:
+    case SINGLE_CHECKBOX:
+      return customField.getName() + KEY_VALUE_DELIMITER + entry.getValue();
+    case SINGLE_SELECT_DROPDOWN:
+    case RADIO_BUTTON:
+      return customField.getName() + KEY_VALUE_DELIMITER + extractValueById(customField, entry.getValue().toString());
+    case MULTI_SELECT_DROPDOWN:
+      var values = (ArrayList) entry.getValue();
+      return customField.getName() + KEY_VALUE_DELIMITER + values.stream()
+        .map(v -> extractValueById(customField, v.toString()))
+        .collect(Collectors.joining(ARRAY_DELIMITER));
+    default:
+      throw new BulkEditException("Invalid custom field: " + entry);
+    }
+  }
+
+  private String extractValueById(CustomField customField, String id) {
+    var optionalValue = customField.getSelectField().getOptions().getValues().stream()
+      .filter(selectFieldOption -> Objects.equals(id, selectFieldOption.getId()))
+      .findFirst();
+    return optionalValue.isPresent() ? optionalValue.get().getValue() : EMPTY;
   }
 }

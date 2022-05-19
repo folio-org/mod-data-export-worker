@@ -5,10 +5,107 @@ info:
 servers:
   - url: /bulk-edit/
 paths:
-  /{jobId}/preview:
+  /{jobId}/items-content-update/upload:
+    post:
+      description: Upload content updates
+      operationId: postContentUpdates
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: UUID of the JobCommand
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+          description: The numbers of records to return
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/contentUpdateCollection"
+      responses:
+        "200":
+          description: Collection of items for preview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/itemCollection"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "500":
+          description: Internal server errors, e.g. due to misconfiguration
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+  /{jobId}/preview/updated-items/download:
+    get:
+      description: Download preview as csv-file
+      operationId: downloadPreviewByJobId
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: UUID of the JobCommand
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        '200':
+          description: Preview updated of items to download
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "500":
+          description: Internal server errors, e.g. due to misconfiguration
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+  /{jobId}/preview/users:
     get:
       description: Get a list of users for preview
-      operationId: getPreviewByJobId
+      operationId: getPreviewUsersByJobId
       parameters:
         - name: jobId
           in: path
@@ -29,28 +126,78 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/userCollection"
-                example: "{}"
         '400':
           description: Bad Request
           content:
-            text/plain:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
               schema:
-                type: string
-                example: Invalid query
+                $ref: "#/components/schemas/errors"
         '404':
           description: Bad Request
           content:
-            text/plain:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
               schema:
-                type: string
-                example: Job not found
+                $ref: "#/components/schemas/errors"
         '500':
            description: Internal server errors, e.g. due to misconfiguration
            content:
-             text/plain:
+             application/json:
+               example:
+                 $ref: "#/components/examples/errors"
                schema:
-                 type: string
-                 example: Internal server error
+                 $ref: "#/components/schemas/errors"
+  /{jobId}/preview/items:
+    get:
+      description: Get a list of items for preview
+      operationId: getPreviewItemsByJobId
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: UUID of the JobCommand
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+          description: The numbers of items to return
+      responses:
+        '200':
+          description: Collection of items for preview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/itemCollection"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        '404':
+          description: Not found
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        '500':
+          description: Internal server errors, e.g. due to misconfiguration
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
   /{jobId}/errors:
     get:
       description: Get a list of errors for preview
@@ -73,9 +220,10 @@ paths:
           description: Collection of users for preview
           content:
             application/json:
+              example:
+                $ref: "#/components/examples/errors"
               schema:
-                $ref: "../../../../folio-export-common/schemas/common/errors.json"
-                example: "{}"
+                $ref: "#/components/schemas/errors"
         '404':
           description: No found
           content:
@@ -135,8 +283,8 @@ paths:
                 $ref: "#/components/schemas/errors"
   /{jobId}/start:
     post:
-      description: Start update job
-      operationId: startUpdateJob
+      description: Start job
+      operationId: startJob
       parameters:
         - name: jobId
           in: path
@@ -146,7 +294,7 @@ paths:
             $ref: "#/components/schemas/UUID"
       responses:
         "200":
-          description: Update is started
+          description: Job is started
           content:
             application/json:
               schema:
@@ -207,6 +355,8 @@ components:
       format: uuid
     errors:
       $ref: '../../../../folio-export-common/schemas/common/errors.json#/Errors'
+    parameter:
+      $ref: '../../../../folio-export-common/schemas/common/parameter.json#/Parameter'
     userGroupCollections:
       $ref: '../../../../folio-export-common/schemas/user/userGroupCollection.json#/UserGroupCollection'
     addressTypeCollection:
@@ -217,6 +367,42 @@ components:
       $ref: '../../../../folio-export-common/schemas/user/departmentCollection.json#/DepartmentCollection'
     userCollection:
       $ref: '../../../../folio-export-common/schemas/user/userCollection.json'
+    itemCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/itemCollection.json#/ItemCollection'
+    callNumberType:
+      $ref: '../../../../folio-export-common/schemas/inventory/callNumberType.json#/CallNumberType'
+    damagedStatus:
+      $ref: '../../../../folio-export-common/schemas/inventory/damagedStatus.json#/DamagedStatus'
+    noteType:
+      $ref: '../../../../folio-export-common/schemas/inventory/itemNoteType.json#/NoteType'
+    electronicAccessRelationship:
+      $ref: '../../../../folio-export-common/schemas/inventory/electronicAccessRelationship.json#/ElectronicAccessRelationship'
+    statisticalCode:
+      $ref: '../../../../folio-export-common/schemas/inventory/statisticalCode.json#/StatisticalCode'
+    itemLocationCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/locationCollection.json#/ItemLocationCollection'
+    callNumberTypes:
+      $ref: '../../../../folio-export-common/schemas/inventory/callNumberTypeCollection.json#/CallNumberTypeCollection'
+    damagedStatuses:
+      $ref: '../../../../folio-export-common/schemas/inventory/damagedStatusCollection.json#/DamagedStatusCollection'
+    noteTypes:
+      $ref: '../../../../folio-export-common/schemas/inventory/itemNoteTypeCollection.json#/NoteTypeCollection'
+    materialTypes:
+      $ref: '../../../../folio-export-common/schemas/inventory/materialTypeCollection.json#/MaterialTypeCollection'
+    briefHoldings:
+      $ref: '../../../../folio-export-common/schemas/inventory/briefHoldingCollection.json#/BriefHoldingsRecordCollection'
+    briefInstances:
+      $ref: '../../../../folio-export-common/schemas/inventory/briefInstanceCollection.json#/BriefInstanceCollection'
+    loanTypes:
+      $ref: '../../../../folio-export-common/schemas/inventory/loanTypeCollection.json#/LoanTypeCollection'
+    electronicAccessRelationShips:
+      $ref: '../../../../folio-export-common/schemas/inventory/electronicAccessRelationshipCollection.json#/ElectronicAccessRelationshipCollection'
+    statisticalCodes:
+      $ref: '../../../../folio-export-common/schemas/inventory/statisticalCodeCollection.json#/StatisticalCodeCollection'
+    contentUpdateCollection:
+      $ref: '../../../../folio-export-common/schemas/bulk-edit/contentUpdateCollection.json#/ContentUpdateCollection'
+    customFieldCollection:
+      $ref: '../../../../folio-export-common/schemas/user/customFieldCollection.json#/CustomFieldCollection'
   examples:
     errors:
       value:

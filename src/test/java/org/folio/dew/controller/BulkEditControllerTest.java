@@ -843,6 +843,25 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     // Edited 0 lines.
     assertThat(result.getResponse().getContentAsString(), equalTo("0"));
+
+    jobId = UUID.randomUUID();
+
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, USER, BARCODE));
+
+    headers = defaultHeaders();
+
+    // Load edited file with incorrect number of tokens.
+    bytes = new FileInputStream("src/test/resources/upload/invalid-user-records-incorrect-number-of-tokens.csv").readAllBytes();
+    file = new MockMultipartFile("file", "invalid-user-records-incorrect-number-of-tokens.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
+      .file(file)
+      .headers(headers))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    // Keep all 3 lines to delegate them into SkipListener.
+    assertThat(result.getResponse().getContentAsString(), equalTo("3"));
   }
 
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType, EntityType entityType, IdentifierType identifierType) {

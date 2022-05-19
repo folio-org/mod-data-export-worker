@@ -1,3 +1,10 @@
+## 2022-05-19 v1.3.4
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.3.3...v1.3.4)
+
+### Technical tasks
+* [MODEXPW-95](https://issues.folio.org/browse/MODEXPW-95) spring-boot-starter parent version upgrade
+
 ## 2022-04-08 v1.3.3
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.3.2...v1.3.3)

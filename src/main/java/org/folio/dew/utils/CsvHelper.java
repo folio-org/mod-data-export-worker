@@ -7,7 +7,6 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import lombok.experimental.UtilityClass;
 
 import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,12 +15,14 @@ import java.util.List;
 
 @UtilityClass
 public class CsvHelper {
-  public static <T> List<T> readRecordsFromFile(String fileName, Class<T> clazz, boolean skipHeaders) throws FileNotFoundException {
-    return new CsvToBeanBuilder<T>(new FileReader(fileName))
-      .withType(clazz)
-      .withSkipLines(skipHeaders ? 1 : 0)
-      .build()
-      .parse();
+  public static <T> List<T> readRecordsFromFile(String fileName, Class<T> clazz, boolean skipHeaders) throws IOException {
+    try (var fileReader = new FileReader(fileName)) {
+      return new CsvToBeanBuilder<T>(fileReader)
+        .withType(clazz)
+        .withSkipLines(skipHeaders ? 1 : 0)
+        .build()
+        .parse();
+    }
   }
 
   public static <T> void saveRecordsToCsv(List<T> beans, Class<T> clazz, String fileName)

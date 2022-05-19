@@ -229,7 +229,7 @@ class BulkEditTest extends BaseBatchTest {
       }
       assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
     } else {
-      assertEquals(";", jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE));
+      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
       assertThat(errors.getErrors()).isEmpty();
     }
   }
@@ -253,7 +253,7 @@ class BulkEditTest extends BaseBatchTest {
       assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
     } else {
       assertThat(errors.getErrors()).isEmpty();
-      assertEquals(";", jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE));
+      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
     }
   }
 

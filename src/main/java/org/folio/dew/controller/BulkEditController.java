@@ -38,7 +38,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
 import com.opencsv.bean.CsvToBeanBuilder;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -60,7 +59,6 @@ import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.dew.utils.CsvHelper;
-import org.folio.dew.utils.UserRowValidator;
 import org.openapitools.api.JobIdApi;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -350,9 +348,14 @@ public class BulkEditController implements JobIdApi {
   }
   private List<UserFormat> getDifferenceBetweenInitialAndEditedUsersCSV(InputStream editedUsersStream) throws IOException {
     try (var csvReader = new InputStreamReader(editedUsersStream)) {
-      return new CsvToBeanBuilder<UserFormat>(
-        new CSVReaderBuilder(csvReader).withRowValidator(new UserRowValidator()).build())
+      return new CsvToBeanBuilder<UserFormat>(csvReader)
         .withType(UserFormat.class)
+        .withFilter(line -> {
+          if (line.length != UserFormat.getUserFieldsArray().length) {
+            throw new RuntimeException();
+          }
+          return true;
+        })
         .withSkipLines(1)
         .build()
         .parse()

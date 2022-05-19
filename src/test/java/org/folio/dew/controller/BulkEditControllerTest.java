@@ -117,9 +117,6 @@ class BulkEditControllerTest extends BaseBatchTest {
   @Autowired
   private BulkEditProcessingErrorsService errorsService;
 
-  @Autowired
-  private DataExportSpringClient dataExportSpringClient;
-
   @Test
   void shouldReturnErrorsPreview() throws Exception {
 
@@ -837,94 +834,6 @@ class BulkEditControllerTest extends BaseBatchTest {
     // Load initial file with no edited lines.
     bytes = new FileInputStream("src/test/resources/upload/bulk_edit_user_record_3_lines.csv").readAllBytes();
     file = new MockMultipartFile("file", "bulk_edit_user_record_3_lines.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
-
-    result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
-      .file(file)
-      .headers(headers))
-      .andExpect(status().isOk())
-      .andReturn();
-
-    // Edited 0 lines.
-    assertThat(result.getResponse().getContentAsString(), equalTo("0"));
-  }
-
-  @Test
-  @DisplayName("Skip non edited lines when downloading changed items")
-  @SneakyThrows
-  void shouldSkipNonEditedLinesWhenDownloadingChangedItems() {
-    when(inventoryClient.getItemById("b7a9718a-0c26-4d43-ace9-52234ff74ad7"))
-      .thenReturn(new Item().id("b7a9718a-0c26-4d43-ace9-52234ff74ad7").version(1).formerIds(List.of()).contributorNames(List.of())
-      .hrid("it00000000002").title("Sample instance1").barcode("0001").status(new InventoryItemStatus()
-          .name(InventoryItemStatus.NameEnum.AVAILABLE).date(itemStatusDateFormat.parse("2022-04-01 07:43:16.737Z")))
-      .materialType(new MaterialType().name("book").id("1a54b431-2e4f-452d-9cae-9cee66c9a892")).isBoundWith(false)
-        .permanentLoanType(new LoanType().name("Can circulate").id("2b94c631-fca9-4892-a730-03ee529ffe27"))
-      .effectiveLocation(new ItemLocation().name("Main Library").id("fcd64ce1-6995-48f0-840e-89ffa2288371")).holdingsRecordId("4929e3d5-8de5-4bb2-8818-3c23695e7505")
-      .yearCaption(List.of()).administrativeNotes(List.of()).notes(List.of()).circulationNotes(List.of()).boundWithTitles(List.of())
-      .electronicAccess(List.of()).statisticalCodeIds(List.of()).tags(new Tags().tagList(List.of())));
-    when(inventoryClient.getItemById("b7a9718a-0c26-4d43-ace9-52234ff74ad8"))
-      .thenReturn(new Item().id("b7a9718a-0c26-4d43-ace9-52234ff74ad8").version(1).formerIds(List.of()).contributorNames(List.of())
-        .hrid("it00000000003").title("Sample instance2").barcode("0002").status(new InventoryItemStatus()
-          .name(InventoryItemStatus.NameEnum.AVAILABLE).date(itemStatusDateFormat.parse("2022-04-01 07:43:16.737Z")))
-        .materialType(new MaterialType().name("book").id("1a54b431-2e4f-452d-9cae-9cee66c9a892")).isBoundWith(false)
-        .permanentLoanType(new LoanType().name("Can circulate").id("2b94c631-fca9-4892-a730-03ee529ffe27"))
-        .effectiveLocation(new ItemLocation().name("Main Library").id("fcd64ce1-6995-48f0-840e-89ffa2288371")).holdingsRecordId("4929e3d5-8de5-4bb2-8818-3c23695e7505")
-        .yearCaption(List.of()).administrativeNotes(List.of()).notes(List.of()).circulationNotes(List.of()).boundWithTitles(List.of())
-        .electronicAccess(List.of()).statisticalCodeIds(List.of()).tags(new Tags().tagList(List.of())));
-    when(inventoryClient.getItemById("b7a9718a-0c26-4d43-ace9-52234ff74ad9"))
-      .thenReturn(new Item().id("b7a9718a-0c26-4d43-ace9-52234ff74ad9").version(1).formerIds(List.of()).contributorNames(List.of())
-        .hrid("it00000000004").title("Sample instance3").barcode("0003").status(new InventoryItemStatus()
-          .name(InventoryItemStatus.NameEnum.AVAILABLE).date(itemStatusDateFormat.parse("2022-04-01 07:43:16.737Z")))
-        .materialType(new MaterialType().name("book").id("1a54b431-2e4f-452d-9cae-9cee66c9a892")).isBoundWith(false)
-        .permanentLoanType(new LoanType().name("Can circulate").id("2b94c631-fca9-4892-a730-03ee529ffe27"))
-        .effectiveLocation(new ItemLocation().name("Main Library").id("fcd64ce1-6995-48f0-840e-89ffa2288371")).holdingsRecordId("4929e3d5-8de5-4bb2-8818-3c23695e7505")
-        .yearCaption(List.of()).administrativeNotes(List.of()).notes(List.of()).circulationNotes(List.of()).boundWithTitles(List.of())
-        .electronicAccess(List.of()).statisticalCodeIds(List.of()).tags(new Tags().tagList(List.of())));
-
-    var jobId = UUID.randomUUID();
-
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, ITEM, BARCODE));
-
-    var headers = defaultHeaders();
-
-    var bytes = new FileInputStream("src/test/resources/upload/bulk_edit_item_record_3_lines.csv").readAllBytes();
-    var file = new MockMultipartFile("file", "bulk_edit_item_record_3_lines.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
-
-    var result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
-      .file(file)
-      .headers(headers))
-      .andExpect(status().isOk())
-      .andReturn();
-
-    // 3 lines loaded (+1 header because of BULK_EDIT_IDENTIFIERS job).
-    assertThat(result.getResponse().getContentAsString(), equalTo("4"));
-
-    jobId = UUID.randomUUID();
-
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, ITEM, BARCODE));
-
-    headers = defaultHeaders();
-
-    bytes = new FileInputStream("src/test/resources/upload/bulk_edit_item_record_3_lines_edited_1_line.csv").readAllBytes();
-    file = new MockMultipartFile("file", "bulk_edit_item_record_3_lines_edited_1_line.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
-
-    result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
-      .file(file)
-      .headers(headers))
-      .andExpect(status().isOk())
-      .andReturn();
-
-    // Edited only 1 line.
-    assertThat(result.getResponse().getContentAsString(), equalTo("1"));
-
-    jobId = UUID.randomUUID();
-
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, ITEM, BARCODE));
-
-    headers = defaultHeaders();
-
-    // Load initial file with no edited lines.
-    bytes = new FileInputStream("src/test/resources/upload/bulk_edit_item_record_3_lines.csv").readAllBytes();
-    file = new MockMultipartFile("file", "bulk_edit_item_record_3_lines.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
 
     result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
       .file(file)

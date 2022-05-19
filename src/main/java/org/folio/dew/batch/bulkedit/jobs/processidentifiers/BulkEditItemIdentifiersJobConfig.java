@@ -1,6 +1,7 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
 import static org.folio.dew.domain.dto.EntityType.ITEM;
+import static org.folio.dew.utils.Constants.CHUNKS;
 import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
 import lombok.RequiredArgsConstructor;
@@ -30,8 +31,6 @@ import java.util.Arrays;
 @Configuration
 @RequiredArgsConstructor
 public class BulkEditItemIdentifiersJobConfig {
-  private static final int CHUNKS = 100;
-
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
   private final BulkEditItemProcessor bulkEditItemProcessor;
@@ -57,7 +56,9 @@ public class BulkEditItemIdentifiersJobConfig {
   }
 
   @Bean
-  public Step bulkEditItemStep(FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader, FlatFileItemWriter<ItemFormat> csvItemWriter) {
+  public Step bulkEditItemStep(FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader,
+      FlatFileItemWriter<ItemFormat> csvItemWriter,
+      IdentifiersWriteListener<ItemFormat> identifiersWriteListener) {
     return stepBuilderFactory.get("bulkEditItemStep")
       .<ItemIdentifier, ItemFormat> chunk(CHUNKS)
       .reader(csvItemIdentifierReader)
@@ -68,6 +69,7 @@ public class BulkEditItemIdentifiersJobConfig {
       .skip(BulkEditException.class)
       .listener(bulkEditSkipListener)
       .writer(csvItemWriter)
+      .listener(identifiersWriteListener)
       .build();
   }
 

@@ -3,6 +3,7 @@ package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.UserFormat.getUserColumnHeaders;
 import static org.folio.dew.domain.dto.UserFormat.getUserFieldsArray;
+import static org.folio.dew.utils.Constants.CHUNKS;
 import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
 import lombok.RequiredArgsConstructor;
@@ -32,8 +33,6 @@ import java.util.Arrays;
 @Configuration
 @RequiredArgsConstructor
 public class BulkEditUserIdentifiersJobConfig {
-  private static final int CHUNKS = 100;
-
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
   private final BulkEditUserProcessor bulkEditUserProcessor;
@@ -59,7 +58,9 @@ public class BulkEditUserIdentifiersJobConfig {
   }
 
   @Bean
-  public Step bulkEditUserStep(FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader, FlatFileItemWriter<UserFormat> csvUserWriter) {
+  public Step bulkEditUserStep(FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader,
+      FlatFileItemWriter<UserFormat> csvUserWriter,
+      IdentifiersWriteListener<UserFormat> identifiersWriteListener) {
     return stepBuilderFactory.get("bulkEditUserStep")
       .<ItemIdentifier, UserFormat> chunk(CHUNKS)
       .reader(csvItemIdentifierReader)
@@ -70,6 +71,7 @@ public class BulkEditUserIdentifiersJobConfig {
       .skip(BulkEditException.class)
       .listener(bulkEditSkipListener)
       .writer(csvUserWriter)
+      .listener(identifiersWriteListener)
       .build();
   }
 

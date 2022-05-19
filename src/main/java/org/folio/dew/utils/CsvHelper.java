@@ -37,4 +37,10 @@ public class CsvHelper {
         .write(beans);
     }
   }
+
+  public static long countLines(Path path, boolean skipHeaders) throws IOException {
+    try (var lines = Files.lines(path)) {
+      return skipHeaders ? lines.count() - 1 : lines.count();
+    }
+  }
 }

@@ -17,8 +17,10 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
-import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
+import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
+import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
+import static org.folio.dew.utils.CsvHelper.countLines;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
 
 import java.io.FileReader;
@@ -177,14 +179,15 @@ public class BulkEditController implements JobIdApi {
         processUpdateUsers(uploadedPath, file);
       }
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
-      prepareJobParameters(jobCommand, uploadedPath.toString());
+      prepareJobParameters(jobCommand, uploadedPath);
       if (!isBulkEditUpdate(jobCommand) && ITEM != jobCommand.getEntityType()) {
         var job = getBulkEditJob(jobCommand);
         var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
         log.info("Launching bulk edit user identifiers job.");
         exportJobManager.launchJob(jobLaunchRequest);
       }
-      return new ResponseEntity<>(Long.toString(countLines(uploadedPath, isBulkEditUpdate(jobCommand))), HttpStatus.OK);
+      var numberOfLines = jobCommand.getJobParameters().getLong(TOTAL_CSV_LINES);
+      return new ResponseEntity<>(Long.toString(isNull(numberOfLines) ? 0 : numberOfLines), HttpStatus.OK);
     } catch (Exception e) {
       String errorMessage = format(FILE_UPLOAD_ERROR, e.getMessage());
       log.error(errorMessage);
@@ -227,9 +230,11 @@ public class BulkEditController implements JobIdApi {
       .orElseThrow(() -> new IllegalStateException("Job was not found, aborting"));
   }
 
-  private void prepareJobParameters(JobCommand jobCommand, String fileName) {
+  private void prepareJobParameters(JobCommand jobCommand, Path uploadedPath) throws IOException {
+    var fileName = uploadedPath.toString();
     var paramsBuilder = new JobParametersBuilder(jobCommand.getJobParameters());
     paramsBuilder.addString(FILE_NAME, fileName);
+    paramsBuilder.addLong(TOTAL_CSV_LINES, countLines(uploadedPath, isBulkEditUpdate(jobCommand)));
     paramsBuilder.addString(TEMP_OUTPUT_FILE_PATH,
       workDir + (isBulkEditUpdate(jobCommand) ? EMPTY : LocalDate.now() + MATCHED_RECORDS) + FilenameUtils.getBaseName(fileName));
     paramsBuilder.addString(EXPORT_TYPE, jobCommand.getExportType().getValue());
@@ -238,12 +243,6 @@ public class BulkEditController implements JobIdApi {
     ofNullable(jobCommand.getEntityType()).ifPresent(type ->
       paramsBuilder.addString("entityType", type.getValue()));
     jobCommand.setJobParameters(paramsBuilder.toJobParameters());
-  }
-
-  private long countLines(Path path, boolean skipHeaders) throws IOException {
-    try (var lines = Files.lines(path)) {
-      return skipHeaders ? lines.count() - 1 : lines.count();
-    }
   }
 
   private boolean isBulkEditUpdate(JobCommand jobCommand) {

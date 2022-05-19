@@ -4,7 +4,7 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class Constants {
-
+  public static final int CHUNKS = 100;
   public static final String ROLLBACK_FILE = "rollBackFile";
   public static final String TMP_DIR_PROPERTY = "java.io.tmpdir";
   public static final String PATH_SEPARATOR = "/";
@@ -22,6 +22,7 @@ public class Constants {
   public static final String KEY_VALUE_DELIMITER = ":";
 
   public static final String FILE_NAME = "fileName";
+  public static final String TOTAL_CSV_LINES = "totalCsvLines";
   public static final String JOB_ID = "jobId";
   public static final String EXPORT_TYPE = "exportType";
   public static final String ENTITY_TYPE = "entityType";

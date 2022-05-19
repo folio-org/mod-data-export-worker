@@ -12,6 +12,7 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.QUERY;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
+import org.folio.dew.exceptions.InvalidCsvException;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
@@ -269,11 +270,12 @@ public class BulkEditController implements JobIdApi {
 
   private String buildPreviewUsersQueryFromJobCommand(JobCommand jobCommand, int limit) {
     if (isBulkEditUpdate(jobCommand)) {
-      var filename = jobCommand.getJobParameters().getString(FILE_NAME);
-      var basename = FilenameUtils.getBaseName(filename);
-      if (!basename.startsWith(INITIAL_PREFIX)) {
-        jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters()).addString(FILE_NAME, filename.replace(basename, INITIAL_PREFIX + basename)).toJobParameters());
-      }
+      ofNullable(jobCommand.getJobParameters().getString(FILE_NAME)).ifPresent(filename -> {
+        var basename = FilenameUtils.getBaseName(filename);
+        if (!basename.startsWith(INITIAL_PREFIX)) {
+          jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters()).addString(FILE_NAME, filename.replace(basename, INITIAL_PREFIX + basename)).toJobParameters());
+        }
+      });
     }
     return buildPreviewQueryFromJobCommand(jobCommand, limit);
   }
@@ -352,7 +354,7 @@ public class BulkEditController implements JobIdApi {
         .withType(UserFormat.class)
         .withFilter(line -> {
           if (line.length != UserFormat.getUserFieldsArray().length) {
-            throw new RuntimeException();
+            throw new InvalidCsvException("Number of tokens does not correspond to the number of user fields.");
           }
           return true;
         })
@@ -360,7 +362,7 @@ public class BulkEditController implements JobIdApi {
         .build()
         .parse()
         .stream()
-        .filter(editedUserFormat -> applyUserFilter(editedUserFormat))
+        .filter(this::applyUserFilter)
         .collect(Collectors.toList());
     }
   }

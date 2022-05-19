@@ -17,6 +17,7 @@ import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
+import static org.junit.Assert.assertEquals;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 import java.io.BufferedReader;
@@ -220,15 +221,15 @@ class BulkEditTest extends BaseBatchTest {
 
     var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobExecution.getJobParameters().getString("jobId"), csvFileName, 10);
 
-    assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
-
     if (!USER_RECORD_CSV.equals(csvFileName)) {
       if (USER_RECORD_CSV_BAD_CUSTOM_FIELD.equals(csvFileName)) {
         assertThat(errors.getErrors()).hasSize(2);
       } else {
         assertThat(errors.getErrors()).hasSize(1);
       }
+      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
     } else {
+      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
       assertThat(errors.getErrors()).isEmpty();
     }
   }
@@ -245,13 +246,14 @@ class BulkEditTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-    assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
 
     var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobExecution.getJobParameters().getString("jobId"), csvFileName, 10);
     if (!ITEM_RECORD_CSV.equals(csvFileName)) {
       assertThat(errors.getErrors()).hasSize(1);
+      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
     } else {
       assertThat(errors.getErrors()).isEmpty();
+      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
     }
   }
 

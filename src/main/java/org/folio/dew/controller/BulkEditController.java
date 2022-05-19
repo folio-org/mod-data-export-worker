@@ -12,20 +12,19 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.QUERY;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
+import org.folio.dew.exceptions.InvalidCsvException;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
-import static org.folio.dew.utils.Constants.PREVIEW_USERS_QUERY;
-import static org.folio.dew.utils.Constants.PREVIEW_ITEMS_QUERY;
+import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
 
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,16 +34,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.opencsv.CSVReader;
 import com.opencsv.bean.CsvToBeanBuilder;
-import com.opencsv.exceptions.CsvDataTypeMismatchException;
-import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
@@ -65,7 +60,6 @@ import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.dew.utils.CsvHelper;
-import org.folio.spring.FolioExecutionContext;
 import org.openapitools.api.JobIdApi;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -107,12 +101,10 @@ public class BulkEditController implements JobIdApi {
   private final List<Job> jobs;
   private final BulkEditItemContentUpdateService itemContentUpdateService;
   private final BulkEditParseService bulkEditParseService;
-  private final FolioExecutionContext folioExecutionContext;
 
   @Value("${spring.application.name}")
   private String springApplicationName;
   private String workDir;
-  private final Map<UUID, UUID> lastJobIdentifiersByCurrentUser = new ConcurrentHashMap<>();
 
   @PostConstruct
   public void postConstruct() {
@@ -131,18 +123,12 @@ public class BulkEditController implements JobIdApi {
   @Override
   public ResponseEntity<Object> getPreviewUsersByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId, @NotNull @ApiParam(value = "The numbers of items to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
     var jobCommand = getJobCommandById(jobId.toString());
-    var lastJobIdentifiersId = lastJobIdentifiersByCurrentUser.get(folioExecutionContext.getUserId());
-    String previewQuery = getPreviewQueryFromJobParameters(
-      !isBulkEditUpdate(jobCommand) || isNull(lastJobIdentifiersId) ? jobCommand : getJobCommandById(lastJobIdentifiersId.toString()), limit, PREVIEW_USERS_QUERY);
-    return new ResponseEntity<>(userClient.getUserByQuery(previewQuery, limit), HttpStatus.OK);
+    return new ResponseEntity<>(userClient.getUserByQuery(buildPreviewUsersQueryFromJobCommand(jobCommand, limit), limit), HttpStatus.OK);
   }
 
   @Override public ResponseEntity<ItemCollection> getPreviewItemsByJobId(UUID jobId, Integer limit) {
     var jobCommand = getJobCommandById(jobId.toString());
-    var lastJobIdentifiersId = lastJobIdentifiersByCurrentUser.get(folioExecutionContext.getUserId());
-    String previewQuery = getPreviewQueryFromJobParameters(
-      !isBulkEditUpdate(jobCommand) || isNull(lastJobIdentifiersId) ? jobCommand : getJobCommandById(lastJobIdentifiersId.toString()), limit, PREVIEW_ITEMS_QUERY);
-    return new ResponseEntity<>(inventoryClient.getItemByQuery(previewQuery, limit), HttpStatus.OK);
+    return new ResponseEntity<>(inventoryClient.getItemByQuery(buildPreviewQueryFromJobCommand(jobCommand, limit), limit), HttpStatus.OK);
   }
 
   @Override
@@ -179,19 +165,16 @@ public class BulkEditController implements JobIdApi {
     }
 
     var jobCommand = getJobCommandById(jobId.toString());
-    if (isBulkEditIdentifiers(jobCommand)) {
-      lastJobIdentifiersByCurrentUser.put(folioExecutionContext.getUserId(), jobId);
-    }
     var uploadedPath = Path.of(workDir, file.getOriginalFilename());
 
     try {
       if (Files.exists(uploadedPath)) {
         FileUtils.forceDelete(uploadedPath.toFile());
       }
-      if (isBulkEditUpdate(jobCommand)) {
-        processBulkEditUpdateUploadCSV(uploadedPath, jobCommand, file);
-      } else {
-        Files.write(uploadedPath, file.getBytes());
+      Files.write(uploadedPath, file.getBytes());
+      if (isBulkEditUpdate(jobCommand) && jobCommand.getEntityType() == USER) {
+        Files.write( Path.of(workDir, INITIAL_PREFIX + file.getOriginalFilename()), file.getBytes());
+        processUpdateUsers(uploadedPath, file);
       }
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
       prepareJobParameters(jobCommand, uploadedPath.toString());
@@ -267,10 +250,6 @@ public class BulkEditController implements JobIdApi {
     return jobCommand.getExportType() == BULK_EDIT_UPDATE;
   }
 
-  private boolean isBulkEditIdentifiers(JobCommand jobCommand) {
-    return jobCommand.getExportType() == BULK_EDIT_IDENTIFIERS;
-  }
-
   private JobCommand getJobCommandById(String jobId) {
     var jobCommandOptional = jobCommandsReceiverService.getBulkEditJobCommandById(jobId);
     if (jobCommandOptional.isEmpty()) {
@@ -289,6 +268,18 @@ public class BulkEditController implements JobIdApi {
       return new ItemCollection().items(items).totalRecords(itemFormats.size());
   }
 
+  private String buildPreviewUsersQueryFromJobCommand(JobCommand jobCommand, int limit) {
+    if (isBulkEditUpdate(jobCommand)) {
+      ofNullable(jobCommand.getJobParameters().getString(FILE_NAME)).ifPresent(filename -> {
+        var basename = FilenameUtils.getBaseName(filename);
+        if (!basename.startsWith(INITIAL_PREFIX)) {
+          jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters()).addString(FILE_NAME, filename.replace(basename, INITIAL_PREFIX + basename)).toJobParameters());
+        }
+      });
+    }
+    return buildPreviewQueryFromJobCommand(jobCommand, limit);
+  }
+
   private String buildPreviewQueryFromJobCommand(JobCommand jobCommand, int limit) {
     switch(jobCommand.getExportType()) {
     case BULK_EDIT_UPDATE:
@@ -300,20 +291,6 @@ public class BulkEditController implements JobIdApi {
       throw new NonSupportedEntityException(format("Non-supported export type: %s", jobCommand.getExportType()));
     }
   }
-
-  private String getPreviewQueryFromJobParameters(JobCommand jobCommand, int limit, String previewQuery) {
-    String query = jobCommand.getJobParameters().getString(previewQuery);
-    if (isNull(query)) {
-      query = buildPreviewQueryFromJobCommand(jobCommand, limit);
-      if (nonNull(query)) {
-        var paramsBuilder = new JobParametersBuilder(jobCommand.getJobParameters());
-        paramsBuilder.addString(previewQuery, query);
-        jobCommand.setJobParameters(paramsBuilder.toJobParameters());
-      }
-    }
-    return query;
-  }
-
   private String buildPreviewQueryFromCsv(JobCommand jobCommand, int limit) {
     var fileName = extractFileName(jobCommand);
     try (var reader = new CSVReader(new FileReader(fileName))) {
@@ -359,52 +336,44 @@ public class BulkEditController implements JobIdApi {
       throw new NonSupportedEntityException(format("Non-supported entity type: %s", jobCommand.getEntityType()));
     }
   }
-
-  private void processBulkEditUpdateUploadCSV(Path uploadedPath, JobCommand jobCommand, MultipartFile file) throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
-    if (jobCommand.getEntityType() == ITEM) {
-      processBulkEditUpdateUploadCSV(uploadedPath, file, ItemFormat.class);
-    } else {
-      processBulkEditUpdateUploadCSV(uploadedPath, file, UserFormat.class);
+  private void processUpdateUsers(Path uploadedPath, MultipartFile file) throws IOException {
+    try {
+      var updatedUserFormats = getDifferenceBetweenInitialAndEditedUsersCSV(file.getInputStream());
+      if (updatedUserFormats.isEmpty()) { // If no records changed, just write column headers.
+        Files.write(uploadedPath, UserFormat.getUserColumnHeaders().getBytes());
+      } else {
+        CsvHelper.saveRecordsToCsv(updatedUserFormats, UserFormat.class, uploadedPath.toFile().getAbsolutePath());
+      }
+    } catch (Exception e) { // If any issues in the file, delegate them to the SkipListener.
+      Files.write(uploadedPath, file.getBytes());
     }
   }
-
-  private <T> void processBulkEditUpdateUploadCSV(Path uploadedPath, MultipartFile file, Class<T> clazz) throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
-    List<T> csvLines = getDifferenceBetweenInitialAndEditedRecordsCSV(file.getInputStream(), clazz);
-    if (csvLines.isEmpty()) { // If no records changed, just write column headers.
-      Files.write(uploadedPath, clazz == ItemFormat.class ? ItemFormat.getItemColumnHeaders().getBytes() : UserFormat.getUserColumnHeaders().getBytes());
-    } else {
-      CsvHelper.saveRecordsToCsv(csvLines, clazz, uploadedPath.toFile().getAbsolutePath());
-    }
-  }
-
-  private <T> List<T> getDifferenceBetweenInitialAndEditedRecordsCSV(InputStream edited, Class<T> clazz) throws IOException {
-    try (Reader csvReader = new InputStreamReader(edited)) {
-      return new CsvToBeanBuilder<T>(csvReader)
-        .withType(clazz)
+  private List<UserFormat> getDifferenceBetweenInitialAndEditedUsersCSV(InputStream editedUsersStream) throws IOException {
+    try (var csvReader = new InputStreamReader(editedUsersStream)) {
+      return new CsvToBeanBuilder<UserFormat>(csvReader)
+        .withType(UserFormat.class)
+        .withFilter(line -> {
+          if (line.length != UserFormat.getUserFieldsArray().length) {
+            throw new InvalidCsvException("Number of tokens does not correspond to the number of user fields.");
+          }
+          return true;
+        })
         .withSkipLines(1)
         .build()
         .parse()
         .stream()
-        .filter(editedRecordFormat -> {
-          if (clazz == UserFormat.class) {
-            return applyUserFilter((UserFormat) editedRecordFormat);
-          } else {
-            return applyItemFilter((ItemFormat) editedRecordFormat);
-          }
-        })
+        .filter(this::applyUserFilter)
         .collect(Collectors.toList());
     }
   }
 
   private boolean applyUserFilter(UserFormat editedUserFormat) {
-    var initialUser = userClient.getUserById(editedUserFormat.getId());
-    initialUser.setMetadata(null); // Exclude metadata from comparing users.
-    return !initialUser.equals(bulkEditParseService.mapUserFormatToUser(editedUserFormat));
-  }
-
-  private boolean applyItemFilter(ItemFormat editedItemFormat) {
-    var initialItem = inventoryClient.getItemById(editedItemFormat.getId());
-    initialItem.setMetadata(null); // Exclude metadata from comparing items.
-    return !initialItem.equals(bulkEditParseService.mapItemFormatToItem(editedItemFormat));
+    try {
+      var initialUser = userClient.getUserById(editedUserFormat.getId());
+      initialUser.setMetadata(null); // Exclude metadata from comparing users.
+      return !initialUser.equals(bulkEditParseService.mapUserFormatToUser(editedUserFormat));
+    } catch (Exception e) {
+      return true;
+    }
   }
 }

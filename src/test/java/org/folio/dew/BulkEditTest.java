@@ -1,7 +1,6 @@
 package org.folio.dew;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
@@ -12,11 +11,8 @@ import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
-import static org.folio.dew.utils.Constants.ENTITY_TYPE;
-import static org.folio.dew.utils.Constants.EXPORT_TYPE;
-import static org.folio.dew.utils.Constants.FILE_NAME;
-import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
-import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
+import static org.folio.dew.utils.Constants.*;
+import static org.folio.dew.utils.CsvHelper.countLines;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 import java.io.BufferedReader;
@@ -31,6 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
+import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.IdentifierType;
@@ -43,6 +40,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
@@ -53,6 +52,7 @@ import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.FileSystemResource;
 import lombok.SneakyThrows;
 
@@ -60,6 +60,7 @@ import lombok.SneakyThrows;
 class BulkEditTest extends BaseBatchTest {
 
   private static final String BARCODES_CSV = "src/test/resources/upload/barcodes.csv";
+  private static final String BARCODES_FOR_PROGRESS_CSV = "src/test/resources/upload/barcodes_for_progress.csv";
   private static final String ITEM_BARCODES_CSV = "src/test/resources/upload/item_barcodes.csv";
   private static final String USER_RECORD_CSV = "src/test/resources/upload/bulk_edit_user_record.csv";
   private static final String ITEM_RECORD_CSV = "src/test/resources/upload/bulk_edit_item_record.csv";
@@ -106,6 +107,9 @@ class BulkEditTest extends BaseBatchTest {
   @Autowired
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
 
+  @MockBean
+  private KafkaService kafkaService;
+
   @Test
   @DisplayName("Run bulk-edit (user identifiers) successfully")
   void uploadUserIdentifiersJobTest() throws Exception {
@@ -121,6 +125,40 @@ class BulkEditTest extends BaseBatchTest {
 
     // check if caching works
     wireMockServer.verify(1, getRequestedFor(urlEqualTo("/groups/3684a786-6671-4268-8ed0-9db82ebca60b")));
+  }
+
+  @Test
+  @DisplayName("Update retrieval progress (user identifiers) successfully")
+  void shouldUpdateProgressUponUserIdentifiersJob() throws Exception {
+
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
+
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, BARCODES_FOR_PROGRESS_CSV, true);
+    testLauncher.launchJob(jobParameters);
+
+    var jobCaptor = ArgumentCaptor.forClass(org.folio.de.entity.Job.class);
+
+    // expected 4 events: 1st - job started, 2nd, 3rd - updates after each chunk (100 identifiers), 4th - job completed
+    Mockito.verify(kafkaService, Mockito.times(4)).send(Mockito.any(), Mockito.any(), jobCaptor.capture());
+
+    verifyJobProgressUpdates(jobCaptor);
+  }
+
+  @Test
+  @DisplayName("Update retrieval progress (item identifiers) successfully")
+  void shouldUpdateProgressUponItemIdentifiersJob() throws Exception {
+
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
+
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, BARCODES_FOR_PROGRESS_CSV, true);
+    testLauncher.launchJob(jobParameters);
+
+    var jobCaptor = ArgumentCaptor.forClass(org.folio.de.entity.Job.class);
+
+    // expected 4 events: 1st - job started, 2nd, 3rd - updates after each chunk (100 identifiers), 4th - job completed
+    Mockito.verify(kafkaService, Mockito.times(4)).send(Mockito.any(), Mockito.any(), jobCaptor.capture());
+
+    verifyJobProgressUpdates(jobCaptor);
   }
 
   @Test
@@ -307,7 +345,7 @@ class BulkEditTest extends BaseBatchTest {
     assertFileEquals(expectedCharges, actualResult);
   }
 
-
+  @SneakyThrows
   private JobParameters prepareJobParameters(ExportType exportType, EntityType entityType, IdentifierType identifierType, String path, boolean hasOutcomeFile) {
     Map<String, JobParameter> params = new HashMap<>();
     if (hasOutcomeFile) {
@@ -333,6 +371,7 @@ class BulkEditTest extends BaseBatchTest {
       params.put("query", new JobParameter(readQueryString(path)));
     } else if (BULK_EDIT_IDENTIFIERS == exportType) {
       params.put(FILE_NAME, new JobParameter(path));
+      params.put(TOTAL_CSV_LINES, new JobParameter(countLines(Path.of(path), false)));
     }
 
     String jobId = UUID.randomUUID().toString();
@@ -349,6 +388,18 @@ class BulkEditTest extends BaseBatchTest {
     try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
       return reader.readLine();
     }
+  }
+
+  private void verifyJobProgressUpdates(ArgumentCaptor<org.folio.de.entity.Job> jobCaptor) {
+    var job = jobCaptor.getAllValues().get(1);
+    assertThat(job.getProgress().getTotal()).isEqualTo(80);
+    assertThat(job.getProgress().getProcessed()).isEqualTo(100);
+    assertThat(job.getProgress().getProgress()).isEqualTo(55);
+
+    job = jobCaptor.getAllValues().get(2);
+    assertThat(job.getProgress().getTotal()).isEqualTo(144);
+    assertThat(job.getProgress().getProcessed()).isEqualTo(179);
+    assertThat(job.getProgress().getProgress()).isEqualTo(100);
   }
 
 }

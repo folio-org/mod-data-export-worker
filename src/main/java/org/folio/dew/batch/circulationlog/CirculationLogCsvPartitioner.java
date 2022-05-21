@@ -34,7 +34,7 @@ public class CirculationLogCsvPartitioner extends CsvPartitioner {
 
   @Override
   protected Long getLimit() {
-    Map<String, Collection<String>> okapiHeaders = new HashMap(folioExecutionContext.getOkapiHeaders());
+    Map<String, Collection<String>> okapiHeaders = new HashMap<>(folioExecutionContext.getOkapiHeaders());
     okapiHeaders.put(TENANT, List.of(tenantId));
     var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioExecutionContext.getFolioModuleMetadata(), okapiHeaders);
     FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);

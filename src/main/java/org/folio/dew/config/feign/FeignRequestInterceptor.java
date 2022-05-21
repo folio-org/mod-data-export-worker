@@ -2,6 +2,7 @@ package org.folio.dew.config.feign;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
+import static java.util.Optional.ofNullable;
 import org.apache.commons.collections.map.HashedMap;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.spring.DefaultFolioExecutionContext;
@@ -27,7 +28,7 @@ public class FeignRequestInterceptor implements RequestInterceptor {
   @Override
   public void apply(RequestTemplate requestTemplate) {
     Map<String, Collection<String>> okapiHeaders = new HashedMap();
-    okapiHeaders.put(TENANT, List.of(jobCommandsReceiverService.getTenantId()));
+    okapiHeaders.put(TENANT, List.of(ofNullable(jobCommandsReceiverService.getTenantId()).orElse(folioExecutionContext.getTenantId())));
     var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioExecutionContext.getFolioModuleMetadata(), okapiHeaders);
     FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
   }

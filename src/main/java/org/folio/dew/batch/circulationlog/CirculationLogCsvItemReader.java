@@ -23,7 +23,7 @@ public class CirculationLogCsvItemReader extends CsvItemReader<LogRecord> {
   @Autowired
   private FolioExecutionContext folioExecutionContext;
 
-  @Value("#{jobParameters['tenantId']")
+  @Value("#{jobParameters['tenantId']}")
   private String tenantId;
 
   public CirculationLogCsvItemReader(AuditClient auditClient, String query, Long offset, Long limit) {

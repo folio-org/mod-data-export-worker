@@ -1,6 +1,7 @@
 package org.folio.dew.service;
 
 import static java.util.Optional.ofNullable;
+import lombok.Getter;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
@@ -35,6 +36,7 @@ import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.spring.FolioExecutionContext;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -63,12 +65,15 @@ public class JobCommandsReceiverService {
   private final IAcknowledgementRepository acknowledgementRepository;
   private final MinIOObjectStorageRepository remoteObjectStorageRepository;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
+  private final FolioExecutionContext folioExecutionContext;
   private final List<Job> jobs;
   private Map<String, Job> jobMap;
   private Map<String, JobCommand> bulkEditJobCommands;
   @Value("${spring.application.name}")
   private String springApplicationName;
   private String workDir;
+  @Getter
+  private String tenantId;
 
   @PostConstruct
   public void postConstruct() {
@@ -97,7 +102,10 @@ public class JobCommandsReceiverService {
     topicPattern = "${application.kafka.topic-pattern}",
     groupId = "${application.kafka.group-id}")
   public void receiveStartJobCommand(JobCommand jobCommand, Acknowledgment acknowledgment) {
-    log.info("Received {}.", jobCommand);
+
+    tenantId = folioExecutionContext.getTenantId();
+
+    log.info("Received {}, tenant {}.", jobCommand, tenantId);
 
     try {
       if (deleteOldFiles(jobCommand, acknowledgment)) {

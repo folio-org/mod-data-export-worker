@@ -135,7 +135,8 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     }
 
     var tempOutputFilePath = jobParameters.getString(TEMP_OUTPUT_FILE_PATH);
-    if (StringUtils.isBlank(tempOutputFilePath) || jobParameters.getString(EXPORT_TYPE).equals(BULK_EDIT_UPDATE.getValue())) {
+    if (StringUtils.isBlank(tempOutputFilePath) ||
+      jobParameters.getParameters().containsKey(EXPORT_TYPE) && jobParameters.getString(EXPORT_TYPE).equals(BULK_EDIT_UPDATE.getValue())) {
       return;
     }
     String path = FilenameUtils.getFullPath(tempOutputFilePath);

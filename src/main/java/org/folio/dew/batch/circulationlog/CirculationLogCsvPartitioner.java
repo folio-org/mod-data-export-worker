@@ -22,7 +22,7 @@ public class CirculationLogCsvPartitioner extends CsvPartitioner {
   @Autowired
   private FolioExecutionContext folioExecutionContext;
 
-  @Value("#{jobParameters['tenantId']")
+  @Value("#{jobParameters['tenantId']}")
   private String tenantId;
 
   public CirculationLogCsvPartitioner(Long offset, Long limit, String tempOutputFilePath, AuditClient auditClient, String query) {

@@ -59,6 +59,7 @@ public class CirculationLogJobConfig {
     return stepBuilderFactory
         .get("getCirculationLogChunkStep")
         .partitioner("getCirculationLogPartStep", partitioner)
+        .taskExecutor(taskExecutor)
         .step(getCirculationLogPartStep)
         .aggregator(csvFileAssembler)
         .build();

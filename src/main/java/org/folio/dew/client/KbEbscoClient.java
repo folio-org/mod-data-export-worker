@@ -1,6 +1,9 @@
 package org.folio.dew.client;
 
+import java.util.Map;
+
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,12 +21,8 @@ public interface KbEbscoClient {
   @GetMapping(value = "/resources/{resourceId}", produces = "application/vnd.api+json")
   EResource getResourceById(@PathVariable String resourceId, @RequestParam String include);
 
-  @GetMapping(value = "/packages/{packageId}/resources?{filters}", produces = "application/vnd.api+json")
-  EResources getResourcesByPackageId(@PathVariable String packageId,
-                                     @PathVariable String filters,
-                                     @RequestParam String include,
-                                     @RequestParam int page,
-                                     @RequestParam int count);
+  @GetMapping(value = "/packages/{packageId}/resources", produces = "application/vnd.api+json")
+  EResources getResourcesByPackageId(@PathVariable String packageId, @SpringQueryMap(encoded = true) Map<String, String> parameters);
 }
 
 

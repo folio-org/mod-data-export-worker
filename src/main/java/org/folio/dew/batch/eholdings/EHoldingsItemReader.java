@@ -4,7 +4,9 @@ import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACK
 import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESOURCE;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.batch.core.annotation.BeforeStep;
@@ -21,7 +23,11 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
 
   private static final int QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST = 20;
   private static final int PAGE_OFFSET_STEP = 1;
-  private static final String ACCESS_TYPE_INCLUDE = "accessType";
+
+  private static final String PAGE_PARAM = "page";
+  private static final String COUNT_PARAM = "count";
+  private static final String INCLUDE_PARAM = "include";
+  private static final String ACCESS_TYPE = "accessType";
 
   private final KbEbscoClient kbEbscoClient;
   private final EHoldingsToExportFormatMapper mapper;
@@ -46,7 +52,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
   @Override
   protected List<EHoldingsResourceExportFormat> getItems(int offset, int limit) {
     if (recordType == RESOURCE) {
-      var resourceById = kbEbscoClient.getResourceById(recordId, ACCESS_TYPE_INCLUDE);
+      var resourceById = kbEbscoClient.getResourceById(recordId, ACCESS_TYPE);
       var resourceIncluded = resourceById.getIncluded();
       var resourceData = resourceById.getData();
       resourceData.setIncluded(resourceIncluded);
@@ -56,7 +62,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
 
     if (recordType == PACKAGE && !titleFields.isEmpty()) {
       var packageResources = kbEbscoClient
-        .getResourcesByPackageId(recordId, titleSearchFilters, ACCESS_TYPE_INCLUDE, offset, limit);
+        .getResourcesByPackageId(recordId, constructParams(offset, limit, ACCESS_TYPE));
 
       return buildEHoldingsExportFormat(ePackage, packageResources.getData());
     }
@@ -73,10 +79,10 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
   public void readPackage() {
     if (recordType == RESOURCE) {
       var packageId = recordId.split("-\\d+$")[0];
-      this.ePackage = kbEbscoClient.getPackageById(packageId, ACCESS_TYPE_INCLUDE);
+      this.ePackage = kbEbscoClient.getPackageById(packageId, ACCESS_TYPE);
     }
     if (recordType == PACKAGE) {
-      this.ePackage = kbEbscoClient.getPackageById(recordId, ACCESS_TYPE_INCLUDE);
+      this.ePackage = kbEbscoClient.getPackageById(recordId, ACCESS_TYPE);
     }
   }
 
@@ -88,12 +94,24 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
 
   private int getTotalCount() {
     if (recordType == PACKAGE) {
-      var resources = kbEbscoClient.getResourcesByPackageId(recordId, titleSearchFilters, null, 1, 1);
+      var resources = kbEbscoClient
+        .getResourcesByPackageId(recordId, constructParams(1, 1, null));
       return resources.getMeta().getTotalResults();
     } else if (recordType == RESOURCE) {
       return 1;
     } else {
       return 0;
     }
+  }
+
+  private Map<String, String> constructParams(int page, int count, String include) {
+    var params = new HashMap<String, String>();
+    params.put(titleSearchFilters, null);
+    params.put(PAGE_PARAM, String.valueOf(page));
+    params.put(COUNT_PARAM, String.valueOf(count));
+    if (include != null) {
+      params.put(INCLUDE_PARAM, include);
+    }
+    return params;
   }
 }

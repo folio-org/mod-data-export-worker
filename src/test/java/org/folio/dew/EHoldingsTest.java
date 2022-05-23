@@ -80,7 +80,7 @@ class EHoldingsTest extends BaseBatchTest {
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(
-          "/eholdings/packages/1-22/resources?filter%5Bname%5D%3D%2A&page=1&count=1")));
+          "/eholdings/packages/1-22/resources?filter[name]=*&count=1&page=1")));
   }
 
   private void verifyFileOutput(JobExecution jobExecution, String expectedFile) throws Exception {

@@ -82,6 +82,7 @@ class CirculationLogTest extends BaseBatchTest {
   private JobParameters prepareJobParameters() {
     Map<String, JobParameter> params = new HashMap<>();
     params.put("query", new JobParameter(""));
+    params.put("tenantId", new JobParameter(TENANT));
 
     String jobId = UUID.randomUUID().toString();
     params.put(JobParameterNames.JOB_ID, new JobParameter(jobId));

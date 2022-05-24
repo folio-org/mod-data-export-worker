@@ -1,5 +1,13 @@
 ## v1.3.0 - Unreleased
 
+## v1.2.5 - Released
+The primary focus of this release is fixing several tenants usage errors for data export process
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.2.4...v1.2.5)
+
+### Bug fixes
+* [MODEXPW-137](https://issues.folio.org/browse/MODEXPW-137) - Backport to Kiwi HF#3: Circulation log export shows another tenant/user's data
+
 ## v1.2.4 - Released
 The primary focus of this release is fixing several tenants usage errors for data export process
 

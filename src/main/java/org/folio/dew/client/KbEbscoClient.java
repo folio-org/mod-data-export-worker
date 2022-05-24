@@ -20,15 +20,17 @@ public interface KbEbscoClient {
   String COUNT_PARAM = "count";
   String INCLUDE_PARAM = "include";
   String ACCESS_TYPE = "accessType";
+  String APPLICATION_VND_JSON_VALUE = "application/vnd.api+json";
 
-  @GetMapping(value = "/packages/{packageId}", produces = "application/vnd.api+json")
+  @GetMapping(value = "/packages/{packageId}", produces = APPLICATION_VND_JSON_VALUE)
   EPackage getPackageById(@PathVariable String packageId, @RequestParam String include);
 
-  @GetMapping(value = "/resources/{resourceId}", produces = "application/vnd.api+json")
+  @GetMapping(value = "/resources/{resourceId}", produces = APPLICATION_VND_JSON_VALUE)
   EResource getResourceById(@PathVariable String resourceId, @RequestParam String include);
 
-  @GetMapping(value = "/packages/{packageId}/resources", produces = "application/vnd.api+json")
-  EResources getResourcesByPackageId(@PathVariable String packageId, @SpringQueryMap(encoded = true) Map<String, String> parameters);
+  @GetMapping(value = "/packages/{packageId}/resources", produces = APPLICATION_VND_JSON_VALUE)
+  EResources getResourcesByPackageId(@PathVariable String packageId,
+                                     @SpringQueryMap(encoded = true) Map<String, String> parameters);
 
   default Map<String, String> constructParams(int page, int count, String filters, String... include) {
     var params = new HashMap<String, String>();

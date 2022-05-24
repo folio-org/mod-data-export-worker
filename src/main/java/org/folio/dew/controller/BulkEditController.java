@@ -56,11 +56,7 @@ import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.error.NotFoundException;
 import org.folio.dew.error.NonSupportedEntityException;
-import org.folio.dew.service.BulkEditItemContentUpdateService;
-import org.folio.dew.service.BulkEditParseService;
-import org.folio.dew.service.BulkEditProcessingErrorsService;
-import org.folio.dew.service.BulkEditRollBackService;
-import org.folio.dew.service.JobCommandsReceiverService;
+import org.folio.dew.service.*;
 import org.folio.dew.utils.CsvHelper;
 import org.openapitools.api.JobIdApi;
 import org.springframework.batch.core.Job;
@@ -116,8 +112,8 @@ public class BulkEditController implements JobIdApi {
   @Override
   public ResponseEntity<ItemCollection> postContentUpdates(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId,@ApiParam(value = "" ,required=true )  @Valid @RequestBody ContentUpdateCollection contentUpdateCollection,@ApiParam(value = "The numbers of records to return") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
     if (ITEM == contentUpdateCollection.getEntityType()) {
-      var itemFormats = itemContentUpdateService.processContentUpdates(getJobCommandById(jobId.toString()), contentUpdateCollection);
-      return new ResponseEntity<>(prepareItemContentUpdateResponse(itemFormats, limit), HttpStatus.OK);
+      var updatesResult = itemContentUpdateService.processContentUpdates(getJobCommandById(jobId.toString()), contentUpdateCollection);
+      return new ResponseEntity<>(prepareItemContentUpdateResponse(updatesResult, limit), HttpStatus.OK);
     }
     throw new NonSupportedEntityException(format("Non-supported entity type: %s", contentUpdateCollection.getEntityType()));
   }
@@ -259,12 +255,12 @@ public class BulkEditController implements JobIdApi {
     return jobCommandOptional.get();
   }
 
-  private ItemCollection prepareItemContentUpdateResponse(List<ItemFormat> itemFormats, Integer limit) {
-      var items = itemFormats.stream()
+  private ItemCollection prepareItemContentUpdateResponse(ItemUpdatesResult updatesResult, Integer limit) {
+      var items = updatesResult.getUpdated().stream()
         .limit(isNull(limit) ? Integer.MAX_VALUE : limit)
         .map(bulkEditParseService::mapItemFormatToItem)
         .collect(Collectors.toList());
-      return new ItemCollection().items(items).totalRecords(itemFormats.size());
+      return new ItemCollection().items(items).totalRecords(updatesResult.getTotal());
   }
 
   private String buildPreviewUsersQueryFromJobCommand(JobCommand jobCommand, int limit) {

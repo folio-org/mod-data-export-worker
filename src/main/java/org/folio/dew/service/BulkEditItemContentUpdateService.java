@@ -62,16 +62,20 @@ public class BulkEditItemContentUpdateService {
     workdir = System.getProperty(TMP_DIR_PROPERTY) + PATH_SEPARATOR + springApplicationName + PATH_SEPARATOR;
   }
 
-  public List<ItemFormat> processContentUpdates(JobCommand jobCommand, ContentUpdateCollection contentUpdates) {
+  public ItemUpdatesResult processContentUpdates(JobCommand jobCommand, ContentUpdateCollection contentUpdates) {
     try {
       log.info("Processing content updates for job id {}", jobCommand.getId());
       outputFileName = workdir + UPDATED_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       Files.deleteIfExists(Path.of(outputFileName));
       repository.downloadObject(FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION, outputFileName);
-      var updatedItemFormats = applyContentUpdates(CsvHelper.readRecordsFromFile(outputFileName, ItemFormat.class, true), contentUpdates, jobCommand);
+      var result = new ItemUpdatesResult();
+      var records = CsvHelper.readRecordsFromFile(outputFileName, ItemFormat.class, true);
+      result.setTotal(records.size());
+      var updatedItemFormats = applyContentUpdates(records, contentUpdates, jobCommand);
+      result.setUpdated(updatedItemFormats);
       saveResultToFile(updatedItemFormats, jobCommand);
       jobCommand.setExportType(BULK_EDIT_UPDATE);
-      return updatedItemFormats;
+      return result;
     } catch (Exception e) {
       var msg = String.format("Failed to read %s item records file for job id %s, reason: %s", outputFileName, jobCommand.getId(), e.getMessage());
       log.error(msg);
@@ -104,6 +108,10 @@ public class BulkEditItemContentUpdateService {
           updateEffectiveLocation(updatedItemFormat);
         }
         result.add(updatedItemFormat);
+      } else {
+        var msg = String.format("No change in value needed");
+        log.error(msg);
+        errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
       }
     }
     return result;

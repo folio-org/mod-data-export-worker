@@ -24,13 +24,11 @@ import org.folio.des.domain.JobParameterNames;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
-import org.folio.spring.FolioExecutionContext;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
@@ -61,9 +59,6 @@ public class JobCommandsReceiverService {
   @Value("${spring.application.name}")
   private String springApplicationName;
   private String workDir;
-
-  @Autowired
-  private FolioExecutionContext folioExecutionContext;
 
   @PostConstruct
   public void postConstruct() {
@@ -125,7 +120,6 @@ public class JobCommandsReceiverService {
     var now = new Date();
     paramsBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH,
       String.format("%s%s_%s_%tF_%tT", workDir, jobId, jobCommand.getExportType(), now, now));
-    paramsBuilder.addString("tenantId", folioExecutionContext.getTenantId());
 
     normalizeParametersForBursarExport(paramsBuilder, jobId);
 

@@ -1,5 +1,6 @@
 package org.folio.dew.batch.eholdings;
 
+import static org.folio.dew.client.KbEbscoClient.ACCESS_TYPE;
 import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACKAGE;
 import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESOURCE;
 
@@ -21,7 +22,6 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
 
   private static final int QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST = 20;
   private static final int PAGE_OFFSET_STEP = 1;
-  private static final String ACCESS_TYPE_INCLUDE = "accessType";
 
   private final KbEbscoClient kbEbscoClient;
   private final EHoldingsToExportFormatMapper mapper;
@@ -46,7 +46,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
   @Override
   protected List<EHoldingsResourceExportFormat> getItems(int offset, int limit) {
     if (recordType == RESOURCE) {
-      var resourceById = kbEbscoClient.getResourceById(recordId, ACCESS_TYPE_INCLUDE);
+      var resourceById = kbEbscoClient.getResourceById(recordId, ACCESS_TYPE);
       var resourceIncluded = resourceById.getIncluded();
       var resourceData = resourceById.getData();
       resourceData.setIncluded(resourceIncluded);
@@ -55,8 +55,8 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
     }
 
     if (recordType == PACKAGE && !titleFields.isEmpty()) {
-      var packageResources = kbEbscoClient
-        .getResourcesByPackageId(recordId, titleSearchFilters, ACCESS_TYPE_INCLUDE, offset, limit);
+      var parameters = kbEbscoClient.constructParams(offset, limit, titleSearchFilters, ACCESS_TYPE);
+      var packageResources = kbEbscoClient.getResourcesByPackageId(recordId, parameters);
 
       return buildEHoldingsExportFormat(ePackage, packageResources.getData());
     }
@@ -73,10 +73,10 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
   public void readPackage() {
     if (recordType == RESOURCE) {
       var packageId = recordId.split("-\\d+$")[0];
-      this.ePackage = kbEbscoClient.getPackageById(packageId, ACCESS_TYPE_INCLUDE);
+      this.ePackage = kbEbscoClient.getPackageById(packageId, ACCESS_TYPE);
     }
     if (recordType == PACKAGE) {
-      this.ePackage = kbEbscoClient.getPackageById(recordId, ACCESS_TYPE_INCLUDE);
+      this.ePackage = kbEbscoClient.getPackageById(recordId, ACCESS_TYPE);
     }
   }
 
@@ -88,7 +88,8 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
 
   private int getTotalCount() {
     if (recordType == PACKAGE) {
-      var resources = kbEbscoClient.getResourcesByPackageId(recordId, titleSearchFilters, null, 1, 1);
+      var parameters = kbEbscoClient.constructParams(1, 1, titleSearchFilters);
+      var resources = kbEbscoClient.getResourcesByPackageId(recordId, parameters);
       return resources.getMeta().getTotalResults();
     } else if (recordType == RESOURCE) {
       return 1;

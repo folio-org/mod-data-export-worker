@@ -92,6 +92,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-items/download";
   private static final String ITEMS_FOR_LOCATION_UPDATE = "src/test/resources/upload/bulk_edit_items_for_location_update.csv";
   private static final String ITEMS_FOR_STATUS_UPDATE = "src/test/resources/upload/bulk_edit_items_for_status_update.csv";
+  private static final String ITEMS_FOR_NOTHING_UPDATE = "src/test/resources/upload/bulk_edit_items_for_nothing_update.csv";
   private static final SimpleDateFormat itemStatusDateFormat = new SimpleDateFormat(DATE_TIME_PATTERN);
   private static final UUID JOB_ID = UUID.randomUUID();
   public static final String LIMIT = "limit";
@@ -713,6 +714,45 @@ class BulkEditControllerTest extends BaseBatchTest {
       assertThat(actualItems, hasSize(0));
     }
 
+  }
+
+  @Test
+  @SneakyThrows
+  public void shouldProvideErrorsIfNotingToUpdate() {
+    repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_NOTHING_UPDATE), ITEMS_FOR_NOTHING_UPDATE, null, "text/plain", false);
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(ITEM);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(FILE_NAME, "fileName.csv")
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_NOTHING_UPDATE.replace(CSV_EXTENSION, EMPTY))
+      .toJobParameters());
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+
+    var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
+      .entityType(ITEM)
+      .contentUpdates(Collections.singletonList(new ContentUpdate()
+        .option(ContentUpdate.OptionEnum.TEMPORARY_LOCATION)
+        .action(ContentUpdate.ActionEnum.REPLACE_WITH)
+        .value("Main Library")))
+      .totalRecords(1));
+
+    var response = mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+        .headers(defaultHeaders())
+        .content(updates))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    var updatedJobCommand = jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
+    assertFalse(updatedJobCommand.isEmpty());
+    assertEquals(BULK_EDIT_UPDATE, updatedJobCommand.get().getExportType());
+    assertNotNull(updatedJobCommand.get().getJobParameters().getString(UPDATED_FILE_NAME));
+
+    var errors = errorsService.readErrorsFromCSV(jobId.toString(), jobCommand.getJobParameters().getString(FILE_NAME), 10);
+    assertThat(errors.getErrors(), hasSize(1));
   }
 
   @Test

@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class FileNameResolver {
 
-  private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss_SSSS");
+  private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss_SSSS");
   @Autowired
   private ObjectMapper objectMapper;
 
@@ -37,7 +37,6 @@ public class FileNameResolver {
 
   private BiFunction<JobCommand, String, String> eHoldingsResolver() {
     return (jobCommand, workDir) -> {
-      Date now = new Date();
       try {
         var exportConfigStr = jobCommand.getJobParameters().getString("eHoldingsExportConfig");
         var config = objectMapper.readValue(exportConfigStr, EHoldingsExportConfig.class);
@@ -48,7 +47,7 @@ public class FileNameResolver {
         } else {
           fileSuffix = String.format("%s_package", recordId);
         }
-        return String.format("%s%s_%s", workDir, DATE_FORMAT.format(now), fileSuffix);
+        return String.format("%s%s_%s", workDir, dateFormat.format(new Date()), fileSuffix);
       } catch (JsonProcessingException e) {
         throw new IllegalArgumentException(e);
       }

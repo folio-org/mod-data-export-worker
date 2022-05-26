@@ -3,11 +3,18 @@ package org.folio.dew.batch.eholdings;
 import static org.folio.dew.client.KbEbscoClient.ACCESS_TYPE;
 import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACKAGE;
 import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESOURCE;
+import static org.folio.spring.integration.XOkapiHeaders.TENANT;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.folio.spring.DefaultFolioExecutionContext;
+import org.folio.spring.FolioExecutionContext;
+import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 import org.springframework.batch.core.annotation.BeforeStep;
 
 import org.folio.dew.batch.CsvItemReader;
@@ -17,6 +24,8 @@ import org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum;
 import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
 import org.folio.dew.domain.dto.eholdings.EPackage;
 import org.folio.dew.domain.dto.eholdings.ResourcesData;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFormat> {
 
@@ -31,6 +40,11 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
   private final String recordId;
 
   private EPackage ePackage;
+
+  @Autowired
+  private FolioExecutionContext folioExecutionContext;
+  @Value("#{jobParameters['tenantId']}")
+  private String tenantId;
 
   protected EHoldingsItemReader(KbEbscoClient kbEbscoClient, EHoldingsExportConfig exportConfig) {
     super(1L, 1L, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST);
@@ -70,7 +84,19 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
   }
 
   @BeforeStep
-  public void readPackage() {
+  public void beforeStep() {
+    initializeExecutionContext();
+    readPackage();
+  }
+
+  private void initializeExecutionContext() {
+    Map<String, Collection<String>> okapiHeaders = new HashMap<>(folioExecutionContext.getOkapiHeaders());
+    okapiHeaders.put(TENANT, List.of(tenantId));
+    var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioExecutionContext.getFolioModuleMetadata(), okapiHeaders);
+    FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
+  }
+
+  private void readPackage() {
     if (recordType == RESOURCE) {
       var packageId = recordId.split("-\\d+$")[0];
       this.ePackage = kbEbscoClient.getPackageById(packageId, ACCESS_TYPE);

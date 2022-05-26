@@ -718,7 +718,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @Test
   @SneakyThrows
-  public void shouldProvideErrorsIfNotingToUpdate() {
+  void shouldProvideErrorsIfNotingToUpdate() {
     repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_NOTHING_UPDATE), ITEMS_FOR_NOTHING_UPDATE, null, "text/plain", false);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
@@ -807,6 +807,100 @@ class BulkEditControllerTest extends BaseBatchTest {
         .content(updates))
       .andExpect(status().isBadRequest())
       .andExpect(content().string(expectedJson));
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldReturnNumberOfRowsInCSVFile() {
+    when(userClient.getUserById("88a087b4-c3a1-485b-8a22-2fa8f7b661c4"))
+      .thenReturn(new User().id("88a087b4-c3a1-485b-8a22-2fa8f7b661c4").username("User name").active(true).barcode("456")
+        .departments(List.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
+          .preferredFirstName("").email("").phone("").mobilePhone("").addresses(List.of()).preferredContactTypeId("")).type("")
+        .customFields(Map.of()).metadata(new Metadata().createdByUsername("abcd")));
+    when(userClient.getUserById("88a087b4-c3a1-485b-8a22-2fa8f7b661c5"))
+      .thenReturn(new User().id("88a087b4-c3a1-485b-8a22-2fa8f7b661c5").username("User name2").active(true).barcode("4567")
+        .departments(List.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
+          .preferredFirstName("").email("").phone("").mobilePhone("").addresses(List.of()).preferredContactTypeId("")).type("")
+        .customFields(Map.of()).metadata(new Metadata().createdByUsername("abcde")));
+    when(userClient.getUserById("88a087b4-c3a1-485b-8a22-2fa8f7b661c6"))
+      .thenReturn(new User().id("88a087b4-c3a1-485b-8a22-2fa8f7b661c6").username("User name3").active(true).barcode("45678")
+        .departments(List.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
+          .preferredFirstName("").email("").phone("").mobilePhone("").addresses(List.of()).preferredContactTypeId("")).type("")
+        .customFields(Map.of()).metadata(new Metadata().createdByUsername("abcdef")));
+
+    var jobId = UUID.randomUUID();
+
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE));
+
+    var headers = defaultHeaders();
+
+    var bytes = new FileInputStream("src/test/resources/upload/bulk_edit_user_record_3_lines.csv").readAllBytes();
+    var file = new MockMultipartFile("file", "bulk_edit_user_record_3_lines.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    var result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
+        .file(file)
+        .headers(headers))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    // 3 lines loaded (+1 header because of BULK_EDIT_IDENTIFIERS job).
+    assertThat(result.getResponse().getContentAsString(), equalTo("4"));
+
+    jobId = UUID.randomUUID();
+
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, USER, BARCODE));
+
+    headers = defaultHeaders();
+
+    bytes = new FileInputStream("src/test/resources/upload/bulk_edit_user_record_3_lines_edited_1_line.csv").readAllBytes();
+    file = new MockMultipartFile("file", "bulk_edit_user_record_3_lines_edited_1_line.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
+        .file(file)
+        .headers(headers))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    // Edited only 1 line.
+    assertThat(result.getResponse().getContentAsString(), equalTo("3"));
+
+    jobId = UUID.randomUUID();
+
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, USER, BARCODE));
+
+    headers = defaultHeaders();
+
+    // Load initial file with no edited lines.
+    bytes = new FileInputStream("src/test/resources/upload/bulk_edit_user_record_3_lines.csv").readAllBytes();
+    file = new MockMultipartFile("file", "bulk_edit_user_record_3_lines.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
+        .file(file)
+        .headers(headers))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    // Edited 0 lines.
+    assertThat(result.getResponse().getContentAsString(), equalTo("3"));
+
+    jobId = UUID.randomUUID();
+
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, USER, BARCODE));
+
+    headers = defaultHeaders();
+
+    // Load edited file with incorrect number of tokens.
+    bytes = new FileInputStream("src/test/resources/upload/invalid-user-records-incorrect-number-of-tokens.csv").readAllBytes();
+    file = new MockMultipartFile("file", "invalid-user-records-incorrect-number-of-tokens.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
+        .file(file)
+        .headers(headers))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    // Keep all 3 lines to delegate them into SkipListener.
+    assertThat(result.getResponse().getContentAsString(), equalTo("3"));
   }
 
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType, EntityType entityType, IdentifierType identifierType) {

@@ -86,7 +86,7 @@ class EHoldingsTest extends BaseBatchTest {
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(
-          "/eholdings/packages/1-22/resources?filter[name]=*&count=1&page=1")));
+          "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&page=1&count=1")));
   }
 
   private void verifyFileOutput(JobExecution jobExecution, String expectedFile) throws Exception {
@@ -102,7 +102,7 @@ class EHoldingsTest extends BaseBatchTest {
     var eHoldingsExportConfig = new EHoldingsExportConfig();
     eHoldingsExportConfig.setRecordId(id);
     eHoldingsExportConfig.setRecordType(recordType);
-    eHoldingsExportConfig.setTitleFields(getClassFields(EHoldingsResourceExportFormat.class));
+    eHoldingsExportConfig.setTitleFields(getClassFields());
     eHoldingsExportConfig.setPackageFields(Collections.emptyList());
     eHoldingsExportConfig.setTitleSearchFilters("filter[name]=*");
 
@@ -128,8 +128,8 @@ class EHoldingsTest extends BaseBatchTest {
     return new JobParameters(params);
   }
 
-  private List<String> getClassFields(Class clazz) {
-    return Arrays.stream(clazz.getDeclaredFields())
+  private List<String> getClassFields() {
+    return Arrays.stream(EHoldingsResourceExportFormat.class.getDeclaredFields())
       .map(Field::getName)
       .collect(Collectors.toList());
   }

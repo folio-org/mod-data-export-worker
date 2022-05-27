@@ -1,17 +1,18 @@
 package org.folio.dew.client;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
-
+import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.domain.dto.eholdings.EPackage;
+import org.folio.dew.domain.dto.eholdings.EResource;
+import org.folio.dew.domain.dto.eholdings.EResources;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import org.folio.dew.domain.dto.eholdings.EPackage;
-import org.folio.dew.domain.dto.eholdings.EResource;
-import org.folio.dew.domain.dto.eholdings.EResources;
 
 @FeignClient(name = "eholdings")
 public interface KbEbscoClient {
@@ -33,8 +34,14 @@ public interface KbEbscoClient {
                                      @SpringQueryMap(encoded = true) Map<String, String> parameters);
 
   default Map<String, String> constructParams(int page, int count, String filters, String... include) {
-    var params = new HashMap<String, String>();
-    params.put(filters, null);
+    Map<String, String> params = new LinkedHashMap<>();
+    if (StringUtils.isNotBlank(filters)) {
+      Arrays.stream(filters.split("&"))
+        .map(param -> param.split("="))
+        .forEach(ar -> params.put(ar[0], ar[1]));
+    }
+
+//    params.put(filters, null);
     params.put(PAGE_PARAM, String.valueOf(page));
     params.put(COUNT_PARAM, String.valueOf(count));
     if (include.length > 0) {

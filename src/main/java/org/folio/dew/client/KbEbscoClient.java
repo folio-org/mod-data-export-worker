@@ -41,7 +41,6 @@ public interface KbEbscoClient {
         .forEach(ar -> params.put(ar[0], ar[1]));
     }
 
-//    params.put(filters, null);
     params.put(PAGE_PARAM, String.valueOf(page));
     params.put(COUNT_PARAM, String.valueOf(count));
     if (include.length > 0) {

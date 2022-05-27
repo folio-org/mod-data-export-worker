@@ -90,7 +90,8 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
     if (recordType == PACKAGE) {
       var parameters = kbEbscoClient.constructParams(1, 1, titleSearchFilters);
       var resources = kbEbscoClient.getResourcesByPackageId(recordId, parameters);
-      return resources.getMeta().getTotalResults();
+      var totalResults = resources.getMeta().getTotalResults();
+      return totalResults > 0 ? totalResults : 1;
     } else if (recordType == RESOURCE) {
       return 1;
     } else {

@@ -3,7 +3,7 @@
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.3.4...v1.3.5)
 
 ### Bug fixes
-* [MODEXPW-135](https://issues.folio.org/browse/MODEXPW-135) Circulation log export shows another tenant/user's data
+* [MODEXPW-138](https://issues.folio.org/browse/MODEXPW-138) Backport to Lotus HF#1: Circulation log export shows another tenant/user's data
 
 ## 2022-05-19 v1.3.4
 

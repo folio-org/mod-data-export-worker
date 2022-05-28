@@ -59,7 +59,7 @@ public class CirculationLogJobConfig {
     return stepBuilderFactory
         .get("getCirculationLogChunkStep")
         .partitioner("getCirculationLogPartStep", partitioner)
-        .taskExecutor(taskExecutor)
+//        .taskExecutor(taskExecutor) // At the moment, async mode is not working correctly.
         .step(getCirculationLogPartStep)
         .aggregator(csvFileAssembler)
         .build();

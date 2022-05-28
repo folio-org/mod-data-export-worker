@@ -1,3 +1,10 @@
+## 2022-04-08 v1.3.5
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.3.4...v1.3.5)
+
+### Bug fixes
+* [MODEXPW-135](https://issues.folio.org/browse/MODEXPW-135) Circulation log export shows another tenant/user's data
+
 ## 2022-05-19 v1.3.4
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.3.3...v1.3.4)

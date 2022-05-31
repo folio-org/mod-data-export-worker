@@ -88,13 +88,13 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setCustomValue5(resourceAtr.getUserDefinedField5());
     exportFormat.setTitleAccessStatusType(mapAccessType(data.getIncluded()));
     exportFormat.setTitleTags(mapTags(resourceAtr.getTags()));
-    exportFormat.setISBN_Print(
+    exportFormat.setISBNPrint(
       mapIdentifierId(resourceAtr.getIdentifiers(), TypeEnum.ISBN, SubtypeEnum.PRINT));
-    exportFormat.setISBN_Online(
+    exportFormat.setISBNOnline(
       mapIdentifierId(resourceAtr.getIdentifiers(), TypeEnum.ISBN, SubtypeEnum.ONLINE));
-    exportFormat.setISSN_Print(
+    exportFormat.setISSNPrint(
       mapIdentifierId(resourceAtr.getIdentifiers(), TypeEnum.ISSN, SubtypeEnum.PRINT));
-    exportFormat.setISSN_Online(
+    exportFormat.setISSNOnline(
       mapIdentifierId(resourceAtr.getIdentifiers(), TypeEnum.ISSN, SubtypeEnum.ONLINE));
   }
 

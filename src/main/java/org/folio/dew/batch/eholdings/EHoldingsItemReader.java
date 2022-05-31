@@ -54,7 +54,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
       return buildEHoldingsExportFormat(ePackage, List.of(resourceData));
     }
 
-    if (recordType == PACKAGE && !titleFields.isEmpty()) {
+    if (recordType == PACKAGE && titleFields != null && !titleFields.isEmpty()) {
       var parameters = kbEbscoClient.constructParams(offset, limit, titleSearchFilters, ACCESS_TYPE);
       var packageResources = kbEbscoClient.getResourcesByPackageId(recordId, parameters);
 

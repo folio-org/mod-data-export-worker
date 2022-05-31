@@ -1,11 +1,13 @@
 package org.folio.dew.batch.eholdings;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -92,11 +94,15 @@ public class EHoldingsJobConfig {
       exportFields.addAll(eHoldingsExportConfig.getTitleFields());
     }
     if (exportFields.isEmpty()) {
-      throw new IllegalArgumentException("Export fields is empty");
+      throw new IllegalArgumentException("Export fields are empty");
     }
 
-    var headers = String.join(",", exportFields);
     var names = exportFields.toArray(String[]::new);
+    var headers = exportFields.stream()
+      .map(StringUtils::splitByCharacterTypeCamelCase)
+      .map(splitHeader -> StringUtils.join(splitHeader, StringUtils.SPACE))
+      .map(StringUtils::capitalize)
+      .collect(Collectors.joining(","));
 
     return new CsvWriter<>(tempOutputFilePath, headers, names, (field, i) -> field);
   }

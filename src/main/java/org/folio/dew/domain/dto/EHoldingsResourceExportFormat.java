@@ -28,10 +28,10 @@ public class EHoldingsResourceExportFormat {
   private String contributors;
   private String edition;
   private String publisher;
-  private String ISSN_Print;
-  private String ISSN_Online;
-  private String ISBN_Print;
-  private String ISBN_Online;
+  private String ISSNPrint;
+  private String ISSNOnline;
+  private String ISBNPrint;
+  private String ISBNOnline;
   private String subjects;
   private String peerReviewed;
   private String description;

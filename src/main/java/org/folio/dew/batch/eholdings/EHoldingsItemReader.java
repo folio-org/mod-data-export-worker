@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.batch.core.annotation.BeforeStep;
 
 import org.folio.dew.batch.CsvItemReader;
@@ -54,7 +55,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
       return buildEHoldingsExportFormat(ePackage, List.of(resourceData));
     }
 
-    if (recordType == PACKAGE && titleFields != null && !titleFields.isEmpty()) {
+    if (recordType == PACKAGE && CollectionUtils.isNotEmpty(titleFields)) {
       var parameters = kbEbscoClient.constructParams(offset, limit, titleSearchFilters, ACCESS_TYPE);
       var packageResources = kbEbscoClient.getResourcesByPackageId(recordId, parameters);
 

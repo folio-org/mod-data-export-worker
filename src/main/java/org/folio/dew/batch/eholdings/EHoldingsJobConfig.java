@@ -59,13 +59,11 @@ public class EHoldingsJobConfig {
   public Step getEHoldingsStep(
     @Qualifier("eHoldingsWriter") FlatFileItemWriter<EHoldingsResourceExportFormat> flatFileItemWriter,
     EHoldingsItemReader eHoldingsCsvItemReader,
-    EHoldingsItemProcessor eHoldingsItemProcessor,
     EHoldingsStepListener eHoldingsStepListener) {
     return stepBuilderFactory
       .get("getEHoldingsStep")
       .<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat>chunk(PROCESSING_RECORD_CHUNK_SIZE)
       .reader(eHoldingsCsvItemReader)
-      .processor(eHoldingsItemProcessor)
       .writer(flatFileItemWriter)
       .listener(eHoldingsStepListener)
       .build();

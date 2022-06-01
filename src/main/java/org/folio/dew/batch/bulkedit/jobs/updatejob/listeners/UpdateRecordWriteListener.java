@@ -12,6 +12,7 @@ import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.Progress;
+import org.folio.dew.service.BulkEditUpdateStatisticService;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.JobExecution;
@@ -30,9 +31,13 @@ public class UpdateRecordWriteListener<T> implements ItemWriteListener<T> {
 
   private final KafkaService kafka;
 
+  @Value("#{jobParameters['jobId']}")
+  private String jobId;
   @Value("#{jobExecution}")
   private JobExecution jobExecution;
+
   private AtomicLong processedRecords = new AtomicLong();
+  private final BulkEditUpdateStatisticService bulkEditUpdateStatisticService;
 
   @Override
   public void beforeWrite(List<? extends T> items) {
@@ -71,14 +76,18 @@ public class UpdateRecordWriteListener<T> implements ItemWriteListener<T> {
     progress.setTotal((int) totalRecords);
     progress.setProcessed((int) processedRecords.get());
     progress.setProgress((int) getProgressBarValue(processedRecords.get(), totalRecords));
+
+    var statistic = bulkEditUpdateStatisticService.getStatistic(UUID.fromString(jobId));
+    progress.setSuccess(statistic.getSuccess());
+    progress.setErrors(statistic.getErrors());
     job.setProgress(progress);
     return job;
   }
 
   private long getProgressBarValue(long processed, long totalRecords) {
     if (totalRecords < BATCH_SIZE) {
-      return 100;
+      return 100 - 10;
     }
-    return processed / totalRecords * 100;
+    return (processed / totalRecords * 100) - 10;
   }
 }

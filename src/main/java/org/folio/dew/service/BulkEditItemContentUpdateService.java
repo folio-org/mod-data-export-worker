@@ -15,6 +15,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
+import static org.folio.dew.utils.Constants.ERRORS_COUNT;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
@@ -115,6 +116,7 @@ public class BulkEditItemContentUpdateService {
         if (isStatusUpdatingErrorNotExist(isStatusUpdatingExist, itemFormat, updatedItemFormat)) {
           var msg = "No change in value needed";
           log.error(msg);
+          incrementErrors(jobCommand);
           errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
         }
       }
@@ -126,6 +128,7 @@ public class BulkEditItemContentUpdateService {
     return !(isStatusUpdateExist && StringUtils.equals(itemFormat.getStatus(), updatedItemFormat.getStatus()));
   }
 
+
   private ItemFormat applyContentUpdate(ItemFormat itemFormat, ContentUpdate contentUpdate, JobCommand jobCommand) {
     if (REPLACE_WITH == contentUpdate.getAction()) {
       return applyReplaceWith(itemFormat, contentUpdate, jobCommand);
@@ -133,6 +136,7 @@ public class BulkEditItemContentUpdateService {
       if (STATUS == contentUpdate.getOption()) {
         var msg = "Status field can not be cleared";
         log.error(msg);
+        incrementErrors(jobCommand);
         errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
       } else {
         return applyClearField(itemFormat, contentUpdate);
@@ -185,10 +189,18 @@ public class BulkEditItemContentUpdateService {
       } else {
         var msg = String.format("New status value \"%s\" is not allowed", newStatus);
         log.error(msg);
+        incrementErrors(jobCommand);
         errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
       }
     }
     return itemFormat;
+  }
+
+  private void incrementErrors(JobCommand jobCommand){
+    var jobParameters = jobCommand.getJobParameters();
+    long count = jobParameters.getLong(ERRORS_COUNT) == null ? 1 : jobParameters.getLong(ERRORS_COUNT)  + 1;
+    jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters()).addLong(ERRORS_COUNT, count).toJobParameters());
+
   }
 
   private String extractStatusName(String s) {

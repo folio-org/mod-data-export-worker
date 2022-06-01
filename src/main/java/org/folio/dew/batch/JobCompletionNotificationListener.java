@@ -11,6 +11,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE
 import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
+import static org.folio.dew.utils.Constants.ERRORS_COUNT;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.CHANGED_RECORDS;
 import static org.folio.dew.utils.Constants.FILE_NAME;
@@ -33,10 +34,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.Job;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.Progress;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
+import org.folio.dew.service.BulkEditUpdateStatisticService;
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
@@ -56,6 +60,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
   private final KafkaService kafka;
   private final MinIOObjectStorageRepository repository;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
+  private final BulkEditUpdateStatisticService bulkEditStatisticService;
 
   @Override
   public void beforeJob(JobExecution jobExecution) {
@@ -111,7 +116,22 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     }
 
     var jobExecutionUpdate = createJobExecutionUpdate(jobId, jobExecution);
-
+    if (jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue())) {
+      if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
+        var statistic = bulkEditStatisticService.getStatistic(UUID.fromString(jobId));
+        long errorsCount = jobParameters.getLong(ERRORS_COUNT) == null ? 0 : jobParameters.getLong(ERRORS_COUNT) ;
+        int totalRecords = (int)jobExecution.getExecutionContext().getLong(TOTAL_RECORDS);
+        totalRecords = totalRecords < 0 ? 0 : totalRecords;
+        var progress = new Progress();
+        progress.setTotal(totalRecords);
+        progress.setProcessed(totalRecords);
+        progress.setProgress(100);
+        progress.setSuccess(statistic.getSuccess());
+        progress.setErrors((int)errorsCount + statistic.getErrors());
+        jobExecutionUpdate.setProgress(progress);
+      }
+      bulkEditStatisticService.cleanJobData(UUID.fromString(jobId));
+    }
     kafka.send(KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     if (after) {
       log.info("-----------------------------JOB---ENDS-----------------------------");

@@ -16,8 +16,10 @@ import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.exceptions.InvalidCsvException;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.ERRORS_COUNT;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.MATCHED;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
@@ -379,6 +381,9 @@ public class BulkEditController implements JobIdApi {
       if (!isNotEqual) {
         var jobCommand = getJobCommandById(jobId.toString());
         var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME));
+        var jobParameters = jobCommand.getJobParameters();
+        long count = jobParameters.getLong(ERRORS_COUNT) == null ? 1 : jobParameters.getLong(ERRORS_COUNT)  + 1;
+        jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters()).addLong(ERRORS_COUNT, count).toJobParameters());
         bulkEditProcessingErrorsService.saveErrorInCSV(jobId.toString(), initialUser.getBarcode(), new BulkEditException("No change in value needed"), fileName);
       }
       return isNotEqual;

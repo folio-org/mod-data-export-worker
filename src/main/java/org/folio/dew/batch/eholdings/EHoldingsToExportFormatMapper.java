@@ -41,6 +41,12 @@ public class EHoldingsToExportFormatMapper {
     return exportFormat;
   }
 
+  public EHoldingsResourceExportFormat convertToExportFormat(EPackage ePackage) {
+    var exportFormat = new EHoldingsResourceExportFormat();
+    mapPackageToExportFormat(exportFormat, ePackage);
+    return exportFormat;
+  }
+
   private void mapPackageToExportFormat(EHoldingsResourceExportFormat exportFormat, EPackage ePackage) {
     var packageAtr = ePackage.getData().getAttributes();
 
@@ -53,6 +59,7 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setPackageCustomCoverage(mapCoverage(packageAtr.getCustomCoverage()));
     exportFormat.setPackageProxy(mapProxy(packageAtr.getProxy()));
     exportFormat.setPackageTags(mapTags(packageAtr.getTags()));
+    exportFormat.setPackageHoldingsStatus(mapHoldingsStatus(packageAtr.getIsSelected()));
     exportFormat.setPackageShowToPatrons(mapShowToPatrons(packageAtr.getVisibilityData()));
     exportFormat.setPackageAutomaticallySelect(convertBoolToStr(packageAtr.getAllowKbToAddTitles()));
     exportFormat.setPackageAccessStatusType(mapAccessType(ePackage.getIncluded()));

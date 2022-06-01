@@ -82,6 +82,10 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
   }
 
   private List<EHoldingsResourceExportFormat> buildEHoldingsExportFormat(EPackage ePackage, List<ResourcesData> resources) {
+    if (resources.isEmpty()) {
+      var singlePackageExport = mapper.convertToExportFormat(ePackage);
+      return List.of(singlePackageExport);
+    }
     return resources.stream()
       .map(data -> mapper.convertToExportFormat(ePackage, data))
       .collect(Collectors.toList());

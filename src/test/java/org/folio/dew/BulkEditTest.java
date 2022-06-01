@@ -264,7 +264,7 @@ class BulkEditTest extends BaseBatchTest {
     final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, ITEM, BARCODE, ITEMS_QUERY_FILE_PATH, true);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
-//    verifyFileOutput(jobExecution, EXPECTED_ITEMS_QUERY_OUTPUT);
+    verifyFileOutput(jobExecution, EXPECTED_ITEMS_QUERY_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }

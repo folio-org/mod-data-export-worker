@@ -134,6 +134,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
         .map(v -> extractValueById(customField, v.toString()))
         .collect(Collectors.joining(ARRAY_DELIMITER));
     default:
+      // ToDo
       throw new BulkEditException("Invalid custom field: " + entry);
     }
   }

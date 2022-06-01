@@ -86,7 +86,7 @@ public class UpdateRecordWriteListener<T> implements ItemWriteListener<T> {
 
   private long getProgressBarValue(long processed, long totalRecords) {
     if (totalRecords < BATCH_SIZE) {
-      return 100l - 10;
+      return 90l;
     }
     return (processed / totalRecords * 100l) - 10;
   }

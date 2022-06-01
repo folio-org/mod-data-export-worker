@@ -6,6 +6,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
+import org.folio.dew.service.BulkEditStatisticService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.annotation.OnSkipInProcess;
 import org.springframework.batch.core.configuration.annotation.JobScope;
@@ -21,13 +22,14 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 public class BulkEditSkipListener {
 
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
-
+  private final BulkEditStatisticService bulkEditStatisticService;
   @Value("#{jobExecution}")
   private JobExecution jobExecution;
 
   @OnSkipInProcess
   public void onSkipInProcess(ItemIdentifier itemIdentifier, BulkEditException bulkEditException) {
     log.debug(bulkEditException);
+    bulkEditStatisticService.incrementErrors();
     bulkEditProcessingErrorsService.saveErrorInCSV(jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID), itemIdentifier.getItemId(), bulkEditException, FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
   }
 

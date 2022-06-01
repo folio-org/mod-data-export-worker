@@ -382,7 +382,7 @@ public class BulkEditController implements JobIdApi {
         var jobCommand = getJobCommandById(jobId.toString());
         var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME));
         var jobParameters = jobCommand.getJobParameters();
-        long count = jobParameters.getLong(ERRORS_COUNT) == null ? 1 : jobParameters.getLong(ERRORS_COUNT)  + 1;
+        long count = jobParameters.getLong(ERRORS_COUNT) == null ? 1 : jobParameters.getLong(ERRORS_COUNT) + 1;
         jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters()).addLong(ERRORS_COUNT, count).toJobParameters());
         bulkEditProcessingErrorsService.saveErrorInCSV(jobId.toString(), initialUser.getBarcode(), new BulkEditException("No change in value needed"), fileName);
       }

@@ -198,9 +198,8 @@ public class BulkEditItemContentUpdateService {
 
   private void incrementErrors(JobCommand jobCommand){
     var jobParameters = jobCommand.getJobParameters();
-    long count = jobParameters.getLong(ERRORS_COUNT) == null ? 1 : jobParameters.getLong(ERRORS_COUNT)  + 1;
+    long count = jobParameters.getLong(ERRORS_COUNT) == null ? 1 : jobParameters.getLong(ERRORS_COUNT) + 1;
     jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters()).addLong(ERRORS_COUNT, count).toJobParameters());
-
   }
 
   private String extractStatusName(String s) {

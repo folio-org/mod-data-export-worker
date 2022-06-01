@@ -16,6 +16,7 @@ import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.CHANGED_RECORDS;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
+import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 
@@ -116,13 +117,12 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     }
 
     var jobExecutionUpdate = createJobExecutionUpdate(jobId, jobExecution);
-    if (jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue())) {
+    if (jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue()) || jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_IDENTIFIERS.getValue())) {
+      var progress = new Progress();
       if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
         var statistic = bulkEditStatisticService.getStatistic();
         long errorsCount = jobParameters.getLong(ERRORS_COUNT) == null ? 0 : jobParameters.getLong(ERRORS_COUNT) ;
-        int totalRecords = (int)jobExecution.getExecutionContext().getLong(TOTAL_RECORDS);
-        totalRecords = totalRecords < 0 ? 0 : totalRecords;
-        var progress = new Progress();
+        var totalRecords = Integer.parseInt(jobExecution.getJobParameters().getString(TOTAL_CSV_LINES));
         progress.setTotal(totalRecords);
         progress.setProcessed(totalRecords);
         progress.setProgress(100);
@@ -130,7 +130,9 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
         progress.setErrors((int)errorsCount + statistic.getErrors());
         jobExecutionUpdate.setProgress(progress);
       }
+      jobExecutionUpdate.setProgress(progress);
     }
+
     kafka.send(KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     if (after) {
       log.info("-----------------------------JOB---ENDS-----------------------------");

@@ -13,7 +13,7 @@ import org.folio.dew.domain.dto.User;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
-import org.folio.dew.service.BulkEditUpdateStatisticService;
+import org.folio.dew.service.BulkEditStatisticService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.item.ItemWriter;
@@ -36,7 +36,7 @@ public class BulkEditUpdateUserRecordsWriter implements ItemWriter<User> {
   private final UserClient userClient;
   private final BulkEditRollBackService bulkEditRollBackService;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
-  private final BulkEditUpdateStatisticService bulkEditStatisticService;
+  private final BulkEditStatisticService bulkEditStatisticService;
 
   @Override
   public void write(List<? extends User> items) throws Exception {
@@ -44,11 +44,11 @@ public class BulkEditUpdateUserRecordsWriter implements ItemWriter<User> {
       try {
         userClient.updateUser(user, user.getId());
         log.info("Update user with id - {} by job id {}", user.getId(), jobId);
-        bulkEditStatisticService.incrementSuccess(UUID.fromString(jobId));
+        bulkEditStatisticService.incrementSuccess();
         bulkEditRollBackService.putUserIdForJob(user.getId(), UUID.fromString(jobId));
       } catch (Exception e) {
         log.info("Cannot update user with id {}. Reason: {}",  user.getId(), e.getMessage());
-        bulkEditStatisticService.incrementErrors(UUID.fromString(jobId));
+        bulkEditStatisticService.incrementErrors();
         bulkEditProcessingErrorsService.saveErrorInCSV(jobId, user.getBarcode(), new BulkEditException(e.getMessage()), FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
       }
     });

@@ -9,7 +9,7 @@ import org.folio.dew.client.InventoryClient;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
-import org.folio.dew.service.BulkEditUpdateStatisticService;
+import org.folio.dew.service.BulkEditStatisticService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.item.ItemWriter;
@@ -34,18 +34,18 @@ public class BulkEditUpdateItemRecordsWriter implements ItemWriter<Item> {
 
   private final InventoryClient inventoryClient;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
-  private final BulkEditUpdateStatisticService bulkEditStatisticService;
+  private final BulkEditStatisticService bulkEditStatisticService;
 
   @Override
   public void write(List<? extends Item> items) throws Exception {
     items.forEach(item -> {
       try {
         inventoryClient.updateItem(item, item.getId());
-        bulkEditStatisticService.incrementSuccess(UUID.fromString(jobId));
+        bulkEditStatisticService.incrementSuccess();
         log.info("Update item with id - {} by job id {}", item.getId(), jobId);
       } catch (Exception e) {
         log.info("Cannot update item with id {}. Reason: {}",  item.getId(), e.getMessage());
-        bulkEditStatisticService.incrementErrors(UUID.fromString(jobId));
+        bulkEditStatisticService.incrementErrors();
         bulkEditProcessingErrorsService.saveErrorInCSV(jobId, item.getId(), new BulkEditException(e.getMessage()), FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
       }
     });

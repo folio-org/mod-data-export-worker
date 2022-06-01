@@ -12,7 +12,7 @@ import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.Progress;
-import org.folio.dew.service.BulkEditUpdateStatisticService;
+import org.folio.dew.service.BulkEditStatisticService;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.JobExecution;
@@ -37,7 +37,7 @@ public class UpdateRecordWriteListener<T> implements ItemWriteListener<T> {
   private JobExecution jobExecution;
 
   private AtomicLong processedRecords = new AtomicLong();
-  private final BulkEditUpdateStatisticService bulkEditUpdateStatisticService;
+  private final BulkEditStatisticService bulkEditUpdateStatisticService;
 
   @Override
   public void beforeWrite(List<? extends T> items) {
@@ -77,7 +77,7 @@ public class UpdateRecordWriteListener<T> implements ItemWriteListener<T> {
     progress.setProcessed((int) processedRecords.get());
     progress.setProgress((int) getProgressBarValue(processedRecords.get(), totalRecords));
 
-    var statistic = bulkEditUpdateStatisticService.getStatistic(UUID.fromString(jobId));
+    var statistic = bulkEditUpdateStatisticService.getStatistic();
     progress.setSuccess(statistic.getSuccess());
     progress.setErrors(statistic.getErrors());
     job.setProgress(progress);

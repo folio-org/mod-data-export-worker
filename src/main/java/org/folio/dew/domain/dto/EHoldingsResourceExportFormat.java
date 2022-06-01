@@ -10,6 +10,7 @@ public class EHoldingsResourceExportFormat {
   private String packageName;
   private String packageId;
   private String packageType;
+  private String packageHoldingsStatus;
   private String packageContentType;
   private String packageCustomCoverage;
   private String packageShowToPatrons;

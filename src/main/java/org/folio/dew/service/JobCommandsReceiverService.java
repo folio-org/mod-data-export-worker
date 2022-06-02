@@ -1,16 +1,22 @@
 package org.folio.dew.service;
 
+import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
 import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
+import static org.folio.dew.utils.Constants.CSV_EXTENSION;
+import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Date;
@@ -24,15 +30,18 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.ExportJobManagerCirculationLog;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
+import org.folio.dew.client.SearchClient;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.BursarFeeFines;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
+import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.springframework.batch.core.Job;
@@ -41,6 +50,7 @@ import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
@@ -63,6 +73,7 @@ public class JobCommandsReceiverService {
   private final IAcknowledgementRepository acknowledgementRepository;
   private final MinIOObjectStorageRepository remoteObjectStorageRepository;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
+  private final SearchClient searchClient;
   private final List<Job> jobs;
   private Map<String, Job> jobMap;
   private Map<String, JobCommand> bulkEditJobCommands;
@@ -133,6 +144,34 @@ public class JobCommandsReceiverService {
 
   private void prepareJobParameters(JobCommand jobCommand) {
     var paramsBuilder = new JobParametersBuilder(jobCommand.getJobParameters());
+
+    // TODO enrich exportType.json with value MARC_EXPORT
+    if ("MARC_EXPORT".equals(jobCommand.getExportType().getValue())) {
+      var uploadedFilePath = jobCommand.getJobParameters().getString(FILE_NAME);
+      if (nonNull(uploadedFilePath) && FilenameUtils.isExtension(uploadedFilePath, "cql")) {
+        var identifiersFileName = workDir + FilenameUtils.getBaseName(uploadedFilePath) + CSV_EXTENSION;
+        try (var lines = Files.lines(Path.of(uploadedFilePath));
+             var outputStream = new FileOutputStream(identifiersFileName)) {
+          var query = lines.collect(Collectors.joining());
+          // TODO enrich entityType.json with values INSTANCE, HOLDINGS
+          InputStreamResource resource = null;
+          if ("INSTANCE".equals(jobCommand.getEntityType().getValue())) {
+            resource = searchClient.getInstanceIds(query).getBody();
+          } else if ("HOLDINGS".equals(jobCommand.getEntityType().getValue())) {
+            resource = searchClient.getHoldingIds(query).getBody();
+          }
+          if (nonNull(resource)) {
+            resource.getInputStream().transferTo(outputStream);
+          }
+          paramsBuilder.addString(FILE_NAME, identifiersFileName);
+        } catch (Exception e) {
+          var msg = String.format("Failed to read %s, reason: %s", FilenameUtils.getBaseName(uploadedFilePath), e.getMessage());
+          log.error(msg);
+          throw new FileOperationException(msg);
+        }
+      }
+    }
+
     var jobId = jobCommand.getId().toString();
     paramsBuilder.addString(JobParameterNames.JOB_ID, jobId);
     var now = new Date();

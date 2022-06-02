@@ -16,6 +16,7 @@ import org.folio.dew.exceptions.InvalidCsvException;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.FILE_UPLOAD_ERROR;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
@@ -91,7 +92,7 @@ import lombok.extern.log4j.Log4j2;
 @RequiredArgsConstructor
 public class BulkEditController implements JobIdApi {
 
-  private static final String FILE_UPLOAD_ERROR = "Cannot upload a file. Reason: %s.";
+
   private static final String JOB_COMMAND_NOT_FOUND_ERROR = "JobCommand with id %s doesn't exist.";
 
   private final UserClient userClient;

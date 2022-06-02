@@ -93,6 +93,9 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
 
   private int getTotalCount() {
     if (recordType == PACKAGE) {
+      if (CollectionUtils.isEmpty(titleFields)) {
+        return 1;
+      }
       var parameters = kbEbscoClient.constructParams(1, 1, titleSearchFilters);
       var resources = kbEbscoClient.getResourcesByPackageId(recordId, parameters);
       var totalResults = resources.getMeta().getTotalResults();

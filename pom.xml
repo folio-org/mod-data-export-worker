@@ -64,7 +64,7 @@
         </sonar.exclusions>
 
         <!-- Test properties-->
-        <mockito.version>3.7.7</mockito.version>
+        <mockito.version>4.5.1</mockito.version>
         <junit-extensions.version>2.4.0</junit-extensions.version>
         <embedded-minio.version>2.0.16</embedded-minio.version>
         <spring-cloud-starter-bootstrap.version>3.0.4</spring-cloud-starter-bootstrap.version>

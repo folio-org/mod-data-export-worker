@@ -48,8 +48,4 @@ public class FolioTenantController extends TenantController {
     return ResponseEntity.noContent().build();
   }
 
-  @Override
-  public void disableTenant() {
-    log.info("Disabling tenant");
-  }
 }

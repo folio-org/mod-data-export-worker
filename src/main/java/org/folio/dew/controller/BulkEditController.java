@@ -18,8 +18,8 @@ import org.folio.dew.exceptions.InvalidCsvException;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
-import static org.folio.dew.utils.Constants.MATCHED;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
+import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
@@ -294,6 +294,7 @@ public class BulkEditController implements JobIdApi {
       throw new NonSupportedEntityException(format("Non-supported export type: %s", jobCommand.getExportType()));
     }
   }
+
   private String buildPreviewQueryFromCsv(JobCommand jobCommand, int limit) {
     var fileName = extractFileName(jobCommand);
     try (var reader = new CSVReader(new FileReader(fileName))) {
@@ -380,7 +381,7 @@ public class BulkEditController implements JobIdApi {
       if (!isNotEqual) {
         var jobCommand = getJobCommandById(jobId.toString());
         var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME));
-        bulkEditProcessingErrorsService.saveErrorInCSV(jobId.toString(), initialUser.getBarcode(), new BulkEditException("No change in value needed"), fileName);
+        bulkEditProcessingErrorsService.saveErrorInCSV(jobId.toString(), initialUser.getBarcode(), new BulkEditException(NO_CHANGE_MESSAGE), fileName);
       }
       return isNotEqual;
     } catch (Exception e) {

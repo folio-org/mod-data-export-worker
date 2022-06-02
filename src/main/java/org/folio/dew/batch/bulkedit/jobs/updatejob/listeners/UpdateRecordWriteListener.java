@@ -31,8 +31,6 @@ public class UpdateRecordWriteListener<T> implements ItemWriteListener<T> {
 
   private final KafkaService kafka;
 
-  @Value("#{jobParameters['jobId']}")
-  private String jobId;
   @Value("#{jobExecution}")
   private JobExecution jobExecution;
 

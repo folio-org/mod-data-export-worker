@@ -16,6 +16,7 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
@@ -113,7 +114,7 @@ public class BulkEditItemContentUpdateService {
         result.add(updatedItemFormat);
       } else {
         if (isStatusUpdatingErrorNotExist(isStatusUpdatingExist, itemFormat, updatedItemFormat)) {
-          var msg = "No change in value needed";
+          var msg = NO_CHANGE_MESSAGE;
           log.error(msg);
           errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
         }
@@ -125,7 +126,6 @@ public class BulkEditItemContentUpdateService {
   private boolean isStatusUpdatingErrorNotExist(boolean isStatusUpdateExist, ItemFormat itemFormat, ItemFormat updatedItemFormat) {
     return !(isStatusUpdateExist && StringUtils.equals(itemFormat.getStatus(), updatedItemFormat.getStatus()));
   }
-
 
   private ItemFormat applyContentUpdate(ItemFormat itemFormat, ContentUpdate contentUpdate, JobCommand jobCommand) {
     if (REPLACE_WITH == contentUpdate.getAction()) {
@@ -191,7 +191,6 @@ public class BulkEditItemContentUpdateService {
     }
     return itemFormat;
   }
-
 
   private String extractStatusName(String s) {
     var tokens = s.split(ARRAY_DELIMITER, -1);

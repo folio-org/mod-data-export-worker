@@ -29,7 +29,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/eholdings/packages/1-22/resources?filter%5Bname%5D%3D%2A&include=accessType&page=1&count=20"
+        "url": "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&page=1&count=20&include=accessType"
       },
       "response": {
         "status": 200,
@@ -42,7 +42,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/eholdings/packages/1-22/resources?filter%5Bname%5D%3D%2A&page=1&count=1"
+        "url": "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&page=1&count=1"
       },
       "response": {
         "status": 200,

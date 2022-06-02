@@ -120,6 +120,7 @@ public class BulkEditController implements JobIdApi {
   @Override
   public ResponseEntity<ItemCollection> postContentUpdates(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId,@ApiParam(value = "" ,required=true )  @Valid @RequestBody ContentUpdateCollection contentUpdateCollection,@ApiParam(value = "The numbers of records to return") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
     if (ITEM == contentUpdateCollection.getEntityType()) {
+      bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId.toString());
       var updatesResult = itemContentUpdateService.processContentUpdates(getJobCommandById(jobId.toString()), contentUpdateCollection);
       return new ResponseEntity<>(prepareItemContentUpdateResponse(updatesResult, limit), HttpStatus.OK);
     }

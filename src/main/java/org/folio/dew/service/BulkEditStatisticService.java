@@ -16,15 +16,8 @@ public class BulkEditStatisticService {
   public void incrementSuccess(int value) {
     statistic.setSuccess(statistic.getSuccess() + value);
   }
-  public void incrementErrors() {
-    statistic.setErrors(statistic.getErrors() + 1);
-  }
 
   public BulkEditStatistic getStatistic() {
     return statistic;
-  }
-
-  public void clear() {
-    statistic = new BulkEditStatistic();
   }
 }

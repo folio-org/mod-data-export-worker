@@ -45,7 +45,6 @@ public class BulkEditUpdateItemRecordsWriter implements ItemWriter<Item> {
         log.info("Update item with id - {} by job id {}", item.getId(), jobId);
       } catch (Exception e) {
         log.info("Cannot update item with id {}. Reason: {}",  item.getId(), e.getMessage());
-        bulkEditStatisticService.incrementErrors();
         bulkEditProcessingErrorsService.saveErrorInCSV(jobId, item.getId(), new BulkEditException(e.getMessage()), FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
       }
     });

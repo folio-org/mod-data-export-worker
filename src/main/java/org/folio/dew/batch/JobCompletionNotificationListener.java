@@ -11,7 +11,6 @@ import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE
 import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
-import static org.folio.dew.utils.Constants.ERRORS_COUNT;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.CHANGED_RECORDS;
 import static org.folio.dew.utils.Constants.FILE_NAME;
@@ -120,14 +119,15 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     if (jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue()) || jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_IDENTIFIERS.getValue())) {
       var progress = new Progress();
       if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
+        var fileName = FilenameUtils.getName(jobParameters.getString(FILE_NAME));
+        var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobId, fileName, 1_000_000);
         var statistic = bulkEditStatisticService.getStatistic();
-        long errorsCount = jobParameters.getLong(ERRORS_COUNT) == null ? 0 : jobParameters.getLong(ERRORS_COUNT) ;
         var totalRecords = Integer.parseInt(jobExecution.getJobParameters().getString(TOTAL_CSV_LINES));
         progress.setTotal(totalRecords);
         progress.setProcessed(totalRecords);
         progress.setProgress(100);
         progress.setSuccess(statistic.getSuccess());
-        progress.setErrors((int)errorsCount + statistic.getErrors());
+        progress.setErrors(errors.getTotalRecords());
         jobExecutionUpdate.setProgress(progress);
       }
       jobExecutionUpdate.setProgress(progress);

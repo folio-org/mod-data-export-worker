@@ -68,7 +68,6 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
     progress.setProcessed((int) processed);
     progress.setProgress(isNull(totalCsvLines) ? 0 : calculateProgress(processed, totalCsvLines));
     progress.setSuccess(bulkEditStatisticService.getStatistic().getSuccess());
-    progress.setErrors(bulkEditStatisticService.getStatistic().getErrors());
     job.setProgress(progress);
 
     kafka.send(KafkaService.Topic.JOB_UPDATE, job.getId().toString(), job);

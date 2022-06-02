@@ -29,7 +29,6 @@ public class BulkEditSkipListener {
   @OnSkipInProcess
   public void onSkipInProcess(ItemIdentifier itemIdentifier, BulkEditException bulkEditException) {
     log.debug(bulkEditException);
-    bulkEditStatisticService.incrementErrors();
     bulkEditProcessingErrorsService.saveErrorInCSV(jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID), itemIdentifier.getItemId(), bulkEditException, FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
   }
 

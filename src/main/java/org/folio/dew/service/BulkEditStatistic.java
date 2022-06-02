@@ -7,5 +7,4 @@ import lombok.Setter;
 @Getter
 public class BulkEditStatistic {
   private int success;
-  private int errors;
 }

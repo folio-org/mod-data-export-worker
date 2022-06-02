@@ -79,7 +79,6 @@ public class UpdateRecordWriteListener<T> implements ItemWriteListener<T> {
 
     var statistic = bulkEditUpdateStatisticService.getStatistic();
     progress.setSuccess(statistic.getSuccess());
-    progress.setErrors(statistic.getErrors());
     job.setProgress(progress);
     return job;
   }

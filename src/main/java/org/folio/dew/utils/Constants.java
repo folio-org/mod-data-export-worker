@@ -22,7 +22,6 @@ public class Constants {
   public static final String KEY_VALUE_DELIMITER = ":";
 
   public static final String FILE_NAME = "fileName";
-  public static final String MATCHED = "matched";
   public static final String TOTAL_CSV_LINES = "totalCsvLines";
   public static final String JOB_ID = "jobId";
   public static final String EXPORT_TYPE = "exportType";

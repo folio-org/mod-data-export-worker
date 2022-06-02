@@ -401,12 +401,12 @@ class BulkEditTest extends BaseBatchTest {
     var job = jobCaptor.getAllValues().get(1);
     assertThat(job.getProgress().getTotal()).isEqualTo(80);
     assertThat(job.getProgress().getProcessed()).isEqualTo(100);
-    assertThat(job.getProgress().getProgress()).isEqualTo(55);
+    assertThat(job.getProgress().getProgress()).isEqualTo(45);
 
     job = jobCaptor.getAllValues().get(2);
     assertThat(job.getProgress().getTotal()).isEqualTo(144);
     assertThat(job.getProgress().getProcessed()).isEqualTo(179);
-    assertThat(job.getProgress().getProgress()).isEqualTo(100);
+    assertThat(job.getProgress().getProgress()).isEqualTo(90);
   }
 
 }

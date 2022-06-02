@@ -20,5 +20,5 @@ Other [modules](https://dev.folio.org/source-code/#server-side) are described,
 with further FOLIO Developer documentation at
 [dev.folio.org](https://dev.folio.org/)
 
-### Bulk edit 
+### Bulk edit
 In case of no matched records found when uploading CSV file with items or users, link to download matched records is not available for user.

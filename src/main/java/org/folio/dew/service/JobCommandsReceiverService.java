@@ -19,7 +19,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +73,7 @@ public class JobCommandsReceiverService {
   private final MinIOObjectStorageRepository remoteObjectStorageRepository;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   private final SearchClient searchClient;
+  private final FileNameResolver fileNameResolver;
   private final List<Job> jobs;
   private Map<String, Job> jobMap;
   private Map<String, JobCommand> bulkEditJobCommands;
@@ -173,11 +173,9 @@ public class JobCommandsReceiverService {
     }
 
     var jobId = jobCommand.getId().toString();
+    var outputFileName = fileNameResolver.resolve(jobCommand, workDir, jobId);
+
     paramsBuilder.addString(JobParameterNames.JOB_ID, jobId);
-    var now = new Date();
-    var outputFileName = BULK_EDIT_QUERY == jobCommand.getExportType() ?
-      workDir + LocalDate.now() + MATCHED_RECORDS + "query" :
-      String.format("%s%s_%tF_%tT_%s", workDir, jobCommand.getExportType(), now, now, jobId);
     paramsBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFileName);
 
     addOrderExportSpecificParameters(jobCommand, paramsBuilder);

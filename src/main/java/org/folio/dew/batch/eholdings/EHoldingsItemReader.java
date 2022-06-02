@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.batch.core.annotation.BeforeStep;
 
 import org.folio.dew.batch.CsvItemReader;
@@ -54,7 +55,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
       return buildEHoldingsExportFormat(ePackage, List.of(resourceData));
     }
 
-    if (recordType == PACKAGE && !titleFields.isEmpty()) {
+    if (recordType == PACKAGE && CollectionUtils.isNotEmpty(titleFields)) {
       var parameters = kbEbscoClient.constructParams(offset, limit, titleSearchFilters, ACCESS_TYPE);
       var packageResources = kbEbscoClient.getResourcesByPackageId(recordId, parameters);
 
@@ -81,6 +82,10 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
   }
 
   private List<EHoldingsResourceExportFormat> buildEHoldingsExportFormat(EPackage ePackage, List<ResourcesData> resources) {
+    if (resources.isEmpty()) {
+      var singlePackageExport = mapper.convertToExportFormat(ePackage);
+      return List.of(singlePackageExport);
+    }
     return resources.stream()
       .map(data -> mapper.convertToExportFormat(ePackage, data))
       .collect(Collectors.toList());
@@ -88,9 +93,13 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
 
   private int getTotalCount() {
     if (recordType == PACKAGE) {
+      if (CollectionUtils.isEmpty(titleFields)) {
+        return 1;
+      }
       var parameters = kbEbscoClient.constructParams(1, 1, titleSearchFilters);
       var resources = kbEbscoClient.getResourcesByPackageId(recordId, parameters);
-      return resources.getMeta().getTotalResults();
+      var totalResults = resources.getMeta().getTotalResults();
+      return totalResults > 0 ? totalResults : 1;
     } else if (recordType == RESOURCE) {
       return 1;
     } else {

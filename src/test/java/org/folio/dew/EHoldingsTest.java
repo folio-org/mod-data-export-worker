@@ -20,6 +20,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.extern.log4j.Log4j2;
+import org.folio.de.entity.JobCommand;
+import org.folio.dew.service.FileNameResolver;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -37,10 +40,13 @@ import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
 
+@Log4j2
 class EHoldingsTest extends BaseBatchTest {
 
   @Autowired
   private Job getEHoldingsJob;
+  @Autowired
+  private FileNameResolver fileNameResolver;
 
   private final static String RESOURCE_ID = "1-22-333";
   private final static String PACKAGE_ID = "1-22";
@@ -80,7 +86,7 @@ class EHoldingsTest extends BaseBatchTest {
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(
-          "/eholdings/packages/1-22/resources?filter[name]=*&count=1&page=1")));
+          "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&page=1&count=1")));
   }
 
   private void verifyFileOutput(JobExecution jobExecution, String expectedFile) throws Exception {
@@ -96,7 +102,7 @@ class EHoldingsTest extends BaseBatchTest {
     var eHoldingsExportConfig = new EHoldingsExportConfig();
     eHoldingsExportConfig.setRecordId(id);
     eHoldingsExportConfig.setRecordType(recordType);
-    eHoldingsExportConfig.setTitleFields(getClassFields(EHoldingsResourceExportFormat.class));
+    eHoldingsExportConfig.setTitleFields(getClassFields());
     eHoldingsExportConfig.setPackageFields(Collections.emptyList());
     eHoldingsExportConfig.setTitleSearchFilters("filter[name]=*");
 
@@ -112,17 +118,18 @@ class EHoldingsTest extends BaseBatchTest {
         + File.separator
         + springApplicationName
         + File.separator;
-    final String outputFile =
-      String.format(
-        "%s%s_%tF_%tH%tM%tS_%s",
-        workDir, ExportType.E_HOLDINGS, now, now, now, now, jobId);
+    var jobParameters = new JobParameters(params);
+    var jobCommand = new JobCommand();
+    jobCommand.setJobParameters(jobParameters);
+    jobCommand.setExportType(ExportType.E_HOLDINGS);
+    final String outputFile = fileNameResolver.resolve(jobCommand, workDir, jobId);
     params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(outputFile));
 
     return new JobParameters(params);
   }
 
-  private List<String> getClassFields(Class clazz) {
-    return Arrays.stream(clazz.getDeclaredFields())
+  private List<String> getClassFields() {
+    return Arrays.stream(EHoldingsResourceExportFormat.class.getDeclaredFields())
       .map(Field::getName)
       .collect(Collectors.toList());
   }

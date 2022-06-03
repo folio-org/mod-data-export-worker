@@ -12,11 +12,14 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.QUERY;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
+
+import org.folio.dew.error.BulkEditException;
 import org.folio.dew.exceptions.InvalidCsvException;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
+import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
@@ -60,6 +63,7 @@ import org.folio.dew.service.BulkEditItemContentUpdateService;
 import org.folio.dew.service.BulkEditParseService;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
+import org.folio.dew.service.ItemUpdatesResult;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.dew.utils.CsvHelper;
 import org.openapitools.api.JobIdApi;
@@ -117,8 +121,8 @@ public class BulkEditController implements JobIdApi {
   public ResponseEntity<ItemCollection> postContentUpdates(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId,@ApiParam(value = "" ,required=true )  @Valid @RequestBody ContentUpdateCollection contentUpdateCollection,@ApiParam(value = "The numbers of records to return") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
     if (ITEM == contentUpdateCollection.getEntityType()) {
       bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId.toString());
-      var itemFormats = itemContentUpdateService.processContentUpdates(getJobCommandById(jobId.toString()), contentUpdateCollection);
-      return new ResponseEntity<>(prepareItemContentUpdateResponse(itemFormats, limit), HttpStatus.OK);
+      var updatesResult = itemContentUpdateService.processContentUpdates(getJobCommandById(jobId.toString()), contentUpdateCollection);
+      return new ResponseEntity<>(prepareItemContentUpdateResponse(updatesResult, limit), HttpStatus.OK);
     }
     throw new NonSupportedEntityException(format("Non-supported entity type: %s", contentUpdateCollection.getEntityType()));
   }
@@ -175,12 +179,12 @@ public class BulkEditController implements JobIdApi {
         FileUtils.forceDelete(uploadedPath.toFile());
       }
       Files.write(uploadedPath, file.getBytes());
+      prepareJobParameters(jobCommand, uploadedPath);
       if (isBulkEditUpdate(jobCommand) && jobCommand.getEntityType() == USER) {
         Files.write( Path.of(workDir, INITIAL_PREFIX + file.getOriginalFilename()), file.getBytes());
-        processUpdateUsers(uploadedPath, file);
+        processUpdateUsers(uploadedPath, file, jobId);
       }
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
-      prepareJobParameters(jobCommand, uploadedPath);
       if (!isBulkEditUpdate(jobCommand) && ITEM != jobCommand.getEntityType()) {
         var job = getBulkEditJob(jobCommand);
         var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
@@ -260,12 +264,12 @@ public class BulkEditController implements JobIdApi {
     return jobCommandOptional.get();
   }
 
-  private ItemCollection prepareItemContentUpdateResponse(List<ItemFormat> itemFormats, Integer limit) {
-      var items = itemFormats.stream()
+  private ItemCollection prepareItemContentUpdateResponse(ItemUpdatesResult updatesResult, Integer limit) {
+      var items = updatesResult.getUpdated().stream()
         .limit(isNull(limit) ? Integer.MAX_VALUE : limit)
         .map(bulkEditParseService::mapItemFormatToItem)
         .collect(Collectors.toList());
-      return new ItemCollection().items(items).totalRecords(itemFormats.size());
+      return new ItemCollection().items(items).totalRecords(updatesResult.getTotal());
   }
 
   private String buildPreviewUsersQueryFromJobCommand(JobCommand jobCommand, int limit) {
@@ -291,6 +295,7 @@ public class BulkEditController implements JobIdApi {
       throw new NonSupportedEntityException(format("Non-supported export type: %s", jobCommand.getExportType()));
     }
   }
+
   private String buildPreviewQueryFromCsv(JobCommand jobCommand, int limit) {
     var fileName = extractFileName(jobCommand);
     try (var reader = new CSVReader(new FileReader(fileName))) {
@@ -336,9 +341,10 @@ public class BulkEditController implements JobIdApi {
       throw new NonSupportedEntityException(format("Non-supported entity type: %s", jobCommand.getEntityType()));
     }
   }
-  private void processUpdateUsers(Path uploadedPath, MultipartFile file) throws IOException {
+
+  private void processUpdateUsers(Path uploadedPath, MultipartFile file, UUID jobId) throws IOException {
     try {
-      var updatedUserFormats = getDifferenceBetweenInitialAndEditedUsersCSV(file.getInputStream());
+      var updatedUserFormats = getDifferenceBetweenInitialAndEditedUsersCSV(file.getInputStream(), jobId);
       if (updatedUserFormats.isEmpty()) { // If no records changed, just write column headers.
         Files.write(uploadedPath, UserFormat.getUserColumnHeaders().getBytes());
       } else {
@@ -348,7 +354,8 @@ public class BulkEditController implements JobIdApi {
       Files.write(uploadedPath, file.getBytes());
     }
   }
-  private List<UserFormat> getDifferenceBetweenInitialAndEditedUsersCSV(InputStream editedUsersStream) throws IOException {
+
+  private List<UserFormat> getDifferenceBetweenInitialAndEditedUsersCSV(InputStream editedUsersStream, UUID jobId) throws IOException {
     try (var csvReader = new InputStreamReader(editedUsersStream)) {
       return new CsvToBeanBuilder<UserFormat>(csvReader)
         .withType(UserFormat.class)
@@ -362,16 +369,22 @@ public class BulkEditController implements JobIdApi {
         .build()
         .parse()
         .stream()
-        .filter(this::applyUserFilter)
+        .filter(u -> applyUserFilter(u, jobId))
         .collect(Collectors.toList());
     }
   }
 
-  private boolean applyUserFilter(UserFormat editedUserFormat) {
+  private boolean applyUserFilter(UserFormat editedUserFormat, UUID jobId) {
     try {
       var initialUser = userClient.getUserById(editedUserFormat.getId());
       initialUser.setMetadata(null); // Exclude metadata from comparing users.
-      return !initialUser.equals(bulkEditParseService.mapUserFormatToUser(editedUserFormat));
+      var isNotEqual = !initialUser.equals(bulkEditParseService.mapUserFormatToUser(editedUserFormat));
+      if (!isNotEqual) {
+        var jobCommand = getJobCommandById(jobId.toString());
+        var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME));
+        bulkEditProcessingErrorsService.saveErrorInCSV(jobId.toString(), initialUser.getBarcode(), new BulkEditException(NO_CHANGE_MESSAGE), fileName);
+      }
+      return isNotEqual;
     } catch (Exception e) {
       return true;
     }

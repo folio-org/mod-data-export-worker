@@ -21,7 +21,6 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 public class BulkEditSkipListener {
 
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
-
   @Value("#{jobExecution}")
   private JobExecution jobExecution;
 
@@ -30,5 +29,4 @@ public class BulkEditSkipListener {
     log.debug(bulkEditException);
     bulkEditProcessingErrorsService.saveErrorInCSV(jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID), itemIdentifier.getItemId(), bulkEditException, FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
   }
-
 }

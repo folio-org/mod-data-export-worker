@@ -22,6 +22,9 @@ public interface InventoryClient {
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   ItemCollection getItemByQuery(@RequestParam("query") String query, @RequestParam long limit);
 
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  ItemCollection getItemByQuery(@RequestParam("query") String query, @RequestParam long offset, @RequestParam long limit);
+
   @PutMapping(value = "/{itemId}", consumes = MediaType.APPLICATION_JSON_VALUE)
   void updateItem(@RequestBody Item item, @PathVariable String itemId);
 }

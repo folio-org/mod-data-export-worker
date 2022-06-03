@@ -15,6 +15,7 @@ import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.CHANGED_RECORDS;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
+import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 
@@ -33,10 +34,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.Job;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.Progress;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
+import org.folio.dew.service.BulkEditStatisticService;
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
@@ -51,11 +55,13 @@ import lombok.extern.log4j.Log4j2;
 @RequiredArgsConstructor
 public class JobCompletionNotificationListener extends JobExecutionListenerSupport {
   private static final String PATHS_DELIMITER = ";";
+  private static final int COMPLETE_PROGRESS_VALUE = 100;
 
   private final IAcknowledgementRepository acknowledgementRepository;
   private final KafkaService kafka;
   private final MinIOObjectStorageRepository repository;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
+  private final BulkEditStatisticService bulkEditStatisticService;
 
   @Override
   public void beforeJob(JobExecution jobExecution) {
@@ -111,6 +117,22 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     }
 
     var jobExecutionUpdate = createJobExecutionUpdate(jobId, jobExecution);
+    if (jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue()) || jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_IDENTIFIERS.getValue())) {
+      var progress = new Progress();
+      if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
+        var fileName = FilenameUtils.getName(jobParameters.getString(FILE_NAME));
+        var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobId, fileName, 1_000_000);
+        var statistic = bulkEditStatisticService.getStatistic();
+        var totalRecords = Integer.parseInt(jobExecution.getJobParameters().getString(TOTAL_CSV_LINES));
+        progress.setTotal(totalRecords);
+        progress.setProcessed(totalRecords);
+        progress.setProgress(COMPLETE_PROGRESS_VALUE);
+        progress.setSuccess(statistic.getSuccess());
+        progress.setErrors(errors.getTotalRecords());
+        jobExecutionUpdate.setProgress(progress);
+      }
+      jobExecutionUpdate.setProgress(progress);
+    }
 
     kafka.send(KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     if (after) {

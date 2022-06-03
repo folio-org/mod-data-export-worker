@@ -25,8 +25,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Log4j2
 public class ItemFetcher implements ItemProcessor<ItemIdentifier, Item> {
-  private final static String MATCH_PATTERN = "%s=%s";
-  private final static String EXACT_MATCH_PATTERN = "%s==%s";
+  private static final String MATCH_PATTERN = "%s=%s";
+  private static final String EXACT_MATCH_PATTERN = "%s==%s";
 
   private final InventoryClient inventoryClient;
 

@@ -55,6 +55,7 @@ import lombok.extern.log4j.Log4j2;
 @RequiredArgsConstructor
 public class JobCompletionNotificationListener extends JobExecutionListenerSupport {
   private static final String PATHS_DELIMITER = ";";
+  private static final int COMPLETE_PROGRESS_VALUE = 100;
 
   private final IAcknowledgementRepository acknowledgementRepository;
   private final KafkaService kafka;
@@ -125,7 +126,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
         var totalRecords = Integer.parseInt(jobExecution.getJobParameters().getString(TOTAL_CSV_LINES));
         progress.setTotal(totalRecords);
         progress.setProcessed(totalRecords);
-        progress.setProgress(100);
+        progress.setProgress(COMPLETE_PROGRESS_VALUE);
         progress.setSuccess(statistic.getSuccess());
         progress.setErrors(errors.getTotalRecords());
         jobExecutionUpdate.setProgress(progress);

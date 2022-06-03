@@ -155,9 +155,13 @@ public class BulkEditParseService {
       UserGroupCollection userGroup = userReferenceService.getUserGroupByGroupName(userFormat.getPatronGroup());
       if (!userGroup.getUsergroups().isEmpty()) {
         return userGroup.getUsergroups().iterator().next().getId();
+      } else {
+        var msg = "Invalid patron group value: " + userFormat.getPatronGroup();
+        log.error(msg);
+        throw new BulkEditException(msg);
       }
     }
-    return null;
+    throw new BulkEditException("Patron group can not be empty");
   }
 
   private List<UUID> getUserDepartments(UserFormat userFormat) {

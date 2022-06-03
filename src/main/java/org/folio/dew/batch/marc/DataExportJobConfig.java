@@ -63,7 +63,7 @@ public class DataExportJobConfig {
   @Bean
   public Step dataExportPartitionStep(
     DataExportCsvItemReader dataExportCsvItemReader,
-    FlatFileItemWriter<Record> writer,
+    FlatFileItemWriter<Record> recordWriter,
     ItemProcessor<ItemIdentifier, Record> processor,
     CsvPartStepExecutionListener csvPartStepExecutionListener
   ) {
@@ -72,7 +72,7 @@ public class DataExportJobConfig {
       .<ItemIdentifier, Record>chunk(100)
       .reader(dataExportCsvItemReader)
       .processor(processor)
-      .writer(writer)
+      .writer(recordWriter)
       .faultTolerant()
       .allowStartIfComplete(false)
       .throttleLimit(POOL_SIZE)
@@ -101,7 +101,7 @@ public class DataExportJobConfig {
 
   @Bean
   @StepScope
-  public FlatFileItemWriter<Record> writer(
+  public FlatFileItemWriter<Record> recordWriter(
     @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath) {
     return new MarcWriter(tempOutputFilePath);
   }

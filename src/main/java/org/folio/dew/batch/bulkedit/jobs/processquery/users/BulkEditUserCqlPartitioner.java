@@ -1,14 +1,14 @@
-package org.folio.dew.batch.bulkedit.jobs.processquery;
+package org.folio.dew.batch.bulkedit.jobs.processquery.users;
 
 import org.folio.dew.batch.CsvPartitioner;
 import org.folio.dew.client.UserClient;
 
-public class BulkEditCqlPartitioner extends CsvPartitioner {
+public class BulkEditUserCqlPartitioner extends CsvPartitioner {
 
   private final UserClient userClient;
   private final String query;
 
-  public BulkEditCqlPartitioner(Long offset, Long limit, String tempOutputFilePath, UserClient userClient, String query) {
+  public BulkEditUserCqlPartitioner(Long offset, Long limit, String tempOutputFilePath, UserClient userClient, String query) {
     super(offset, limit, tempOutputFilePath);
 
     this.userClient = userClient;

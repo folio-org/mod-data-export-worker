@@ -33,6 +33,7 @@ public class Constants {
   public static final String LINE_BREAK_REPLACEMENT = "\\n";
 
   public static final String NO_MATCH_FOUND_MESSAGE = "No match found";
+  public static  final String NO_CHANGE_MESSAGE = "No change in value needed";
 
   public static final String MODULE_NAME = "BULKEDIT";
   public static final String STATUSES_CONFIG_NAME = "statuses";

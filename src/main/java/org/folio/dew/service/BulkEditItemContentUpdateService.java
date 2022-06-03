@@ -16,6 +16,7 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
@@ -23,6 +24,7 @@ import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.domain.dto.ContentUpdate;
 import org.folio.dew.domain.dto.ContentUpdateCollection;
@@ -62,16 +64,20 @@ public class BulkEditItemContentUpdateService {
     workdir = System.getProperty(TMP_DIR_PROPERTY) + PATH_SEPARATOR + springApplicationName + PATH_SEPARATOR;
   }
 
-  public List<ItemFormat> processContentUpdates(JobCommand jobCommand, ContentUpdateCollection contentUpdates) {
+  public ItemUpdatesResult processContentUpdates(JobCommand jobCommand, ContentUpdateCollection contentUpdates) {
     try {
       log.info("Processing content updates for job id {}", jobCommand.getId());
       outputFileName = workdir + UPDATED_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       Files.deleteIfExists(Path.of(outputFileName));
       repository.downloadObject(FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION, outputFileName);
-      var updatedItemFormats = applyContentUpdates(CsvHelper.readRecordsFromFile(outputFileName, ItemFormat.class, true), contentUpdates, jobCommand);
+      var updateResult = new ItemUpdatesResult();
+      var records = CsvHelper.readRecordsFromFile(outputFileName, ItemFormat.class, true);
+      updateResult.setTotal(records.size());
+      var updatedItemFormats = applyContentUpdates(records, contentUpdates, jobCommand);
+      updateResult.setUpdated(updatedItemFormats);
       saveResultToFile(updatedItemFormats, jobCommand);
       jobCommand.setExportType(BULK_EDIT_UPDATE);
-      return updatedItemFormats;
+      return updateResult;
     } catch (Exception e) {
       var msg = String.format("Failed to read %s item records file for job id %s, reason: %s", outputFileName, jobCommand.getId(), e.getMessage());
       log.error(msg);
@@ -96,7 +102,9 @@ public class BulkEditItemContentUpdateService {
     List<ItemFormat> result = new ArrayList<>();
     for (ItemFormat itemFormat: itemFormats) {
       var updatedItemFormat = itemFormat;
+      boolean isStatusUpdatingExist = false;
       for (ContentUpdate contentUpdate: contentUpdates.getContentUpdates()) {
+        if (contentUpdate.getOption() == STATUS) isStatusUpdatingExist = true;
         updatedItemFormat = applyContentUpdate(updatedItemFormat, contentUpdate, jobCommand);
       }
       if (!Objects.equals(itemFormat, updatedItemFormat)) {
@@ -104,9 +112,19 @@ public class BulkEditItemContentUpdateService {
           updateEffectiveLocation(updatedItemFormat);
         }
         result.add(updatedItemFormat);
+      } else {
+        if (isStatusUpdatingErrorNotExist(isStatusUpdatingExist, itemFormat, updatedItemFormat)) {
+          var msg = NO_CHANGE_MESSAGE;
+          log.error(msg);
+          errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
+        }
       }
     }
     return result;
+  }
+
+  private boolean isStatusUpdatingErrorNotExist(boolean isStatusUpdateExist, ItemFormat itemFormat, ItemFormat updatedItemFormat) {
+    return !(isStatusUpdateExist && StringUtils.equals(itemFormat.getStatus(), updatedItemFormat.getStatus()));
   }
 
   private ItemFormat applyContentUpdate(ItemFormat itemFormat, ContentUpdate contentUpdate, JobCommand jobCommand) {

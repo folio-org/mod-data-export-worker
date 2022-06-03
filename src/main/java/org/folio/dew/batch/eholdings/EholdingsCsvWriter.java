@@ -98,10 +98,11 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
             }
           }
         }
+      } else if (value == null) {
+        itemValues.add(EMPTY);
       }
     }
-    var itemRow = String.join(",", itemValues);
-    return itemRow;
+    return String.join(",", itemValues);
   }
 
   @Override

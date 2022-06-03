@@ -1,13 +1,21 @@
 package org.folio.dew.batch.eholdings;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import joptsimple.internal.Strings;
+import org.folio.dew.domain.dto.eholdings.Note;
 import org.springframework.stereotype.Component;
 
 import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
@@ -30,6 +38,12 @@ import org.folio.dew.domain.dto.eholdings.VisibilityData;
 public class EHoldingsToExportFormatMapper {
 
   private static final String ACCESS_TYPE_INCLUDED = "accessTypes";
+  private final SimpleDateFormat dateFormat;
+
+  public EHoldingsToExportFormatMapper() {
+    this.dateFormat = new SimpleDateFormat(DATE_TIME_PATTERN);
+    this.dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+  }
 
   private final ObjectMapper objectMapper = new ObjectMapper()
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -45,6 +59,22 @@ public class EHoldingsToExportFormatMapper {
     var exportFormat = new EHoldingsResourceExportFormat();
     mapPackageToExportFormat(exportFormat, ePackage);
     return exportFormat;
+  }
+
+  public List<String> convertNotes(List<Note> notes) {
+    return notes.stream()
+      .map(this::noteToString)
+      .collect(Collectors.toList());
+  }
+
+  private String noteToString(Note note) {
+    var pieces = new String[] {dateToString(note.getMetadata().getUpdatedDate()), note.getType(), note.getTitle(),
+                               note.getContent()};
+    return Strings.join(pieces, ";");
+  }
+
+  private String dateToString(Date date) {
+    return nonNull(date) ? dateFormat.format(date) : EMPTY;
   }
 
   private void mapPackageToExportFormat(EHoldingsResourceExportFormat exportFormat, EPackage ePackage) {

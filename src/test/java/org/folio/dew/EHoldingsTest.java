@@ -112,7 +112,6 @@ class EHoldingsTest extends BaseBatchTest {
     String jobId = UUID.randomUUID().toString();
     params.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
 
-    Date now = new Date();
     String workDir =
       System.getProperty("java.io.tmpdir")
         + File.separator

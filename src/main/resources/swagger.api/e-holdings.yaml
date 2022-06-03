@@ -12,6 +12,8 @@ paths:
           description: stub
 components:
   schemas:
+    note:
+      $ref: '../../../../folio-export-common/schemas/note/note.json#/Note'
     ePackage:
       $ref: '../../../../folio-export-common/schemas/eholdings/e-package/package.json#/EPackage'
     eResource:

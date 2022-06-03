@@ -92,6 +92,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-items/download";
   private static final String ITEMS_FOR_LOCATION_UPDATE = "src/test/resources/upload/bulk_edit_items_for_location_update.csv";
   private static final String ITEMS_FOR_STATUS_UPDATE = "src/test/resources/upload/bulk_edit_items_for_status_update.csv";
+  private static final String ITEMS_FOR_NOTHING_UPDATE = "src/test/resources/upload/bulk_edit_items_for_nothing_update.csv";
   private static final SimpleDateFormat itemStatusDateFormat = new SimpleDateFormat(DATE_TIME_PATTERN);
   private static final UUID JOB_ID = UUID.randomUUID();
   public static final String LIMIT = "limit";
@@ -716,6 +717,45 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @Test
+  @SneakyThrows
+  void shouldProvideErrorsIfNotingToUpdate() {
+    repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_NOTHING_UPDATE), ITEMS_FOR_NOTHING_UPDATE, null, "text/plain", false);
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(ITEM);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(FILE_NAME, "fileName.csv")
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_NOTHING_UPDATE.replace(CSV_EXTENSION, EMPTY))
+      .toJobParameters());
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+
+    var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
+      .entityType(ITEM)
+      .contentUpdates(Collections.singletonList(new ContentUpdate()
+        .option(ContentUpdate.OptionEnum.TEMPORARY_LOCATION)
+        .action(ContentUpdate.ActionEnum.REPLACE_WITH)
+        .value("Main Library")))
+      .totalRecords(1));
+
+    var response = mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+        .headers(defaultHeaders())
+        .content(updates))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    var updatedJobCommand = jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
+    assertFalse(updatedJobCommand.isEmpty());
+    assertEquals(BULK_EDIT_UPDATE, updatedJobCommand.get().getExportType());
+    assertNotNull(updatedJobCommand.get().getJobParameters().getString(UPDATED_FILE_NAME));
+
+    var errors = errorsService.readErrorsFromCSV(jobId.toString(), jobCommand.getJobParameters().getString(FILE_NAME), 10);
+    assertThat(errors.getErrors(), hasSize(1));
+  }
+
+  @Test
   @DisplayName("Post non-supported entity type content update - BAD REQUEST")
   @SneakyThrows
   void shouldReturnBadRequestForNonSupportedEntityTypeContentUpdates() {
@@ -770,9 +810,8 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @Test
-  @DisplayName("Skip non edited lines when downloading changed users")
   @SneakyThrows
-  void shouldSkipNonEditedLinesWhenDownloadingChangedUsers() {
+  void shouldReturnNumberOfRowsInCSVFile() {
     when(userClient.getUserById("88a087b4-c3a1-485b-8a22-2fa8f7b661c4"))
       .thenReturn(new User().id("88a087b4-c3a1-485b-8a22-2fa8f7b661c4").username("User name").active(true).barcode("456")
         .departments(List.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
@@ -799,8 +838,8 @@ class BulkEditControllerTest extends BaseBatchTest {
     var file = new MockMultipartFile("file", "bulk_edit_user_record_3_lines.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
 
     var result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
-      .file(file)
-      .headers(headers))
+        .file(file)
+        .headers(headers))
       .andExpect(status().isOk())
       .andReturn();
 
@@ -817,13 +856,13 @@ class BulkEditControllerTest extends BaseBatchTest {
     file = new MockMultipartFile("file", "bulk_edit_user_record_3_lines_edited_1_line.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
 
     result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
-      .file(file)
-      .headers(headers))
+        .file(file)
+        .headers(headers))
       .andExpect(status().isOk())
       .andReturn();
 
     // Edited only 1 line.
-    assertThat(result.getResponse().getContentAsString(), equalTo("1"));
+    assertThat(result.getResponse().getContentAsString(), equalTo("3"));
 
     jobId = UUID.randomUUID();
 
@@ -836,13 +875,13 @@ class BulkEditControllerTest extends BaseBatchTest {
     file = new MockMultipartFile("file", "bulk_edit_user_record_3_lines.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
 
     result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
-      .file(file)
-      .headers(headers))
+        .file(file)
+        .headers(headers))
       .andExpect(status().isOk())
       .andReturn();
 
     // Edited 0 lines.
-    assertThat(result.getResponse().getContentAsString(), equalTo("0"));
+    assertThat(result.getResponse().getContentAsString(), equalTo("3"));
 
     jobId = UUID.randomUUID();
 
@@ -855,8 +894,8 @@ class BulkEditControllerTest extends BaseBatchTest {
     file = new MockMultipartFile("file", "invalid-user-records-incorrect-number-of-tokens.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
 
     result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
-      .file(file)
-      .headers(headers))
+        .file(file)
+        .headers(headers))
       .andExpect(status().isOk())
       .andReturn();
 

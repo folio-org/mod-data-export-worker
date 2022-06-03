@@ -12,6 +12,7 @@ import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.Progress;
+import org.folio.dew.service.BulkEditStatisticService;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.JobExecution;
@@ -37,6 +38,8 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
   private AtomicInteger processedRecords = new AtomicInteger();
   private AtomicLong processedIdentifiers = new AtomicLong();
 
+  private final BulkEditStatisticService bulkEditStatisticService;
+
   @Override
   public void beforeWrite(List<? extends T> list) {
     // do nothing
@@ -44,6 +47,7 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
 
   @Override
   public void afterWrite(List<? extends T> list) {
+    bulkEditStatisticService.incrementSuccess(list.size());
     var job = new Job();
     job.setId(UUID.fromString(jobExecution.getJobParameters().getString(JOB_ID)));
     job.setType(ExportType.BULK_EDIT_IDENTIFIERS);
@@ -63,6 +67,7 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
     progress.setTotal(processedRecords.addAndGet(list.size()));
     progress.setProcessed((int) processed);
     progress.setProgress(isNull(totalCsvLines) ? 0 : calculateProgress(processed, totalCsvLines));
+    progress.setSuccess(bulkEditStatisticService.getStatistic().getSuccess());
     job.setProgress(progress);
 
     kafka.send(KafkaService.Topic.JOB_UPDATE, job.getId().toString(), job);
@@ -70,10 +75,10 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
 
   private int calculateProgress(long processed, long total) {
     if (total <= CHUNKS) {
-      return 100;
+      return 90;
     }
     var res = (double) processed / total * 100;
-    return (int) res;
+    return (int) res - 10;
   }
 
   @Override

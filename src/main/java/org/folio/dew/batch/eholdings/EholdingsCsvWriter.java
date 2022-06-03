@@ -58,10 +58,7 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
     if (length == 0) {
       return Collections.singletonList(name);
     }
-    return IntStream.range(1, length + 1)
-      .boxed()
-      .map(i -> name + " " + i)
-      .collect(Collectors.toList());
+    return IntStream.range(1, length + 1).boxed().map(i -> name + " " + i).collect(Collectors.toList());
   }
 
   private String getItemRow(Integer maxPackageNotesLength, Integer maxTitleNotesLength,
@@ -74,8 +71,7 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
         String s = getStringValue((String) value);
         itemValues.add(s);
       } else if (value instanceof List) {
-        @SuppressWarnings("unchecked")
-        var strings = (List<String>) value;
+        @SuppressWarnings("unchecked") var strings = (List<String>) value;
         getListValue(maxPackageNotesLength, maxTitleNotesLength, itemValues, fieldName, strings);
       } else {
         itemValues.add(EMPTY);
@@ -87,10 +83,7 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
   private void getListValue(Integer maxPackageNotesLength, Integer maxTitleNotesLength, ArrayList<String> itemValues,
                             String fieldName, List<String> value) {
     for (String s : value) {
-      if (s.contains(",") || s.contains("\n")) {
-        s = "\"" + s.replace("\"", "\"\"").replace(LINE_BREAK, LINE_BREAK_REPLACEMENT) + "\"";
-      }
-      itemValues.add(s);
+      itemValues.add(cleanupValue(s));
     }
     if (fieldName.equals(PACKAGE_NOTES_FIELD) && value.size() < maxPackageNotesLength) {
       for (int i = 0; i < maxPackageNotesLength - value.size(); i++) {
@@ -103,31 +96,27 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
     }
   }
 
-  private String getStringValue(String value) {
-    var s = value;
+  private String cleanupValue(String s) {
     if (s.contains(",") || s.contains("\n")) {
       s = "\"" + s.replace("\"", "\"\"").replace(LINE_BREAK, LINE_BREAK_REPLACEMENT) + "\"";
     }
     return s;
   }
 
+  private String getStringValue(String value) {
+    return cleanupValue(value);
+  }
+
   @Override
   protected String doWrite(List<? extends EHoldingsResourceExportFormat> items) {
-    var maxPackageNotesLength = items.stream()
-      .map(e -> e.getPackageNotes().size())
-      .max(Integer::compareTo)
-      .orElse(0);
-    var maxTitleNotesLength = items.stream()
-      .map(e -> e.getTitleNotes().size())
-      .max(Integer::compareTo)
-      .orElse(0);
+    var maxPackageNotesLength = items.stream().map(e -> e.getPackageNotes().size()).max(Integer::compareTo).orElse(0);
+    var maxTitleNotesLength = items.stream().map(e -> e.getTitleNotes().size()).max(Integer::compareTo).orElse(0);
 
     StringBuilder lines = new StringBuilder();
 
-    String columnHeaders = Arrays.stream(fieldNames)
-      .map(s -> header(s, maxPackageNotesLength, maxTitleNotesLength))
-      .flatMap(List::stream)
-      .collect(Collectors.joining(","));
+    String columnHeaders =
+      Arrays.stream(fieldNames).map(s -> header(s, maxPackageNotesLength, maxTitleNotesLength)).flatMap(List::stream)
+        .collect(Collectors.joining(","));
 
     lines.append(columnHeaders).append(lineSeparator);
 

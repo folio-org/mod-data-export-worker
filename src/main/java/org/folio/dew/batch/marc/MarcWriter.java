@@ -23,8 +23,8 @@ public class MarcWriter extends FlatFileItemWriter<Record> {
   public String doWrite(List<? extends Record> records) {
     try (var byteArrayOutputStream = new ByteArrayOutputStream()) {
       var marcStreamWriter = new MarcJsonWriter(byteArrayOutputStream);
-      for (Record record : records) {
-        marcStreamWriter.write(record);
+      for (Record r : records) {
+        marcStreamWriter.write(r);
       }
       return byteArrayOutputStream.toString();
     } catch (IOException e) {

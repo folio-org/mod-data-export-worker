@@ -18,7 +18,6 @@ import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
-import static org.junit.Assert.assertEquals;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 import java.io.BufferedReader;
@@ -172,13 +171,14 @@ class BulkEditTest extends BaseBatchTest {
     verifyJobProgressUpdates(jobCaptor);
   }
 
-  @Test
+  @ParameterizedTest
+  @EnumSource(value = IdentifierType.class, names = {"USER_NAME", "EXTERNAL_SYSTEM_ID"}, mode = EnumSource.Mode.EXCLUDE)
   @DisplayName("Run bulk-edit (item identifiers) successfully")
-  void uploadItemIdentifiersJobTest() throws Exception {
+  void uploadItemIdentifiersJobTest(IdentifierType identifierType) throws Exception {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, ITEM_BARCODES_CSV, true);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, identifierType, ITEM_BARCODES_CSV, true);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_ITEM_OUTPUT);
@@ -187,17 +187,6 @@ class BulkEditTest extends BaseBatchTest {
 
     // check if caching works
     wireMockServer.verify(1, getRequestedFor(urlEqualTo("/item-note-types/8d0a5eca-25de-4391-81a9-236eeefdd20b")));
-  }
-
-  @ParameterizedTest
-  @EnumSource(IdentifierType.class)
-  @DisplayName("Get items using different identifiers")
-  @SneakyThrows
-  void shouldAdjustQueryDependingOnIdentifierType(IdentifierType identifierType) {
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, identifierType, BARCODES_CSV, true);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
-    wireMockServer.verify(1, getRequestedFor(urlEqualTo("/inventory/items?query=" + resolveIdentifier(identifierType.getValue()) + "%3D%3D123&limit=1")));
   }
 
   @Test

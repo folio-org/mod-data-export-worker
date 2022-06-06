@@ -6,8 +6,11 @@ import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.apache.commons.lang3.StringUtils.splitByCharacterTypeCamelCase;
+import static org.folio.dew.utils.Constants.COMMA;
 import static org.folio.dew.utils.Constants.LINE_BREAK;
 import static org.folio.dew.utils.Constants.LINE_BREAK_REPLACEMENT;
+import static org.folio.dew.utils.Constants.QUOTE;
+import static org.folio.dew.utils.Constants.QUOTE_REPLACEMENT;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,7 +20,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
 import org.springframework.batch.item.support.AbstractFileItemWriter;
-import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.util.ClassUtils;
@@ -64,15 +66,15 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
   private String getItemRow(Integer maxPackageNotesLength, Integer maxTitleNotesLength,
                             EHoldingsResourceExportFormat item) {
     var itemValues = new ArrayList<String>();
-    BeanWrapper bw = new BeanWrapperImpl(item);
-    for (String fieldName : fieldNames) {
+    var bw = new BeanWrapperImpl(item);
+    for (var fieldName : fieldNames) {
       var value = bw.getPropertyValue(fieldName);
       if (value instanceof String) {
-        String s = getStringValue((String) value);
+        var s = getStringValue((String) value);
         itemValues.add(s);
       } else if (value instanceof List) {
         @SuppressWarnings("unchecked") var strings = (List<String>) value;
-        getListValue(maxPackageNotesLength, maxTitleNotesLength, itemValues, fieldName, strings);
+        itemValues.addAll(getListValue(maxPackageNotesLength, maxTitleNotesLength, fieldName, strings));
       } else {
         itemValues.add(EMPTY);
       }
@@ -80,25 +82,29 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
     return String.join(",", itemValues);
   }
 
-  private void getListValue(Integer maxPackageNotesLength, Integer maxTitleNotesLength, ArrayList<String> itemValues,
-                            String fieldName, List<String> value) {
-    for (String s : value) {
-      itemValues.add(cleanupValue(s));
+  private List<String> getListValue(Integer maxPackageNotesLength, Integer maxTitleNotesLength,
+                                    String fieldName, List<String> value) {
+    var strings = new ArrayList<String>();
+    for (var s : value) {
+      strings.add(cleanupValue(s));
     }
     if (fieldName.equals(PACKAGE_NOTES_FIELD) && value.size() < maxPackageNotesLength) {
-      for (int i = 0; i < maxPackageNotesLength - value.size(); i++) {
-        itemValues.add(EMPTY);
-      }
+      fillWithBlanks(strings, maxPackageNotesLength - value.size());
     } else if (fieldName.equals(TITLE_NOTES_FIELD) && value.size() < maxTitleNotesLength) {
-      for (int i = 0; i < maxTitleNotesLength - value.size(); i++) {
-        itemValues.add(EMPTY);
-      }
+      fillWithBlanks(strings, maxTitleNotesLength - value.size());
+    }
+    return strings;
+  }
+
+  private void fillWithBlanks(ArrayList<String> strings, int blankCount) {
+    for (var i = 0; i < blankCount; i++) {
+      strings.add(EMPTY);
     }
   }
 
   private String cleanupValue(String s) {
-    if (s.contains(",") || s.contains("\n")) {
-      s = "\"" + s.replace("\"", "\"\"").replace(LINE_BREAK, LINE_BREAK_REPLACEMENT) + "\"";
+    if (s.contains(COMMA) || s.contains(LINE_BREAK)) {
+      s = QUOTE + s.replace(QUOTE, QUOTE_REPLACEMENT).replace(LINE_BREAK, LINE_BREAK_REPLACEMENT) + QUOTE;
     }
     return s;
   }
@@ -112,11 +118,12 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
     var maxPackageNotesLength = items.stream().map(e -> e.getPackageNotes().size()).max(Integer::compareTo).orElse(0);
     var maxTitleNotesLength = items.stream().map(e -> e.getTitleNotes().size()).max(Integer::compareTo).orElse(0);
 
-    StringBuilder lines = new StringBuilder();
+    var lines = new StringBuilder();
 
-    String columnHeaders =
-      Arrays.stream(fieldNames).map(s -> header(s, maxPackageNotesLength, maxTitleNotesLength)).flatMap(List::stream)
-        .collect(Collectors.joining(","));
+    var columnHeaders = Arrays.stream(fieldNames)
+      .map(s -> header(s, maxPackageNotesLength, maxTitleNotesLength))
+      .flatMap(List::stream)
+      .collect(Collectors.joining(","));
 
     lines.append(columnHeaders).append(lineSeparator);
 

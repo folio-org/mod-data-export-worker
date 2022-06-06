@@ -5,19 +5,16 @@ import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 
-import java.text.SimpleDateFormat;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.TimeZone;
 import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import joptsimple.internal.Strings;
-import org.folio.dew.domain.dto.eholdings.Note;
-import org.springframework.stereotype.Component;
-
 import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
 import org.folio.dew.domain.dto.eholdings.AccessTypeData;
 import org.folio.dew.domain.dto.eholdings.AlternateTitle;
@@ -28,23 +25,19 @@ import org.folio.dew.domain.dto.eholdings.EmbargoPeriod;
 import org.folio.dew.domain.dto.eholdings.Identifier;
 import org.folio.dew.domain.dto.eholdings.Identifier.SubtypeEnum;
 import org.folio.dew.domain.dto.eholdings.Identifier.TypeEnum;
+import org.folio.dew.domain.dto.eholdings.Note;
 import org.folio.dew.domain.dto.eholdings.Proxy;
 import org.folio.dew.domain.dto.eholdings.ResourcesData;
 import org.folio.dew.domain.dto.eholdings.Subject;
 import org.folio.dew.domain.dto.eholdings.Tags;
 import org.folio.dew.domain.dto.eholdings.VisibilityData;
+import org.springframework.stereotype.Component;
 
 @Component
 public class EHoldingsToExportFormatMapper {
 
   private static final String ACCESS_TYPE_INCLUDED = "accessTypes";
-  private final SimpleDateFormat dateFormat;
-
-  public EHoldingsToExportFormatMapper() {
-    this.dateFormat = new SimpleDateFormat(DATE_TIME_PATTERN);
-    this.dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-  }
-
+  private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
   private final ObjectMapper objectMapper = new ObjectMapper()
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -68,13 +61,17 @@ public class EHoldingsToExportFormatMapper {
   }
 
   private String noteToString(Note note) {
-    var pieces = new String[] {dateToString(note.getMetadata().getUpdatedDate()), note.getType(), note.getTitle(),
-                               note.getContent()};
+    var pieces = new String[] {
+      dateToString(note.getMetadata().getUpdatedDate()),
+      note.getType(),
+      note.getTitle(),
+      note.getContent()
+    };
     return Strings.join(pieces, ";");
   }
 
   private String dateToString(Date date) {
-    return nonNull(date) ? dateFormat.format(date) : EMPTY;
+    return nonNull(date) ? OffsetDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC).format(DATE_FORMAT) : EMPTY;
   }
 
   private void mapPackageToExportFormat(EHoldingsResourceExportFormat exportFormat, EPackage ePackage) {
@@ -136,7 +133,7 @@ public class EHoldingsToExportFormatMapper {
   }
 
   private Object getIncludedObject(List<Object> included, String type) {
-    if (isNull(included)) return null;
+    if (isNull(included)) { return null; }
     return included.stream()
       .map(LinkedHashMap.class::cast)
       .filter(o -> o.get("type").equals(type))
@@ -144,7 +141,7 @@ public class EHoldingsToExportFormatMapper {
   }
 
   private String convertBoolToStr(Boolean isTrue) {
-    if (isNull(isTrue)) return "";
+    if (isNull(isTrue)) { return ""; }
     return Boolean.TRUE.equals(isTrue) ? "Yes" : "No";
   }
 
@@ -166,12 +163,12 @@ public class EHoldingsToExportFormatMapper {
   }
 
   private String mapTags(Tags tags) {
-    if (isNull(tags)) return "";
+    if (isNull(tags)) { return ""; }
     return String.join(" | ", tags.getTagList());
   }
 
   private String mapEmbargo(EmbargoPeriod embargo) {
-    if (embargo.getEmbargoValue() <= 0) return "";
+    if (embargo.getEmbargoValue() <= 0) { return ""; }
     return embargo.getEmbargoValue() + " " + embargo.getEmbargoUnit();
   }
 

@@ -28,6 +28,8 @@ import org.folio.dew.batch.ExportJobManagerCirculationLog;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.BursarFeeFines;
+import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.folio.dew.repository.IAcknowledgementRepository;
@@ -115,7 +117,7 @@ public class JobCommandsReceiverService {
 
       var jobLaunchRequest =
         new JobLaunchRequest(
-          jobMap.get(jobCommand.getExportType().toString()),
+          jobMap.get(resolveJobKey(jobCommand)),
           jobCommand.getJobParameters());
 
       acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
@@ -127,6 +129,13 @@ public class JobCommandsReceiverService {
     } catch (Exception e) {
       log.error(e.toString(), e);
     }
+  }
+
+  private String resolveJobKey(JobCommand jobCommand) {
+    if (jobCommand.getExportType().equals(BULK_EDIT_QUERY)) {
+      return BULK_EDIT_QUERY + "-" + jobCommand.getEntityType();
+    }
+    return jobCommand.getExportType().toString();
   }
 
   private void prepareJobParameters(JobCommand jobCommand) {

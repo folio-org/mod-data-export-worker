@@ -1,19 +1,15 @@
-package org.folio.dew.batch.bulkedit.jobs.processquery;
+package org.folio.dew.batch.bulkedit.jobs.processquery.items;
 
-import static org.folio.dew.domain.dto.UserFormat.getUserColumnHeaders;
-import static org.folio.dew.domain.dto.UserFormat.getUserFieldsArray;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.batch.CsvFileAssembler;
 import org.folio.dew.batch.CsvPartStepExecutionListener;
 import org.folio.dew.batch.CsvWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
-import org.folio.dew.batch.bulkedit.jobs.BulkEditUserProcessor;
-import org.folio.dew.client.UserClient;
-import org.folio.dew.domain.dto.User;
-import org.folio.dew.domain.dto.UserFormat;
+import org.folio.dew.batch.bulkedit.jobs.BulkEditItemProcessor;
+import org.folio.dew.client.InventoryClient;
+import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.Item;
+import org.folio.dew.domain.dto.ItemFormat;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -27,59 +23,65 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+
+import static org.folio.dew.domain.dto.ItemFormat.getItemColumnHeaders;
+import static org.folio.dew.domain.dto.ItemFormat.getItemFieldsArray;
+
 @Configuration
 @Log4j2
 @RequiredArgsConstructor
-public class BulkEditCqlJobConfig {
+public class BulkEditItemCqlJobConfig {
   private static final int POOL_SIZE = 10;
 
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
-  private final UserClient userClient;
+  private final InventoryClient inventoryClient;
 
   @Bean
-  public Job bulkEditCqlJob(
+  public Job bulkEditItemCqlJob(
       JobCompletionNotificationListener jobCompletionNotificationListener,
-      Step bulkEditCqlStep,
+      Step bulkEditItemCqlStep,
       JobRepository jobRepository) {
     return jobBuilderFactory
-        .get(ExportType.BULK_EDIT_QUERY.toString())
+        .get(ExportType.BULK_EDIT_QUERY + "-" + EntityType.ITEM)
         .repository(jobRepository)
         .incrementer(new RunIdIncrementer())
         .listener(jobCompletionNotificationListener)
-        .flow(bulkEditCqlStep)
+        .flow(bulkEditItemCqlStep)
         .end()
         .build();
   }
 
   @Bean
-  public Step bulkEditCqlStep(
-      Step bulkEditCqlPartitionStep,
-      BulkEditCqlPartitioner partitioner,
+  public Step bulkEditItemCqlStep(
+      Step bulkEditItemCqlPartitionStep,
+      BulkEditCqlItemPartitioner partitioner,
       TaskExecutor asyncTaskExecutor,
       CsvFileAssembler csvFileAssembler) {
     return stepBuilderFactory
         .get("bulkEditCqlChunkStep")
-        .partitioner("bulkEditCqlPartitionStep", partitioner)
+        .partitioner("bulkEditItemCqlPartitionStep", partitioner)
         .taskExecutor(asyncTaskExecutor)
-        .step(bulkEditCqlPartitionStep)
+        .step(bulkEditItemCqlPartitionStep)
         .aggregator(csvFileAssembler)
         .build();
   }
 
   @Bean
-  public Step bulkEditCqlPartitionStep(
+  public Step bulkEditItemCqlPartitionStep(
     BulkEditCqlItemReader bulkEditCqlItemReader,
-    FlatFileItemWriter<UserFormat> writer,
-    BulkEditUserProcessor processor,
+    FlatFileItemWriter<ItemFormat> itemWriter,
+    BulkEditItemProcessor processor,
     CsvPartStepExecutionListener csvPartStepExecutionListener
   ) {
     return stepBuilderFactory
-      .get("bulkEditCqlPartitionStep")
-      .<User, UserFormat>chunk(100)
+      .get("bulkEditItemCqlPartitionStep")
+      .<Item, ItemFormat>chunk(100)
       .reader(bulkEditCqlItemReader)
       .processor(processor)
-      .writer(writer)
+      .writer(itemWriter)
       .faultTolerant()
       .allowStartIfComplete(false)
       .throttleLimit(POOL_SIZE)
@@ -89,12 +91,12 @@ public class BulkEditCqlJobConfig {
 
   @Bean
   @StepScope
-  public BulkEditCqlPartitioner bulkEditCqlPartitioner(
+  public BulkEditCqlItemPartitioner bulkEditItemCqlPartitioner(
     @Value("#{jobParameters['offset']}") Long offset,
     @Value("#{jobParameters['limit']}") Long limit,
     @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
     @Value("#{jobParameters['query']}") String query) {
-    return new BulkEditCqlPartitioner(offset, limit, tempOutputFilePath, userClient, query);
+    return new BulkEditCqlItemPartitioner(offset, limit, tempOutputFilePath, inventoryClient, query);
   }
 
   @Bean
@@ -103,13 +105,13 @@ public class BulkEditCqlJobConfig {
     @Value("#{jobParameters['query']}") String query,
     @Value("#{stepExecutionContext['offset']}") Long offset,
     @Value("#{stepExecutionContext['limit']}") Long limit) {
-    return new BulkEditCqlItemReader(userClient, query, offset, limit);
+    return new BulkEditCqlItemReader(inventoryClient, query, offset, limit);
   }
 
   @Bean
   @StepScope
-  public FlatFileItemWriter<UserFormat> writer(
+  public FlatFileItemWriter<ItemFormat> itemWriter(
     @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath) {
-    return new CsvWriter<>(tempOutputFilePath, getUserColumnHeaders(), getUserFieldsArray(), (field, i) -> field);
+    return new CsvWriter<>(tempOutputFilePath, getItemColumnHeaders(), getItemFieldsArray(), (field, i) -> field);
   }
 }

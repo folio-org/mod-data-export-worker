@@ -23,6 +23,8 @@ import java.util.TimeZone;
 
 @UtilityClass
 public class BulkEditProcessorHelper {
+  private static final String MATCH_PATTERN = "%s=%s";
+  private static final String EXACT_MATCH_PATTERN = "%s==%s";
   private static final DateFormat dateFormat;
   private static final EnumMap<IdentifierType, String> identifiersMap = new EnumMap<>(IdentifierType.class);
 
@@ -46,5 +48,9 @@ public class BulkEditProcessorHelper {
 
   public static String resolveIdentifier(String identifier) {
     return identifiersMap.get(IdentifierType.fromValue(identifier));
+  }
+
+  public static String getMatchPattern(String identifierType) {
+    return FORMER_IDS == IdentifierType.fromValue(identifierType) ? MATCH_PATTERN : EXACT_MATCH_PATTERN;
   }
 }

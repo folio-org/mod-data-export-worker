@@ -103,7 +103,7 @@ class EHoldingsTest extends BaseBatchTest {
     eHoldingsExportConfig.setRecordId(id);
     eHoldingsExportConfig.setRecordType(recordType);
     eHoldingsExportConfig.setTitleFields(getClassFields());
-    eHoldingsExportConfig.setPackageFields(Collections.emptyList());
+    eHoldingsExportConfig.setPackageFields(List.of("packageNotes"));
     eHoldingsExportConfig.setTitleSearchFilters("filter[name]=*");
 
     Map<String, JobParameter> params = new HashMap<>();
@@ -112,7 +112,6 @@ class EHoldingsTest extends BaseBatchTest {
     String jobId = UUID.randomUUID().toString();
     params.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
 
-    Date now = new Date();
     String workDir =
       System.getProperty("java.io.tmpdir")
         + File.separator
@@ -131,6 +130,7 @@ class EHoldingsTest extends BaseBatchTest {
   private List<String> getClassFields() {
     return Arrays.stream(EHoldingsResourceExportFormat.class.getDeclaredFields())
       .map(Field::getName)
+      .filter(name -> !name.equals("packageNotes"))
       .collect(Collectors.toList());
   }
 }

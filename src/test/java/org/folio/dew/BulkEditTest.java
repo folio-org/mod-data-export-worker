@@ -18,7 +18,6 @@ import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
-import static org.junit.Assert.assertEquals;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 import java.io.BufferedReader;
@@ -74,6 +73,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String ITEM_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_item_record_not_found.csv";
   private static final String USER_RECORD_CSV_BAD_CONTENT = "src/test/resources/upload/bulk_edit_user_record_bad_content.csv";
   private static final String USER_RECORD_CSV_BAD_CUSTOM_FIELD = "src/test/resources/upload/bulk_edit_user_record_bad_custom_field.csv";
+  private static final String USER_RECORD_CSV_EMPTY_PATRON_GROUP = "src/test/resources/upload/bulk_edit_user_record_empty_patron_group.csv";
   private static final String ITEM_RECORD_CSV_BAD_CALL_NUMBER_TYPE = "src/test/resources/upload/bulk_edit_item_record_bad_call_number_type.csv";
   private static final String ITEM_RECORD_CSV_BAD_DAMAGED_STATUS = "src/test/resources/upload/bulk_edit_item_record_bad_damaged_status.csv";
   private static final String ITEM_RECORD_CSV_BAD_LOAN_TYPE = "src/test/resources/upload/bulk_edit_item_record_bad_loan_type.csv";
@@ -171,13 +171,14 @@ class BulkEditTest extends BaseBatchTest {
     verifyJobProgressUpdates(jobCaptor);
   }
 
-  @Test
+  @ParameterizedTest
+  @EnumSource(value = IdentifierType.class, names = {"USER_NAME", "EXTERNAL_SYSTEM_ID"}, mode = EnumSource.Mode.EXCLUDE)
   @DisplayName("Run bulk-edit (item identifiers) successfully")
-  void uploadItemIdentifiersJobTest() throws Exception {
+  void uploadItemIdentifiersJobTest(IdentifierType identifierType) throws Exception {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, ITEM_BARCODES_CSV, true);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, identifierType, ITEM_BARCODES_CSV, true);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_ITEM_OUTPUT);
@@ -186,17 +187,6 @@ class BulkEditTest extends BaseBatchTest {
 
     // check if caching works
     wireMockServer.verify(1, getRequestedFor(urlEqualTo("/item-note-types/8d0a5eca-25de-4391-81a9-236eeefdd20b")));
-  }
-
-  @ParameterizedTest
-  @EnumSource(IdentifierType.class)
-  @DisplayName("Get items using different identifiers")
-  @SneakyThrows
-  void shouldAdjustQueryDependingOnIdentifierType(IdentifierType identifierType) {
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, identifierType, BARCODES_CSV, true);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
-    wireMockServer.verify(1, getRequestedFor(urlEqualTo("/inventory/items?query=" + resolveIdentifier(identifierType.getValue()) + "%3D%3D123&limit=1")));
   }
 
   @Test
@@ -270,7 +260,7 @@ class BulkEditTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {USER_RECORD_CSV, USER_RECORD_CSV_NOT_FOUND, USER_RECORD_CSV_BAD_CONTENT, USER_RECORD_CSV_BAD_CUSTOM_FIELD})
+  @ValueSource(strings = {USER_RECORD_CSV, USER_RECORD_CSV_NOT_FOUND, USER_RECORD_CSV_BAD_CONTENT, USER_RECORD_CSV_BAD_CUSTOM_FIELD, USER_RECORD_CSV_EMPTY_PATRON_GROUP})
   @DisplayName("Run update user records w/ and w/o errors")
   void uploadUserRecordsJobTest(String csvFileName) throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateUserRecordsJob);

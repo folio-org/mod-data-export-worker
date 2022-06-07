@@ -16,6 +16,7 @@ class BulkEditParseServiceTest extends BaseBatchTest {
   @ValueSource(strings = {"", " "})
   void shouldIgnoreBlankBarcodeAndExternalSystemId(String val) {
     var userFormat = UserFormat.builder()
+      .patronGroup("PatronGroup")
       .externalSystemId(val)
       .barcode(val)
       .active("true")

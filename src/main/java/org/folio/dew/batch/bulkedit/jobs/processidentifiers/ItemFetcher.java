@@ -1,6 +1,6 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
-import static org.folio.dew.domain.dto.IdentifierType.FORMER_IDS;
+import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 
@@ -8,7 +8,6 @@ import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.InventoryClient;
-import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
@@ -25,9 +24,6 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Log4j2
 public class ItemFetcher implements ItemProcessor<ItemIdentifier, Item> {
-  private static final String MATCH_PATTERN = "%s=%s";
-  private static final String EXACT_MATCH_PATTERN = "%s==%s";
-
   private final InventoryClient inventoryClient;
 
   @Value("#{jobParameters['identifierType']}")
@@ -51,9 +47,5 @@ public class ItemFetcher implements ItemProcessor<ItemIdentifier, Item> {
     }
     log.error(NO_MATCH_FOUND_MESSAGE);
     throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
-  }
-
-  private String getMatchPattern(String identifierType) {
-    return FORMER_IDS == IdentifierType.fromValue(identifierType) ? MATCH_PATTERN : EXACT_MATCH_PATTERN;
   }
 }

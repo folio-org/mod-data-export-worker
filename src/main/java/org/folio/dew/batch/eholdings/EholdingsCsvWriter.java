@@ -18,11 +18,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
-import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.support.AbstractFileItemWriter;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.core.io.FileSystemResource;
@@ -63,6 +61,18 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
     if (append) {
       shouldDeleteIfExists = false;
     }
+  }
+
+  @Override
+  protected String doWrite(List<? extends EHoldingsResourceExportFormat> items) {
+    var lines = new StringBuilder();
+
+    for (var item : items) {
+      var itemRow = getItemRow(maxPackageNotesLength, maxTitleNotesLength, item);
+      lines.append(itemRow).append(lineSeparator);
+    }
+
+    return lines.toString();
   }
 
   private List<String> header(String fieldName, int maxPackageNotesLength, int maxTitleNotesLength) {
@@ -130,17 +140,5 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
 
   private String getStringValue(String value) {
     return cleanupValue(value);
-  }
-
-  @Override
-  protected String doWrite(List<? extends EHoldingsResourceExportFormat> items) {
-    var lines = new StringBuilder();
-
-    for (var item : items) {
-      var itemRow = getItemRow(maxPackageNotesLength, maxTitleNotesLength, item);
-      lines.append(itemRow).append(lineSeparator);
-    }
-
-    return lines.toString();
   }
 }

@@ -6,6 +6,7 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
 import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
+import static org.folio.dew.domain.dto.ExportType.E_HOLDINGS;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -25,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.ExportJobManagerCirculationLog;
+import org.folio.dew.batch.ExportJobManagerEHoldings;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.BursarFeeFines;
@@ -58,6 +60,7 @@ public class JobCommandsReceiverService {
   private final ObjectMapper objectMapper;
   private final ExportJobManager exportJobManager;
   private final ExportJobManagerCirculationLog exportJobManagerCirculationLog;
+  private final ExportJobManagerEHoldings exportJobManagerEHoldings;
   private final BursarExportService bursarExportService;
   private final IAcknowledgementRepository acknowledgementRepository;
   private final MinIOObjectStorageRepository remoteObjectStorageRepository;
@@ -123,6 +126,8 @@ public class JobCommandsReceiverService {
       acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
       if (jobCommand.getExportType() == CIRCULATION_LOG) {
         exportJobManagerCirculationLog.launchJob(jobLaunchRequest);
+      } else if (jobCommand.getExportType() == E_HOLDINGS) {
+        exportJobManagerEHoldings.launchJob(jobLaunchRequest);
       } else {
         exportJobManager.launchJob(jobLaunchRequest);
       }

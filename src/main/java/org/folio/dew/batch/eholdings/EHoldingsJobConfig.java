@@ -121,17 +121,6 @@ public class EHoldingsJobConfig {
     return new ListItemWriter<>();
   }
 
-//  @Bean
-//  @StepScope
-//  public Tasklet tasklet() {
-//    return new Tasklet() {
-//      @Override
-//      public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-//        return null;
-//      }
-//    }
-//  }
-
   @Bean("eHoldingsReader")
   @StepScope
   public EHoldingsItemReader reader(

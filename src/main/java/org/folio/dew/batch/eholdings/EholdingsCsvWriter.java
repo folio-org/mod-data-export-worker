@@ -48,8 +48,8 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
   @BeforeStep
   public void beforeStep(StepExecution stepExecution) {
     var executionContext = stepExecution.getJobExecution().getExecutionContext();
-    maxPackageNotesLength = executionContext.getInt("packageMaxNotesCount");
-    maxTitleNotesLength = executionContext.getInt("titleMaxNotesCount");
+    maxPackageNotesLength = executionContext.getInt("packageMaxNotesCount", 0);
+    maxTitleNotesLength = executionContext.getInt("titleMaxNotesCount", 0);
 
     var columnHeaders = Arrays.stream(fieldNames)
       .map(s -> header(s, maxPackageNotesLength, maxTitleNotesLength))

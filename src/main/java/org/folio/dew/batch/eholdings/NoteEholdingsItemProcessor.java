@@ -38,8 +38,6 @@ public class NoteEholdingsItemProcessor
 
   @Override
   public EHoldingsResourceExportFormat process(EHoldingsResourceExportFormat exportFormat) throws Exception {
-    stepExecution.getExecutionContext().getInt("packageMaxNotesCount", 0);
-    stepExecution.getExecutionContext().getInt("titleMaxNotesCount", 0);
     if (loadPackageNotes) {
       var packageId = exportFormat.getPackageId();
       var noteCollection = notesClient.getAssignedNotes(EHOLDINGS, PACKAGE, packageId);

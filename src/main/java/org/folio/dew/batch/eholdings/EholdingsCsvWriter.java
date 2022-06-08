@@ -134,9 +134,6 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
 
   @Override
   protected String doWrite(List<? extends EHoldingsResourceExportFormat> items) {
-    var maxPackageNotesLength = items.stream().map(e -> e.getPackageNotes().size()).max(Integer::compareTo).orElse(0);
-    var maxTitleNotesLength = items.stream().map(e -> e.getTitleNotes().size()).max(Integer::compareTo).orElse(0);
-
     var lines = new StringBuilder();
 
     for (var item : items) {

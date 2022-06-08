@@ -18,7 +18,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.annotation.BeforeStep;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.support.AbstractFileItemWriter;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.core.io.FileSystemResource;
@@ -29,6 +33,8 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
   private static final String PACKAGE_NOTES_FIELD = "packageNotes";
   private static final String TITLE_NOTES_FIELD = "titleNotes";
   private final String[] fieldNames;
+  private int maxPackageNotesLength;
+  private int maxTitleNotesLength;
 
   public EholdingsCsvWriter(String tempOutputFilePath, String[] fieldNames) {
     this.fieldNames = fieldNames;
@@ -37,6 +43,19 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
     }
     setResource(new FileSystemResource(tempOutputFilePath));
     this.setExecutionContextName(ClassUtils.getShortName(EholdingsCsvWriter.class));
+  }
+
+  @BeforeStep
+  public void beforeStep(StepExecution stepExecution) {
+    var executionContext = stepExecution.getJobExecution().getExecutionContext();
+    maxPackageNotesLength = executionContext.getInt("packageMaxNotesCount");
+    maxTitleNotesLength = executionContext.getInt("titleMaxNotesCount");
+
+    var columnHeaders = Arrays.stream(fieldNames)
+      .map(s -> header(s, maxPackageNotesLength, maxTitleNotesLength))
+      .flatMap(List::stream)
+      .collect(Collectors.joining(","));
+    setHeaderCallback(writer -> writer.write(columnHeaders));
   }
 
   @Override
@@ -119,13 +138,6 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
     var maxTitleNotesLength = items.stream().map(e -> e.getTitleNotes().size()).max(Integer::compareTo).orElse(0);
 
     var lines = new StringBuilder();
-
-    var columnHeaders = Arrays.stream(fieldNames)
-      .map(s -> header(s, maxPackageNotesLength, maxTitleNotesLength))
-      .flatMap(List::stream)
-      .collect(Collectors.joining(","));
-
-    lines.append(columnHeaders).append(lineSeparator);
 
     for (var item : items) {
       var itemRow = getItemRow(maxPackageNotesLength, maxTitleNotesLength, item);

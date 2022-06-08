@@ -7,6 +7,10 @@ import static org.folio.dew.client.NotesClient.NoteLinkType.RESOURCE;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.NotesClient;
 import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
+import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.StepExecutionListener;
+import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ItemProcessor;
 
 @Log4j2
@@ -17,6 +21,7 @@ public class NoteEholdingsItemProcessor
   private final EHoldingsToExportFormatMapper mapper;
   private final boolean loadPackageNotes;
   private final boolean loadResourceNotes;
+  private StepExecution stepExecution;
 
   public NoteEholdingsItemProcessor(NotesClient notesClient, EHoldingsToExportFormatMapper mapper,
                                     boolean loadPackageNotes, boolean loadResourceNotes) {
@@ -26,6 +31,11 @@ public class NoteEholdingsItemProcessor
     this.loadResourceNotes = loadResourceNotes;
   }
 
+  @BeforeStep
+  public void beforeStep(StepExecution stepExecution) {
+    this.stepExecution = stepExecution;
+  }
+
   @Override
   public EHoldingsResourceExportFormat process(EHoldingsResourceExportFormat exportFormat) throws Exception {
     if (loadPackageNotes) {
@@ -33,6 +43,10 @@ public class NoteEholdingsItemProcessor
       var noteCollection = notesClient.getAssignedNotes(EHOLDINGS, PACKAGE, packageId);
       if (noteCollection.getTotalRecords() > 0) {
         exportFormat.setPackageNotes(mapper.convertNotes(noteCollection.getNotes()));
+        var packageMaxNotesCount = stepExecution.getExecutionContext().getInt("packageMaxNotesCount", 0);
+        if (packageMaxNotesCount < noteCollection.getTotalRecords()) {
+          stepExecution.getExecutionContext().putInt("packageMaxNotesCount", noteCollection.getTotalRecords());
+        }
       }
     }
     if (loadResourceNotes) {
@@ -40,6 +54,10 @@ public class NoteEholdingsItemProcessor
       var noteCollection = notesClient.getAssignedNotes(EHOLDINGS, RESOURCE, resourceId);
       if (noteCollection.getTotalRecords() > 0) {
         exportFormat.setTitleNotes(mapper.convertNotes(noteCollection.getNotes()));
+        var packageMaxNotesCount = stepExecution.getExecutionContext().getInt("titleMaxNotesCount", 0);
+        if (packageMaxNotesCount < noteCollection.getTotalRecords()) {
+          stepExecution.getExecutionContext().putInt("titleMaxNotesCount", noteCollection.getTotalRecords());
+        }
       }
     }
     return exportFormat;

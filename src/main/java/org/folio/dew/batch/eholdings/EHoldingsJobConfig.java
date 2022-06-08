@@ -11,14 +11,19 @@ import org.folio.dew.client.NotesClient;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
 import org.folio.dew.domain.dto.ExportType;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.listener.ExecutionContextPromotionListener;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.support.ListItemWriter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -41,32 +46,91 @@ public class EHoldingsJobConfig {
   public Job getEHoldingsJob(
     JobRepository jobRepository,
     JobCompletionNotificationListener jobCompletionNotificationListener,
-    @Qualifier("getEHoldingsStep") Step getEHoldingsStep) {
+    @Qualifier("getEHoldingsStep") Step getEHoldingsStep,
+    @Qualifier("saveEholdingsStep") Step saveEholdingsStep) {
     return jobBuilderFactory
       .get(ExportType.E_HOLDINGS.toString())
       .repository(jobRepository)
       .incrementer(new RunIdIncrementer())
       .listener(jobCompletionNotificationListener)
       .flow(getEHoldingsStep)
+      .next(saveEholdingsStep)
       .end()
       .build();
   }
 
   @Bean("getEHoldingsStep")
-  public Step getEHoldingsStep(@Qualifier("eHoldingsWriter") EholdingsCsvWriter flatFileItemWriter,
-                               @Qualifier("eHoldingsNoteProcessor")
+  public Step getEHoldingsStep(@Qualifier("eHoldingsNoteProcessor")
                                ItemProcessor<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat> processor,
                                EHoldingsItemReader eHoldingsCsvItemReader,
-                               EHoldingsStepListener eHoldingsStepListener) {
+                               ListItemWriter<EHoldingsResourceExportFormat> listItemWriter) {
     return stepBuilderFactory
       .get("getEHoldingsStep")
       .<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat>chunk(PROCESSING_RECORD_CHUNK_SIZE)
       .reader(eHoldingsCsvItemReader)
       .processor(processor)
+      .writer(listItemWriter)
+      .listener(stepExecutionListener(listItemWriter))
+      .listener(eholdingsPromotionListener())
+      .build();
+  }
+
+  @Bean("saveEholdingsStep")
+  public Step saveEholdingsStep(EholdingsListItemReader eholdingsListItemReader,
+                                @Qualifier("eHoldingsWriter") EholdingsCsvWriter flatFileItemWriter,
+                                EHoldingsStepListener eHoldingsStepListener) {
+    return stepBuilderFactory
+      .get("saveEholdingsStep")
+      .<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat>chunk(PROCESSING_RECORD_CHUNK_SIZE)
+      .reader(eholdingsListItemReader)
       .writer(flatFileItemWriter)
       .listener(eHoldingsStepListener)
       .build();
   }
+
+
+
+  @Bean
+  public ExecutionContextPromotionListener eholdingsPromotionListener() {
+    var listener = new ExecutionContextPromotionListener();
+    listener.setKeys(new String[] {"holdings", "packageMaxNotesCount", "titleMaxNotesCount", "tempOutputFilePath"});
+    return listener;
+  }
+
+  @Bean
+  @StepScope
+  public StepExecutionListener stepExecutionListener(ListItemWriter<EHoldingsResourceExportFormat> listItemWriter) {
+    return new StepExecutionListener() {
+      @Override
+      public void beforeStep(StepExecution stepExecution) {
+
+      }
+
+      @Override
+      public ExitStatus afterStep(StepExecution stepExecution) {
+        var executionContext = stepExecution.getJobExecution().getExecutionContext();
+        executionContext.put("holdings", listItemWriter.getWrittenItems());
+        return stepExecution.getExitStatus();
+      }
+    };
+  }
+
+  @Bean
+  @StepScope
+  public ListItemWriter<EHoldingsResourceExportFormat> listItemWriter(){
+    return new ListItemWriter<>();
+  }
+
+//  @Bean
+//  @StepScope
+//  public Tasklet tasklet() {
+//    return new Tasklet() {
+//      @Override
+//      public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+//        return null;
+//      }
+//    }
+//  }
 
   @Bean("eHoldingsReader")
   @StepScope
@@ -93,7 +157,6 @@ public class EHoldingsJobConfig {
     @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
     @Value("#{jobParameters['eHoldingsExportConfig']}") String exportConfigStr) throws JsonProcessingException {
     var eHoldingsExportConfig = objectMapper.readValue(exportConfigStr, EHoldingsExportConfig.class);
-
     var exportFields = new ArrayList<String>();
     if (eHoldingsExportConfig.getPackageFields() != null) {
       exportFields.addAll(eHoldingsExportConfig.getPackageFields());

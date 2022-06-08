@@ -6,10 +6,13 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.de.entity.JobCommand;
@@ -24,16 +27,33 @@ import org.springframework.kafka.support.Acknowledgment;
 class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
   @Test
-  @DisplayName("Start job by kafka request")
-  void startJobTest() throws JobExecutionException {
+  @DisplayName("Start CirculationLog job by kafka request")
+  void startCirculationLogJobTest() throws JobExecutionException {
     doNothing().when(acknowledgment).acknowledge();
 
     UUID id = UUID.randomUUID();
-    JobCommand jobCommand = createStartJobRequest(id);
+    JobCommand jobCommand = createStartCirculationLogJobRequest(id);
 
     jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
 
     verify(exportJobManagerCirculationLog, times(1)).launchJob(any());
+
+    final Acknowledgment savedAcknowledgment = repository.getAcknowledgement(id.toString());
+
+    assertNotNull(savedAcknowledgment);
+  }
+
+  @Test
+  @DisplayName("Start EHoldings job by kafka request")
+  void startEHoldingsJobTest() throws JobExecutionException {
+    doNothing().when(acknowledgment).acknowledge();
+
+    UUID id = UUID.randomUUID();
+    JobCommand jobCommand = createStartEHoldingsJobRequest(id);
+
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
+
+    verify(exportJobManagerEHoldings, times(1)).launchJob(any());
 
     final Acknowledgment savedAcknowledgment = repository.getAcknowledgement(id.toString());
 
@@ -53,7 +73,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     verify(acknowledgment, times(1)).acknowledge();
   }
 
-  private JobCommand createStartJobRequest(UUID id) {
+  private JobCommand createStartCirculationLogJobRequest(UUID id) {
     JobCommand jobCommand = new JobCommand();
     jobCommand.setType(JobCommand.Type.START);
     jobCommand.setId(id);
@@ -63,6 +83,26 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
     Map<String, JobParameter> params = new HashMap<>();
     params.put("query", new JobParameter(""));
+    jobCommand.setJobParameters(new JobParameters(params));
+    return jobCommand;
+  }
+
+  private JobCommand createStartEHoldingsJobRequest(UUID id) {
+    JobCommand jobCommand = new JobCommand();
+    jobCommand.setType(JobCommand.Type.START);
+    jobCommand.setId(id);
+    jobCommand.setName(ExportType.E_HOLDINGS.toString());
+    jobCommand.setDescription("Start job test desc");
+    jobCommand.setExportType(ExportType.E_HOLDINGS);
+
+    EHoldingsExportConfig eHoldingsExportConfig = new EHoldingsExportConfig();
+    eHoldingsExportConfig.setRecordId(UUID.randomUUID().toString());
+    eHoldingsExportConfig.setRecordType(EHoldingsExportConfig.RecordTypeEnum.RESOURCE);
+    eHoldingsExportConfig.setPackageFields(Collections.emptyList());
+    eHoldingsExportConfig.setTitleSearchFilters("");
+    eHoldingsExportConfig.setTitleFields(Collections.emptyList());
+    Map<String, JobParameter> params = new HashMap<>();
+    params.put("eHoldingsExportConfig", new JobParameter(asJsonString(eHoldingsExportConfig)));
     jobCommand.setJobParameters(new JobParameters(params));
     return jobCommand;
   }

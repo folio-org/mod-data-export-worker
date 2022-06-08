@@ -1,14 +1,15 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.ExportHistory;
-import org.json.JSONArray;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -52,10 +53,10 @@ public class ExportHistoryTasklet implements Tasklet {
   }
 
   List<String> getPoLineIdsFromExecutionContext(StepExecution stepExecutionContext) {
-    JSONArray polineIds = new JSONArray((String) ExecutionContextUtils.getExecutionVariable(stepExecutionContext, "polineIds"));
-    return polineIds.toList().stream()
-      .map(String.class::cast)
-      .collect(Collectors.toList());
-
+    try {
+      return new ObjectMapper().readValue((String) ExecutionContextUtils.getExecutionVariable(stepExecutionContext, "polineIds"), new TypeReference<>() {});
+    } catch (Exception e) {
+      return Collections.emptyList();
+    }
   }
 }

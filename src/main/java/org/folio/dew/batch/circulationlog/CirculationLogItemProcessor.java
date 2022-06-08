@@ -1,5 +1,10 @@
 package org.folio.dew.batch.circulationlog;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
@@ -10,7 +15,6 @@ import org.folio.dew.domain.dto.ConfigurationCollection;
 import org.folio.dew.domain.dto.LogRecord;
 import org.folio.dew.domain.dto.LogRecordItems;
 import org.folio.dew.domain.dto.ServicePoint;
-import org.json.JSONObject;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -80,8 +84,12 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
     if (tenantLocaleSettings.getTotalRecords() == 0) return "UTC";
 
     var modelConfiguration = tenantLocaleSettings.getConfigs().get(0);
-    var jsonObject = new JSONObject(modelConfiguration.getValue());
-    return String.valueOf(jsonObject.get("timezone"));
+    try {
+      var jsonObject = (ObjectNode) new ObjectMapper().readTree(modelConfiguration.getValue());
+      return jsonObject.get("timezone").asText();
+    } catch (JsonProcessingException e) {
+      return EMPTY;
+    }
   }
 
   private void fetchServicePoints() {

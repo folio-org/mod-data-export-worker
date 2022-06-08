@@ -1,8 +1,8 @@
 package org.folio.dew.batch.acquisitions.edifact.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.folio.dew.client.ConfigurationClient;
 import org.folio.dew.domain.dto.ConfigurationCollection;
-import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class ConfigurationService {
       return "USD";
     }
 
-    JSONObject jsonObject = new JSONObject(configs.getConfigs().get(0).getValue());
+    var jsonObject = new ObjectMapper().valueToTree(configs.getConfigs().get(0).getValue());
 
     if (!jsonObject.has("currency")) {
       return "USD";

@@ -68,14 +68,14 @@ public class EHoldingsJobConfig {
                                ItemProcessor<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat> processor,
                                EHoldingsItemReader eHoldingsCsvItemReader,
                                ListItemWriter<EHoldingsResourceExportFormat> listItemWriter,
-                               EHoldingsNoteItemProcessor EHoldingsNoteItemProcessor) {
+                               EHoldingsNoteItemProcessor eHoldingsNoteItemProcessor) {
     return stepBuilderFactory
       .get("getEHoldingsStep")
       .<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat>chunk(PROCESSING_RECORD_CHUNK_SIZE)
       .reader(eHoldingsCsvItemReader)
       .processor(processor)
       .writer(listItemWriter)
-      .listener(EHoldingsNoteItemProcessor)
+      .listener(eHoldingsNoteItemProcessor)
       .listener(stepExecutionListener(listItemWriter))
       .listener(eholdingsPromotionListener())
       .build();
@@ -160,10 +160,10 @@ public class EHoldingsJobConfig {
   @Bean("eHoldingsItemProcessor")
   @StepScope
   public ItemProcessor<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat> itemProcessor(
-    EHoldingsAgreementItemProcessor EHoldingsAgreementItemProcessor,
-    EHoldingsNoteItemProcessor EHoldingsNoteItemProcessor) {
+    EHoldingsAgreementItemProcessor eHoldingsAgreementItemProcessor,
+    EHoldingsNoteItemProcessor eHoldingsNoteItemProcessor) {
     var itemProcessor = new CompositeItemProcessor<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat>();
-    itemProcessor.setDelegates(List.of(EHoldingsNoteItemProcessor, EHoldingsAgreementItemProcessor));
+    itemProcessor.setDelegates(List.of(eHoldingsNoteItemProcessor, eHoldingsAgreementItemProcessor));
     return itemProcessor;
   }
 

@@ -29,14 +29,14 @@ public class EHoldingsAgreementItemProcessor
     if (loadPackageAgreements) {
       var packageId = exportFormat.getPackageId();
       var agreements = agreementClient.getAssignedAgreements(getFiltersParam(packageId));
-      if (agreements.size() > 0) {
+      if (!agreements.isEmpty()) {
         exportFormat.setPackageAgreements(mapper.convertAgreements(agreements));
       }
     }
     if (loadResourceAgreements) {
       var resourceId = exportFormat.getPackageId() + "-" + exportFormat.getTitleId();
       var agreements = agreementClient.getAssignedAgreements(getFiltersParam(resourceId));
-      if (agreements.size() > 0) {
+      if (!agreements.isEmpty()) {
         exportFormat.setTitleAgreements(mapper.convertAgreements(agreements));
       }
     }

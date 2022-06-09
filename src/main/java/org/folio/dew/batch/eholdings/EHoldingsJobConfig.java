@@ -3,9 +3,11 @@ package org.folio.dew.batch.eholdings;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.JobCompletionNotificationListener;
+import org.folio.dew.client.AgreementClient;
 import org.folio.dew.client.KbEbscoClient;
 import org.folio.dew.client.NotesClient;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
@@ -23,6 +25,7 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.listener.ExecutionContextPromotionListener;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.batch.item.support.ListItemWriter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +43,7 @@ public class EHoldingsJobConfig {
   private final StepBuilderFactory stepBuilderFactory;
   private final KbEbscoClient kbEbscoClient;
   private final NotesClient notesClient;
+  private final AgreementClient agreementClient;
   private final ObjectMapper objectMapper;
 
   @Bean
@@ -60,16 +64,18 @@ public class EHoldingsJobConfig {
   }
 
   @Bean("getEHoldingsStep")
-  public Step getEHoldingsStep(@Qualifier("eHoldingsNoteProcessor")
+  public Step getEHoldingsStep(@Qualifier("eHoldingsItemProcessor")
                                ItemProcessor<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat> processor,
                                EHoldingsItemReader eHoldingsCsvItemReader,
-                               ListItemWriter<EHoldingsResourceExportFormat> listItemWriter) {
+                               ListItemWriter<EHoldingsResourceExportFormat> listItemWriter,
+                               NoteEholdingsItemProcessor noteEholdingsItemProcessor) {
     return stepBuilderFactory
       .get("getEHoldingsStep")
       .<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat>chunk(PROCESSING_RECORD_CHUNK_SIZE)
       .reader(eHoldingsCsvItemReader)
       .processor(processor)
       .writer(listItemWriter)
+      .listener(noteEholdingsItemProcessor)
       .listener(stepExecutionListener(listItemWriter))
       .listener(eholdingsPromotionListener())
       .build();
@@ -87,8 +93,6 @@ public class EHoldingsJobConfig {
       .listener(eHoldingsStepListener)
       .build();
   }
-
-
 
   @Bean
   public ExecutionContextPromotionListener eholdingsPromotionListener() {
@@ -117,7 +121,7 @@ public class EHoldingsJobConfig {
 
   @Bean
   @StepScope
-  public ListItemWriter<EHoldingsResourceExportFormat> listItemWriter(){
+  public ListItemWriter<EHoldingsResourceExportFormat> listItemWriter() {
     return new ListItemWriter<>();
   }
 
@@ -129,15 +133,38 @@ public class EHoldingsJobConfig {
     return new EHoldingsItemReader(kbEbscoClient, eHoldingsExportConfig);
   }
 
-  @Bean("eHoldingsNoteProcessor")
+  @Bean
   @StepScope
-  public NoteEholdingsItemProcessor noteEholdingsItemProcessor(EHoldingsToExportFormatMapper mapper,
-                                                               @Value("#{jobParameters['eHoldingsExportConfig']}")
-                                                               String exportConfigStr) throws JsonProcessingException {
+  public AgreementEholdingsItemProcessor agreementProcessor(EHoldingsToExportFormatMapper mapper,
+                                                            @Value("#{jobParameters['eHoldingsExportConfig']}")
+                                                            String exportConfigStr) throws JsonProcessingException {
+    var config = objectMapper.readValue(exportConfigStr, EHoldingsExportConfig.class);
+    var loadPackageAgreements =
+      config.getPackageFields() != null && config.getPackageFields().contains("packageAgreements");
+    var loadResourceAgreements = config.getTitleFields() != null && config.getTitleFields().contains("titleAgreements");
+
+    return new AgreementEholdingsItemProcessor(agreementClient, mapper, loadPackageAgreements, loadResourceAgreements);
+  }
+
+  @Bean
+  @StepScope
+  public NoteEholdingsItemProcessor noteProcessor(EHoldingsToExportFormatMapper mapper,
+                                                  @Value("#{jobParameters['eHoldingsExportConfig']}")
+                                                  String exportConfigStr) throws JsonProcessingException {
     var config = objectMapper.readValue(exportConfigStr, EHoldingsExportConfig.class);
     var loadPackageNotes = config.getPackageFields() != null && config.getPackageFields().contains("packageNotes");
     var loadResourceNotes = config.getTitleFields() != null && config.getTitleFields().contains("titleNotes");
     return new NoteEholdingsItemProcessor(notesClient, mapper, loadPackageNotes, loadResourceNotes);
+  }
+
+  @Bean("eHoldingsItemProcessor")
+  @StepScope
+  public ItemProcessor<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat> itemProcessor(
+    AgreementEholdingsItemProcessor agreementEholdingsItemProcessor,
+    NoteEholdingsItemProcessor noteEholdingsItemProcessor) {
+    var itemProcessor = new CompositeItemProcessor<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat>();
+    itemProcessor.setDelegates(List.of(noteEholdingsItemProcessor, agreementEholdingsItemProcessor));
+    return itemProcessor;
   }
 
   @Bean("eHoldingsWriter")

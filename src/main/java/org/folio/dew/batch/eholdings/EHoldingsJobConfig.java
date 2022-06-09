@@ -51,14 +51,14 @@ public class EHoldingsJobConfig {
     JobRepository jobRepository,
     JobCompletionNotificationListener jobCompletionNotificationListener,
     @Qualifier("getEHoldingsStep") Step getEHoldingsStep,
-    @Qualifier("saveEholdingsStep") Step saveEholdingsStep) {
+    @Qualifier("saveEHoldingsStep") Step saveEHoldingsStep) {
     return jobBuilderFactory
       .get(ExportType.E_HOLDINGS.toString())
       .repository(jobRepository)
       .incrementer(new RunIdIncrementer())
       .listener(jobCompletionNotificationListener)
       .flow(getEHoldingsStep)
-      .next(saveEholdingsStep)
+      .next(saveEHoldingsStep)
       .end()
       .build();
   }
@@ -68,25 +68,25 @@ public class EHoldingsJobConfig {
                                ItemProcessor<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat> processor,
                                EHoldingsItemReader eHoldingsCsvItemReader,
                                ListItemWriter<EHoldingsResourceExportFormat> listItemWriter,
-                               NoteEholdingsItemProcessor noteEholdingsItemProcessor) {
+                               EHoldingsNoteItemProcessor EHoldingsNoteItemProcessor) {
     return stepBuilderFactory
       .get("getEHoldingsStep")
       .<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat>chunk(PROCESSING_RECORD_CHUNK_SIZE)
       .reader(eHoldingsCsvItemReader)
       .processor(processor)
       .writer(listItemWriter)
-      .listener(noteEholdingsItemProcessor)
+      .listener(EHoldingsNoteItemProcessor)
       .listener(stepExecutionListener(listItemWriter))
       .listener(eholdingsPromotionListener())
       .build();
   }
 
-  @Bean("saveEholdingsStep")
-  public Step saveEholdingsStep(EholdingsListItemReader eholdingsListItemReader,
-                                @Qualifier("eHoldingsWriter") EholdingsCsvWriter flatFileItemWriter,
+  @Bean("saveEHoldingsStep")
+  public Step saveEHoldingsStep(EHoldingsListItemReader eholdingsListItemReader,
+                                @Qualifier("eHoldingsWriter") EHoldingsCsvFileWriter flatFileItemWriter,
                                 EHoldingsStepListener eHoldingsStepListener) {
     return stepBuilderFactory
-      .get("saveEholdingsStep")
+      .get("saveEHoldingsStep")
       .<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat>chunk(PROCESSING_RECORD_CHUNK_SIZE)
       .reader(eholdingsListItemReader)
       .writer(flatFileItemWriter)
@@ -135,7 +135,7 @@ public class EHoldingsJobConfig {
 
   @Bean
   @StepScope
-  public AgreementEholdingsItemProcessor agreementProcessor(EHoldingsToExportFormatMapper mapper,
+  public EHoldingsAgreementItemProcessor agreementProcessor(EHoldingsToExportFormatMapper mapper,
                                                             @Value("#{jobParameters['eHoldingsExportConfig']}")
                                                             String exportConfigStr) throws JsonProcessingException {
     var config = objectMapper.readValue(exportConfigStr, EHoldingsExportConfig.class);
@@ -143,33 +143,33 @@ public class EHoldingsJobConfig {
       config.getPackageFields() != null && config.getPackageFields().contains("packageAgreements");
     var loadResourceAgreements = config.getTitleFields() != null && config.getTitleFields().contains("titleAgreements");
 
-    return new AgreementEholdingsItemProcessor(agreementClient, mapper, loadPackageAgreements, loadResourceAgreements);
+    return new EHoldingsAgreementItemProcessor(agreementClient, mapper, loadPackageAgreements, loadResourceAgreements);
   }
 
   @Bean
   @StepScope
-  public NoteEholdingsItemProcessor noteProcessor(EHoldingsToExportFormatMapper mapper,
+  public EHoldingsNoteItemProcessor noteProcessor(EHoldingsToExportFormatMapper mapper,
                                                   @Value("#{jobParameters['eHoldingsExportConfig']}")
                                                   String exportConfigStr) throws JsonProcessingException {
     var config = objectMapper.readValue(exportConfigStr, EHoldingsExportConfig.class);
     var loadPackageNotes = config.getPackageFields() != null && config.getPackageFields().contains("packageNotes");
     var loadResourceNotes = config.getTitleFields() != null && config.getTitleFields().contains("titleNotes");
-    return new NoteEholdingsItemProcessor(notesClient, mapper, loadPackageNotes, loadResourceNotes);
+    return new EHoldingsNoteItemProcessor(notesClient, mapper, loadPackageNotes, loadResourceNotes);
   }
 
   @Bean("eHoldingsItemProcessor")
   @StepScope
   public ItemProcessor<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat> itemProcessor(
-    AgreementEholdingsItemProcessor agreementEholdingsItemProcessor,
-    NoteEholdingsItemProcessor noteEholdingsItemProcessor) {
+    EHoldingsAgreementItemProcessor EHoldingsAgreementItemProcessor,
+    EHoldingsNoteItemProcessor EHoldingsNoteItemProcessor) {
     var itemProcessor = new CompositeItemProcessor<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat>();
-    itemProcessor.setDelegates(List.of(noteEholdingsItemProcessor, agreementEholdingsItemProcessor));
+    itemProcessor.setDelegates(List.of(EHoldingsNoteItemProcessor, EHoldingsAgreementItemProcessor));
     return itemProcessor;
   }
 
   @Bean("eHoldingsWriter")
   @StepScope
-  public EholdingsCsvWriter writer(
+  public EHoldingsCsvFileWriter writer(
     @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
     @Value("#{jobParameters['eHoldingsExportConfig']}") String exportConfigStr) throws JsonProcessingException {
     var eHoldingsExportConfig = objectMapper.readValue(exportConfigStr, EHoldingsExportConfig.class);
@@ -186,6 +186,6 @@ public class EHoldingsJobConfig {
 
     var names = exportFields.toArray(String[]::new);
 
-    return new EholdingsCsvWriter(tempOutputFilePath, names);
+    return new EHoldingsCsvFileWriter(tempOutputFilePath, names);
   }
 }

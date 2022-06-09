@@ -14,7 +14,7 @@ import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ItemProcessor;
 
 @Log4j2
-public class NoteEholdingsItemProcessor
+public class EHoldingsNoteItemProcessor
   implements ItemProcessor<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat>, StepExecutionListener {
 
   private final NotesClient notesClient;
@@ -23,7 +23,7 @@ public class NoteEholdingsItemProcessor
   private final boolean loadResourceNotes;
   private StepExecution stepExecution;
 
-  public NoteEholdingsItemProcessor(NotesClient notesClient, EHoldingsToExportFormatMapper mapper,
+  public EHoldingsNoteItemProcessor(NotesClient notesClient, EHoldingsToExportFormatMapper mapper,
                                     boolean loadPackageNotes, boolean loadResourceNotes) {
     this.notesClient = notesClient;
     this.mapper = mapper;

@@ -8,7 +8,7 @@ import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
 import org.springframework.batch.item.ItemProcessor;
 
 @Log4j2
-public class AgreementEholdingsItemProcessor
+public class EHoldingsAgreementItemProcessor
   implements ItemProcessor<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat> {
 
   private final AgreementClient agreementClient;
@@ -16,7 +16,7 @@ public class AgreementEholdingsItemProcessor
   private final boolean loadPackageAgreements;
   private final boolean loadResourceAgreements;
 
-  public AgreementEholdingsItemProcessor(AgreementClient agreementClient, EHoldingsToExportFormatMapper mapper,
+  public EHoldingsAgreementItemProcessor(AgreementClient agreementClient, EHoldingsToExportFormatMapper mapper,
                                          boolean loadPackageAgreements, boolean loadResourceAgreements) {
     this.agreementClient = agreementClient;
     this.mapper = mapper;

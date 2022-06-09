@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.support.AbstractFileItemWriter;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.core.io.FileSystemResource;
@@ -29,6 +31,8 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
   private static final String PACKAGE_NOTES_FIELD = "packageNotes";
   private static final String TITLE_NOTES_FIELD = "titleNotes";
   private final String[] fieldNames;
+  private int maxPackageNotesLength;
+  private int maxTitleNotesLength;
 
   public EholdingsCsvWriter(String tempOutputFilePath, String[] fieldNames) {
     this.fieldNames = fieldNames;
@@ -39,11 +43,36 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
     this.setExecutionContextName(ClassUtils.getShortName(EholdingsCsvWriter.class));
   }
 
+  @BeforeStep
+  public void beforeStep(StepExecution stepExecution) {
+    var executionContext = stepExecution.getJobExecution().getExecutionContext();
+    maxPackageNotesLength = executionContext.getInt("packageMaxNotesCount", 0);
+    maxTitleNotesLength = executionContext.getInt("titleMaxNotesCount", 0);
+
+    var columnHeaders = Arrays.stream(fieldNames)
+      .map(s -> header(s, maxPackageNotesLength, maxTitleNotesLength))
+      .flatMap(List::stream)
+      .collect(Collectors.joining(","));
+    setHeaderCallback(writer -> writer.write(columnHeaders));
+  }
+
   @Override
   public void afterPropertiesSet() {
     if (append) {
       shouldDeleteIfExists = false;
     }
+  }
+
+  @Override
+  protected String doWrite(List<? extends EHoldingsResourceExportFormat> items) {
+    var lines = new StringBuilder();
+
+    for (var item : items) {
+      var itemRow = getItemRow(maxPackageNotesLength, maxTitleNotesLength, item);
+      lines.append(itemRow).append(lineSeparator);
+    }
+
+    return lines.toString();
   }
 
   private List<String> header(String fieldName, int maxPackageNotesLength, int maxTitleNotesLength) {
@@ -111,27 +140,5 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
 
   private String getStringValue(String value) {
     return cleanupValue(value);
-  }
-
-  @Override
-  protected String doWrite(List<? extends EHoldingsResourceExportFormat> items) {
-    var maxPackageNotesLength = items.stream().map(e -> e.getPackageNotes().size()).max(Integer::compareTo).orElse(0);
-    var maxTitleNotesLength = items.stream().map(e -> e.getTitleNotes().size()).max(Integer::compareTo).orElse(0);
-
-    var lines = new StringBuilder();
-
-    var columnHeaders = Arrays.stream(fieldNames)
-      .map(s -> header(s, maxPackageNotesLength, maxTitleNotesLength))
-      .flatMap(List::stream)
-      .collect(Collectors.joining(","));
-
-    lines.append(columnHeaders).append(lineSeparator);
-
-    for (var item : items) {
-      var itemRow = getItemRow(maxPackageNotesLength, maxTitleNotesLength, item);
-      lines.append(itemRow).append(lineSeparator);
-    }
-
-    return lines.toString();
   }
 }

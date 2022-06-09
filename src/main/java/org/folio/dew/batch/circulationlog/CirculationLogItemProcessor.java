@@ -1,6 +1,9 @@
 package org.folio.dew.batch.circulationlog;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.ConfigurationClient;
@@ -10,7 +13,6 @@ import org.folio.dew.domain.dto.ConfigurationCollection;
 import org.folio.dew.domain.dto.LogRecord;
 import org.folio.dew.domain.dto.LogRecordItems;
 import org.folio.dew.domain.dto.ServicePoint;
-import org.json.JSONObject;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -31,6 +33,7 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
 
   private final ServicePointClient servicePointClient;
   private final ConfigurationClient configurationClient;
+  private final ObjectMapper objectMapper;
 
   private Map<String, String> servicePointMap;
   private SimpleDateFormat format;
@@ -73,6 +76,7 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
     format = dateFormat;
   }
 
+  @SneakyThrows
   private String fetchTimezone() {
     final ConfigurationCollection tenantLocaleSettings =
       configurationClient.getConfigurations("(module==ORG and configName==localeSettings)");
@@ -80,20 +84,18 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
     if (tenantLocaleSettings.getTotalRecords() == 0) return "UTC";
 
     var modelConfiguration = tenantLocaleSettings.getConfigs().get(0);
-    var jsonObject = new JSONObject(modelConfiguration.getValue());
-    return String.valueOf(jsonObject.get("timezone"));
+    var jsonObject = (ObjectNode) objectMapper.readTree(modelConfiguration.getValue());
+    return jsonObject.get("timezone").asText();
   }
 
   private void fetchServicePoints() {
     if (servicePointMap != null) return;
 
     var servicePoints = servicePointClient.get("name<>null", 1000);
-    if (servicePoints.getTotalRecords() == 0) {
-      servicePointMap = Collections.emptyMap();
-      return;
-    }
 
-    servicePointMap = servicePoints.getServicepoints().stream()
+    servicePointMap = servicePoints.getServicepoints().isEmpty() ?
+      Collections.emptyMap() :
+      servicePoints.getServicepoints().stream()
       .collect(Collectors.toMap(ServicePoint::getId, ServicePoint::getName));
   }
 

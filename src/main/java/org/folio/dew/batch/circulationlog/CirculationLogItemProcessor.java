@@ -1,8 +1,5 @@
 package org.folio.dew.batch.circulationlog;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;

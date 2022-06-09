@@ -35,6 +35,7 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
 
   private final ServicePointClient servicePointClient;
   private final ConfigurationClient configurationClient;
+  private final ObjectMapper objectMapper;
 
   private Map<String, String> servicePointMap;
   private SimpleDateFormat format;
@@ -85,7 +86,7 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
 
     var modelConfiguration = tenantLocaleSettings.getConfigs().get(0);
     try {
-      var jsonObject = (ObjectNode) new ObjectMapper().readTree(modelConfiguration.getValue());
+      var jsonObject = (ObjectNode) objectMapper.readTree(modelConfiguration.getValue());
       return jsonObject.get("timezone").asText();
     } catch (JsonProcessingException e) {
       return EMPTY;

@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ConfigurationService {
   private final ConfigurationClient configurationClient;
+  private final ObjectMapper objectMapper;
 
   private ConfigurationCollection getLocaleSettings() {
     return configurationClient.getConfigurations("(module==ORG and configName==localeSettings)");
@@ -23,7 +24,7 @@ public class ConfigurationService {
       return "USD";
     }
 
-    var jsonObject = new ObjectMapper().valueToTree(configs.getConfigs().get(0).getValue());
+    var jsonObject = objectMapper.valueToTree(configs.getConfigs().get(0).getValue());
 
     if (!jsonObject.has("currency")) {
       return "USD";

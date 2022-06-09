@@ -29,6 +29,7 @@ import lombok.extern.log4j.Log4j2;
 public class ExportHistoryTasklet implements Tasklet {
 
   private final KafkaService kafkaService;
+  private final ObjectMapper objectMapper;
   @Value("#{jobParameters['jobId']}")
   private String jobId;
   @Override
@@ -54,7 +55,7 @@ public class ExportHistoryTasklet implements Tasklet {
 
   List<String> getPoLineIdsFromExecutionContext(StepExecution stepExecutionContext) {
     try {
-      return new ObjectMapper().readValue((String) ExecutionContextUtils.getExecutionVariable(stepExecutionContext, "polineIds"), new TypeReference<>() {});
+      return objectMapper.readValue((String) ExecutionContextUtils.getExecutionVariable(stepExecutionContext, "polineIds"), new TypeReference<>() {});
     } catch (Exception e) {
       return Collections.emptyList();
     }

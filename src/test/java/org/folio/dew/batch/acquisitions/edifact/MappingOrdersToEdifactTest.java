@@ -43,6 +43,8 @@ import lombok.extern.log4j.Log4j2;
 @RunWith(MockitoJUnitRunner.class)
 class MappingOrdersToEdifactTest {
   @Autowired
+  private ObjectMapper objectMapper;
+  @Autowired
   private PurchaseOrdersToEdifactMapper purchaseOrdersToEdifactMapper;
   @MockBean
   private IdentifierTypeService identifierTypeService;
@@ -79,19 +81,16 @@ class MappingOrdersToEdifactTest {
   }
 
   private VendorEdiOrdersExportConfig getTestEdiConfig() throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
-
-    return mapper.readValue(getMockData("edifact/acquisitions/vendorEdiOrdersExportConfig.json"), VendorEdiOrdersExportConfig.class);
+    return objectMapper.readValue(getMockData("edifact/acquisitions/vendorEdiOrdersExportConfig.json"), VendorEdiOrdersExportConfig.class);
   }
 
   private List<CompositePurchaseOrder> getTestOrdersFromJson() throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
 
-    CompositePurchaseOrder compPo = mapper.readValue(getMockData("edifact/acquisitions/composite_purchase_order.json"), CompositePurchaseOrder.class);
+    CompositePurchaseOrder compPo = objectMapper.readValue(getMockData("edifact/acquisitions/composite_purchase_order.json"), CompositePurchaseOrder.class);
 
-    CompositePurchaseOrder comprehensiveCompPo = mapper.readValue(getMockData("edifact/acquisitions/comprehensive_composite_purchase_order.json"), CompositePurchaseOrder.class);
+    CompositePurchaseOrder comprehensiveCompPo = objectMapper.readValue(getMockData("edifact/acquisitions/comprehensive_composite_purchase_order.json"), CompositePurchaseOrder.class);
 
-    CompositePurchaseOrder minimalisticCompPo = mapper.readValue(getMockData("edifact/acquisitions/minimalistic_composite_purchase_order.json"), CompositePurchaseOrder.class);
+    CompositePurchaseOrder minimalisticCompPo = objectMapper.readValue(getMockData("edifact/acquisitions/minimalistic_composite_purchase_order.json"), CompositePurchaseOrder.class);
 
     List<CompositePurchaseOrder> compPOs = new ArrayList<>();
     compPOs.add(compPo);

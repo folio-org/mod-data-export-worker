@@ -117,7 +117,7 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
 
   private JobParameters getJobParameters(boolean isDefaultConfig) throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
-    var edifactOrdersExportJson = (ObjectNode) new ObjectMapper().readTree(getMockData("edifact/edifactOrdersExport.json"));
+    var edifactOrdersExportJson = (ObjectNode) objectMapper.readTree(getMockData("edifact/edifactOrdersExport.json"));
     edifactOrdersExportJson.put("isDefaultConfig", isDefaultConfig);
 
     paramsBuilder.addString("jobId", UUID.randomUUID().toString());
@@ -129,7 +129,7 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
 
   private JobParameters getJobParametersWithoutRequiredFields() throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
-    var edifactOrdersExportJson = (ObjectNode) new ObjectMapper().readTree(getMockData("edifact/edifactOrdersExportWithoutRequiredFields.json"));
+    var edifactOrdersExportJson = (ObjectNode) objectMapper.readTree(getMockData("edifact/edifactOrdersExportWithoutRequiredFields.json"));
     edifactOrdersExportJson.put("isDefaultConfig", false);
 
     paramsBuilder.addString("jobId", UUID.randomUUID().toString());

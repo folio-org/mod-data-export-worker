@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @StepScope
-public class EholdingsListItemReader implements ItemReader<EHoldingsResourceExportFormat> {
+public class EHoldingsListItemReader implements ItemReader<EHoldingsResourceExportFormat> {
 
   private List<EHoldingsResourceExportFormat> list;
 

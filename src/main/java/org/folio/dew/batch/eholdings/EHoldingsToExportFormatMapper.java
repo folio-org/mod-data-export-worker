@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import joptsimple.internal.Strings;
+import org.folio.dew.client.AgreementClient.Agreement;
 import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
 import org.folio.dew.domain.dto.eholdings.AccessTypeData;
 import org.folio.dew.domain.dto.eholdings.AlternateTitle;
@@ -31,6 +32,7 @@ import org.folio.dew.domain.dto.eholdings.ResourcesData;
 import org.folio.dew.domain.dto.eholdings.Subject;
 import org.folio.dew.domain.dto.eholdings.Tags;
 import org.folio.dew.domain.dto.eholdings.VisibilityData;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -38,6 +40,7 @@ public class EHoldingsToExportFormatMapper {
 
   private static final String ACCESS_TYPE_INCLUDED = "accessTypes";
   private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
+  public static final String PIPE_DELIMITER = " | ";
   private final ObjectMapper objectMapper = new ObjectMapper()
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -58,6 +61,17 @@ public class EHoldingsToExportFormatMapper {
     return notes.stream()
       .map(this::noteToString)
       .collect(Collectors.toList());
+  }
+
+  public String convertAgreements(List<Agreement> agreements) {
+    return agreements.stream()
+      .map(this::agreementToString)
+      .collect(Collectors.joining(PIPE_DELIMITER));
+  }
+
+  @NotNull
+  private String agreementToString(Agreement agreement) {
+    return Strings.join(new String[] {agreement.getStartDate(), agreement.getName(), agreement.getStatus()}, ";");
   }
 
   private String noteToString(Note note) {
@@ -164,7 +178,7 @@ public class EHoldingsToExportFormatMapper {
 
   private String mapTags(Tags tags) {
     if (isNull(tags)) { return ""; }
-    return String.join(" | ", tags.getTagList());
+    return String.join(PIPE_DELIMITER, tags.getTagList());
   }
 
   private String mapEmbargo(EmbargoPeriod embargo) {
@@ -195,25 +209,25 @@ public class EHoldingsToExportFormatMapper {
   private String mapContributors(List<Contributor> contributors) {
     return contributors.stream()
       .map(contributor -> contributor.getContributor() + " (" + contributor.getType() + ')')
-      .collect(Collectors.joining(" | "));
+      .collect(Collectors.joining(PIPE_DELIMITER));
   }
 
   private String mapSubjects(List<Subject> subjects) {
     return subjects.stream()
       .map(Subject::getSubject)
-      .collect(Collectors.joining(" | "));
+      .collect(Collectors.joining(PIPE_DELIMITER));
   }
 
   private String mapCoverage(List<Coverage> coverages) {
     return coverages.stream()
       .map(this::mapCoverage)
-      .collect(Collectors.joining(" | "));
+      .collect(Collectors.joining(PIPE_DELIMITER));
   }
 
   private String mapAlternateTitles(List<AlternateTitle> alternateTitles) {
     return alternateTitles.stream()
       .map(title -> title.getTitleType() + " - " + title.getAlternateTitle())
-      .collect(Collectors.joining(" | "));
+      .collect(Collectors.joining(PIPE_DELIMITER));
   }
 
   private String mapIdentifierId(List<Identifier> identifiers, TypeEnum type, SubtypeEnum subtype) {
@@ -221,7 +235,7 @@ public class EHoldingsToExportFormatMapper {
       .filter(identifier -> identifier.getType().equals(type))
       .filter(identifier -> identifier.getSubtype().equals(subtype))
       .map(Identifier::getId)
-      .collect(Collectors.joining(" | "));
+      .collect(Collectors.joining(PIPE_DELIMITER));
   }
 
   private String mapShowToPatrons(VisibilityData visibility) {

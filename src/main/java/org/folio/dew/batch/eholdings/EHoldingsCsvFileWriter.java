@@ -26,7 +26,7 @@ import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.util.ClassUtils;
 
-public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResourceExportFormat> {
+public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsResourceExportFormat> {
 
   private static final String PACKAGE_NOTES_FIELD = "packageNotes";
   private static final String TITLE_NOTES_FIELD = "titleNotes";
@@ -34,13 +34,13 @@ public class EholdingsCsvWriter extends AbstractFileItemWriter<EHoldingsResource
   private int maxPackageNotesLength;
   private int maxTitleNotesLength;
 
-  public EholdingsCsvWriter(String tempOutputFilePath, String[] fieldNames) {
+  public EHoldingsCsvFileWriter(String tempOutputFilePath, String[] fieldNames) {
     this.fieldNames = fieldNames;
     if (isBlank(tempOutputFilePath)) {
       throw new IllegalArgumentException("tempOutputFilePath is blank");
     }
     setResource(new FileSystemResource(tempOutputFilePath));
-    this.setExecutionContextName(ClassUtils.getShortName(EholdingsCsvWriter.class));
+    this.setExecutionContextName(ClassUtils.getShortName(EHoldingsCsvFileWriter.class));
   }
 
   @BeforeStep

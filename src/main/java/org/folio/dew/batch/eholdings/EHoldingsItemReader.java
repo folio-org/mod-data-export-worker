@@ -7,10 +7,7 @@ import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESO
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.apache.commons.collections.CollectionUtils;
-import org.springframework.batch.core.annotation.BeforeStep;
-
 import org.folio.dew.batch.CsvItemReader;
 import org.folio.dew.client.KbEbscoClient;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
@@ -18,6 +15,7 @@ import org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum;
 import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
 import org.folio.dew.domain.dto.eholdings.EPackage;
 import org.folio.dew.domain.dto.eholdings.ResourcesData;
+import org.springframework.batch.core.annotation.BeforeStep;
 
 public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFormat> {
 
@@ -81,7 +79,8 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceExportFo
     }
   }
 
-  private List<EHoldingsResourceExportFormat> buildEHoldingsExportFormat(EPackage ePackage, List<ResourcesData> resources) {
+  private List<EHoldingsResourceExportFormat> buildEHoldingsExportFormat(EPackage ePackage,
+                                                                         List<ResourcesData> resources) {
     if (resources.isEmpty()) {
       var singlePackageExport = mapper.convertToExportFormat(ePackage);
       return List.of(singlePackageExport);

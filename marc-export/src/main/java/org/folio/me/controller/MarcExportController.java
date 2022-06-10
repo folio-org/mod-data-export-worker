@@ -1,4 +1,4 @@
-package org.folio.dew.controller;
+package org.folio.me.controller;
 
 import static java.lang.String.format;
 import static org.folio.dew.utils.Constants.FILE_UPLOAD_ERROR;

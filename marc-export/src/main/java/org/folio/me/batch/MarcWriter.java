@@ -1,4 +1,4 @@
-package org.folio.dew.batch.marc;
+package org.folio.me.batch;
 
 import lombok.extern.log4j.Log4j2;
 import org.marc4j.MarcJsonWriter;
@@ -28,7 +28,7 @@ public class MarcWriter extends FlatFileItemWriter<Record> {
       }
       return byteArrayOutputStream.toString();
     } catch (IOException e) {
-      // TODO log file operation error
+      log.error("Error writing marc record, reason: {}", e.getMessage());
       return null;
     }
   }

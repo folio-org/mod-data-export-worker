@@ -1,4 +1,4 @@
-package org.folio.dew.batch.marc;
+package org.folio.me.batch;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

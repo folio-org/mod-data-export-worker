@@ -1,11 +1,13 @@
-package org.folio.dew.batch.marc;
+package org.folio.me.batch;
 
+import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.CsvPartitioner;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+@Log4j2
 public class DataExportCsvPartitioner extends CsvPartitioner {
 
   private final String fileName;
@@ -21,7 +23,7 @@ public class DataExportCsvPartitioner extends CsvPartitioner {
     try (var lines = Files.lines(Path.of(fileName))) {
       return lines.count();
     } catch (IOException e) {
-      // TODO log file operation error
+      log.error("Error reading file {}, reason: {}", fileName, e.getMessage());
       return 0L;
     }
   }

@@ -1,4 +1,4 @@
-package org.folio.dew.batch.marc;
+package org.folio.me.batch;
 
 import org.folio.dew.batch.CsvItemReader;
 import org.folio.dew.domain.dto.ItemIdentifier;

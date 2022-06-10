@@ -766,7 +766,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Post non-supported entity type content update - BAD REQUEST")
   @SneakyThrows
   void shouldReturnBadRequestForNonSupportedEntityTypeContentUpdates() {
-    var updates = new ObjectMapper().writeValueAsString(new ContentUpdateCollection()
+    var updates = OBJECT_MAPPER.writeValueAsString(new ContentUpdateCollection()
       .entityType(USER)
       .contentUpdates(Collections.singletonList(new ContentUpdate()
         .option(ContentUpdate.OptionEnum.TEMPORARY_LOCATION)
@@ -786,7 +786,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Post invalid content updates - BAD REQUEST")
   @SneakyThrows
   void shouldReturnBadRequestForInvalidContentUpdates() {
-    var updates = new ObjectMapper().writeValueAsString(new ContentUpdateCollection()
+    var updates = OBJECT_MAPPER.writeValueAsString(new ContentUpdateCollection()
       .contentUpdates(Collections.singletonList(new ContentUpdate()
         .option(ContentUpdate.OptionEnum.TEMPORARY_LOCATION)
         .action(ContentUpdate.ActionEnum.REPLACE_WITH)))
@@ -805,7 +805,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Post empty content updates - BAD REQUEST")
   @SneakyThrows
   void shouldReturnBadRequestForEmptyContentUpdates() {
-    var updates = new ObjectMapper().writeValueAsString(new ContentUpdateCollection().entityType(ITEM).totalRecords(0));
+    var updates = OBJECT_MAPPER.writeValueAsString(new ContentUpdateCollection().entityType(ITEM).totalRecords(0));
 
     var expectedJson = "{\"errors\":[{\"message\":\"Invalid request body\",\"type\":\"-1\",\"code\":\"Validation error\",\"parameters\":[{\"key\":\"contentUpdates\",\"value\":\"size must be between 1 and 2147483647\"}]}],\"total_records\":1}";
 

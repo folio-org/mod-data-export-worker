@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -25,7 +24,6 @@ import org.folio.dew.batch.acquisitions.edifact.services.LocationService;
 import org.folio.dew.batch.acquisitions.edifact.services.MaterialTypeService;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
-import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -44,6 +42,8 @@ import lombok.extern.log4j.Log4j2;
 @AutoConfigureMockMvc
 @RunWith(MockitoJUnitRunner.class)
 class MappingOrdersToEdifactTest {
+  @Autowired
+  private ObjectMapper objectMapper;
   @Autowired
   private PurchaseOrdersToEdifactMapper purchaseOrdersToEdifactMapper;
   @MockBean
@@ -81,23 +81,16 @@ class MappingOrdersToEdifactTest {
   }
 
   private VendorEdiOrdersExportConfig getTestEdiConfig() throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
-
-    JSONObject json = new JSONObject(getMockData("edifact/acquisitions/vendorEdiOrdersExportConfig.json"));
-    return mapper.readValue(json.toString(), VendorEdiOrdersExportConfig.class);
+    return objectMapper.readValue(getMockData("edifact/acquisitions/vendorEdiOrdersExportConfig.json"), VendorEdiOrdersExportConfig.class);
   }
 
   private List<CompositePurchaseOrder> getTestOrdersFromJson() throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
 
-    JSONObject json = new JSONObject(getMockData("edifact/acquisitions/composite_purchase_order.json"));
-    CompositePurchaseOrder compPo = mapper.readValue(json.toString(), CompositePurchaseOrder.class);
+    CompositePurchaseOrder compPo = objectMapper.readValue(getMockData("edifact/acquisitions/composite_purchase_order.json"), CompositePurchaseOrder.class);
 
-    JSONObject comprehensiveJson = new JSONObject(getMockData("edifact/acquisitions/comprehensive_composite_purchase_order.json"));
-    CompositePurchaseOrder comprehensiveCompPo = mapper.readValue(comprehensiveJson.toString(), CompositePurchaseOrder.class);
+    CompositePurchaseOrder comprehensiveCompPo = objectMapper.readValue(getMockData("edifact/acquisitions/comprehensive_composite_purchase_order.json"), CompositePurchaseOrder.class);
 
-    JSONObject minimalisticJson = new JSONObject(getMockData("edifact/acquisitions/minimalistic_composite_purchase_order.json"));
-    CompositePurchaseOrder minimalisticCompPo = mapper.readValue(minimalisticJson.toString(), CompositePurchaseOrder.class);
+    CompositePurchaseOrder minimalisticCompPo = objectMapper.readValue(getMockData("edifact/acquisitions/minimalistic_composite_purchase_order.json"), CompositePurchaseOrder.class);
 
     List<CompositePurchaseOrder> compPOs = new ArrayList<>();
     compPOs.add(compPo);

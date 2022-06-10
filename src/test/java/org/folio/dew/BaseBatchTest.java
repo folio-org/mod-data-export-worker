@@ -18,6 +18,7 @@ import java.util.UUID;
 
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.ExportJobManagerCirculationLog;
+import org.folio.dew.batch.ExportJobManagerEHoldings;
 import org.folio.dew.repository.InMemoryAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.service.JobCommandsReceiverService;
@@ -91,6 +92,9 @@ public abstract class BaseBatchTest {
   @MockBean
   @Qualifier("exportJobManagerCirculationLog")
   protected ExportJobManagerCirculationLog exportJobManagerCirculationLog;
+  @MockBean
+  @Qualifier("exportJobManagerEHoldings")
+  protected ExportJobManagerEHoldings exportJobManagerEHoldings;
   @MockBean
   protected Acknowledgment acknowledgment;
 

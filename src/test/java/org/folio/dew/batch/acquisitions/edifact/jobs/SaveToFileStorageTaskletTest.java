@@ -14,7 +14,6 @@ import java.util.UUID;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.repository.SFTPObjectStorageRepository;
-import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -55,9 +54,8 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
 
   private JobParameters getJobParameters() throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
-    JSONObject edifactOrdersExportJson = new JSONObject(getMockData("edifact/edifactOrdersExport.json"));
 
-    paramsBuilder.addString("edifactOrdersExport", edifactOrdersExportJson.toString());
+    paramsBuilder.addString("edifactOrdersExport", getMockData("edifact/edifactOrdersExport.json"));
     paramsBuilder.addString("jobId", UUID.randomUUID().toString());
 
     return paramsBuilder.toJobParameters();

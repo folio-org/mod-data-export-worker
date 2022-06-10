@@ -32,6 +32,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class BulkEditConfigurationService {
   private final ConfigurationClient configurationClient;
+  private final ObjectMapper objectMapper;
 
   private static final Map<InventoryItemStatus.NameEnum, List<InventoryItemStatus.NameEnum>> allowedStatuses = new EnumMap<>(InventoryItemStatus.NameEnum.class);
 
@@ -128,13 +129,13 @@ public class BulkEditConfigurationService {
   }
 
   @SneakyThrows
-  public static ModelConfiguration buildDefaultConfig() {
+  private ModelConfiguration buildDefaultConfig() {
    return new ModelConfiguration()
       .module(MODULE_NAME)
       .configName(STATUSES_CONFIG_NAME)
       ._default(true)
       .enabled(true)
-      .value(new ObjectMapper().writeValueAsString(allowedStatuses));
+      .value(objectMapper.writeValueAsString(allowedStatuses));
   }
 
   public static Map<InventoryItemStatus.NameEnum, List<InventoryItemStatus.NameEnum>> getAllowedStatuses() {

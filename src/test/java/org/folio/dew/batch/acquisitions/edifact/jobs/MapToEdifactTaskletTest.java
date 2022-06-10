@@ -15,12 +15,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.PurchaseOrderCollection;
-import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -117,7 +117,7 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
 
   private JobParameters getJobParameters(boolean isDefaultConfig) throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
-    JSONObject edifactOrdersExportJson = new JSONObject(getMockData("edifact/edifactOrdersExport.json"));
+    var edifactOrdersExportJson = (ObjectNode) objectMapper.readTree(getMockData("edifact/edifactOrdersExport.json"));
     edifactOrdersExportJson.put("isDefaultConfig", isDefaultConfig);
 
     paramsBuilder.addString("jobId", UUID.randomUUID().toString());
@@ -129,7 +129,7 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
 
   private JobParameters getJobParametersWithoutRequiredFields() throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
-    JSONObject edifactOrdersExportJson = new JSONObject(getMockData("edifact/edifactOrdersExportWithoutRequiredFields.json"));
+    var edifactOrdersExportJson = (ObjectNode) objectMapper.readTree(getMockData("edifact/edifactOrdersExportWithoutRequiredFields.json"));
     edifactOrdersExportJson.put("isDefaultConfig", false);
 
     paramsBuilder.addString("jobId", UUID.randomUUID().toString());
@@ -141,9 +141,8 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
 
   private JobParameters getJobParametersWithoutPort() throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
-    JSONObject edifactOrdersExportJson = new JSONObject(getMockData("edifact/edifactOrdersExportWithoutPort.json"));
 
-    paramsBuilder.addString("edifactOrdersExport", edifactOrdersExportJson.toString());
+    paramsBuilder.addString("edifactOrdersExport", getMockData("edifact/edifactOrdersExportWithoutPort.json"));
     paramsBuilder.addString("jobId", UUID.randomUUID().toString());
 
     return paramsBuilder.toJobParameters();

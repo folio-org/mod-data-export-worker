@@ -1,5 +1,6 @@
 package org.folio.dew.batch.circulationlog;
 
+import io.swagger.util.Json;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;

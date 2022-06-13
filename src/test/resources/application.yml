@@ -2,8 +2,9 @@ spring:
   application:
     name: mod-data-export-worker
   batch:
-    initialize-schema: always
-    schema: classpath:db/hsql/schema-hsqldb.sql
+    jdbc:
+      initialize-schema: always
+      schema: classpath:db/hsql/schema-hsqldb.sql
     job:
       enabled: false
   liquibase:

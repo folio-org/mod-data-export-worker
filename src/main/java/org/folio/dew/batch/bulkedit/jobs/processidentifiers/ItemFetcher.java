@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
+import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 
@@ -23,7 +24,6 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Log4j2
 public class ItemFetcher implements ItemProcessor<ItemIdentifier, Item> {
-
   private final InventoryClient inventoryClient;
 
   @Value("#{jobParameters['identifierType']}")
@@ -38,7 +38,7 @@ public class ItemFetcher implements ItemProcessor<ItemIdentifier, Item> {
     }
     identifiersToCheckDuplication.add(itemIdentifier);
     try {
-      var items = inventoryClient.getItemByQuery(String.format("%s==%s", resolveIdentifier(identifierType), itemIdentifier.getItemId()), 1);
+      var items = inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId()), 1);
       if (!items.getItems().isEmpty()) {
         return items.getItems().get(0);
       }

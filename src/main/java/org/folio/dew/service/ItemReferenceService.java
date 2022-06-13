@@ -78,6 +78,7 @@ public class ItemReferenceService {
   private final InstanceClient instanceClient;
   private final LoanTypeClient loanTypeClient;
   private final ConfigurationClient configurationClient;
+  private final ObjectMapper objectMapper;
 
   @Cacheable(cacheNames = "callNumberTypes")
   public CallNumberType getCallNumberTypeById(String id) {
@@ -284,7 +285,7 @@ public class ItemReferenceService {
       throw new NotFoundException("Statuses configuration was not found");
     }
     try {
-      var statuses = new ObjectMapper()
+      var statuses = objectMapper
         .readValue(configurations.getConfigs().get(0).getValue(), new TypeReference<HashMap<String, List<String>>>() {});
       return statuses.getOrDefault(statusName, Collections.emptyList());
     } catch (JsonProcessingException e) {

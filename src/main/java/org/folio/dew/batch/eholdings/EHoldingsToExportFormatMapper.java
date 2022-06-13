@@ -1,15 +1,21 @@
 package org.folio.dew.batch.eholdings;
 
 import static java.util.Objects.isNull;
-
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.stream.Collectors;
+import static java.util.Objects.nonNull;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.stereotype.Component;
-
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+import joptsimple.internal.Strings;
+import org.folio.dew.client.AgreementClient.Agreement;
 import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
 import org.folio.dew.domain.dto.eholdings.AccessTypeData;
 import org.folio.dew.domain.dto.eholdings.AlternateTitle;
@@ -20,17 +26,21 @@ import org.folio.dew.domain.dto.eholdings.EmbargoPeriod;
 import org.folio.dew.domain.dto.eholdings.Identifier;
 import org.folio.dew.domain.dto.eholdings.Identifier.SubtypeEnum;
 import org.folio.dew.domain.dto.eholdings.Identifier.TypeEnum;
+import org.folio.dew.domain.dto.eholdings.Note;
 import org.folio.dew.domain.dto.eholdings.Proxy;
 import org.folio.dew.domain.dto.eholdings.ResourcesData;
 import org.folio.dew.domain.dto.eholdings.Subject;
 import org.folio.dew.domain.dto.eholdings.Tags;
 import org.folio.dew.domain.dto.eholdings.VisibilityData;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
 
 @Component
 public class EHoldingsToExportFormatMapper {
 
   private static final String ACCESS_TYPE_INCLUDED = "accessTypes";
-
+  private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
+  public static final String PIPE_DELIMITER = " | ";
   private final ObjectMapper objectMapper = new ObjectMapper()
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -45,6 +55,37 @@ public class EHoldingsToExportFormatMapper {
     var exportFormat = new EHoldingsResourceExportFormat();
     mapPackageToExportFormat(exportFormat, ePackage);
     return exportFormat;
+  }
+
+  public List<String> convertNotes(List<Note> notes) {
+    return notes.stream()
+      .map(this::noteToString)
+      .collect(Collectors.toList());
+  }
+
+  public String convertAgreements(List<Agreement> agreements) {
+    return agreements.stream()
+      .map(this::agreementToString)
+      .collect(Collectors.joining(PIPE_DELIMITER));
+  }
+
+  @NotNull
+  private String agreementToString(Agreement agreement) {
+    return Strings.join(new String[] {agreement.getStartDate(), agreement.getName(), agreement.getStatus()}, ";");
+  }
+
+  private String noteToString(Note note) {
+    var pieces = new String[] {
+      dateToString(note.getMetadata().getUpdatedDate()),
+      note.getType(),
+      note.getTitle(),
+      note.getContent()
+    };
+    return Strings.join(pieces, ";");
+  }
+
+  private String dateToString(Date date) {
+    return nonNull(date) ? OffsetDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC).format(DATE_FORMAT) : EMPTY;
   }
 
   private void mapPackageToExportFormat(EHoldingsResourceExportFormat exportFormat, EPackage ePackage) {
@@ -106,7 +147,7 @@ public class EHoldingsToExportFormatMapper {
   }
 
   private Object getIncludedObject(List<Object> included, String type) {
-    if (isNull(included)) return null;
+    if (isNull(included)) { return null; }
     return included.stream()
       .map(LinkedHashMap.class::cast)
       .filter(o -> o.get("type").equals(type))
@@ -114,7 +155,7 @@ public class EHoldingsToExportFormatMapper {
   }
 
   private String convertBoolToStr(Boolean isTrue) {
-    if (isNull(isTrue)) return "";
+    if (isNull(isTrue)) { return ""; }
     return Boolean.TRUE.equals(isTrue) ? "Yes" : "No";
   }
 
@@ -136,12 +177,12 @@ public class EHoldingsToExportFormatMapper {
   }
 
   private String mapTags(Tags tags) {
-    if (isNull(tags)) return "";
-    return String.join(" | ", tags.getTagList());
+    if (isNull(tags)) { return ""; }
+    return String.join(PIPE_DELIMITER, tags.getTagList());
   }
 
   private String mapEmbargo(EmbargoPeriod embargo) {
-    if (embargo.getEmbargoValue() <= 0) return "";
+    if (embargo.getEmbargoValue() <= 0) { return ""; }
     return embargo.getEmbargoValue() + " " + embargo.getEmbargoUnit();
   }
 
@@ -168,25 +209,25 @@ public class EHoldingsToExportFormatMapper {
   private String mapContributors(List<Contributor> contributors) {
     return contributors.stream()
       .map(contributor -> contributor.getContributor() + " (" + contributor.getType() + ')')
-      .collect(Collectors.joining(" | "));
+      .collect(Collectors.joining(PIPE_DELIMITER));
   }
 
   private String mapSubjects(List<Subject> subjects) {
     return subjects.stream()
       .map(Subject::getSubject)
-      .collect(Collectors.joining(" | "));
+      .collect(Collectors.joining(PIPE_DELIMITER));
   }
 
   private String mapCoverage(List<Coverage> coverages) {
     return coverages.stream()
       .map(this::mapCoverage)
-      .collect(Collectors.joining(" | "));
+      .collect(Collectors.joining(PIPE_DELIMITER));
   }
 
   private String mapAlternateTitles(List<AlternateTitle> alternateTitles) {
     return alternateTitles.stream()
       .map(title -> title.getTitleType() + " - " + title.getAlternateTitle())
-      .collect(Collectors.joining(" | "));
+      .collect(Collectors.joining(PIPE_DELIMITER));
   }
 
   private String mapIdentifierId(List<Identifier> identifiers, TypeEnum type, SubtypeEnum subtype) {
@@ -194,7 +235,7 @@ public class EHoldingsToExportFormatMapper {
       .filter(identifier -> identifier.getType().equals(type))
       .filter(identifier -> identifier.getSubtype().equals(subtype))
       .map(Identifier::getId)
-      .collect(Collectors.joining(" | "));
+      .collect(Collectors.joining(PIPE_DELIMITER));
   }
 
   private String mapShowToPatrons(VisibilityData visibility) {

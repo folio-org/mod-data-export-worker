@@ -1,6 +1,9 @@
 package org.folio.dew.domain.dto;
 
+import java.util.Collections;
+import java.util.List;
 import lombok.Data;
+import org.folio.dew.domain.dto.eholdings.Note;
 
 @Data
 public class EHoldingsResourceExportFormat {
@@ -18,6 +21,8 @@ public class EHoldingsResourceExportFormat {
   private String packageProxy;
   private String packageAccessStatusType;
   private String packageTags;
+  private String packageAgreements;
+  private List<String> packageNotes = Collections.emptyList();
 
   //Title fields
   private String titleId;
@@ -52,4 +57,6 @@ public class EHoldingsResourceExportFormat {
   private String customValue4;
   private String customValue5;
   private String titleTags;
+  private String titleAgreements;
+  private List<String> titleNotes = Collections.emptyList();
 }

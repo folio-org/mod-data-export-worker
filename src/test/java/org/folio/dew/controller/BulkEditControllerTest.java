@@ -9,6 +9,7 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
+import static org.folio.dew.domain.dto.IdentifierType.FORMER_IDS;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
@@ -233,7 +234,11 @@ class BulkEditControllerTest extends BaseBatchTest {
   @SneakyThrows
   void shouldReturnCompleteItemPreview(IdentifierType identifierType) {
 
-    when(inventoryClient.getItemByQuery(String.format("%s==(123 OR 456 OR 789)", resolveIdentifier(identifierType.getValue())), 3)).thenReturn(buildItemCollection());
+    var query = FORMER_IDS == identifierType ?
+      String.format("%s=(123 OR 456 OR 789)", resolveIdentifier(identifierType.getValue())) :
+      String.format("%s==(123 OR 456 OR 789)", resolveIdentifier(identifierType.getValue()));
+
+    when(inventoryClient.getItemByQuery(query, 3)).thenReturn(buildItemCollection());
 
     var jobId = UUID.randomUUID();
     jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, ITEM, identifierType));
@@ -305,8 +310,10 @@ class BulkEditControllerTest extends BaseBatchTest {
   @EnumSource(value = IdentifierType.class, names = { "EXTERNAL_SYSTEM_ID", "USER_NAME" }, mode = EnumSource.Mode.EXCLUDE)
   @SneakyThrows
   void shouldReturnCompleteItemPreviewWithDifferentIdentifiers(IdentifierType identifierType) {
+    var query = FORMER_IDS == identifierType ?
+      String.format("%s=(123 OR 456)", resolveIdentifier(identifierType.getValue())) :
+      String.format("%s==(123 OR 456)", resolveIdentifier(identifierType.getValue()));
 
-    var query = String.format("%s==(123 OR 456)", resolveIdentifier(identifierType.getValue()));
     when(inventoryClient.getItemByQuery(query, 2)).thenReturn(buildItemCollection());
 
     var jobId = UUID.randomUUID();
@@ -759,7 +766,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Post non-supported entity type content update - BAD REQUEST")
   @SneakyThrows
   void shouldReturnBadRequestForNonSupportedEntityTypeContentUpdates() {
-    var updates = new ObjectMapper().writeValueAsString(new ContentUpdateCollection()
+    var updates = OBJECT_MAPPER.writeValueAsString(new ContentUpdateCollection()
       .entityType(USER)
       .contentUpdates(Collections.singletonList(new ContentUpdate()
         .option(ContentUpdate.OptionEnum.TEMPORARY_LOCATION)
@@ -779,7 +786,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Post invalid content updates - BAD REQUEST")
   @SneakyThrows
   void shouldReturnBadRequestForInvalidContentUpdates() {
-    var updates = new ObjectMapper().writeValueAsString(new ContentUpdateCollection()
+    var updates = OBJECT_MAPPER.writeValueAsString(new ContentUpdateCollection()
       .contentUpdates(Collections.singletonList(new ContentUpdate()
         .option(ContentUpdate.OptionEnum.TEMPORARY_LOCATION)
         .action(ContentUpdate.ActionEnum.REPLACE_WITH)))
@@ -798,7 +805,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Post empty content updates - BAD REQUEST")
   @SneakyThrows
   void shouldReturnBadRequestForEmptyContentUpdates() {
-    var updates = new ObjectMapper().writeValueAsString(new ContentUpdateCollection().entityType(ITEM).totalRecords(0));
+    var updates = OBJECT_MAPPER.writeValueAsString(new ContentUpdateCollection().entityType(ITEM).totalRecords(0));
 
     var expectedJson = "{\"errors\":[{\"message\":\"Invalid request body\",\"type\":\"-1\",\"code\":\"Validation error\",\"parameters\":[{\"key\":\"contentUpdates\",\"value\":\"size must be between 1 and 2147483647\"}]}],\"total_records\":1}";
 

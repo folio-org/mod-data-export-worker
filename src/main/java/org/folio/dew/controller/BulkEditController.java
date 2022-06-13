@@ -15,6 +15,8 @@ import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.exceptions.InvalidCsvException;
+
+import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
@@ -304,8 +306,9 @@ public class BulkEditController implements JobIdApi {
         .skip(getNumberOfLinesToSkip(jobCommand))
         .limit(limit)
         .map(line -> extractIdentifiersFromLine(line, jobCommand))
-        .collect(Collectors.joining(" OR "));
-      return format("%s==(%s)", resolveIdentifier(jobCommand.getIdentifierType().getValue()), values);
+        .collect(Collectors.joining(" OR ", "(", ")"));
+      var identifierType = jobCommand.getIdentifierType().getValue();
+      return format(getMatchPattern(identifierType), resolveIdentifier(identifierType), values);
     } catch (Exception e) {
       throw new FileOperationException(format("Failed to read %s file, reason: %s", fileName, e.getMessage()));
     }

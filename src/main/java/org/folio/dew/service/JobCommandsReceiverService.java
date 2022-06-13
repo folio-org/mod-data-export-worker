@@ -9,6 +9,7 @@ import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
 import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.domain.dto.ExportType.E_HOLDINGS;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,10 +33,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.ExportJobManagerCirculationLog;
+import org.folio.dew.batch.ExportJobManagerEHoldings;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.BursarFeeFines;
+import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.folio.dew.error.FileOperationException;
@@ -66,6 +70,7 @@ public class JobCommandsReceiverService {
   private final ObjectMapper objectMapper;
   private final ExportJobManager exportJobManager;
   private final ExportJobManagerCirculationLog exportJobManagerCirculationLog;
+  private final ExportJobManagerEHoldings exportJobManagerEHoldings;
   private final BursarExportService bursarExportService;
   private final IAcknowledgementRepository acknowledgementRepository;
   private final MinIOObjectStorageRepository remoteObjectStorageRepository;
@@ -127,18 +132,27 @@ public class JobCommandsReceiverService {
 
       var jobLaunchRequest =
         new JobLaunchRequest(
-          jobMap.get(jobCommand.getExportType().toString()),
+          jobMap.get(resolveJobKey(jobCommand)),
           jobCommand.getJobParameters());
 
       acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
       if (jobCommand.getExportType() == CIRCULATION_LOG) {
         exportJobManagerCirculationLog.launchJob(jobLaunchRequest);
+      } else if (jobCommand.getExportType() == E_HOLDINGS) {
+        exportJobManagerEHoldings.launchJob(jobLaunchRequest);
       } else {
         exportJobManager.launchJob(jobLaunchRequest);
       }
     } catch (Exception e) {
       log.error(e.toString(), e);
     }
+  }
+
+  private String resolveJobKey(JobCommand jobCommand) {
+    if (jobCommand.getExportType().equals(BULK_EDIT_QUERY)) {
+      return BULK_EDIT_QUERY + "-" + jobCommand.getEntityType();
+    }
+    return jobCommand.getExportType().toString();
   }
 
   private void prepareJobParameters(JobCommand jobCommand) {

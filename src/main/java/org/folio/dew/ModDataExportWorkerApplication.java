@@ -29,6 +29,7 @@ import org.folio.dew.client.OrdersStorageClient;
 import org.folio.dew.client.OrganizationsClient;
 import org.folio.dew.client.ProxiesForClient;
 import org.folio.dew.client.PurchaseOrderLineClient;
+import org.folio.dew.client.SearchClient;
 import org.folio.dew.client.ServicePointClient;
 import org.folio.dew.client.StatisticalCodeClient;
 import org.folio.dew.client.TransferClient;
@@ -73,7 +74,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
   LoanTypeClient.class,
   CustomFieldsClient.class,
   OkapiClient.class,
-  KbEbscoClient.class
+  KbEbscoClient.class,
+  SearchClient.class
 })
 @EnableBatchProcessing
 public class ModDataExportWorkerApplication {

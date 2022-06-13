@@ -1,4 +1,4 @@
-package org.folio.me.client;
+package org.folio.dew.client;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.core.io.InputStreamResource;

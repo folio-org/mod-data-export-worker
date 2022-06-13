@@ -72,6 +72,7 @@ public class JobCommandsReceiverService {
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   private final SearchClient searchClient;
   private final FileNameResolver fileNameResolver;
+  private final MinIOObjectStorageRepository minIOObjectStorageRepository;
   private final List<Job> jobs;
   private Map<String, Job> jobMap;
   private Map<String, JobCommand> bulkEditJobCommands;

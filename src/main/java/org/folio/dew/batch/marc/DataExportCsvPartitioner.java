@@ -1,4 +1,4 @@
-package org.folio.me.batch;
+package org.folio.dew.batch.marc;
 
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.CsvPartitioner;

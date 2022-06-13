@@ -1,4 +1,4 @@
-package org.folio.me.batch;
+package org.folio.dew.batch.marc;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -9,10 +9,10 @@ import org.springframework.batch.item.ItemProcessor;
 
 @RequiredArgsConstructor
 @Log4j2
-public class MarcAuthorityExportProcessor implements ItemProcessor<ItemIdentifier, Record> {
+public class MarcInstanceExportProcessor implements ItemProcessor<ItemIdentifier, Record> {
   @Override
   public Record process(ItemIdentifier itemIdentifier) {
-    // implementation for authorities
+    // implementation for instances
     return new RecordImpl();
   }
 }

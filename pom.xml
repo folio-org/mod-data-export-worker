@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <modules>
-        <module>marc-export</module>
-    </modules>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -16,7 +13,7 @@
     <artifactId>mod-data-export-worker</artifactId>
     <description>Data Export Worker module</description>
     <version>1.4.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <licenses>
         <license>
@@ -45,6 +42,9 @@
         <e-holdings.yaml.file>
           ${project.basedir}/src/main/resources/swagger.api/e-holdings.yaml
         </e-holdings.yaml.file>
+        <marc-export.yaml.file>
+          ${project.basedir}/src/main/resources/swagger.api/marc-export.yaml
+        </marc-export.yaml.file>
         <folio-spring-base.version>3.0.3</folio-spring-base.version>
         <folio-spring-tenant.version>1.0.0</folio-spring-tenant.version>
 
@@ -72,6 +72,7 @@
         <embedded-minio.version>2.0.16</embedded-minio.version>
         <spring-cloud-starter-bootstrap.version>3.0.4</spring-cloud-starter-bootstrap.version>
         <wiremock.version>2.27.2</wiremock.version>
+      <marc4j.version>2.9.1</marc4j.version>
       <json.version>20200518</json.version>
     </properties>
 
@@ -203,6 +204,12 @@
         <groupId>com.opencsv</groupId>
         <artifactId>opencsv</artifactId>
         <version>${opencsv.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.marc4j</groupId>
+        <artifactId>marc4j</artifactId>
+        <version>${marc4j.version}</version>
       </dependency>
 
         <!-- Test dependencies -->
@@ -460,6 +467,31 @@
                       <modelsToGenerate>
                         ReferenceNumberItem,CompositePoLine,CompositePurchaseOrder,Alert,Claim,CloseReason,Contributor,Cost,Details,Eresource,FundDistribution,License,Location,Ongoing,Physical,ProductIdentifier,ReportingCode,VendorDetail,ExportHistory,PoLine,PoLineCollection,PurchaseOrder,PurchaseOrderCollection
                       </modelsToGenerate>
+                      <generateModelTests>false</generateModelTests>
+                      <generateSupportingFiles>false</generateSupportingFiles>
+                      <generateModelDocumentation>true</generateModelDocumentation>
+                      <configOptions>
+                        <java8>true</java8>
+                        <dateLibrary>java</dateLibrary>
+                        <interfaceOnly>true</interfaceOnly>
+                      </configOptions>
+                    </configuration>
+                  </execution>
+
+                  <execution>
+                    <id>marc-export</id>
+                    <goals>
+                      <goal>generate</goal>
+                    </goals>
+                    <configuration>
+                      <inputSpec>${marc-export.yaml.file}</inputSpec>
+                      <output>${project.build.directory}/generated-sources</output>
+                      <generatorName>spring</generatorName>
+                      <modelPackage>${project.groupId}.dew.domain.dto</modelPackage>
+                      <generateApis>true</generateApis>
+                      <generateApiTests>false</generateApiTests>
+                      <generateApiDocumentation>false</generateApiDocumentation>
+                      <generateModels>true</generateModels>
                       <generateModelTests>false</generateModelTests>
                       <generateSupportingFiles>false</generateSupportingFiles>
                       <generateModelDocumentation>true</generateModelDocumentation>

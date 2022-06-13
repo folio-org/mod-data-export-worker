@@ -148,9 +148,9 @@ public class JobCommandsReceiverService {
     if ("MARC_EXPORT".equals(jobCommand.getExportType().getValue())) {
       var uploadedFilePath = jobCommand.getJobParameters().getString(FILE_NAME);
       if (nonNull(uploadedFilePath) && FilenameUtils.isExtension(uploadedFilePath, "cql")) {
-        var identifiersFileName = workDir + FilenameUtils.getBaseName(uploadedFilePath) + CSV_EXTENSION;
+        var tempIdentifiersFileName = workDir + FilenameUtils.getBaseName(uploadedFilePath) + CSV_EXTENSION;
         try (var lines = Files.lines(Path.of(uploadedFilePath));
-             var outputStream = new FileOutputStream(identifiersFileName)) {
+             var outputStream = new FileOutputStream(tempIdentifiersFileName)) {
           var query = lines.collect(Collectors.joining());
           // TODO enrich entityType.json with values INSTANCE, HOLDINGS
           InputStreamResource resource = null;
@@ -162,7 +162,9 @@ public class JobCommandsReceiverService {
           if (nonNull(resource)) {
             resource.getInputStream().transferTo(outputStream);
           }
-          paramsBuilder.addString(FILE_NAME, identifiersFileName);
+          var identifiersUrl = minIOObjectStorageRepository.objectWriteResponseToPresignedObjectUrl(
+            minIOObjectStorageRepository.uploadObject(FilenameUtils.getName(tempIdentifiersFileName), tempIdentifiersFileName, null, "text/csv", true));
+          paramsBuilder.addString(FILE_NAME, identifiersUrl);
         } catch (Exception e) {
           var msg = String.format("Failed to read %s, reason: %s", FilenameUtils.getBaseName(uploadedFilePath), e.getMessage());
           log.error(msg);

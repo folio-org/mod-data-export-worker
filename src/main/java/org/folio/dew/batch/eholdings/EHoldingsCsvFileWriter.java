@@ -116,18 +116,23 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
     for (var s : value) {
       strings.add(quoteValue(s));
     }
-    if (fieldName.equals(PACKAGE_NOTES_FIELD) && value.size() < maxPackageNotesLength) {
-      fillWithBlanks(strings, maxPackageNotesLength - value.size());
-    } else if (fieldName.equals(TITLE_NOTES_FIELD) && value.size() < maxTitleNotesLength) {
-      fillWithBlanks(strings, maxTitleNotesLength - value.size());
+    if (fieldName.equals(PACKAGE_NOTES_FIELD)) {
+      fillWithBlanks(strings, value.size(), maxPackageNotesLength);
+    } else if (fieldName.equals(TITLE_NOTES_FIELD)) {
+      fillWithBlanks(strings, value.size(), maxTitleNotesLength);
     }
     return strings;
   }
 
-  private void fillWithBlanks(List<String> strings, int blankCount) {
-    for (var i = 0; i < blankCount + 1; i++) {
+  private void fillWithBlanks(List<String> strings, int valuesSize, int maxValuesSize) {
+    if (valuesSize < maxValuesSize) {
+      for (var i = 0; i < maxValuesSize - valuesSize; i++) {
+        strings.add(EMPTY);
+      }
+    } else if (maxValuesSize == 0) {
       strings.add(EMPTY);
     }
+
   }
 
   private String quoteValue(String s) {

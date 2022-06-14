@@ -92,8 +92,7 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
     return IntStream.range(1, length + 1).boxed().map(i -> name + " " + i).collect(Collectors.toList());
   }
 
-  private String getItemRow(Integer maxPackageNotesLength, Integer maxTitleNotesLength,
-                            EHoldingsResourceExportFormat item) {
+  private String getItemRow(int maxPackageNotesLength, int maxTitleNotesLength, EHoldingsResourceExportFormat item) {
     var itemValues = new ArrayList<String>();
     var bw = new BeanWrapperImpl(item);
     for (var fieldName : fieldNames) {
@@ -111,27 +110,32 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
     return String.join(",", itemValues);
   }
 
-  private List<String> getListValue(Integer maxPackageNotesLength, Integer maxTitleNotesLength,
-                                    String fieldName, List<String> value) {
+  private List<String> getListValue(int maxPackageNotesLength, int maxTitleNotesLength, String fieldName,
+                                    List<String> value) {
     var strings = new ArrayList<String>();
     for (var s : value) {
-      strings.add(cleanupValue(s));
+      strings.add(quoteValue(s));
     }
-    if (fieldName.equals(PACKAGE_NOTES_FIELD) && value.size() < maxPackageNotesLength) {
-      fillWithBlanks(strings, maxPackageNotesLength - value.size());
-    } else if (fieldName.equals(TITLE_NOTES_FIELD) && value.size() < maxTitleNotesLength) {
-      fillWithBlanks(strings, maxTitleNotesLength - value.size());
+    if (fieldName.equals(PACKAGE_NOTES_FIELD)) {
+      fillWithBlanks(strings, value.size(), maxPackageNotesLength);
+    } else if (fieldName.equals(TITLE_NOTES_FIELD)) {
+      fillWithBlanks(strings, value.size(), maxTitleNotesLength);
     }
     return strings;
   }
 
-  private void fillWithBlanks(ArrayList<String> strings, int blankCount) {
-    for (var i = 0; i < blankCount; i++) {
+  private void fillWithBlanks(List<String> strings, int valuesSize, int maxValuesSize) {
+    if (valuesSize < maxValuesSize) {
+      for (var i = 0; i < maxValuesSize - valuesSize; i++) {
+        strings.add(EMPTY);
+      }
+    } else if (maxValuesSize == 0) {
       strings.add(EMPTY);
     }
+
   }
 
-  private String cleanupValue(String s) {
+  private String quoteValue(String s) {
     if (s.contains(COMMA) || s.contains(LINE_BREAK)) {
       s = QUOTE + s.replace(QUOTE, QUOTE_REPLACEMENT).replace(LINE_BREAK, LINE_BREAK_REPLACEMENT) + QUOTE;
     }
@@ -139,6 +143,6 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
   }
 
   private String getStringValue(String value) {
-    return cleanupValue(value);
+    return quoteValue(value);
   }
 }

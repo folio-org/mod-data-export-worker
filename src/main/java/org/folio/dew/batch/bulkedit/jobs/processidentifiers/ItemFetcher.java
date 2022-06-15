@@ -1,14 +1,14 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
+import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
-import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.InventoryClient;
-import org.folio.dew.domain.dto.Item;
+import org.folio.dew.domain.dto.IdentifierType;
+import org.folio.dew.domain.dto.ItemCollection;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -23,7 +23,7 @@ import java.util.Set;
 @StepScope
 @RequiredArgsConstructor
 @Log4j2
-public class ItemFetcher implements ItemProcessor<ItemIdentifier, Item> {
+public class ItemFetcher implements ItemProcessor<ItemIdentifier, ItemCollection> {
   private final InventoryClient inventoryClient;
 
   @Value("#{jobParameters['identifierType']}")
@@ -32,20 +32,12 @@ public class ItemFetcher implements ItemProcessor<ItemIdentifier, Item> {
   private Set<ItemIdentifier> identifiersToCheckDuplication = new HashSet<>();
 
   @Override
-  public Item process(ItemIdentifier itemIdentifier) throws BulkEditException {
+  public ItemCollection process(ItemIdentifier itemIdentifier) throws BulkEditException {
     if (identifiersToCheckDuplication.contains(itemIdentifier)) {
       throw new BulkEditException("Duplicate entry");
     }
     identifiersToCheckDuplication.add(itemIdentifier);
-    try {
-      var items = inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId()), 1);
-      if (!items.getItems().isEmpty()) {
-        return items.getItems().get(0);
-      }
-    } catch (FeignException e) {
-      // When user not found 404
-    }
-    log.error(NO_MATCH_FOUND_MESSAGE);
-    throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
+    var limit = HOLDINGS_RECORD_ID == IdentifierType.fromValue(identifierType) ? Integer.MAX_VALUE : 1;
+    return inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId()), limit);
   }
 }

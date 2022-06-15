@@ -4,6 +4,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.folio.dew.utils.Constants.CHUNKS;
+import static org.folio.dew.utils.Constants.NUMBER_OF_WRITTEN_RECORDS;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 
 import lombok.RequiredArgsConstructor;
@@ -69,6 +70,8 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
     progress.setProgress(isNull(totalCsvLines) ? 0 : calculateProgress(processed, totalCsvLines));
     progress.setSuccess(bulkEditStatisticService.getStatistic().getSuccess());
     job.setProgress(progress);
+
+    jobExecution.getExecutionContext().putLong(NUMBER_OF_WRITTEN_RECORDS, processedRecords.longValue());
 
     kafka.send(KafkaService.Topic.JOB_UPDATE, job.getId().toString(), job);
   }

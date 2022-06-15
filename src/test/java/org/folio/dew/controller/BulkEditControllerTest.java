@@ -929,6 +929,7 @@ class BulkEditControllerTest extends BaseBatchTest {
       fileName = USER == entityType ? "src/test/resources/upload/user_data.csv" : "src/test/resources/upload/item_data.csv";
     }
     params.put(FILE_NAME, new JobParameter(fileName));
+    params.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(fileName));
     jobCommand.setJobParameters(new JobParameters(params));
     return jobCommand;
   }

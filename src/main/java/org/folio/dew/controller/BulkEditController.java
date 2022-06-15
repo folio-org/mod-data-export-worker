@@ -280,7 +280,8 @@ public class BulkEditController implements JobIdApi {
       ofNullable(jobCommand.getJobParameters().getString(FILE_NAME)).ifPresent(filename -> {
         var basename = FilenameUtils.getBaseName(filename);
         if (!basename.startsWith(INITIAL_PREFIX)) {
-          jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters()).addString(FILE_NAME, filename.replace(basename, INITIAL_PREFIX + basename)).toJobParameters());
+          jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters()).addString(FILE_NAME,
+            filename.replace(basename, INITIAL_PREFIX + basename)).toJobParameters());
         }
       });
     }
@@ -301,6 +302,7 @@ public class BulkEditController implements JobIdApi {
 
   private String buildPreviewQueryFromCsv(JobCommand jobCommand, int limit) {
     var fileName = extractFileName(jobCommand);
+    if (!fileName.contains(".csv")) fileName += ".csv";
     try (var reader = new CSVReader(new FileReader(fileName))) {
       var values = reader.readAll().stream()
         .skip(getNumberOfLinesToSkip(jobCommand))
@@ -332,8 +334,13 @@ public class BulkEditController implements JobIdApi {
   }
 
   private String extractFileName(JobCommand jobCommand) {
-    return Optional.ofNullable(jobCommand.getJobParameters().getString(FILE_NAME))
+    var fileProperty = isUserUpdatePreview(jobCommand) ? TEMP_OUTPUT_FILE_PATH : FILE_NAME;
+    return Optional.ofNullable(jobCommand.getJobParameters().getString(fileProperty))
       .orElseThrow(() -> new FileOperationException("File for preview is not present or was not uploaded"));
+  }
+
+  private boolean isUserUpdatePreview(JobCommand jobCommand) {
+    return jobCommand.getExportType() == BULK_EDIT_UPDATE && jobCommand.getEntityType() == USER;
   }
 
   private int getIdentifierIndex(JobCommand jobCommand) {

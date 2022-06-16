@@ -11,8 +11,6 @@ import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESO
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,7 +102,7 @@ class EHoldingsTest extends BaseBatchTest {
     eHoldingsExportConfig.setRecordType(recordType);
     eHoldingsExportConfig.setTitleFields(getClassFields());
     eHoldingsExportConfig.setPackageFields(List.of("packageNotes", "packageAgreements"));
-    eHoldingsExportConfig.setTitleSearchFilters("filter[name]=*");
+    eHoldingsExportConfig.setTitleSearchFilters("filter[name]=*&InvalidFilter");
 
     Map<String, JobParameter> params = new HashMap<>();
     params.put("eHoldingsExportConfig", new JobParameter(objectMapper.writeValueAsString(eHoldingsExportConfig)));

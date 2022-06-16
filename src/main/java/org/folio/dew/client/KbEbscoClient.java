@@ -37,6 +37,7 @@ public interface KbEbscoClient {
     if (StringUtils.isNotBlank(filters)) {
       Arrays.stream(filters.split("&"))
         .map(param -> param.split("="))
+        .filter(ar -> ar.length == 2)
         .forEach(ar -> params.put(ar[0], ar[1]));
     }
 

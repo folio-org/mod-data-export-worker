@@ -15,6 +15,7 @@ import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.CHANGED_RECORDS;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
+import static org.folio.dew.utils.Constants.NUMBER_OF_WRITTEN_RECORDS;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
@@ -124,7 +125,8 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
         var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobId, fileName, 1_000_000);
         var statistic = bulkEditStatisticService.getStatistic();
         var totalRecords = Integer.parseInt(jobExecution.getJobParameters().getString(TOTAL_CSV_LINES));
-        progress.setTotal(totalRecords);
+        var total = jobExecution.getExecutionContext().getLong(NUMBER_OF_WRITTEN_RECORDS);
+        progress.setTotal((int) total);
         progress.setProcessed(totalRecords);
         progress.setProgress(COMPLETE_PROGRESS_VALUE);
         progress.setSuccess(statistic.getSuccess());

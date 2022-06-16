@@ -8,9 +8,9 @@ import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
+import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
-import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.CsvHelper.countLines;
 import static org.folio.dew.utils.Constants.ENTITY_TYPE;
@@ -67,6 +67,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String BARCODES_CSV = "src/test/resources/upload/barcodes.csv";
   private static final String BARCODES_FOR_PROGRESS_CSV = "src/test/resources/upload/barcodes_for_progress.csv";
   private static final String ITEM_BARCODES_CSV = "src/test/resources/upload/item_barcodes.csv";
+  private static final String ITEM_HOLDINGS_CSV = "src/test/resources/upload/item_holdings.csv";
   private static final String USER_RECORD_CSV = "src/test/resources/upload/bulk_edit_user_record.csv";
   private static final String ITEM_RECORD_CSV = "src/test/resources/upload/bulk_edit_item_record.csv";
   private static final String USER_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_user_record_not_found.csv";
@@ -99,6 +100,7 @@ class BulkEditTest extends BaseBatchTest {
   private final static String EXPECTED_BULK_EDIT_ITEM_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_item_identifiers_output_some_not_found.csv";
   private final static String EXPECTED_BULK_EDIT_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_user_identifiers_errors_output.csv";
   private final static String EXPECTED_BULK_EDIT_ITEM_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_item_identifiers_errors_output.csv";
+  private final static String EXPECTED_BULK_EDIT_ITEM_IDENTIFIERS_HOLDINGS_ERRORS_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_holdings_errors_output.csv";
 
   @Autowired
   private Job bulkEditProcessUserIdentifiersJob;
@@ -187,6 +189,20 @@ class BulkEditTest extends BaseBatchTest {
 
     // check if caching works
     wireMockServer.verify(1, getRequestedFor(urlEqualTo("/item-note-types/8d0a5eca-25de-4391-81a9-236eeefdd20b")));
+  }
+
+  @Test
+  @DisplayName("Upload item identifiers (holdingsRecordId) successfully")
+  void shouldProcessMultipleItemsOnHoldingsRecordId() throws Exception {
+
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
+
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, HOLDINGS_RECORD_ID, ITEM_HOLDINGS_CSV, true);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_ITEM_OUTPUT, EXPECTED_BULK_EDIT_ITEM_IDENTIFIERS_HOLDINGS_ERRORS_OUTPUT);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 
   @Test
@@ -360,6 +376,21 @@ class BulkEditTest extends BaseBatchTest {
   }
 
   @SneakyThrows
+  private void verifyFileOutput(JobExecution jobExecution, String output, String expectedErrorOutput) {
+    final ExecutionContext executionContext = jobExecution.getExecutionContext();
+    String fileInStorage = (String) executionContext.get("outputFilesInStorage");
+    String[] links = fileInStorage.split(";");
+    fileInStorage = links[0];
+    String errorInStorage = links[1];
+    final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
+    final FileSystemResource expectedResultWithErrors = new FileSystemResource(expectedErrorOutput);
+    assertFileEquals(expectedResultWithErrors, actualResultWithErrors);
+    final FileSystemResource actualResult = actualFileOutput(fileInStorage);
+    FileSystemResource expectedCharges = new FileSystemResource(output);
+    assertFileEquals(expectedCharges, actualResult);
+  }
+
+  @SneakyThrows
   private JobParameters prepareJobParameters(ExportType exportType, EntityType entityType, IdentifierType identifierType, String path, boolean hasOutcomeFile) {
     Map<String, JobParameter> params = new HashMap<>();
     if (hasOutcomeFile) {
@@ -409,11 +440,22 @@ class BulkEditTest extends BaseBatchTest {
     assertThat(job.getProgress().getTotal()).isEqualTo(80);
     assertThat(job.getProgress().getProcessed()).isEqualTo(100);
     assertThat(job.getProgress().getProgress()).isEqualTo(45);
+    assertThat(job.getProgress().getSuccess()).isEqualTo(80);
+    assertThat(job.getProgress().getErrors()).isZero();
 
     job = jobCaptor.getAllValues().get(2);
     assertThat(job.getProgress().getTotal()).isEqualTo(144);
     assertThat(job.getProgress().getProcessed()).isEqualTo(179);
     assertThat(job.getProgress().getProgress()).isEqualTo(90);
+    assertThat(job.getProgress().getSuccess()).isEqualTo(144);
+    assertThat(job.getProgress().getErrors()).isZero();
+
+    job = jobCaptor.getAllValues().get(3);
+    assertThat(job.getProgress().getTotal()).isEqualTo(144);
+    assertThat(job.getProgress().getProcessed()).isEqualTo(179);
+    assertThat(job.getProgress().getProgress()).isEqualTo(100);
+    assertThat(job.getProgress().getSuccess()).isEqualTo(144);
+    assertThat(job.getProgress().getErrors()).isEqualTo(35);
   }
 
 }

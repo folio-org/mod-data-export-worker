@@ -43,15 +43,18 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 @Log4j2
 public class BulkEditItemContentUpdateService {
   private String workdir;
-  private String outputFileName;
+  private Map<UUID,String> outputFileNamesMap = new HashMap<>();
   @Value("${spring.application.name}")
   private String springApplicationName;
 
@@ -65,9 +68,10 @@ public class BulkEditItemContentUpdateService {
   }
 
   public ItemUpdatesResult processContentUpdates(JobCommand jobCommand, ContentUpdateCollection contentUpdates) {
+    outputFileNamesMap.put(jobCommand.getId(), workdir + UPDATED_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION);
+    var outputFileName = outputFileNamesMap.get(jobCommand.getId());
     try {
       log.info("Processing content updates for job id {}", jobCommand.getId());
-      outputFileName = workdir + UPDATED_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       Files.deleteIfExists(Path.of(outputFileName));
       repository.downloadObject(FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION, outputFileName);
       var updateResult = new ItemUpdatesResult();
@@ -86,6 +90,7 @@ public class BulkEditItemContentUpdateService {
   }
 
   private void saveResultToFile(List<ItemFormat> itemFormats, JobCommand jobCommand) {
+    var outputFileName = outputFileNamesMap.remove(jobCommand.getId());
     try {
       CsvHelper.saveRecordsToCsv(itemFormats, ItemFormat.class, outputFileName);
       jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())

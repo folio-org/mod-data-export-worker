@@ -54,6 +54,7 @@ import java.util.List;
 
 import static org.folio.dew.utils.Constants.BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE;
 import static org.folio.dew.utils.Constants.MODULE_NAME;
+import static org.folio.dew.utils.Constants.QUOTE;
 import static org.folio.dew.utils.Constants.STATUSES_CONFIG_NAME;
 
 @Service
@@ -208,7 +209,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "locations")
   public ItemLocationCollection getItemLocationsByName(String name) {
-    return locationClient.getLocationByQuery(NAME + name);
+    return locationClient.getLocationByQuery(NAME + QUOTE + name + QUOTE);
   }
 
   public ItemLocation getLocationByName(String name) {

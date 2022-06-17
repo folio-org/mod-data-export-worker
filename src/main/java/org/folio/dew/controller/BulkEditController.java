@@ -151,7 +151,7 @@ public class BulkEditController implements JobIdApi {
         itemCollection.setTotalRecords(items.size());
         return new ResponseEntity<>(itemCollection, HttpStatus.OK);
       } catch (IOException e) {
-       log.error("Error on preview of item update for jobId {}", jobId);
+       log.error("Error on preview of item update for jobId {} - {}", jobId, e.getMessage());
       }
     }
     return new ResponseEntity<>(inventoryClient.getItemByQuery(buildPreviewQueryFromJobCommand(jobCommand, limit), limit), HttpStatus.OK);

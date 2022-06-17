@@ -10,6 +10,7 @@ import static org.folio.dew.domain.dto.ContentUpdate.OptionEnum.PERMANENT_LOCATI
 import static org.folio.dew.domain.dto.ContentUpdate.OptionEnum.STATUS;
 import static org.folio.dew.domain.dto.ContentUpdate.OptionEnum.TEMPORARY_LOCATION;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
@@ -18,6 +19,7 @@ import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
+import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 
@@ -41,7 +43,6 @@ import javax.annotation.PostConstruct;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -51,7 +52,7 @@ import java.util.Objects;
 @Log4j2
 public class BulkEditItemContentUpdateService {
   private String workdir;
-  private String outputFileName;
+
   @Value("${spring.application.name}")
   private String springApplicationName;
 
@@ -67,29 +68,31 @@ public class BulkEditItemContentUpdateService {
   public ItemUpdatesResult processContentUpdates(JobCommand jobCommand, ContentUpdateCollection contentUpdates) {
     try {
       log.info("Processing content updates for job id {}", jobCommand.getId());
-      outputFileName = workdir + UPDATED_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
+      var outputFileName = workdir + UPDATED_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       Files.deleteIfExists(Path.of(outputFileName));
       repository.downloadObject(FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION, outputFileName);
       var updateResult = new ItemUpdatesResult();
       var records = CsvHelper.readRecordsFromFile(outputFileName, ItemFormat.class, true);
       updateResult.setTotal(records.size());
-      var updatedItemFormats = applyContentUpdates(records, contentUpdates, jobCommand);
-      updateResult.setUpdated(updatedItemFormats);
-      saveResultToFile(updatedItemFormats, jobCommand);
+      var contentUpdated = applyContentUpdates(records, contentUpdates, jobCommand);
+      updateResult.setUpdated(contentUpdated.getUpdated());
+      var previewOutputFileName = workdir + PREVIEW_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
+      saveResultToFile(contentUpdated.getPreview(), jobCommand, previewOutputFileName, PREVIEW_FILE_NAME);
+      saveResultToFile(contentUpdated.getUpdated(), jobCommand, outputFileName, UPDATED_FILE_NAME);
       jobCommand.setExportType(BULK_EDIT_UPDATE);
       return updateResult;
     } catch (Exception e) {
-      var msg = String.format("Failed to read %s item records file for job id %s, reason: %s", outputFileName, jobCommand.getId(), e.getMessage());
+      var msg = String.format("Failed to read item records file for job id %s, reason: %s", jobCommand.getId(), e.getMessage());
       log.error(msg);
       throw new FileOperationException(msg);
     }
   }
 
-  private void saveResultToFile(List<ItemFormat> itemFormats, JobCommand jobCommand) {
+  private void saveResultToFile(List<ItemFormat> itemFormats, JobCommand jobCommand, String outputFileName, String propertyValue) {
     try {
       CsvHelper.saveRecordsToCsv(itemFormats, ItemFormat.class, outputFileName);
       jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())
-        .addString(UPDATED_FILE_NAME, outputFileName)
+        .addString(propertyValue, outputFileName)
         .toJobParameters());
     } catch (Exception e) {
       var msg = String.format("Failed to write %s item records file for job id %s, reason: %s", outputFileName, jobCommand.getId(), e.getMessage());
@@ -98,8 +101,8 @@ public class BulkEditItemContentUpdateService {
     }
   }
 
-  private List<ItemFormat> applyContentUpdates(List<ItemFormat> itemFormats, ContentUpdateCollection contentUpdates, JobCommand jobCommand) {
-    List<ItemFormat> result = new ArrayList<>();
+  private ContentUpdateRecords applyContentUpdates(List<ItemFormat> itemFormats, ContentUpdateCollection contentUpdates, JobCommand jobCommand) {
+    var result = new ContentUpdateRecords();
     for (ItemFormat itemFormat: itemFormats) {
       var updatedItemFormat = itemFormat;
       boolean isStatusUpdatingExist = false;
@@ -111,9 +114,11 @@ public class BulkEditItemContentUpdateService {
         if (isLocationChange(contentUpdates)) {
           updateEffectiveLocation(updatedItemFormat);
         }
-        result.add(updatedItemFormat);
+        result.addToUpdated(updatedItemFormat);
+        result.addToPreview(updatedItemFormat);
       } else {
         if (isStatusUpdatingErrorNotExist(isStatusUpdatingExist, itemFormat, updatedItemFormat)) {
+          result.addToPreview(itemFormat);
           var msg = NO_CHANGE_MESSAGE;
           log.error(msg);
           errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));

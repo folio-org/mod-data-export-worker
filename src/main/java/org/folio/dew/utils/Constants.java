@@ -13,6 +13,7 @@ public class Constants {
   public static final String MATCHED_RECORDS = "-Matched-Records-";
   public static final String CHANGED_RECORDS = "-Changed-Records-";
   public static final String UPDATED_PREFIX = "UPDATED-";
+  public static final String PREVIEW_PREFIX = "PREVIEW-";
   public static final String INITIAL_PREFIX = "INITIAL-";
   public static final String CSV_EXTENSION = ".csv";
 
@@ -29,6 +30,7 @@ public class Constants {
   public static final String IDENTIFIER_TYPE = "identifierType";
   public static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss.SSSX";
 
+
   public static final String LINE_BREAK = "\n";
   public static final String LINE_BREAK_REPLACEMENT = "\\n";
   public static final String COMMA = ",";
@@ -42,4 +44,6 @@ public class Constants {
   public static final String STATUSES_CONFIG_NAME = "statuses";
   public static final String BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE = "module==%s and configName==%s";
   public static final String FILE_UPLOAD_ERROR = "Cannot upload a file. Reason: %s.";
+
+  public static final String PREVIEWED = "previed";
 }

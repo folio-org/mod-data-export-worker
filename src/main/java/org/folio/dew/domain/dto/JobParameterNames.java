@@ -13,6 +13,7 @@ public class JobParameterNames {
   public static final String OUTPUT_FILES_IN_STORAGE = "outputFilesInStorage";
   public static final String TOTAL_RECORDS = "totalRecords";
   public static final String UPDATED_FILE_NAME = "updatedFileName";
+  public static final String PREVIEW_FILE_NAME = "previewFileName";
   public static final String QUERY = "query";
 
 }

@@ -37,12 +37,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.BaseBatchTest;
-import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.*;
@@ -582,7 +580,7 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andExpect(status().isOk())
       .andReturn();
 
-    var expectedCsv = new FileSystemResource(testData.getExpectedCsvPath());
+    var expectedCsv = new FileSystemResource(testData.getExpectedPreviewCsvPath());
     var actualCsvByteArr = response.getResponse().getContentAsByteArray();
     Path actualDownloadedCsvTmp = Paths.get("actualDownloaded.csv");
     Files.write(actualDownloadedCsvTmp, actualCsvByteArr);

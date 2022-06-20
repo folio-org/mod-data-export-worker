@@ -1,5 +1,6 @@
 package org.folio.dew.service;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import org.folio.spring.liquibase.FolioSpringLiquibase;
 import org.folio.spring.service.TenantService;
 import org.folio.tenant.domain.dto.TenantAttributes;
 
+@Log4j2
 @Service
 @Primary
 public class FolioTenantService extends TenantService {
@@ -29,8 +31,12 @@ public class FolioTenantService extends TenantService {
 
   @Override
   protected void afterTenantUpdate(TenantAttributes tenantAttributes) {
-    kafkaService.createKafkaTopics();
-    kafkaService.restartEventListeners();
-    configurationService.checkBulkEditConfiguration();
+    try {
+      kafkaService.createKafkaTopics();
+      kafkaService.restartEventListeners();
+      configurationService.checkBulkEditConfiguration();
+    } catch (Exception e) {
+      log.error(e.getMessage(), e);
+    }
   }
 }

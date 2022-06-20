@@ -21,9 +21,10 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 class TenantControllerTest extends BaseBatchTest {
+
   @Test
   @SneakyThrows
-  void canDeleteTenantTest() {
+  void canDisableTenantTest() {
     var headers = defaultHeaders();
     headers.put(XOkapiHeaders.TENANT, List.of("test_tenant"));
 
@@ -31,7 +32,7 @@ class TenantControllerTest extends BaseBatchTest {
       .headers(headers)
       .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
 
-    mockMvc.perform(delete("/_/tenant/test_tenant")
+    mockMvc.perform(post("/_/tenant").content(asJsonString(new TenantAttributes().purge(true)))
       .headers(headers)
       .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
   }

@@ -91,11 +91,6 @@ public class UserReferenceService {
     return userClient.getUserByQuery("username=" + name);
   }
 
-  @Cacheable(cacheNames = "users")
-  public UserCollection getUsersById(String id) {
-    return userClient.getUserByQuery("id==" + id);
-  }
-
   @Cacheable(cacheNames = "customFields")
   public CustomField getCustomFieldByRefId(String refId) {
 

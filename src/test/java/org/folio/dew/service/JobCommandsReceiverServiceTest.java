@@ -36,7 +36,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
     jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
 
-    verify(exportJobManagerCirculationLog, times(1)).launchJob(any());
+    verify(exportJobManagerSync, times(1)).launchJob(any());
 
     final Acknowledgment savedAcknowledgment = repository.getAcknowledgement(id.toString());
 
@@ -53,7 +53,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
     jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
 
-    verify(exportJobManagerEHoldings, times(1)).launchJob(any());
+    verify(exportJobManagerSync, times(1)).launchJob(any());
 
     final Acknowledgment savedAcknowledgment = repository.getAcknowledgement(id.toString());
 

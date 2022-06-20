@@ -6,7 +6,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,23 +32,6 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createStartCirculationLogJobRequest(id);
-
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
-
-    verify(exportJobManagerSync, times(1)).launchJob(any());
-
-    final Acknowledgment savedAcknowledgment = repository.getAcknowledgement(id.toString());
-
-    assertNotNull(savedAcknowledgment);
-  }
-
-  @Test
-  @DisplayName("Start BulkEdit job by kafka request")
-  void startBulkEditJobTest() throws JobExecutionException {
-    doNothing().when(acknowledgment).acknowledge();
-
-    UUID id = UUID.randomUUID();
-    JobCommand jobCommand = createBulkEditJobRequest(id);
 
     jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
 
@@ -97,20 +79,6 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     jobCommand.setName(ExportType.CIRCULATION_LOG.toString());
     jobCommand.setDescription("Start job test desc");
     jobCommand.setExportType(ExportType.CIRCULATION_LOG);
-
-    Map<String, JobParameter> params = new HashMap<>();
-    params.put("query", new JobParameter(""));
-    jobCommand.setJobParameters(new JobParameters(params));
-    return jobCommand;
-  }
-
-  private JobCommand createBulkEditJobRequest(UUID id) {
-    JobCommand jobCommand = new JobCommand();
-    jobCommand.setType(JobCommand.Type.START);
-    jobCommand.setId(id);
-    jobCommand.setName(ExportType.BULK_EDIT_IDENTIFIERS.toString());
-    jobCommand.setDescription("Start job test desc");
-    jobCommand.setExportType(ExportType.BULK_EDIT_IDENTIFIERS);
 
     Map<String, JobParameter> params = new HashMap<>();
     params.put("query", new JobParameter(""));

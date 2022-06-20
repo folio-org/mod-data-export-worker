@@ -117,7 +117,7 @@ public class JobCommandsReceiverService {
       log.info("-----------------------------JOB---STARTS-----------------------------");
 
       prepareJobParameters(jobCommand);
-
+      System.out.println("here played");
       if (Set.of(BULK_EDIT_IDENTIFIERS, BULK_EDIT_QUERY, BULK_EDIT_UPDATE).contains(jobCommand.getExportType())) {
         addBulkEditJobCommand(jobCommand);
         if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
@@ -132,7 +132,7 @@ public class JobCommandsReceiverService {
           jobCommand.getJobParameters());
 
       acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-      if (jobCommand.getExportType() == CIRCULATION_LOG || jobCommand.getExportType() == E_HOLDINGS || isBulkEditJob(jobCommand)) {
+      if (jobCommand.getExportType() == CIRCULATION_LOG || jobCommand.getExportType() == E_HOLDINGS) {
         exportJobManagerSync.launchJob(jobLaunchRequest);
       } else {
         exportJobManager.launchJob(jobLaunchRequest);
@@ -140,12 +140,6 @@ public class JobCommandsReceiverService {
     } catch (Exception e) {
       log.error(e.toString(), e);
     }
-  }
-
-  private boolean isBulkEditJob(JobCommand jobCommand) {
-    return jobCommand.getExportType() == BULK_EDIT_IDENTIFIERS ||
-      jobCommand.getExportType() == BULK_EDIT_QUERY ||
-      jobCommand.getExportType() == BULK_EDIT_UPDATE;
   }
 
   private String resolveJobKey(JobCommand jobCommand) {

@@ -123,7 +123,7 @@ public class BulkEditParseService {
   }
 
   private void populateUserFields(User user, UserFormat userFormat) {
-    user.setId(userFormat.getId());
+    user.setId(checkId(userFormat.getId()));
     user.setUsername(userFormat.getUsername());
     user.setExternalSystemId(isBlank(userFormat.getExternalSystemId()) ? null : userFormat.getExternalSystemId());
     user.setBarcode(isBlank(userFormat.getBarcode()) ? null : userFormat.getBarcode());
@@ -139,6 +139,14 @@ public class BulkEditParseService {
     user.setUpdatedDate(getDate(userFormat.getUpdatedDate()));
     user.setTags(getTags(userFormat));
     user.setCustomFields(getCustomFields(userFormat));
+  }
+
+  private String checkId(String id) {
+    var users = userReferenceService.getUsersById(id);
+    if (users.getUsers().isEmpty()) {
+      throw new BulkEditException(String.format("User with id=%s does not exist", id));
+    }
+    return id;
   }
 
   private boolean getIsActive(UserFormat userFormat) {

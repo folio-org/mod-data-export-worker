@@ -1,6 +1,9 @@
 package org.folio.dew.service;
 
+import java.sql.ResultSet;
+
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -38,5 +41,21 @@ public class FolioTenantService extends TenantService {
     } catch (Exception e) {
       log.error(e.getMessage(), e);
     }
+  }
+
+  /**
+   * Implemented by HSQLDB way
+   * Check if the tenant exists (by way of its database schema)
+   * @return if the tenant's database schema exists
+   */
+  @Override
+  protected boolean tenantExists() {
+    return BooleanUtils.isTrue(
+      jdbcTemplate.query(
+        "SELECT EXISTS(SELECT 1 FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?)",
+        (ResultSet resultSet) -> resultSet.next() && resultSet.getBoolean(1),
+        getSchemaName()
+      )
+    );
   }
 }

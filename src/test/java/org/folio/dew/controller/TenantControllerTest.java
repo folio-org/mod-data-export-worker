@@ -3,22 +3,23 @@ package org.folio.dew.controller;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.folio.dew.utils.Constants.MODULE_NAME;
-import static org.folio.dew.utils.Constants.STATUSES_CONFIG_NAME;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import static org.folio.dew.utils.Constants.MODULE_NAME;
+import static org.folio.dew.utils.Constants.STATUSES_CONFIG_NAME;
+
+import java.util.List;
+
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.Test;
+
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.domain.dto.ModelConfiguration;
 import org.folio.dew.service.BulkEditConfigurationService;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.folio.tenant.domain.dto.TenantAttributes;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 class TenantControllerTest extends BaseBatchTest {
 

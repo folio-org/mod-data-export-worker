@@ -18,7 +18,7 @@ application:
     size: ${BUCKET_SIZE:50}
   datasource:
     driver: org.hsqldb.jdbcDriver
-    jdbc-url: jdbc:hsqldb:mem:testdb;sql.enforce_strict_size=true;hsqldb.tx=mvcc
+    jdbc-url: jdbc:hsqldb:mem:testdb;sql.enforce_strict_size=true;hsqldb.tx=mvcc;sql.syntax_pgs=true
     username: sa
     password:
     max-pool-size: 20

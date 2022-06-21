@@ -11,6 +11,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.error.BulkEditException;
+import org.folio.dew.service.BulkEditChangedRecordsService;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.BulkEditStatisticService;
@@ -37,6 +38,7 @@ public class BulkEditUpdateUserRecordsWriter implements ItemWriter<User> {
   private final BulkEditRollBackService bulkEditRollBackService;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   private final BulkEditStatisticService bulkEditStatisticService;
+  private final BulkEditChangedRecordsService changedRecordsService;
 
   @Override
   public void write(List<? extends User> items) throws Exception {
@@ -49,6 +51,7 @@ public class BulkEditUpdateUserRecordsWriter implements ItemWriter<User> {
       } catch (Exception e) {
         log.info("Cannot update user with id {}. Reason: {}",  user.getId(), e.getMessage());
         bulkEditProcessingErrorsService.saveErrorInCSV(jobId, user.getBarcode(), new BulkEditException(e.getMessage()), FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
+        changedRecordsService.removeUserId(user.getId(), jobId);
       }
     });
   }

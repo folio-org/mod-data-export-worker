@@ -1,5 +1,6 @@
 package org.folio.dew;
 
+import org.folio.dew.batch.ExportJobManagerSync;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -17,8 +18,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.folio.dew.batch.ExportJobManager;
-import org.folio.dew.batch.ExportJobManagerCirculationLog;
-import org.folio.dew.batch.ExportJobManagerEHoldings;
 import org.folio.dew.repository.InMemoryAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.service.JobCommandsReceiverService;
@@ -90,11 +89,8 @@ public abstract class BaseBatchTest {
   @Qualifier("exportJobManager")
   protected ExportJobManager exportJobManager;
   @MockBean
-  @Qualifier("exportJobManagerCirculationLog")
-  protected ExportJobManagerCirculationLog exportJobManagerCirculationLog;
-  @MockBean
-  @Qualifier("exportJobManagerEHoldings")
-  protected ExportJobManagerEHoldings exportJobManagerEHoldings;
+  @Qualifier("exportJobManagerSync")
+  protected ExportJobManagerSync exportJobManagerSync;
   @MockBean
   protected Acknowledgment acknowledgment;
 

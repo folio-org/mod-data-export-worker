@@ -19,6 +19,9 @@ import org.folio.tenant.domain.dto.TenantAttributes;
 @Primary
 public class FolioTenantService extends TenantService {
 
+  private static final String EXIST_SQL =
+    "SELECT EXISTS(SELECT 1 FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?)";
+
   private final KafkaService kafkaService;
   private final BulkEditConfigurationService configurationService;
 
@@ -51,8 +54,7 @@ public class FolioTenantService extends TenantService {
   @Override
   protected boolean tenantExists() {
     return BooleanUtils.isTrue(
-      jdbcTemplate.query(
-        "SELECT EXISTS(SELECT 1 FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?)",
+      jdbcTemplate.query(EXIST_SQL,
         (ResultSet resultSet) -> resultSet.next() && resultSet.getBoolean(1),
         getSchemaName()
       )

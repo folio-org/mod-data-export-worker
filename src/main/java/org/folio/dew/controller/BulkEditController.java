@@ -14,6 +14,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.QUERY;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.exceptions.InvalidCsvException;
@@ -306,7 +307,7 @@ public class BulkEditController implements JobIdApi {
 
   private String buildPreviewQueryFromCsv(JobCommand jobCommand, int limit) {
     var fileName = extractFileName(jobCommand);
-    Optional.ofNullable(fileName).orElseThrow(() -> new FileOperationException("File for preview is not present or was not uploaded"));
+    if (StringUtils.isEmpty(fileName)) throw new FileOperationException("File for preview is not present or was not uploaded");
     if (!fileName.contains(CSV_EXTENSION)) fileName += CSV_EXTENSION;
     try (var reader = new CSVReader(new FileReader(fileName))) {
       var values = reader.readAll().stream()

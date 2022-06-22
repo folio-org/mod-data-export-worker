@@ -6,6 +6,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
+import org.folio.dew.service.BulkEditChangedRecordsService;
 import org.folio.dew.service.BulkEditParseService;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.springframework.batch.core.JobExecution;
@@ -32,11 +33,14 @@ public class BulkEditUpdateUserRecordsProcessor implements ItemProcessor<UserFor
 
   private final BulkEditParseService bulkEditParseService;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
+  private final BulkEditChangedRecordsService changedRecordsService;
 
   @Override
   public User process(UserFormat userFormat) throws Exception {
     try {
-      return bulkEditParseService.mapUserFormatToUser(userFormat);
+      var user = bulkEditParseService.mapUserFormatToUser(userFormat);
+      changedRecordsService.addUserId(user.getId(), jobId);
+      return user;
     } catch (Exception e) {
       log.info("Error process user format {} : {}",  userFormat.getId(), e.getMessage());
       bulkEditProcessingErrorsService.saveErrorInCSV(jobId, userFormat.getBarcode(), new BulkEditException(e.getMessage()), FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));

@@ -29,7 +29,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/locations?query=name%3D%3DMain%20Library"
+        "url": "/locations?query=name%3D%3D%22Main%20Library%22"
       },
       "response": {
         "status": 200,
@@ -42,7 +42,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/locations?query=name%3D%3DMainLibrary"
+        "url": "/locations?query=name%3D%3D%22MainLibrary%22"
       },
       "response": {
         "status": 200,
@@ -55,7 +55,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/locations?query=name%3D%3DAnnex"
+        "url": "/locations?query=name%3D%3D%22Annex%22"
       },
       "response": {
         "status": 200,

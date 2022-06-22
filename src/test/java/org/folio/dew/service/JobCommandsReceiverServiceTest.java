@@ -6,7 +6,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +35,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
     jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
 
-    verify(exportJobManagerCirculationLog, times(1)).launchJob(any());
+    verify(exportJobManagerSync, times(1)).launchJob(any());
 
     final Acknowledgment savedAcknowledgment = repository.getAcknowledgement(id.toString());
 
@@ -53,7 +52,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
     jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
 
-    verify(exportJobManagerEHoldings, times(1)).launchJob(any());
+    verify(exportJobManagerSync, times(1)).launchJob(any());
 
     final Acknowledgment savedAcknowledgment = repository.getAcknowledgement(id.toString());
 

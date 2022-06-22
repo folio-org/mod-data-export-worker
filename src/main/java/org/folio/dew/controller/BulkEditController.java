@@ -5,6 +5,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import org.folio.dew.batch.ExportJobManagerSync;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
@@ -108,7 +109,7 @@ public class BulkEditController implements JobIdApi {
   private final UserClient userClient;
   private final InventoryClient inventoryClient;
   private final JobCommandsReceiverService jobCommandsReceiverService;
-  private final ExportJobManager exportJobManager;
+  private final ExportJobManagerSync exportJobManagerSync;
   private final BulkEditRollBackService bulkEditRollBackService;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   private final List<Job> jobs;
@@ -196,7 +197,7 @@ public class BulkEditController implements JobIdApi {
         var job = getBulkEditJob(jobCommand);
         var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
         log.info("Launching bulk edit user identifiers job.");
-        exportJobManager.launchJob(jobLaunchRequest);
+        exportJobManagerSync.launchJob(jobLaunchRequest);
       }
       var numberOfLines = jobCommand.getJobParameters().getLong(TOTAL_CSV_LINES);
       return new ResponseEntity<>(Long.toString(isNull(numberOfLines) ? 0 : numberOfLines), HttpStatus.OK);
@@ -220,7 +221,7 @@ public class BulkEditController implements JobIdApi {
     var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
     try {
       log.info("Launching bulk-edit job.");
-      var execution = exportJobManager.launchJob(jobLaunchRequest);
+      var execution = exportJobManagerSync.launchJob(jobLaunchRequest);
       if (isBulkEditUpdate(jobCommand)) {
         bulkEditRollBackService.putExecutionInfoPerJob(execution.getId(), jobId);
       }

@@ -3,8 +3,8 @@ package org.folio.dew.batch;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
-import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
@@ -15,7 +15,6 @@ import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.CHANGED_RECORDS;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
-import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 
@@ -28,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,11 +35,14 @@ import org.folio.de.entity.Job;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.Progress;
+import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.dew.service.BulkEditChangedRecordsService;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditStatisticService;
+import org.folio.dew.utils.CsvHelper;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
@@ -62,6 +65,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
   private final MinIOObjectStorageRepository repository;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   private final BulkEditStatisticService bulkEditStatisticService;
+  private final BulkEditChangedRecordsService changedRecordsService;
 
   @Override
   public void beforeJob(JobExecution jobExecution) {
@@ -90,7 +94,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       if (isBulkEditUpdateJob(jobExecution)) {
         handleProcessingChangedRecords(jobExecution);
       }
-      if (jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue())) {
+      if (isBulkEditUpdateJob(jobExecution)) {
         String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
         var isChangedRecordsLinkPresent = jobExecution.getExecutionContext().containsKey(OUTPUT_FILES_IN_STORAGE);
         jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE,
@@ -100,20 +104,18 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       }
       processJobAfter(jobId, jobParameters);
     } else {
-      ofNullable(jobExecution.getJobInstance().getJobName()).ifPresent(jobName -> {
-        if (jobName.contains(BULK_EDIT_UPDATE.getValue())) {
-          try {
-            String updatedFilePath = jobExecution.getJobParameters().getString(UPDATED_FILE_NAME);
-            String filePath = requireNonNull(isNull(updatedFilePath) ? jobExecution.getJobParameters().getString(FILE_NAME) : updatedFilePath);
-            int totalUsers = (int) Files.lines(Paths.get(filePath)).count() - 1;
-            jobExecution.getExecutionContext().putLong(TOTAL_RECORDS, totalUsers);
-          } catch (IOException | NullPointerException e) {
-            String msg = String.format("Couldn't open a required for the job file. File path '%s'", FILE_NAME);
-            log.debug(msg);
-            throw new BulkEditException(msg);
-          }
+      if (jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue())) {
+        String updatedFilePath = jobExecution.getJobParameters().getString(UPDATED_FILE_NAME);
+        String filePath = requireNonNull(isNull(updatedFilePath) ? jobExecution.getJobParameters().getString(FILE_NAME) : updatedFilePath);
+        try (var lines = Files.lines(Paths.get(filePath))) {
+          int totalUsers = (int) lines.count() - 1;
+          jobExecution.getExecutionContext().putLong(TOTAL_RECORDS, totalUsers);
+        } catch (NullPointerException e) {
+          String msg = String.format("Couldn't open a required for the job file. File path '%s'", FILE_NAME);
+          log.debug(msg);
+          throw new BulkEditException(msg);
         }
-      });
+      }
     }
 
     var jobExecutionUpdate = createJobExecutionUpdate(jobId, jobExecution);
@@ -123,7 +125,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
         var fileName = FilenameUtils.getName(jobParameters.getString(FILE_NAME));
         var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobId, fileName, 1_000_000);
         var statistic = bulkEditStatisticService.getStatistic();
-        var totalRecords = Integer.parseInt(jobExecution.getJobParameters().getString(TOTAL_CSV_LINES));
+        var totalRecords = statistic.getSuccess() + errors.getTotalRecords();
         progress.setTotal(totalRecords);
         progress.setProcessed(totalRecords);
         progress.setProgress(COMPLETE_PROGRESS_VALUE);
@@ -239,7 +241,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
   private String saveResult(JobExecution jobExecution) {
     var path = preparePath(jobExecution);
     try {
-      if (noRecordsFound(path)) {
+      if (isEmpty(path) || noRecordsFound(path)) {
         return EMPTY; // To prevent downloading empty file.
       }
       return repository.objectWriteResponseToPresignedObjectUrl(
@@ -253,7 +255,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     if (isBulkEditContentUpdateJob(jobExecution)) {
       return jobExecution.getJobParameters().getString(UPDATED_FILE_NAME);
     } else if (isBulkEditUpdateJob(jobExecution)) {
-      return jobExecution.getJobParameters().getString(FILE_NAME);
+      return prepareChangedUsersFile(jobExecution.getJobParameters().getString(FILE_NAME), jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID));
     }
     return jobExecution.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH);
   }
@@ -275,6 +277,23 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       return null;
     }
     return FilenameUtils.getName(path).replace(MATCHED_RECORDS, CHANGED_RECORDS).replace(UPDATED_PREFIX, EMPTY);
+  }
+
+  private String prepareChangedUsersFile(String path, String jobId) {
+    var updatedIds = changedRecordsService.fetchChangedUserIds(jobId);
+    if (isNull(updatedIds) || updatedIds.isEmpty()) {
+      return EMPTY;
+    }
+    try {
+      var updatedUserFormats = CsvHelper.readRecordsFromFile(path, UserFormat.class, true)
+        .stream()
+        .filter(userFormat -> updatedIds.contains(userFormat.getId()))
+        .collect(Collectors.toList());
+      CsvHelper.saveRecordsToCsv(updatedUserFormats, UserFormat.class, path);
+    } catch (Exception e) {
+      log.error("Error processing file {}: {}", path, e.getMessage());
+    }
+    return path;
   }
 
 }

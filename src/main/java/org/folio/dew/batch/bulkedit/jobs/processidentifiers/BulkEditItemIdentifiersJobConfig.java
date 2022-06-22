@@ -5,9 +5,9 @@ import static org.folio.dew.utils.Constants.CHUNKS;
 import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
 import lombok.RequiredArgsConstructor;
-import org.folio.dew.batch.CsvWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
-import org.folio.dew.batch.bulkedit.jobs.BulkEditItemProcessor;
+import org.folio.dew.batch.CsvListWriter;
+import org.folio.dew.batch.bulkedit.jobs.BulkEditItemListProcessor;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.domain.dto.ItemIdentifier;
@@ -27,21 +27,22 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
 public class BulkEditItemIdentifiersJobConfig {
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
-  private final BulkEditItemProcessor bulkEditItemProcessor;
+  private final BulkEditItemListProcessor bulkEditItemListProcessor;
   private final ItemFetcher itemFetcher;
   private final BulkEditSkipListener bulkEditSkipListener;
 
   @Bean
   @StepScope
-  public FlatFileItemWriter<ItemFormat> csvItemWriter(
+  public FlatFileItemWriter<List<ItemFormat>> csvListWriter(
     @Value("#{jobParameters['tempOutputFilePath']}") String outputFileName) {
-    return new CsvWriter<>(outputFileName, ItemFormat.getItemColumnHeaders(), ItemFormat.getItemFieldsArray(), (field, i) -> field);
+    return new CsvListWriter<>(outputFileName, ItemFormat.getItemColumnHeaders(), ItemFormat.getItemFieldsArray(), (field, i) -> field);
   }
 
   @Bean
@@ -57,10 +58,10 @@ public class BulkEditItemIdentifiersJobConfig {
 
   @Bean
   public Step bulkEditItemStep(FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader,
-      FlatFileItemWriter<ItemFormat> csvItemWriter,
-      IdentifiersWriteListener<ItemFormat> identifiersWriteListener) {
+    FlatFileItemWriter<List<ItemFormat>> csvListWriter,
+    ListIdentifiersWriteListener<ItemFormat> listIdentifiersWriteListener) {
     return stepBuilderFactory.get("bulkEditItemStep")
-      .<ItemIdentifier, ItemFormat> chunk(CHUNKS)
+      .<ItemIdentifier, List<ItemFormat>> chunk(CHUNKS)
       .reader(csvItemIdentifierReader)
       .processor(identifierItemProcessor())
       .faultTolerant()
@@ -68,15 +69,15 @@ public class BulkEditItemIdentifiersJobConfig {
       .processorNonTransactional() // Required to avoid repeating BulkEditItemProcessor#process after skip.
       .skip(BulkEditException.class)
       .listener(bulkEditSkipListener)
-      .writer(csvItemWriter)
-      .listener(identifiersWriteListener)
+      .writer(csvListWriter)
+      .listener(listIdentifiersWriteListener)
       .build();
   }
 
   @Bean
-  public CompositeItemProcessor<ItemIdentifier, ItemFormat> identifierItemProcessor() {
-    var processor = new CompositeItemProcessor<ItemIdentifier, ItemFormat>();
-    processor.setDelegates(Arrays.asList(itemFetcher, bulkEditItemProcessor));
+  public CompositeItemProcessor<ItemIdentifier, List<ItemFormat>> identifierItemProcessor() {
+    var processor = new CompositeItemProcessor<ItemIdentifier, List<ItemFormat>>();
+    processor.setDelegates(Arrays.asList(itemFetcher, bulkEditItemListProcessor));
     return processor;
   }
 }

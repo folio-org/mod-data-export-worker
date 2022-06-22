@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 public class ContentUpdateRecords {
 
-  private List<ItemFormat> updated = new ArrayList();
+  private List<ItemFormat> updated = new ArrayList<>();
   private List<ItemFormat> preview = new ArrayList<>();
 
   public void addToUpdated(ItemFormat itemFormat) {

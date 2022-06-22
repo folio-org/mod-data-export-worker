@@ -286,7 +286,7 @@ public class BulkEditController implements JobIdApi {
   }
 
   private ItemCollection prepareItemContentUpdateResponse(ItemUpdatesResult updatesResult, Integer limit) {
-      var items = updatesResult.getUpdated().stream()
+      var items = updatesResult.getItemsForUpdate().stream()
         .limit(isNull(limit) ? Integer.MAX_VALUE : limit)
         .map(bulkEditParseService::mapItemFormatToItem)
         .collect(Collectors.toList());

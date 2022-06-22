@@ -53,7 +53,7 @@ public enum ItemsContentUpdateTestData {
   final ContentUpdate.OptionEnum option;
   final ContentUpdate.ActionEnum action;
   final String value;
-  final String expectedJsonPath;
+  final String expectedPreviewJsonPath;
   final String expectedCsvPath;
   final String expectedPreviewCsvPath;
 }

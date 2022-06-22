@@ -10,5 +10,5 @@ import java.util.List;
 @Getter
 public class ItemUpdatesResult {
   private int total;
-  private List<ItemFormat> updated;
+  private List<ItemFormat> itemsForUpdate;
 }

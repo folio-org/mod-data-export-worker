@@ -27,7 +27,6 @@ import static org.folio.dew.utils.Constants.FILE_UPLOAD_ERROR;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
-import static org.folio.dew.utils.Constants.PREVIEWED;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.CsvHelper.countLines;
@@ -142,18 +141,6 @@ public class BulkEditController implements JobIdApi {
 
   @Override public ResponseEntity<ItemCollection> getPreviewItemsByJobId(UUID jobId, Integer limit) {
     var jobCommand = getJobCommandById(jobId.toString());
-    if (isNeedToReadItemPreviewFromFile(jobCommand)) {
-      var previewFilePath = jobCommand.getJobParameters().getString(PREVIEW_FILE_NAME);
-      try {
-        var items = getItemsFromTheFile(previewFilePath);
-        var itemCollection = new ItemCollection();
-        itemCollection.setItems(items);
-        itemCollection.setTotalRecords(items.size());
-        return new ResponseEntity<>(itemCollection, HttpStatus.OK);
-      } catch (IOException e) {
-       log.error("Error on preview of item update for jobId {} - {}", jobId, e.getMessage());
-      }
-    }
     return new ResponseEntity<>(inventoryClient.getItemByQuery(buildPreviewQueryFromJobCommand(jobCommand, limit), limit), HttpStatus.OK);
   }
 
@@ -234,8 +221,6 @@ public class BulkEditController implements JobIdApi {
       log.info("Launching bulk-edit job.");
       var execution = exportJobManager.launchJob(jobLaunchRequest);
       if (isBulkEditUpdate(jobCommand)) {
-        jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters()).addString(PREVIEWED,
-            "true").toJobParameters());
         bulkEditRollBackService.putExecutionInfoPerJob(execution.getId(), jobId);
       }
     } catch (Exception e) {
@@ -353,32 +338,8 @@ public class BulkEditController implements JobIdApi {
     return 0;
   }
 
-  private boolean isNeedToReadItemPreviewFromFile(JobCommand jobCommand) {
-    return isItemUpdatePreview(jobCommand) && jobCommand.getJobParameters().getString(PREVIEWED) == null;
-  }
-
-  private List<Item> getItemsFromTheFile(String filePath) throws IOException {
-    try (var csvReader = new InputStreamReader(Files.newInputStream(Path.of(filePath)))) {
-      return new CsvToBeanBuilder<ItemFormat>(csvReader)
-        .withType(ItemFormat.class)
-        .withFilter(line -> {
-          if (line.length != ItemFormat.getItemFieldsArray().length) {
-            throw new InvalidCsvException("Number of tokens does not correspond to the number of user fields.");
-          }
-          return true;
-        })
-        .withSkipLines(1)
-        .build()
-        .parse()
-        .stream()
-        .map(bulkEditParseService::mapItemFormatToItem)
-        .collect(Collectors.toList());
-    }
-  }
-
   private String extractFileName(JobCommand jobCommand) {
     if (isItemUpdatePreview(jobCommand)) {
-      if (nonNull(jobCommand.getJobParameters().getString(PREVIEWED)))
         return jobCommand.getJobParameters().getString(UPDATED_FILE_NAME);
     }
     var fileProperty = isUserUpdatePreview(jobCommand) ? TEMP_OUTPUT_FILE_PATH : FILE_NAME;

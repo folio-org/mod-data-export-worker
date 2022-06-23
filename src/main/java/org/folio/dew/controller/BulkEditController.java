@@ -10,15 +10,19 @@ import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.QUERY;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 
+import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.domain.dto.Item;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.exceptions.InvalidCsvException;
 
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.FILE_UPLOAD_ERROR;
@@ -148,8 +152,8 @@ public class BulkEditController implements JobIdApi {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
     try {
-      var updatedFileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(UPDATED_FILE_NAME));
-      var updatedFullPath = FilenameUtils.getFullPath(jobCommand.getJobParameters().getString(UPDATED_FILE_NAME));
+      var updatedFileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(PREVIEW_FILE_NAME));
+      var updatedFullPath = FilenameUtils.getFullPath(jobCommand.getJobParameters().getString(PREVIEW_FILE_NAME));
       Path updatedFilePath = Paths.get(updatedFullPath + updatedFileName);
       ByteArrayResource updatedFileResource = new ByteArrayResource(Files.readAllBytes(updatedFilePath));
       headers.setContentLength(updatedFilePath.toFile().length());
@@ -269,7 +273,7 @@ public class BulkEditController implements JobIdApi {
   }
 
   private ItemCollection prepareItemContentUpdateResponse(ItemUpdatesResult updatesResult, Integer limit) {
-      var items = updatesResult.getUpdated().stream()
+      var items = updatesResult.getItemsForUpdate().stream()
         .limit(isNull(limit) ? Integer.MAX_VALUE : limit)
         .map(bulkEditParseService::mapItemFormatToItem)
         .collect(Collectors.toList());
@@ -281,7 +285,8 @@ public class BulkEditController implements JobIdApi {
       ofNullable(jobCommand.getJobParameters().getString(FILE_NAME)).ifPresent(filename -> {
         var basename = FilenameUtils.getBaseName(filename);
         if (!basename.startsWith(INITIAL_PREFIX)) {
-          jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters()).addString(FILE_NAME, filename.replace(basename, INITIAL_PREFIX + basename)).toJobParameters());
+          jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters()).addString(FILE_NAME,
+            filename.replace(basename, INITIAL_PREFIX + basename)).toJobParameters());
         }
       });
     }
@@ -292,7 +297,8 @@ public class BulkEditController implements JobIdApi {
     switch(jobCommand.getExportType()) {
     case BULK_EDIT_UPDATE:
     case BULK_EDIT_IDENTIFIERS:
-      return buildPreviewQueryFromCsv(jobCommand, limit);
+      var query = buildPreviewQueryFromCsv(jobCommand, limit);
+      return query.replace("()", "(default)");
     case BULK_EDIT_QUERY:
       return jobCommand.getJobParameters().getString(QUERY);
     default:
@@ -302,6 +308,8 @@ public class BulkEditController implements JobIdApi {
 
   private String buildPreviewQueryFromCsv(JobCommand jobCommand, int limit) {
     var fileName = extractFileName(jobCommand);
+    if (StringUtils.isEmpty(fileName)) throw new FileOperationException("File for preview is not present or was not uploaded");
+    if (!fileName.contains(CSV_EXTENSION)) fileName += CSV_EXTENSION;
     try (var reader = new CSVReader(new FileReader(fileName))) {
       var values = reader.readAll().stream()
         .skip(getNumberOfLinesToSkip(jobCommand))
@@ -333,8 +341,19 @@ public class BulkEditController implements JobIdApi {
   }
 
   private String extractFileName(JobCommand jobCommand) {
-    return Optional.ofNullable(jobCommand.getJobParameters().getString(FILE_NAME))
-      .orElseThrow(() -> new FileOperationException("File for preview is not present or was not uploaded"));
+    if (isItemUpdatePreview(jobCommand)) {
+        return jobCommand.getJobParameters().getString(UPDATED_FILE_NAME);
+    }
+    var fileProperty = isUserUpdatePreview(jobCommand) ? TEMP_OUTPUT_FILE_PATH : FILE_NAME;
+    return jobCommand.getJobParameters().getString(fileProperty);
+  }
+
+  private boolean isUserUpdatePreview(JobCommand jobCommand) {
+    return jobCommand.getExportType() == BULK_EDIT_UPDATE && jobCommand.getEntityType() == USER;
+  }
+
+  private boolean isItemUpdatePreview(JobCommand jobCommand) {
+    return jobCommand.getExportType() == BULK_EDIT_UPDATE && jobCommand.getEntityType() == ITEM;
   }
 
   private int getIdentifierIndex(JobCommand jobCommand) {

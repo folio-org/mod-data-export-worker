@@ -10,6 +10,7 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
 import static org.folio.dew.domain.dto.IdentifierType.FORMER_IDS;
+import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
@@ -37,12 +38,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.BaseBatchTest;
-import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.*;
@@ -504,7 +503,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @EnumSource(value = ItemsContentUpdateTestData.class, names = ".+_LOCATION", mode = EnumSource.Mode.MATCH_ANY)
   @DisplayName("Post content updates - successful")
   @SneakyThrows
-  void shouldUpdateEffectiveLocationOnChangeLocationContentUpdate(ItemsContentUpdateTestData testData) {
+  void shouldPreviewUpdatesEffectiveLocationOnChangeLocationContentUpdate(ItemsContentUpdateTestData testData) {
     repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
@@ -534,14 +533,14 @@ class BulkEditControllerTest extends BaseBatchTest {
     var updatedJobCommand = jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
     assertFalse(updatedJobCommand.isEmpty());
     assertEquals(BULK_EDIT_UPDATE, updatedJobCommand.get().getExportType());
-    assertNotNull(updatedJobCommand.get().getJobParameters().getString(UPDATED_FILE_NAME));
+    assertNotNull(updatedJobCommand.get().getJobParameters().getString(PREVIEW_FILE_NAME));
 
-    var expectedCsv = new FileSystemResource(testData.getExpectedCsvPath());
-    var actualCsv = new FileSystemResource(updatedJobCommand.get().getJobParameters().getString(UPDATED_FILE_NAME));
+    var expectedCsv = new FileSystemResource(testData.getExpectedPreviewCsvPath());
+    var actualCsv = new FileSystemResource(updatedJobCommand.get().getJobParameters().getString(PREVIEW_FILE_NAME));
     assertFileEquals(expectedCsv, actualCsv);
 
     var actualItems = objectMapper.readValue(response.getResponse().getContentAsString(), ItemCollection.class);
-    var expectedItems = objectMapper.readValue(new FileSystemResource(testData.getExpectedJsonPath()).getInputStream(), ItemCollection.class);
+    var expectedItems = objectMapper.readValue(new FileSystemResource(testData.getExpectedPreviewJsonPath()).getInputStream(), ItemCollection.class);
     verifyLocationUpdate(expectedItems, actualItems);
   }
 
@@ -582,7 +581,7 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andExpect(status().isOk())
       .andReturn();
 
-    var expectedCsv = new FileSystemResource(testData.getExpectedCsvPath());
+    var expectedCsv = new FileSystemResource(testData.getExpectedPreviewCsvPath());
     var actualCsvByteArr = response.getResponse().getContentAsByteArray();
     Path actualDownloadedCsvTmp = Paths.get("actualDownloaded.csv");
     Files.write(actualDownloadedCsvTmp, actualCsvByteArr);
@@ -710,7 +709,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     }
 
     var actualItems = objectMapper.readValue(response.getResponse().getContentAsString(), ItemCollection.class).getItems();
-    var expectedItems = objectMapper.readValue(new FileSystemResource(testData.getExpectedJsonPath()).getInputStream(), ItemCollection.class).getItems();
+    var expectedItems = objectMapper.readValue(new FileSystemResource(testData.getExpectedPreviewJsonPath()).getInputStream(), ItemCollection.class).getItems();
     if (REPLACE_WITH_ALLOWED_STATUS == testData) {
       var actualItem = actualItems.get(0);
       var expectedItem = expectedItems.get(0);
@@ -929,6 +928,7 @@ class BulkEditControllerTest extends BaseBatchTest {
       fileName = USER == entityType ? "src/test/resources/upload/user_data.csv" : "src/test/resources/upload/item_data.csv";
     }
     params.put(FILE_NAME, new JobParameter(fileName));
+    params.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(fileName));
     jobCommand.setJobParameters(new JobParameters(params));
     return jobCommand;
   }

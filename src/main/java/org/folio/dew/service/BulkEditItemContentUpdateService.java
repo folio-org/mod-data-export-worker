@@ -66,9 +66,9 @@ public class BulkEditItemContentUpdateService {
   }
 
   public ItemUpdatesResult processContentUpdates(JobCommand jobCommand, ContentUpdateCollection contentUpdates) {
+    var outputFileName = workdir + UPDATED_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
     try {
       log.info("Processing content updates for job id {}", jobCommand.getId());
-      var outputFileName = workdir + UPDATED_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       Files.deleteIfExists(Path.of(outputFileName));
       repository.downloadObject(FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION, outputFileName);
       var updateResult = new ItemUpdatesResult();
@@ -82,7 +82,7 @@ public class BulkEditItemContentUpdateService {
       jobCommand.setExportType(BULK_EDIT_UPDATE);
       return updateResult;
     } catch (Exception e) {
-      var msg = String.format("Failed to read item records file for job id %s, reason: %s", jobCommand.getId(), e.getMessage());
+      var msg = String.format("Failed to read %s item records file for job id %s, reason: %s", outputFileName, jobCommand.getId(), e.getMessage());
       log.error(msg);
       throw new FileOperationException(msg);
     }

@@ -75,7 +75,7 @@ public class BulkEditItemContentUpdateService {
       var records = CsvHelper.readRecordsFromFile(outputFileName, ItemFormat.class, true);
       updateResult.setTotal(records.size());
       var contentUpdated = applyContentUpdates(records, contentUpdates, jobCommand);
-      updateResult.setItemsForUpdate(contentUpdated.getPreview());
+      updateResult.setItemsForPreview(contentUpdated.getPreview());
       var previewOutputFileName = workdir + PREVIEW_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       saveResultToFile(contentUpdated.getPreview(), jobCommand, previewOutputFileName, PREVIEW_FILE_NAME);
       saveResultToFile(contentUpdated.getUpdated(), jobCommand, outputFileName, UPDATED_FILE_NAME);
@@ -117,8 +117,8 @@ public class BulkEditItemContentUpdateService {
         result.addToUpdated(updatedItemFormat);
         result.addToPreview(updatedItemFormat);
       } else {
+        result.addToPreview(itemFormat);
         if (isStatusUpdatingErrorNotExist(isStatusUpdatingExist, itemFormat, updatedItemFormat)) {
-          result.addToPreview(itemFormat);
           var msg = NO_CHANGE_MESSAGE;
           log.error(msg);
           errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
@@ -193,6 +193,9 @@ public class BulkEditItemContentUpdateService {
         log.error(msg);
         errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
       }
+    } else {
+      var msg = NO_CHANGE_MESSAGE;
+      errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
     }
     return itemFormat;
   }

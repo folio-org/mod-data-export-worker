@@ -16,7 +16,6 @@ import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 
 import org.apache.commons.lang3.StringUtils;
-import org.folio.dew.domain.dto.Item;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.exceptions.InvalidCsvException;
 
@@ -44,7 +43,6 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -56,7 +54,6 @@ import com.opencsv.bean.CsvToBeanBuilder;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
-import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.ContentUpdateCollection;
@@ -273,7 +270,7 @@ public class BulkEditController implements JobIdApi {
   }
 
   private ItemCollection prepareItemContentUpdateResponse(ItemUpdatesResult updatesResult, Integer limit) {
-      var items = updatesResult.getItemsForUpdate().stream()
+      var items = updatesResult.getItemsForPreview().stream()
         .limit(isNull(limit) ? Integer.MAX_VALUE : limit)
         .map(bulkEditParseService::mapItemFormatToItem)
         .collect(Collectors.toList());

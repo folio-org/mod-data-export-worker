@@ -669,7 +669,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @EnumSource(value = ItemsContentUpdateTestData.class, names = ".+_STATUS", mode = EnumSource.Mode.MATCH_ANY)
   @DisplayName("Post status content updates with allowed and not allowed values")
   @SneakyThrows
-  void shouldPreviewChangeItemStatusIfAllowedOrAddErrorIfNot(ItemsContentUpdateTestData testData) {
+  void shouldPreviewChangeItemStatusAndAddErrorIfNot(ItemsContentUpdateTestData testData) {
     var itemId = "b7a9718a-0c26-4d43-ace9-52234ff74ad8";
     repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_STATUS_UPDATE), ITEMS_FOR_STATUS_UPDATE, null, "text/plain", false);
     var jobId = UUID.randomUUID();

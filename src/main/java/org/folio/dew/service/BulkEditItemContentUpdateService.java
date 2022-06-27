@@ -105,10 +105,9 @@ public class BulkEditItemContentUpdateService {
     var result = new ContentUpdateRecords();
     for (ItemFormat itemFormat: itemFormats) {
       var updatedItemFormat = itemFormat;
-      boolean isStatusUpdatingExist = false;
+      var errorMessage = new ErrorMessage();
       for (ContentUpdate contentUpdate: contentUpdates.getContentUpdates()) {
-        if (contentUpdate.getOption() == STATUS) isStatusUpdatingExist = true;
-        updatedItemFormat = applyContentUpdate(updatedItemFormat, contentUpdate, jobCommand);
+        updatedItemFormat = applyContentUpdate(updatedItemFormat, contentUpdate, errorMessage);
       }
       if (!Objects.equals(itemFormat, updatedItemFormat)) {
         if (isLocationChange(contentUpdates)) {
@@ -118,28 +117,25 @@ public class BulkEditItemContentUpdateService {
         result.addToPreview(updatedItemFormat);
       } else {
         result.addToPreview(itemFormat);
-        if (isStatusUpdatingErrorNotExist(isStatusUpdatingExist, itemFormat, updatedItemFormat)) {
-          var msg = NO_CHANGE_MESSAGE;
-          log.error(msg);
-          errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
-        }
+        var msg = NO_CHANGE_MESSAGE;
+        errorMessage.setValue(msg);
+      }
+      if (errorMessage.getValue() != null) {
+        log.error(errorMessage);
+        errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(errorMessage.getValue()), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
       }
     }
     return result;
   }
 
-  private boolean isStatusUpdatingErrorNotExist(boolean isStatusUpdateExist, ItemFormat itemFormat, ItemFormat updatedItemFormat) {
-    return !(isStatusUpdateExist && StringUtils.equals(itemFormat.getStatus(), updatedItemFormat.getStatus()));
-  }
 
-  private ItemFormat applyContentUpdate(ItemFormat itemFormat, ContentUpdate contentUpdate, JobCommand jobCommand) {
+  private ItemFormat applyContentUpdate(ItemFormat itemFormat, ContentUpdate contentUpdate, ErrorMessage errorMessage) {
     if (REPLACE_WITH == contentUpdate.getAction()) {
-      return applyReplaceWith(itemFormat, contentUpdate, jobCommand);
+      return applyReplaceWith(itemFormat, contentUpdate, errorMessage);
     } else if (CLEAR_FIELD == contentUpdate.getAction()) {
       if (STATUS == contentUpdate.getOption()) {
         var msg = "Status field can not be cleared";
-        log.error(msg);
-        errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
+        errorMessage.setValue(msg);
       } else {
         return applyClearField(itemFormat, contentUpdate);
       }
@@ -147,13 +143,13 @@ public class BulkEditItemContentUpdateService {
     return itemFormat;
   }
 
-  private ItemFormat applyReplaceWith(ItemFormat itemFormat, ContentUpdate contentUpdate, JobCommand jobCommand) {
+  private ItemFormat applyReplaceWith(ItemFormat itemFormat, ContentUpdate contentUpdate, ErrorMessage errorMessage) {
     if (TEMPORARY_LOCATION == contentUpdate.getOption()) {
       return itemFormat.withTemporaryLocation(isNull(contentUpdate.getValue()) ? EMPTY : contentUpdate.getValue().toString());
     } else if (PERMANENT_LOCATION == contentUpdate.getOption()) {
       return itemFormat.withPermanentLocation(isNull(contentUpdate.getValue()) ? EMPTY : contentUpdate.getValue().toString());
     } else if (STATUS == contentUpdate.getOption()) {
-      return replaceStatusIfAllowed(itemFormat, contentUpdate.getValue(), jobCommand);
+      return replaceStatusIfAllowed(itemFormat, contentUpdate.getValue(), errorMessage);
     }
     return itemFormat;
   }
@@ -182,7 +178,7 @@ public class BulkEditItemContentUpdateService {
       .anyMatch(update -> TEMPORARY_LOCATION == update.getOption() || PERMANENT_LOCATION == update.getOption());
   }
 
-  private ItemFormat replaceStatusIfAllowed(ItemFormat itemFormat, Object value, JobCommand jobCommand) {
+  private ItemFormat replaceStatusIfAllowed(ItemFormat itemFormat, Object value, ErrorMessage errorMessage) {
     var currentStatus = extractStatusName(itemFormat.getStatus());
     var newStatus = isNull(value) ? EMPTY : value.toString();
     if (!currentStatus.equals(newStatus)) {
@@ -190,12 +186,8 @@ public class BulkEditItemContentUpdateService {
         return itemFormat.withStatus(String.join(ARRAY_DELIMITER, newStatus, dateToString(Date.from(LocalDateTime.now().atZone(UTC).toInstant()))));
       } else {
         var msg = String.format("New status value \"%s\" is not allowed", newStatus);
-        log.error(msg);
-        errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
+        errorMessage.setValue(msg);
       }
-    } else {
-      var msg = NO_CHANGE_MESSAGE;
-      errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
     }
     return itemFormat;
   }

@@ -20,6 +20,8 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
+import static org.folio.dew.utils.Constants.STATUS_FILED_CAN_NOT_CLEARED;
+import static org.folio.dew.utils.Constants.STATUS_VALUE_NOT_ALLOWED;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 
@@ -117,8 +119,7 @@ public class BulkEditItemContentUpdateService {
         result.addToPreview(updatedItemFormat);
       } else {
         result.addToPreview(itemFormat);
-        var msg = NO_CHANGE_MESSAGE;
-        errorMessage.setValue(msg);
+        errorMessage.setValue(NO_CHANGE_MESSAGE);
       }
       if (errorMessage.getValue() != null) {
         log.error(errorMessage);
@@ -134,8 +135,7 @@ public class BulkEditItemContentUpdateService {
       return applyReplaceWith(itemFormat, contentUpdate, errorMessage);
     } else if (CLEAR_FIELD == contentUpdate.getAction()) {
       if (STATUS == contentUpdate.getOption()) {
-        var msg = "Status field can not be cleared";
-        errorMessage.setValue(msg);
+        errorMessage.setValue(STATUS_FILED_CAN_NOT_CLEARED);
       } else {
         return applyClearField(itemFormat, contentUpdate);
       }
@@ -185,7 +185,7 @@ public class BulkEditItemContentUpdateService {
       if (itemReferenceService.getAllowedStatuses(currentStatus).contains(newStatus)) {
         return itemFormat.withStatus(String.join(ARRAY_DELIMITER, newStatus, dateToString(Date.from(LocalDateTime.now().atZone(UTC).toInstant()))));
       } else {
-        var msg = String.format("New status value \"%s\" is not allowed", newStatus);
+        var msg = String.format(STATUS_VALUE_NOT_ALLOWED, newStatus);
         errorMessage.setValue(msg);
       }
     }

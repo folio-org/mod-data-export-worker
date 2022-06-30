@@ -21,13 +21,14 @@ import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
+import static org.folio.dew.utils.Constants.STATUS_FIELD_CAN_NOT_CLEARED;
+import static org.folio.dew.utils.Constants.STATUS_VALUE_NOT_ALLOWED;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.domain.dto.ContentUpdate;
 import org.folio.dew.domain.dto.ContentUpdateCollection;
@@ -76,7 +77,7 @@ public class BulkEditItemContentUpdateService {
       var records = CsvHelper.readRecordsFromFile(outputFileName, ItemFormat.class, true);
       updateResult.setTotal(records.size());
       var contentUpdated = applyContentUpdates(records, contentUpdates, jobCommand);
-      updateResult.setItemsForUpdate(contentUpdated.getPreview());
+      updateResult.setItemsForPreview(contentUpdated.getPreview());
       var previewOutputFileName = workdir + PREVIEW_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       saveResultToFile(contentUpdated.getPreview(), jobCommand, previewOutputFileName, PREVIEW_FILE_NAME);
       saveResultToFile(contentUpdated.getUpdated(), jobCommand, outputFileName, UPDATED_FILE_NAME);
@@ -106,12 +107,9 @@ public class BulkEditItemContentUpdateService {
     var result = new ContentUpdateRecords();
     for (ItemFormat itemFormat: itemFormats) {
       var updatedItemFormat = itemFormat;
-      boolean isStatusUpdatingExist = false;
+      var errorMessage = new ErrorMessage();
       for (ContentUpdate contentUpdate: contentUpdates.getContentUpdates()) {
-        if (contentUpdate.getOption() == STATUS) {
-          isStatusUpdatingExist = true;
-        }
-        updatedItemFormat = applyContentUpdate(updatedItemFormat, contentUpdate, jobCommand);
+        updatedItemFormat = applyContentUpdate(updatedItemFormat, contentUpdate, errorMessage);
       }
       if (!Objects.equals(itemFormat, updatedItemFormat)) {
         if (isLocationChange(contentUpdates)) {
@@ -120,29 +118,24 @@ public class BulkEditItemContentUpdateService {
         result.addToUpdated(updatedItemFormat);
         result.addToPreview(updatedItemFormat);
       } else {
-        if (isStatusUpdatingErrorNotExist(isStatusUpdatingExist, itemFormat, updatedItemFormat)) {
-          result.addToPreview(itemFormat);
-          var msg = NO_CHANGE_MESSAGE;
-          log.error(msg);
-          errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
-        }
+        result.addToPreview(itemFormat);
+        errorMessage.setValue(NO_CHANGE_MESSAGE);
+      }
+      if (errorMessage.getValue() != null) {
+        log.error(errorMessage);
+        errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)), new BulkEditException(errorMessage.getValue()), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
       }
     }
     return result;
   }
 
-  private boolean isStatusUpdatingErrorNotExist(boolean isStatusUpdateExist, ItemFormat itemFormat, ItemFormat updatedItemFormat) {
-    return !(isStatusUpdateExist && StringUtils.equals(itemFormat.getStatus(), updatedItemFormat.getStatus()));
-  }
 
-  private ItemFormat applyContentUpdate(ItemFormat itemFormat, ContentUpdate contentUpdate, JobCommand jobCommand) {
+  private ItemFormat applyContentUpdate(ItemFormat itemFormat, ContentUpdate contentUpdate, ErrorMessage errorMessage) {
     if (REPLACE_WITH == contentUpdate.getAction()) {
-      return applyReplaceWith(itemFormat, contentUpdate, jobCommand);
+      return applyReplaceWith(itemFormat, contentUpdate, errorMessage);
     } else if (CLEAR_FIELD == contentUpdate.getAction()) {
       if (STATUS == contentUpdate.getOption()) {
-        var msg = "Status field can not be cleared";
-        log.error(msg);
-        errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
+        errorMessage.setValue(STATUS_FIELD_CAN_NOT_CLEARED);
       } else {
         return applyClearField(itemFormat, contentUpdate);
       }
@@ -150,13 +143,13 @@ public class BulkEditItemContentUpdateService {
     return itemFormat;
   }
 
-  private ItemFormat applyReplaceWith(ItemFormat itemFormat, ContentUpdate contentUpdate, JobCommand jobCommand) {
+  private ItemFormat applyReplaceWith(ItemFormat itemFormat, ContentUpdate contentUpdate, ErrorMessage errorMessage) {
     if (TEMPORARY_LOCATION == contentUpdate.getOption()) {
       return itemFormat.withTemporaryLocation(isNull(contentUpdate.getValue()) ? EMPTY : contentUpdate.getValue().toString());
     } else if (PERMANENT_LOCATION == contentUpdate.getOption()) {
       return itemFormat.withPermanentLocation(isNull(contentUpdate.getValue()) ? EMPTY : contentUpdate.getValue().toString());
     } else if (STATUS == contentUpdate.getOption()) {
-      return replaceStatusIfAllowed(itemFormat, contentUpdate.getValue(), jobCommand);
+      return replaceStatusIfAllowed(itemFormat, contentUpdate.getValue(), errorMessage);
     }
     return itemFormat;
   }
@@ -185,16 +178,15 @@ public class BulkEditItemContentUpdateService {
       .anyMatch(update -> TEMPORARY_LOCATION == update.getOption() || PERMANENT_LOCATION == update.getOption());
   }
 
-  private ItemFormat replaceStatusIfAllowed(ItemFormat itemFormat, Object value, JobCommand jobCommand) {
+  private ItemFormat replaceStatusIfAllowed(ItemFormat itemFormat, Object value, ErrorMessage errorMessage) {
     var currentStatus = extractStatusName(itemFormat.getStatus());
     var newStatus = isNull(value) ? EMPTY : value.toString();
     if (!currentStatus.equals(newStatus)) {
       if (itemReferenceService.getAllowedStatuses(currentStatus).contains(newStatus)) {
         return itemFormat.withStatus(String.join(ARRAY_DELIMITER, newStatus, dateToString(Date.from(LocalDateTime.now().atZone(UTC).toInstant()))));
       } else {
-        var msg = String.format("New status value \"%s\" is not allowed", newStatus);
-        log.error(msg);
-        errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
+        var msg = String.format(STATUS_VALUE_NOT_ALLOWED, newStatus);
+        errorMessage.setValue(msg);
       }
     }
     return itemFormat;

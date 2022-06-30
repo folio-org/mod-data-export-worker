@@ -49,18 +49,20 @@ public class MinIOObjectStorageRepository {
 
   private final MinioClient client;
   private final String bucket;
+  private final String region;
 
   public MinIOObjectStorageRepository(MinIoProperties properties) {
     final String accessKey = properties.getAccessKey();
     final String endpoint = properties.getEndpoint();
-    final String region = properties.getRegion();
+    final String regionProperty = properties.getRegion();
+    final String bucketProperty = properties.getBucket();
     final String secretKey = properties.getSecretKey();
-    log.info("Creating MinIO client endpoint {},region {},bucket {},accessKey {},secretKey {}.", endpoint, region, properties.getBucket(),
+    log.info("Creating MinIO client endpoint {},region {},bucket {},accessKey {},secretKey {}.", endpoint, regionProperty, bucketProperty,
         StringUtils.isNotBlank(accessKey) ? "<set>" : "<not set>", StringUtils.isNotBlank(secretKey) ? "<set>" : "<not set>");
 
     var builder = MinioClient.builder().endpoint(endpoint);
-    if (StringUtils.isNotBlank(region)) {
-      builder.region(region);
+    if (StringUtils.isNotBlank(regionProperty)) {
+      builder.region(regionProperty);
     }
 
     Provider provider;
@@ -74,7 +76,8 @@ public class MinIOObjectStorageRepository {
 
     client = builder.build();
 
-    this.bucket = properties.getBucket();
+    this.bucket = bucketProperty;
+    this.region = regionProperty;
   }
 
   @SneakyThrows
@@ -140,7 +143,7 @@ public class MinIOObjectStorageRepository {
         .method(Method.GET)
         .bucket(response.bucket())
         .object(response.object())
-        .region(response.region())
+        .region(region)
         .versionId(response.versionId())
         .build());
     log.info("Created presigned URL {}.", result);

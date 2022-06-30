@@ -17,6 +17,7 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
@@ -107,7 +108,9 @@ public class BulkEditItemContentUpdateService {
       var updatedItemFormat = itemFormat;
       boolean isStatusUpdatingExist = false;
       for (ContentUpdate contentUpdate: contentUpdates.getContentUpdates()) {
-        if (contentUpdate.getOption() == STATUS) isStatusUpdatingExist = true;
+        if (contentUpdate.getOption() == STATUS) {
+          isStatusUpdatingExist = true;
+        }
         updatedItemFormat = applyContentUpdate(updatedItemFormat, contentUpdate, jobCommand);
       }
       if (!Objects.equals(itemFormat, updatedItemFormat)) {
@@ -121,7 +124,7 @@ public class BulkEditItemContentUpdateService {
           result.addToPreview(itemFormat);
           var msg = NO_CHANGE_MESSAGE;
           log.error(msg);
-          errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
+          errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
         }
       }
     }
@@ -139,7 +142,7 @@ public class BulkEditItemContentUpdateService {
       if (STATUS == contentUpdate.getOption()) {
         var msg = "Status field can not be cleared";
         log.error(msg);
-        errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
+        errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
       } else {
         return applyClearField(itemFormat, contentUpdate);
       }
@@ -191,7 +194,7 @@ public class BulkEditItemContentUpdateService {
       } else {
         var msg = String.format("New status value \"%s\" is not allowed", newStatus);
         log.error(msg);
-        errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getId(), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
+        errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)), new BulkEditException(msg), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
       }
     }
     return itemFormat;

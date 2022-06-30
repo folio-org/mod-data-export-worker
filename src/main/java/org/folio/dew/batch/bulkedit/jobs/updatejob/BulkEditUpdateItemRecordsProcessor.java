@@ -26,6 +26,10 @@ public class BulkEditUpdateItemRecordsProcessor implements ItemProcessor<ItemFor
 
   @Value("#{jobParameters['jobId']}")
   private String jobId;
+
+  @Value("#{jobParameters['identifierType']}")
+  private String identifierType;
+
   @Value("#{jobExecution}")
   private JobExecution jobExecution;
 
@@ -37,8 +41,8 @@ public class BulkEditUpdateItemRecordsProcessor implements ItemProcessor<ItemFor
     try {
       return bulkEditParseService.mapItemFormatToItem(itemFormat);
     } catch (Exception e) {
-      log.error("Error process item format {} : {}",  itemFormat.getId(), e.getMessage());
-      bulkEditProcessingErrorsService.saveErrorInCSV(jobId, itemFormat.getId(), new BulkEditException(e.getMessage()), FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
+      log.error("Error process item format {} : {}",  itemFormat.getIdentifier(identifierType), e.getMessage());
+      bulkEditProcessingErrorsService.saveErrorInCSV(jobId, itemFormat.getIdentifier(identifierType), new BulkEditException(e.getMessage()), FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
       return null;
     }
   }

@@ -40,7 +40,7 @@ public class Constants {
 
   public static final String NO_MATCH_FOUND_MESSAGE = "No match found";
   public static final String NO_CHANGE_MESSAGE = "No change in value needed";
-  public static final String STATUS_FILED_CAN_NOT_CLEARED = "Status field can not be cleared";
+  public static final String STATUS_FIELD_CAN_NOT_CLEARED = "Status field can not be cleared";
   public static final String STATUS_VALUE_NOT_ALLOWED = "New status value \"%s\" is not allowed";
 
   public static final String MODULE_NAME = "BULKEDIT";

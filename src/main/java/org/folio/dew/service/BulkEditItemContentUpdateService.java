@@ -20,7 +20,7 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
-import static org.folio.dew.utils.Constants.STATUS_FILED_CAN_NOT_CLEARED;
+import static org.folio.dew.utils.Constants.STATUS_FIELD_CAN_NOT_CLEARED;
 import static org.folio.dew.utils.Constants.STATUS_VALUE_NOT_ALLOWED;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
@@ -28,7 +28,6 @@ import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.domain.dto.ContentUpdate;
 import org.folio.dew.domain.dto.ContentUpdateCollection;
@@ -135,7 +134,7 @@ public class BulkEditItemContentUpdateService {
       return applyReplaceWith(itemFormat, contentUpdate, errorMessage);
     } else if (CLEAR_FIELD == contentUpdate.getAction()) {
       if (STATUS == contentUpdate.getOption()) {
-        errorMessage.setValue(STATUS_FILED_CAN_NOT_CLEARED);
+        errorMessage.setValue(STATUS_FIELD_CAN_NOT_CLEARED);
       } else {
         return applyClearField(itemFormat, contentUpdate);
       }

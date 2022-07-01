@@ -221,5 +221,26 @@ public class ItemFormat {
       .map(field -> field.getAnnotation(CsvBindByName.class).column())
       .collect(Collectors.joining(","));
   }
+
+  public String getIdentifier(String identifierType) {
+    try {
+      switch (IdentifierType.fromValue(identifierType)) {
+      case BARCODE:
+        return barcode;
+      case HOLDINGS_RECORD_ID:
+        return holdingsRecordId;
+      case HRID:
+        return hrid;
+      case FORMER_IDS:
+        return formerIds;
+      case ACCESSION_NUMBER:
+        return accessionNumber;
+      default:
+        return id;
+      }
+    } catch (Exception e) {
+      return id;
+    }
+  }
 }
 

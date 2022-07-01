@@ -25,6 +25,7 @@ import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.FILE_UPLOAD_ERROR;
+import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
@@ -126,7 +127,13 @@ public class BulkEditController implements JobIdApi {
   public ResponseEntity<ItemCollection> postContentUpdates(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId,@ApiParam(value = "" ,required=true )  @Valid @RequestBody ContentUpdateCollection contentUpdateCollection,@ApiParam(value = "The numbers of records to return") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
     if (ITEM == contentUpdateCollection.getEntityType()) {
       bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId.toString());
-      var updatesResult = itemContentUpdateService.processContentUpdates(getJobCommandById(jobId.toString()), contentUpdateCollection);
+      var jobCommand = getJobCommandById(jobId.toString());
+      if (nonNull(jobCommand.getIdentifierType())) {
+        jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())
+            .addString(IDENTIFIER_TYPE, jobCommand.getIdentifierType().getValue())
+            .toJobParameters());
+      }
+      var updatesResult = itemContentUpdateService.processContentUpdates(jobCommand, contentUpdateCollection);
       return new ResponseEntity<>(prepareItemContentUpdateResponse(updatesResult, limit), HttpStatus.OK);
     }
     throw new NonSupportedEntityException(format("Non-supported entity type: %s", contentUpdateCollection.getEntityType()));

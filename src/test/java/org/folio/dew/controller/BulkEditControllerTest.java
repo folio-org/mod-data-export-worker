@@ -92,6 +92,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-items/download";
   private static final String ITEMS_FOR_LOCATION_UPDATE = "src/test/resources/upload/bulk_edit_items_for_location_update.csv";
   private static final String ITEMS_FOR_STATUS_UPDATE = "src/test/resources/upload/bulk_edit_items_for_status_update.csv";
+  private static final String ITEM_FOR_STATUS_UPDATE_ERROR = "src/test/resources/upload/bulk_edit_item_for_status_update_error.csv";
   private static final String ITEMS_FOR_NOTHING_UPDATE = "src/test/resources/upload/bulk_edit_items_for_nothing_update.csv";
   private static final SimpleDateFormat itemStatusDateFormat = new SimpleDateFormat(DATE_TIME_PATTERN);
   private static final UUID JOB_ID = UUID.randomUUID();
@@ -722,6 +723,46 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   }
 
+  @ParameterizedTest
+  @EnumSource(value = IdentifierType.class, names = {"USER_NAME", "EXTERNAL_SYSTEM_ID"}, mode = EnumSource.Mode.EXCLUDE)
+  @DisplayName("Errors should contain correct identifier values")
+  @SneakyThrows
+  void shouldPlaceCorrectIdentifierInCaseOfError(IdentifierType identifierType) {
+    repository.uploadObject(FilenameUtils.getName(ITEM_FOR_STATUS_UPDATE_ERROR), ITEM_FOR_STATUS_UPDATE_ERROR, null, "text/plain", false);
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(ITEM);
+    jobCommand.setIdentifierType(identifierType);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+        .addString(FILE_NAME, "fileName.csv")
+        .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEM_FOR_STATUS_UPDATE_ERROR.replace(CSV_EXTENSION, EMPTY))
+        .toJobParameters());
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+
+    var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
+        .entityType(ITEM)
+        .contentUpdates(Collections.singletonList(new ContentUpdate()
+            .option(ContentUpdate.OptionEnum.STATUS)
+            .action(ContentUpdate.ActionEnum.CLEAR_FIELD)))
+        .totalRecords(1));
+
+    mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+            .headers(defaultHeaders())
+            .content(updates))
+        .andExpect(status().isOk())
+        .andReturn();
+
+    var errors = errorsService.readErrorsFromCSV(jobId.toString(), jobCommand.getJobParameters().getString(FILE_NAME), 10);
+    assertThat(errors.getErrors(), hasSize(1));
+
+    var actualIdentifier = errors.getErrors().get(0).getMessage().split(",")[0];
+    var expectedIdentifier = getIdentifier(identifierType);
+    assertThat(actualIdentifier, equalTo(expectedIdentifier));
+  }
+
   @Test
   @SneakyThrows
   void shouldProvideErrorsIfNotingToUpdate() {
@@ -956,6 +997,25 @@ class BulkEditControllerTest extends BaseBatchTest {
       assertThat(expectedItems.getItems().get(i).getPermanentLocation(), equalTo(actualItems.getItems().get(i).getPermanentLocation()));
       assertThat(expectedItems.getItems().get(i).getTemporaryLocation(), equalTo(actualItems.getItems().get(i).getTemporaryLocation()));
       assertThat(expectedItems.getItems().get(i).getEffectiveLocation(), equalTo(actualItems.getItems().get(i).getEffectiveLocation()));
+    }
+  }
+
+  private String getIdentifier(IdentifierType identifierType) {
+    switch (identifierType) {
+    case ID:
+      return  "b7a9718a-0c26-4d43-ace9-52234ff74ad8";
+    case HRID:
+      return  "it00000000002";
+    case HOLDINGS_RECORD_ID:
+      return  "4929e3d5-8de5-4bb2-8818-3c23695e7505";
+    case BARCODE:
+      return  "0001";
+    case FORMER_IDS:
+      return  "former_id";
+    case ACCESSION_NUMBER:
+      return  "accession_number";
+    default:
+      return null;
     }
   }
 }

@@ -43,6 +43,7 @@ import org.folio.dew.service.BulkEditChangedRecordsService;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditStatisticService;
 import org.folio.dew.utils.CsvHelper;
+import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
@@ -138,6 +139,8 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
     kafka.send(KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     if (after) {
+      FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
+      log.info("FOLIO context closed.");
       log.info("-----------------------------JOB---ENDS-----------------------------");
     }
   }

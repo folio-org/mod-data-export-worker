@@ -39,7 +39,7 @@ public class KafkaConsumerInterceptor implements ConsumerInterceptor<Object, Obj
 
   @Override
   public void close() {
-    // Nothing to do
+    FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
   }
 
   @Override

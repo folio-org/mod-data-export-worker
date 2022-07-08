@@ -42,6 +42,7 @@ import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -122,6 +123,8 @@ public class JobCommandsReceiverService {
         addBulkEditJobCommand(jobCommand);
         if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
           acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
+          FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
+          log.debug("FOLIO context closed.");
           return;
         }
       }

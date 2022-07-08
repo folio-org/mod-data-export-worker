@@ -27,6 +27,7 @@ import org.folio.spring.integration.XOkapiHeaders;
 import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 import org.folio.tenant.domain.dto.TenantAttributes;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.batch.core.Job;
@@ -144,6 +145,11 @@ public abstract class BaseBatchTest {
     FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
 
     minIOObjectStorageRepository.createBucketIfNotExists();
+  }
+
+  @AfterEach
+  void eachTearDown() {
+    FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
   }
 
   protected JobLauncherTestUtils createTestLauncher(Job job) {

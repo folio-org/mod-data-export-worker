@@ -124,7 +124,7 @@ public class JobCommandsReceiverService {
         if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
           acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
           FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
-          log.info("FOLIO context closed.");
+          log.debug("FOLIO context closed.");
           return;
         }
       }

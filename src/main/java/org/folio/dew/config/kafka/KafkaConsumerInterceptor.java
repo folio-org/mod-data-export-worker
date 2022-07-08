@@ -32,7 +32,7 @@ public class KafkaConsumerInterceptor implements ConsumerInterceptor<Object, Obj
 
       var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
       FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
-      log.info("FOLIO context initialized.");
+      log.debug("FOLIO context initialized.");
     }
     return records;
   }

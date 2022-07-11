@@ -22,6 +22,7 @@
 * [MODEXPW-109](https://issues.folio.org/browse/MODEXPW-109) Update user records with custom fields
 * [MODEXPW-103](https://issues.folio.org/browse/MODEXPW-103) Log error and don't throw exception if order lines were not found
 * [MODEXPW-102](https://issues.folio.org/browse/MODEXPW-102) Improve error handling if provided data from EDIFACT export configuration has incorrect format
+* [MODEXPW-92](https://issues.folio.org/browse/MODEXPW-92) Item Preview API (/bulk-edit/{jobId}/preview/items)
 * [MODEXPW-86](https://issues.folio.org/browse/MODEXPW-86) Saving edited item locations
 * [MODEXPW-85](https://issues.folio.org/browse/MODEXPW-85) Improve user processor logic to support arrays in custom fields
 * [MODEXPW-80](https://issues.folio.org/browse/MODEXPW-80) Retrieve item records based on the provided identifiers

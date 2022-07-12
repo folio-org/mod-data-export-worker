@@ -54,7 +54,8 @@
             "inventory-storage.instances.item.get",
             "inventory-storage.instances.collection.get",
             "inventory-storage.holdings.item.get",
-            "inventory-storage.holdings.collection.get"
+            "inventory-storage.holdings.collection.get",
+            "configuration.entries.collection.get"
           ]
         },
         {

@@ -1,71 +1,56 @@
 package org.folio.dew.batch.eholdings;
 
+import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_MAX_TITLE_NOTES_COUNT;
+import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_TITLE_NOTES;
 import static org.folio.dew.client.NotesClient.NoteLinkDomain.EHOLDINGS;
-import static org.folio.dew.client.NotesClient.NoteLinkType.PACKAGE;
 import static org.folio.dew.client.NotesClient.NoteLinkType.RESOURCE;
 
-import lombok.extern.log4j.Log4j2;
-import org.folio.dew.client.NotesClient;
-import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
-import org.springframework.batch.core.ExitStatus;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.core.annotation.BeforeStep;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.stereotype.Component;
 
-@Log4j2
+import org.folio.dew.client.NotesClient;
+import org.folio.dew.domain.dto.EHoldingsExportConfig;
+import org.folio.dew.domain.dto.eholdings.EHoldingsResource;
+
+@Component
+@StepScope
 public class EHoldingsNoteItemProcessor
-  implements ItemProcessor<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat>, StepExecutionListener {
+  implements ItemProcessor<EHoldingsResource, EHoldingsResource> {
 
   private final NotesClient notesClient;
-  private final EHoldingsToExportFormatMapper mapper;
-  private final boolean loadPackageNotes;
   private final boolean loadResourceNotes;
   private StepExecution stepExecution;
 
-  public EHoldingsNoteItemProcessor(NotesClient notesClient, EHoldingsToExportFormatMapper mapper,
-                                    boolean loadPackageNotes, boolean loadResourceNotes) {
+  public EHoldingsNoteItemProcessor(NotesClient notesClient,
+                                    EHoldingsExportConfig exportConfig) {
     this.notesClient = notesClient;
-    this.mapper = mapper;
-    this.loadPackageNotes = loadPackageNotes;
-    this.loadResourceNotes = loadResourceNotes;
+    this.loadResourceNotes = exportConfig.getTitleFields() != null && exportConfig.getTitleFields().contains(LOAD_FIELD_TITLE_NOTES);
   }
 
   @BeforeStep
-  public void beforeStep(StepExecution stepExecution) {
+  public void beforeStep(@NotNull StepExecution stepExecution) {
     this.stepExecution = stepExecution;
   }
 
   @Override
-  public ExitStatus afterStep(StepExecution stepExecution) {
-    return stepExecution.getExitStatus();
-  }
-
-  @Override
-  public EHoldingsResourceExportFormat process(EHoldingsResourceExportFormat exportFormat) throws Exception {
-    if (loadPackageNotes) {
-      var packageId = exportFormat.getPackageId();
-      var noteCollection = notesClient.getAssignedNotes(EHOLDINGS, PACKAGE, packageId);
-      if (noteCollection.getTotalRecords() > 0) {
-        exportFormat.setPackageNotes(mapper.convertNotes(noteCollection.getNotes()));
-        var packageMaxNotesCount = stepExecution.getExecutionContext().getInt("packageMaxNotesCount", 0);
-        if (packageMaxNotesCount < noteCollection.getTotalRecords()) {
-          stepExecution.getExecutionContext().putInt("packageMaxNotesCount", noteCollection.getTotalRecords());
-        }
-      }
-    }
+  public EHoldingsResource process(@NotNull EHoldingsResource eHoldingsResource) throws Exception {
     if (loadResourceNotes) {
-      var resourceId = exportFormat.getPackageId() + "-" + exportFormat.getTitleId();
+      var resourceDataAttributes = eHoldingsResource.getResourcesData().getAttributes();
+      var resourceId = resourceDataAttributes.getPackageId() + "-" + resourceDataAttributes.getTitleId();
       var noteCollection = notesClient.getAssignedNotes(EHOLDINGS, RESOURCE, resourceId);
       if (noteCollection.getTotalRecords() > 0) {
-        exportFormat.setTitleNotes(mapper.convertNotes(noteCollection.getNotes()));
-        var packageMaxNotesCount = stepExecution.getExecutionContext().getInt("titleMaxNotesCount", 0);
+        eHoldingsResource.setNotes(noteCollection.getNotes());
+        var packageMaxNotesCount = stepExecution.getExecutionContext().getInt(CONTEXT_MAX_TITLE_NOTES_COUNT, 0);
         if (packageMaxNotesCount < noteCollection.getTotalRecords()) {
-          stepExecution.getExecutionContext().putInt("titleMaxNotesCount", noteCollection.getTotalRecords());
+          stepExecution.getExecutionContext().putInt(CONTEXT_MAX_TITLE_NOTES_COUNT, noteCollection.getTotalRecords());
         }
       }
     }
-    return exportFormat;
+    return eHoldingsResource;
   }
 
 }

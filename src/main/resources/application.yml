@@ -27,6 +27,9 @@ spring:
   liquibase:
     changeLog: classpath:db/changelog/data-export-worker-changelog-master.xml
     enabled: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
 management:
   endpoints:
     web:

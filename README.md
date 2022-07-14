@@ -22,6 +22,7 @@ with further FOLIO Developer documentation at
 
 ### Bulk edit
 In case of no matched records found when uploading CSV file with items or users, link to download matched records is not available for user.
+The maximum value of size for uploading file is 15MB.
 
 ### Environment variables
 | Name                         | Default value          | Description                                                                                                                                                                                           |

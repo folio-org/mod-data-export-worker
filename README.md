@@ -22,7 +22,7 @@ with further FOLIO Developer documentation at
 
 ### Bulk edit
 In case of no matched records found when uploading CSV file with items or users, link to download matched records is not available for user.
-The maximum value of size for uploading file is 15MB.
+The maximum value of size for uploading file is 15MB. It could be changed with spring.servlet.multipart.max-file-size application argument.
 
 ### Environment variables
 | Name                         | Default value          | Description                                                                                                                                                                                           |

@@ -2,15 +2,14 @@ package org.folio.dew.service;
 
 import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
-import org.folio.dew.batch.ExportJobManagerSync;
+
+import static org.folio.dew.config.kafka.KafkaService.EVENT_LISTENER_ID;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
-import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
 import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
-import static org.folio.dew.domain.dto.ExportType.E_HOLDINGS;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -24,25 +23,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
 import javax.annotation.PostConstruct;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.de.entity.JobCommand;
-import org.folio.dew.batch.ExportJobManager;
-import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
-import org.folio.dew.client.SearchClient;
-import org.folio.dew.config.kafka.KafkaService;
-import org.folio.dew.domain.dto.BursarFeeFines;
-import org.folio.dew.domain.dto.JobParameterNames;
-import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
-import org.folio.dew.error.FileOperationException;
-import org.folio.dew.repository.IAcknowledgementRepository;
-import org.folio.dew.repository.MinIOObjectStorageRepository;
-import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -54,11 +45,18 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
+import org.folio.de.entity.JobCommand;
+import org.folio.dew.batch.ExportJobManager;
+import org.folio.dew.batch.ExportJobManagerSync;
+import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
+import org.folio.dew.client.SearchClient;
+import org.folio.dew.domain.dto.BursarFeeFines;
+import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
+import org.folio.dew.error.FileOperationException;
+import org.folio.dew.repository.IAcknowledgementRepository;
+import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 
 @Service
 @RequiredArgsConstructor
@@ -76,6 +74,8 @@ public class JobCommandsReceiverService {
   private final FileNameResolver fileNameResolver;
   private final MinIOObjectStorageRepository minIOObjectStorageRepository;
   private final List<Job> jobs;
+  private final KafkaManager kafkaManager;
+
   private Map<String, Job> jobMap;
   private Map<String, JobCommand> bulkEditJobCommands;
   @Value("${spring.application.name}")
@@ -104,42 +104,49 @@ public class JobCommandsReceiverService {
   }
 
   @KafkaListener(
-    id = KafkaService.EVENT_LISTENER_ID,
+    id = EVENT_LISTENER_ID,
     containerFactory = "kafkaListenerContainerFactory",
     topicPattern = "${application.kafka.topic-pattern}",
     groupId = "${application.kafka.group-id}")
   public void receiveStartJobCommand(JobCommand jobCommand, Acknowledgment acknowledgment) {
     log.info("Received {}.", jobCommand);
 
-    try {
-      if (deleteOldFiles(jobCommand, acknowledgment)) {
+    kafkaManager.pauseConsume(EVENT_LISTENER_ID);
+    CompletableFuture.runAsync(() -> launchJob(jobCommand, acknowledgment))
+      .handle((unused, throwable) -> {
+        if (throwable != null) log.error(throwable.toString(), throwable);
+        kafkaManager.resumeConsumer(EVENT_LISTENER_ID);
+        return null;
+      });
+
+  }
+
+  @SneakyThrows
+  private void launchJob(JobCommand jobCommand, Acknowledgment acknowledgment) {
+    if (deleteOldFiles(jobCommand, acknowledgment)) {
+      return;
+    }
+    log.info("-----------------------------JOB---STARTS-----------------------------");
+
+    prepareJobParameters(jobCommand);
+
+    if (Set.of(BULK_EDIT_IDENTIFIERS, BULK_EDIT_QUERY, BULK_EDIT_UPDATE).contains(jobCommand.getExportType())) {
+      addBulkEditJobCommand(jobCommand);
+      if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
+        acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
+        FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
+        log.debug("FOLIO context closed.");
         return;
       }
-      log.info("-----------------------------JOB---STARTS-----------------------------");
-
-      prepareJobParameters(jobCommand);
-
-      if (Set.of(BULK_EDIT_IDENTIFIERS, BULK_EDIT_QUERY, BULK_EDIT_UPDATE).contains(jobCommand.getExportType())) {
-        addBulkEditJobCommand(jobCommand);
-        if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
-          acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-          FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
-          log.debug("FOLIO context closed.");
-          return;
-        }
-      }
-
-      var jobLaunchRequest =
-        new JobLaunchRequest(
-          jobMap.get(resolveJobKey(jobCommand)),
-          jobCommand.getJobParameters());
-
-      acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-      exportJobManagerSync.launchJob(jobLaunchRequest);
-
-    } catch (Exception e) {
-      log.error(e.toString(), e);
     }
+
+    var jobLaunchRequest =
+      new JobLaunchRequest(
+        jobMap.get(resolveJobKey(jobCommand)),
+        jobCommand.getJobParameters());
+
+    acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
+    exportJobManagerSync.launchJob(jobLaunchRequest);
   }
 
   private String resolveJobKey(JobCommand jobCommand) {

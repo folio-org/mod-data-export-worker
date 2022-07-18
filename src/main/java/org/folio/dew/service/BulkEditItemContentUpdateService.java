@@ -2,6 +2,7 @@ package org.folio.dew.service;
 
 import static java.time.ZoneOffset.UTC;
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.domain.dto.ContentUpdate.ActionEnum.CLEAR_FIELD;
@@ -118,8 +119,16 @@ public class BulkEditItemContentUpdateService {
         result.addToUpdated(updatedItemFormat);
         result.addToPreview(updatedItemFormat);
       } else {
-        result.addToPreview(itemFormat);
-        errorMessage.setValue(NO_CHANGE_MESSAGE);
+        var statusUpdate = contentUpdates.getContentUpdates().stream()
+            .filter(contentUpdate -> contentUpdate.getOption() == STATUS)
+            .findFirst();
+        if (statusUpdate.isPresent() && nonNull(statusUpdate.get().getValue()) && !extractStatusName(itemFormat.getStatus()).equals(statusUpdate.get().getValue())) {
+          var status = statusUpdate.get().getValue();
+          result.addToPreview(itemFormat.withStatus(String.join(ARRAY_DELIMITER, status.toString(), dateToString(Date.from(LocalDateTime.now().atZone(UTC).toInstant())))));
+        } else {
+          result.addToPreview(itemFormat);
+          errorMessage.setValue(NO_CHANGE_MESSAGE);
+        }
       }
       if (errorMessage.getValue() != null) {
         log.error(errorMessage);

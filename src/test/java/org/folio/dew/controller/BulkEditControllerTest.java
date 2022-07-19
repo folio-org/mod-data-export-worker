@@ -3,6 +3,7 @@ package org.folio.dew.controller;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_ALLOWED_STATUS;
+import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_NOT_ALLOWED_STATUS;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
@@ -717,6 +718,9 @@ class BulkEditControllerTest extends BaseBatchTest {
       assertThat(expectedItem.getId(), equalTo(actualItem.getId()));
       assertThat(expectedItem.getStatus().getName(), equalTo(actualItem.getStatus().getName()));
       assertTrue(actualItem.getStatus().getDate().after(expectedItem.getStatus().getDate()));
+    } else if (REPLACE_WITH_NOT_ALLOWED_STATUS == testData) {
+      assertThat(actualItems, hasSize(2));
+      actualItems.forEach(item -> assertThat(item.getStatus().getName(), equalTo(InventoryItemStatus.NameEnum.AGED_TO_LOST)));
     } else {
       assertThat(actualItems, hasSize(2));
     }

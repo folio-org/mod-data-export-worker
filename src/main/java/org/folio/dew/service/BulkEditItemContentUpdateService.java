@@ -81,6 +81,7 @@ public class BulkEditItemContentUpdateService {
       log.info("Reading of file {} complete, number of itemFormats: {}", outputFileName, records.size());
       updateResult.setTotal(records.size());
       var contentUpdated = applyContentUpdates(records, contentUpdates, jobCommand);
+      log.info("Updates were applied");
       updateResult.setItemsForPreview(contentUpdated.getPreview());
       var previewOutputFileName = workdir + PREVIEW_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       saveResultToFile(contentUpdated.getPreview(), jobCommand, previewOutputFileName, PREVIEW_FILE_NAME);
@@ -88,6 +89,7 @@ public class BulkEditItemContentUpdateService {
       jobCommand.setExportType(BULK_EDIT_UPDATE);
       return updateResult;
     } catch (Exception e) {
+      e.printStackTrace();
       var msg = String.format("Failed to read %s item records file for job id %s, reason: %s", outputFileName, jobCommand.getId(), e.getMessage());
       log.error(msg);
       throw new FileOperationException(msg);
@@ -96,6 +98,7 @@ public class BulkEditItemContentUpdateService {
 
   private void saveResultToFile(List<ItemFormat> itemFormats, JobCommand jobCommand, String outputFileName, String propertyValue) {
     try {
+      log.info("Saving {}", outputFileName);
       CsvHelper.saveRecordsToCsv(itemFormats, ItemFormat.class, outputFileName);
       log.info("Saved file {}", outputFileName);
       jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())

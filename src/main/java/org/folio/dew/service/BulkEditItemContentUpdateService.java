@@ -75,7 +75,6 @@ public class BulkEditItemContentUpdateService {
       Files.deleteIfExists(Path.of(outputFileName));
       var recordsFileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       repository.downloadObject(recordsFileName, outputFileName);
-      log.info("Downloaded {} as {}", recordsFileName, outputFileName);
       var updateResult = new ItemUpdatesResult();
       var records = CsvHelper.readRecordsFromFile(outputFileName, ItemFormat.class, true);
       log.info("Reading of file {} complete, number of itemFormats: {}", outputFileName, records.size());
@@ -98,7 +97,7 @@ public class BulkEditItemContentUpdateService {
   private void saveResultToFile(List<ItemFormat> itemFormats, JobCommand jobCommand, String outputFileName, String propertyValue) {
     try {
       CsvHelper.saveRecordsToCsv(itemFormats, ItemFormat.class, outputFileName);
-      log.info("Saved file {}", outputFileName);
+      log.info("Saved {}", outputFileName);
       jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())
         .addString(propertyValue, outputFileName)
         .toJobParameters());

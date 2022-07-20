@@ -284,7 +284,7 @@ public class ItemReferenceService {
       var locationJson = locationClient.getLocation(effectiveLocationId.asText());
       return isNull(locationJson.get("name")) ? EMPTY : locationJson.get("name").asText();
     }
-    throw new BulkEditException("Unable to get holdings record effective location: " + id);
+    return EMPTY;
   }
 
   @Cacheable(cacheNames = "allowedStatuses")

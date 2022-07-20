@@ -1,7 +1,16 @@
 package org.folio.dew.service;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.utils.Constants.BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE;
+import static org.folio.dew.utils.Constants.MODULE_NAME;
+import static org.folio.dew.utils.Constants.QUOTE;
+import static org.folio.dew.utils.Constants.STATUSES_CONFIG_NAME;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -51,11 +60,6 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-
-import static org.folio.dew.utils.Constants.BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE;
-import static org.folio.dew.utils.Constants.MODULE_NAME;
-import static org.folio.dew.utils.Constants.QUOTE;
-import static org.folio.dew.utils.Constants.STATUSES_CONFIG_NAME;
 
 @Service
 @Log4j2
@@ -275,8 +279,12 @@ public class ItemReferenceService {
   @Cacheable(cacheNames = "holdings")
   public String getHoldingEffectiveLocationCodeById(String id) {
     var holdingJson = holdingClient.getHoldingById(id);
-    var locationJson = locationClient.getLocation(holdingJson.get("effectiveLocationId").asText());
-    return locationJson.get("name").asText();
+    var effectiveLocationId = isNull(holdingJson.get("effectiveLocationId")) ? getHoldingsEffectiveLocation(holdingJson) : holdingJson.get("effectiveLocationId");
+    if (nonNull(effectiveLocationId)) {
+      var locationJson = locationClient.getLocation(effectiveLocationId.asText());
+      return isNull(locationJson.get("name")) ? EMPTY : locationJson.get("name").asText();
+    }
+    throw new BulkEditException("Unable to get holdings record effective location: " + id);
   }
 
   @Cacheable(cacheNames = "allowedStatuses")
@@ -294,5 +302,9 @@ public class ItemReferenceService {
       log.error(msg);
       throw new ConfigurationException(msg);
     }
+  }
+
+  private JsonNode getHoldingsEffectiveLocation(JsonNode holdingsJson) {
+    return isNull(holdingsJson.get("temporaryLocationId")) ? holdingsJson.get("permanentLocationId") : holdingsJson.get("temporaryLocationId");
   }
 }

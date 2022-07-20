@@ -81,7 +81,6 @@ public class BulkEditItemContentUpdateService {
       log.info("Reading of file {} complete, number of itemFormats: {}", outputFileName, records.size());
       updateResult.setTotal(records.size());
       var contentUpdated = applyContentUpdates(records, contentUpdates, jobCommand);
-      log.info("Updates were applied");
       updateResult.setItemsForPreview(contentUpdated.getPreview());
       var previewOutputFileName = workdir + PREVIEW_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       saveResultToFile(contentUpdated.getPreview(), jobCommand, previewOutputFileName, PREVIEW_FILE_NAME);
@@ -98,7 +97,6 @@ public class BulkEditItemContentUpdateService {
 
   private void saveResultToFile(List<ItemFormat> itemFormats, JobCommand jobCommand, String outputFileName, String propertyValue) {
     try {
-      log.info("Saving {}", outputFileName);
       CsvHelper.saveRecordsToCsv(itemFormats, ItemFormat.class, outputFileName);
       log.info("Saved file {}", outputFileName);
       jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())
@@ -114,7 +112,7 @@ public class BulkEditItemContentUpdateService {
   private ContentUpdateRecords applyContentUpdates(List<ItemFormat> itemFormats, ContentUpdateCollection contentUpdates, JobCommand jobCommand) {
     var result = new ContentUpdateRecords();
     for (ItemFormat itemFormat: itemFormats) {
-      log.info("Updating item id={}", itemFormat.getId());
+      log.info("Applying updates to item id={}", itemFormat.getId());
       var updatedItemFormat = itemFormat;
       var errorMessage = new ErrorMessage();
       for (ContentUpdate contentUpdate: contentUpdates.getContentUpdates()) {

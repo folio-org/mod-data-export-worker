@@ -37,6 +37,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -154,7 +155,7 @@ public class BulkEditController implements JobIdApi {
       } catch (Exception e) {
         var msg = String.format("Failed to read %s for job id %s, reason: %s", fileName, jobCommand.getId(), e.getMessage());
         log.error(msg);
-        return new ResponseEntity<>(new UserCollection().totalRecords(0), HttpStatus.OK);
+        return new ResponseEntity<>(new UserCollection().users(Collections.emptyList()).totalRecords(0), HttpStatus.OK);
       }
     } else {
       return new ResponseEntity<>(userClient.getUserByQuery(buildPreviewUsersQueryFromJobCommand(jobCommand, limit), limit), HttpStatus.OK);
@@ -174,7 +175,7 @@ public class BulkEditController implements JobIdApi {
       } catch (Exception e) {
         var msg = String.format("Failed to read %s for job id %s, reason: %s", fileName, jobCommand.getId(), e.getMessage());
         log.error(msg);
-        return new ResponseEntity<>(new ItemCollection().totalRecords(0), HttpStatus.OK);
+        return new ResponseEntity<>(new ItemCollection().items(Collections.emptyList()).totalRecords(0), HttpStatus.OK);
       }
     } else {
       return new ResponseEntity<>(inventoryClient.getItemByQuery(buildPreviewQueryFromJobCommand(jobCommand, limit), limit), HttpStatus.OK);

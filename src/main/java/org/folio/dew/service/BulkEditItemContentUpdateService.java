@@ -120,16 +120,11 @@ public class BulkEditItemContentUpdateService {
           updateEffectiveLocation(updatedItemFormat);
         }
         result.addToUpdated(updatedItemFormat);
-        result.addToPreview(updatedItemFormat);
+        result.addToPreview(applyUpdatesForPreview(contentUpdates, updatedItemFormat));
       } else {
-        var statusUpdate = contentUpdates.getContentUpdates().stream()
-            .filter(contentUpdate -> contentUpdate.getOption() == STATUS)
-            .findFirst();
-        if (statusUpdate.isPresent() && nonNull(statusUpdate.get().getValue()) && !extractStatusName(itemFormat.getStatus()).equals(statusUpdate.get().getValue())) {
-          var status = statusUpdate.get().getValue();
-          result.addToPreview(itemFormat.withStatus(String.join(ARRAY_DELIMITER, status.toString(), dateToString(Date.from(LocalDateTime.now().atZone(UTC).toInstant())))));
-        } else {
-          result.addToPreview(itemFormat);
+        var previewItemFormat = applyUpdatesForPreview(contentUpdates, itemFormat);
+        result.addToPreview(previewItemFormat);
+        if (Objects.equals(itemFormat, previewItemFormat)) {
           errorMessage.setValue(NO_CHANGE_MESSAGE);
         }
       }
@@ -207,5 +202,15 @@ public class BulkEditItemContentUpdateService {
   private String extractStatusName(String s) {
     var tokens = s.split(ARRAY_DELIMITER, -1);
     return tokens.length > 0 ? tokens[0] : EMPTY;
+  }
+
+  private ItemFormat applyUpdatesForPreview(ContentUpdateCollection contentUpdates, ItemFormat itemFormat) {
+    var statusUpdate = contentUpdates.getContentUpdates().stream()
+      .filter(contentUpdate -> contentUpdate.getOption() == STATUS)
+      .findFirst();
+    if (statusUpdate.isPresent() && nonNull(statusUpdate.get().getValue()) && !extractStatusName(itemFormat.getStatus()).equals(statusUpdate.get().getValue())) {
+      return itemFormat.withStatus(String.join(ARRAY_DELIMITER, statusUpdate.get().getValue().toString(), dateToString(Date.from(LocalDateTime.now().atZone(UTC).toInstant()))));
+    }
+    return itemFormat;
   }
 }

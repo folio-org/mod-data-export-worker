@@ -42,8 +42,17 @@ public class CsvWriter<T> extends FlatFileItemWriter<T> {
           }
 
           var s = o.toString();
-          if (s.contains(",") || s.contains("\n")) {
-            s = "\"" + s.replace("\"", "\"\"").replace(LINE_BREAK, LINE_BREAK_REPLACEMENT) + "\"";
+
+          if (s.contains("\"")) {
+            s = s.replace("\"", "\"\"");
+          }
+
+          if (s.contains("\n")) {
+            s = s.replace(LINE_BREAK, LINE_BREAK_REPLACEMENT);
+          }
+
+          if (s.contains(",")) {
+            s = "\"" + s + "\"";
           }
 
           result[i] = s;

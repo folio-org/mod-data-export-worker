@@ -1,3 +1,44 @@
+## 2022-07-08 v1.4.0
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.3.0...v1.4.0)
+
+### Technical tasks
+* [MODEXPW-173](https://issues.folio.org/browse/MODEXPW-173) Close FolioExecutionContext if it is opened
+* [MODEXPW-148](https://issues.folio.org/browse/MODEXPW-148) Remove org.json:json, license is not open source
+* [MODEXPW-145](https://issues.folio.org/browse/MODEXPW-145) Preview API upgrading
+* [MODEXPW-125](https://issues.folio.org/browse/MODEXPW-125) Remove dependency to deprecated module
+* [MODEXPW-119](https://issues.folio.org/browse/MODEXPW-119) Improvements for Are you sure form
+* [MODEXPW-90](https://issues.folio.org/browse/MODEXPW-90) Items Content Update API /bulk-edit/{jobId}/items-content-update/upload
+* [MODEXPW-74](https://issues.folio.org/browse/MODEXPW-74) mod-data-export-worker: folio-spring-base v4.1.0 update
+
+### Stroies
+* [MODEXPW-156](https://issues.folio.org/browse/MODEXPW-156) Prepare infrastructure to migrate mod-data-export
+* [MODEXPW-134](https://issues.folio.org/browse/MODEXPW-134) On the update report selected and not affected records
+* [MODEXPW-127](https://issues.folio.org/browse/MODEXPW-127) Update result of User and Item retrieval jobs
+* [MODEXPW-123](https://issues.folio.org/browse/MODEXPW-123) Add additional user identifier types support for bulk edit
+* [MODEXPW-121](https://issues.folio.org/browse/MODEXPW-121) Export eHoldings: Add mod-agreements support
+* [MODEXPW-120](https://issues.folio.org/browse/MODEXPW-120) Export eHoldings: Add mod-notes support
+* [MODEXPW-116](https://issues.folio.org/browse/MODEXPW-116) Download matched records (CSV) returns users instead of items when using Query items (Bulk Edit)
+* [MODEXPW-109](https://issues.folio.org/browse/MODEXPW-109) Update user records with custom fields
+* [MODEXPW-103](https://issues.folio.org/browse/MODEXPW-103) Log error and don't throw exception if order lines were not found
+* [MODEXPW-102](https://issues.folio.org/browse/MODEXPW-102) Improve error handling if provided data from EDIFACT export configuration has incorrect format
+* [MODEXPW-92](https://issues.folio.org/browse/MODEXPW-92) Item Preview API (/bulk-edit/{jobId}/preview/items)
+* [MODEXPW-86](https://issues.folio.org/browse/MODEXPW-86) Saving edited item locations
+* [MODEXPW-85](https://issues.folio.org/browse/MODEXPW-85) Improve user processor logic to support arrays in custom fields
+* [MODEXPW-80](https://issues.folio.org/browse/MODEXPW-80) Retrieve item records based on the provided identifiers
+
+### Bug fixes
+* [MODEXPW-155](https://issues.folio.org/browse/MODEXPW-155) Incorrect identifier in the error accordion after completing bulk edit
+* [MODEXPW-149](https://issues.folio.org/browse/MODEXPW-149) "Bad request" retrieved during Items bulk edit if the location name contains "/"
+* [MODEXPW-135](https://issues.folio.org/browse/MODEXPW-135) Circulation log export shows another tenant/user's data
+* [MODEXPW-132](https://issues.folio.org/browse/MODEXPW-132) Errors when uploading file with valid "Items former identifiers"
+* [MODEXPW-131](https://issues.folio.org/browse/MODEXPW-131) Downloaded matched records differs from "Preview of matched records" if identifiers return more than one item
+* [MODEXPW-130](https://issues.folio.org/browse/MODEXPW-130) Bulk Edit allows to clear "Patron group" for Users profile by uploading modified records
+* [MODEXPW-126](https://issues.folio.org/browse/MODEXPW-126) The Errors accordion after bulk edit is populated with errors occurred during the matching identifiers
+* [MODEXPW-115](https://issues.folio.org/browse/MODEXPW-115) Download link shouldn't be available for empty file with matched records
+* [MODEXPW-114](https://issues.folio.org/browse/MODEXPW-114) "Download changed records (CSV)" is missing from Actions Menu
+* [MODEXPW-94](https://issues.folio.org/browse/MODEXPW-94) Spring4Shell Morning Glory R2 2022 (CVE-2022-22965)
+
 ## 2022-03-03 v1.3.0
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.2.2...v1.3.0)

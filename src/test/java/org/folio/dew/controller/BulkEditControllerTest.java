@@ -518,9 +518,8 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
 
-    var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
-      .entityType(ITEM)
-      .contentUpdates(Collections.singletonList(new ContentUpdate()
+    var updates = objectMapper.writeValueAsString(new ItemContentUpdateCollection()
+      .itemContentUpdates(Collections.singletonList(new ItemContentUpdate()
         .option(testData.getOption())
         .action(testData.getAction())
         .value(testData.getValue())))
@@ -564,12 +563,11 @@ class BulkEditControllerTest extends BaseBatchTest {
     jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
 
     var updates = Arrays.asList(
-      new ContentUpdate().option(testData.getOption()).action(testData.getAction()).value(testData.getValue()),
-      new ContentUpdate().option(testData.getOption()).action(testData.getAction()).value(testData.getValue()));
+      new ItemContentUpdate().option(testData.getOption()).action(testData.getAction()).value(testData.getValue()),
+      new ItemContentUpdate().option(testData.getOption()).action(testData.getAction()).value(testData.getValue()));
 
-    var updatesString = objectMapper.writeValueAsString(new ContentUpdateCollection()
-      .entityType(ITEM)
-      .contentUpdates(updates)
+    var updatesString = objectMapper.writeValueAsString(new ItemContentUpdateCollection()
+      .itemContentUpdates(updates)
       .totalRecords(1));
 
     var response = mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
@@ -611,9 +609,8 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
 
-    var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
-      .entityType(ITEM)
-      .contentUpdates(Collections.singletonList(new ContentUpdate()
+    var updates = objectMapper.writeValueAsString(new ItemContentUpdateCollection()
+      .itemContentUpdates(Collections.singletonList(new ItemContentUpdate()
         .option(testData.getOption())
         .action(testData.getAction())
         .value(testData.getValue())))
@@ -648,11 +645,10 @@ class BulkEditControllerTest extends BaseBatchTest {
       .toJobParameters());
     when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
-    var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
-      .entityType(ITEM)
-      .contentUpdates(Collections.singletonList(new ContentUpdate()
-        .option(ContentUpdate.OptionEnum.TEMPORARY_LOCATION)
-        .action(ContentUpdate.ActionEnum.REPLACE_WITH)
+    var updates = objectMapper.writeValueAsString(new ItemContentUpdateCollection()
+      .itemContentUpdates(Collections.singletonList(new ItemContentUpdate()
+        .option(ItemContentUpdate.OptionEnum.TEMPORARY_LOCATION)
+        .action(ItemContentUpdate.ActionEnum.REPLACE_WITH)
         .value("Annex")))
       .totalRecords(1));
 
@@ -686,9 +682,8 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
 
-    var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
-      .entityType(ITEM)
-      .contentUpdates(Collections.singletonList(new ContentUpdate()
+    var updates = objectMapper.writeValueAsString(new ItemContentUpdateCollection()
+      .itemContentUpdates(Collections.singletonList(new ItemContentUpdate()
         .option(testData.getOption())
         .action(testData.getAction())
         .value(testData.getValue())))
@@ -746,11 +741,10 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
 
-    var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
-        .entityType(ITEM)
-        .contentUpdates(Collections.singletonList(new ContentUpdate()
-            .option(ContentUpdate.OptionEnum.STATUS)
-            .action(ContentUpdate.ActionEnum.CLEAR_FIELD)))
+    var updates = objectMapper.writeValueAsString(new ItemContentUpdateCollection()
+        .itemContentUpdates(Collections.singletonList(new ItemContentUpdate()
+            .option(ItemContentUpdate.OptionEnum.STATUS)
+            .action(ItemContentUpdate.ActionEnum.CLEAR_FIELD)))
         .totalRecords(1));
 
     mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
@@ -783,11 +777,10 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
 
-    var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
-      .entityType(ITEM)
-      .contentUpdates(Collections.singletonList(new ContentUpdate()
-        .option(ContentUpdate.OptionEnum.TEMPORARY_LOCATION)
-        .action(ContentUpdate.ActionEnum.REPLACE_WITH)
+    var updates = objectMapper.writeValueAsString(new ItemContentUpdateCollection()
+      .itemContentUpdates(Collections.singletonList(new ItemContentUpdate()
+        .option(ItemContentUpdate.OptionEnum.TEMPORARY_LOCATION)
+        .action(ItemContentUpdate.ActionEnum.REPLACE_WITH)
         .value("Main Library")))
       .totalRecords(1));
 
@@ -807,51 +800,12 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @Test
-  @DisplayName("Post non-supported entity type content update - BAD REQUEST")
-  @SneakyThrows
-  void shouldReturnBadRequestForNonSupportedEntityTypeContentUpdates() {
-    var updates = OBJECT_MAPPER.writeValueAsString(new ContentUpdateCollection()
-      .entityType(USER)
-      .contentUpdates(Collections.singletonList(new ContentUpdate()
-        .option(ContentUpdate.OptionEnum.TEMPORARY_LOCATION)
-        .action(ContentUpdate.ActionEnum.REPLACE_WITH)))
-      .totalRecords(1));
-
-    var expectedJson = "{\"errors\":[{\"message\":\"Non-supported entity type: USER\",\"type\":\"-1\",\"code\":\"Validation error\",\"parameters\":null}],\"total_records\":1}";
-
-    mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, UUID.randomUUID()))
-        .headers(defaultHeaders())
-        .content(updates))
-      .andExpect(status().isBadRequest())
-      .andExpect(content().json(expectedJson));
-  }
-
-  @Test
-  @DisplayName("Post invalid content updates - BAD REQUEST")
-  @SneakyThrows
-  void shouldReturnBadRequestForInvalidContentUpdates() {
-    var updates = OBJECT_MAPPER.writeValueAsString(new ContentUpdateCollection()
-      .contentUpdates(Collections.singletonList(new ContentUpdate()
-        .option(ContentUpdate.OptionEnum.TEMPORARY_LOCATION)
-        .action(ContentUpdate.ActionEnum.REPLACE_WITH)))
-      .totalRecords(1));
-
-    var expectedJson = "{\"errors\":[{\"message\":\"Invalid request body\",\"type\":\"-1\",\"code\":\"Validation error\",\"parameters\":[{\"key\":\"entityType\",\"value\":\"must not be null\"}]}],\"total_records\":1}";
-
-    mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, UUID.randomUUID()))
-      .headers(defaultHeaders())
-      .content(updates))
-      .andExpect(status().isBadRequest())
-      .andExpect(content().json(expectedJson));
-  }
-
-  @Test
   @DisplayName("Post empty content updates - BAD REQUEST")
   @SneakyThrows
   void shouldReturnBadRequestForEmptyContentUpdates() {
-    var updates = OBJECT_MAPPER.writeValueAsString(new ContentUpdateCollection().entityType(ITEM).totalRecords(0));
+    var updates = OBJECT_MAPPER.writeValueAsString(new ItemContentUpdateCollection().totalRecords(0));
 
-    var expectedJson = "{\"errors\":[{\"message\":\"Invalid request body\",\"type\":\"-1\",\"code\":\"Validation error\",\"parameters\":[{\"key\":\"contentUpdates\",\"value\":\"size must be between 1 and 2147483647\"}]}],\"total_records\":1}";
+    var expectedJson = "{\"errors\":[{\"message\":\"Invalid request body\",\"type\":\"-1\",\"code\":\"Validation error\",\"parameters\":[{\"key\":\"itemContentUpdates\",\"value\":\"size must be between 1 and 2147483647\"}]}],\"total_records\":1}";
 
     mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, UUID.randomUUID()))
         .headers(defaultHeaders())

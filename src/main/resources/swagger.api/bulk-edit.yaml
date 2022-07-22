@@ -8,7 +8,7 @@ paths:
   /{jobId}/items-content-update/upload:
     post:
       description: Upload content updates
-      operationId: postContentUpdates
+      operationId: postItemContentUpdates
       parameters:
         - name: jobId
           in: path
@@ -27,7 +27,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/contentUpdateCollection"
+              $ref: "#/components/schemas/itemContentUpdateCollection"
       responses:
         "200":
           description: Collection of items for preview
@@ -399,8 +399,8 @@ components:
       $ref: '../../../../folio-export-common/schemas/inventory/electronicAccessRelationshipCollection.json#/ElectronicAccessRelationshipCollection'
     statisticalCodes:
       $ref: '../../../../folio-export-common/schemas/inventory/statisticalCodeCollection.json#/StatisticalCodeCollection'
-    contentUpdateCollection:
-      $ref: '../../../../folio-export-common/schemas/bulk-edit/contentUpdateCollection.json#/ContentUpdateCollection'
+    itemContentUpdateCollection:
+      $ref: '../../../../folio-export-common/schemas/bulk-edit/itemContentUpdateCollection.json#/ItemContentUpdateCollection'
     customFieldCollection:
       $ref: '../../../../folio-export-common/schemas/user/customFieldCollection.json#/CustomFieldCollection'
   examples:

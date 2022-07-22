@@ -4,6 +4,7 @@ import io.minio.BucketExistsArgs;
 import io.minio.ComposeObjectArgs;
 import io.minio.ComposeSource;
 import io.minio.DownloadObjectArgs;
+import io.minio.GetObjectArgs;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
@@ -26,6 +27,7 @@ import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -108,6 +110,12 @@ public class MinIOObjectStorageRepository {
     InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,
     InternalException, XmlParserException, ErrorResponseException {
     client.downloadObject(DownloadObjectArgs.builder().bucket(bucket).object(objectToGet).filename(fileToSave).build());
+  }
+
+  public InputStream getObject(String objectToGet) throws IOException, InvalidKeyException,
+    InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,
+    InternalException, XmlParserException, ErrorResponseException {
+    return client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectToGet).build());
   }
 
   public ObjectWriteResponse composeObject(String destObject, List<String> sourceObjects, String downloadFilename,

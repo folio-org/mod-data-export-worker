@@ -2,6 +2,7 @@ package org.folio.dew.service;
 
 import static java.time.ZoneOffset.UTC;
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.domain.dto.ContentUpdate.ActionEnum.CLEAR_FIELD;
@@ -75,6 +76,7 @@ public class BulkEditItemContentUpdateService {
       repository.downloadObject(FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION, outputFileName);
       var updateResult = new ItemUpdatesResult();
       var records = CsvHelper.readRecordsFromFile(outputFileName, ItemFormat.class, true);
+      log.info("Reading of file {} complete, number of itemFormats: {}", outputFileName, records.size());
       updateResult.setTotal(records.size());
       var contentUpdated = applyContentUpdates(records, contentUpdates, jobCommand);
       updateResult.setItemsForPreview(contentUpdated.getPreview());
@@ -93,6 +95,7 @@ public class BulkEditItemContentUpdateService {
   private void saveResultToFile(List<ItemFormat> itemFormats, JobCommand jobCommand, String outputFileName, String propertyValue) {
     try {
       CsvHelper.saveRecordsToCsv(itemFormats, ItemFormat.class, outputFileName);
+      log.info("Saved {}", outputFileName);
       jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())
         .addString(propertyValue, outputFileName)
         .toJobParameters());
@@ -106,6 +109,7 @@ public class BulkEditItemContentUpdateService {
   private ContentUpdateRecords applyContentUpdates(List<ItemFormat> itemFormats, ContentUpdateCollection contentUpdates, JobCommand jobCommand) {
     var result = new ContentUpdateRecords();
     for (ItemFormat itemFormat: itemFormats) {
+      log.info("Applying updates to item id={}", itemFormat.getId());
       var updatedItemFormat = itemFormat;
       var errorMessage = new ErrorMessage();
       for (ContentUpdate contentUpdate: contentUpdates.getContentUpdates()) {
@@ -116,10 +120,13 @@ public class BulkEditItemContentUpdateService {
           updateEffectiveLocation(updatedItemFormat);
         }
         result.addToUpdated(updatedItemFormat);
-        result.addToPreview(updatedItemFormat);
+        result.addToPreview(applyUpdatesForPreview(contentUpdates, updatedItemFormat));
       } else {
-        result.addToPreview(itemFormat);
-        errorMessage.setValue(NO_CHANGE_MESSAGE);
+        var previewItemFormat = applyUpdatesForPreview(contentUpdates, itemFormat);
+        result.addToPreview(previewItemFormat);
+        if (Objects.equals(itemFormat, previewItemFormat)) {
+          errorMessage.setValue(NO_CHANGE_MESSAGE);
+        }
       }
       if (errorMessage.getValue() != null) {
         log.error(errorMessage);
@@ -195,5 +202,15 @@ public class BulkEditItemContentUpdateService {
   private String extractStatusName(String s) {
     var tokens = s.split(ARRAY_DELIMITER, -1);
     return tokens.length > 0 ? tokens[0] : EMPTY;
+  }
+
+  private ItemFormat applyUpdatesForPreview(ContentUpdateCollection contentUpdates, ItemFormat itemFormat) {
+    var statusUpdate = contentUpdates.getContentUpdates().stream()
+      .filter(contentUpdate -> contentUpdate.getOption() == STATUS)
+      .findFirst();
+    if (statusUpdate.isPresent() && nonNull(statusUpdate.get().getValue()) && !extractStatusName(itemFormat.getStatus()).equals(statusUpdate.get().getValue())) {
+      return itemFormat.withStatus(String.join(ARRAY_DELIMITER, statusUpdate.get().getValue().toString(), dateToString(Date.from(LocalDateTime.now().atZone(UTC).toInstant()))));
+    }
+    return itemFormat;
   }
 }

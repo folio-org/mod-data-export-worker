@@ -135,11 +135,8 @@ public class JobCommandsReceiverService {
           jobCommand.getJobParameters());
 
       acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-      if (jobCommand.getExportType() == CIRCULATION_LOG || jobCommand.getExportType() == E_HOLDINGS) {
-        exportJobManagerSync.launchJob(jobLaunchRequest);
-      } else {
-        exportJobManager.launchJob(jobLaunchRequest);
-      }
+      exportJobManagerSync.launchJob(jobLaunchRequest);
+
     } catch (Exception e) {
       log.error(e.toString(), e);
     }

@@ -1,3 +1,17 @@
+## 2022-07-22 v1.4.1
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.0...v1.4.1)
+
+### Technical tasks
+* [MODEXPW-188](https://issues.folio.org/browse/MODEXPW-188) Remove asynchronous launching job for Bursar
+* [MODEXPW-164](https://issues.folio.org/browse/MODEXPW-164) Increase maximal upload file size
+
+### Bug fixes
+* [MODEXPW-192](https://issues.folio.org/browse/MODEXPW-192) 500 Error occurred Clearing Items locations on the MG bugfest
+* [MODEXPW-184](https://issues.folio.org/browse/MODEXPW-184) Are you sure form does not show updated item's status value for initial Checked out status
+* [MODEXPW-182](https://issues.folio.org/browse/MODEXPW-182) 500 Error occurred while Item Status updating
+* [MODEXPW-166](https://issues.folio.org/browse/MODEXPW-166) Bulk Edit: 500 Server Error when editing specific records
+
 ## 2022-07-08 v1.4.0
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.3.0...v1.4.0)

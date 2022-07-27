@@ -351,7 +351,7 @@ public class BulkEditController implements JobIdApi {
         .skip(getNumberOfLinesToSkip(jobCommand))
         .limit(limit)
         .map(line -> extractIdentifiersFromLine(line, jobCommand))
-        .map(identifier -> QUOTE + identifier + QUOTE)
+        .map(identifier -> String.format("\"%s\"", identifier))
         .collect(Collectors.joining(" OR ", "(", ")"));
       var identifierType = jobCommand.getIdentifierType().getValue();
       return format(getMatchPattern(identifierType), resolveIdentifier(identifierType), values);

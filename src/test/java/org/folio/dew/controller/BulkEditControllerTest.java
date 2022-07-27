@@ -323,7 +323,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @SneakyThrows
   @ParameterizedTest
-  @CsvSource({"BULK_EDIT_UPDATE,barcode==(123 OR 456)",
+  @CsvSource({"BULK_EDIT_UPDATE,barcode==(\"123\" OR \"456\")",
     "BULK_EDIT_QUERY,(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName"})
   void shouldReturnCompleteUserPreviewWithLimitControl(String exportType, String query) {
 
@@ -350,8 +350,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @ParameterizedTest
   @EnumSource(EntityType.class)
   void shouldReturnCompleteUpdatePreviewWithLimitControl(EntityType entityType) {
-    var query = "barcode==(123 OR 456)";
-
+    var query = "barcode==(\"123\" OR \"456\")";
     when(inventoryClient.getItemByQuery(query, 2)).thenReturn(buildItemCollection());
 
     var jobId = UUID.randomUUID();

@@ -36,7 +36,7 @@ public class UserFetcher implements ItemProcessor<ItemIdentifier, User> {
     }
     identifiersToCheckDuplication.add(itemIdentifier);
     try {
-      var users = userClient.getUserByQuery(String.format("%s==%s", resolveIdentifier(identifierType), itemIdentifier.getItemId()), 1);
+      var users = userClient.getUserByQuery(String.format("%s==\"%s\"", resolveIdentifier(identifierType), itemIdentifier.getItemId()), 1);
       if (!users.getUsers().isEmpty()) {
         return users.getUsers().get(0);
       }

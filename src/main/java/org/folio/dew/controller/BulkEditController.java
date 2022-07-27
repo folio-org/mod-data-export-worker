@@ -23,6 +23,7 @@ import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
+import static org.folio.dew.utils.Constants.QUOTE;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.CsvHelper.countLines;
@@ -350,6 +351,7 @@ public class BulkEditController implements JobIdApi {
         .skip(getNumberOfLinesToSkip(jobCommand))
         .limit(limit)
         .map(line -> extractIdentifiersFromLine(line, jobCommand))
+        .map(identifier -> String.format("\"%s\"", identifier))
         .collect(Collectors.joining(" OR ", "(", ")"));
       var identifierType = jobCommand.getIdentifierType().getValue();
       return format(getMatchPattern(identifierType), resolveIdentifier(identifierType), values);

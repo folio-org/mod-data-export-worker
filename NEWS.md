@@ -1,3 +1,7 @@
+## v1.5.0 IN-PROGRESS
+
+* [MODEXPW-199] (https://issues.folio.org/browse/MODEXPW-199) Supports users interface versions 15.4, 16.0
+
 ## 2022-07-08 v1.4.0
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.3.0...v1.4.0)

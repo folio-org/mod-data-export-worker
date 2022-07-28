@@ -73,7 +73,6 @@ public class JobCommandsReceiverService {
   private final FileNameResolver fileNameResolver;
   private final MinIOObjectStorageRepository minIOObjectStorageRepository;
   private final List<Job> jobs;
-  private final KafkaManager kafkaManager;
 
   private Map<String, Job> jobMap;
   private Map<String, JobCommand> bulkEditJobCommands;

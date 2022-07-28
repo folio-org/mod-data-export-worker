@@ -2,10 +2,8 @@ package org.folio.dew.service;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.Collections;
@@ -18,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.JobExecutionException;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.kafka.support.Acknowledgment;
 
 import org.folio.de.entity.JobCommand;
@@ -28,9 +25,6 @@ import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
 
 class JobCommandsReceiverServiceTest extends BaseBatchTest {
-
-  @SpyBean
-  private KafkaManager kafkaManager;
 
   @Test
   @DisplayName("Start CirculationLog job by kafka request")
@@ -67,21 +61,6 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
   }
 
   @Test
-  @DisplayName("Start EHoldings job with pausing/resuming consumer by kafka request")
-  void pauseAndResumeConsumerTest() throws JobExecutionException {
-    doNothing().when(acknowledgment).acknowledge();
-
-    UUID id = UUID.randomUUID();
-    JobCommand jobCommand = createStartEHoldingsJobRequest(id);
-
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
-
-    verify(kafkaManager).pauseConsume(anyString());
-    verify(exportJobManagerSync, timeout(1_000)).launchJob(any());
-    verify(kafkaManager, timeout(1_000)).resumeConsumer(anyString());
-  }
-
-  @Test
   @DisplayName("Delete files by kafka request")
   void deleteFilesTest() {
     doNothing().when(acknowledgment).acknowledge();
@@ -91,7 +70,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
     jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
 
-    verify(acknowledgment, times(1)).acknowledge();
+    verify(acknowledgment, timeout(1_000)).acknowledge();
   }
 
   private JobCommand createStartCirculationLogJobRequest(UUID id) {

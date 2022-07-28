@@ -6,6 +6,11 @@ import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.apache.commons.lang3.StringUtils.splitByCharacterTypeCamelCase;
+
+import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_MAX_PACKAGE_NOTES_COUNT;
+import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_MAX_TITLE_NOTES_COUNT;
+import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PACKAGE_NOTES;
+import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_TITLE_NOTES;
 import static org.folio.dew.utils.Constants.COMMA;
 import static org.folio.dew.utils.Constants.LINE_BREAK;
 import static org.folio.dew.utils.Constants.LINE_BREAK_REPLACEMENT;
@@ -18,36 +23,62 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.support.AbstractFileItemWriter;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 
-public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsResourceExportFormat> {
+import org.folio.dew.domain.dto.EHoldingsExportConfig;
+import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
 
-  private static final String PACKAGE_NOTES_FIELD = "packageNotes";
-  private static final String TITLE_NOTES_FIELD = "titleNotes";
+@Component
+@StepScope
+public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsResourceExportFormat> {
   private final String[] fieldNames;
   private int maxPackageNotesLength;
   private int maxTitleNotesLength;
 
-  public EHoldingsCsvFileWriter(String tempOutputFilePath, String[] fieldNames) {
-    this.fieldNames = fieldNames;
+  public EHoldingsCsvFileWriter(@Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
+                                EHoldingsExportConfig exportConfig) {
+    this.fieldNames = getFieldNames(exportConfig);
+    setEholdingsResource(tempOutputFilePath);
+    this.setExecutionContextName(ClassUtils.getShortName(EHoldingsCsvFileWriter.class));
+  }
+
+  private void setEholdingsResource(String tempOutputFilePath) {
     if (isBlank(tempOutputFilePath)) {
       throw new IllegalArgumentException("tempOutputFilePath is blank");
     }
     setResource(new FileSystemResource(tempOutputFilePath));
-    this.setExecutionContextName(ClassUtils.getShortName(EHoldingsCsvFileWriter.class));
+  }
+
+  private String[] getFieldNames(EHoldingsExportConfig exportConfig) {
+    var exportFields = new ArrayList<String>();
+    if (exportConfig.getPackageFields() != null) {
+      exportFields.addAll(exportConfig.getPackageFields());
+    }
+    if (exportConfig.getTitleFields() != null) {
+      exportFields.addAll(exportConfig.getTitleFields());
+    }
+    if (exportFields.isEmpty()) {
+      throw new IllegalArgumentException("Export fields are empty");
+    }
+
+    return exportFields.toArray(String[]::new);
   }
 
   @BeforeStep
   public void beforeStep(StepExecution stepExecution) {
     var executionContext = stepExecution.getJobExecution().getExecutionContext();
-    maxPackageNotesLength = executionContext.getInt("packageMaxNotesCount", 0);
-    maxTitleNotesLength = executionContext.getInt("titleMaxNotesCount", 0);
+    maxPackageNotesLength = executionContext.getInt(CONTEXT_MAX_PACKAGE_NOTES_COUNT, 0);
+    maxTitleNotesLength = executionContext.getInt(CONTEXT_MAX_TITLE_NOTES_COUNT, 0);
 
     var columnHeaders = Arrays.stream(fieldNames)
       .map(s -> header(s, maxPackageNotesLength, maxTitleNotesLength))
@@ -63,6 +94,7 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
     }
   }
 
+  @NotNull
   @Override
   protected String doWrite(List<? extends EHoldingsResourceExportFormat> items) {
     var lines = new StringBuilder();
@@ -76,9 +108,9 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
   }
 
   private List<String> header(String fieldName, int maxPackageNotesLength, int maxTitleNotesLength) {
-    if (fieldName.equals(PACKAGE_NOTES_FIELD)) {
+    if (fieldName.equals(LOAD_FIELD_PACKAGE_NOTES)) {
       return getHeadersList(maxPackageNotesLength, "Package Note");
-    } else if (fieldName.equals(TITLE_NOTES_FIELD)) {
+    } else if (fieldName.equals(LOAD_FIELD_TITLE_NOTES)) {
       return getHeadersList(maxTitleNotesLength, "Title Note");
     } else {
       return List.of(capitalize(join(splitByCharacterTypeCamelCase(fieldName), SPACE)));
@@ -116,9 +148,9 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
     for (var s : value) {
       strings.add(quoteValue(s));
     }
-    if (fieldName.equals(PACKAGE_NOTES_FIELD)) {
+    if (fieldName.equals(LOAD_FIELD_PACKAGE_NOTES)) {
       fillWithBlanks(strings, value.size(), maxPackageNotesLength);
-    } else if (fieldName.equals(TITLE_NOTES_FIELD)) {
+    } else if (fieldName.equals(LOAD_FIELD_TITLE_NOTES)) {
       fillWithBlanks(strings, value.size(), maxTitleNotesLength);
     }
     return strings;

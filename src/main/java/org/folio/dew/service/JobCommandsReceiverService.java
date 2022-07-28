@@ -111,40 +111,35 @@ public class JobCommandsReceiverService {
 
     //This thread wrapper is used not to exceed kafka.consumer.properties.max.poll.interval.ms for long-running jobs
     new Thread(() -> {
-      try {
-        launchJob(jobCommand, acknowledgment);
-      } catch (Exception ex) {
-        log.error(ex.toString(), ex);
-      }
-    }).start();
-  }
-
-  @SneakyThrows
-  private void launchJob(JobCommand jobCommand, Acknowledgment acknowledgment) {
-    if (deleteOldFiles(jobCommand, acknowledgment)) {
-      return;
-    }
-    log.info("-----------------------------JOB---STARTS-----------------------------");
-
-    prepareJobParameters(jobCommand);
-
-    if (Set.of(BULK_EDIT_IDENTIFIERS, BULK_EDIT_QUERY, BULK_EDIT_UPDATE).contains(jobCommand.getExportType())) {
-      addBulkEditJobCommand(jobCommand);
-      if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
-        acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-        FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
-        log.debug("FOLIO context closed.");
+    try {
+      if (deleteOldFiles(jobCommand, acknowledgment)) {
         return;
       }
+      log.info("-----------------------------JOB---STARTS-----------------------------");
+
+      prepareJobParameters(jobCommand);
+
+      if (Set.of(BULK_EDIT_IDENTIFIERS, BULK_EDIT_QUERY, BULK_EDIT_UPDATE).contains(jobCommand.getExportType())) {
+        addBulkEditJobCommand(jobCommand);
+        if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
+          acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
+          FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
+          log.debug("FOLIO context closed.");
+          return;
+        }
+      }
+
+      var jobLaunchRequest =
+        new JobLaunchRequest(
+          jobMap.get(resolveJobKey(jobCommand)),
+          jobCommand.getJobParameters());
+
+      acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
+      exportJobManagerSync.launchJob(jobLaunchRequest);
+    } catch (Exception ex) {
+      log.error(ex.toString(), ex);
     }
-
-    var jobLaunchRequest =
-      new JobLaunchRequest(
-        jobMap.get(resolveJobKey(jobCommand)),
-        jobCommand.getJobParameters());
-
-    acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-    exportJobManagerSync.launchJob(jobLaunchRequest);
+    }).start();
   }
 
   private String resolveJobKey(JobCommand jobCommand) {

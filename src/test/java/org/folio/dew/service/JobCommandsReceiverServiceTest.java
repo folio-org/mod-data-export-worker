@@ -2,6 +2,7 @@ package org.folio.dew.service;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -11,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.JobExecutionException;
@@ -58,6 +60,26 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     final Acknowledgment savedAcknowledgment = repository.getAcknowledgement(id.toString());
 
     assertNotNull(savedAcknowledgment);
+  }
+
+  @Test
+  @DisplayName("Start EHoldings job with pausing/resuming consumer by kafka request")
+  void runJobInNewThreadTest() throws JobExecutionException {
+    doNothing().when(acknowledgment).acknowledge();
+
+    UUID id = UUID.randomUUID();
+    JobCommand jobCommand = createStartEHoldingsJobRequest(id);
+    Thread mainThread = Thread.currentThread();
+
+    doAnswer(invocationOnMock -> {
+      Thread childThread = Thread.currentThread();
+      Assertions.assertNotEquals(mainThread.getName(), childThread.getName());
+      return null;
+    }).when(exportJobManagerSync).launchJob(any());
+
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
+
+    verify(exportJobManagerSync, timeout(1_000)).launchJob(any());
   }
 
   @Test

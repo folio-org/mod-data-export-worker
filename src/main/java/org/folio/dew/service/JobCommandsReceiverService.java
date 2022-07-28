@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -111,14 +110,14 @@ public class JobCommandsReceiverService {
   public void receiveStartJobCommand(JobCommand jobCommand, Acknowledgment acknowledgment) {
     log.info("Received {}.", jobCommand);
 
-    kafkaManager.pauseConsume(EVENT_LISTENER_ID);
-    CompletableFuture.runAsync(() -> launchJob(jobCommand, acknowledgment))
-      .handle((unused, throwable) -> {
-        if (throwable != null) log.error(throwable.toString(), throwable);
-        kafkaManager.resumeConsumer(EVENT_LISTENER_ID);
-        return null;
-      });
-
+    //This thread wrapper is used not to exceed kafka.consumer.properties.max.poll.interval.ms for long-running jobs
+    new Thread(() -> {
+      try {
+        launchJob(jobCommand, acknowledgment);
+      } catch (Exception ex) {
+        log.error(ex.toString(), ex);
+      }
+    }).start();
   }
 
   @SneakyThrows

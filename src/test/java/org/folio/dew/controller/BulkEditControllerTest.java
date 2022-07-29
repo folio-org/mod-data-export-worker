@@ -88,7 +88,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String PREVIEW_USERS_URL_TEMPLATE = "/bulk-edit/%s/preview/users";
   private static final String PREVIEW_ITEMS_URL_TEMPLATE = "/bulk-edit/%s/preview/items";
   private static final String ERRORS_URL_TEMPLATE = "/bulk-edit/%s/errors";
-  private static final String ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/items-content-update/upload";
+  private static final String ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/item-content-update/upload";
   private static final String ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-items/download";
   private static final String ITEMS_FOR_LOCATION_UPDATE = "src/test/resources/upload/bulk_edit_items_for_location_update.csv";
   private static final String ITEMS_FOR_STATUS_UPDATE = "src/test/resources/upload/bulk_edit_items_for_status_update.csv";

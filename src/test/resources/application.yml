@@ -26,8 +26,14 @@ application:
     endpoint: http://${embedded.minio.host}:${embedded.minio.port}/
     region: ${AWS_REGION:region}
     bucket: ${AWS_BUCKET:test}
-    accessKey: ${AWS_ACCESS_KEY_ID:AKIAIOSFODNN7EXAMPLE}
-    secretKey: ${AWS_SECRET_ACCESS_KEY:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}
+    accessKey: ${S3_STORAGE_ACCESS_KEY_ID:AKIAIOSFODNN7EXAMPLE}
+    secretKey: ${S3_STORAGE_SECRET_ACCESS_KEY:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}
+  minio-fs-adapter:
+    endpoint: http://${embedded.minio.host}:${embedded.minio.port}/
+    region: ${S3_STORAGE_REGION:region-fs}
+    bucket: ${S3_STORAGE_BUCKET:test-local-fs}
+    accessKey: ${S3_STORAGE_ACCESS_KEY_ID:AKIAIOSFODNN7EXAMPLE}
+    secretKey: ${S3_STORAGE_SECRET_ACCESS_KEY:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}
 folio:
   tenant:
     validation:

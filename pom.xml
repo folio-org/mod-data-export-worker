@@ -62,7 +62,7 @@
 
         <!-- Test properties-->
         <junit-extensions.version>2.4.0</junit-extensions.version>
-        <embedded-minio.version>2.0.16</embedded-minio.version>
+        <embedded-minio.version>2.2.5</embedded-minio.version>
         <spring-cloud-starter-bootstrap.version>3.1.3</spring-cloud-starter-bootstrap.version>
         <wiremock.version>2.27.2</wiremock.version>
         <marc4j.version>2.9.1</marc4j.version>

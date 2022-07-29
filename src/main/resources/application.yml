@@ -61,6 +61,12 @@ application:
     bucket: ${AWS_BUCKET:}
     accessKey: ${AWS_ACCESS_KEY_ID:}
     secretKey: ${AWS_SECRET_ACCESS_KEY:}
+  minio-fs-adapter:
+    endpoint: ${S3_STORAGE_URL:http://127.0.0.1:9000/}
+    region: ${S3_STORAGE_REGION:}
+    bucket: ${S3_STORAGE_BUCKET:}
+    accessKey: ${S3_STORAGE_ACCESS_KEY_ID:}
+    secretKey: ${S3_STORAGE_SECRET_ACCESS_KEY:}
   ftp:
     bufferSize: 1048576 #that 1024 * 1024
     defaultPort: 21

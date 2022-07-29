@@ -7,7 +7,7 @@ servers:
 paths:
   /{jobId}/items-content-update/upload:
     post:
-      description: Upload content updates
+      description: Upload item content updates
       operationId: postItemContentUpdates
       parameters:
         - name: jobId

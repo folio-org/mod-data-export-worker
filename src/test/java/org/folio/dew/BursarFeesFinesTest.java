@@ -7,6 +7,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.utils.Constants.getWorkingDirectory;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -142,10 +143,8 @@ class BursarFeesFinesTest extends BaseBatchTest {
 
     Date now = new Date();
     String workDir =
-        System.getProperty("java.io.tmpdir")
-            + File.separator
-            + springApplicationName
-            + File.separator;
+        getWorkingDirectory(springApplicationName);
+
     final String outputFile =
         String.format(
             "%s%s_%tF_%tH%tM%tS_%s",

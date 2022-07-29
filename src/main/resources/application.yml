@@ -61,12 +61,18 @@ application:
     username: sa
     password:
     max-pool-size: 20
-  minio:
+  minio-remote:
     endpoint: ${AWS_URL:http://127.0.0.1:9000/}
     region: ${AWS_REGION:}
     bucket: ${AWS_BUCKET:}
     accessKey: ${AWS_ACCESS_KEY_ID:}
     secretKey: ${AWS_SECRET_ACCESS_KEY:}
+  minio-local:
+    endpoint: ${LOCAL_FS_URL:http://127.0.0.1:9000/}
+    region: ${LOCAL_FS_REGION:}
+    bucket: ${LOCAL_FS_BUCKET:}
+    accessKey: ${LOCAL_FS_ACCESS_KEY_ID:}
+    secretKey: ${LOCAL_FS_SECRET_ACCESS_KEY:}
   ftp:
     bufferSize: 1048576 #that 1024 * 1024
     defaultPort: 21

@@ -19,7 +19,7 @@ import org.folio.dew.domain.dto.UserContentUpdateCollection;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.FileOperationException;
-import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.ContentUpdateRecords;
 import org.folio.dew.service.UpdatesResult;
@@ -34,7 +34,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Log4j2
 public class BulkEditUserContentUpdateService {
-  private final MinIOObjectStorageRepository repository;
+  private final RemoteFilesStorage remoteFilesStorage;
   private final BulkEditProcessingErrorsService errorsService;
 
   public UpdatesResult<UserFormat> process(JobCommand jobCommand, UserContentUpdateCollection contentUpdates) {
@@ -42,10 +42,10 @@ public class BulkEditUserContentUpdateService {
       var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       var updatedFileName = UPDATED_PREFIX + fileName;
       var previewFileName = PREVIEW_PREFIX + fileName;
-      var userFormats = CsvHelper.readRecordsFromMinio(repository, fileName, UserFormat.class, true);
+      var userFormats = CsvHelper.readRecordsFromMinio(remoteFilesStorage, fileName, UserFormat.class, true);
       var contentUpdatedUsers = applyContentUpdates(userFormats, contentUpdates, jobCommand);
-      CsvHelper.saveRecordsToMinio(repository, contentUpdatedUsers.getUpdated(), UserFormat.class, updatedFileName);
-      CsvHelper.saveRecordsToMinio(repository, contentUpdatedUsers.getPreview(), UserFormat.class, previewFileName);
+      CsvHelper.saveRecordsToMinio(remoteFilesStorage, contentUpdatedUsers.getUpdated(), UserFormat.class, updatedFileName);
+      CsvHelper.saveRecordsToMinio(remoteFilesStorage, contentUpdatedUsers.getPreview(), UserFormat.class, previewFileName);
       jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())
         .addString(UPDATED_FILE_NAME, updatedFileName)
         .addString(PREVIEW_FILE_NAME, previewFileName)

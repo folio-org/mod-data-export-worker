@@ -6,17 +6,13 @@ import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.apache.commons.lang3.StringUtils.splitByCharacterTypeCamelCase;
-
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_MAX_PACKAGE_NOTES_COUNT;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_MAX_TITLE_NOTES_COUNT;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PACKAGE_NOTES;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_TITLE_NOTES;
-import static org.folio.dew.utils.Constants.COMMA;
-import static org.folio.dew.utils.Constants.LINE_BREAK;
-import static org.folio.dew.utils.Constants.LINE_BREAK_REPLACEMENT;
-import static org.folio.dew.utils.Constants.QUOTE;
-import static org.folio.dew.utils.Constants.QUOTE_REPLACEMENT;
+import static org.folio.dew.utils.Constants.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,19 +20,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.folio.dew.domain.dto.EHoldingsExportConfig;
+import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
+import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.repository.S3CompatibleResource;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.support.AbstractFileItemWriter;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
-
-import org.folio.dew.domain.dto.EHoldingsExportConfig;
-import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
 
 @Component
 @StepScope
@@ -44,19 +41,24 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
   private final String[] fieldNames;
   private int maxPackageNotesLength;
   private int maxTitleNotesLength;
+  private final String tempOutputFilePath;
+  @Autowired
+  private LocalFilesStorage localFilesStorage;
 
   public EHoldingsCsvFileWriter(@Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
                                 EHoldingsExportConfig exportConfig) {
     this.fieldNames = getFieldNames(exportConfig);
     setEholdingsResource(tempOutputFilePath);
     this.setExecutionContextName(ClassUtils.getShortName(EHoldingsCsvFileWriter.class));
+    this.tempOutputFilePath = tempOutputFilePath;
   }
 
   private void setEholdingsResource(String tempOutputFilePath) {
     if (isBlank(tempOutputFilePath)) {
       throw new IllegalArgumentException("tempOutputFilePath is blank");
     }
-    setResource(new FileSystemResource(tempOutputFilePath));
+    var resource = new S3CompatibleResource<>(tempOutputFilePath, localFilesStorage);
+    setResource(resource);
   }
 
   private String[] getFieldNames(EHoldingsExportConfig exportConfig) {
@@ -75,16 +77,17 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
   }
 
   @BeforeStep
-  public void beforeStep(StepExecution stepExecution) {
+  public void beforeStep(StepExecution stepExecution) throws IOException {
     var executionContext = stepExecution.getJobExecution().getExecutionContext();
     maxPackageNotesLength = executionContext.getInt(CONTEXT_MAX_PACKAGE_NOTES_COUNT, 0);
     maxTitleNotesLength = executionContext.getInt(CONTEXT_MAX_TITLE_NOTES_COUNT, 0);
 
-    var columnHeaders = Arrays.stream(fieldNames)
+    String columnHeaders = Arrays.stream(fieldNames)
       .map(s -> header(s, maxPackageNotesLength, maxTitleNotesLength))
       .flatMap(List::stream)
       .collect(Collectors.joining(","));
-    setHeaderCallback(writer -> writer.write(columnHeaders));
+
+    localFilesStorage.write(tempOutputFilePath, (columnHeaders + lineSeparator).getBytes());
   }
 
   @Override
@@ -106,6 +109,12 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
 
     return lines.toString();
   }
+
+  @Override
+  public void write(List<? extends EHoldingsResourceExportFormat> items) throws Exception {
+    localFilesStorage.append(tempOutputFilePath, (doWrite(items)).getBytes());
+  }
+
 
   private List<String> header(String fieldName, int maxPackageNotesLength, int maxTitleNotesLength) {
     if (fieldName.equals(LOAD_FIELD_PACKAGE_NOTES)) {

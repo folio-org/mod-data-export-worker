@@ -5,6 +5,7 @@ import static org.folio.dew.utils.Constants.CHUNKS;
 import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
 import lombok.RequiredArgsConstructor;
+import org.folio.dew.batch.AbstractStorageStreamWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.CsvListWriter;
 import org.folio.dew.batch.bulkedit.jobs.BulkEditItemListProcessor;
@@ -13,6 +14,7 @@ import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.BulkEditSkipListener;
+import org.folio.dew.repository.LocalFilesStorage;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -20,7 +22,6 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -37,12 +38,13 @@ public class BulkEditItemIdentifiersJobConfig {
   private final BulkEditItemListProcessor bulkEditItemListProcessor;
   private final ItemFetcher itemFetcher;
   private final BulkEditSkipListener bulkEditSkipListener;
+  private final LocalFilesStorage localFilesStorage;
 
   @Bean
   @StepScope
-  public FlatFileItemWriter<List<ItemFormat>> csvListWriter(
+  public AbstractStorageStreamWriter<List<ItemFormat>, LocalFilesStorage> csvListWriter(
     @Value("#{jobParameters['tempOutputFilePath']}") String outputFileName) {
-    return new CsvListWriter<>(outputFileName, ItemFormat.getItemColumnHeaders(), ItemFormat.getItemFieldsArray(), (field, i) -> field);
+    return new CsvListWriter<>(outputFileName, ItemFormat.getItemColumnHeaders(), ItemFormat.getItemFieldsArray(), (field, i) -> field, localFilesStorage);
   }
 
   @Bean
@@ -58,7 +60,7 @@ public class BulkEditItemIdentifiersJobConfig {
 
   @Bean
   public Step bulkEditItemStep(FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader,
-    FlatFileItemWriter<List<ItemFormat>> csvListWriter,
+                               AbstractStorageStreamWriter<List<ItemFormat>, LocalFilesStorage> csvListWriter,
     ListIdentifiersWriteListener<ItemFormat> listIdentifiersWriteListener) {
     return stepBuilderFactory.get("bulkEditItemStep")
       .<ItemIdentifier, List<ItemFormat>> chunk(CHUNKS)

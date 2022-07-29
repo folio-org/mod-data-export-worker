@@ -6,7 +6,6 @@ import lombok.experimental.UtilityClass;
 public class Constants {
   public static final int CHUNKS = 100;
   public static final String ROLLBACK_FILE = "rollBackFile";
-  public static final String TMP_DIR_PROPERTY = "java.io.tmpdir";
   public static final String PATH_SEPARATOR = "/";
   public static final String JOB_ID_SEPARATOR = "_";
   public static final String JOB_NAME_POSTFIX_SEPARATOR = "-";
@@ -34,6 +33,8 @@ public class Constants {
 
   public static final String LINE_BREAK = "\n";
   public static final String LINE_BREAK_REPLACEMENT = "\\n";
+  public static final String LINE_SEPARATOR = System.getProperty("line.separator");
+  public static final String LINE_SEPARATOR_REPLACEMENT = "\\n";
   public static final String COMMA = ",";
   public static final String QUOTE = "\"";
   public static final String QUOTE_REPLACEMENT = "\"\"";
@@ -48,4 +49,7 @@ public class Constants {
   public static final String BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE = "module==%s and configName==%s";
   public static final String FILE_UPLOAD_ERROR = "Cannot upload a file. Reason: %s.";
 
+  public static String getWorkingDirectory(String springApplicationName) {
+    return springApplicationName + PATH_SEPARATOR + "bulk_edit" + PATH_SEPARATOR;
+  }
 }

@@ -18,7 +18,9 @@ import org.folio.dew.batch.bulkedit.jobs.JobConfigReaderHelper;
 import org.folio.dew.batch.bulkedit.jobs.updatejob.listeners.BulkEditUpdateUserRecordsListener;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
-import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.repository.RemoteFilesStorage;
+import org.folio.dew.repository.S3CompatibleResource;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -36,7 +38,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
 
 import java.io.IOException;
@@ -85,13 +86,14 @@ public class BulkEditUpdateUserRecordsJobConfig {
   public FlatFileItemReader<UserFormat> csvUserRecordsReader(
     @Value("#{jobParameters['" + FILE_NAME + "']}") String fileName,
     @Value("#{jobParameters['" + UPDATED_FILE_NAME + "']}") String updatedFileName,
-    MinIOObjectStorageRepository repository)
+    RemoteFilesStorage remoteFilesStorage,
+    LocalFilesStorage localFilesStorage)
     throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException,
     InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
     LineMapper<UserFormat> userLineMapper = JobConfigReaderHelper.createUserLineMapper();
     return new FlatFileItemReaderBuilder<UserFormat>()
       .name("userReader")
-      .resource(isEmpty(updatedFileName) ? new FileSystemResource(fileName) : new InputStreamResource(repository.getObject(updatedFileName)))
+      .resource(isEmpty(updatedFileName) ? new S3CompatibleResource<>(fileName, localFilesStorage) : new InputStreamResource(remoteFilesStorage.getObject(updatedFileName)))
       .linesToSkip(1)
       .lineMapper(userLineMapper)
       .build();

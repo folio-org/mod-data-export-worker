@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.folio.dew.repository.LocalFilesStorage;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,8 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
 
   @Autowired
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
+  @Autowired
+  private LocalFilesStorage localFilesStorage;
 
   @Test
   @DisplayName("Show that error file is created")
@@ -37,18 +40,18 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
     var reasonForError = new BulkEditException("Record not found");
     var fileName = "userUUIDs.csv";
     var csvFileName = LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Errors-" + fileName;
-    var pathToCsvFile = Paths.get("." + File.separator + BulkEditProcessingErrorsService.STORAGE + File.separator + jobId + File.separator + csvFileName);
+    var pathToCsvFile = "E" + File.separator + BulkEditProcessingErrorsService.STORAGE + File.separator + jobId + File.separator + csvFileName;
     bulkEditProcessingErrorsService.saveErrorInCSV(jobId, affectedIdentifier, reasonForError, fileName);
-    assertTrue(Files.exists(pathToCsvFile));
-    List<String> lines = Files.readAllLines(pathToCsvFile);
+    assertTrue(localFilesStorage.exists(pathToCsvFile));
+    List<String> lines = localFilesStorage.readAllLines(pathToCsvFile);
     String expectedLine = affectedIdentifier + "," + reasonForError.getMessage();
     assertEquals(expectedLine, lines.get(0));
     assertThat(lines, hasSize(1));
 
     // Second attempt to verify file name calculation logic
     bulkEditProcessingErrorsService.saveErrorInCSV(jobId, affectedIdentifier, reasonForError, fileName);
-    assertTrue(Files.exists(pathToCsvFile));
-    lines = Files.readAllLines(pathToCsvFile);
+    assertTrue(localFilesStorage.exists(pathToCsvFile));
+    lines = localFilesStorage.readAllLines(pathToCsvFile);
     assertThat(lines, hasSize(2));
 
     removeStorage();
@@ -62,15 +65,15 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
     var reasonForError = new BulkEditException("Record not found");
     var fileName = "userUUIDs.csv";
     var csvFileName = LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Errors-" + fileName;
-    var pathToCsvFile = Paths.get("." + File.separator + BulkEditProcessingErrorsService.STORAGE + File.separator + jobId + File.separator + csvFileName);
+    var pathToCsvFile = "E" + File.separator + BulkEditProcessingErrorsService.STORAGE + File.separator + jobId + File.separator + csvFileName;
     bulkEditProcessingErrorsService.saveErrorInCSV(null, affectedIdentifier, reasonForError, fileName);
-    assertFalse(Files.exists(pathToCsvFile));
+    assertFalse(localFilesStorage.exists(pathToCsvFile));
     bulkEditProcessingErrorsService.saveErrorInCSV(jobId, null, reasonForError, fileName);
-    assertFalse(Files.exists(pathToCsvFile));
+    assertFalse(localFilesStorage.exists(pathToCsvFile));
     bulkEditProcessingErrorsService.saveErrorInCSV(jobId, affectedIdentifier, null, fileName);
-    assertFalse(Files.exists(pathToCsvFile));
+    assertFalse(localFilesStorage.exists(pathToCsvFile));
     bulkEditProcessingErrorsService.saveErrorInCSV(jobId, affectedIdentifier, reasonForError, null);
-    assertFalse(Files.exists(pathToCsvFile));
+    assertFalse(localFilesStorage.exists(pathToCsvFile));
   }
 
   @Test
@@ -91,7 +94,6 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
   }
 
   private void removeStorage() throws IOException {
-    Files.walk(Paths.get("." + File.separator + BulkEditProcessingErrorsService.STORAGE)).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+    localFilesStorage.delete("E" + File.separator + BulkEditProcessingErrorsService.STORAGE);
   }
-
 }

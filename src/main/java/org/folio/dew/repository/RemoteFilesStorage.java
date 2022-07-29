@@ -1,13 +1,25 @@
 package org.folio.dew.repository;
 
-import io.minio.BucketExistsArgs;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.config.properties.RemoteFilesStorageProperties;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Repository;
+
 import io.minio.ComposeObjectArgs;
 import io.minio.ComposeSource;
-import io.minio.DownloadObjectArgs;
 import io.minio.GetObjectArgs;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.ListObjectsArgs;
-import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.ObjectWriteArgs;
 import io.minio.ObjectWriteResponse;
@@ -15,9 +27,6 @@ import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectsArgs;
 import io.minio.Result;
 import io.minio.UploadObjectArgs;
-import io.minio.credentials.IamAwsProvider;
-import io.minio.credentials.Provider;
-import io.minio.credentials.StaticProvider;
 import io.minio.errors.ErrorResponseException;
 import io.minio.errors.InsufficientDataException;
 import io.minio.errors.InternalException;
@@ -27,75 +36,27 @@ import io.minio.errors.XmlParserException;
 import io.minio.http.Method;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import io.minio.messages.Item;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.folio.dew.config.properties.MinIoProperties;
-import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Repository;
 
 @Repository
 @Log4j2
-public class MinIOObjectStorageRepository {
+public class RemoteFilesStorage extends BaseFilesStorage {
 
-  private static final String CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME = "attachment";
-  private static final String CONTENT_DISPOSITION_HEADER_WITH_FILENAME = CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME + "; filename=\"%s\"";
+  public static final String CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME = "attachment";
+  public static final String CONTENT_DISPOSITION_HEADER_WITH_FILENAME = CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME + "; filename=\"%s\"";
 
   private final MinioClient client;
+  @Autowired
+  private LocalFilesStorage localFilesStorage;
   private final String bucket;
   private final String region;
 
-  public MinIOObjectStorageRepository(MinIoProperties properties) {
-    final String accessKey = properties.getAccessKey();
-    final String endpoint = properties.getEndpoint();
-    final String regionProperty = properties.getRegion();
-    final String bucketProperty = properties.getBucket();
-    final String secretKey = properties.getSecretKey();
-    log.info("Creating MinIO client endpoint {},region {},bucket {},accessKey {},secretKey {}.", endpoint, regionProperty, bucketProperty,
-        StringUtils.isNotBlank(accessKey) ? "<set>" : "<not set>", StringUtils.isNotBlank(secretKey) ? "<set>" : "<not set>");
-
-    var builder = MinioClient.builder().endpoint(endpoint);
-    if (StringUtils.isNotBlank(regionProperty)) {
-      builder.region(regionProperty);
-    }
-
-    Provider provider;
-    if (StringUtils.isNotBlank(accessKey) && StringUtils.isNotBlank(secretKey)) {
-      provider = new StaticProvider(accessKey, secretKey, null);
-    } else {
-      provider = new IamAwsProvider(null, null);
-    }
-    log.info("{} MinIO credentials provider created.", provider.getClass().getSimpleName());
-    builder.credentialsProvider(provider);
-
-    client = builder.build();
-
-    this.bucket = bucketProperty;
-    this.region = regionProperty;
-  }
-
-  @SneakyThrows
-  public void createBucketIfNotExists() {
-    if (StringUtils.isNotBlank(bucket) && !client.bucketExists(BucketExistsArgs.builder().bucket(bucket).build())) {
-      client.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
-      log.info("Created {} bucket.", bucket);
-    }
+  public RemoteFilesStorage(RemoteFilesStorageProperties properties) {
+    super(properties);
+    this.bucket = properties.getBucket();
+    this.region = properties.getRegion();
+    this.client = getMinioClient();
   }
 
   public ObjectWriteResponse uploadObject(String object, String filename, String downloadFilename, String contentType, boolean isSourceShouldBeDeleted)
@@ -103,21 +64,38 @@ public class MinIOObjectStorageRepository {
       InvalidKeyException, NoSuchAlgorithmException, XmlParserException, ErrorResponseException {
     log.info("Uploading object {},filename {},downloadFilename {},contentType {}.", object, filename, downloadFilename,
         contentType);
-    ObjectWriteResponse result = client.uploadObject(
-        createArgs(UploadObjectArgs.builder().filename(filename), object, downloadFilename, contentType));
+
+    ObjectWriteResponse result;
+    try (var is = localFilesStorage.newInputStream(filename)) {
+      result = client.putObject(createArgs(PutObjectArgs.builder().stream(is, -1, ObjectWriteArgs.MIN_MULTIPART_SIZE + 1L), object, downloadFilename, contentType));
+    }
 
     if (isSourceShouldBeDeleted) {
-      FileUtils.deleteQuietly(new File(filename));
+      localFilesStorage.delete(filename);
       log.info("Deleted temp file {}.", filename);
     }
 
     return result;
   }
 
-  public void downloadObject(String objectToGet, String fileToSave) throws IOException, InvalidKeyException,
-    InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,
-    InternalException, XmlParserException, ErrorResponseException {
-    client.downloadObject(DownloadObjectArgs.builder().bucket(bucket).object(objectToGet).filename(fileToSave).build());
+  public ObjectWriteResponse writeObject(String object, String filename, String downloadFilename, String contentType, boolean isSourceShouldBeDeleted)
+    throws IOException, ServerException, InsufficientDataException, InternalException, InvalidResponseException,
+    InvalidKeyException, NoSuchAlgorithmException, XmlParserException, ErrorResponseException {
+    log.info("Uploading object {},filename {},downloadFilename {},contentType {}.", object, filename, downloadFilename,
+      contentType);
+    ObjectWriteResponse result = client.uploadObject(
+      createArgs(UploadObjectArgs.builder().filename(filename), object, downloadFilename, contentType));
+
+    if (isSourceShouldBeDeleted) {
+      localFilesStorage.delete(filename);
+      log.info("Deleted temp file {}.", filename);
+    }
+
+    return result;
+  }
+
+  public void downloadObject(String objectToGet, String fileToSave) throws IOException {
+    localFilesStorage.write(fileToSave, readAllBytes(objectToGet));
   }
 
   public InputStream getObject(String objectToGet) throws IOException, InvalidKeyException,
@@ -126,23 +104,10 @@ public class MinIOObjectStorageRepository {
     return client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectToGet).build());
   }
 
-  public void putObject(byte[] bytes, String fileName) throws IOException, InvalidKeyException,
-    InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,
-    InternalException, XmlParserException, ErrorResponseException {
-    try (var inputStream = new ByteArrayInputStream(bytes)) {
-      client.putObject(PutObjectArgs.builder()
-        .bucket(bucket)
-        .stream(inputStream, bytes.length, -1)
-        .object(fileName)
-        .contentType("text/csv")
-        .build());
-    }
-  }
-
   public boolean containsFile(String fileName)
     throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException,
     InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-    for (Result<Item> itemResult : client.listObjects(ListObjectsArgs.builder().bucket(bucket).build())) {
+    for (Result<Item> itemResult : client.listObjects(ListObjectsArgs.builder().bucket(bucket).prefix(fileName).build())) {
       if (fileName.equals(itemResult.get().objectName())) {
         return true;
       }

@@ -19,7 +19,7 @@ import java.util.UUID;
 
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.repository.InMemoryAcknowledgementRepository;
-import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.spring.DefaultFolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
@@ -81,7 +81,7 @@ public abstract class BaseBatchTest {
   @Autowired
   protected ObjectMapper objectMapper;
   @Autowired
-  protected MinIOObjectStorageRepository minIOObjectStorageRepository;
+  protected RemoteFilesStorage remoteFilesStorage;
   @SpyBean
   protected JobCommandsReceiverService jobCommandsReceiverService;
   @Autowired
@@ -144,7 +144,7 @@ public abstract class BaseBatchTest {
     var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
     FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
 
-    minIOObjectStorageRepository.createBucketIfNotExists();
+    remoteFilesStorage.createBucketIfNotExists();
   }
 
   @AfterEach

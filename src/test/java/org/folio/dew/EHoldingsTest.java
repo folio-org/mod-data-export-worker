@@ -3,6 +3,7 @@ package org.folio.dew;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.utils.Constants.getWorkingDirectory;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACKAGE;
@@ -110,11 +111,7 @@ class EHoldingsTest extends BaseBatchTest {
     String jobId = UUID.randomUUID().toString();
     params.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
 
-    String workDir =
-      System.getProperty("java.io.tmpdir")
-        + File.separator
-        + springApplicationName
-        + File.separator;
+    String workDir = getWorkingDirectory(springApplicationName);
     var jobParameters = new JobParameters(params);
     var jobCommand = new JobCommand();
     jobCommand.setJobParameters(jobParameters);

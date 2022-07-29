@@ -1,7 +1,7 @@
 package org.folio.dew.service;
 
 import org.folio.dew.client.DataExportSpringClient;
-import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,7 +35,7 @@ class BulkEditRollBackServiceTest {
   @Mock
   private DataExportSpringClient dataExportSpringClient;
   @Mock
-  private MinIOObjectStorageRepository minIOObjectStorageRepository;
+  private RemoteFilesStorage remoteFilesStorage;
 
   @InjectMocks
   private BulkEditRollBackService bulkEditRollBackService;
@@ -50,14 +50,14 @@ class BulkEditRollBackServiceTest {
 
     bulkEditRollBackService.putExecutionInfoPerJob(executionId, jobId);
     when(dataExportSpringClient.getJobById(isA(String.class))).thenReturn(job);
-    doNothing().when(minIOObjectStorageRepository).downloadObject(isA(String.class), isA(String.class));
+    doNothing().when(remoteFilesStorage).downloadObject(isA(String.class), isA(String.class));
     when(rollBackJobLauncher.run(any(), isA(JobParameters.class))).thenReturn(new JobExecution(1l));
 
     bulkEditRollBackService.stopAndRollBackJobExecutionByJobId(jobId);
 
     verify(jobOperator, times(1)).stop(executionId);
     verify(dataExportSpringClient, times(1)).getJobById(jobIdWithRollBackFile);
-    verify(minIOObjectStorageRepository, times(1)).downloadObject(isA(String.class), isA(String.class));
+    verify(remoteFilesStorage, times(1)).downloadObject(isA(String.class), isA(String.class));
     verify(rollBackJobLauncher, times(1)).run(any(), isA(JobParameters.class));
   }
 

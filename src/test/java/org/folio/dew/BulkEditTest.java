@@ -12,6 +12,7 @@ import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
+import static org.folio.dew.utils.Constants.getWorkingDirectory;
 import static org.folio.dew.utils.CsvHelper.countLines;
 import static org.folio.dew.utils.Constants.ENTITY_TYPE;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
@@ -31,12 +32,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FileUtils;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.utils.Constants;
 import org.junit.jupiter.api.DisplayName;
@@ -120,6 +123,8 @@ class BulkEditTest extends BaseBatchTest {
   private Job bulkEditRollBackJob;
   @Autowired
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
+  @Autowired
+  private LocalFilesStorage localFilesStorage;
 
   @MockBean
   private KafkaService kafkaService;
@@ -330,7 +335,7 @@ class BulkEditTest extends BaseBatchTest {
   @SneakyThrows
   void shouldUseInAppUpdatesFileIfPresent() {
     // create a copy of file since it will be deleted and consequent test runs will fail
-    Files.copy(Path.of(ITEM_RECORD_IN_APP_UPDATED), Path.of(ITEM_RECORD_IN_APP_UPDATED_COPY), StandardCopyOption.REPLACE_EXISTING);
+    localFilesStorage.write(ITEM_RECORD_IN_APP_UPDATED_COPY, Files.readAllBytes(new File(ITEM_RECORD_IN_APP_UPDATED).toPath()));
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateItemRecordsJob);
     var builder = new JobParametersBuilder(prepareJobParameters(BULK_EDIT_UPDATE, ITEM, BARCODE, ITEM_RECORD_CSV, true));
@@ -348,9 +353,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run rollback user records successfully")
   void rollBackUserRecordsJobTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditRollBackJob);
-    File srcFile = new File(USER_RECORD_CSV);
-    File destFile = new File(USER_RECORD_ROLLBACK_CSV);
-    FileUtils.copyFile(srcFile, destFile);
+    localFilesStorage.write(USER_RECORD_ROLLBACK_CSV, Files.readAllBytes(new File(USER_RECORD_CSV).toPath()));
     var parameters = new HashMap<String, JobParameter>();
     parameters.put(Constants.JOB_ID, new JobParameter("74914e57-3406-4757-938b-9a3f718d0ee6"));
     parameters.put(Constants.FILE_NAME, new JobParameter(USER_RECORD_ROLLBACK_CSV));
@@ -409,33 +412,34 @@ class BulkEditTest extends BaseBatchTest {
   @SneakyThrows
   private JobParameters prepareJobParameters(ExportType exportType, EntityType entityType, IdentifierType identifierType, String path, boolean hasOutcomeFile) {
     Map<String, JobParameter> params = new HashMap<>();
-    if (hasOutcomeFile) {
-      String workDir =
-        System.getProperty("java.io.tmpdir")
-          + File.separator
-          + springApplicationName
-          + File.separator;
+    String jobId = UUID.randomUUID().toString();
+    if (true) {
+      String workDir = getWorkingDirectory(springApplicationName);
       params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
       try {
-        if (Files.notExists(Path.of(workDir + "out"))) {
-          Files.createFile(Path.of(workDir + "out"));
-          Files.createFile(Path.of(workDir + "out.csv"));
-        }
-      } catch (IOException e) {
+        localFilesStorage.write(workDir + "out", new byte[0]);
+        localFilesStorage.write(workDir + "out.csv", new byte[0]);
+      } catch (Exception e) {
         fail(e.getMessage());
       }
     }
-    if (ExportType.BULK_EDIT_UPDATE == exportType) {
+    Path of = Path.of(path);
+    if (BULK_EDIT_UPDATE == exportType) {
       params.put(ROLLBACK_FILE, new JobParameter("rollback/file/path"));
-      params.put(FILE_NAME, new JobParameter(path));
+      // Put file on MinIO FS
+      var fsPath = getWorkingDirectory(springApplicationName) + FileNameUtils.getBaseName(path) + "E" + FileNameUtils.getExtension(path);
+      localFilesStorage.write(fsPath, Files.readAllBytes(of));
+      params.put(FILE_NAME, new JobParameter(fsPath));
     } else if (ExportType.BULK_EDIT_QUERY == exportType) {
       params.put("query", new JobParameter(readQueryString(path)));
     } else if (BULK_EDIT_IDENTIFIERS == exportType) {
-      params.put(FILE_NAME, new JobParameter(path));
-      params.put(TOTAL_CSV_LINES, new JobParameter(countLines(Path.of(path), false)));
+      var file = getWorkingDirectory("mod-data-export-worker")  +  FileNameUtils.getBaseName(path) + "E" + FileNameUtils.getExtension(path);
+      params.put(FILE_NAME, new JobParameter(file));
+      localFilesStorage.write(file, Files.readAllBytes(of));
+      params.put(TOTAL_CSV_LINES, new JobParameter(countLines(localFilesStorage, file, false), false));
     }
 
-    String jobId = UUID.randomUUID().toString();
+
     params.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
     params.put(EXPORT_TYPE, new JobParameter(exportType.getValue()));
     params.put(ENTITY_TYPE, new JobParameter(entityType.getValue()));

@@ -5,18 +5,19 @@ import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import lombok.experimental.UtilityClass;
+import org.folio.dew.repository.LocalFilesStorage;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.InputStreamReader;
+
 import java.util.List;
 
 @UtilityClass
 public class CsvHelper {
-  public static <T> List<T> readRecordsFromFile(String fileName, Class<T> clazz, boolean skipHeaders) throws IOException {
-    try (var fileReader = new FileReader(fileName)) {
+  public static <T> List<T> readRecordsFromFile(LocalFilesStorage localFilesStorage, String fileName, Class<T> clazz, boolean skipHeaders) throws IOException {
+    try (var fileReader = new BufferedReader(new InputStreamReader(localFilesStorage.newInputStream(fileName)))) {
       return new CsvToBeanBuilder<T>(fileReader)
         .withType(clazz)
         .withSkipLines(skipHeaders ? 1 : 0)
@@ -25,11 +26,11 @@ public class CsvHelper {
     }
   }
 
-  public static <T> void saveRecordsToCsv(List<T> beans, Class<T> clazz, String fileName)
+  public static <T> void saveRecordsToLocalFilesStorage(LocalFilesStorage localFilesStorage, List<T> beans, Class<T> clazz, String fileName)
     throws CsvRequiredFieldEmptyException, CsvDataTypeMismatchException, IOException {
     var strategy = new RecordColumnMappingStrategy<T>();
     strategy.setType(clazz);
-    try (BufferedWriter writer = Files.newBufferedWriter(Path.of(fileName))) {
+    try (BufferedWriter writer = localFilesStorage.writer(fileName)) {
       new StatefulBeanToCsvBuilder<T>(writer)
         .withApplyQuotesToAll(false)
         .withMappingStrategy(strategy)
@@ -38,8 +39,8 @@ public class CsvHelper {
     }
   }
 
-  public static long countLines(Path path, boolean skipHeaders) throws IOException {
-    try (var lines = Files.lines(path)) {
+  public static long countLines(LocalFilesStorage localFilesStorage, String path, boolean skipHeaders) throws IOException {
+    try (var lines = localFilesStorage.lines(path)) {
       return skipHeaders ? lines.count() - 1 : lines.count();
     }
   }

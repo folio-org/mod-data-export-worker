@@ -5,7 +5,7 @@ info:
 servers:
   - url: /bulk-edit/
 paths:
-  /{jobId}/items-content-update/upload:
+  /{jobId}/item-content-update/upload:
     post:
       description: Upload item content updates
       operationId: postItemContentUpdates

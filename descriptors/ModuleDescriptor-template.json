@@ -30,7 +30,7 @@
         },
         {
           "methods": [ "POST" ],
-          "pathPattern": "/bulk-edit/{id}/items-content-update/upload",
+          "pathPattern": "/bulk-edit/{id}/item-content-update/upload",
           "permissionsRequired": [ "bulk-edit.items-content-update.collection.post" ],
           "modulePermissions": [
             "inventory-storage.call-number-types.item.get",

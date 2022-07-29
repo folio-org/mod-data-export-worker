@@ -129,7 +129,7 @@ public class BulkEditItemContentUpdateService {
         }
       }
       if (errorMessage.getValue() != null) {
-        log.error(errorMessage);
+        log.error(errorMessage.getValue());
         errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)), new BulkEditException(errorMessage.getValue()), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
       }
     }

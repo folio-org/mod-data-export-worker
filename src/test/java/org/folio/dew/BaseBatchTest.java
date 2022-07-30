@@ -60,7 +60,7 @@ import lombok.SneakyThrows;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
     "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @AutoConfigureMockMvc
-@EmbeddedKafka(topics = { "diku.data-export.job.update", "diku.data-export.job.command", "edi-export-history.create" })
+@EmbeddedKafka(topics = { "diku.data-export.job.command" })
 @EnableKafka
 @EnableBatchProcessing
 public abstract class BaseBatchTest {

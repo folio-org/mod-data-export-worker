@@ -12,6 +12,11 @@ spring:
     enabled: true
 application:
   kafka:
+    topic-configuration:
+      "data-export.job.update":
+        partitions: 50
+      "edi-export-history.create":
+        partitions: 1
     topic-pattern: (${ENV:folio}\.)?(.*\.)?data-export.job.command
     group-id: ${ENV:folio}-mod-data-export-worker-events-group
   bucket:

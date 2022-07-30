@@ -47,6 +47,11 @@ feign:
         loggerLevel: basic
 application:
   kafka:
+    topic-configuration:
+      "data-export.job.update":
+        partitions: ${DATA_EXPORT_JOB_UPDATE_TOPIC_PARTITIONS:50}
+      "edi-export-history.create":
+        partitions: ${EDI_EXPORT_HISTORY_TOPIC_PARTITIONS:1}
     topic-pattern: ${ENV:folio}.(.*\.)?data-export.job.command
     group-id: ${ENV:folio}-mod-data-export-worker-events-group
   datasource:

@@ -417,14 +417,7 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andReturn();
 
     assertThat(result.getResponse().getContentAsString(), equalTo("3"));
-
-    new Thread(() -> {
-      try {
-        verify(exportJobManagerSync, times(1)).launchJob(any());
-      } catch (JobExecutionException e) {
-        fail(e);
-      }
-    }).start();
+    verify(exportJobManagerSync, times(1)).launchJob(any());
   }
 
   @Test
@@ -504,14 +497,8 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andExpect(status().isOk());
 
     verify(jobCommandsReceiverService, times(1)).getBulkEditJobCommandById(jobId.toString());
-    new Thread(() -> {
-      try {
-        verify(exportJobManagerSync, times(1)).launchJob(isA(JobLaunchRequest.class));
-        verify(bulkEditRollBackService, times(1)).putExecutionInfoPerJob(executionId, jobId);
-      } catch (JobExecutionException e) {
-        fail(e);
-      }
-    }).start();
+    verify(exportJobManagerSync, times(1)).launchJob(isA(JobLaunchRequest.class));
+    verify(bulkEditRollBackService, times(1)).putExecutionInfoPerJob(executionId, jobId);
   }
 
   @Test

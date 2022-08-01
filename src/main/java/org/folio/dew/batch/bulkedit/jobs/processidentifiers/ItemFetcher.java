@@ -3,8 +3,6 @@ package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
-import static org.folio.dew.utils.Constants.QUERY_PARAM_BARCODE;
-import static org.folio.dew.utils.Constants.QUERY_PARAM_FORMER_IDS;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -41,7 +39,7 @@ public class ItemFetcher implements ItemProcessor<ItemIdentifier, ItemCollection
     identifiersToCheckDuplication.add(itemIdentifier);
     var limit = HOLDINGS_RECORD_ID == IdentifierType.fromValue(identifierType) ? Integer.MAX_VALUE : 1;
     var idType = resolveIdentifier(identifierType);
-    var identifier = Set.of(QUERY_PARAM_BARCODE, QUERY_PARAM_FORMER_IDS).contains(idType) ? String.format("\"%s\"", itemIdentifier.getItemId()) : itemIdentifier.getItemId();
+    var identifier = "barcode".equals(idType) ? String.format("\"%s\"", itemIdentifier.getItemId()) : itemIdentifier.getItemId();
     return inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), idType, identifier), limit);
   }
 }

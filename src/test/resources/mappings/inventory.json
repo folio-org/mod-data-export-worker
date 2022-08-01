@@ -29,7 +29,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=formerIds%3D%2290000%22&limit=1"
+        "url": "/inventory/items?query=formerIds%3D90000&limit=1"
       },
       "response": {
         "status": 200,
@@ -107,7 +107,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=formerIds%3D%2210101%22&limit=1"
+        "url": "/inventory/items?query=formerIds%3D10101&limit=1"
       },
       "response": {
         "status": 200,

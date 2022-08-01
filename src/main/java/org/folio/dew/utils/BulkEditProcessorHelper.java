@@ -11,8 +11,6 @@ import static org.folio.dew.domain.dto.IdentifierType.HRID;
 import static org.folio.dew.domain.dto.IdentifierType.ID;
 import static org.folio.dew.domain.dto.IdentifierType.USER_NAME;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
-import static org.folio.dew.utils.Constants.QUERY_PARAM_BARCODE;
-import static org.folio.dew.utils.Constants.QUERY_PARAM_FORMER_IDS;
 
 import lombok.experimental.UtilityClass;
 import org.folio.dew.domain.dto.IdentifierType;
@@ -35,9 +33,9 @@ public class BulkEditProcessorHelper {
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
     identifiersMap.put(ID, "id");
-    identifiersMap.put(BARCODE, QUERY_PARAM_BARCODE);
+    identifiersMap.put(BARCODE, "barcode");
     identifiersMap.put(HRID, "hrid");
-    identifiersMap.put(FORMER_IDS, QUERY_PARAM_FORMER_IDS);
+    identifiersMap.put(FORMER_IDS, "formerIds");
     identifiersMap.put(ACCESSION_NUMBER, "accessionNumber");
     identifiersMap.put(HOLDINGS_RECORD_ID, "holdingsRecordId");
     identifiersMap.put(USER_NAME, "username");

@@ -73,7 +73,7 @@ public class UserReferenceService {
 
   @Cacheable(cacheNames = "userGroups")
   public UserGroupCollection getUserGroupByGroupName(String name) {
-    return groupClient.getGroupByQuery("group=" + name);
+    return groupClient.getGroupByQuery(String.format("group==\"%s\"", name));
   }
 
   @Cacheable(cacheNames = "proxies")

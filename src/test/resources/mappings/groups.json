@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/groups?query=group%3DPatronGroup"
+        "url": "/groups?query=group%3D%3D%22PatronGroup%22"
       },
       "response": {
         "status": 200,

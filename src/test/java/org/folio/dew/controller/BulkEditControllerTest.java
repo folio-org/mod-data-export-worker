@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.times;
@@ -416,7 +417,6 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andReturn();
 
     assertThat(result.getResponse().getContentAsString(), equalTo("3"));
-
     verify(exportJobManagerSync, times(1)).launchJob(any());
   }
 
@@ -534,7 +534,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     mockMvc.perform(multipart(format(START_URL_TEMPLATE, jobId))
       .headers(headers))
-      .andExpect(status().isInternalServerError());
+      .andExpect(status().isOk());
   }
 
   @ParameterizedTest

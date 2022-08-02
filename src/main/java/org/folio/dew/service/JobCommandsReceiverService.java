@@ -137,7 +137,7 @@ public class JobCommandsReceiverService {
       //This thread wrapper is used not to exceed kafka.consumer.properties.max.poll.interval.ms for long-running jobs
       new Thread(() -> {
         try {
-          exportJobManagerSync.launchJob(jobLaunchRequest);
+      exportJobManagerSync.launchJob(jobLaunchRequest);
         } catch (Exception e) {
           log.error(e.toString(), e);
         }

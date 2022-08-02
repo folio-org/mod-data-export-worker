@@ -140,6 +140,9 @@ public class JobCommandsReceiverService {
 
     } catch (Exception e) {
       log.error(e.toString(), e);
+    } finally {
+      FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
+      log.debug("FOLIO context closed.");
     }
   }
 

@@ -10,6 +10,9 @@ spring:
   liquibase:
     changeLog: classpath:db/changelog/data-export-worker-changelog-master.xml
     enabled: true
+  kafka:
+    listener:
+      concurrency: ${KAFKA_CONCURRENCY_LEVEL:30}
 application:
   kafka:
     topic-configuration:

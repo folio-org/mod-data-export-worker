@@ -1,3 +1,13 @@
+## 2022-08-02 v1.4.2
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.1...v1.4.2)
+
+### Technical tasks
+* [MODEXPW-193](https://issues.folio.org/browse/MODEXPW-193) Support of special symbols in the barcodes
+
+### Bug fixes
+* [MODEXPW-200](https://issues.folio.org/browse/MODEXPW-200) Jobs pile up in scheduled status when eHoldings, Edifact and Bulk edit run together
+
 ## 2022-07-22 v1.4.1
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.0...v1.4.1)

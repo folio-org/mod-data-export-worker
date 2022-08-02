@@ -108,8 +108,6 @@ public class JobCommandsReceiverService {
   public void receiveStartJobCommand(JobCommand jobCommand, Acknowledgment acknowledgment) {
     log.info("Received {}.", jobCommand);
 
-    //This thread wrapper is used not to exceed kafka.consumer.properties.max.poll.interval.ms for long-running jobs
-    new Thread(() -> {
     try {
       if (deleteOldFiles(jobCommand, acknowledgment)) {
         return;
@@ -134,12 +132,19 @@ public class JobCommandsReceiverService {
           jobCommand.getJobParameters());
 
       acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-      exportJobManagerSync.launchJob(jobLaunchRequest);
+
+      //This thread wrapper is used not to exceed kafka.consumer.properties.max.poll.interval.ms for long-running jobs
+      new Thread(() -> {
+        try {
+          exportJobManagerSync.launchJob(jobLaunchRequest);
+        } catch (Exception e) {
+          log.error(e.toString(), e);
+        }
+      }).start();
 
     } catch (Exception e) {
       log.error(e.toString(), e);
     }
-    }).start();
   }
 
   private String resolveJobKey(JobCommand jobCommand) {

@@ -222,7 +222,8 @@ public class BulkEditController implements JobIdApi {
           try {
             exportJobManagerSync.launchJob(jobLaunchRequest);
           } catch (JobExecutionException e) {
-            throw new RuntimeException(e);
+            String errorMessage = format(FILE_UPLOAD_ERROR, e.getMessage());
+            log.error(errorMessage);
           }
         }).start();
       }
@@ -261,7 +262,7 @@ public class BulkEditController implements JobIdApi {
             bulkEditRollBackService.putExecutionInfoPerJob(execution.getId(), jobId);
           }
         } catch (JobExecutionException e) {
-          throw new RuntimeException(e);
+          log.error(e.getMessage());
         }
       }).start();
     } catch (Exception e) {

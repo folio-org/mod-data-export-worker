@@ -104,6 +104,7 @@ public class JobCommandsReceiverService {
   }
 
   @KafkaListener(
+    concurrency = "30",
     id = KafkaService.EVENT_LISTENER_ID,
     containerFactory = "kafkaListenerContainerFactory",
     topicPattern = "${application.kafka.topic-pattern}",

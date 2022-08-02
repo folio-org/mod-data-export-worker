@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.times;
@@ -381,7 +382,13 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     assertThat(result.getResponse().getContentAsString(), equalTo("3"));
 
-    verify(exportJobManagerSync, times(1)).launchJob(any());
+    new Thread(() -> {
+      try {
+        verify(exportJobManagerSync, times(1)).launchJob(any());
+      } catch (JobExecutionException e) {
+        fail(e);
+      }
+    }).start();
   }
 
   @Test
@@ -461,8 +468,14 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andExpect(status().isOk());
 
     verify(jobCommandsReceiverService, times(1)).getBulkEditJobCommandById(jobId.toString());
-    verify(exportJobManagerSync, times(1)).launchJob(isA(JobLaunchRequest.class));
-    verify(bulkEditRollBackService, times(1)).putExecutionInfoPerJob(executionId, jobId);
+    new Thread(() -> {
+      try {
+        verify(exportJobManagerSync, times(1)).launchJob(isA(JobLaunchRequest.class));
+        verify(bulkEditRollBackService, times(1)).putExecutionInfoPerJob(executionId, jobId);
+      } catch (JobExecutionException e) {
+        fail(e);
+      }
+    }).start();
   }
 
   @Test
@@ -498,7 +511,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     mockMvc.perform(multipart(format(START_URL_TEMPLATE, jobId))
       .headers(headers))
-      .andExpect(status().isInternalServerError());
+      .andExpect(status().isOk());
   }
 
   @ParameterizedTest

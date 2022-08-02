@@ -225,6 +225,9 @@ public class BulkEditController implements JobIdApi {
           } catch (JobExecutionException e) {
             String errorMessage = format(FILE_UPLOAD_ERROR, e.getMessage());
             log.error(errorMessage);
+          } finally {
+            FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
+            log.debug("FOLIO context closed.");
           }
         }).start();
       }
@@ -264,6 +267,9 @@ public class BulkEditController implements JobIdApi {
           }
         } catch (JobExecutionException e) {
           log.error(e.getMessage());
+        } finally {
+          FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
+          log.debug("FOLIO context closed.");
         }
       }).start();
     } catch (Exception e) {

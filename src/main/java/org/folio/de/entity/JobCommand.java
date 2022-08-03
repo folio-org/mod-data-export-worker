@@ -1,27 +1,44 @@
 package org.folio.de.entity;
 
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import lombok.Data;
+import org.folio.de.entity.converters.EntityTypeConverter;
+import org.folio.de.entity.converters.ExportTypeConverter;
+import org.folio.de.entity.converters.IdentifierTypeConverter;
+import org.folio.de.entity.converters.JobCommandTypeConverter;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.IdentifierType;
-import org.folio.dew.domain.dto.Progress;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 import org.springframework.batch.core.JobParameters;
 
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.util.UUID;
 
 @Data
+@Entity
+@Table(name = "job_command")
+@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 public class JobCommand {
-
-  public enum Type {START, DELETE}
-
-  private Type type;
+  @Id
   private UUID id;
+  @Column(name = "job_command_type")
+  @Convert(converter = JobCommandTypeConverter.class)
+  private JobCommandType type;
   private String name;
   private String description;
+  @Convert(converter = ExportTypeConverter.class)
   private ExportType exportType;
+  @Type(type = "jsonb")
   private JobParameters jobParameters;
+  @Convert(converter = IdentifierTypeConverter.class)
   private IdentifierType identifierType;
+  @Convert(converter = EntityTypeConverter.class)
   private EntityType entityType;
-  private Progress progress;
 
 }

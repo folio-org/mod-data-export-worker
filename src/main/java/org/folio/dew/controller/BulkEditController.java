@@ -146,6 +146,7 @@ public class BulkEditController implements JobIdApi {
             .toJobParameters());
       }
       var updatesResult = itemContentUpdateService.processContentUpdates(jobCommand, contentUpdateCollection);
+      jobCommandsReceiverService.updateJobCommand(jobCommand);
       return new ResponseEntity<>(prepareItemContentUpdateResponse(updatesResult, limit), HttpStatus.OK);
     }
     throw new NonSupportedEntityException(format("Non-supported entity type: %s", contentUpdateCollection.getEntityType()));
@@ -204,6 +205,7 @@ public class BulkEditController implements JobIdApi {
       }
       Files.write(uploadedPath, file.getBytes());
       prepareJobParameters(jobCommand, uploadedPath);
+      jobCommandsReceiverService.updateJobCommand(jobCommand);
       if (isBulkEditUpdate(jobCommand) && jobCommand.getEntityType() == USER) {
         Files.write( Path.of(workDir, INITIAL_PREFIX + file.getOriginalFilename()), file.getBytes());
         processUpdateUsers(uploadedPath, file, jobId);

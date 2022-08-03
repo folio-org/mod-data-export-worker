@@ -43,6 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
+import org.folio.de.entity.JobCommandType;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
@@ -956,7 +957,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType, EntityType entityType, IdentifierType identifierType) {
     JobCommand jobCommand = new JobCommand();
-    jobCommand.setType(JobCommand.Type.START);
+    jobCommand.setType(JobCommandType.START);
     jobCommand.setId(id);
     jobCommand.setName(exportType.toString());
     jobCommand.setDescription("Job description");

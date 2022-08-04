@@ -743,7 +743,15 @@ class BulkEditControllerTest extends BaseBatchTest {
       .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_STATUS_UPDATE.replace(CSV_EXTENSION, EMPTY))
       .toJobParameters());
 
+    var modelConfiguration = new ModelConfiguration();
+    modelConfiguration.setValue("{\"Available\":[\"Missing\",\"Withdrawn\",\"In process (non-requestable)\"]}");
+    var configurationCollection = new ConfigurationCollection();
+    configurationCollection.setConfigs(List.of(modelConfiguration));
+    var configs = new ConfigurationCollection();
+    configs.setConfigs(List.of(modelConfiguration));
+
     when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+    when(configurationClient.getConfigurations(any())).thenReturn(configs);
 
     var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
       .entityType(ITEM)

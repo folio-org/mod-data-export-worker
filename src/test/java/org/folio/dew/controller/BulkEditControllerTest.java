@@ -44,6 +44,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.de.entity.JobCommandType;
 import org.folio.dew.BaseBatchTest;
+import org.folio.dew.client.ConfigurationClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.*;
@@ -113,14 +114,17 @@ class BulkEditControllerTest extends BaseBatchTest {
   @MockBean
   private JobCommandRepository jobCommandRepository;
 
+  @MockBean
+  private JobCommandsReceiverService jobCommandsReceiverService;
+
+  @MockBean
+  private ConfigurationClient configurationClient;
+
   @Autowired
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
 
   @Autowired
   private MinIOObjectStorageRepository repository;
-
-  @MockBean
-  private JobCommandsReceiverService jobCommandsReceiverService;
 
   @Autowired
   private BulkEditProcessingErrorsService errorsService;
@@ -434,8 +438,9 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Skip headers while counting records for update")
   @SneakyThrows
   void shouldSkipHeadersWhileCountingRecordsForUpdate() {
-    var jobId = JOB_ID;
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_UPDATE, USER, BARCODE));
+    var jobId = UUID.randomUUID();
+    var jobCommand = createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_UPDATE, USER, BARCODE);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var headers = defaultHeaders();
 
@@ -653,8 +658,15 @@ class BulkEditControllerTest extends BaseBatchTest {
       .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_LOCATION_UPDATE.replace(CSV_EXTENSION, EMPTY))
       .toJobParameters());
 
-    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+    var modelConfiguration = new ModelConfiguration();
+    modelConfiguration.setValue("{\"Available\":[\"Missing\",\"Withdrawn\",\"In process (non-requestable)\"]}");
+    var configurationCollection = new ConfigurationCollection();
+    configurationCollection.setConfigs(List.of(modelConfiguration));
+    var configs = new ConfigurationCollection();
+    configs.setConfigs(List.of(modelConfiguration));
 
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+    when(configurationClient.getConfigurations(any())).thenReturn(configs);
 
     var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
       .entityType(ITEM)

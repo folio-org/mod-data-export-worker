@@ -5,5 +5,5 @@
                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
   <include file="changes/initial_schema.xml" relativeToChangelogFile="true"/>
-  <include file="create_job_command_table.xml" relativeToChangelogFile="true"/>
+  <include file="changes/create_job_command_table.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

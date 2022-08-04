@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.times;
@@ -49,6 +48,7 @@ import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.*;
 import org.folio.dew.error.BulkEditException;
+import org.folio.dew.repository.JobCommandRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
@@ -109,6 +109,9 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @MockBean
   private InventoryClient inventoryClient;
+
+  @MockBean
+  private JobCommandRepository jobCommandRepository;
 
   @Autowired
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;

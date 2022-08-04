@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import org.folio.dew.BaseBatchTest;
 import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.LocationClient;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -17,7 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import java.util.UUID;
 
 @SpringBootTest
-class ItemReferenceServiceTest {
+class ItemReferenceServiceTest extends BaseBatchTest {
   @MockBean
   private HoldingClient holdingClient;
 

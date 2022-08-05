@@ -68,13 +68,13 @@ public class BulkEditItemContentUpdateService {
     workdir = System.getProperty(TMP_DIR_PROPERTY) + PATH_SEPARATOR + springApplicationName + PATH_SEPARATOR;
   }
 
-  public ItemUpdatesResult processContentUpdates(JobCommand jobCommand, ItemContentUpdateCollection contentUpdates) {
+  public UpdatesResult<ItemFormat> processContentUpdates(JobCommand jobCommand, ItemContentUpdateCollection contentUpdates) {
     var outputFileName = workdir + UPDATED_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
     try {
       log.info("Processing content updates for job id {}", jobCommand.getId());
       Files.deleteIfExists(Path.of(outputFileName));
       repository.downloadObject(FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION, outputFileName);
-      var updateResult = new ItemUpdatesResult();
+      var updateResult = new UpdatesResult<ItemFormat>();
       var records = CsvHelper.readRecordsFromFile(outputFileName, ItemFormat.class, true);
       log.info("Reading of file {} complete, number of itemFormats: {}", outputFileName, records.size());
       updateResult.setTotal(records.size());
@@ -106,8 +106,8 @@ public class BulkEditItemContentUpdateService {
     }
   }
 
-  private ContentUpdateRecords applyContentUpdates(List<ItemFormat> itemFormats, ItemContentUpdateCollection contentUpdates, JobCommand jobCommand) {
-    var result = new ContentUpdateRecords();
+  private ContentUpdateRecords<ItemFormat> applyContentUpdates(List<ItemFormat> itemFormats, ItemContentUpdateCollection contentUpdates, JobCommand jobCommand) {
+    var result = new ContentUpdateRecords<ItemFormat>();
     for (ItemFormat itemFormat: itemFormats) {
       log.info("Applying updates to item id={}", itemFormat.getId());
       var updatedItemFormat = itemFormat;

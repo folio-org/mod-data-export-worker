@@ -4,11 +4,14 @@ import io.minio.BucketExistsArgs;
 import io.minio.ComposeObjectArgs;
 import io.minio.ComposeSource;
 import io.minio.DownloadObjectArgs;
+import io.minio.GetObjectArgs;
 import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.ListObjectsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.ObjectWriteArgs;
 import io.minio.ObjectWriteResponse;
+import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectsArgs;
 import io.minio.Result;
 import io.minio.UploadObjectArgs;
@@ -24,17 +27,26 @@ import io.minio.errors.XmlParserException;
 import io.minio.http.Method;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
+
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Array;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import io.minio.messages.Item;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.config.properties.MinIoProperties;
 import org.springframework.http.HttpHeaders;
@@ -108,6 +120,36 @@ public class MinIOObjectStorageRepository {
     InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,
     InternalException, XmlParserException, ErrorResponseException {
     client.downloadObject(DownloadObjectArgs.builder().bucket(bucket).object(objectToGet).filename(fileToSave).build());
+  }
+
+  public InputStream getObject(String objectToGet) throws IOException, InvalidKeyException,
+    InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,
+    InternalException, XmlParserException, ErrorResponseException {
+    return client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectToGet).build());
+  }
+
+  public void putObject(byte[] bytes, String fileName) throws IOException, InvalidKeyException,
+    InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,
+    InternalException, XmlParserException, ErrorResponseException {
+    try (var inputStream = new ByteArrayInputStream(bytes)) {
+      client.putObject(PutObjectArgs.builder()
+        .bucket(bucket)
+        .stream(inputStream, bytes.length, -1)
+        .object(fileName)
+        .contentType("text/csv")
+        .build());
+    }
+  }
+
+  public boolean containsFile(String fileName)
+    throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException,
+    InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+    for (Result<Item> itemResult : client.listObjects(ListObjectsArgs.builder().bucket(bucket).build())) {
+      if (fileName.equals(itemResult.get().objectName())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public ObjectWriteResponse composeObject(String destObject, List<String> sourceObjects, String downloadFilename,

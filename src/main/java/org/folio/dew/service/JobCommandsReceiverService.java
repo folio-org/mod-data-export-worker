@@ -2,15 +2,13 @@ package org.folio.dew.service;
 
 import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
-import org.folio.dew.batch.ExportJobManagerSync;
+
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
-import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
 import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
-import static org.folio.dew.domain.dto.ExportType.E_HOLDINGS;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,23 +24,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
 import javax.annotation.PostConstruct;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.de.entity.JobCommand;
-import org.folio.dew.batch.ExportJobManager;
-import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
-import org.folio.dew.client.SearchClient;
-import org.folio.dew.config.kafka.KafkaService;
-import org.folio.dew.domain.dto.BursarFeeFines;
-import org.folio.dew.domain.dto.JobParameterNames;
-import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
-import org.folio.dew.error.FileOperationException;
-import org.folio.dew.repository.IAcknowledgementRepository;
-import org.folio.dew.repository.MinIOObjectStorageRepository;
-import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -54,11 +43,19 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
+import org.folio.de.entity.JobCommand;
+import org.folio.dew.batch.ExportJobManager;
+import org.folio.dew.batch.ExportJobManagerSync;
+import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
+import org.folio.dew.client.SearchClient;
+import org.folio.dew.config.kafka.KafkaService;
+import org.folio.dew.domain.dto.BursarFeeFines;
+import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
+import org.folio.dew.error.FileOperationException;
+import org.folio.dew.repository.IAcknowledgementRepository;
+import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 
 @Service
 @RequiredArgsConstructor
@@ -104,6 +101,7 @@ public class JobCommandsReceiverService {
   }
 
   @KafkaListener(
+    concurrency = "${spring.kafka.listener.concurrency}",
     id = KafkaService.EVENT_LISTENER_ID,
     containerFactory = "kafkaListenerContainerFactory",
     topicPattern = "${application.kafka.topic-pattern}",
@@ -135,7 +133,15 @@ public class JobCommandsReceiverService {
           jobCommand.getJobParameters());
 
       acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-      exportJobManagerSync.launchJob(jobLaunchRequest);
+
+      //This thread wrapper is used not to exceed kafka.consumer.properties.max.poll.interval.ms for long-running jobs
+      new Thread(() -> {
+        try {
+          exportJobManagerSync.launchJob(jobLaunchRequest);
+        } catch (Exception e) {
+          log.error(e.toString(), e);
+        }
+      }).start();
 
     } catch (Exception e) {
       log.error(e.toString(), e);

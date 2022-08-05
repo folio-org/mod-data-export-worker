@@ -10,11 +10,9 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
-import static org.folio.dew.domain.dto.IdentifierType.FORMER_IDS;
 import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
-import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
@@ -27,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.times;
@@ -95,6 +94,10 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String ITEMS_FOR_STATUS_UPDATE = "src/test/resources/upload/bulk_edit_items_for_status_update.csv";
   private static final String ITEM_FOR_STATUS_UPDATE_ERROR = "src/test/resources/upload/bulk_edit_item_for_status_update_error.csv";
   private static final String ITEMS_FOR_NOTHING_UPDATE = "src/test/resources/upload/bulk_edit_items_for_nothing_update.csv";
+  private static final String USER_DATA = "src/test/resources/upload/user_data.csv";
+  private static final String ITEM_DATA = "src/test/resources/upload/item_data.csv";
+  private static final String PREVIEW_USER_DATA = "src/test/resources/upload/preview_user_data.csv";
+  private static final String PREVIEW_ITEM_DATA = "src/test/resources/upload/preview_item_data.csv";
   private static final SimpleDateFormat itemStatusDateFormat = new SimpleDateFormat(DATE_TIME_PATTERN);
   private static final UUID JOB_ID = UUID.randomUUID();
   public static final String LIMIT = "limit";
@@ -211,15 +214,20 @@ class BulkEditControllerTest extends BaseBatchTest {
     names = {"ID", "BARCODE", "EXTERNAL_SYSTEM_ID", "USER_NAME"},
     mode = EnumSource.Mode.INCLUDE)
   void shouldReturnCompleteUserPreviewForAnyIdentifier(IdentifierType identifierType) {
-
-    var query = resolveIdentifier(identifierType.getValue()) + "==(123 OR 456 OR 789)";
-    when(userClient.getUserByQuery(query, 3)).thenReturn(buildUserCollection());
-
+    repository.uploadObject(FilenameUtils.getName(PREVIEW_USER_DATA), PREVIEW_USER_DATA, null, "text/plain", false);
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, identifierType));
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(USER);
+    jobCommand.setIdentifierType(identifierType);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + PREVIEW_USER_DATA.replace(CSV_EXTENSION, EMPTY))
+      .toJobParameters());
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
 
     var headers = defaultHeaders();
-
     var response = mockMvc.perform(get(format(PREVIEW_USERS_URL_TEMPLATE, jobId))
         .headers(headers)
         .queryParam(LIMIT, String.valueOf(3)))
@@ -234,18 +242,20 @@ class BulkEditControllerTest extends BaseBatchTest {
   @EnumSource(value = IdentifierType.class, names = { "EXTERNAL_SYSTEM_ID", "USER_NAME" }, mode = EnumSource.Mode.EXCLUDE)
   @SneakyThrows
   void shouldReturnCompleteItemPreview(IdentifierType identifierType) {
-
-    var query = FORMER_IDS == identifierType ?
-      String.format("%s=(123 OR 456 OR 789)", resolveIdentifier(identifierType.getValue())) :
-      String.format("%s==(123 OR 456 OR 789)", resolveIdentifier(identifierType.getValue()));
-
-    when(inventoryClient.getItemByQuery(query, 3)).thenReturn(buildItemCollection());
-
+    repository.uploadObject(FilenameUtils.getName(PREVIEW_ITEM_DATA), PREVIEW_ITEM_DATA, null, "text/plain", false);
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, ITEM, identifierType));
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(USER);
+    jobCommand.setIdentifierType(identifierType);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + PREVIEW_ITEM_DATA.replace(CSV_EXTENSION, EMPTY))
+      .toJobParameters());
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
 
     var headers = defaultHeaders();
-
     var response = mockMvc.perform(get(format(PREVIEW_ITEMS_URL_TEMPLATE, jobId))
         .headers(headers)
         .queryParam(LIMIT, String.valueOf(3)))
@@ -258,8 +268,63 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @SneakyThrows
   @ParameterizedTest
-  @CsvSource({"BULK_EDIT_IDENTIFIERS,barcode==(123 OR 456)",
-    "BULK_EDIT_UPDATE,barcode==(123 OR 456)",
+  @EnumSource(value = IdentifierType.class,
+    names = {"ID", "BARCODE", "EXTERNAL_SYSTEM_ID", "USER_NAME"},
+    mode = EnumSource.Mode.INCLUDE)
+  void shouldReturnEmptyUserPreviewIfNoRecordsAvailable(IdentifierType identifierType) {
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(USER);
+    jobCommand.setIdentifierType(identifierType);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/no_file")
+      .toJobParameters());
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+
+    var headers = defaultHeaders();
+    var response = mockMvc.perform(get(format(PREVIEW_USERS_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(3)))
+      .andExpect(status().isOk());
+
+    var users = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), UserCollection.class);
+    assertThat(users.getTotalRecords(), equalTo(0));
+    assertThat(users.getUsers(), hasSize(0));
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = IdentifierType.class, names = { "EXTERNAL_SYSTEM_ID", "USER_NAME" }, mode = EnumSource.Mode.EXCLUDE)
+  @SneakyThrows
+  void shouldReturnEmptyItemPreviewIfNoRecordsAvailable(IdentifierType identifierType) {
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(USER);
+    jobCommand.setIdentifierType(identifierType);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/no_file")
+      .toJobParameters());
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+
+    var headers = defaultHeaders();
+    var response = mockMvc.perform(get(format(PREVIEW_ITEMS_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(3)))
+      .andExpect(status().isOk());
+
+    var items = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), ItemCollection.class);
+    assertThat(items.getTotalRecords(), equalTo(0));
+    assertThat(items.getItems(), hasSize(0));
+  }
+
+  @SneakyThrows
+  @ParameterizedTest
+  @CsvSource({"BULK_EDIT_UPDATE,barcode==(\"123\" OR \"456\")",
     "BULK_EDIT_QUERY,(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName"})
   void shouldReturnCompleteUserPreviewWithLimitControl(String exportType, String query) {
 
@@ -284,41 +349,13 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @SneakyThrows
   @ParameterizedTest
-  @CsvSource({"BULK_EDIT_IDENTIFIERS,barcode==(123 OR 456)",
-    "BULK_EDIT_UPDATE,barcode==(123 OR 456)"})
-  void shouldReturnCompleteItemsPreviewWithLimitControl(String exportType, String query) {
-
-    when(inventoryClient.getItemByQuery(query, 2)).thenReturn(buildItemCollection());
-
-    var jobId = JOB_ID;
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType), ITEM, BARCODE));
-
-    var headers = defaultHeaders();
-
-    var response = mockMvc.perform(get(format(PREVIEW_ITEMS_URL_TEMPLATE, jobId))
-        .headers(headers)
-        .queryParam(LIMIT, String.valueOf(2)))
-      .andExpect(status().isOk());
-
-    ArgumentCaptor<String> queryCaptor = ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<Long> limitCaptor = ArgumentCaptor.forClass(Long.class);
-    verify(inventoryClient).getItemByQuery(queryCaptor.capture(), limitCaptor.capture());
-    assertThat(query, equalTo(queryCaptor.getValue()));
-    assertThat(2L, equalTo(limitCaptor.getValue()));
-  }
-
-  @ParameterizedTest
-  @EnumSource(value = IdentifierType.class, names = { "EXTERNAL_SYSTEM_ID", "USER_NAME" }, mode = EnumSource.Mode.EXCLUDE)
-  @SneakyThrows
-  void shouldReturnCompleteItemPreviewWithDifferentIdentifiers(IdentifierType identifierType) {
-    var query = FORMER_IDS == identifierType ?
-      String.format("%s=(123 OR 456)", resolveIdentifier(identifierType.getValue())) :
-      String.format("%s==(123 OR 456)", resolveIdentifier(identifierType.getValue()));
-
+  @EnumSource(EntityType.class)
+  void shouldReturnCompleteUpdatePreviewWithLimitControl(EntityType entityType) {
+    var query = "barcode==(\"123\" OR \"456\")";
     when(inventoryClient.getItemByQuery(query, 2)).thenReturn(buildItemCollection());
 
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, ITEM, identifierType));
+    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, entityType, BARCODE));
 
     var headers = defaultHeaders();
 
@@ -380,7 +417,6 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andReturn();
 
     assertThat(result.getResponse().getContentAsString(), equalTo("3"));
-
     verify(exportJobManagerSync, times(1)).launchJob(any());
   }
 
@@ -498,7 +534,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     mockMvc.perform(multipart(format(START_URL_TEMPLATE, jobId))
       .headers(headers))
-      .andExpect(status().isInternalServerError());
+      .andExpect(status().isOk());
   }
 
   @ParameterizedTest
@@ -924,10 +960,11 @@ class BulkEditControllerTest extends BaseBatchTest {
     if (BULK_EDIT_IDENTIFIERS == exportType) {
       fileName = "src/test/resources/upload/barcodes.csv";
     } else {
-      fileName = USER == entityType ? "src/test/resources/upload/user_data.csv" : "src/test/resources/upload/item_data.csv";
+      fileName = USER == entityType ? USER_DATA : ITEM_DATA;
     }
     params.put(FILE_NAME, new JobParameter(fileName));
     params.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(fileName));
+    params.put(UPDATED_FILE_NAME, new JobParameter(fileName));
     jobCommand.setJobParameters(new JobParameters(params));
     return jobCommand;
   }

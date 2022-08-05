@@ -6,8 +6,8 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
@@ -51,7 +51,8 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
     PurchaseOrderCollection poCollection = objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_collection.json"), PurchaseOrderCollection.class);
     CompositePurchaseOrder comPO = objectMapper.readValue(getMockData("edifact/acquisitions/composite_purchase_order.json"), CompositePurchaseOrder.class);
 
-    doReturn(poCollection).when(ordersService).getCompositePurchaseOrderByQuery(anyString(), anyInt());
+    String cqlString = "(workflowStatus==Open and vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1 and poLine.automaticExport==true and cql.allRecords=1 NOT manualPo==true)";
+    doReturn(poCollection).when(ordersService).getCompositePurchaseOrderByQuery(eq(cqlString), eq(Integer.MAX_VALUE));
     doReturn(comPO).when(ordersService).getCompositePurchaseOrderById(anyString());
     doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
 
@@ -91,7 +92,8 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
     PurchaseOrderCollection poCollection = objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_collection.json"), PurchaseOrderCollection.class);
     CompositePurchaseOrder comPO = objectMapper.readValue(getMockData("edifact/acquisitions/composite_purchase_order.json"), CompositePurchaseOrder.class);
     comPO.getCompositePoLines().get(0).getVendorDetail().setVendorAccount(null);
-    doReturn(poCollection).when(ordersService).getCompositePurchaseOrderByQuery(anyString(), anyInt());
+    String cqlString = "(workflowStatus==Open and vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1 and poLine.automaticExport==true and cql.allRecords=1 NOT manualPo==true)";
+    doReturn(poCollection).when(ordersService).getCompositePurchaseOrderByQuery(eq(cqlString), eq(Integer.MAX_VALUE));
     doReturn(comPO).when(ordersService).getCompositePurchaseOrderById(anyString());
     doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
 
@@ -107,7 +109,8 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
   void purchaseOrdersNotFound() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
     PurchaseOrderCollection poCollection = new PurchaseOrderCollection();
-    doReturn(poCollection).when(ordersService).getCompositePurchaseOrderByQuery(anyString(), anyInt());
+    String cqlString = "(workflowStatus==Open and vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1 and poLine.automaticExport==true and cql.allRecords=1 NOT manualPo==true)";
+    doReturn(poCollection).when(ordersService).getCompositePurchaseOrderByQuery(eq(cqlString), eq(Integer.MAX_VALUE));
     // when
     JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters(false));
 

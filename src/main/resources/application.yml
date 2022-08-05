@@ -16,7 +16,7 @@ spring:
     consumer:
       auto-offset-reset: latest
       enable-auto-commit: false
-      properties.max.poll.interval.ms: ${KAFKA_CONSUMER_POLL_INTERVAL:3600000}
+      properties.max.poll.interval.ms: ${KAFKA_CONSUMER_POLL_INTERVAL:300000}
   datasource:
     continue-on-error: true
     username: ${DB_USERNAME:folio_admin}

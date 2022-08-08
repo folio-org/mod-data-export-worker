@@ -90,10 +90,11 @@ public class MapToEdifactTasklet implements Tasklet {
   }
 
   private String buildPurchaseOrderQuery(VendorEdiOrdersExportConfig ediConfig) {
+    var workflowStatusFilter = "workflowStatus==Open";
     var vendorFilter = String.format(" and vendor==%s", ediConfig.getVendorId());
     var automaticExportFilter = " and poLine.automaticExport==true";
-    var lastEDIExportDate = "";//"" and (cql.allRecords=1 NOT poLine.lastEDIExportDate='')";
-    var resultQuery = "(" + "workflowStatus==Open" + vendorFilter + automaticExportFilter + lastEDIExportDate + ")";
+    var notManualFilter = " and cql.allRecords=1 NOT manualPo==true";
+    var resultQuery = "(" + workflowStatusFilter + vendorFilter + automaticExportFilter + notManualFilter + ")";
     log.info("GET purchase orders query: {}", resultQuery);
     return resultQuery;
   }

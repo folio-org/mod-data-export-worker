@@ -17,12 +17,10 @@ import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Table;
 import java.util.UUID;
 
 @Data
 @Entity
-@Table(name = "job_command")
 @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 public class JobCommand {
   @Id

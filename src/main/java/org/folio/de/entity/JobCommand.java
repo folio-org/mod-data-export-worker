@@ -2,10 +2,6 @@ package org.folio.de.entity;
 
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import lombok.Data;
-import org.folio.de.entity.converters.EntityTypeConverter;
-import org.folio.de.entity.converters.ExportTypeConverter;
-import org.folio.de.entity.converters.IdentifierTypeConverter;
-import org.folio.de.entity.converters.JobCommandTypeConverter;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.IdentifierType;
@@ -13,8 +9,10 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.springframework.batch.core.JobParameters;
 
-import javax.persistence.Convert;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import java.util.UUID;
 
@@ -24,17 +22,18 @@ import java.util.UUID;
 public class JobCommand {
   @Id
   private UUID id;
-  @Convert(converter = JobCommandTypeConverter.class)
-  private JobCommandType jobCommandType;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "job_command_type")
+  private JobCommandType type;
   private String name;
   private String description;
-  @Convert(converter = ExportTypeConverter.class)
+  @Enumerated(EnumType.STRING)
   private ExportType exportType;
   @Type(type = "jsonb")
   private JobParameters jobParameters;
-  @Convert(converter = IdentifierTypeConverter.class)
+  @Enumerated(EnumType.STRING)
   private IdentifierType identifierType;
-  @Convert(converter = EntityTypeConverter.class)
+  @Enumerated(EnumType.STRING)
   private EntityType entityType;
 
 }

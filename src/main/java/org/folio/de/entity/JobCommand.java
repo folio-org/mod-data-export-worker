@@ -13,7 +13,6 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.springframework.batch.core.JobParameters;
 
-import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -25,9 +24,8 @@ import java.util.UUID;
 public class JobCommand {
   @Id
   private UUID id;
-  @Column(name = "job_command_type")
   @Convert(converter = JobCommandTypeConverter.class)
-  private JobCommandType type;
+  private JobCommandType jobCommandType;
   private String name;
   private String description;
   @Convert(converter = ExportTypeConverter.class)

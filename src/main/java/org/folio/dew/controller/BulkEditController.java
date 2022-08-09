@@ -295,10 +295,7 @@ public class BulkEditController implements JobIdApi {
         var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
         FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
         try {
-          JobExecution execution = exportJobManagerSync.launchJob(jobLaunchRequest);
-          if (isBulkEditUpdate(jobCommand)) {
-            bulkEditRollBackService.putExecutionInfoPerJob(execution.getId(), jobId);
-          }
+          exportJobManagerSync.launchJob(jobLaunchRequest);
         } catch (JobExecutionException e) {
           log.error(e.getMessage());
         } finally {

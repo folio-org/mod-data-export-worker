@@ -1022,7 +1022,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType, EntityType entityType, IdentifierType identifierType) {
     JobCommand jobCommand = new JobCommand();
-    jobCommand.setJobCommandType(JobCommandType.START);
+    jobCommand.setType(JobCommandType.START);
     jobCommand.setId(id);
     jobCommand.setName(exportType.toString());
     jobCommand.setDescription("Job description");

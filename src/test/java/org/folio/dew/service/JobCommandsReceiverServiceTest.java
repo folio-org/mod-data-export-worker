@@ -132,7 +132,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
   private JobCommand createStartCirculationLogJobRequest(UUID id) {
     JobCommand jobCommand = new JobCommand();
-    jobCommand.setJobCommandType(JobCommandType.START);
+    jobCommand.setType(JobCommandType.START);
     jobCommand.setId(id);
     jobCommand.setName(ExportType.CIRCULATION_LOG.toString());
     jobCommand.setDescription("Start job test desc");
@@ -146,7 +146,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
   private JobCommand createStartEHoldingsJobRequest(UUID id) {
     JobCommand jobCommand = new JobCommand();
-    jobCommand.setJobCommandType(JobCommandType.START);
+    jobCommand.setType(JobCommandType.START);
     jobCommand.setId(id);
     jobCommand.setName(ExportType.E_HOLDINGS.toString());
     jobCommand.setDescription("Start job test desc");
@@ -166,7 +166,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
   private JobCommand createDeleteJobRequest(UUID id) {
     JobCommand jobCommand = new JobCommand();
-    jobCommand.setJobCommandType(JobCommandType.DELETE);
+    jobCommand.setType(JobCommandType.DELETE);
     jobCommand.setId(id);
     jobCommand.setJobParameters(
         new JobParameters(Collections.singletonMap(JobParameterNames.OUTPUT_FILES_IN_STORAGE, new JobParameter("https://x-host.com/560b33d8-7220-4c97-bfd1-dbc5b9c49537_duplicate.csv"))));

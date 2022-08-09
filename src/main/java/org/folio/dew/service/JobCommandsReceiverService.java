@@ -237,7 +237,7 @@ public class JobCommandsReceiverService {
   }
 
   private boolean deleteOldFiles(JobCommand jobCommand, Acknowledgment acknowledgment) {
-    if (jobCommand.getJobCommandType() != JobCommandType.DELETE) {
+    if (jobCommand.getType() != JobCommandType.DELETE) {
       return false;
     }
 

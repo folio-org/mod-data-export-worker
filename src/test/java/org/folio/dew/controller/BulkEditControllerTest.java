@@ -512,7 +512,6 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     verify(jobCommandsReceiverService, times(1)).getBulkEditJobCommandById(jobId.toString());
     verify(exportJobManagerSync, times(1)).launchJob(isA(JobLaunchRequest.class));
-    verify(bulkEditRollBackService, times(1)).putExecutionInfoPerJob(executionId, jobId);
   }
 
   @Test

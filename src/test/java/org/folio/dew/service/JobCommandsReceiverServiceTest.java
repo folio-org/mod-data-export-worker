@@ -1,11 +1,8 @@
 package org.folio.dew.service;
 
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,11 +13,13 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.folio.de.entity.JobCommandType;
+
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.BaseBatchTest;
+
 import org.folio.dew.repository.JobCommandRepository;
 
 import org.junit.jupiter.api.DisplayName;
@@ -46,7 +45,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
     jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
 
-    verify(exportJobManagerSync, timeout(1_000)).launchJob(any());
+    verify(exportJobManagerSync, times(1)).launchJob(any());
 
     final Acknowledgment savedAcknowledgment = repository.getAcknowledgement(id.toString());
 
@@ -63,7 +62,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
     jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
 
-    verify(exportJobManagerSync, timeout(1_000)).launchJob(any());
+    verify(exportJobManagerSync, times(1)).launchJob(any());
 
     final Acknowledgment savedAcknowledgment = repository.getAcknowledgement(id.toString());
 
@@ -80,27 +79,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
     jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
 
-    verify(acknowledgment, timeout(1_000)).acknowledge();
-  }
-
-  @Test
-  @DisplayName("Start EHoldings job with pausing/resuming consumer by kafka request")
-  void runJobInNewThreadTest() throws JobExecutionException {
-    doNothing().when(acknowledgment).acknowledge();
-
-    UUID id = UUID.randomUUID();
-    JobCommand jobCommand = createStartEHoldingsJobRequest(id);
-    Thread mainThread = Thread.currentThread();
-
-    doAnswer(invocationOnMock -> {
-      Thread childThread = Thread.currentThread();
-      assertNotEquals(mainThread.getName(), childThread.getName());
-      return null;
-    }).when(exportJobManagerSync).launchJob(any());
-
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
-
-    verify(exportJobManagerSync, timeout(1_000)).launchJob(any());
+    verify(acknowledgment, times(1)).acknowledge();
   }
 
   @Test

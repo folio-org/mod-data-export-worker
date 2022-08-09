@@ -26,12 +26,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 import javax.annotation.PostConstruct;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -59,6 +56,13 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
+
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 
 @Service
 @RequiredArgsConstructor
@@ -135,15 +139,7 @@ public class JobCommandsReceiverService {
           jobCommand.getJobParameters());
 
       acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-
-      //This thread wrapper is used not to exceed kafka.consumer.properties.max.poll.interval.ms for long-running jobs
-      new Thread(() -> {
-        try {
-          exportJobManagerSync.launchJob(jobLaunchRequest);
-        } catch (Exception e) {
-          log.error(e.toString(), e);
-        }
-      }).start();
+      exportJobManagerSync.launchJob(jobLaunchRequest);
 
     } catch (Exception e) {
       log.error(e.toString(), e);

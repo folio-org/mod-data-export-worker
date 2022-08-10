@@ -85,6 +85,8 @@ public class BulkEditUserContentUpdateService {
       return new PatronGroupUpdateStrategy();
     case EXPIRATION_DATE:
       return new ExpirationDateUpdateStrategy();
+    case EMAIL_ADDRESS:
+      return new EmailUpdateStrategy();
     default:
       throw new BulkEditException(String.format("Content updates for %s not implemented", update.getOption()));
     }

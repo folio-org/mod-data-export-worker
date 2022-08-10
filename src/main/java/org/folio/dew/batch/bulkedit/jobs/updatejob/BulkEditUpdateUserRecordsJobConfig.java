@@ -1,10 +1,24 @@
 package org.folio.dew.batch.bulkedit.jobs.updatejob;
 
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
+import static org.folio.dew.domain.dto.EntityType.USER;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
+import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
+
+import io.minio.errors.ErrorResponseException;
+import io.minio.errors.InsufficientDataException;
+import io.minio.errors.InternalException;
+import io.minio.errors.InvalidResponseException;
+import io.minio.errors.ServerException;
+import io.minio.errors.XmlParserException;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.bulkedit.jobs.JobConfigReaderHelper;
 import org.folio.dew.batch.bulkedit.jobs.updatejob.listeners.BulkEditUpdateUserRecordsListener;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
+import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -23,10 +37,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
-import static org.folio.dew.domain.dto.EntityType.USER;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
-import static org.folio.dew.utils.Constants.FILE_NAME;
-import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
+import org.springframework.core.io.InputStreamResource;
+
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 @Configuration
 public class BulkEditUpdateUserRecordsJobConfig {
@@ -67,11 +82,16 @@ public class BulkEditUpdateUserRecordsJobConfig {
 
   @Bean
   @StepScope
-  public FlatFileItemReader<UserFormat> csvUserRecordsReader(@Value("#{jobParameters['" + FILE_NAME + "']}") String fileName) {
+  public FlatFileItemReader<UserFormat> csvUserRecordsReader(
+    @Value("#{jobParameters['" + FILE_NAME + "']}") String fileName,
+    @Value("#{jobParameters['" + UPDATED_FILE_NAME + "']}") String updatedFileName,
+    MinIOObjectStorageRepository repository)
+    throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException,
+    InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
     LineMapper<UserFormat> userLineMapper = JobConfigReaderHelper.createUserLineMapper();
     return new FlatFileItemReaderBuilder<UserFormat>()
       .name("userReader")
-      .resource(new FileSystemResource(fileName))
+      .resource(isEmpty(updatedFileName) ? new FileSystemResource(fileName) : new InputStreamResource(repository.getObject(UPDATED_FILE_NAME)))
       .linesToSkip(1)
       .lineMapper(userLineMapper)
       .build();

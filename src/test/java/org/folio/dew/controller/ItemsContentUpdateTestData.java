@@ -1,14 +1,14 @@
 package org.folio.dew.controller;
 
-import static org.folio.dew.domain.dto.ContentUpdate.ActionEnum.CLEAR_FIELD;
-import static org.folio.dew.domain.dto.ContentUpdate.ActionEnum.REPLACE_WITH;
-import static org.folio.dew.domain.dto.ContentUpdate.OptionEnum.PERMANENT_LOCATION;
-import static org.folio.dew.domain.dto.ContentUpdate.OptionEnum.STATUS;
-import static org.folio.dew.domain.dto.ContentUpdate.OptionEnum.TEMPORARY_LOCATION;
+import static org.folio.dew.domain.dto.ItemContentUpdate.ActionEnum.CLEAR_FIELD;
+import static org.folio.dew.domain.dto.ItemContentUpdate.ActionEnum.REPLACE_WITH;
+import static org.folio.dew.domain.dto.ItemContentUpdate.OptionEnum.PERMANENT_LOCATION;
+import static org.folio.dew.domain.dto.ItemContentUpdate.OptionEnum.STATUS;
+import static org.folio.dew.domain.dto.ItemContentUpdate.OptionEnum.TEMPORARY_LOCATION;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.folio.dew.domain.dto.ContentUpdate;
+import org.folio.dew.domain.dto.ItemContentUpdate;
 
 @AllArgsConstructor
 @Getter
@@ -50,8 +50,8 @@ public enum ItemsContentUpdateTestData {
     "src/test/resources/output/expected_items_with_non_updated_status.json",
     null, null);
 
-  final ContentUpdate.OptionEnum option;
-  final ContentUpdate.ActionEnum action;
+  final ItemContentUpdate.OptionEnum option;
+  final ItemContentUpdate.ActionEnum action;
   final String value;
   final String expectedPreviewJsonPath;
   final String expectedCsvPath;

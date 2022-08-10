@@ -9,9 +9,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.With;
 
 @Data
 @Builder
+@With
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserFormat {
@@ -151,6 +153,23 @@ public class UserFormat {
 
   public static String[] getUserFieldsArray() {
     return map.keySet().toArray(new String[0]);
+  }
+
+  public String getIdentifier(String identifierType) {
+    try {
+      switch (IdentifierType.fromValue(identifierType)) {
+      case BARCODE:
+        return barcode;
+      case EXTERNAL_SYSTEM_ID:
+        return externalSystemId;
+      case USER_NAME:
+        return username;
+      default:
+        return id;
+      }
+    } catch (Exception e) {
+      return id;
+    }
   }
 }
 

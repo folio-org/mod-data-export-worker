@@ -58,7 +58,7 @@ import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManagerSync;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
-import org.folio.dew.domain.dto.ContentUpdateCollection;
+import org.folio.dew.domain.dto.ItemContentUpdateCollection;
 import org.folio.dew.domain.dto.Errors;
 import org.folio.dew.domain.dto.ItemCollection;
 import org.folio.dew.domain.dto.ItemFormat;
@@ -74,7 +74,7 @@ import org.folio.dew.service.BulkEditItemContentUpdateService;
 import org.folio.dew.service.BulkEditParseService;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
-import org.folio.dew.service.ItemUpdatesResult;
+import org.folio.dew.service.UpdatesResult;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.dew.utils.CsvHelper;
 import org.folio.spring.DefaultFolioExecutionContext;
@@ -138,19 +138,16 @@ public class BulkEditController implements JobIdApi {
   }
 
   @Override
-  public ResponseEntity<ItemCollection> postContentUpdates(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId,@ApiParam(value = "" ,required=true )  @Valid @RequestBody ContentUpdateCollection contentUpdateCollection,@ApiParam(value = "The numbers of records to return") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
-    if (ITEM == contentUpdateCollection.getEntityType()) {
-      bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId.toString());
-      var jobCommand = getJobCommandById(jobId.toString());
-      if (nonNull(jobCommand.getIdentifierType())) {
-        jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())
-            .addString(IDENTIFIER_TYPE, jobCommand.getIdentifierType().getValue())
-            .toJobParameters());
-      }
-      var updatesResult = itemContentUpdateService.processContentUpdates(jobCommand, contentUpdateCollection);
-      return new ResponseEntity<>(prepareItemContentUpdateResponse(updatesResult, limit), HttpStatus.OK);
+  public ResponseEntity<ItemCollection> postItemContentUpdates(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId,@ApiParam(value = "" ,required=true )  @Valid @RequestBody ItemContentUpdateCollection contentUpdateCollection,@ApiParam(value = "The numbers of records to return") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
+    bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId.toString());
+    var jobCommand = getJobCommandById(jobId.toString());
+    if (nonNull(jobCommand.getIdentifierType())) {
+      jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())
+          .addString(IDENTIFIER_TYPE, jobCommand.getIdentifierType().getValue())
+          .toJobParameters());
     }
-    throw new NonSupportedEntityException(format("Non-supported entity type: %s", contentUpdateCollection.getEntityType()));
+    var updatesResult = itemContentUpdateService.processContentUpdates(jobCommand, contentUpdateCollection);
+    return new ResponseEntity<>(prepareItemContentUpdateResponse(updatesResult, limit), HttpStatus.OK);
   }
 
   @Override
@@ -345,7 +342,7 @@ public class BulkEditController implements JobIdApi {
     return jobCommandOptional.get();
   }
 
-  private ItemCollection prepareItemContentUpdateResponse(ItemUpdatesResult updatesResult, Integer limit) {
+  private ItemCollection prepareItemContentUpdateResponse(UpdatesResult<ItemFormat> updatesResult, Integer limit) {
       var items = updatesResult.getItemsForPreview().stream()
         .limit(isNull(limit) ? Integer.MAX_VALUE : limit)
         .map(bulkEditParseService::mapItemFormatToItem)

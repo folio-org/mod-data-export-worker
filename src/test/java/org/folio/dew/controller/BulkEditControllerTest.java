@@ -213,7 +213,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     mode = EnumSource.Mode.INCLUDE)
   void shouldReturnCompleteUserPreviewForAnyIdentifier(IdentifierType identifierType) {
 
-    var query = resolveIdentifier(identifierType.getValue()) + "==(123 OR 456 OR 789)";
+    var query = resolveIdentifier(identifierType.getValue()) + "==(\"123\" OR \"456\" OR \"789\")";
     when(userClient.getUserByQuery(query, 3)).thenReturn(buildUserCollection());
 
     var jobId = UUID.randomUUID();
@@ -237,8 +237,8 @@ class BulkEditControllerTest extends BaseBatchTest {
   void shouldReturnCompleteItemPreview(IdentifierType identifierType) {
 
     var query = FORMER_IDS == identifierType ?
-      String.format("%s=(123 OR 456 OR 789)", resolveIdentifier(identifierType.getValue())) :
-      String.format("%s==(123 OR 456 OR 789)", resolveIdentifier(identifierType.getValue()));
+      String.format("%s=(\"123\" OR \"456\" OR \"789\")", resolveIdentifier(identifierType.getValue())) :
+      String.format("%s==(\"123\" OR \"456\" OR \"789\")", resolveIdentifier(identifierType.getValue()));
 
     when(inventoryClient.getItemByQuery(query, 3)).thenReturn(buildItemCollection());
 
@@ -259,8 +259,8 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @SneakyThrows
   @ParameterizedTest
-  @CsvSource({"BULK_EDIT_IDENTIFIERS,barcode==(123 OR 456)",
-    "BULK_EDIT_UPDATE,barcode==(123 OR 456)",
+  @CsvSource({"BULK_EDIT_IDENTIFIERS,barcode==(\"123\" OR \"456\")",
+    "BULK_EDIT_UPDATE,barcode==(\"123\" OR \"456\")",
     "BULK_EDIT_QUERY,(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName"})
   void shouldReturnCompleteUserPreviewWithLimitControl(String exportType, String query) {
 
@@ -285,8 +285,8 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @SneakyThrows
   @ParameterizedTest
-  @CsvSource({"BULK_EDIT_IDENTIFIERS,barcode==(123 OR 456)",
-    "BULK_EDIT_UPDATE,barcode==(123 OR 456)"})
+  @CsvSource({"BULK_EDIT_IDENTIFIERS,barcode==(\"123\" OR \"456\")",
+    "BULK_EDIT_UPDATE,barcode==(\"123\" OR \"456\")"})
   void shouldReturnCompleteItemsPreviewWithLimitControl(String exportType, String query) {
 
     when(inventoryClient.getItemByQuery(query, 2)).thenReturn(buildItemCollection());
@@ -313,8 +313,8 @@ class BulkEditControllerTest extends BaseBatchTest {
   @SneakyThrows
   void shouldReturnCompleteItemPreviewWithDifferentIdentifiers(IdentifierType identifierType) {
     var query = FORMER_IDS == identifierType ?
-      String.format("%s=(123 OR 456)", resolveIdentifier(identifierType.getValue())) :
-      String.format("%s==(123 OR 456)", resolveIdentifier(identifierType.getValue()));
+      String.format("%s=(\"123\" OR \"456\")", resolveIdentifier(identifierType.getValue())) :
+      String.format("%s==(\"123\" OR \"456\")", resolveIdentifier(identifierType.getValue()));
 
     when(inventoryClient.getItemByQuery(query, 2)).thenReturn(buildItemCollection());
 

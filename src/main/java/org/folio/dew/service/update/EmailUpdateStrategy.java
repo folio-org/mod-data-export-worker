@@ -1,4 +1,4 @@
-package org.folio.dew.service;
+package org.folio.dew.service.update;
 
 import org.folio.dew.domain.dto.UserContentUpdate;
 import org.folio.dew.domain.dto.UserFormat;

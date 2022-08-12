@@ -8,7 +8,6 @@ import org.folio.dew.domain.dto.UserContentUpdate;
 import org.folio.dew.domain.dto.UserContentUpdateAction;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
-import org.folio.dew.service.EmailUpdateStrategy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;

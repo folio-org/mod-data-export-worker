@@ -21,6 +21,7 @@ import org.folio.dew.BaseBatchTest;
 import org.folio.dew.domain.dto.UserContentUpdate;
 import org.folio.dew.domain.dto.UserContentUpdateAction;
 import org.folio.dew.domain.dto.UserContentUpdateCollection;
+import org.folio.dew.service.update.BulkEditUserContentUpdateService;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.beans.factory.annotation.Autowired;

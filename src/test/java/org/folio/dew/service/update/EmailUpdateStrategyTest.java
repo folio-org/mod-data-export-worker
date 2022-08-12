@@ -11,6 +11,7 @@ import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.EmailUpdateStrategy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
@@ -38,20 +39,20 @@ class EmailUpdateStrategyTest {
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = {true, false})
-  void shouldNotUpdateEmailIfDomainDoesNotMatch(boolean isPreview) {
+  @CsvSource({"true,another.com", "true,SomeDomain.com", "false,another.com", "false,SomeDomain.com"})
+  void shouldNotUpdateEmailIfDomainDoesNotMatch(String isPreview, String findValue) {
     var userFormat = new UserFormat().withEmail("test@somedomain.com");
     var contentUpdate = new UserContentUpdate()
       .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
       .actions(List.of(new UserContentUpdateAction()
           .name(UserContentUpdateAction.NameEnum.FIND)
-          .value("another.com"),
+          .value(findValue),
         new UserContentUpdateAction()
           .name(UserContentUpdateAction.NameEnum.REPLACE_WITH)
           .value("newdomain.com")
       ));
 
-    var updatedUserFormat = updateStrategy.applyUpdate(userFormat, contentUpdate, isPreview);
+    var updatedUserFormat = updateStrategy.applyUpdate(userFormat, contentUpdate, Boolean.parseBoolean(isPreview));
 
     assertThat(updatedUserFormat.getEmail(), equalTo("test@somedomain.com"));
   }

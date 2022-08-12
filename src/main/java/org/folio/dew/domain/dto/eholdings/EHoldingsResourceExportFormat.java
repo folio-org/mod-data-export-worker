@@ -1,9 +1,9 @@
-package org.folio.dew.domain.dto;
+package org.folio.dew.domain.dto.eholdings;
 
 import java.util.Collections;
 import java.util.List;
+
 import lombok.Data;
-import org.folio.dew.domain.dto.eholdings.Note;
 
 @Data
 public class EHoldingsResourceExportFormat {

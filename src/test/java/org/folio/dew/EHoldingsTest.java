@@ -19,8 +19,6 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.log4j.Log4j2;
-import org.folio.de.entity.JobCommand;
-import org.folio.dew.service.FileNameResolver;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -33,10 +31,12 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 
+import org.folio.de.entity.JobCommand;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
-import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
+import org.folio.dew.service.FileNameResolver;
 
 @Log4j2
 class EHoldingsTest extends BaseBatchTest {

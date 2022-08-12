@@ -1,3 +1,18 @@
+## 2022-08-12 v1.4.3
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.2...v1.4.3)
+
+### Technical tasks
+* [MODEXPW-193](https://issues.folio.org/browse/MODEXPW-193) Support of special symbols in the barcodes
+
+### Stories
+* [MODEXPW-174](https://issues.folio.org/browse/MODEXPW-174) eHoldings: remove data duplication in batch job execution context
+
+### Bug fixes
+* [MODEXPW-209](https://issues.folio.org/browse/MODEXPW-209) Order line is exported when "Manual" checkbox is enabled in PO
+* [MODEXPW-175](https://issues.folio.org/browse/MODEXPW-175) eHoldings: export stops after job failure
+* [MODEXPW-170](https://issues.folio.org/browse/MODEXPW-170) Status of export job of "Package" record (with almost 10k "Titles") hang with "In progress" value
+
 ## 2022-08-02 v1.4.2
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.1...v1.4.2)

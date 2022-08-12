@@ -1,12 +1,13 @@
 package org.folio.dew.batch.eholdings;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -14,26 +15,30 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import joptsimple.internal.Strings;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
 import org.folio.dew.client.AgreementClient.Agreement;
-import org.folio.dew.domain.dto.EHoldingsResourceExportFormat;
 import org.folio.dew.domain.dto.eholdings.AccessTypeData;
 import org.folio.dew.domain.dto.eholdings.AlternateTitle;
 import org.folio.dew.domain.dto.eholdings.Contributor;
 import org.folio.dew.domain.dto.eholdings.Coverage;
-import org.folio.dew.domain.dto.eholdings.EPackage;
+import org.folio.dew.domain.dto.eholdings.EHoldingsPackage;
+import org.folio.dew.domain.dto.eholdings.EHoldingsResource;
+import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
 import org.folio.dew.domain.dto.eholdings.EmbargoPeriod;
 import org.folio.dew.domain.dto.eholdings.Identifier;
 import org.folio.dew.domain.dto.eholdings.Identifier.SubtypeEnum;
 import org.folio.dew.domain.dto.eholdings.Identifier.TypeEnum;
 import org.folio.dew.domain.dto.eholdings.Note;
 import org.folio.dew.domain.dto.eholdings.Proxy;
-import org.folio.dew.domain.dto.eholdings.ResourcesData;
 import org.folio.dew.domain.dto.eholdings.Subject;
 import org.folio.dew.domain.dto.eholdings.Tags;
 import org.folio.dew.domain.dto.eholdings.VisibilityData;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
 
 @Component
 public class EHoldingsToExportFormatMapper {
@@ -44,27 +49,35 @@ public class EHoldingsToExportFormatMapper {
   private final ObjectMapper objectMapper = new ObjectMapper()
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-  public EHoldingsResourceExportFormat convertToExportFormat(EPackage ePackage, ResourcesData data) {
+  public List<EHoldingsResourceExportFormat> convertToExportFormat(EHoldingsPackage eHoldingsPackage, List<EHoldingsResource> data) {
+    if (data.isEmpty()) return singletonList(convertToExportFormat(eHoldingsPackage));
+
+    return data.stream()
+      .map(resource -> convertToExportFormat(eHoldingsPackage, resource))
+      .collect(Collectors.toList());
+  }
+
+  public EHoldingsResourceExportFormat convertToExportFormat(EHoldingsPackage eHoldingsPackage) {
     var exportFormat = new EHoldingsResourceExportFormat();
-    mapPackageToExportFormat(exportFormat, ePackage);
-    mapResourceDataToExportFormat(exportFormat, data);
+    mapPackageToExportFormat(exportFormat, eHoldingsPackage);
     return exportFormat;
   }
 
-  public EHoldingsResourceExportFormat convertToExportFormat(EPackage ePackage) {
+  public EHoldingsResourceExportFormat convertToExportFormat(EHoldingsPackage eHoldingsPackage, EHoldingsResource eHoldingsResource) {
     var exportFormat = new EHoldingsResourceExportFormat();
-    mapPackageToExportFormat(exportFormat, ePackage);
+    mapPackageToExportFormat(exportFormat, eHoldingsPackage);
+    mapResourceDataToExportFormat(exportFormat, eHoldingsResource);
     return exportFormat;
   }
 
   public List<String> convertNotes(List<Note> notes) {
-    return notes.stream()
+    return notes == null ? emptyList() : notes.stream()
       .map(this::noteToString)
       .collect(Collectors.toList());
   }
 
   public String convertAgreements(List<Agreement> agreements) {
-    return agreements.stream()
+    return agreements == null ? EMPTY : agreements.stream()
       .map(this::agreementToString)
       .collect(Collectors.joining(PIPE_DELIMITER));
   }
@@ -88,7 +101,8 @@ public class EHoldingsToExportFormatMapper {
     return nonNull(date) ? OffsetDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC).format(DATE_FORMAT) : EMPTY;
   }
 
-  private void mapPackageToExportFormat(EHoldingsResourceExportFormat exportFormat, EPackage ePackage) {
+  private void mapPackageToExportFormat(EHoldingsResourceExportFormat exportFormat, EHoldingsPackage eHoldingsPackage) {
+    var ePackage = eHoldingsPackage.getEPackage();
     var packageAtr = ePackage.getData().getAttributes();
 
     exportFormat.setProviderId(packageAtr.getProviderId().toString());
@@ -104,9 +118,12 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setPackageShowToPatrons(mapShowToPatrons(packageAtr.getVisibilityData()));
     exportFormat.setPackageAutomaticallySelect(convertBoolToStr(packageAtr.getAllowKbToAddTitles()));
     exportFormat.setPackageAccessStatusType(mapAccessType(ePackage.getIncluded()));
+    exportFormat.setPackageNotes(convertNotes(eHoldingsPackage.getNotes()));
+    exportFormat.setPackageAgreements(convertAgreements(eHoldingsPackage.getAgreements()));
   }
 
-  private void mapResourceDataToExportFormat(EHoldingsResourceExportFormat exportFormat, ResourcesData data) {
+  private void mapResourceDataToExportFormat(EHoldingsResourceExportFormat exportFormat, EHoldingsResource eHoldingsResource) {
+    var data = eHoldingsResource.getResourcesData();
     var resourceAtr = data.getAttributes();
 
     exportFormat.setTitleId(resourceAtr.getTitleId().toString());
@@ -144,6 +161,8 @@ public class EHoldingsToExportFormatMapper {
       mapIdentifierId(resourceAtr.getIdentifiers(), TypeEnum.ISSN, SubtypeEnum.PRINT));
     exportFormat.setISSNOnline(
       mapIdentifierId(resourceAtr.getIdentifiers(), TypeEnum.ISSN, SubtypeEnum.ONLINE));
+    exportFormat.setTitleNotes(convertNotes(eHoldingsResource.getNotes()));
+    exportFormat.setTitleAgreements(convertAgreements(eHoldingsResource.getAgreements()));
   }
 
   private Object getIncludedObject(List<Object> included, String type) {

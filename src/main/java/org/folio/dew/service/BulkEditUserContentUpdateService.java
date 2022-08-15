@@ -48,7 +48,7 @@ public class BulkEditUserContentUpdateService {
         .addString(PREVIEW_FILE_NAME, previewFileName)
         .toJobParameters());
       jobCommand.setExportType(BULK_EDIT_UPDATE);
-      return new UpdatesResult<UserFormat>().withTotal(userFormats.size()).withItemsForPreview(contentUpdatedUsers.getPreview());
+      return new UpdatesResult<UserFormat>().withTotal(userFormats.size()).withUsersForPreview(contentUpdatedUsers.getPreview());
     } catch (Exception e) {
       var msg = String.format("I/O exception for job id %s, reason: %s", jobCommand.getId(), e.getMessage());
       log.error(msg);

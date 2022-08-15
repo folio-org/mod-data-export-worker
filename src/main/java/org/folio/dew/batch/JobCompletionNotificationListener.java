@@ -108,13 +108,18 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       if (jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue())) {
         String updatedFilePath = jobExecution.getJobParameters().getString(UPDATED_FILE_NAME);
         String filePath = requireNonNull(isNull(updatedFilePath) ? jobExecution.getJobParameters().getString(FILE_NAME) : updatedFilePath);
-        try (var lines = Files.lines(Paths.get(filePath))) {
-          int totalUsers = (int) lines.count() - 1;
+        if (Files.notExists(Paths.get(filePath)) && repository.containsFile(filePath)) {
+          int totalUsers = CsvHelper.readRecordsFromMinio(repository, filePath, UserFormat.class, true).size();
           jobExecution.getExecutionContext().putLong(TOTAL_RECORDS, totalUsers);
-        } catch (NullPointerException e) {
-          String msg = String.format("Couldn't open a required for the job file. File path '%s'", FILE_NAME);
-          log.debug(msg);
-          throw new BulkEditException(msg);
+        } else {
+          try (var lines = Files.lines(Paths.get(filePath))) {
+            int totalUsers = (int) lines.count() - 1;
+            jobExecution.getExecutionContext().putLong(TOTAL_RECORDS, totalUsers);
+          } catch (NullPointerException e) {
+            String msg = String.format("Couldn't open a required for the job file. File path '%s'", FILE_NAME);
+            log.debug(msg);
+            throw new BulkEditException(msg);
+          }
         }
       }
     }
@@ -262,13 +267,15 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     }
     return jobExecution.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH);
   }
-  private boolean noRecordsFound(String path) throws IOException {
+  private boolean noRecordsFound(String path) throws Exception {
     Path pathToFoundRecords = Path.of(path);
-    if (Files.notExists(pathToFoundRecords)) {
-      log.error("Path to found records does not exist: {}", path);
+    if (Files.notExists(pathToFoundRecords) && !repository.containsFile(path)) {
+      log.error("Path to found records does not exist: {}", pathToFoundRecords);
       return true;
     }
-    return Files.lines(pathToFoundRecords).count() <= 1;
+    return Files.notExists(pathToFoundRecords) ?
+      CsvHelper.readRecordsFromMinio(repository, path, UserFormat.class, true).isEmpty() :
+      Files.lines(pathToFoundRecords).count() <= 1;
   }
 
   private String prepareObject(JobExecution jobExecution, String path) {

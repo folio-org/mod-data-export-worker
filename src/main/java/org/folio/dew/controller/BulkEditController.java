@@ -26,13 +26,15 @@ import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
-import static org.folio.dew.utils.CsvHelper.countLines;
+import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
+import static org.folio.dew.utils.CsvHelper.countLines;
 
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -403,15 +405,24 @@ public class BulkEditController implements JobIdApi {
     var fileName = extractFileName(jobCommand);
     if (StringUtils.isEmpty(fileName)) throw new FileOperationException("File for preview is not present or was not uploaded");
     if (!fileName.contains(CSV_EXTENSION)) fileName += CSV_EXTENSION;
-    try (var reader = new CSVReader(new FileReader(fileName))) {
-      var values = reader.readAll().stream()
-        .skip(getNumberOfLinesToSkip(jobCommand))
-        .limit(limit)
-        .map(line -> extractIdentifiersFromLine(line, jobCommand))
-        .map(identifier -> String.format("\"%s\"", identifier))
-        .collect(Collectors.joining(" OR ", "(", ")"));
-      var identifierType = jobCommand.getIdentifierType().getValue();
-      return format(getMatchPattern(identifierType), resolveIdentifier(identifierType), values);
+    try {
+      Reader inputReader;
+      if (Files.notExists(Path.of(fileName)) && repository.containsFile(fileName = PREVIEW_PREFIX + FilenameUtils.getName(fileName))) {
+        inputReader = new InputStreamReader(repository.getObject(fileName));
+      } else {
+        inputReader = new FileReader(fileName);
+      }
+      try (var reader = new CSVReader(inputReader)) {
+        var values = reader.readAll().stream()
+          .skip(getNumberOfLinesToSkip(jobCommand))
+          .limit(limit)
+          .map(line -> extractIdentifiersFromLine(line, jobCommand))
+          .map(identifier -> String.format("\"%s\"", identifier))
+          .collect(Collectors.joining(" OR ", "(", ")"));
+        var identifierType = jobCommand.getIdentifierType().getValue();
+        return format(getMatchPattern(identifierType), resolveIdentifier(identifierType), values);
+      }
+
     } catch (Exception e) {
       throw new FileOperationException(format("Failed to read %s file, reason: %s", fileName, e.getMessage()));
     }

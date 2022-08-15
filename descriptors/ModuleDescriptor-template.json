@@ -63,7 +63,15 @@
           "pathPattern": "/bulk-edit/{id}/user-content-update/upload",
           "permissionsRequired": [ "bulk-edit.users-content-update.collection.post" ],
           "modulePermissions": [
-
+            "users.collection.get",
+            "users.item.get",
+            "users.item.put",
+            "usergroups.item.get",
+            "addresstypes.item.get",
+            "proxiesfor.item.get",
+            "departments.item.get",
+            "usergroups.collection.get",
+            "addresstypes.collection.get"
           ]
         },
         {

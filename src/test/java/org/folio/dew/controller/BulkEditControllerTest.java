@@ -1122,6 +1122,11 @@ class BulkEditControllerTest extends BaseBatchTest {
         assertEquals("789@NEWexample3.com", u.getPersonal().getEmail());
       }
     });
+    mockMvc.perform(get(format(PREVIEW_USERS_URL_TEMPLATE, jobId))
+      .headers(defaultHeaders())
+      .queryParam(LIMIT, String.valueOf(10)))
+      .andExpect(status().isOk())
+      .andReturn();
   }
 
   @Test

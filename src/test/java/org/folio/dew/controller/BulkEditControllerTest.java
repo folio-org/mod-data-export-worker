@@ -15,6 +15,8 @@ import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.domain.dto.UserContentUpdateAction.NameEnum.CLEAR_FIELD;
+import static org.folio.dew.domain.dto.UserContentUpdateAction.NameEnum.FIND;
+import static org.folio.dew.domain.dto.UserContentUpdateAction.NameEnum.REPLACE_WITH;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
@@ -1037,6 +1039,165 @@ class BulkEditControllerTest extends BaseBatchTest {
         .andExpect(status().isOk())
         .andExpect(content().json(Files.readString(Path.of(EXPECTED_ERRORS_FOR_CLEAR_PATRON_GROUP))));
     }
+  }
+
+  @Test
+  @DisplayName("Post user content update to replace email")
+  @SneakyThrows
+  void shouldReplaceEmailAddress() {
+    when(userClient.getUserByQuery("barcode==\"123\"", 1))
+      .thenReturn(new UserCollection().addUsersItem(new User().barcode("123").active(true).personal(new Personal().email("123@example1.com"))
+        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
+    when(userClient.getUserByQuery("barcode==\"456\"", 1))
+      .thenReturn(new UserCollection().addUsersItem(new User().barcode("456").active(true).personal(new Personal().email("456@example2.com"))
+        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
+    when(userClient.getUserByQuery("barcode==\"789\"", 1))
+      .thenReturn(new UserCollection().addUsersItem(new User().barcode("789").active(true).personal(new Personal().email("789@example3.com"))
+        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
+    UserGroup userGroup;
+    when(groupClient.getGroupById("3684a786-6671-4268-8ed0-9db82ebca60b"))
+      .thenReturn(userGroup = new UserGroup().group("some group").id("3684a786-6671-4268-8ed0-9db82ebca60b"));
+    when(groupClient.getGroupByQuery("group==\"some group\""))
+      .thenReturn(new UserGroupCollection().usergroups(List.of(userGroup)));
+
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(USER);
+    jobCommand.setIdentifierType(BARCODE);
+    jobCommand.setJobParameters(new JobParametersBuilder().addString(JobParameterNames.JOB_ID, jobId.toString()).toJobParameters());
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+
+    var bytes = new FileInputStream("src/test/resources/upload/barcodes.csv").readAllBytes();
+    var file = new MockMultipartFile("file", "barcodes.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    var responseUpload = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
+      .file(file)
+      .headers(defaultHeaders()))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    Map<String, Collection<String>> okapiHeaders = new LinkedHashMap<>();
+    okapiHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
+    var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
+    FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
+
+    createTestLauncher(bulkEditProcessUserIdentifiersJob).launchJob(jobCommand.getJobParameters());
+
+    assertThat(responseUpload.getResponse().getContentAsString(), equalTo("3"));
+
+    var updates = objectMapper.writeValueAsString(new UserContentUpdateCollection()
+      .userContentUpdates(List.of(new UserContentUpdate()
+        .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
+        .actions(List.of(
+          new UserContentUpdateAction().name(FIND).value("example1.com"),
+          new UserContentUpdateAction().name(REPLACE_WITH).value("NEWexample1.com"))),
+        new UserContentUpdate()
+          .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
+          .actions(List.of(
+            new UserContentUpdateAction().name(FIND).value("example2.com"),
+            new UserContentUpdateAction().name(REPLACE_WITH).value("NEWexample2.com"))),
+        new UserContentUpdate()
+          .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
+          .actions(List.of(
+            new UserContentUpdateAction().name(FIND).value("example3.com"),
+            new UserContentUpdateAction().name(REPLACE_WITH).value("NEWexample3.com")))))
+      .totalRecords(3));
+
+    var responseContentUpdateUpload = mockMvc.perform(post(format(USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+      .headers(defaultHeaders())
+      .content(updates))
+      .andExpect(status().isOk())
+      .andReturn();
+    var actualUsers = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
+      UserCollection.class);
+    actualUsers.getUsers().forEach(u -> {
+      if (u.getBarcode().equals("123")) {
+        assertEquals("123@NEWexample1.com", u.getPersonal().getEmail());
+      } else if (u.getBarcode().equals("456")) {
+        assertEquals("456@NEWexample2.com", u.getPersonal().getEmail());
+      } else if (u.getBarcode().equals("789")) {
+        assertEquals("789@NEWexample3.com", u.getPersonal().getEmail());
+      }
+    });
+  }
+
+  @Test
+  @DisplayName("Post user content update to replace patron group and clear expiration date")
+  @SneakyThrows
+  void shouldFindAndReplacePatronGroupAndClearExpirationDate() {
+    when(userClient.getUserByQuery("barcode==\"123\"", 1))
+      .thenReturn(new UserCollection().addUsersItem(new User().barcode("123").active(true).personal(new Personal().email("123@example1.com"))
+        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
+    when(userClient.getUserByQuery("barcode==\"456\"", 1))
+      .thenReturn(new UserCollection().addUsersItem(new User().barcode("456").active(true).personal(new Personal().email("456@example2.com"))
+        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
+    when(userClient.getUserByQuery("barcode==\"789\"", 1))
+      .thenReturn(new UserCollection().addUsersItem(new User().barcode("789").active(true).personal(new Personal().email("789@example3.com"))
+        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
+    UserGroup userGroup, newUserGroup;
+    when(groupClient.getGroupById("3684a786-6671-4268-8ed0-9db82ebca60b"))
+      .thenReturn(userGroup = new UserGroup().group("some group").id("3684a786-6671-4268-8ed0-9db82ebca60b"));
+    when(groupClient.getGroupById("4684a786-6671-4268-8ed0-9db82ebca60b"))
+      .thenReturn(newUserGroup = new UserGroup().group("some new group").id("4684a786-6671-4268-8ed0-9db82ebca60b"));
+    when(groupClient.getGroupByQuery("group==\"some group\""))
+      .thenReturn(new UserGroupCollection().usergroups(List.of(userGroup)));
+    when(groupClient.getGroupByQuery("group==\"some new group\""))
+      .thenReturn(new UserGroupCollection().usergroups(List.of(newUserGroup)));
+
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(USER);
+    jobCommand.setIdentifierType(BARCODE);
+    jobCommand.setJobParameters(new JobParametersBuilder().addString(JobParameterNames.JOB_ID, jobId.toString()).toJobParameters());
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+
+    var bytes = new FileInputStream("src/test/resources/upload/barcodes.csv").readAllBytes();
+    var file = new MockMultipartFile("file", "barcodes.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    var responseUpload = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
+      .file(file)
+      .headers(defaultHeaders()))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    Map<String, Collection<String>> okapiHeaders = new LinkedHashMap<>();
+    okapiHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
+    var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
+    FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
+
+    createTestLauncher(bulkEditProcessUserIdentifiersJob).launchJob(jobCommand.getJobParameters());
+
+    assertThat(responseUpload.getResponse().getContentAsString(), equalTo("3"));
+
+    var updates = objectMapper.writeValueAsString(new UserContentUpdateCollection()
+      .userContentUpdates(List.of(new UserContentUpdate()
+          .option(UserContentUpdate.OptionEnum.PATRON_GROUP)
+          .actions(List.of(
+            new UserContentUpdateAction().name(FIND).value("some group"),
+            new UserContentUpdateAction().name(REPLACE_WITH).value("some new group"))),
+        new UserContentUpdate()
+          .option(UserContentUpdate.OptionEnum.EXPIRATION_DATE)
+          .actions(List.of(
+            new UserContentUpdateAction().name(CLEAR_FIELD)))))
+      .totalRecords(3));
+
+    var responseContentUpdateUpload = mockMvc.perform(post(format(USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+      .headers(defaultHeaders())
+      .content(updates))
+      .andExpect(status().isOk())
+      .andReturn();
+    var actualUsers = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
+      UserCollection.class);
+    actualUsers.getUsers().forEach(u -> {
+      assertEquals(null, u.getExpirationDate());
+      assertEquals("some new group", groupClient.getGroupById(u.getPatronGroup()).getGroup());
+    });
   }
 
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType, EntityType entityType, IdentifierType identifierType) {

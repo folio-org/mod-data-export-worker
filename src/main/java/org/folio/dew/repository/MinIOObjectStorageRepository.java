@@ -103,9 +103,6 @@ public class MinIOObjectStorageRepository {
       InvalidKeyException, NoSuchAlgorithmException, XmlParserException, ErrorResponseException {
     log.info("Uploading object {},filename {},downloadFilename {},contentType {}.", object, filename, downloadFilename,
         contentType);
-    if (Files.notExists(Path.of(filename))) {
-      downloadObject(filename, filename);
-    }
     ObjectWriteResponse result = client.uploadObject(
         createArgs(UploadObjectArgs.builder().filename(filename), object, downloadFilename, contentType));
 

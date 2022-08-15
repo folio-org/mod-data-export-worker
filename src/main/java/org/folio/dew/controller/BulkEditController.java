@@ -407,8 +407,9 @@ public class BulkEditController implements JobIdApi {
     if (!fileName.contains(CSV_EXTENSION)) fileName += CSV_EXTENSION;
     try {
       Reader inputReader;
-      if (Files.notExists(Path.of(fileName)) && repository.containsFile(fileName = PREVIEW_PREFIX + FilenameUtils.getName(fileName))) {
-        inputReader = new InputStreamReader(repository.getObject(fileName));
+      var minioFileName = PREVIEW_PREFIX + FilenameUtils.getName(fileName);
+      if (Files.notExists(Path.of(fileName)) && repository.containsFile(minioFileName)) {
+        inputReader = new InputStreamReader(repository.getObject(minioFileName));
       } else {
         inputReader = new FileReader(fileName);
       }

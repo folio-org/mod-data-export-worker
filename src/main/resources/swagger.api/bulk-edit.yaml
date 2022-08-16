@@ -59,6 +59,60 @@ paths:
                 $ref: "#/components/examples/errors"
               schema:
                 $ref: "#/components/schemas/errors"
+  /{jobId}/user-content-update/upload:
+    post:
+      description: Upload user content updates
+      operationId: postUserContentUpdates
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: UUID of the JobCommand
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+          description: The numbers of records to return
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/userContentUpdateCollection"
+      responses:
+        "200":
+          description: Collection of users for preview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/userCollection"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "500":
+          description: Internal server errors, e.g. due to misconfiguration
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
   /{jobId}/preview/updated-items/download:
     get:
       description: Download preview as csv-file
@@ -366,7 +420,7 @@ components:
     departmentCollection:
       $ref: '../../../../folio-export-common/schemas/user/departmentCollection.json#/DepartmentCollection'
     userCollection:
-      $ref: '../../../../folio-export-common/schemas/user/userCollection.json'
+      $ref: '../../../../folio-export-common/schemas/user/userCollection.json#/UserCollection'
     itemCollection:
       $ref: '../../../../folio-export-common/schemas/inventory/itemCollection.json#/ItemCollection'
     callNumberType:

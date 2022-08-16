@@ -61,8 +61,8 @@ class BulkEditUserContentUpdateServiceTest extends BaseBatchTest {
 
     var res = contentUpdateService.process(jobCommand, contentUpdates);
 
-    assertThat(res.getItemsForPreview(), hasSize(2));
-    assertThat(res.getItemsForPreview().stream().allMatch(userFormat -> "new patron group".equals(userFormat.getPatronGroup())), is(true));
+    assertThat(res.getUsersForPreview(), hasSize(2));
+    assertThat(res.getUsersForPreview().stream().allMatch(userFormat -> "new patron group".equals(userFormat.getPatronGroup())), is(true));
 
     assertThat(minIOObjectStorageRepository.containsFile(updatedFileName), is(true));
     assertThat(minIOObjectStorageRepository.containsFile(previewFileName), is(true));

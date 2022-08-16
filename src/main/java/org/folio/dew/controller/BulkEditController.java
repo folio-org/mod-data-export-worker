@@ -13,6 +13,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.QUERY;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
+import org.folio.dew.domain.dto.UserContentUpdateCollection;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
@@ -23,16 +24,17 @@ import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
-import static org.folio.dew.utils.Constants.QUOTE;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
-import static org.folio.dew.utils.CsvHelper.countLines;
+import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
+import static org.folio.dew.utils.CsvHelper.countLines;
 
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -76,6 +78,7 @@ import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.UpdatesResult;
 import org.folio.dew.service.JobCommandsReceiverService;
+import org.folio.dew.service.BulkEditUserContentUpdateService;
 import org.folio.dew.utils.CsvHelper;
 import org.folio.spring.DefaultFolioExecutionContext;
 import org.folio.spring.FolioExecutionContext;
@@ -123,6 +126,7 @@ public class BulkEditController implements JobIdApi {
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   private final List<Job> jobs;
   private final BulkEditItemContentUpdateService itemContentUpdateService;
+  private final BulkEditUserContentUpdateService userContentUpdateService;
   private final BulkEditParseService bulkEditParseService;
   private final MinIOObjectStorageRepository repository;
   private final FolioModuleMetadata folioModuleMetadata;
@@ -151,7 +155,21 @@ public class BulkEditController implements JobIdApi {
   }
 
   @Override
-  public ResponseEntity<Object> getPreviewUsersByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId, @NotNull @ApiParam(value = "The numbers of items to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
+  public ResponseEntity<UserCollection> postUserContentUpdates(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId, @ApiParam(value = "" ,required=true )  @Valid @RequestBody UserContentUpdateCollection contentUpdateCollection, @ApiParam(value = "The numbers of records to return") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
+    bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId.toString());
+    var jobCommand = getJobCommandById(jobId.toString());
+    if (nonNull(jobCommand.getIdentifierType())) {
+      jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())
+        .addString(IDENTIFIER_TYPE, jobCommand.getIdentifierType().getValue())
+        .toJobParameters());
+    }
+    var updatesResult = userContentUpdateService.process(jobCommand, contentUpdateCollection);
+    log.info("postUserContentUpdate: {}", updatesResult.getUsersForPreview());
+    return new ResponseEntity<>(prepareUserContentUpdateResponse(updatesResult, limit), HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<UserCollection> getPreviewUsersByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId, @NotNull @ApiParam(value = "The numbers of items to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
     var jobCommand = getJobCommandById(jobId.toString());
     if (BULK_EDIT_IDENTIFIERS == jobCommand.getExportType()) {
       var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
@@ -350,6 +368,14 @@ public class BulkEditController implements JobIdApi {
       return new ItemCollection().items(items).totalRecords(updatesResult.getTotal());
   }
 
+  private UserCollection prepareUserContentUpdateResponse(UpdatesResult<UserFormat> updatesResult, Integer limit) {
+    var users = updatesResult.getUsersForPreview().stream()
+      .limit(isNull(limit) ? Integer.MAX_VALUE : limit)
+      .map(bulkEditParseService::mapUserFormatToUser)
+      .collect(Collectors.toList());
+    return new UserCollection().users(users).totalRecords(updatesResult.getTotal());
+  }
+
   private String buildPreviewUsersQueryFromJobCommand(JobCommand jobCommand, int limit) {
     if (isBulkEditUpdate(jobCommand)) {
       ofNullable(jobCommand.getJobParameters().getString(FILE_NAME)).ifPresent(filename -> {
@@ -379,15 +405,25 @@ public class BulkEditController implements JobIdApi {
     var fileName = extractFileName(jobCommand);
     if (StringUtils.isEmpty(fileName)) throw new FileOperationException("File for preview is not present or was not uploaded");
     if (!fileName.contains(CSV_EXTENSION)) fileName += CSV_EXTENSION;
-    try (var reader = new CSVReader(new FileReader(fileName))) {
-      var values = reader.readAll().stream()
-        .skip(getNumberOfLinesToSkip(jobCommand))
-        .limit(limit)
-        .map(line -> extractIdentifiersFromLine(line, jobCommand))
-        .map(identifier -> String.format("\"%s\"", identifier))
-        .collect(Collectors.joining(" OR ", "(", ")"));
-      var identifierType = jobCommand.getIdentifierType().getValue();
-      return format(getMatchPattern(identifierType), resolveIdentifier(identifierType), values);
+    try {
+      Reader inputReader;
+      var minioFileName = PREVIEW_PREFIX + FilenameUtils.getName(fileName);
+      if (Files.notExists(Path.of(fileName)) && repository.containsFile(minioFileName)) {
+        inputReader = new InputStreamReader(repository.getObject(minioFileName));
+      } else {
+        inputReader = new FileReader(fileName);
+      }
+      try (var reader = new CSVReader(inputReader)) {
+        var values = reader.readAll().stream()
+          .skip(getNumberOfLinesToSkip(jobCommand))
+          .limit(limit)
+          .map(line -> extractIdentifiersFromLine(line, jobCommand))
+          .map(identifier -> String.format("\"%s\"", identifier))
+          .collect(Collectors.joining(" OR ", "(", ")"));
+        var identifierType = jobCommand.getIdentifierType().getValue();
+        return format(getMatchPattern(identifierType), resolveIdentifier(identifierType), values);
+      }
+
     } catch (Exception e) {
       throw new FileOperationException(format("Failed to read %s file, reason: %s", fileName, e.getMessage()));
     }

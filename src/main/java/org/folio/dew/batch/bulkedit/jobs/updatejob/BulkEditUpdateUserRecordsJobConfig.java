@@ -91,7 +91,7 @@ public class BulkEditUpdateUserRecordsJobConfig {
     LineMapper<UserFormat> userLineMapper = JobConfigReaderHelper.createUserLineMapper();
     return new FlatFileItemReaderBuilder<UserFormat>()
       .name("userReader")
-      .resource(isEmpty(updatedFileName) ? new FileSystemResource(fileName) : new InputStreamResource(repository.getObject(UPDATED_FILE_NAME)))
+      .resource(isEmpty(updatedFileName) ? new FileSystemResource(fileName) : new InputStreamResource(repository.getObject(updatedFileName)))
       .linesToSkip(1)
       .lineMapper(userLineMapper)
       .build();

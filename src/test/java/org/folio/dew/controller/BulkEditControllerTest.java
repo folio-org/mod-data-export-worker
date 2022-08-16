@@ -2,6 +2,7 @@ package org.folio.dew.controller;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import org.folio.dew.client.GroupClient;
 import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_ALLOWED_STATUS;
 import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_NOT_ALLOWED_STATUS;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
@@ -13,19 +14,26 @@ import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
 import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
+import static org.folio.dew.domain.dto.UserContentUpdateAction.NameEnum.CLEAR_FIELD;
+import static org.folio.dew.domain.dto.UserContentUpdateAction.NameEnum.FIND;
+import static org.folio.dew.domain.dto.UserContentUpdateAction.NameEnum.REPLACE_WITH;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
+import org.folio.spring.DefaultFolioExecutionContext;
+import org.folio.spring.FolioModuleMetadata;
+import org.folio.spring.integration.XOkapiHeaders;
+import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.times;
@@ -74,8 +82,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -89,6 +100,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String PREVIEW_ITEMS_URL_TEMPLATE = "/bulk-edit/%s/preview/items";
   private static final String ERRORS_URL_TEMPLATE = "/bulk-edit/%s/errors";
   private static final String ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/item-content-update/upload";
+  private static final String USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/user-content-update/upload";
   private static final String ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-items/download";
   private static final String ITEMS_FOR_LOCATION_UPDATE = "src/test/resources/upload/bulk_edit_items_for_location_update.csv";
   private static final String ITEMS_FOR_STATUS_UPDATE = "src/test/resources/upload/bulk_edit_items_for_status_update.csv";
@@ -98,6 +110,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String ITEM_DATA = "src/test/resources/upload/item_data.csv";
   private static final String PREVIEW_USER_DATA = "src/test/resources/upload/preview_user_data.csv";
   private static final String PREVIEW_ITEM_DATA = "src/test/resources/upload/preview_item_data.csv";
+  private static final String EXPECTED_ERRORS_FOR_CLEAR_PATRON_GROUP = "src/test/resources/output/expected_errors_for_clear_patron_group.json";
   private static final SimpleDateFormat itemStatusDateFormat = new SimpleDateFormat(DATE_TIME_PATTERN);
   private static final UUID JOB_ID = UUID.randomUUID();
   public static final String LIMIT = "limit";
@@ -122,6 +135,15 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @Autowired
   private BulkEditProcessingErrorsService errorsService;
+
+  @Autowired
+  private org.springframework.batch.core.Job bulkEditProcessUserIdentifiersJob;
+
+  @Autowired
+  private FolioModuleMetadata folioModuleMetadata;
+
+  @MockBean
+  private GroupClient groupClient;
 
   @Test
   void shouldReturnErrorsPreview() throws Exception {
@@ -214,6 +236,9 @@ class BulkEditControllerTest extends BaseBatchTest {
     names = {"ID", "BARCODE", "EXTERNAL_SYSTEM_ID", "USER_NAME"},
     mode = EnumSource.Mode.INCLUDE)
   void shouldReturnCompleteUserPreviewForAnyIdentifier(IdentifierType identifierType) {
+    when(groupClient.getGroupByQuery("group==\"PatronGroup\""))
+      .thenReturn(new UserGroupCollection().usergroups(List.of(new UserGroup().group("PatronGroup")
+        .desc("Staff Member").id("3684a786-6671-4268-8ed0-9db82ebca60b").expirationOffsetInDays(730))).totalRecords(1));
     repository.uploadObject(FilenameUtils.getName(PREVIEW_USER_DATA), PREVIEW_USER_DATA, null, "text/plain", false);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
@@ -942,6 +967,242 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     // Keep all 3 lines to delegate them into SkipListener.
     assertThat(result.getResponse().getContentAsString(), equalTo("3"));
+  }
+
+  @ParameterizedTest
+  @EnumSource(names = {"PATRON_GROUP", "EXPIRATION_DATE"})
+  @DisplayName("Post user content update with clear patron group and expiration date")
+  @SneakyThrows
+  void shouldClearUserExpirationDateButNotPatronGroup(UserContentUpdate.OptionEnum testData) {
+    when(userClient.getUserByQuery("barcode==\"123\"", 1))
+      .thenReturn(new UserCollection().addUsersItem(new User().barcode("123").active(true).personal(new Personal().email("123@example.com"))
+        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
+    when(userClient.getUserByQuery("barcode==\"456\"", 1))
+      .thenReturn(new UserCollection().addUsersItem(new User().barcode("456").active(true).personal(new Personal().email("456@example.com"))
+        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
+    when(userClient.getUserByQuery("barcode==\"789\"", 1))
+      .thenReturn(new UserCollection().addUsersItem(new User().barcode("789").active(true).personal(new Personal().email("789@example.com"))
+        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
+    UserGroup userGroup;
+    when(groupClient.getGroupById("3684a786-6671-4268-8ed0-9db82ebca60b"))
+      .thenReturn(userGroup = new UserGroup().group("some group").id("3684a786-6671-4268-8ed0-9db82ebca60b"));
+    when(groupClient.getGroupByQuery("group==\"some group\""))
+      .thenReturn(new UserGroupCollection().usergroups(List.of(userGroup)));
+
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(USER);
+    jobCommand.setIdentifierType(BARCODE);
+    jobCommand.setJobParameters(new JobParametersBuilder().addString(JobParameterNames.JOB_ID, jobId.toString()).toJobParameters());
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+
+    var bytes = new FileInputStream("src/test/resources/upload/barcodes.csv").readAllBytes();
+    var file = new MockMultipartFile("file", "barcodes.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    var responseUpload = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
+      .file(file)
+      .headers(defaultHeaders()))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    Map<String, Collection<String>> okapiHeaders = new LinkedHashMap<>();
+    okapiHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
+    var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
+    FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
+
+    createTestLauncher(bulkEditProcessUserIdentifiersJob).launchJob(jobCommand.getJobParameters());
+
+    assertThat(responseUpload.getResponse().getContentAsString(), equalTo("3"));
+
+    var updates = objectMapper.writeValueAsString(new UserContentUpdateCollection()
+      .userContentUpdates(Collections.singletonList(new UserContentUpdate()
+        .option(testData)
+        .actions(List.of(new UserContentUpdateAction().name(CLEAR_FIELD)))))
+      .totalRecords(1));
+
+    try {
+      var responseContentUpdateUpload = mockMvc.perform(post(format(USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+        .headers(defaultHeaders())
+        .content(updates))
+        .andExpect(status().isOk())
+        .andReturn();
+      var actualUsers = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
+        UserCollection.class);
+      actualUsers.getUsers().forEach(u -> assertNull(u.getExpirationDate()));
+    } catch (Exception exc) {
+      mockMvc.perform(get(format(ERRORS_URL_TEMPLATE, jobId))
+        .headers(defaultHeaders())
+        .queryParam(LIMIT, String.valueOf(3)))
+        .andExpect(status().isOk())
+        .andExpect(content().json(Files.readString(Path.of(EXPECTED_ERRORS_FOR_CLEAR_PATRON_GROUP))));
+    }
+  }
+
+  @Test
+  @DisplayName("Post user content update to replace email")
+  @SneakyThrows
+  void shouldReplaceEmailAddress() {
+    when(userClient.getUserByQuery("barcode==\"123\"", 1))
+      .thenReturn(new UserCollection().addUsersItem(new User().barcode("123").active(true).personal(new Personal().email("123@example1.com"))
+        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
+    when(userClient.getUserByQuery("barcode==\"456\"", 1))
+      .thenReturn(new UserCollection().addUsersItem(new User().barcode("456").active(true).personal(new Personal().email("456@example2.com"))
+        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
+    when(userClient.getUserByQuery("barcode==\"789\"", 1))
+      .thenReturn(new UserCollection().addUsersItem(new User().barcode("789").active(true).personal(new Personal().email("789@example3.com"))
+        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
+    UserGroup userGroup;
+    when(groupClient.getGroupById("3684a786-6671-4268-8ed0-9db82ebca60b"))
+      .thenReturn(userGroup = new UserGroup().group("some group").id("3684a786-6671-4268-8ed0-9db82ebca60b"));
+    when(groupClient.getGroupByQuery("group==\"some group\""))
+      .thenReturn(new UserGroupCollection().usergroups(List.of(userGroup)));
+
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(USER);
+    jobCommand.setIdentifierType(BARCODE);
+    jobCommand.setJobParameters(new JobParametersBuilder().addString(JobParameterNames.JOB_ID, jobId.toString()).toJobParameters());
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+
+    var bytes = new FileInputStream("src/test/resources/upload/barcodes.csv").readAllBytes();
+    var file = new MockMultipartFile("file", "barcodes.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    var responseUpload = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
+      .file(file)
+      .headers(defaultHeaders()))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    Map<String, Collection<String>> okapiHeaders = new LinkedHashMap<>();
+    okapiHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
+    var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
+    FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
+
+    createTestLauncher(bulkEditProcessUserIdentifiersJob).launchJob(jobCommand.getJobParameters());
+
+    assertThat(responseUpload.getResponse().getContentAsString(), equalTo("3"));
+
+    var updates = objectMapper.writeValueAsString(new UserContentUpdateCollection()
+      .userContentUpdates(List.of(new UserContentUpdate()
+        .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
+        .actions(List.of(
+          new UserContentUpdateAction().name(FIND).value("example1.com"),
+          new UserContentUpdateAction().name(REPLACE_WITH).value("NEWexample1.com"))),
+        new UserContentUpdate()
+          .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
+          .actions(List.of(
+            new UserContentUpdateAction().name(FIND).value("example2.com"),
+            new UserContentUpdateAction().name(REPLACE_WITH).value("NEWexample2.com"))),
+        new UserContentUpdate()
+          .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
+          .actions(List.of(
+            new UserContentUpdateAction().name(FIND).value("example3.com"),
+            new UserContentUpdateAction().name(REPLACE_WITH).value("NEWexample3.com")))))
+      .totalRecords(3));
+
+    var responseContentUpdateUpload = mockMvc.perform(post(format(USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+      .headers(defaultHeaders())
+      .content(updates))
+      .andExpect(status().isOk())
+      .andReturn();
+    var actualUsers = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
+      UserCollection.class);
+    actualUsers.getUsers().forEach(u -> {
+      if (u.getBarcode().equals("123")) {
+        assertEquals("123@NEWexample1.com", u.getPersonal().getEmail());
+      } else if (u.getBarcode().equals("456")) {
+        assertEquals("456@NEWexample2.com", u.getPersonal().getEmail());
+      } else if (u.getBarcode().equals("789")) {
+        assertEquals("789@NEWexample3.com", u.getPersonal().getEmail());
+      }
+    });
+    mockMvc.perform(get(format(PREVIEW_USERS_URL_TEMPLATE, jobId))
+      .headers(defaultHeaders())
+      .queryParam(LIMIT, String.valueOf(10)))
+      .andExpect(status().isOk())
+      .andReturn();
+  }
+
+  @Test
+  @DisplayName("Post user content update to replace patron group and clear expiration date")
+  @SneakyThrows
+  void shouldFindAndReplacePatronGroupAndClearExpirationDate() {
+    when(userClient.getUserByQuery("barcode==\"123\"", 1))
+      .thenReturn(new UserCollection().addUsersItem(new User().barcode("123").active(true).personal(new Personal().email("123@example1.com"))
+        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
+    when(userClient.getUserByQuery("barcode==\"456\"", 1))
+      .thenReturn(new UserCollection().addUsersItem(new User().barcode("456").active(true).personal(new Personal().email("456@example2.com"))
+        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
+    when(userClient.getUserByQuery("barcode==\"789\"", 1))
+      .thenReturn(new UserCollection().addUsersItem(new User().barcode("789").active(true).personal(new Personal().email("789@example3.com"))
+        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
+    UserGroup userGroup, newUserGroup;
+    when(groupClient.getGroupById("3684a786-6671-4268-8ed0-9db82ebca60b"))
+      .thenReturn(userGroup = new UserGroup().group("some group").id("3684a786-6671-4268-8ed0-9db82ebca60b"));
+    when(groupClient.getGroupById("4684a786-6671-4268-8ed0-9db82ebca60b"))
+      .thenReturn(newUserGroup = new UserGroup().group("some new group").id("4684a786-6671-4268-8ed0-9db82ebca60b"));
+    when(groupClient.getGroupByQuery("group==\"some group\""))
+      .thenReturn(new UserGroupCollection().usergroups(List.of(userGroup)));
+    when(groupClient.getGroupByQuery("group==\"some new group\""))
+      .thenReturn(new UserGroupCollection().usergroups(List.of(newUserGroup)));
+
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(USER);
+    jobCommand.setIdentifierType(BARCODE);
+    jobCommand.setJobParameters(new JobParametersBuilder().addString(JobParameterNames.JOB_ID, jobId.toString()).toJobParameters());
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+
+    var bytes = new FileInputStream("src/test/resources/upload/barcodes.csv").readAllBytes();
+    var file = new MockMultipartFile("file", "barcodes.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
+
+    var responseUpload = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
+      .file(file)
+      .headers(defaultHeaders()))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    Map<String, Collection<String>> okapiHeaders = new LinkedHashMap<>();
+    okapiHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
+    var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
+    FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
+
+    createTestLauncher(bulkEditProcessUserIdentifiersJob).launchJob(jobCommand.getJobParameters());
+
+    assertThat(responseUpload.getResponse().getContentAsString(), equalTo("3"));
+
+    var updates = objectMapper.writeValueAsString(new UserContentUpdateCollection()
+      .userContentUpdates(List.of(new UserContentUpdate()
+          .option(UserContentUpdate.OptionEnum.PATRON_GROUP)
+          .actions(List.of(
+            new UserContentUpdateAction().name(FIND).value("some group"),
+            new UserContentUpdateAction().name(REPLACE_WITH).value("some new group"))),
+        new UserContentUpdate()
+          .option(UserContentUpdate.OptionEnum.EXPIRATION_DATE)
+          .actions(List.of(
+            new UserContentUpdateAction().name(CLEAR_FIELD)))))
+      .totalRecords(3));
+
+    var responseContentUpdateUpload = mockMvc.perform(post(format(USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+      .headers(defaultHeaders())
+      .content(updates))
+      .andExpect(status().isOk())
+      .andReturn();
+    var actualUsers = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
+      UserCollection.class);
+    actualUsers.getUsers().forEach(u -> {
+      assertEquals(null, u.getExpirationDate());
+      assertEquals("some new group", groupClient.getGroupById(u.getPatronGroup()).getGroup());
+    });
   }
 
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType, EntityType entityType, IdentifierType identifierType) {

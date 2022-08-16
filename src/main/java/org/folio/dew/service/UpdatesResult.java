@@ -16,4 +16,5 @@ import java.util.List;
 public class UpdatesResult<T> {
   private int total;
   private List<T> itemsForPreview;
+  private List<T> usersForPreview;
 }

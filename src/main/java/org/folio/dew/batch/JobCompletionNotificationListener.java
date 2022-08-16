@@ -17,6 +17,7 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
+import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
 
 import java.io.File;
 import java.io.IOException;
@@ -286,7 +287,8 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     if (isBulkEditIdentifiersJob(jobExecution)) {
       return null;
     }
-    return FilenameUtils.getName(path).replace(MATCHED_RECORDS, CHANGED_RECORDS).replace(UPDATED_PREFIX, EMPTY);
+    return FilenameUtils.getName(path).replace(MATCHED_RECORDS, CHANGED_RECORDS).replace(UPDATED_PREFIX, EMPTY)
+      .replace(INITIAL_PREFIX, EMPTY);
   }
 
   private String prepareChangedUsersFile(String path, String jobId) {

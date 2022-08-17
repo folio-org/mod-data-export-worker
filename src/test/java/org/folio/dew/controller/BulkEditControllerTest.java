@@ -1048,23 +1048,6 @@ class BulkEditControllerTest extends BaseBatchTest {
     var actualUsers = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
       UserCollection.class);
     actualUsers.getUsers().forEach(u -> assertNull(u.getExpirationDate()));
-
-//    try {
-//      var responseContentUpdateUpload = mockMvc.perform(post(format(USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
-//        .headers(defaultHeaders())
-//        .content(updates))
-//        .andExpect(status().isOk())
-//        .andReturn();
-//      var actualUsers = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
-//        UserCollection.class);
-//      actualUsers.getUsers().forEach(u -> assertNull(u.getExpirationDate()));
-//    } catch (Exception exc) {
-//      mockMvc.perform(get(format(ERRORS_URL_TEMPLATE, jobId))
-//        .headers(defaultHeaders())
-//        .queryParam(LIMIT, String.valueOf(3)))
-//        .andExpect(status().isOk())
-//        .andExpect(content().json(Files.readString(Path.of(EXPECTED_ERRORS_FOR_CLEAR_PATRON_GROUP))));
-//    }
   }
 
   @Test

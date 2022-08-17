@@ -253,6 +253,9 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       if (isEmpty(path) || noRecordsFound(path)) {
         return EMPTY; // To prevent downloading empty file.
       }
+      if (Files.notExists(Path.of(path)) && repository.containsFile(path)) {
+        return repository.objectToPresignedObjectUrl(path);
+      }
       return repository.objectWriteResponseToPresignedObjectUrl(
         repository.uploadObject(prepareObject(jobExecution, path), path, prepareDownloadFilename(jobExecution, path), "text/csv", !isBulkEditUpdateJob(jobExecution)));
     } catch (Exception e) {

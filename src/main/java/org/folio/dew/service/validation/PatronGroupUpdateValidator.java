@@ -18,7 +18,7 @@ public class PatronGroupUpdateValidator implements ContentUpdateValidator<UserCo
     } else {
       var action = update.getActions().get(0);
       if (REPLACE_WITH != action.getName()) {
-        errorMessage = action + " cannot be applied to Patron group";
+        errorMessage = action.getName() + " cannot be applied to Patron group";
       } else if (ObjectUtils.isEmpty(action.getValue())) {
         errorMessage = "REPLACE_WITH value cannot be null or empty";
       }

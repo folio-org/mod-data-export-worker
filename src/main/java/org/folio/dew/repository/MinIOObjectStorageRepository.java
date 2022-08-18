@@ -190,6 +190,19 @@ public class MinIOObjectStorageRepository {
     return result;
   }
 
+  public String objectToPresignedObjectUrl(String object)
+    throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
+    ServerException, InternalException, XmlParserException, ErrorResponseException {
+    String result = client.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+      .method(Method.GET)
+      .bucket(bucket)
+      .object(object)
+      .region(region)
+      .build());
+    log.info("Created presigned URL {}.", result);
+    return result;
+  }
+
   private <T extends ObjectWriteArgs, B extends ObjectWriteArgs.Builder<B, T>> T createArgs(B builder, String object,
       String downloadFilename, String contentType) {
     Map<String, String> headers = new HashMap<>(2);

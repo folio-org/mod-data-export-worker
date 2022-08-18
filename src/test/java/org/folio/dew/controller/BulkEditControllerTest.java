@@ -129,6 +129,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String PREVIEW_USER_DATA = "src/test/resources/upload/preview_user_data.csv";
   private static final String PREVIEW_ITEM_DATA = "src/test/resources/upload/preview_item_data.csv";
   private static final String EXPECTED_ERRORS_FOR_CLEAR_PATRON_GROUP = "src/test/resources/output/expected_errors_for_clear_patron_group.json";
+  private static final String EXPECTED_USER_CONTENT_UPDATE_OUTPUT = "src/test/resources/output/bulk_edit_user_content_updates_expected_output.csv";
   private static final SimpleDateFormat itemStatusDateFormat = new SimpleDateFormat(DATE_TIME_PATTERN);
   private static final UUID JOB_ID = UUID.randomUUID();
   public static final String LIMIT = "limit";
@@ -1210,6 +1211,15 @@ class BulkEditControllerTest extends BaseBatchTest {
       assertEquals(null, u.getExpirationDate());
       assertEquals("some new group", groupClient.getGroupById(u.getPatronGroup()).getGroup());
     });
+
+    okapiHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
+    defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
+    FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
+    jobCommand.setExportType(BULK_EDIT_UPDATE);
+    var jobExecution = createTestLauncher(bulkEditProcessUserIdentifiersJob).launchJob(jobCommand.getJobParameters());
+    assertEquals("COMPLETED", jobExecution.getStatus().name());
+    assertEquals(Files.readString(Path.of(EXPECTED_USER_CONTENT_UPDATE_OUTPUT)), new String(minIOObjectStorageRepository.getObject
+      (jobExecution.getJobParameters().getString(UPDATED_FILE_NAME)).readAllBytes()));
   }
 
   @ParameterizedTest

@@ -10,7 +10,6 @@ import org.folio.dew.domain.dto.UserContentUpdate;
 import org.folio.dew.domain.dto.UserContentUpdateAction;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
-import org.folio.dew.service.ExpirationDateUpdateStrategy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -18,7 +17,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 class ExpirationDateUpdateStrategyTest {
   private final static String NEW_VALUE = dateToString(new Date());
@@ -93,56 +91,5 @@ class ExpirationDateUpdateStrategyTest {
     var updatedUserFormat = updateStrategy.applyUpdate(userFormat, contentUpdate, true);
 
     assertThat(updatedUserFormat.getExpirationDate(), equalTo(EMPTY));
-  }
-
-  @ParameterizedTest
-  @ValueSource(booleans = {true, false})
-  void shouldUpdateExpirationDateIfFindMatch(boolean isPreview) {
-    var userFormat = new UserFormat().withExpirationDate("2022-01-01 12:00:00.123Z");
-    var contentUpdate = new UserContentUpdate()
-      .option(UserContentUpdate.OptionEnum.EXPIRATION_DATE)
-      .actions(List.of(
-        new UserContentUpdateAction()
-          .name(UserContentUpdateAction.NameEnum.FIND)
-          .value("2022-01-01 12:00:00.123Z"),
-        new UserContentUpdateAction()
-          .name(UserContentUpdateAction.NameEnum.REPLACE_WITH)
-          .value(NEW_VALUE)));
-
-    var updatedUserFormat = updateStrategy.applyUpdate(userFormat, contentUpdate, isPreview);
-
-    assertThat(updatedUserFormat.getExpirationDate(), equalTo(NEW_VALUE));
-  }
-
-  @ParameterizedTest
-  @ValueSource(booleans = {true, false})
-  void shouldNotUpdateExpirationDateIfFindDoesNotMatch(boolean isPreview) {
-    var userFormat = new UserFormat().withExpirationDate("2022-01-01 12:00:00.123Z");
-    var contentUpdate = new UserContentUpdate()
-      .option(UserContentUpdate.OptionEnum.EXPIRATION_DATE)
-      .actions(List.of(
-        new UserContentUpdateAction()
-          .name(UserContentUpdateAction.NameEnum.FIND)
-          .value("2022-02-02 12:00:00.123Z"),
-        new UserContentUpdateAction()
-          .name(UserContentUpdateAction.NameEnum.REPLACE_WITH)
-          .value(NEW_VALUE)));
-
-    var updatedUserFormat = updateStrategy.applyUpdate(userFormat, contentUpdate, isPreview);
-
-    assertThat(updatedUserFormat.getExpirationDate(), equalTo("2022-01-01 12:00:00.123Z"));
-  }
-
-  @ParameterizedTest
-  @EnumSource(value = UserContentUpdateAction.NameEnum.class, names = {"ADD_TO_EXISTING", "FIND_AND_REMOVE_THESE"}, mode = EnumSource.Mode.INCLUDE)
-  void shouldNotApplyUnsupportedAction(UserContentUpdateAction.NameEnum action) {
-    var userFormat = new UserFormat().withExpirationDate("2022-01-01 12:00:00.123Z");
-    var contentUpdate = new UserContentUpdate()
-      .option(UserContentUpdate.OptionEnum.EXPIRATION_DATE)
-      .actions(Collections.singletonList(new UserContentUpdateAction()
-        .name(action)
-        .value(NEW_VALUE)));
-
-    assertThrows(BulkEditException.class, () -> updateStrategy.applyUpdate(userFormat, contentUpdate, false));
   }
 }

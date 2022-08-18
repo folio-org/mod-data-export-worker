@@ -1029,7 +1029,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     jobCommand.setIdentifierType(BARCODE);
     jobCommand.setJobParameters(new JobParametersBuilder().addString(JobParameterNames.JOB_ID, jobId.toString()).toJobParameters());
 
-    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var bytes = new FileInputStream("src/test/resources/upload/barcodes.csv").readAllBytes();
     var file = new MockMultipartFile("file", "barcodes.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
@@ -1100,7 +1100,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     jobCommand.setIdentifierType(BARCODE);
     jobCommand.setJobParameters(new JobParametersBuilder().addString(JobParameterNames.JOB_ID, jobId.toString()).toJobParameters());
 
-    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var bytes = new FileInputStream("src/test/resources/upload/barcodes.csv").readAllBytes();
     var file = new MockMultipartFile("file", "barcodes.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
@@ -1192,7 +1192,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     jobCommand.setIdentifierType(BARCODE);
     jobCommand.setJobParameters(new JobParametersBuilder().addString(JobParameterNames.JOB_ID, jobId.toString()).toJobParameters());
 
-    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var bytes = new FileInputStream("src/test/resources/upload/barcodes.csv").readAllBytes();
     var file = new MockMultipartFile("file", "barcodes.csv", MediaType.TEXT_PLAIN_VALUE, bytes);

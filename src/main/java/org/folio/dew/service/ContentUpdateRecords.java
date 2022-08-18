@@ -1,22 +1,21 @@
 package org.folio.dew.service;
 
 import lombok.Getter;
-import org.folio.dew.domain.dto.ItemFormat;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public class ContentUpdateRecords {
+public class ContentUpdateRecords<T> {
 
-  private List<ItemFormat> updated = new ArrayList<>();
-  private List<ItemFormat> preview = new ArrayList<>();
+  private List<T> updated = new ArrayList<>();
+  private List<T> preview = new ArrayList<>();
 
-  public void addToUpdated(ItemFormat itemFormat) {
-    updated.add(itemFormat);
+  public void addToUpdated(T entity) {
+    updated.add(entity);
   }
 
-  public void addToPreview(ItemFormat itemFormat) {
-    preview.add(itemFormat);
+  public void addToPreview(T entity) {
+    preview.add(entity);
   }
 }

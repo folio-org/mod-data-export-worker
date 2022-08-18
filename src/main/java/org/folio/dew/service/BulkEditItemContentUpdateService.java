@@ -5,11 +5,11 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.folio.dew.domain.dto.ContentUpdate.ActionEnum.CLEAR_FIELD;
-import static org.folio.dew.domain.dto.ContentUpdate.ActionEnum.REPLACE_WITH;
-import static org.folio.dew.domain.dto.ContentUpdate.OptionEnum.PERMANENT_LOCATION;
-import static org.folio.dew.domain.dto.ContentUpdate.OptionEnum.STATUS;
-import static org.folio.dew.domain.dto.ContentUpdate.OptionEnum.TEMPORARY_LOCATION;
+import static org.folio.dew.domain.dto.ItemContentUpdate.ActionEnum.CLEAR_FIELD;
+import static org.folio.dew.domain.dto.ItemContentUpdate.ActionEnum.REPLACE_WITH;
+import static org.folio.dew.domain.dto.ItemContentUpdate.OptionEnum.PERMANENT_LOCATION;
+import static org.folio.dew.domain.dto.ItemContentUpdate.OptionEnum.STATUS;
+import static org.folio.dew.domain.dto.ItemContentUpdate.OptionEnum.TEMPORARY_LOCATION;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
@@ -31,8 +31,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
-import org.folio.dew.domain.dto.ContentUpdate;
-import org.folio.dew.domain.dto.ContentUpdateCollection;
+import org.folio.dew.domain.dto.ItemContentUpdate;
+import org.folio.dew.domain.dto.ItemContentUpdateCollection;
 import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.FileOperationException;
@@ -68,13 +68,13 @@ public class BulkEditItemContentUpdateService {
     workdir = System.getProperty(TMP_DIR_PROPERTY) + PATH_SEPARATOR + springApplicationName + PATH_SEPARATOR;
   }
 
-  public ItemUpdatesResult processContentUpdates(JobCommand jobCommand, ContentUpdateCollection contentUpdates) {
+  public UpdatesResult<ItemFormat> processContentUpdates(JobCommand jobCommand, ItemContentUpdateCollection contentUpdates) {
     var outputFileName = workdir + UPDATED_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
     try {
       log.info("Processing content updates for job id {}", jobCommand.getId());
       Files.deleteIfExists(Path.of(outputFileName));
       repository.downloadObject(FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION, outputFileName);
-      var updateResult = new ItemUpdatesResult();
+      var updateResult = new UpdatesResult<ItemFormat>();
       var records = CsvHelper.readRecordsFromFile(outputFileName, ItemFormat.class, true);
       log.info("Reading of file {} complete, number of itemFormats: {}", outputFileName, records.size());
       updateResult.setTotal(records.size());
@@ -106,13 +106,13 @@ public class BulkEditItemContentUpdateService {
     }
   }
 
-  private ContentUpdateRecords applyContentUpdates(List<ItemFormat> itemFormats, ContentUpdateCollection contentUpdates, JobCommand jobCommand) {
-    var result = new ContentUpdateRecords();
+  private ContentUpdateRecords<ItemFormat> applyContentUpdates(List<ItemFormat> itemFormats, ItemContentUpdateCollection contentUpdates, JobCommand jobCommand) {
+    var result = new ContentUpdateRecords<ItemFormat>();
     for (ItemFormat itemFormat: itemFormats) {
       log.info("Applying updates to item id={}", itemFormat.getId());
       var updatedItemFormat = itemFormat;
       var errorMessage = new ErrorMessage();
-      for (ContentUpdate contentUpdate: contentUpdates.getContentUpdates()) {
+      for (ItemContentUpdate contentUpdate: contentUpdates.getItemContentUpdates()) {
         updatedItemFormat = applyContentUpdate(updatedItemFormat, contentUpdate, errorMessage);
       }
       if (!Objects.equals(itemFormat, updatedItemFormat)) {
@@ -137,7 +137,7 @@ public class BulkEditItemContentUpdateService {
   }
 
 
-  private ItemFormat applyContentUpdate(ItemFormat itemFormat, ContentUpdate contentUpdate, ErrorMessage errorMessage) {
+  private ItemFormat applyContentUpdate(ItemFormat itemFormat, ItemContentUpdate contentUpdate, ErrorMessage errorMessage) {
     if (REPLACE_WITH == contentUpdate.getAction()) {
       return applyReplaceWith(itemFormat, contentUpdate, errorMessage);
     } else if (CLEAR_FIELD == contentUpdate.getAction()) {
@@ -150,7 +150,7 @@ public class BulkEditItemContentUpdateService {
     return itemFormat;
   }
 
-  private ItemFormat applyReplaceWith(ItemFormat itemFormat, ContentUpdate contentUpdate, ErrorMessage errorMessage) {
+  private ItemFormat applyReplaceWith(ItemFormat itemFormat, ItemContentUpdate contentUpdate, ErrorMessage errorMessage) {
     if (TEMPORARY_LOCATION == contentUpdate.getOption()) {
       return itemFormat.withTemporaryLocation(isNull(contentUpdate.getValue()) ? EMPTY : contentUpdate.getValue().toString());
     } else if (PERMANENT_LOCATION == contentUpdate.getOption()) {
@@ -161,7 +161,7 @@ public class BulkEditItemContentUpdateService {
     return itemFormat;
   }
 
-  private ItemFormat applyClearField(ItemFormat itemFormat, ContentUpdate contentUpdate) {
+  private ItemFormat applyClearField(ItemFormat itemFormat, ItemContentUpdate contentUpdate) {
     if (TEMPORARY_LOCATION == contentUpdate.getOption()) {
       return itemFormat.withTemporaryLocation(EMPTY);
     } else if (PERMANENT_LOCATION == contentUpdate.getOption()) {
@@ -180,8 +180,8 @@ public class BulkEditItemContentUpdateService {
     }
   }
 
-  private boolean isLocationChange(ContentUpdateCollection contentUpdates) {
-    return contentUpdates.getContentUpdates().stream()
+  private boolean isLocationChange(ItemContentUpdateCollection contentUpdates) {
+    return contentUpdates.getItemContentUpdates().stream()
       .anyMatch(update -> TEMPORARY_LOCATION == update.getOption() || PERMANENT_LOCATION == update.getOption());
   }
 
@@ -204,8 +204,8 @@ public class BulkEditItemContentUpdateService {
     return tokens.length > 0 ? tokens[0] : EMPTY;
   }
 
-  private ItemFormat applyUpdatesForPreview(ContentUpdateCollection contentUpdates, ItemFormat itemFormat) {
-    var statusUpdate = contentUpdates.getContentUpdates().stream()
+  private ItemFormat applyUpdatesForPreview(ItemContentUpdateCollection contentUpdates, ItemFormat itemFormat) {
+    var statusUpdate = contentUpdates.getItemContentUpdates().stream()
       .filter(contentUpdate -> contentUpdate.getOption() == STATUS)
       .findFirst();
     if (statusUpdate.isPresent() && nonNull(statusUpdate.get().getValue()) && !extractStatusName(itemFormat.getStatus()).equals(statusUpdate.get().getValue())) {

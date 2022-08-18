@@ -17,6 +17,7 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
+import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
 
 import java.io.File;
 import java.io.IOException;
@@ -108,13 +109,18 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       if (jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue())) {
         String updatedFilePath = jobExecution.getJobParameters().getString(UPDATED_FILE_NAME);
         String filePath = requireNonNull(isNull(updatedFilePath) ? jobExecution.getJobParameters().getString(FILE_NAME) : updatedFilePath);
-        try (var lines = Files.lines(Paths.get(filePath))) {
-          int totalUsers = (int) lines.count() - 1;
+        if (Files.notExists(Paths.get(filePath)) && repository.containsFile(filePath)) {
+          int totalUsers = CsvHelper.readRecordsFromMinio(repository, filePath, UserFormat.class, true).size();
           jobExecution.getExecutionContext().putLong(TOTAL_RECORDS, totalUsers);
-        } catch (NullPointerException e) {
-          String msg = String.format("Couldn't open a required for the job file. File path '%s'", FILE_NAME);
-          log.debug(msg);
-          throw new BulkEditException(msg);
+        } else {
+          try (var lines = Files.lines(Paths.get(filePath))) {
+            int totalUsers = (int) lines.count() - 1;
+            jobExecution.getExecutionContext().putLong(TOTAL_RECORDS, totalUsers);
+          } catch (NullPointerException e) {
+            String msg = String.format("Couldn't open a required for the job file. File path '%s'", FILE_NAME);
+            log.debug(msg);
+            throw new BulkEditException(msg);
+          }
         }
       }
     }
@@ -245,6 +251,9 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       if (isEmpty(path) || noRecordsFound(path)) {
         return EMPTY; // To prevent downloading empty file.
       }
+      if (Files.notExists(Path.of(path)) && repository.containsFile(path)) {
+        return repository.objectToPresignedObjectUrl(path);
+      }
       return repository.objectWriteResponseToPresignedObjectUrl(
         repository.uploadObject(prepareObject(jobExecution, path), path, prepareDownloadFilename(jobExecution, path), "text/csv", !isBulkEditUpdateJob(jobExecution)));
     } catch (Exception e) {
@@ -260,13 +269,15 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     }
     return jobExecution.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH);
   }
-  private boolean noRecordsFound(String path) throws IOException {
+  private boolean noRecordsFound(String path) throws Exception {
     Path pathToFoundRecords = Path.of(path);
-    if (Files.notExists(pathToFoundRecords)) {
-      log.error("Path to found records does not exist: {}", path);
+    if (Files.notExists(pathToFoundRecords) && !repository.containsFile(path)) {
+      log.error("Path to found records does not exist: {}", pathToFoundRecords);
       return true;
     }
-    return Files.lines(pathToFoundRecords).count() <= 1;
+    return Files.notExists(pathToFoundRecords) ?
+      CsvHelper.readRecordsFromMinio(repository, path, UserFormat.class, true).isEmpty() :
+      Files.lines(pathToFoundRecords).count() <= 1;
   }
 
   private String prepareObject(JobExecution jobExecution, String path) {
@@ -277,7 +288,8 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     if (isBulkEditIdentifiersJob(jobExecution)) {
       return null;
     }
-    return FilenameUtils.getName(path).replace(MATCHED_RECORDS, CHANGED_RECORDS).replace(UPDATED_PREFIX, EMPTY);
+    return FilenameUtils.getName(path).replace(MATCHED_RECORDS, CHANGED_RECORDS).replace(UPDATED_PREFIX, EMPTY)
+      .replace(INITIAL_PREFIX, EMPTY);
   }
 
   private String prepareChangedUsersFile(String path, String jobId) {

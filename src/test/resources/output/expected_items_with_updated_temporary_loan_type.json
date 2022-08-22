@@ -1,0 +1,25 @@
+{
+  "items": [{
+    "id": "18f746e4-7c9c-48be-86a4-ff1c96934203",
+    "permanentLoanType": {
+      "id": "2b94c631-fca9-4892-a730-03ee529ffe27",
+      "name": "Can circulate"
+    },
+    "temporaryLoanType": {
+      "id": "7dbc5e3e-3441-4013-8014-b962b381f643",
+      "name": "Reading room"
+    }
+  }, {
+    "id": "a869598f-9085-4470-949f-1f33f7cb74bf",
+    "permanentLoanType": {
+      "id": "2b94c631-fca9-4892-a730-03ee529ffe27",
+      "name": "Can circulate"
+    },
+    "temporaryLoanType": {
+      "id": "7dbc5e3e-3441-4013-8014-b962b381f643",
+      "name": "Reading room"
+    }
+  }
+  ],
+  "totalRecords": 8
+}

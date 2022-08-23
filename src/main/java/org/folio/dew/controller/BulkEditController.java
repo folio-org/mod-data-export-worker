@@ -13,7 +13,6 @@ import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.QUERY;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
-import org.folio.dew.domain.dto.UserContentUpdateCollection;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
@@ -65,6 +64,7 @@ import org.folio.dew.domain.dto.Errors;
 import org.folio.dew.domain.dto.ItemCollection;
 import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.domain.dto.UserCollection;
+import org.folio.dew.domain.dto.UserContentUpdateCollection;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.FileOperationException;
@@ -78,7 +78,8 @@ import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.UpdatesResult;
 import org.folio.dew.service.JobCommandsReceiverService;
-import org.folio.dew.service.BulkEditUserContentUpdateService;
+import org.folio.dew.service.update.BulkEditUserContentUpdateService;
+import org.folio.dew.service.validation.UserContentUpdateValidatorService;
 import org.folio.dew.utils.CsvHelper;
 import org.folio.spring.DefaultFolioExecutionContext;
 import org.folio.spring.FolioExecutionContext;
@@ -127,6 +128,7 @@ public class BulkEditController implements JobIdApi {
   private final List<Job> jobs;
   private final BulkEditItemContentUpdateService itemContentUpdateService;
   private final BulkEditUserContentUpdateService userContentUpdateService;
+  private final UserContentUpdateValidatorService userContentUpdateValidatorService;
   private final BulkEditParseService bulkEditParseService;
   private final MinIOObjectStorageRepository repository;
   private final FolioModuleMetadata folioModuleMetadata;
@@ -156,6 +158,7 @@ public class BulkEditController implements JobIdApi {
 
   @Override
   public ResponseEntity<UserCollection> postUserContentUpdates(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId, @ApiParam(value = "" ,required=true )  @Valid @RequestBody UserContentUpdateCollection contentUpdateCollection, @ApiParam(value = "The numbers of records to return") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
+    userContentUpdateValidatorService.validateContentUpdateCollection(contentUpdateCollection);
     bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId.toString());
     var jobCommand = getJobCommandById(jobId.toString());
     if (nonNull(jobCommand.getIdentifierType())) {

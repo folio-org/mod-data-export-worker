@@ -2,9 +2,10 @@ package org.folio.dew.controller;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import org.folio.dew.client.GroupClient;
+import static org.folio.dew.controller.ItemsContentUpdateTestData.CLEAR_FIELD_PERMANENT_LOAN_TYPE;
 import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_ALLOWED_STATUS;
 import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_NOT_ALLOWED_STATUS;
+import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_NULL_PERMANENT_LOAN_TYPE;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
@@ -18,12 +19,8 @@ import static org.folio.dew.domain.dto.UserContentUpdateAction.NameEnum.CLEAR_FI
 import static org.folio.dew.domain.dto.UserContentUpdateAction.NameEnum.FIND;
 import static org.folio.dew.domain.dto.UserContentUpdateAction.NameEnum.REPLACE_WITH;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
-import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
-import org.folio.spring.DefaultFolioExecutionContext;
-import org.folio.spring.FolioModuleMetadata;
-import org.folio.spring.integration.XOkapiHeaders;
-import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
+import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
@@ -45,22 +42,46 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.de.entity.JobCommandType;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.client.ConfigurationClient;
+import org.folio.dew.client.GroupClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
-import org.folio.dew.domain.dto.*;
+import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.IdentifierType;
+import org.folio.dew.domain.dto.InventoryItemStatus;
+import org.folio.dew.domain.dto.Item;
+import org.folio.dew.domain.dto.ItemCollection;
+import org.folio.dew.domain.dto.ItemContentUpdate;
+import org.folio.dew.domain.dto.ItemContentUpdateCollection;
+import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.Metadata;
+import org.folio.dew.domain.dto.Personal;
+import org.folio.dew.domain.dto.User;
+import org.folio.dew.domain.dto.UserCollection;
+import org.folio.dew.domain.dto.UserContentUpdate;
+import org.folio.dew.domain.dto.UserContentUpdateAction;
+import org.folio.dew.domain.dto.UserContentUpdateCollection;
+import org.folio.dew.domain.dto.UserGroup;
+import org.folio.dew.domain.dto.UserGroupCollection;
+import org.folio.dew.domain.dto.ModelConfiguration;
+import org.folio.dew.domain.dto.ConfigurationCollection;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.repository.JobCommandRepository;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.JobCommandsReceiverService;
+import org.folio.dew.service.validation.UserContentUpdateInvalidTestData;
+import org.folio.spring.DefaultFolioExecutionContext;
+import org.folio.spring.FolioModuleMetadata;
+import org.folio.spring.integration.XOkapiHeaders;
+import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 import org.folio.tenant.domain.dto.Errors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -84,17 +105,18 @@ import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
-import java.text.SimpleDateFormat;
-import java.util.List;
 
 class BulkEditControllerTest extends BaseBatchTest {
   private static final String UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/upload";
@@ -106,6 +128,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/user-content-update/upload";
   private static final String ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-items/download";
   private static final String ITEMS_FOR_LOCATION_UPDATE = "src/test/resources/upload/bulk_edit_items_for_location_update.csv";
+  private static final String ITEMS_FOR_LOAN_TYPE_UPDATE = "src/test/resources/upload/bulk_edit_items_for_loan_type_update.csv";
   private static final String ITEMS_FOR_STATUS_UPDATE = "src/test/resources/upload/bulk_edit_items_for_status_update.csv";
   private static final String ITEM_FOR_STATUS_UPDATE_ERROR = "src/test/resources/upload/bulk_edit_item_for_status_update_error.csv";
   private static final String ITEMS_FOR_NOTHING_UPDATE = "src/test/resources/upload/bulk_edit_items_for_nothing_update.csv";
@@ -579,7 +602,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @ParameterizedTest
   @EnumSource(value = ItemsContentUpdateTestData.class, names = ".+_LOCATION", mode = EnumSource.Mode.MATCH_ANY)
-  @DisplayName("Post content updates - successful")
+  @DisplayName("Post item location content updates - successful")
   @SneakyThrows
   void shouldPreviewUpdatesEffectiveLocationOnChangeLocationContentUpdate(ItemsContentUpdateTestData testData) {
     repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
@@ -619,6 +642,56 @@ class BulkEditControllerTest extends BaseBatchTest {
     var actualItems = objectMapper.readValue(response.getResponse().getContentAsString(), ItemCollection.class);
     var expectedItems = objectMapper.readValue(new FileSystemResource(testData.getExpectedPreviewJsonPath()).getInputStream(), ItemCollection.class);
     verifyLocationUpdate(expectedItems, actualItems);
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = ItemsContentUpdateTestData.class, names = ".+_LOAN_TYPE", mode = EnumSource.Mode.MATCH_ANY)
+  @DisplayName("Post item loan type content updates - successful")
+  @SneakyThrows
+  void shouldPreviewUpdatesOnChangeLoanTypeContentUpdate(ItemsContentUpdateTestData testData) {
+    repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_LOAN_TYPE_UPDATE), ITEMS_FOR_LOAN_TYPE_UPDATE, null, "text/plain", false);
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(ITEM);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_LOAN_TYPE_UPDATE.replace(CSV_EXTENSION, EMPTY))
+      .toJobParameters());
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
+    var updates = objectMapper.writeValueAsString(new ItemContentUpdateCollection()
+      .itemContentUpdates(Collections.singletonList(new ItemContentUpdate()
+        .option(testData.getOption())
+        .action(testData.getAction())
+        .value(testData.getValue())))
+      .totalRecords(1));
+
+    var response = mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+        .headers(defaultHeaders())
+        .content(updates))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    var updatedJobCommand = jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
+    assertFalse(updatedJobCommand.isEmpty());
+    assertEquals(BULK_EDIT_UPDATE, updatedJobCommand.get().getExportType());
+    assertNotNull(updatedJobCommand.get().getJobParameters().getString(PREVIEW_FILE_NAME));
+
+    if (!Set.of(REPLACE_WITH_NULL_PERMANENT_LOAN_TYPE, CLEAR_FIELD_PERMANENT_LOAN_TYPE).contains(testData)) {
+      var expectedCsv = new FileSystemResource(testData.getExpectedCsvPath());
+      var actualCsv = new FileSystemResource(updatedJobCommand.get().getJobParameters().getString(UPDATED_FILE_NAME));
+      assertFileEquals(expectedCsv, actualCsv);
+    }
+
+    var expectedPreviewCsv = new FileSystemResource(testData.getExpectedPreviewCsvPath());
+    var actualPreviewCsv = new FileSystemResource(updatedJobCommand.get().getJobParameters().getString(PREVIEW_FILE_NAME));
+    assertFileEquals(expectedPreviewCsv, actualPreviewCsv);
+
+    var actualItems = objectMapper.readValue(response.getResponse().getContentAsString(), ItemCollection.class);
+    var expectedItems = objectMapper.readValue(new FileSystemResource(testData.getExpectedPreviewJsonPath()).getInputStream(), ItemCollection.class);
+    verifyLoanTypeUpdate(expectedItems, actualItems);
   }
 
   @ParameterizedTest
@@ -1001,11 +1074,10 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(result.getResponse().getContentAsString(), equalTo("3"));
   }
 
-  @ParameterizedTest
-  @EnumSource(names = {"PATRON_GROUP", "EXPIRATION_DATE"})
-  @DisplayName("Post user content update with clear patron group and expiration date")
+  @Test
+  @DisplayName("Post user content update with clear expiration date")
   @SneakyThrows
-  void shouldClearUserExpirationDateButNotPatronGroup(UserContentUpdate.OptionEnum testData) {
+  void shouldClearUserExpirationDate() {
     when(userClient.getUserByQuery("barcode==\"123\"", 1))
       .thenReturn(new UserCollection().addUsersItem(new User().barcode("123").active(true).personal(new Personal().email("123@example.com"))
         .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
@@ -1051,26 +1123,18 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     var updates = objectMapper.writeValueAsString(new UserContentUpdateCollection()
       .userContentUpdates(Collections.singletonList(new UserContentUpdate()
-        .option(testData)
+        .option(UserContentUpdate.OptionEnum.EXPIRATION_DATE)
         .actions(List.of(new UserContentUpdateAction().name(CLEAR_FIELD)))))
       .totalRecords(1));
 
-    try {
-      var responseContentUpdateUpload = mockMvc.perform(post(format(USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+    var responseContentUpdateUpload = mockMvc.perform(post(format(USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
         .headers(defaultHeaders())
         .content(updates))
-        .andExpect(status().isOk())
-        .andReturn();
-      var actualUsers = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
-        UserCollection.class);
-      actualUsers.getUsers().forEach(u -> assertNull(u.getExpirationDate()));
-    } catch (Exception exc) {
-      mockMvc.perform(get(format(ERRORS_URL_TEMPLATE, jobId))
-        .headers(defaultHeaders())
-        .queryParam(LIMIT, String.valueOf(3)))
-        .andExpect(status().isOk())
-        .andExpect(content().json(Files.readString(Path.of(EXPECTED_ERRORS_FOR_CLEAR_PATRON_GROUP))));
-    }
+      .andExpect(status().isOk())
+      .andReturn();
+    var actualUsers = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
+      UserCollection.class);
+    actualUsers.getUsers().forEach(u -> assertNull(u.getExpirationDate()));
   }
 
   @Test
@@ -1164,7 +1228,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @Test
   @DisplayName("Post user content update to replace patron group and clear expiration date")
   @SneakyThrows
-  void shouldFindAndReplacePatronGroupAndClearExpirationDate() {
+  void shouldAndReplacePatronGroupAndClearExpirationDate() {
     when(userClient.getUserByQuery("barcode==\"123\"", 1))
       .thenReturn(new UserCollection().addUsersItem(new User().barcode("123").active(true).personal(new Personal().email("123@example1.com"))
         .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
@@ -1215,9 +1279,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var updates = objectMapper.writeValueAsString(new UserContentUpdateCollection()
       .userContentUpdates(List.of(new UserContentUpdate()
           .option(UserContentUpdate.OptionEnum.PATRON_GROUP)
-          .actions(List.of(
-            new UserContentUpdateAction().name(FIND).value("some group"),
-            new UserContentUpdateAction().name(REPLACE_WITH).value("some new group"))),
+          .actions(Collections.singletonList(new UserContentUpdateAction().name(REPLACE_WITH).value("some new group"))),
         new UserContentUpdate()
           .option(UserContentUpdate.OptionEnum.EXPIRATION_DATE)
           .actions(List.of(
@@ -1244,6 +1306,20 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertEquals("COMPLETED", jobExecution.getStatus().name());
     assertEquals(Files.readString(Path.of(EXPECTED_USER_CONTENT_UPDATE_OUTPUT)), new String(minIOObjectStorageRepository.getObject
       (jobExecution.getJobParameters().getString(UPDATED_FILE_NAME)).readAllBytes()));
+  }
+
+  @ParameterizedTest
+  @EnumSource(UserContentUpdateInvalidTestData.class)
+  @DisplayName("Post invalid user content update - BAD_REQUEST")
+  @SneakyThrows
+  void shouldReturnBadRequestIfUserContentUpdateIsNotValid(UserContentUpdateInvalidTestData update) {
+    var updates = objectMapper.writeValueAsString(new UserContentUpdateCollection()
+      .userContentUpdates(Collections.singletonList(update.getUpdate()))
+      .totalRecords(1));
+    mockMvc.perform(post(format(USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, UUID.randomUUID()))
+        .headers(defaultHeaders())
+        .content(updates))
+      .andExpect(status().isBadRequest());
   }
 
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType, EntityType entityType, IdentifierType identifierType) {
@@ -1294,6 +1370,15 @@ class BulkEditControllerTest extends BaseBatchTest {
       assertThat(expectedItems.getItems().get(i).getPermanentLocation(), equalTo(actualItems.getItems().get(i).getPermanentLocation()));
       assertThat(expectedItems.getItems().get(i).getTemporaryLocation(), equalTo(actualItems.getItems().get(i).getTemporaryLocation()));
       assertThat(expectedItems.getItems().get(i).getEffectiveLocation(), equalTo(actualItems.getItems().get(i).getEffectiveLocation()));
+    }
+  }
+
+  private void verifyLoanTypeUpdate(ItemCollection expectedItems, ItemCollection actualItems) {
+    assertThat(expectedItems.getItems(), hasSize(actualItems.getItems().size()));
+    for (int i = 0; i < expectedItems.getItems().size(); i++) {
+      assertThat(expectedItems.getItems().get(i).getId(), equalTo(actualItems.getItems().get(i).getId()));
+      assertThat(expectedItems.getItems().get(i).getPermanentLoanType(), equalTo(actualItems.getItems().get(i).getPermanentLoanType()));
+      assertThat(expectedItems.getItems().get(i).getTemporaryLoanType(), equalTo(actualItems.getItems().get(i).getTemporaryLoanType()));
     }
   }
 

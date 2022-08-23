@@ -1,4 +1,4 @@
-package org.folio.dew.service;
+package org.folio.dew.service.update;
 
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
@@ -20,6 +20,9 @@ import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.dew.service.BulkEditProcessingErrorsService;
+import org.folio.dew.service.ContentUpdateRecords;
+import org.folio.dew.service.UpdatesResult;
 import org.folio.dew.utils.CsvHelper;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.stereotype.Component;

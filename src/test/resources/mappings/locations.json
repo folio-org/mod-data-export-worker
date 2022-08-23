@@ -29,6 +29,19 @@
     {
       "request": {
         "method": "GET",
+        "url": "/locations/53cf956f-c1df-410b-8bea-27f712cca7c0"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"id\" : \"53cf956f-c1df-410b-8bea-27f712cca7c0\",\n    \"name\" : \"Annex\",\n    \"code\" : \"KU/CC/DI/A\",\n    \"discoveryDisplayName\" : \"Annex\",\n    \"isActive\" : true,\n    \"institutionId\" : \"40ee00ca-a518-4b49-be01-0638d0a4ac57\",\n    \"campusId\" : \"62cf76b7-cca5-4d33-9217-edf42ce1a848\",\n    \"libraryId\" : \"5d78803e-ca04-4b4a-aeae-2c63b924518b\",\n    \"details\" : { },\n    \"primaryServicePoint\" : \"c4c90014-c8c9-4ade-8f24-b5e313319f4b\",\n    \"servicePointIds\" : [ \"c4c90014-c8c9-4ade-8f24-b5e313319f4b\" ],\n    \"servicePoints\" : [ ],\n    \"metadata\" : {\n      \"createdDate\" : \"2022-08-24T01:51:53.603+00:00\",\n      \"updatedDate\" : \"2022-08-24T07:26:44.045+00:00\",\n      \"updatedByUserId\" : \"1ebeacf3-5aec-5fbe-8e4e-acdbc6ecf752\"\n    }\n  }",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
         "url": "/locations?query=name%3D%3D%22Main%20Library%22"
       },
       "response": {

@@ -1,0 +1,30 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/holdings-types/0c422f92-0f4d-4d32-8cbe-390ebc33a3e5"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n  \"id\": \"0c422f92-0f4d-4d32-8cbe-390ebc33a3e5\",\n  \"name\": \"Physical\",\n  \"source\": \"folio\"\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/holdings-types?query%3Dname%3D%3DPhysical"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n  \"id\": \"0c422f92-0f4d-4d32-8cbe-390ebc33a3e5\",\n  \"name\": \"Physical\",\n  \"source\": \"folio\"\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

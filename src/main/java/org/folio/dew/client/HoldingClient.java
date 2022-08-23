@@ -2,6 +2,7 @@ package org.folio.dew.client;
 
 import org.folio.dew.config.feign.FeignClientConfiguration;
 import org.folio.dew.domain.dto.BriefHoldingsRecordCollection;
+import org.folio.dew.domain.dto.HoldingsRecordCollection;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,5 +17,8 @@ public interface HoldingClient {
   JsonNode getHoldingById(@PathVariable String holdingsRecordId);
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  BriefHoldingsRecordCollection getByQuery(@RequestParam String query);
+  BriefHoldingsRecordCollection getBriefHoldingsByQuery(@RequestParam String query);
+
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  HoldingsRecordCollection getHoldingsByQuery(@RequestParam String query);
 }

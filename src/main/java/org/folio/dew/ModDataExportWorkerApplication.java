@@ -7,7 +7,11 @@ import org.folio.dew.client.DamagedStatusClient;
 import org.folio.dew.client.ElectronicAccessRelationshipClient;
 import org.folio.dew.client.ExpenseClassClient;
 import org.folio.dew.client.HoldingClient;
+import org.folio.dew.client.HoldingsNoteTypeClient;
+import org.folio.dew.client.HoldingsSourceClient;
+import org.folio.dew.client.HoldingsTypeClient;
 import org.folio.dew.client.IdentifierTypeClient;
+import org.folio.dew.client.IllPolicyClient;
 import org.folio.dew.client.InstanceClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.KbEbscoClient;
@@ -79,7 +83,11 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
   KbEbscoClient.class,
   SearchClient.class,
   NotesClient.class,
-  AgreementClient.class
+  AgreementClient.class,
+  HoldingsTypeClient.class,
+  IllPolicyClient.class,
+  HoldingsSourceClient.class,
+  HoldingsNoteTypeClient.class
 })
 @EnableBatchProcessing
 public class ModDataExportWorkerApplication {

@@ -201,6 +201,19 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/instances?query=hrid%3D%3Dinvalid_holding_uuid&limit=2147483647"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"items\": [ ],\"totalRecords\": 0}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

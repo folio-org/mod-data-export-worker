@@ -459,6 +459,16 @@ components:
       $ref: '../../../../folio-export-common/schemas/bulk-edit/userContentUpdateCollection.json#/UserContentUpdateCollection'
     customFieldCollection:
       $ref: '../../../../folio-export-common/schemas/user/customFieldCollection.json#/CustomFieldCollection'
+    holdingsRecordCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/holdingsRecordCollection.json#/HoldingsRecordCollection'
+    holdingsTypeCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/holdingsTypeCollection.json#/HoldingsTypeCollection'
+    holdingsNoteTypeCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/holdingsNoteTypeCollection.json#/HoldingsNoteTypeCollection'
+    illPolicyCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/illPolicyCollection.json#/IllPolicyCollection'
+    holdingsRecordsSourceCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/holdingsRecordsSourceCollection.json#/HoldingsRecordsSourceCollection'
   examples:
     errors:
       value:

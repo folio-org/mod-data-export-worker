@@ -4,7 +4,7 @@ import static feign.FeignException.errorStatus;
 
 import feign.Response;
 import feign.codec.ErrorDecoder;
-import org.folio.spring.exception.NotFoundException;
+import org.folio.dew.error.NotFoundException;
 import org.springframework.http.HttpStatus;
 
 public class CustomFeignErrorDecoder implements ErrorDecoder {

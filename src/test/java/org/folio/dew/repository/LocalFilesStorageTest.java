@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.folio.dew.BaseBatchTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -25,7 +26,7 @@ import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 @SpringBootTest
-class LocalFilesStorageTest {
+class LocalFilesStorageTest extends BaseBatchTest {
   private static final String NON_EXISTING_PATH = "non-existing-path";
   @Autowired
   private LocalFilesStorage localFilesStorage;

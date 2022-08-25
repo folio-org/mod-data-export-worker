@@ -22,7 +22,7 @@ public class ExpenseClassService {
     JsonNode jsonObject = getExpenseClass(id);
     String expenseClassCode = "";
 
-    if (jsonObject != null && !jsonObject.get("code").asText().isEmpty()) {
+    if (jsonObject != null && !jsonObject.isEmpty()) {
       expenseClassCode = jsonObject.get("code").asText();
     }
 

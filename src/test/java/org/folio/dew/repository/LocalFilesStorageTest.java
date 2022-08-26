@@ -1,5 +1,21 @@
 package org.folio.dew.repository;
 
+import io.minio.ObjectWriteArgs;
+import lombok.extern.log4j.Log4j2;
+import org.folio.dew.config.properties.LocalFilesStorageProperties;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ThreadLocalRandom;
+
 import static java.util.List.of;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -8,26 +24,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.ThreadLocalRandom;
-
-import org.folio.dew.BaseBatchTest;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-
-import io.minio.ObjectWriteArgs;
-import lombok.extern.log4j.Log4j2;
-
 @Log4j2
-@SpringBootTest
-class LocalFilesStorageTest extends BaseBatchTest {
+@SpringBootTest(classes = {LocalFilesStorageProperties.class, LocalFilesStorage.class})
+@EnableConfigurationProperties
+class LocalFilesStorageTest {
   private static final String NON_EXISTING_PATH = "non-existing-path";
+
   @Autowired
   private LocalFilesStorage localFilesStorage;
 

@@ -151,6 +151,7 @@ public class HoldingsFormat {
   private String source;
 
   private String instanceHrid;
+  private String itemBarcode;
 
   public static String[] getItemFieldsArray() {
     return FieldUtils.getFieldsListWithAnnotation(HoldingsFormat.class, CsvBindByName.class).stream()
@@ -171,6 +172,8 @@ public class HoldingsFormat {
         return hrid;
       case INSTANCE_HRID:
         return instanceHrid;
+      case ITEM_BARCODE:
+        return itemBarcode;
       default:
         return id;
       }

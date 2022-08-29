@@ -21,4 +21,7 @@ public interface HoldingClient {
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   HoldingsRecordCollection getHoldingsByQuery(@RequestParam String query);
+
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  HoldingsRecordCollection getHoldingsByQuery(@RequestParam String query, @RequestParam long limit);
 }

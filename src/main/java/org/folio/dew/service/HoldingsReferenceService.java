@@ -11,6 +11,7 @@ import org.folio.dew.client.HoldingsSourceClient;
 import org.folio.dew.client.HoldingsTypeClient;
 import org.folio.dew.client.IllPolicyClient;
 import org.folio.dew.client.InstanceClient;
+import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.LocationClient;
 import org.folio.dew.client.StatisticalCodeClient;
 import org.folio.dew.error.BulkEditException;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 @Log4j2
 public class HoldingsReferenceService {
   private final InstanceClient instanceClient;
+  private final InventoryClient inventoryClient;
   private final HoldingsTypeClient holdingsTypeClient;
   private final LocationClient locationClient;
   private final CallNumberTypeClient callNumberTypeClient;
@@ -31,7 +33,6 @@ public class HoldingsReferenceService {
   private final HoldingsSourceClient sourceClient;
   private final StatisticalCodeClient statisticalCodeClient;
 
-  @Cacheable(cacheNames = "instances")
   public String getInstanceIdByHrid(String instanceHrid) {
     var briefInstances = instanceClient.getByQuery("hrid==" + instanceHrid);
     if (briefInstances.getInstances().isEmpty()) {
@@ -39,6 +40,14 @@ public class HoldingsReferenceService {
     } else {
       return briefInstances.getInstances().get(0).getId();
     }
+  }
+
+  public String getHoldingsIdByItemBarcode(String itemBarcode) {
+    var items = inventoryClient.getItemByQuery("barcode==" + itemBarcode, 1);
+    if (items.getItems().isEmpty()) {
+      throw new BulkEditException("Item not found by barcode=" + itemBarcode);
+    }
+    return items.getItems().get(0).getHoldingsRecordId();
   }
 
   @Cacheable(cacheNames = "holdingsTypes")

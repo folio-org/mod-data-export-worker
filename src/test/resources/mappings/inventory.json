@@ -214,6 +214,45 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D123&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"items\": [ {\"id\": \"8a42ad3f-7ec4-4e03-869c-f66ce74cd914\", \"holdingsRecordId\": \"0b1e3760-f689-493e-a98e-9cc9dadb7e83\"} ],\"totalRecords\": 1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D456&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"items\": [ {\"id\": \"a1b701c1-26cd-43d6-813d-2810f92f7190\", \"holdingsRecordId\": \"855d4693-4087-4339-8c14-c25c350e5e59\"} ],\"totalRecords\": 1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D789&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"items\": [ ],\"totalRecords\": 0}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

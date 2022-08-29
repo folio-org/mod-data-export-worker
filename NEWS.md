@@ -1,3 +1,10 @@
+## 2022-08-29 v1.4.4
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.3...v1.4.4)
+
+### Bug fixes
+* [MODEXPW-226](https://issues.folio.org/browse/MODEXPW-226) Expense class not included as combined code in edit file
+
 ## 2022-08-12 v1.4.3
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.2...v1.4.3)

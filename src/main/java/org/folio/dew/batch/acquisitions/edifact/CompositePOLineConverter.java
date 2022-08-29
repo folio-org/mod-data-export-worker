@@ -412,8 +412,7 @@ public class CompositePOLineConverter {
     return new ArrayList<>();
   }
 
-  private String getFundAndExpenseClass(FundDistribution fundDistribution)
-  {
+  private String getFundAndExpenseClass(FundDistribution fundDistribution) {
     String fundCode = fundDistribution.getCode();
     String expenseClass = getExpenseClassCode(fundDistribution);
     if (expenseClass.isEmpty()) {

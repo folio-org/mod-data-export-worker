@@ -276,63 +276,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(items.getItems(), hasSize(3));
   }
 
-  @SneakyThrows
-  @ParameterizedTest
-  @EnumSource(value = IdentifierType.class,
-    names = {"ID", "BARCODE", "EXTERNAL_SYSTEM_ID", "USER_NAME"},
-    mode = EnumSource.Mode.INCLUDE)
-  void shouldReturnEmptyUserPreviewIfNoRecordsAvailable(IdentifierType identifierType) {
-    var jobId = UUID.randomUUID();
-    var jobCommand = new JobCommand();
-    jobCommand.setId(jobId);
-    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
-    jobCommand.setEntityType(USER);
-    jobCommand.setIdentifierType(identifierType);
-    jobCommand.setJobParameters(new JobParametersBuilder()
-      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/no_file")
-      .toJobParameters());
-
-    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
-
-    var headers = defaultHeaders();
-    var response = mockMvc.perform(get(format(PREVIEW_USERS_URL_TEMPLATE, jobId))
-        .headers(headers)
-        .queryParam(LIMIT, String.valueOf(3)))
-      .andExpect(status().isOk());
-
-    var users = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), UserCollection.class);
-    assertThat(users.getTotalRecords(), equalTo(0));
-    assertThat(users.getUsers(), hasSize(0));
-  }
-
-  @ParameterizedTest
-  @EnumSource(value = IdentifierType.class, names = { "EXTERNAL_SYSTEM_ID", "USER_NAME" }, mode = EnumSource.Mode.EXCLUDE)
-  @SneakyThrows
-  void shouldReturnEmptyItemPreviewIfNoRecordsAvailable(IdentifierType identifierType) {
-    var jobId = UUID.randomUUID();
-    var jobCommand = new JobCommand();
-    jobCommand.setId(jobId);
-    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
-    jobCommand.setEntityType(USER);
-    jobCommand.setIdentifierType(identifierType);
-    jobCommand.setJobParameters(new JobParametersBuilder()
-      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/no_file")
-      .toJobParameters());
-
-    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
-
-    var headers = defaultHeaders();
-    var response = mockMvc.perform(get(format(PREVIEW_ITEMS_URL_TEMPLATE, jobId))
-        .headers(headers)
-        .queryParam(LIMIT, String.valueOf(3)))
-      .andExpect(status().isOk());
-
-    var items = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), ItemCollection.class);
-    assertThat(items.getTotalRecords(), equalTo(0));
-    assertThat(items.getItems(), hasSize(0));
-  }
-
-  @SneakyThrows
+   @SneakyThrows
   @ParameterizedTest
   @CsvSource({"BULK_EDIT_UPDATE,barcode==(\"123\" OR \"456\")",
     "BULK_EDIT_QUERY,(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName"})
@@ -358,15 +302,20 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(2L, equalTo(limitCaptor.getValue()));
   }
 
-  @SneakyThrows
   @ParameterizedTest
-  @EnumSource(EntityType.class)
-  void shouldReturnCompleteUpdatePreviewWithLimitControl(EntityType entityType) {
-    var query = "barcode==(\"123\" OR \"456\")";
-    var jobId = UUID.randomUUID();
-    var jobCommand = createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, entityType, BARCODE);
+  @EnumSource(value = IdentifierType.class, names = { "EXTERNAL_SYSTEM_ID", "USER_NAME" }, mode = EnumSource.Mode.EXCLUDE)
+  @SneakyThrows
+  void shouldReturnCompleteItemPreviewWithDifferentIdentifiers(IdentifierType identifierType) {
+    var query = FORMER_IDS == identifierType ?
+      String.format("%s=(\"123\" OR \"456\")", resolveIdentifier(identifierType.getValue())) :
+      String.format("%s==(\"123\" OR \"456\")", resolveIdentifier(identifierType.getValue()));
+
     when(inventoryClient.getItemByQuery(query, 2)).thenReturn(buildItemCollection());
+
+    var jobId = UUID.randomUUID();
+    var jobCommand = createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, ITEM, identifierType);
     when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
 
     var headers = defaultHeaders();
 

@@ -276,9 +276,10 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(items.getItems(), hasSize(3));
   }
 
-   @SneakyThrows
+  @SneakyThrows
   @ParameterizedTest
-  @CsvSource({"BULK_EDIT_UPDATE,barcode==(\"123\" OR \"456\")",
+  @CsvSource({"BULK_EDIT_IDENTIFIERS,barcode==(\"123\" OR \"456\")",
+    "BULK_EDIT_UPDATE,barcode==(\"123\" OR \"456\")",
     "BULK_EDIT_QUERY,(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName"})
   void shouldReturnCompleteUserPreviewWithLimitControl(String exportType, String query) {
 
@@ -298,6 +299,33 @@ class BulkEditControllerTest extends BaseBatchTest {
     ArgumentCaptor<String> queryCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<Long> limitCaptor = ArgumentCaptor.forClass(Long.class);
     verify(userClient).getUserByQuery(queryCaptor.capture(), limitCaptor.capture());
+    assertThat(query, equalTo(queryCaptor.getValue()));
+    assertThat(2L, equalTo(limitCaptor.getValue()));
+  }
+
+
+  @SneakyThrows
+  @ParameterizedTest
+  @CsvSource({"BULK_EDIT_IDENTIFIERS,barcode==(\"123\" OR \"456\")",
+    "BULK_EDIT_UPDATE,barcode==(\"123\" OR \"456\")"})
+  void shouldReturnCompleteItemsPreviewWithLimitControl(String exportType, String query) {
+
+    when(inventoryClient.getItemByQuery(query, 2)).thenReturn(buildItemCollection());
+
+    var jobId = JOB_ID;
+    var jobCommand = createBulkEditJobRequest(jobId, ExportType.fromValue(exportType), ITEM, BARCODE);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
+    var headers = defaultHeaders();
+
+    var response = mockMvc.perform(get(format(PREVIEW_ITEMS_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(2)))
+      .andExpect(status().isOk());
+
+    ArgumentCaptor<String> queryCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<Long> limitCaptor = ArgumentCaptor.forClass(Long.class);
+    verify(inventoryClient).getItemByQuery(queryCaptor.capture(), limitCaptor.capture());
     assertThat(query, equalTo(queryCaptor.getValue()));
     assertThat(2L, equalTo(limitCaptor.getValue()));
   }
@@ -987,6 +1015,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     }
     params.put(FILE_NAME, new JobParameter(fileName));
     params.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(fileName));
+    params.put(UPDATED_FILE_NAME, new JobParameter(fileName));
     jobCommand.setJobParameters(new JobParameters(params));
     return jobCommand;
   }

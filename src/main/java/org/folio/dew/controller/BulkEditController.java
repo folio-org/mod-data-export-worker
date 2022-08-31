@@ -382,7 +382,7 @@ public class BulkEditController implements JobIdApi {
 
   private int getNumberOfLinesToSkip(JobCommand jobCommand) {
     if (BULK_EDIT_UPDATE == jobCommand.getExportType()) {
-      return nonNull(jobCommand.getJobParameters().getString(UPDATED_FILE_NAME)) ? 0 : 1;
+      return nonNull(jobCommand.getJobParameters().getString(UPDATED_FILE_NAME)) ? 1 : 0;
     }
     return 0;
   }

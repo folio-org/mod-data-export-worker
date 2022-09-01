@@ -38,9 +38,9 @@ public class HoldingsFormat {
   @CsvBindByPosition(position = 4)
   private String formerIds;
 
-  @CsvBindByName(column = "Instance id")
+  @CsvBindByName(column = "Instance")
   @CsvBindByPosition(position = 5)
-  private String instanceId;
+  private String instance;
 
   @CsvBindByName(column = "Permanent location")
   @CsvBindByPosition(position = 6)

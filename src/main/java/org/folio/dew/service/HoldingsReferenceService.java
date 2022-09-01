@@ -42,6 +42,16 @@ public class HoldingsReferenceService {
     }
   }
 
+  public String getInstanceTitleById(String instanceId) {
+    try {
+      return isEmpty(instanceId) ? EMPTY : instanceClient.getById(instanceId).getTitle();
+    } catch (NotFoundException e) {
+      var msg = "Instance not found by id=" + instanceId;
+      log.error(msg);
+      throw new BulkEditException(msg);
+    }
+  }
+
   public String getHoldingsIdByItemBarcode(String itemBarcode) {
     var items = inventoryClient.getItemByQuery("barcode==" + itemBarcode, 1);
     if (items.getItems().isEmpty()) {

@@ -197,6 +197,19 @@
     },
     {
       "request": {
+        "method": "GET",
+        "url": "/users/88a087b4-c3a1-485b-8a22-2fa8f7b661c4"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"username\":\"User name1\",\"id\":\"88a087b4-c3a1-485b-8a22-2fa8f7b661c4\",\"externalSystemId\":\"74c30c60-0c55-4c03-94a3-0ea02e158807\",\"barcode\":\"12345\",\"active\":true,\"type\":\"Type\",\"patronGroup\":\"3684a786-6671-4268-8ed0-9db82ebca60b\",\"departments\":[\"a4b5e97a-0a99-4db9-97df-4fdf406ec74d\"],\"meta\":null,\"proxyFor\":[\"e22cd63e-a9a0-4ef8-b8a3-b2e2522fda93\"],\"personal\":{\"lastName\":\"Last name\",\"firstName\":\"First name\",\"middleName\":\"Middle name\",\"preferredFirstName\":\"Preferred first name\",\"email\":\"Email\",\"phone\":\"Phone\",\"mobilePhone\":\"Mobile phone\",\"dateOfBirth\":914037817989,\"addresses\":[{\"id\":\"80645fbf-6064-40b4-930c-44446e1d0b04\",\"countryId\":\"BE\",\"addressLine1\":\"Address line 1\",\"addressLine2\":\"Address line 2\",\"city\":\"Some City\",\"region\":\"Some Region\",\"postalCode\":\"12345\",\"addressTypeId\":\"93d3d88d-499b-45d0-9bc7-ac73c3a19880\",\"primaryAddress\":true},{\"id\":\"c01a1a6c-3d34-4312-96d3-a42812be3eda\",\"countryId\":\"BE\",\"addressLine1\":\"Address 2 line 1\",\"addressLine2\":\"Address 2 line 2\",\"city\":\"Some City 2\",\"region\":\"Some Region 2\",\"postalCode\":\"12345\",\"addressTypeId\":null,\"primaryAddress\":true}],\"preferredContactTypeId\":\"b376d1f8-6dd0-49af-8bac-13e177cc9a73\"},\"enrollmentDate\":1639884217989,\"expirationDate\":1639970617989,\"createdDate\":1638671017989,\"updatedDate\":1638674617989,\"metadata\":null,\"tags\":{\"tagList\":[\"Tag1\"]},\"customFields\":{\"testtextarea\" : \"morty's text area\", \"testcheckbox\" : true, \"testradio\" : \"opt_1\", \"testtextfield\" : \"morty's text field\", \"testsingleselect\" : \"opt_1\", \"testmultiselect\" : [ \"opt_1\", \"opt_0\" ]}}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
         "method": "PUT",
         "url": "/users/88a087b4-c3a1-485b-8a22-2fa8f7b661c4",
         "bodyPatterns": [
@@ -207,6 +220,19 @@
       },
       "response": {
         "status": 204,
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/users/47882858-a8c6-4898-a984-1df3c1354385"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"username\":\"User name2\",\"id\":\"47882858-a8c6-4898-a984-1df3c1354385\",\"externalSystemId\":\"74c30c60-0c55-4c03-94a3-0ea02e158807\",\"barcode\":\"54321\",\"active\":true,\"type\":\"Type\",\"patronGroup\":\"3684a786-6671-4268-8ed0-9db82ebca60b\",\"departments\":[\"a4b5e97a-0a99-4db9-97df-4fdf406ec74d\"],\"meta\":null,\"proxyFor\":[\"e22cd63e-a9a0-4ef8-b8a3-b2e2522fda93\"],\"personal\":{\"lastName\":\"Last name\",\"firstName\":\"First name\",\"middleName\":\"Middle name\",\"preferredFirstName\":\"Preferred first name\",\"email\":\"Email\",\"phone\":\"Phone\",\"mobilePhone\":\"Mobile phone\",\"dateOfBirth\":914037817989,\"addresses\":[{\"id\":\"80645fbf-6064-40b4-930c-44446e1d0b04\",\"countryId\":\"BE\",\"addressLine1\":\"Address line 1\",\"addressLine2\":\"Address line 2\",\"city\":\"Some City\",\"region\":\"Some Region\",\"postalCode\":\"12345\",\"addressTypeId\":\"93d3d88d-499b-45d0-9bc7-ac73c3a19880\",\"primaryAddress\":true},{\"id\":\"c01a1a6c-3d34-4312-96d3-a42812be3eda\",\"countryId\":\"BE\",\"addressLine1\":\"Address 2 line 1\",\"addressLine2\":\"Address 2 line 2\",\"city\":\"Some City 2\",\"region\":\"Some Region 2\",\"postalCode\":\"12345\",\"addressTypeId\":null,\"primaryAddress\":true}],\"preferredContactTypeId\":\"b376d1f8-6dd0-49af-8bac-13e177cc9a73\"},\"enrollmentDate\":1639884217989,\"expirationDate\":1639970617989,\"createdDate\":1638671017989,\"updatedDate\":1638674617989,\"metadata\":null,\"tags\":{\"tagList\":[\"Tag1\"]},\"customFields\":{\"testtextarea\" : \"morty's text area\", \"testcheckbox\" : true, \"testradio\" : \"opt_1\", \"testtextfield\" : \"morty's text field\", \"testsingleselect\" : \"opt_1\", \"testmultiselect\" : [ ]}}",
         "headers": {
           "Content-Type": "application/json"
         }

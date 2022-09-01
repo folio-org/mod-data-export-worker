@@ -20,12 +20,11 @@ import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
-import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
 import static org.folio.dew.utils.Constants.STATUS_FIELD_CAN_NOT_CLEARED;
 import static org.folio.dew.utils.Constants.STATUS_VALUE_NOT_ALLOWED;
-import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
+import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -36,15 +35,14 @@ import org.folio.dew.domain.dto.ContentUpdateCollection;
 import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.FileOperationException;
-import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.utils.CsvHelper;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -60,22 +58,23 @@ public class BulkEditItemContentUpdateService {
   private String springApplicationName;
 
   private final ItemReferenceService itemReferenceService;
-  private final MinIOObjectStorageRepository repository;
+  private final RemoteFilesStorage remoteFilesStorage;
+  private final LocalFilesStorage localFilesStorage;
   private final BulkEditProcessingErrorsService errorsService;
 
   @PostConstruct
   public void postConstruct() {
-    workdir = System.getProperty(TMP_DIR_PROPERTY) + PATH_SEPARATOR + springApplicationName + PATH_SEPARATOR;
+    workdir = getWorkingDirectory(springApplicationName);
   }
 
   public ItemUpdatesResult processContentUpdates(JobCommand jobCommand, ContentUpdateCollection contentUpdates) {
     var outputFileName = workdir + UPDATED_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
     try {
       log.info("Processing content updates for job id {}", jobCommand.getId());
-      Files.deleteIfExists(Path.of(outputFileName));
-      repository.downloadObject(FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION, outputFileName);
+      localFilesStorage.delete(outputFileName);
+      remoteFilesStorage.downloadObject(FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION, outputFileName);
       var updateResult = new ItemUpdatesResult();
-      var records = CsvHelper.readRecordsFromFile(outputFileName, ItemFormat.class, true);
+      var records = CsvHelper.readRecordsFromFile(localFilesStorage, outputFileName, ItemFormat.class, true);
       log.info("Reading of file {} complete, number of itemFormats: {}", outputFileName, records.size());
       updateResult.setTotal(records.size());
       var contentUpdated = applyContentUpdates(records, contentUpdates, jobCommand);
@@ -94,7 +93,7 @@ public class BulkEditItemContentUpdateService {
 
   private void saveResultToFile(List<ItemFormat> itemFormats, JobCommand jobCommand, String outputFileName, String propertyValue) {
     try {
-      CsvHelper.saveRecordsToCsv(itemFormats, ItemFormat.class, outputFileName);
+      CsvHelper.saveRecordsToLocalFilesStorage(localFilesStorage, itemFormats, ItemFormat.class, outputFileName);
       log.info("Saved {}", outputFileName);
       jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())
         .addString(propertyValue, outputFileName)

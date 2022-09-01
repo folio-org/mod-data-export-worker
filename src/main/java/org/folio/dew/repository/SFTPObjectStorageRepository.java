@@ -1,14 +1,7 @@
 package org.folio.dew.repository;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.concurrent.TimeUnit;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.future.AuthFuture;
@@ -21,8 +14,10 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.stereotype.Repository;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
 
 @Log4j2
 @Repository
@@ -30,6 +25,7 @@ import lombok.extern.log4j.Log4j2;
 public class SFTPObjectStorageRepository {
 
   private SshSimpleClient sshClient;
+ private final LocalFilesStorage localFilesStorage;
   private static final int LOGIN_TIMEOUT_SECONDS = 5;
 
   public SftpClient getSftpClient(String username, String password, String host, int port) throws IOException {
@@ -72,7 +68,7 @@ public class SFTPObjectStorageRepository {
 
   public boolean upload(String username, String password, String host, int port, String folder, String filename, String content)
       throws Exception {
-    Path srcFile = createTempFile(filename, content);
+    var srcFile = createTempFile(filename, content);
     String folderPath = StringUtils.isEmpty(folder) ? "" : (folder + File.separator);
     String remoteAbsPath = folderPath + filename;
 
@@ -82,7 +78,7 @@ public class SFTPObjectStorageRepository {
     } catch (Exception e) {
       throw new EdifactException(String.format("Unable to connect to %s:%d", host, port));
     }
-    try (InputStream inputStream = Files.newInputStream(srcFile); var session = sshdFactory.getSession()) {
+    try (InputStream inputStream = localFilesStorage.newInputStream(srcFile); var session = sshdFactory.getSession()) {
       log.info("Start uploading file to SFTP path: {}", remoteAbsPath);
 
       createRemoteDirectoryIfAbsent(session, folder);
@@ -93,20 +89,16 @@ public class SFTPObjectStorageRepository {
       log.info("Error uploading the file", e);
       return false;
     } finally {
-      Files.deleteIfExists(srcFile);
+      localFilesStorage.delete(srcFile);
     }
   }
 
-  private Path createTempFile(String filename, String content) throws IOException {
-    Path srcFile = Paths.get(filename);
-    Files.deleteIfExists(srcFile);
+  private String createTempFile(String filename, String content) throws IOException {
 
-    Files.createFile(srcFile);
-    try (FileWriter fileWriter = new FileWriter(filename)) {
-      fileWriter.write(content);
-    }
+    localFilesStorage.delete(filename);
+    localFilesStorage.write(filename, content.getBytes());
 
-    return srcFile;
+    return filename;
   }
 
   public byte[] download(SftpClient sftpClient, String path) {

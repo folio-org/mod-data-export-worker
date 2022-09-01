@@ -28,20 +28,14 @@ import static org.folio.dew.utils.Constants.FILE_UPLOAD_ERROR;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
-import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
-import static org.folio.dew.utils.Constants.QUOTE;
-import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
+import static org.folio.dew.utils.Constants.getWorkingDirectory;
 import static org.folio.dew.utils.CsvHelper.countLines;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
@@ -56,7 +50,6 @@ import javax.validation.constraints.NotNull;
 
 import com.opencsv.CSVReader;
 import com.opencsv.bean.CsvToBeanBuilder;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.client.InventoryClient;
@@ -69,6 +62,8 @@ import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.error.NotFoundException;
 import org.folio.dew.error.NonSupportedEntityException;
+import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.BulkEditItemContentUpdateService;
 import org.folio.dew.service.BulkEditParseService;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
@@ -123,6 +118,8 @@ public class BulkEditController implements JobIdApi {
   private final List<Job> jobs;
   private final BulkEditItemContentUpdateService itemContentUpdateService;
   private final BulkEditParseService bulkEditParseService;
+  private final RemoteFilesStorage remoteFilesStorage;
+  private final LocalFilesStorage localFilesStorage;
   private final FolioModuleMetadata folioModuleMetadata;
   private final FolioExecutionContext folioExecutionContext;
 
@@ -132,13 +129,13 @@ public class BulkEditController implements JobIdApi {
 
   @PostConstruct
   public void postConstruct() {
-    workDir = System.getProperty(TMP_DIR_PROPERTY) + PATH_SEPARATOR + springApplicationName + PATH_SEPARATOR;
+    workDir = getWorkingDirectory(springApplicationName);
   }
 
   @Override
   public ResponseEntity<ItemCollection> postContentUpdates(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId,@ApiParam(value = "" ,required=true )  @Valid @RequestBody ContentUpdateCollection contentUpdateCollection,@ApiParam(value = "The numbers of records to return") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
     if (ITEM == contentUpdateCollection.getEntityType()) {
-      bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId.toString());
+      bulkEditProcessingErrorsService.removeTemporaryErrorStorage();
       var jobCommand = getJobCommandById(jobId.toString());
       if (nonNull(jobCommand.getIdentifierType())) {
         jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())
@@ -171,9 +168,10 @@ public class BulkEditController implements JobIdApi {
     try {
       var updatedFileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(PREVIEW_FILE_NAME));
       var updatedFullPath = FilenameUtils.getFullPath(jobCommand.getJobParameters().getString(PREVIEW_FILE_NAME));
-      Path updatedFilePath = Paths.get(updatedFullPath + updatedFileName);
-      ByteArrayResource updatedFileResource = new ByteArrayResource(Files.readAllBytes(updatedFilePath));
-      headers.setContentLength(updatedFilePath.toFile().length());
+      var updatedFilePath = updatedFullPath + updatedFileName;
+      var content = localFilesStorage.readAllBytes(updatedFilePath);
+      ByteArrayResource updatedFileResource = new ByteArrayResource(content);
+      headers.setContentLength(content.length);
       headers.setContentDispositionFormData(updatedFileName, updatedFileName);
       return ResponseEntity.ok().headers(headers).body(updatedFileResource);
     } catch (Exception e) {
@@ -197,17 +195,15 @@ public class BulkEditController implements JobIdApi {
     }
 
     var jobCommand = getJobCommandById(jobId.toString());
-    var uploadedPath = Path.of(workDir, file.getOriginalFilename());
+    var uploadedPath = workDir + file.getOriginalFilename();
 
     try {
-      if (Files.exists(uploadedPath)) {
-        FileUtils.forceDelete(uploadedPath.toFile());
-      }
-      Files.write(uploadedPath, file.getBytes());
+      localFilesStorage.delete(uploadedPath);
+      localFilesStorage.write(uploadedPath, file.getBytes());
       prepareJobParameters(jobCommand, uploadedPath);
       jobCommandsReceiverService.updateJobCommand(jobCommand);
       if (isBulkEditUpdate(jobCommand) && jobCommand.getEntityType() == USER) {
-        Files.write( Path.of(workDir, INITIAL_PREFIX + file.getOriginalFilename()), file.getBytes());
+        localFilesStorage.write( workDir + INITIAL_PREFIX + file.getOriginalFilename(), file.getBytes());
         processUpdateUsers(uploadedPath, file, jobId);
       }
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
@@ -289,13 +285,12 @@ public class BulkEditController implements JobIdApi {
       .orElseThrow(() -> new IllegalStateException("Job was not found, aborting"));
   }
 
-  private void prepareJobParameters(JobCommand jobCommand, Path uploadedPath) throws IOException {
-    var fileName = uploadedPath.toString();
+  private void prepareJobParameters(JobCommand jobCommand, String uploadedPath) throws IOException {
     var paramsBuilder = new JobParametersBuilder(jobCommand.getJobParameters());
-    paramsBuilder.addString(FILE_NAME, fileName);
-    paramsBuilder.addLong(TOTAL_CSV_LINES, countLines(uploadedPath, isBulkEditUpdate(jobCommand)));
+    paramsBuilder.addString(FILE_NAME, uploadedPath);
+    paramsBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, uploadedPath, isBulkEditUpdate(jobCommand)));
     paramsBuilder.addString(TEMP_OUTPUT_FILE_PATH,
-      workDir + (isBulkEditUpdate(jobCommand) ? EMPTY : LocalDate.now() + MATCHED_RECORDS) + FilenameUtils.getBaseName(fileName));
+      workDir + (isBulkEditUpdate(jobCommand) ? EMPTY : LocalDate.now() + MATCHED_RECORDS) + FilenameUtils.getBaseName(uploadedPath));
     paramsBuilder.addString(EXPORT_TYPE, jobCommand.getExportType().getValue());
     ofNullable(jobCommand.getIdentifierType()).ifPresent(type ->
       paramsBuilder.addString("identifierType", type.getValue()));
@@ -356,7 +351,7 @@ public class BulkEditController implements JobIdApi {
     var fileName = extractFileName(jobCommand);
     if (StringUtils.isEmpty(fileName)) throw new FileOperationException("File for preview is not present or was not uploaded");
     if (!fileName.contains(CSV_EXTENSION)) fileName += CSV_EXTENSION;
-    try (var reader = new CSVReader(new FileReader(fileName))) {
+    try (var reader = new CSVReader(new InputStreamReader(localFilesStorage.newInputStream(fileName)))) {
       var values = reader.readAll().stream()
         .skip(getNumberOfLinesToSkip(jobCommand))
         .limit(limit)
@@ -413,16 +408,16 @@ public class BulkEditController implements JobIdApi {
     }
   }
 
-  private void processUpdateUsers(Path uploadedPath, MultipartFile file, UUID jobId) throws IOException {
+  private void processUpdateUsers(String uploadedPath, MultipartFile file, UUID jobId) throws IOException {
     try {
       var updatedUserFormats = getDifferenceBetweenInitialAndEditedUsersCSV(file.getInputStream(), jobId);
       if (updatedUserFormats.isEmpty()) { // If no records changed, just write column headers.
-        Files.write(uploadedPath, UserFormat.getUserColumnHeaders().getBytes());
+        localFilesStorage.write(uploadedPath, UserFormat.getUserColumnHeaders().getBytes());
       } else {
-        CsvHelper.saveRecordsToCsv(updatedUserFormats, UserFormat.class, uploadedPath.toFile().getAbsolutePath());
+        CsvHelper.saveRecordsToLocalFilesStorage(localFilesStorage, updatedUserFormats, UserFormat.class, uploadedPath);
       }
     } catch (Exception e) { // If any issues in the file, delegate them to the SkipListener.
-      Files.write(uploadedPath, file.getBytes());
+      localFilesStorage.write(uploadedPath, file.getBytes());
     }
   }
 

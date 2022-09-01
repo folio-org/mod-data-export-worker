@@ -6,18 +6,17 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.error.BulkEditException;
-import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.utils.Constants;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import org.springframework.batch.core.launch.JobOperator;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
@@ -28,8 +27,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.folio.dew.utils.Constants.JOB_ID_SEPARATOR;
-import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
-import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
+import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
 @Service
 @RequiredArgsConstructor
@@ -51,11 +49,11 @@ public class BulkEditRollBackService {
   private Job job;
   private final BulkEditRollBackJobLauncher rollBackJobLauncher;
   private final DataExportSpringClient dataExportSpringClient;
-  private final MinIOObjectStorageRepository minIOObjectStorageRepository;
+  private final RemoteFilesStorage remoteFilesStorage;
 
   @PostConstruct
   public void postConstruct() {
-    workDir = System.getProperty(TMP_DIR_PROPERTY) + PATH_SEPARATOR + springApplicationName + PATH_SEPARATOR;
+    workDir = getWorkingDirectory(springApplicationName);
   }
 
   public String stopAndRollBackJobExecutionByJobId(UUID jobId) {
@@ -126,7 +124,7 @@ public class BulkEditRollBackService {
     }
     var fileForRollBackMinIOPath = files.get(0);
     var objectName = getObjectName(fileForRollBackMinIOPath);
-    minIOObjectStorageRepository.downloadObject(objectName, fileForRollBack);
+    remoteFilesStorage.downloadObject(objectName, fileForRollBack);
     rollBackJobLauncher.run(job, getRollBackParameters(jobId.toString(), fileForRollBack));
   }
 

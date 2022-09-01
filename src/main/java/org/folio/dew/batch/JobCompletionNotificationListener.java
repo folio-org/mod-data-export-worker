@@ -136,8 +136,6 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
     kafka.send(KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     if (after) {
-      FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
-      log.debug("FOLIO context closed.");
       log.info("-----------------------------JOB---ENDS-----------------------------");
     }
   }

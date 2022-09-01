@@ -1,7 +1,8 @@
 package org.folio.dew.service;
 
 import static java.util.Objects.nonNull;
-import static java.util.Optional.ofNullable;
+
+import org.folio.de.entity.JobCommandType;
 import org.folio.dew.batch.ExportJobManagerSync;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
@@ -20,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -37,6 +38,7 @@ import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.IAcknowledgementRepository;
+import org.folio.dew.repository.JobCommandRepository;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
@@ -72,9 +74,9 @@ public class JobCommandsReceiverService {
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   private final SearchClient searchClient;
   private final FileNameResolver fileNameResolver;
+  private final JobCommandRepository jobCommandRepository;
   private final List<Job> jobs;
   private Map<String, Job> jobMap;
-  private Map<String, JobCommand> bulkEditJobCommands;
   @Value("${spring.application.name}")
   private String springApplicationName;
   private String workDir;
@@ -87,7 +89,6 @@ public class JobCommandsReceiverService {
     }
 
     workDir = getWorkingDirectory(springApplicationName);
-    bulkEditJobCommands = new ConcurrentHashMap<>();
   }
 
   @KafkaListener(
@@ -127,6 +128,9 @@ public class JobCommandsReceiverService {
 
     } catch (Exception e) {
       log.error(e.toString(), e);
+    } finally {
+      FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
+      log.debug("FOLIO context closed.");
     }
   }
 
@@ -218,7 +222,7 @@ public class JobCommandsReceiverService {
   }
 
   private boolean deleteOldFiles(JobCommand jobCommand, Acknowledgment acknowledgment) {
-    if (jobCommand.getType() != JobCommand.Type.DELETE) {
+    if (jobCommand.getType() != JobCommandType.DELETE) {
       return false;
     }
 
@@ -241,17 +245,21 @@ public class JobCommandsReceiverService {
     if (!objects.isEmpty()) {
       remoteFilesStorage.removeObjects(objects);
     }
-    bulkEditJobCommands.remove(jobCommand.getId().toString());
+    jobCommandRepository.delete(jobCommand);
     bulkEditProcessingErrorsService.removeTemporaryErrorStorage();
     return true;
   }
 
   public void addBulkEditJobCommand(JobCommand jobCommand) {
-    bulkEditJobCommands.putIfAbsent(jobCommand.getId().toString(), jobCommand);
+    if (!jobCommandRepository.existsById(jobCommand.getId())) jobCommandRepository.save(jobCommand);
   }
 
   public Optional<JobCommand> getBulkEditJobCommandById(String id) {
-    return ofNullable(bulkEditJobCommands.get(id));
+    return jobCommandRepository.findById(UUID.fromString(id));
+  }
+
+  public void updateJobCommand(JobCommand jobCommand) {
+    jobCommandRepository.save(jobCommand);
   }
 
 }

@@ -28,7 +28,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.times;
@@ -45,7 +44,9 @@ import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.folio.de.entity.JobCommand;
+import org.folio.de.entity.JobCommandType;
 import org.folio.dew.BaseBatchTest;
+import org.folio.dew.client.ConfigurationClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.*;
@@ -54,6 +55,7 @@ import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.repository.S3CompatibleResource;
+import org.folio.dew.repository.JobCommandRepository;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.JobCommandsReceiverService;
@@ -118,6 +120,15 @@ class BulkEditControllerTest extends BaseBatchTest {
   @MockBean
   private InventoryClient inventoryClient;
 
+  @MockBean
+  private JobCommandRepository jobCommandRepository;
+
+  @MockBean
+  private JobCommandsReceiverService jobCommandsReceiverService;
+
+  @MockBean
+  private ConfigurationClient configurationClient;
+
   @Autowired
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
 
@@ -128,16 +139,14 @@ class BulkEditControllerTest extends BaseBatchTest {
   private LocalFilesStorage localFilesStorage;
 
   @Autowired
-  private JobCommandsReceiverService jobCommandsReceiverService;
-
-  @Autowired
   private BulkEditProcessingErrorsService errorsService;
 
   @Test
   void shouldReturnErrorsPreview() throws Exception {
 
     var jobId = JOB_ID;
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE));
+    var jobCommand = createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     int numOfErrorLines = 3;
     int errorsPreviewLimit = 2;
@@ -165,7 +174,8 @@ class BulkEditControllerTest extends BaseBatchTest {
   void shouldReturnEmptyErrorsForErrorsPreview() throws Exception {
 
     var jobId = JOB_ID;
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE));
+    var jobCommand = createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var expectedErrorMsg = format("errors file for job id %s", jobId);
 
@@ -204,7 +214,9 @@ class BulkEditControllerTest extends BaseBatchTest {
     when(userClient.getUserByQuery(query, 3)).thenReturn(buildUserCollection());
 
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_QUERY, USER, BARCODE));
+    var jobCommand = createBulkEditJobRequest(jobId, BULK_EDIT_QUERY, USER, BARCODE);
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var headers = defaultHeaders();
 
@@ -225,11 +237,15 @@ class BulkEditControllerTest extends BaseBatchTest {
     mode = EnumSource.Mode.INCLUDE)
   void shouldReturnCompleteUserPreviewForAnyIdentifier(IdentifierType identifierType) {
 
+
     var query = resolveIdentifier(identifierType.getValue()) + "==(\"123\" OR \"456\" OR \"789\")";
     when(userClient.getUserByQuery(query, 3)).thenReturn(buildUserCollection());
 
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, identifierType));
+    var jobCommand = createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, identifierType);
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
 
     var headers = defaultHeaders();
 
@@ -255,7 +271,10 @@ class BulkEditControllerTest extends BaseBatchTest {
     when(inventoryClient.getItemByQuery(query, 3)).thenReturn(buildItemCollection());
 
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, ITEM, identifierType));
+    var jobCommand = createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, ITEM, identifierType);
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
 
     var headers = defaultHeaders();
 
@@ -276,10 +295,11 @@ class BulkEditControllerTest extends BaseBatchTest {
     "BULK_EDIT_QUERY,(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName"})
   void shouldReturnCompleteUserPreviewWithLimitControl(String exportType, String query) {
 
-    when(userClient.getUserByQuery(query, 2)).thenReturn(buildUserCollection());
-
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType), USER, BARCODE));
+    var jobCommand = createBulkEditJobRequest(jobId, ExportType.fromValue(exportType), USER, BARCODE);
+
+    when(userClient.getUserByQuery(query, 2)).thenReturn(buildUserCollection());
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var headers = defaultHeaders();
 
@@ -295,6 +315,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(2L, equalTo(limitCaptor.getValue()));
   }
 
+
   @SneakyThrows
   @ParameterizedTest
   @CsvSource({"BULK_EDIT_IDENTIFIERS,barcode==(\"123\" OR \"456\")",
@@ -304,7 +325,8 @@ class BulkEditControllerTest extends BaseBatchTest {
     when(inventoryClient.getItemByQuery(query, 2)).thenReturn(buildItemCollection());
 
     var jobId = JOB_ID;
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.fromValue(exportType), ITEM, BARCODE));
+    var jobCommand = createBulkEditJobRequest(jobId, ExportType.fromValue(exportType), ITEM, BARCODE);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var headers = defaultHeaders();
 
@@ -331,7 +353,9 @@ class BulkEditControllerTest extends BaseBatchTest {
     when(inventoryClient.getItemByQuery(query, 2)).thenReturn(buildItemCollection());
 
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, ITEM, identifierType));
+    var jobCommand = createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, ITEM, identifierType);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
 
     var headers = defaultHeaders();
 
@@ -352,7 +376,9 @@ class BulkEditControllerTest extends BaseBatchTest {
   void shouldReturnErrorForInvalidExportType() {
 
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.ORDERS_EXPORT, USER, BARCODE));
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString()))
+      .thenReturn(Optional.of(createBulkEditJobRequest(jobId, ExportType.ORDERS_EXPORT, USER, BARCODE)));
 
     var headers = defaultHeaders();
 
@@ -379,7 +405,8 @@ class BulkEditControllerTest extends BaseBatchTest {
   @SneakyThrows
   void shouldLaunchJobAndReturnNumberOfRecordsOnIdentifiersFileUpload() {
     var jobId = UUID.randomUUID();
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE));
+    var jobCommand = createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var headers = defaultHeaders();
 
@@ -400,8 +427,9 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Skip headers while counting records for update")
   @SneakyThrows
   void shouldSkipHeadersWhileCountingRecordsForUpdate() {
-    var jobId = JOB_ID;
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_UPDATE, USER, BARCODE));
+    var jobId = UUID.randomUUID();
+    var jobCommand = createBulkEditJobRequest(jobId, ExportType.BULK_EDIT_UPDATE, USER, BARCODE);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var headers = defaultHeaders();
 
@@ -413,8 +441,7 @@ class BulkEditControllerTest extends BaseBatchTest {
         .headers(headers))
       .andExpect(status().isOk())
       .andReturn();
-
-    assertThat(result.getResponse().getContentAsString(), equalTo("3"));
+    assertThat(result.getResponse().getContentAsString(), equalTo("2"));
   }
 
   @Test
@@ -474,7 +501,6 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     verify(jobCommandsReceiverService, times(1)).getBulkEditJobCommandById(jobId.toString());
     verify(exportJobManagerSync, times(1)).launchJob(isA(JobLaunchRequest.class));
-    verify(bulkEditRollBackService, times(1)).putExecutionInfoPerJob(executionId, jobId);
   }
 
   @Test
@@ -489,8 +515,6 @@ class BulkEditControllerTest extends BaseBatchTest {
     mockMvc.perform(multipart(format(START_URL_TEMPLATE, jobId))
       .headers(headers))
       .andExpect(status().isNotFound());
-
-    verify(jobCommandsReceiverService, times(1)).getBulkEditJobCommandById(jobId.toString());
   }
 
   @Test
@@ -528,7 +552,7 @@ class BulkEditControllerTest extends BaseBatchTest {
       .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_LOCATION_UPDATE.replace(CSV_EXTENSION, EMPTY))
       .toJobParameters());
 
-    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
       .entityType(ITEM)
@@ -574,7 +598,7 @@ class BulkEditControllerTest extends BaseBatchTest {
       .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_LOCATION_UPDATE.replace(CSV_EXTENSION, EMPTY))
       .toJobParameters());
 
-    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var updates = Arrays.asList(
       new ContentUpdate().option(testData.getOption()).action(testData.getAction()).value(testData.getValue()),
@@ -622,7 +646,15 @@ class BulkEditControllerTest extends BaseBatchTest {
       .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_LOCATION_UPDATE.replace(CSV_EXTENSION, EMPTY))
       .toJobParameters());
 
-    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+    var modelConfiguration = new ModelConfiguration();
+    modelConfiguration.setValue("{\"Available\":[\"Missing\",\"Withdrawn\",\"In process (non-requestable)\"]}");
+    var configurationCollection = new ConfigurationCollection();
+    configurationCollection.setConfigs(List.of(modelConfiguration));
+    var configs = new ConfigurationCollection();
+    configs.setConfigs(List.of(modelConfiguration));
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+    when(configurationClient.getConfigurations(any())).thenReturn(configs);
 
     var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
       .entityType(ITEM)
@@ -697,7 +729,15 @@ class BulkEditControllerTest extends BaseBatchTest {
       .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_STATUS_UPDATE.replace(CSV_EXTENSION, EMPTY))
       .toJobParameters());
 
-    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+    var modelConfiguration = new ModelConfiguration();
+    modelConfiguration.setValue("{\"Available\":[\"Missing\",\"Withdrawn\",\"In process (non-requestable)\"]}");
+    var configurationCollection = new ConfigurationCollection();
+    configurationCollection.setConfigs(List.of(modelConfiguration));
+    var configs = new ConfigurationCollection();
+    configs.setConfigs(List.of(modelConfiguration));
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+    when(configurationClient.getConfigurations(any())).thenReturn(configs);
 
     var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
       .entityType(ITEM)
@@ -757,7 +797,7 @@ class BulkEditControllerTest extends BaseBatchTest {
         .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEM_FOR_STATUS_UPDATE_ERROR.replace(CSV_EXTENSION, EMPTY))
         .toJobParameters());
 
-    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
         .entityType(ITEM)
@@ -794,7 +834,7 @@ class BulkEditControllerTest extends BaseBatchTest {
       .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEMS_FOR_NOTHING_UPDATE.replace(CSV_EXTENSION, EMPTY))
       .toJobParameters());
 
-    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var updates = objectMapper.writeValueAsString(new ContentUpdateCollection()
       .entityType(ITEM)
@@ -893,8 +933,9 @@ class BulkEditControllerTest extends BaseBatchTest {
         .customFields(Map.of()).metadata(new Metadata().createdByUsername("abcdef")));
 
     var jobId = UUID.randomUUID();
+    var jobCommand = createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE);
 
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE));
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var headers = defaultHeaders();
 
@@ -911,8 +952,8 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(result.getResponse().getContentAsString(), equalTo("4"));
 
     jobId = UUID.randomUUID();
-
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, USER, BARCODE));
+    var jobCommand2 = createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, USER, BARCODE);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand2));
 
     headers = defaultHeaders();
 
@@ -929,8 +970,8 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(result.getResponse().getContentAsString(), equalTo("3"));
 
     jobId = UUID.randomUUID();
-
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, USER, BARCODE));
+    var jobCommand3 =createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, USER, BARCODE) ;
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand3));
 
     headers = defaultHeaders();
 
@@ -948,8 +989,8 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(result.getResponse().getContentAsString(), equalTo("3"));
 
     jobId = UUID.randomUUID();
-
-    jobCommandsReceiverService.addBulkEditJobCommand(createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, USER, BARCODE));
+    var jobCommand4 =createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, USER, BARCODE) ;
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand4));
 
     headers = defaultHeaders();
 
@@ -969,7 +1010,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType, EntityType entityType, IdentifierType identifierType) {
     JobCommand jobCommand = new JobCommand();
-    jobCommand.setType(JobCommand.Type.START);
+    jobCommand.setType(JobCommandType.START);
     jobCommand.setId(id);
     jobCommand.setName(exportType.toString());
     jobCommand.setDescription("Job description");
@@ -1003,6 +1044,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     }
     params.put(FILE_NAME, new JobParameter(fileName));
     params.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(fileName));
+    params.put(UPDATED_FILE_NAME, new JobParameter(fileName));
     jobCommand.setJobParameters(new JobParameters(params));
     return jobCommand;
   }

@@ -38,14 +38,19 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.SocketUtils;
 
@@ -55,9 +60,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 
 import lombok.SneakyThrows;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
     "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ContextConfiguration(initializers = BaseBatchTest.DockerPostgreDataSourceInitializer.class)
+@Testcontainers
 @AutoConfigureMockMvc
 @EmbeddedKafka(topics = { "diku.data-export.job.command" })
 @EnableBatchProcessing
@@ -67,6 +77,7 @@ public abstract class BaseBatchTest {
 
   public static final int WIRE_MOCK_PORT = SocketUtils.findAvailableTcpPort();
   public static WireMockServer wireMockServer;
+  public static PostgreSQLContainer<?> postgreDBContainer = new PostgreSQLContainer<>("postgres:13");
 
   @Autowired
   protected MockMvc mockMvc;
@@ -95,6 +106,21 @@ public abstract class BaseBatchTest {
 
   @Value("${spring.application.name}")
   protected String springApplicationName;
+
+  static {
+    postgreDBContainer.start();
+  }
+
+  public static class DockerPostgreDataSourceInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+    @Override
+    public void initialize(ConfigurableApplicationContext applicationContext) {
+      TestPropertySourceUtils.addInlinedPropertiesToEnvironment(applicationContext,
+        "spring.datasource.url=" + postgreDBContainer.getJdbcUrl(),
+        "spring.datasource.username=" + postgreDBContainer.getUsername(),
+        "spring.datasource.password=" + postgreDBContainer.getPassword());
+    }
+  }
 
   @BeforeAll
   static void beforeAll(@Autowired MockMvc mockMvc) {

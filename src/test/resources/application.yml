@@ -1,15 +1,14 @@
 spring:
   application:
     name: mod-data-export-worker
-  batch:
-    jdbc:
-      initialize-schema: always
-      schema: classpath:db/hsql/schema-hsqldb.sql
-    job:
-      enabled: false
   liquibase:
     changeLog: classpath:db/changelog/data-export-worker-changelog-master.xml
     enabled: true
+  batch:
+    job:
+      enabled: false
+    initializer:
+      enabled: false
   kafka:
     listener:
       concurrency: ${KAFKA_CONCURRENCY_LEVEL:30}
@@ -24,12 +23,6 @@ application:
     group-id: ${ENV:folio}-mod-data-export-worker-events-group
   bucket:
     size: ${BUCKET_SIZE:50}
-  datasource:
-    driver: org.hsqldb.jdbcDriver
-    jdbc-url: jdbc:hsqldb:mem:testdb;sql.enforce_strict_size=true;hsqldb.tx=mvcc;sql.syntax_pgs=true
-    username: sa
-    password:
-    max-pool-size: 20
   minio-remote:
     endpoint: http://${embedded.minio.host}:${embedded.minio.port}/
     region: ${AWS_REGION:region}

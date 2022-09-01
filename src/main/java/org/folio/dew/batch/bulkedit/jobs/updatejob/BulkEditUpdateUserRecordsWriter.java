@@ -47,7 +47,6 @@ public class BulkEditUpdateUserRecordsWriter implements ItemWriter<User> {
         userClient.updateUser(user, user.getId());
         log.info("Update user with id - {} by job id {}", user.getId(), jobId);
         bulkEditStatisticService.incrementSuccess();
-        bulkEditRollBackService.putUserIdForJob(user.getId(), UUID.fromString(jobId));
       } catch (Exception e) {
         log.info("Cannot update user with id {}. Reason: {}",  user.getId(), e.getMessage());
         bulkEditProcessingErrorsService.saveErrorInCSV(jobId, user.getBarcode(), new BulkEditException(e.getMessage()), FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));

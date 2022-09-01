@@ -1,7 +1,6 @@
 package org.folio.dew.batch.bulkedit.jobs.rollbackjob;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.io.FileUtils;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.springframework.batch.core.JobExecution;

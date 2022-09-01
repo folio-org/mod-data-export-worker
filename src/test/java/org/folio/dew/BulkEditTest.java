@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.compress.utils.FileNameUtils;
-import org.apache.commons.io.FileUtils;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;

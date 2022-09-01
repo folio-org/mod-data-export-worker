@@ -21,7 +21,6 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.FILE_UPLOAD_ERROR;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
-import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
@@ -31,7 +30,6 @@ import static org.folio.dew.utils.CsvHelper.countLines;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Files;
@@ -51,7 +49,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.opencsv.CSVReader;
-import com.opencsv.bean.CsvToBeanBuilder;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -66,11 +63,9 @@ import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.domain.dto.UserCollection;
 import org.folio.dew.domain.dto.UserContentUpdateCollection;
 import org.folio.dew.domain.dto.UserFormat;
-import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.error.NotFoundException;
 import org.folio.dew.error.NonSupportedEntityException;
-import org.folio.dew.exceptions.InvalidCsvException;
 import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.service.BulkEditItemContentUpdateService;
 import org.folio.dew.service.BulkEditParseService;
@@ -256,7 +251,6 @@ public class BulkEditController implements JobIdApi {
       prepareJobParameters(jobCommand, uploadedPath);
       if (isBulkEditUpdate(jobCommand) && jobCommand.getEntityType() == USER) {
         Files.write( Path.of(workDir, INITIAL_PREFIX + file.getOriginalFilename()), file.getBytes());
-        processUpdateUsers(uploadedPath, file, jobId);
       }
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
       if (!isBulkEditUpdate(jobCommand) && ITEM != jobCommand.getEntityType()) {
@@ -472,54 +466,6 @@ public class BulkEditController implements JobIdApi {
       return Arrays.asList(ItemFormat.getItemFieldsArray()).indexOf(resolveIdentifier(jobCommand.getIdentifierType().getValue()));
     } else {
       throw new NonSupportedEntityException(format("Non-supported entity type: %s", jobCommand.getEntityType()));
-    }
-  }
-
-  private void processUpdateUsers(Path uploadedPath, MultipartFile file, UUID jobId) throws IOException {
-    try {
-      var updatedUserFormats = getDifferenceBetweenInitialAndEditedUsersCSV(file.getInputStream(), jobId);
-      if (updatedUserFormats.isEmpty()) { // If no records changed, just write column headers.
-        Files.write(uploadedPath, UserFormat.getUserColumnHeaders().getBytes());
-      } else {
-        CsvHelper.saveRecordsToCsv(updatedUserFormats, UserFormat.class, uploadedPath.toFile().getAbsolutePath());
-      }
-    } catch (Exception e) { // If any issues in the file, delegate them to the SkipListener.
-      Files.write(uploadedPath, file.getBytes());
-    }
-  }
-
-  private List<UserFormat> getDifferenceBetweenInitialAndEditedUsersCSV(InputStream editedUsersStream, UUID jobId) throws IOException {
-    try (var csvReader = new InputStreamReader(editedUsersStream)) {
-      return new CsvToBeanBuilder<UserFormat>(csvReader)
-        .withType(UserFormat.class)
-        .withFilter(line -> {
-          if (line.length != UserFormat.getUserFieldsArray().length) {
-            throw new InvalidCsvException("Number of tokens does not correspond to the number of user fields.");
-          }
-          return true;
-        })
-        .withSkipLines(1)
-        .build()
-        .parse()
-        .stream()
-        .filter(u -> applyUserFilter(u, jobId))
-        .collect(Collectors.toList());
-    }
-  }
-
-  private boolean applyUserFilter(UserFormat editedUserFormat, UUID jobId) {
-    try {
-      var initialUser = userClient.getUserById(editedUserFormat.getId());
-      initialUser.setMetadata(null); // Exclude metadata from comparing users.
-      var isNotEqual = !initialUser.equals(bulkEditParseService.mapUserFormatToUser(editedUserFormat));
-      if (!isNotEqual) {
-        var jobCommand = getJobCommandById(jobId.toString());
-        var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME));
-        bulkEditProcessingErrorsService.saveErrorInCSV(jobId.toString(), initialUser.getBarcode(), new BulkEditException(NO_CHANGE_MESSAGE), fileName);
-      }
-      return isNotEqual;
-    } catch (Exception e) {
-      return true;
     }
   }
 }

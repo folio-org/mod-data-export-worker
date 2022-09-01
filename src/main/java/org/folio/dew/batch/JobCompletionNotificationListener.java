@@ -168,11 +168,15 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     if (StringUtils.isBlank(path) || StringUtils.isBlank(fileNameStart)) {
       return;
     }
-
-    localFilesStorage.delete(path);
-
-
-    log.info("Deleted temp files of job {}.", jobId);
+    var files = localFilesStorage.walk(path)
+      .filter(name -> FilenameUtils.getName(name).startsWith(fileNameStart)).collect(Collectors.toList());
+    if (files.size() == 0) {
+      return;
+    }
+    for (String f : files) {
+        localFilesStorage.delete(f);
+    }
+    log.info("Deleted temp files {} of job {}.", files, jobId);
   }
 
   private Job createJobExecutionUpdate(String jobId, JobExecution jobExecution) {

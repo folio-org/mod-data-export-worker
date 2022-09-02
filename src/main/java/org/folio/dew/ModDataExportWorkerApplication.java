@@ -43,6 +43,7 @@ import org.folio.dew.client.UserClient;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
@@ -90,6 +91,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
   HoldingsNoteTypeClient.class
 })
 @EnableBatchProcessing
+@EntityScan("org.folio.de.entity")
 public class ModDataExportWorkerApplication {
 
   public static void main(String[] args) {

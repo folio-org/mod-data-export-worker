@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import org.folio.dew.BaseBatchTest;
 import org.folio.dew.domain.dto.UserContentUpdateCollection;
 import org.folio.dew.error.ContentUpdateValidationException;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -14,7 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.Collections;
 
 @SpringBootTest
-class UserContentUpdateValidatorServiceTest {
+class UserContentUpdateValidatorServiceTest extends BaseBatchTest {
   @Autowired
   private UserContentUpdateValidatorService validatorService;
   @ParameterizedTest

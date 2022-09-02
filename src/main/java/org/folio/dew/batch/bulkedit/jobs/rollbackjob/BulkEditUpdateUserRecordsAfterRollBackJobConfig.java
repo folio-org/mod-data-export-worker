@@ -59,7 +59,7 @@ public class BulkEditUpdateUserRecordsAfterRollBackJobConfig {
   @Bean
   @StepScope
   public FlatFileItemReader<UserFormat> bulkEditRollBackReader(@Value("#{jobParameters['fileName']}") String fileName) {
-   LineMapper<UserFormat> userLineMapper = JobConfigReaderHelper.createUserLineMapper();
+   var userLineMapper = JobConfigReaderHelper.createLineMapper(UserFormat.class, UserFormat.getUserFieldsArray());
     return new FlatFileItemReaderBuilder<UserFormat>()
       .name("bulkEditRollBackReader")
       .resource(new FileSystemResource(fileName))

@@ -14,6 +14,8 @@ import org.folio.dew.client.InstanceClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.LocationClient;
 import org.folio.dew.client.StatisticalCodeClient;
+import org.folio.dew.domain.dto.IllPolicy;
+import org.folio.dew.domain.dto.ItemLocation;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.springframework.cache.annotation.Cacheable;
@@ -23,6 +25,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Log4j2
 public class HoldingsReferenceService {
+  private static final String QUERY_PATTERN_NAME = "name==\"%s\"";
+  private static final String QUERY_PATTERN_HRID = "hrid==\"%s\"";
+  private static final String QUERY_PATTERN_BARCODE = "barcode==\"%s\"";
+
   private final InstanceClient instanceClient;
   private final InventoryClient inventoryClient;
   private final HoldingsTypeClient holdingsTypeClient;
@@ -34,7 +40,7 @@ public class HoldingsReferenceService {
   private final StatisticalCodeClient statisticalCodeClient;
 
   public String getInstanceIdByHrid(String instanceHrid) {
-    var briefInstances = instanceClient.getByQuery("hrid==" + instanceHrid);
+    var briefInstances = instanceClient.getByQuery(String.format(QUERY_PATTERN_HRID, instanceHrid));
     if (briefInstances.getInstances().isEmpty()) {
       throw new BulkEditException("Instance not found by hrid=" + instanceHrid);
     } else {
@@ -53,14 +59,14 @@ public class HoldingsReferenceService {
   }
 
   public String getHoldingsIdByItemBarcode(String itemBarcode) {
-    var items = inventoryClient.getItemByQuery("barcode==" + itemBarcode, 1);
+    var items = inventoryClient.getItemByQuery(String.format(QUERY_PATTERN_BARCODE, itemBarcode), 1);
     if (items.getItems().isEmpty()) {
       throw new BulkEditException("Item not found by barcode=" + itemBarcode);
     }
     return items.getItems().get(0).getHoldingsRecordId();
   }
 
-  @Cacheable(cacheNames = "holdingsTypes")
+  @Cacheable(cacheNames = "holdingsTypesNames")
   public String getHoldingsTypeNameById(String id) {
     try {
       return isEmpty(id) ? EMPTY : holdingsTypeClient.getById(id).getName();
@@ -71,7 +77,18 @@ public class HoldingsReferenceService {
     }
   }
 
-  @Cacheable(cacheNames = "holdingsLocations")
+  @Cacheable(cacheNames = "holdingsTypes")
+  public String getHoldingsTypeIdByName(String name) {
+    var holdingsTypes = holdingsTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
+    if (holdingsTypes.getHoldingsTypes().isEmpty()) {
+      var msg = "Holdings type not found by name=" + name;
+      log.error(msg);
+      throw new BulkEditException(msg);
+    }
+    return holdingsTypes.getHoldingsTypes().get(0).getId();
+  }
+
+  @Cacheable(cacheNames = "holdingsLocationsNames")
   public String getLocationNameById(String id) {
     try {
       return isEmpty(id) ? EMPTY : locationClient.getLocationById(id).getName();
@@ -82,7 +99,18 @@ public class HoldingsReferenceService {
     }
   }
 
-  @Cacheable(cacheNames = "holdingsCallNumberTypes")
+  @Cacheable(cacheNames = "holdingsLocations")
+  public ItemLocation getLocationByName(String name) {
+    var locations = locationClient.getLocationByQuery(String.format(QUERY_PATTERN_NAME, name));
+    if (locations.getLocations().isEmpty()) {
+      var msg = "Location not found by name=" + name;
+      log.error(msg);
+      throw new BulkEditException(msg);
+    }
+    return locations.getLocations().get(0);
+  }
+
+  @Cacheable(cacheNames = "holdingsCallNumberTypesNames")
   public String getCallNumberTypeNameById(String id) {
     try {
       return isEmpty(id) ? EMPTY : callNumberTypeClient.getById(id).getName();
@@ -93,7 +121,18 @@ public class HoldingsReferenceService {
     }
   }
 
-  @Cacheable(cacheNames = "holdingsNoteTypes")
+  @Cacheable(cacheNames = "holdingsCallNumberTypes")
+  public String getCallNumberTypeIdByName(String name) {
+    var callNumberTypes = callNumberTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
+    if (callNumberTypes.getCallNumberTypes().isEmpty()) {
+      var msg = "Call number type not found by name=" + name;
+      log.error(msg);
+      throw new BulkEditException(msg);
+    }
+    return callNumberTypes.getCallNumberTypes().get(0).getId();
+  }
+
+  @Cacheable(cacheNames = "holdingsNoteTypesNames")
   public String getNoteTypeNameById(String id) {
     try {
       return isEmpty(id) ? EMPTY : holdingsNoteTypeClient.getById(id).getName();
@@ -104,7 +143,18 @@ public class HoldingsReferenceService {
     }
   }
 
-  @Cacheable(cacheNames = "illPolicies")
+  @Cacheable(cacheNames = "holdingsNoteTypes")
+  public String getNoteTypeIdByName(String name) {
+    var noteTypes = holdingsNoteTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
+    if (noteTypes.getHoldingsNoteTypes().isEmpty()) {
+      var msg = "Note type not found by name=" + name;
+      log.error(msg);
+      throw new BulkEditException(msg);
+    }
+    return noteTypes.getHoldingsNoteTypes().get(0).getId();
+  }
+
+  @Cacheable(cacheNames = "illPolicyNames")
   public String getIllPolicyNameById(String id) {
     try {
       return isEmpty(id) ? EMPTY : illPolicyClient.getById(id).getName();
@@ -115,7 +165,18 @@ public class HoldingsReferenceService {
     }
   }
 
-  @Cacheable(cacheNames = "holdingsSources")
+  @Cacheable(cacheNames = "illPolicies")
+  public IllPolicy getIllPolicyByName(String name) {
+    var illPolicies = illPolicyClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
+    if (illPolicies.getIllPolicies().isEmpty()) {
+      var msg = "Ill policy not found by name=" + name;
+      log.error(msg);
+      throw new BulkEditException(msg);
+    }
+    return illPolicies.getIllPolicies().get(0);
+  }
+
+  @Cacheable(cacheNames = "holdingsSourceNames")
   public String getSourceNameById(String id) {
     try {
       return isEmpty(id) ? EMPTY : sourceClient.getById(id).getName();
@@ -126,7 +187,18 @@ public class HoldingsReferenceService {
     }
   }
 
-  @Cacheable(cacheNames = "holdingsStatisticalCodes")
+  @Cacheable(cacheNames = "holdingsSources")
+  public String getSourceIdByName(String name) {
+    var sources = sourceClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
+    if (sources.getHoldingsRecordsSources().isEmpty()) {
+      var msg = "Source not found by name=" + name;
+      log.error(msg);
+      throw new BulkEditException(msg);
+    }
+    return sources.getHoldingsRecordsSources().get(0).getId();
+  }
+
+  @Cacheable(cacheNames = "holdingsStatisticalCodeNames")
   public String getStatisticalCodeNameById(String id) {
     try {
       return isEmpty(id) ? EMPTY : statisticalCodeClient.getById(id).getName();
@@ -135,5 +207,16 @@ public class HoldingsReferenceService {
       log.error(msg);
       throw new BulkEditException(msg);
     }
+  }
+
+  @Cacheable(cacheNames = "holdingsStatisticalCodes")
+  public String getStatisticalCodeIdByName(String name) {
+    var statisticalCodes = statisticalCodeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
+    if (statisticalCodes.getStatisticalCodes().isEmpty()) {
+      var msg = "Statistical code not found by name=" + name;
+      log.error(msg);
+      throw new BulkEditException(msg);
+    }
+    return statisticalCodes.getStatisticalCodes().get(0).getId();
   }
 }

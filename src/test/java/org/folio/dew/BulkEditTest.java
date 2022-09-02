@@ -1,14 +1,20 @@
 package org.folio.dew;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.folio.dew.domain.dto.EntityType.HOLDINGS_RECORD;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
 import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
+import static org.folio.dew.domain.dto.IdentifierType.ID;
+import static org.folio.dew.domain.dto.IdentifierType.INSTANCE_HRID;
+import static org.folio.dew.domain.dto.IdentifierType.ITEM_BARCODE;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
@@ -18,6 +24,7 @@ import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 import java.io.BufferedReader;
@@ -64,6 +71,8 @@ import lombok.SneakyThrows;
 @ExtendWith(MockitoExtension.class)
 class BulkEditTest extends BaseBatchTest {
 
+  private static final String HOLDINGS_IDENTIFIERS_CSV = "src/test/resources/upload/holdings_identifiers.csv";
+  private static final String HOLDINGS_IDENTIFIERS_BAD_REFERENCE_IDS_CSV = "src/test/resources/upload/holdings_identifiers_for_bad_reference_ids.csv";
   private static final String BARCODES_CSV = "src/test/resources/upload/barcodes.csv";
   private static final String BARCODES_FOR_PROGRESS_CSV = "src/test/resources/upload/barcodes_for_progress.csv";
   private static final String ITEM_BARCODES_CSV = "src/test/resources/upload/item_barcodes.csv";
@@ -95,6 +104,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String QUERY_NO_GROUP_FILE_PATH = "src/test/resources/upload/active_no_group.cql";
   private static final String EXPECTED_BULK_EDIT_USER_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_output.csv";
   private static final String EXPECTED_BULK_EDIT_ITEM_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_output.csv";
+  private static final String EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT = "src/test/resources/output/bulk_edit_holdings_records_output.csv";
   private static final String EXPECTED_BULK_EDIT_ITEM_OUTPUT_ESCAPED = "src/test/resources/output/bulk_edit_item_identifiers_output_escaped.csv";
   private static final String EXPECTED_NO_GROUP_OUTPUT = "src/test/resources/output/bulk_edit_no_group_output.csv";
   private static final String EXPECTED_ITEMS_QUERY_OUTPUT = "src/test/resources/output/bulk_edit_item_query_output.csv";
@@ -102,12 +112,19 @@ class BulkEditTest extends BaseBatchTest {
   private final static String EXPECTED_BULK_EDIT_ITEM_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_item_identifiers_output_some_not_found.csv";
   private final static String EXPECTED_BULK_EDIT_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_user_identifiers_errors_output.csv";
   private final static String EXPECTED_BULK_EDIT_ITEM_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_item_identifiers_errors_output.csv";
+  private final static String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS = "src/test/resources/output/bulk_edit_holdings_records_errors_output.csv";
+  private final static String EXPECTED_BULK_EDIT_HOLDINGS_BAD_REFERENCE_IDS_ERRORS = "src/test/resources/output/bulk_edit_holdings_records_bad_reference_ids_errors_output.csv";
+  private final static String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_INST_HRID = "src/test/resources/output/bulk_edit_holdings_records_errors_output_inst_hrid.csv";
+  private static final String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_ITEM_BARCODE = "src/test/resources/output/bulk_edit_holdings_records_errors_output_item_barcode.csv";
   private final static String EXPECTED_BULK_EDIT_ITEM_IDENTIFIERS_HOLDINGS_ERRORS_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_holdings_errors_output.csv";
 
   @Autowired
   private Job bulkEditProcessUserIdentifiersJob;
   @Autowired
   private Job bulkEditProcessItemIdentifiersJob;
+
+  @Autowired
+  private Job bulkEditProcessHoldingsIdentifiersJob;
   @Autowired
   private Job bulkEditUserCqlJob;
   @Autowired
@@ -176,7 +193,7 @@ class BulkEditTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = IdentifierType.class, names = {"USER_NAME", "EXTERNAL_SYSTEM_ID"}, mode = EnumSource.Mode.EXCLUDE)
+  @EnumSource(value = IdentifierType.class, names = {"USER_NAME", "EXTERNAL_SYSTEM_ID", "INSTANCE_HRID", "ITEM_BARCODE"}, mode = EnumSource.Mode.EXCLUDE)
   @DisplayName("Run bulk-edit (item identifiers) successfully")
   void uploadItemIdentifiersJobTest(IdentifierType identifierType) throws Exception {
 
@@ -191,6 +208,44 @@ class BulkEditTest extends BaseBatchTest {
 
     // check if caching works
     wireMockServer.verify(1, getRequestedFor(urlEqualTo("/item-note-types/8d0a5eca-25de-4391-81a9-236eeefdd20b")));
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = IdentifierType.class, names = {"ID", "HRID", "INSTANCE_HRID", "ITEM_BARCODE"}, mode = EnumSource.Mode.INCLUDE)
+  @DisplayName("Run bulk-edit (holdings records identifiers) successfully")
+  void uploadHoldingsIdentifiersJobTest(IdentifierType identifierType) throws Exception {
+
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
+
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, identifierType, HOLDINGS_IDENTIFIERS_CSV, true);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    String expectedErrorsOutputFilePath;
+    if (INSTANCE_HRID == identifierType) {
+      expectedErrorsOutputFilePath = EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_INST_HRID;
+    } else if (ITEM_BARCODE == identifierType) {
+      expectedErrorsOutputFilePath = EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_ITEM_BARCODE;
+    } else {
+      expectedErrorsOutputFilePath = EXPECTED_BULK_EDIT_HOLDINGS_ERRORS;
+    }
+
+    verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT, expectedErrorsOutputFilePath);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  @Test
+  @DisplayName("Run bulk-edit (holdings records identifiers) with wrong reference identifiers")
+  void shouldWriteErrorsWhenReferenceDataNotFound() throws Exception {
+
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
+
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, ID, HOLDINGS_IDENTIFIERS_BAD_REFERENCE_IDS_CSV, true);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    verifyFileOutput(jobExecution, EMPTY, EXPECTED_BULK_EDIT_HOLDINGS_BAD_REFERENCE_IDS_ERRORS);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 
   @Test
@@ -401,9 +456,13 @@ class BulkEditTest extends BaseBatchTest {
     final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
     final FileSystemResource expectedResultWithErrors = new FileSystemResource(expectedErrorOutput);
     assertFileEquals(expectedResultWithErrors, actualResultWithErrors);
-    final FileSystemResource actualResult = actualFileOutput(fileInStorage);
-    FileSystemResource expectedCharges = new FileSystemResource(output);
-    assertFileEquals(expectedCharges, actualResult);
+    if (isEmpty(fileInStorage)) {
+      assertTrue(isEmpty(output));
+    } else {
+      final FileSystemResource actualResult = actualFileOutput(fileInStorage);
+      FileSystemResource expectedCharges = new FileSystemResource(output);
+      assertFileEquals(expectedCharges, actualResult);
+    }
   }
 
   @SneakyThrows

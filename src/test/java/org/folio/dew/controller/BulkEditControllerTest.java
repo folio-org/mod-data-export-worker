@@ -412,7 +412,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @SneakyThrows
   @ParameterizedTest
-  @EnumSource(EntityType.class)
+  @EnumSource(value = EntityType.class, names = {"USER", "ITEM"}, mode = EnumSource.Mode.INCLUDE)
   void shouldReturnCompleteUpdatePreviewWithLimitControl(EntityType entityType) {
     var query = "barcode==(\"123\" OR \"456\")";
     var jobId = UUID.randomUUID();
@@ -888,7 +888,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = IdentifierType.class, names = {"USER_NAME", "EXTERNAL_SYSTEM_ID"}, mode = EnumSource.Mode.EXCLUDE)
+  @EnumSource(value = IdentifierType.class, names = {"USER_NAME", "EXTERNAL_SYSTEM_ID", "INSTANCE_HRID", "ITEM_BARCODE"}, mode = EnumSource.Mode.EXCLUDE)
   @DisplayName("Errors should contain correct identifier values")
   @SneakyThrows
   void shouldPlaceCorrectIdentifierInCaseOfError(IdentifierType identifierType) {

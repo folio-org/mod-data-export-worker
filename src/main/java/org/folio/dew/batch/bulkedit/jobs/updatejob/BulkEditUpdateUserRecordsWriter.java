@@ -1,6 +1,7 @@
 package org.folio.dew.batch.bulkedit.jobs.updatejob;
 
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
 
 import java.util.List;
 import java.util.UUID;
@@ -41,14 +42,23 @@ public class BulkEditUpdateUserRecordsWriter implements ItemWriter<User> {
   private final BulkEditChangedRecordsService changedRecordsService;
 
   @Override
-  public void write(List<? extends User> items) throws Exception {
-    items.forEach(user -> {
+  public void write(List<? extends User> users) throws Exception {
+    users.forEach(user -> {
       try {
-        userClient.updateUser(user, user.getId());
-        log.info("Update user with id - {} by job id {}", user.getId(), jobId);
-        bulkEditStatisticService.incrementSuccess();
+        var initialUser = userClient.getUserById(user.getId());
+        initialUser.setMetadata(null);
+        if (initialUser.equals(user)) {
+          log.info("User with barcode={}: {}", user.getBarcode(), NO_CHANGE_MESSAGE);
+          bulkEditProcessingErrorsService.saveErrorInCSV(jobId, initialUser.getBarcode(), new BulkEditException(NO_CHANGE_MESSAGE), FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
+          changedRecordsService.removeUserId(user.getId(), jobId);
+        } else {
+          userClient.updateUser(user, user.getId());
+          log.info("Update user with barcode={} by job id {}", user.getBarcode(), jobId);
+          bulkEditStatisticService.incrementSuccess();
+          bulkEditRollBackService.putUserIdForJob(user.getId(), UUID.fromString(jobId));
+        }
       } catch (Exception e) {
-        log.info("Cannot update user with id {}. Reason: {}",  user.getId(), e.getMessage());
+        log.error("Cannot update user with barcode={}. Reason: {}",  user.getBarcode(), e.getMessage());
         bulkEditProcessingErrorsService.saveErrorInCSV(jobId, user.getBarcode(), new BulkEditException(e.getMessage()), FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
         changedRecordsService.removeUserId(user.getId(), jobId);
       }

@@ -239,7 +239,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "briefHoldings")
   public BriefHoldingsRecordCollection getBriefHoldingsByHrid(String hrid) {
-    return holdingClient.getByQuery(HRID + hrid);
+    return holdingClient.getBriefHoldingsByQuery(HRID + hrid);
   }
 
   public BriefHoldingsRecord getBriefHoldingsRecordByHrid(String hrid) {

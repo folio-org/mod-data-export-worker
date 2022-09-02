@@ -128,6 +128,7 @@ public class BulkEditController implements JobIdApi {
   private final MinIOObjectStorageRepository repository;
   private final FolioModuleMetadata folioModuleMetadata;
   private final FolioExecutionContext folioExecutionContext;
+  private final MinIOObjectStorageRepository minIOObjectStorageRepository;
 
   @Value("${spring.application.name}")
   private String springApplicationName;
@@ -208,7 +209,7 @@ public class BulkEditController implements JobIdApi {
   }
 
   @Override
-  public ResponseEntity<Resource> downloadPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId) {
+  public ResponseEntity<Resource> downloadItemsPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId) {
     var jobCommand = getJobCommandById(jobId.toString());
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
@@ -220,6 +221,22 @@ public class BulkEditController implements JobIdApi {
       headers.setContentLength(updatedFilePath.toFile().length());
       headers.setContentDispositionFormData(updatedFileName, updatedFileName);
       return ResponseEntity.ok().headers(headers).body(updatedFileResource);
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError().body(new DescriptiveResource(e.getMessage()));
+    }
+  }
+
+  @Override
+  public ResponseEntity<Resource> downloadUsersPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId) {
+    var jobCommand = getJobCommandById(jobId.toString());
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+    try {
+      var fileName = jobCommand.getJobParameters().getString(PREVIEW_FILE_NAME);
+      var updatedUsersResource = new ByteArrayResource(minIOObjectStorageRepository.getObject(fileName).readAllBytes());
+      headers.setContentLength(updatedUsersResource.contentLength());
+      headers.setContentDispositionFormData(fileName, fileName);
+      return ResponseEntity.ok().headers(headers).body(updatedUsersResource);
     } catch (Exception e) {
       return ResponseEntity.internalServerError().body(new DescriptiveResource(e.getMessage()));
     }

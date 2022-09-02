@@ -148,6 +148,7 @@ public class BulkEditController implements JobIdApi {
           .toJobParameters());
     }
     var updatesResult = itemContentUpdateService.processContentUpdates(jobCommand, contentUpdateCollection);
+    jobCommandsReceiverService.updateJobCommand(jobCommand);
     return new ResponseEntity<>(prepareItemContentUpdateResponse(updatesResult, limit), HttpStatus.OK);
   }
 
@@ -162,7 +163,7 @@ public class BulkEditController implements JobIdApi {
         .toJobParameters());
     }
     var updatesResult = userContentUpdateService.process(jobCommand, contentUpdateCollection);
-    log.info("postUserContentUpdate: {}", updatesResult.getUsersForPreview());
+    jobCommandsReceiverService.updateJobCommand(jobCommand);
     return new ResponseEntity<>(prepareUserContentUpdateResponse(updatesResult, limit), HttpStatus.OK);
   }
 
@@ -249,6 +250,7 @@ public class BulkEditController implements JobIdApi {
       }
       Files.write(uploadedPath, file.getBytes());
       prepareJobParameters(jobCommand, uploadedPath);
+      jobCommandsReceiverService.updateJobCommand(jobCommand);
       if (isBulkEditUpdate(jobCommand) && jobCommand.getEntityType() == USER) {
         Files.write( Path.of(workDir, INITIAL_PREFIX + file.getOriginalFilename()), file.getBytes());
       }
@@ -269,6 +271,9 @@ public class BulkEditController implements JobIdApi {
           } catch (JobExecutionException e) {
             String errorMessage = format(FILE_UPLOAD_ERROR, e.getMessage());
             log.error(errorMessage);
+          } finally {
+            FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
+            log.debug("FOLIO context closed.");
           }
         }).start();
       }
@@ -302,12 +307,12 @@ public class BulkEditController implements JobIdApi {
         var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
         FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
         try {
-          JobExecution execution = exportJobManagerSync.launchJob(jobLaunchRequest);
-          if (isBulkEditUpdate(jobCommand)) {
-            bulkEditRollBackService.putExecutionInfoPerJob(execution.getId(), jobId);
-          }
+          exportJobManagerSync.launchJob(jobLaunchRequest);
         } catch (JobExecutionException e) {
           log.error(e.getMessage());
+        } finally {
+          FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
+          log.debug("FOLIO context closed.");
         }
       }).start();
     } catch (Exception e) {

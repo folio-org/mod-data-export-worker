@@ -1,11 +1,15 @@
 package org.folio.dew.batch.bursarfeesfines;
 
 import lombok.extern.log4j.Log4j2;
+import org.folio.dew.batch.bursarfeesfines.service.BursarWriter;
+import org.folio.dew.batch.bursarfeesfines.service.BursarWriterBuilder;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.batch.bursarfeesfines.service.BursarFeesFinesUtils;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.Feefineaction;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarFormat;
+import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.repository.S3CompatibleResource;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
@@ -17,14 +21,10 @@ import org.springframework.batch.core.listener.ExecutionContextPromotionListener
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.file.FlatFileHeaderCallback;
-import org.springframework.batch.item.file.FlatFileItemWriter;
-import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
 @Configuration
@@ -98,26 +98,29 @@ public class BursarExportJobConfig {
 
   @Bean("bursarFeesFines")
   @StepScope
-  public FlatFileItemWriter<BursarFormat> writer(
+  public BursarWriter<BursarFormat> writer(
       @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
-      @Value("#{stepExecution.stepName}") String stepName) {
+      @Value("#{stepExecution.stepName}") String stepName,
+      LocalFilesStorage localFilesStorage) {
     String fileName = tempOutputFilePath + '_' + BursarFeesFinesUtils.getFilename(stepName);
-    Resource exportFileResource = new FileSystemResource(fileName);
+    Resource exportFileResource = new S3CompatibleResource<>(fileName, localFilesStorage);
 
     var fieldNames =
         new String[] {
           "employeeId", "amount", "itemType", "transactionDate", "sfs", "termValue", "description"
         };
     var lineFormat = "%11.11s%9.9s%12.12s%6.6s%3.3s%4.4s%30.30s";
-    FlatFileHeaderCallback header = writer -> writer.write("LIB02");
+    var header = "LIB02";
     log.info("Creating file {}.", fileName);
-    return new FlatFileItemWriterBuilder<BursarFormat>()
+
+    return new BursarWriterBuilder<BursarFormat>()
         .name("bursarExportWriter")
-        .headerCallback(header)
+        .header(header)
         .formatted()
         .format(lineFormat)
         .names(fieldNames)
         .resource(exportFileResource)
+        .localFilesStorage(localFilesStorage)
         .build();
   }
 }

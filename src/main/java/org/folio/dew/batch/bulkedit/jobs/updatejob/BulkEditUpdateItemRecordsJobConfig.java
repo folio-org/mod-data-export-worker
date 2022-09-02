@@ -11,6 +11,8 @@ import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.bulkedit.jobs.JobConfigReaderHelper;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemFormat;
+import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.repository.S3CompatibleResource;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -28,7 +30,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
 
 @Configuration public class BulkEditUpdateItemRecordsJobConfig {
 
@@ -58,10 +59,11 @@ import org.springframework.core.io.FileSystemResource;
 
   @Bean @StepScope public FlatFileItemReader<ItemFormat> csvItemRecordsReader(
     @Value("#{jobParameters['" + FILE_NAME + "']}") String fileName,
-    @Value("#{jobParameters['" + UPDATED_FILE_NAME + "']}") String updatedFileName) {
+    @Value("#{jobParameters['" + UPDATED_FILE_NAME + "']}") String updatedFileName,
+    LocalFilesStorage localFilesStorage) {
     LineMapper<ItemFormat> itemLineMapper = JobConfigReaderHelper.createItemLineMapper();
     return new FlatFileItemReaderBuilder<ItemFormat>().name("itemReader")
-      .resource(new FileSystemResource(isEmpty(updatedFileName) ? fileName : updatedFileName))
+      .resource(new S3CompatibleResource<>(isEmpty(updatedFileName) ? fileName : updatedFileName, localFilesStorage))
       .linesToSkip(1)
       .lineMapper(itemLineMapper)
       .build();

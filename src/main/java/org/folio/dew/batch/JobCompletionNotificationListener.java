@@ -18,11 +18,6 @@ import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -38,7 +33,8 @@ import org.folio.dew.domain.dto.Progress;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.repository.IAcknowledgementRepository;
-import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.BulkEditChangedRecordsService;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditStatisticService;
@@ -63,7 +59,8 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
   private final IAcknowledgementRepository acknowledgementRepository;
   private final KafkaService kafka;
-  private final MinIOObjectStorageRepository repository;
+  private final RemoteFilesStorage remoteFilesStorage;
+  private final LocalFilesStorage localFilesStorage;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   private final BulkEditStatisticService bulkEditStatisticService;
   private final BulkEditChangedRecordsService changedRecordsService;
@@ -108,7 +105,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       if (jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue())) {
         String updatedFilePath = jobExecution.getJobParameters().getString(UPDATED_FILE_NAME);
         String filePath = requireNonNull(isNull(updatedFilePath) ? jobExecution.getJobParameters().getString(FILE_NAME) : updatedFilePath);
-        try (var lines = Files.lines(Paths.get(filePath))) {
+        try (var lines = localFilesStorage.lines(filePath)) {
           int totalUsers = (int) lines.count() - 1;
           jobExecution.getExecutionContext().putLong(TOTAL_RECORDS, totalUsers);
         } catch (NullPointerException e) {
@@ -139,8 +136,6 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
     kafka.send(KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     if (after) {
-      FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
-      log.debug("FOLIO context closed.");
       log.info("-----------------------------JOB---ENDS-----------------------------");
     }
   }
@@ -171,16 +166,13 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     if (StringUtils.isBlank(path) || StringUtils.isBlank(fileNameStart)) {
       return;
     }
-    File[] files = new File(path).listFiles((dir, name) -> name.startsWith(fileNameStart));
-    if (files == null || files.length <= 0) {
+    var files = localFilesStorage.walk(path)
+      .filter(name -> FilenameUtils.getName(name).startsWith(fileNameStart)).collect(Collectors.toList());
+    if (files.size() == 0) {
       return;
     }
-    for (File f : files) {
-      try {
-        Files.delete(f.toPath());
-      } catch (Exception e) {
-        log.error(e.getMessage(), e);
-      }
+    for (String f : files) {
+        localFilesStorage.delete(f);
     }
     log.info("Deleted temp files {} of job {}.", files, jobId);
   }
@@ -247,8 +239,8 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       if (isEmpty(path) || noRecordsFound(path)) {
         return EMPTY; // To prevent downloading empty file.
       }
-      return repository.objectWriteResponseToPresignedObjectUrl(
-        repository.uploadObject(prepareObject(jobExecution, path), path, prepareDownloadFilename(jobExecution, path), "text/csv", !isBulkEditUpdateJob(jobExecution)));
+      return remoteFilesStorage.objectWriteResponseToPresignedObjectUrl(
+        remoteFilesStorage.uploadObject(prepareObject(jobExecution, path), path, prepareDownloadFilename(jobExecution, path), "text/csv", !isBulkEditUpdateJob(jobExecution)));
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }
@@ -262,13 +254,12 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     }
     return jobExecution.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH);
   }
-  private boolean noRecordsFound(String path) throws IOException {
-    Path pathToFoundRecords = Path.of(path);
-    if (Files.notExists(pathToFoundRecords)) {
+  private boolean noRecordsFound(String path) throws Exception {
+    if (localFilesStorage.notExists(path) && !remoteFilesStorage.containsFile(path)) {
       log.error("Path to found records does not exist: {}", path);
       return true;
     }
-    return Files.lines(pathToFoundRecords).count() <= 1;
+    return localFilesStorage.lines(path).count() <= 1;
   }
 
   private String prepareObject(JobExecution jobExecution, String path) {
@@ -288,11 +279,11 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       return EMPTY;
     }
     try {
-      var updatedUserFormats = CsvHelper.readRecordsFromFile(path, UserFormat.class, true)
+      var updatedUserFormats = CsvHelper.readRecordsFromFile(localFilesStorage, path, UserFormat.class, true)
         .stream()
         .filter(userFormat -> updatedIds.contains(userFormat.getId()))
         .collect(Collectors.toList());
-      CsvHelper.saveRecordsToCsv(updatedUserFormats, UserFormat.class, path);
+      CsvHelper.saveRecordsToLocalFilesStorage(localFilesStorage, updatedUserFormats, UserFormat.class, path);
     } catch (Exception e) {
       log.error("Error processing file {}: {}", path, e.getMessage());
     }

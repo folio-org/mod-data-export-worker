@@ -80,7 +80,7 @@ class LocalFilesStorageTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {1024, ObjectWriteArgs.MIN_MULTIPART_SIZE})
+  @ValueSource(ints = {1024, 1024000})
   @DisplayName("Buffered writer test")
   void testBufferedWriter(int size) {
     var path = "directory/resource.csv";

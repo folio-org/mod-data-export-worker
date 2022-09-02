@@ -1,3 +1,13 @@
+## 2022-09-02 v1.4.5
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.4...v1.4.5)
+
+### Stories
+* [MODEXPW-227](https://issues.folio.org/browse/MODEXPW-227) Change isolation level to READ_COMMITTED for spring batch
+* [MODEXPW-198](https://issues.folio.org/browse/MODEXPW-198) Removing shared resources
+* [MODEXPW-197](https://issues.folio.org/browse/MODEXPW-197) MinIO Adapter migration
+* [MODEXPW-196](https://issues.folio.org/browse/MODEXPW-196) LocalFS -> MinIO Adapter implementation
+
 ## 2022-08-29 v1.4.4
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.3...v1.4.4)

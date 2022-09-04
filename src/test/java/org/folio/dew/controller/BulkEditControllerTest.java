@@ -799,7 +799,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     jobCommand.setId(jobId);
     jobCommand.setJobParameters(new JobParametersBuilder().addString(PREVIEW_FILE_NAME, fileName).toJobParameters());
 
-    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var response = mockMvc.perform(get(format(USERS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE, jobId))
         .headers(defaultHeaders()))

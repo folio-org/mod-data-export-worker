@@ -790,6 +790,22 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @Test
   @SneakyThrows
+  @DisplayName("Download users preview when preview is not available - NOT FOUND")
+  void shouldReturnNotFoundIfPreviewIsNotAvailable() {
+    var jobCommand = new JobCommand();
+    var jobId = UUID.randomUUID();
+    jobCommand.setId(jobId);
+    jobCommand.setJobParameters(new JobParameters());
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
+    mockMvc.perform(get(format(USERS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE, jobId))
+        .headers(defaultHeaders()))
+      .andExpect(status().isNotFound());
+  }
+
+  @Test
+  @SneakyThrows
   @DisplayName("Download users preview - successful")
   void shouldDownloadPreviewAfterUserContentUpdate() {
     var fileName = FilenameUtils.getName(PREVIEW_USER_DATA);
@@ -802,9 +818,9 @@ class BulkEditControllerTest extends BaseBatchTest {
     when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var response = mockMvc.perform(get(format(USERS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE, jobId))
-        .headers(defaultHeaders()))
-      .andExpect(status().isOk())
-      .andReturn();
+            .headers(defaultHeaders()))
+        .andExpect(status().isOk())
+        .andReturn();
 
     var expectedCsv = new FileSystemResource(PREVIEW_USER_DATA);
     var actualCsvByteArr = response.getResponse().getContentAsByteArray();

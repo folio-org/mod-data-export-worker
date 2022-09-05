@@ -1264,7 +1264,7 @@ class BulkEditControllerTest extends BaseBatchTest {
         new UserContentUpdate()
           .option(UserContentUpdate.OptionEnum.EXPIRATION_DATE)
           .actions(List.of(
-            new UserContentUpdateAction().name(REPLACE_WITH).value("2022-12-12 23:59:00.000Z")))))
+            new UserContentUpdateAction().name(REPLACE_WITH).value("2022-06-12 23:59:00.000Z")))))
       .totalRecords(3));
 
     var responseContentUpdateUpload = mockMvc.perform(post(format(USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
@@ -1275,7 +1275,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var actualUsers = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
       UserCollection.class);
     actualUsers.getUsers().forEach(u -> {
-      assertEquals(new Date(Instant.parse("2022-12-12T23:59:00.00Z").toEpochMilli()), u.getExpirationDate());
+      assertEquals(new Date(Instant.parse("2022-06-12T23:59:00.00Z").toEpochMilli()), u.getExpirationDate());
       assertEquals("some new group", groupClient.getGroupById(u.getPatronGroup()).getGroup());
     });
 

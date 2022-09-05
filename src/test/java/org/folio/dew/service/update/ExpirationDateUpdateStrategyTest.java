@@ -42,7 +42,7 @@ class ExpirationDateUpdateStrategyTest {
 
   @Test
   void shouldNotUpdateExpirationDateIfValuesAreEqual() {
-    var userFormat = new UserFormat().withExpirationDate(CURRENT_DATE);
+    var userFormat = new UserFormat().withActive("false").withExpirationDate(CURRENT_DATE);
     var contentUpdate = new UserContentUpdate()
       .option(UserContentUpdate.OptionEnum.EXPIRATION_DATE)
       .actions(Collections.singletonList(new UserContentUpdateAction()

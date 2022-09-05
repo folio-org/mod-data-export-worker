@@ -15,6 +15,6 @@ public class ExpirationDateUpdateStrategy implements UpdateStrategy<UserFormat, 
     var action = update.getActions().get(0);
     return userFormat
       .withExpirationDate(action.getValue().toString())
-      .withActive(Boolean.toString(new Date().before(dateFromString(action.getValue().toString()))));
+      .withActive(Boolean.toString(dateFromString(action.getValue().toString()).after(new Date())));
   }
 }

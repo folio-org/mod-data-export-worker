@@ -74,7 +74,6 @@ import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.UpdatesResult;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.dew.service.update.BulkEditUserContentUpdateService;
-import org.folio.dew.service.validation.UserContentUpdateValidatorService;
 import org.folio.dew.utils.CsvHelper;
 import org.folio.spring.DefaultFolioExecutionContext;
 import org.folio.spring.FolioExecutionContext;
@@ -82,7 +81,6 @@ import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 import org.openapitools.api.JobIdApi;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionException;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
@@ -123,7 +121,6 @@ public class BulkEditController implements JobIdApi {
   private final List<Job> jobs;
   private final BulkEditItemContentUpdateService itemContentUpdateService;
   private final BulkEditUserContentUpdateService userContentUpdateService;
-  private final UserContentUpdateValidatorService userContentUpdateValidatorService;
   private final BulkEditParseService bulkEditParseService;
   private final MinIOObjectStorageRepository repository;
   private final FolioModuleMetadata folioModuleMetadata;
@@ -154,7 +151,6 @@ public class BulkEditController implements JobIdApi {
 
   @Override
   public ResponseEntity<UserCollection> postUserContentUpdates(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId, @ApiParam(value = "" ,required=true )  @Valid @RequestBody UserContentUpdateCollection contentUpdateCollection, @ApiParam(value = "The numbers of records to return") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
-    userContentUpdateValidatorService.validateContentUpdateCollection(contentUpdateCollection);
     bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId.toString());
     var jobCommand = getJobCommandById(jobId.toString());
     if (nonNull(jobCommand.getIdentifierType())) {

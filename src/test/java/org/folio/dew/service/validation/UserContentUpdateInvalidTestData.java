@@ -22,6 +22,15 @@ public enum UserContentUpdateInvalidTestData {
       .actions(Collections.singletonList(
       new UserContentUpdateAction()
         .name(REPLACE_WITH)))),
+  PATRON_GROUP_REPLACE_WITH_NON_EXISTING_VALUE(
+    new UserContentUpdate()
+      .option(PATRON_GROUP)
+      .actions(Collections.singletonList(
+        new UserContentUpdateAction()
+          .name(REPLACE_WITH)
+          .value("non-existing group")
+      ))
+  ),
   PATRON_GROUP_CLEAR_FIELD(
     new UserContentUpdate()
       .option(PATRON_GROUP)
@@ -59,6 +68,25 @@ public enum UserContentUpdateInvalidTestData {
         new UserContentUpdateAction()
           .name(FIND_AND_REMOVE_THESE)
           .value("find value")))),
+  EXPIRATION_DATE_REPLACE_WITH_INVALID_DATE(
+      new UserContentUpdate()
+        .option(EXPIRATION_DATE)
+        .actions(Collections.singletonList(
+          new UserContentUpdateAction()
+            .name(REPLACE_WITH)
+            .value("2022/01/01")))),
+  EXPIRATION_DATE_REPLACE_WITH_EMPTY_VALUE(
+    new UserContentUpdate()
+      .option(EXPIRATION_DATE)
+      .actions(Collections.singletonList(
+        new UserContentUpdateAction()
+            .name(REPLACE_WITH)))),
+  EXPIRATION_DATE_CLEAR_FIELD(
+    new UserContentUpdate()
+      .option(EXPIRATION_DATE)
+      .actions(Collections.singletonList(
+        new UserContentUpdateAction()
+            .name(CLEAR_FIELD)))),
   EXPIRATION_DATE_FIND(
     new UserContentUpdate()
       .option(EXPIRATION_DATE)

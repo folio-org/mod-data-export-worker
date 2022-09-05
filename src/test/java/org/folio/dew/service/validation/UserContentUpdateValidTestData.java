@@ -14,32 +14,20 @@ import java.util.Collections;
 import java.util.List;
 
 public enum UserContentUpdateValidTestData {
-  EXPIRATION_DATE_CLEAR_FIELD(
-    new UserContentUpdate()
-      .option(EXPIRATION_DATE)
-      .actions(Collections.singletonList(
-        new UserContentUpdateAction()
-          .name(CLEAR_FIELD)))),
   EXPIRATION_DATE_REPLACE_WITH(
     new UserContentUpdate()
       .option(EXPIRATION_DATE)
       .actions(Collections.singletonList(
       new UserContentUpdateAction()
         .name(REPLACE_WITH)
-        .value("new value")))),
-  EXPIRATION_DATE_REPLACE_WITH_EMPTY_VALUE(
-    new UserContentUpdate()
-      .option(EXPIRATION_DATE)
-      .actions(Collections.singletonList(
-      new UserContentUpdateAction()
-        .name(REPLACE_WITH)))),
+        .value("2022-01-01 12:00:00.123Z")))),
   PATRON_GROUP_REPLACE_WITH(
     new UserContentUpdate()
       .option(PATRON_GROUP)
       .actions(Collections.singletonList(
       new UserContentUpdateAction()
         .name(REPLACE_WITH)
-        .value("new value")))),
+        .value("PatronGroup")))),
   EMAIL_FIND_AND_REPLACE_WITH(
     new UserContentUpdate()
     .option(EMAIL_ADDRESS)

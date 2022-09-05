@@ -125,6 +125,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/item-content-update/upload";
   private static final String USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/user-content-update/upload";
   private static final String ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-items/download";
+  private static final String USERS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-users/download";
   private static final String ITEMS_FOR_LOCATION_UPDATE = "src/test/resources/upload/bulk_edit_items_for_location_update.csv";
   private static final String ITEMS_FOR_LOAN_TYPE_UPDATE = "src/test/resources/upload/bulk_edit_items_for_loan_type_update.csv";
   private static final String ITEMS_FOR_STATUS_UPDATE = "src/test/resources/upload/bulk_edit_items_for_status_update.csv";
@@ -694,7 +695,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @ParameterizedTest
   @EnumSource(value = ItemsContentUpdateTestData.class, names = ".+_LOCATION", mode = EnumSource.Mode.MATCH_ANY)
-  @DisplayName("Download preview - successful")
+  @DisplayName("Download items preview - successful")
   @SneakyThrows
   void shouldDownloadPreviewAfterContentUpdate(ItemsContentUpdateTestData testData) {
     repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
@@ -783,6 +784,51 @@ class BulkEditControllerTest extends BaseBatchTest {
       .headers(defaultHeaders()))
       .andExpect(status().isNotFound())
       .andReturn();
+  }
+
+  @Test
+  @SneakyThrows
+  @DisplayName("Download users preview when preview is not available - NOT FOUND")
+  void shouldReturnNotFoundIfPreviewIsNotAvailable() {
+    var jobCommand = new JobCommand();
+    var jobId = UUID.randomUUID();
+    jobCommand.setId(jobId);
+    jobCommand.setJobParameters(new JobParameters());
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
+    mockMvc.perform(get(format(USERS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE, jobId))
+        .headers(defaultHeaders()))
+      .andExpect(status().isNotFound());
+  }
+
+  @Test
+  @SneakyThrows
+  @DisplayName("Download users preview - successful")
+  void shouldDownloadPreviewAfterUserContentUpdate() {
+    var fileName = FilenameUtils.getName(PREVIEW_USER_DATA);
+    repository.uploadObject(fileName, PREVIEW_USER_DATA, null, "text/plain", false);
+    var jobCommand = new JobCommand();
+    var jobId = UUID.randomUUID();
+    jobCommand.setId(jobId);
+    jobCommand.setJobParameters(new JobParametersBuilder().addString(PREVIEW_FILE_NAME, fileName).toJobParameters());
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
+    var response = mockMvc.perform(get(format(USERS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE, jobId))
+            .headers(defaultHeaders()))
+        .andExpect(status().isOk())
+        .andReturn();
+
+    var expectedCsv = new FileSystemResource(PREVIEW_USER_DATA);
+    var actualCsvByteArr = response.getResponse().getContentAsByteArray();
+    Path actualDownloadedCsvTmp = Paths.get("actualDownloaded.csv");
+    Files.write(actualDownloadedCsvTmp, actualCsvByteArr);
+    var actualCsv = new FileSystemResource(actualDownloadedCsvTmp);
+
+    assertFileEquals(expectedCsv, actualCsv);
+
+    Files.delete(actualDownloadedCsvTmp);
   }
 
   @Test

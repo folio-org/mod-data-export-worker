@@ -115,8 +115,8 @@ paths:
                 $ref: "#/components/schemas/errors"
   /{jobId}/preview/updated-items/download:
     get:
-      description: Download preview as csv-file
-      operationId: downloadPreviewByJobId
+      description: Download updated items preview as csv-file
+      operationId: downloadItemsPreviewByJobId
       parameters:
         - name: jobId
           in: path
@@ -126,7 +126,50 @@ paths:
             $ref: "#/components/schemas/UUID"
       responses:
         '200':
-          description: Preview updated of items to download
+          description: Preview of updated items to download
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "500":
+          description: Internal server errors, e.g. due to misconfiguration
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+  /{jobId}/preview/updated-users/download:
+    get:
+      description: Download updated users preview as csv-file
+      operationId: downloadUsersPreviewByJobId
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: UUID of the JobCommand
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        '200':
+          description: Preview of updated items to download
           content:
             text/csv:
               schema:

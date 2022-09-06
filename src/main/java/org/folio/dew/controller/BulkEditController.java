@@ -116,6 +116,7 @@ public class BulkEditController implements JobIdApi {
 
 
   private static final String JOB_COMMAND_NOT_FOUND_ERROR = "JobCommand with id %s doesn't exist.";
+  private static final String FAILED_TO_READ_FILE_ERROR = "Failed to read %s for job id %s, reason: %s";
 
   private final UserClient userClient;
   private final InventoryClient inventoryClient;
@@ -183,7 +184,7 @@ public class BulkEditController implements JobIdApi {
           .collect(Collectors.toList());
         return new ResponseEntity<>(new UserCollection().users(users).totalRecords(users.size()), HttpStatus.OK);
       } catch (Exception e) {
-        var msg = String.format("Failed to read %s for job id %s, reason: %s", fileName, jobCommand.getId(), e.getMessage());
+        var msg = String.format(FAILED_TO_READ_FILE_ERROR, fileName, jobCommand.getId(), e.getMessage());
         log.error(msg);
         return new ResponseEntity<>(new UserCollection().users(Collections.emptyList()).totalRecords(0), HttpStatus.OK);
       }
@@ -203,7 +204,7 @@ public class BulkEditController implements JobIdApi {
           .collect(Collectors.toList());
         return new ResponseEntity<>(new ItemCollection().items(items).totalRecords(items.size()), HttpStatus.OK);
       } catch (Exception e) {
-        var msg = String.format("Failed to read %s for job id %s, reason: %s", fileName, jobCommand.getId(), e.getMessage());
+        var msg = String.format(FAILED_TO_READ_FILE_ERROR, fileName, jobCommand.getId(), e.getMessage());
         log.error(msg);
         return new ResponseEntity<>(new ItemCollection().items(Collections.emptyList()).totalRecords(0), HttpStatus.OK);
       }
@@ -224,7 +225,7 @@ public class BulkEditController implements JobIdApi {
           .collect(Collectors.toList());
         return new ResponseEntity<>(new HoldingsRecordCollection().holdingsRecords(holdings).totalRecords(holdings.size()), HttpStatus.OK);
       } catch (Exception e) {
-        var msg = String.format("Failed to read %s for job id %s, reason: %s", fileName, jobCommand.getId(), e.getMessage());
+        var msg = String.format(FAILED_TO_READ_FILE_ERROR, fileName, jobCommand.getId(), e.getMessage());
         log.error(msg);
         return new ResponseEntity<>(new HoldingsRecordCollection().holdingsRecords(Collections.emptyList()).totalRecords(0), HttpStatus.OK);
       }

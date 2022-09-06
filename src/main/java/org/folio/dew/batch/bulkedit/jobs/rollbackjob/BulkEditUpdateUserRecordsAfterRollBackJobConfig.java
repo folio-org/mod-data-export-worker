@@ -13,7 +13,6 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;

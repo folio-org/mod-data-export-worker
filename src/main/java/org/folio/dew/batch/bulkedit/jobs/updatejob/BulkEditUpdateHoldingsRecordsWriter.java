@@ -37,14 +37,14 @@ public class BulkEditUpdateHoldingsRecordsWriter implements ItemWriter<HoldingsR
 
   @Override
   public void write(List<? extends HoldingsRecord> holdingsRecords) throws Exception {
-    holdingsRecords.forEach(record -> {
+    holdingsRecords.forEach(holdingsRecord -> {
       try {
-        holdingClient.updateHoldingsRecord(record, record.getId());
+        holdingClient.updateHoldingsRecord(holdingsRecord, holdingsRecord.getId());
         bulkEditStatisticService.incrementSuccess();
-        log.info("Update holdings record with id - {} by job id {}", record.getId(), jobId);
+        log.info("Update holdings record with id - {} by job id {}", holdingsRecord.getId(), jobId);
       } catch (Exception e) {
-        log.info("Cannot update holdings record with id {}. Reason: {}",  record.getId(), e.getMessage());
-        bulkEditProcessingErrorsService.saveErrorInCSV(jobId, record.getId(), new BulkEditException(e.getMessage()), FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
+        log.info("Cannot update holdings record with id {}. Reason: {}",  holdingsRecord.getId(), e.getMessage());
+        bulkEditProcessingErrorsService.saveErrorInCSV(jobId, holdingsRecord.getId(), new BulkEditException(e.getMessage()), FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
       }
     });
   }

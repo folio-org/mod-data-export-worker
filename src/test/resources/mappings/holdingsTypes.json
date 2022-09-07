@@ -16,11 +16,11 @@
     {
       "request": {
         "method": "GET",
-        "url": "/holdings-types?query%3Dname%3D%3DPhysical"
+        "url": "/holdings-types?query=name%3D%3D%22Physical%22"
       },
       "response": {
         "status": 200,
-        "body": "{\n  \"id\": \"0c422f92-0f4d-4d32-8cbe-390ebc33a3e5\",\n  \"name\": \"Physical\",\n  \"source\": \"folio\"\n}",
+        "body": "{\"holdingsTypes\": [{\n  \"id\": \"0c422f92-0f4d-4d32-8cbe-390ebc33a3e5\",\n  \"name\": \"Physical\",\n  \"source\": \"folio\"\n}], \"totalRecords\":1}",
         "headers": {
           "Content-Type": "application/json"
         }

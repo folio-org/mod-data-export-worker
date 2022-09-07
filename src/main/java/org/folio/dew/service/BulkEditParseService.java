@@ -27,9 +27,10 @@ import org.folio.dew.domain.dto.ContributorName;
 import org.folio.dew.domain.dto.CustomField;
 import org.folio.dew.domain.dto.Department;
 import org.folio.dew.domain.dto.EffectiveCallNumberComponents;
-import org.folio.dew.domain.dto.ElectronicAccess;
+
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsRecord;
+
 import org.folio.dew.domain.dto.InventoryItemStatus;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemFormat;
@@ -58,6 +59,8 @@ public class BulkEditParseService {
 
   private final UserReferenceService userReferenceService;
   private final ItemReferenceService itemReferenceService;
+
+  private final ElectronicAccessService electronicAccessService;
 
   private static final int ADDRESS_ID = 0;
   private static final int ADDRESS_COUNTRY_ID = 1;
@@ -98,14 +101,7 @@ public class BulkEditParseService {
   private static final int HOLDING_HRID_INDEX = 0;
   private static final int INSTANCE_HRID_INDEX = 1;
 
-  private static final int NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS = 5;
-  private static final int ELECTRONIC_ACCESS_URI_INDEX = 0;
-  private static final int ELECTRONIC_ACCESS_LINK_TEXT_INDEX = 1;
-  private static final int ELECTRONIC_ACCESS_MATERIAL_SPECIFICATION_INDEX = 2;
-  private static final int ELECTRONIC_ACCESS_PUBLIC_NOTE_INDEX = 3;
-  private static final int ELECTRONIC_ACCESS_RELATIONSHIP_INDEX = 4;
-
-  private static final int NUMBER_OF_LAST_CHECK_IN_COMPONENTS = 3;
+    private static final int NUMBER_OF_LAST_CHECK_IN_COMPONENTS = 3;
   private static final int LAST_CHECK_IN_SERVICE_POINT_NAME_INDEX = 0;
   private static final int LAST_CHECK_IN_USERNAME_INDEX = 1;
   private static final int LAST_CHECK_IN_DATE_TIME_INDEX = 2;
@@ -355,7 +351,7 @@ public class BulkEditParseService {
       .permanentLocation(restoreLocation(itemFormat.getPermanentLocation()))
       .temporaryLocation(restoreLocation(itemFormat.getTemporaryLocation()))
       .effectiveLocation(restoreLocation(itemFormat.getEffectiveLocation()))
-      .electronicAccess(restoreElectronicAccess(itemFormat.getElectronicAccess()))
+      .electronicAccess(electronicAccessService.restoreElectronicAccess(itemFormat.getElectronicAccess()))
       .inTransitDestinationServicePointId(restoreServicePointId(itemFormat.getInTransitDestinationServicePoint()))
       .statisticalCodeIds(restoreStatisticalCodeIds(itemFormat.getStatisticalCodes()))
       .purchaseOrderLineIdentifier(restoreStringValue(itemFormat.getPurchaseOrderLineIdentifier()))
@@ -508,30 +504,6 @@ public class BulkEditParseService {
     return isEmpty(s) ? null : itemReferenceService.getLocationByName(s);
   }
 
-  private List<ElectronicAccess> restoreElectronicAccess(String s) {
-    return isEmpty(s) ? Collections.emptyList() :
-      Arrays.stream(s.split(ITEM_DELIMITER_PATTERN))
-        .map(this::restoreElectronicAccessItem)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-  }
-
-  private ElectronicAccess restoreElectronicAccessItem(String s) {
-    if (isNotEmpty(s)) {
-      var tokens = s.split(ARRAY_DELIMITER, -1);
-      if (NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS == tokens.length) {
-        return new ElectronicAccess()
-          .uri(tokens[ELECTRONIC_ACCESS_URI_INDEX])
-          .linkText(tokens[ELECTRONIC_ACCESS_LINK_TEXT_INDEX])
-          .materialsSpecification(tokens[ELECTRONIC_ACCESS_MATERIAL_SPECIFICATION_INDEX])
-          .publicNote(tokens[ELECTRONIC_ACCESS_PUBLIC_NOTE_INDEX])
-          .relationshipId(itemReferenceService.getElectronicAccessRelationshipByName(tokens[ELECTRONIC_ACCESS_RELATIONSHIP_INDEX]).getId());
-      }
-      throw new BulkEditException(String.format("Illegal number of electronic access elements: %d, expected: %d", tokens.length, NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS));
-    }
-    return null;
-  }
-
   private String restoreServicePointId(String s) {
     return isEmpty(s) ? null : itemReferenceService.getServicePointByName(s).getId();
   }
@@ -557,7 +529,7 @@ public class BulkEditParseService {
           .staffMemberId(itemReferenceService.getUserByUserName(tokens[LAST_CHECK_IN_USERNAME_INDEX]).getId())
           .dateTime(restoreStringValue(tokens[LAST_CHECK_IN_DATE_TIME_INDEX]));
       }
-      throw new BulkEditException(String.format("Illegal number of last check in elements: %d, expected: %d", tokens.length, NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS));
+      throw new BulkEditException(String.format("Illegal number of last check in elements: %d, expected: %d", tokens.length, NUMBER_OF_LAST_CHECK_IN_COMPONENTS));
     }
     return null;
   }

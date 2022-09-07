@@ -15,6 +15,7 @@ import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
 import static org.folio.dew.domain.dto.IdentifierType.ID;
 import static org.folio.dew.domain.dto.IdentifierType.INSTANCE_HRID;
 import static org.folio.dew.domain.dto.IdentifierType.ITEM_BARCODE;
+import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
@@ -24,6 +25,7 @@ import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
@@ -39,6 +41,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
@@ -96,6 +99,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String ITEM_RECORD_CSV_INVALID_CIRCULATION_NOTES = "src/test/resources/upload/bulk_edit_item_record_invalid_circulation_notes.csv";
   private static final String ITEM_RECORD_IN_APP_UPDATED = "src/test/resources/upload/bulk_edit_item_record_in_app_updated.csv";
   private static final String ITEM_RECORD_IN_APP_UPDATED_COPY = "storage/bulk_edit_item_record_in_app_updated.csv";
+  private static final String HOLDINGS_RECORD_IN_APP_UPDATED = "src/test/resources/upload/bulk_edit_holdings_record_in_app_updated.csv";
   private static final String USER_RECORD_ROLLBACK_CSV = "test-directory/bulk_edit_rollback.csv";
   private static final String BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/barcodesSomeNotFound.csv";
   private static final String ITEM_BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/item_barcodes_some_not_found.csv";
@@ -135,6 +139,8 @@ class BulkEditTest extends BaseBatchTest {
   private Job bulkEditUpdateItemRecordsJob;
   @Autowired
   private Job bulkEditRollBackJob;
+  @Autowired
+  private Job bulkEditUpdateHoldingsRecordsJob;
   @Autowired
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
 
@@ -383,7 +389,7 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run item records update when in-app updates available - successful")
   @SneakyThrows
-  void shouldUseInAppUpdatesFileIfPresent() {
+  void shouldUseItemsInAppUpdatesFileIfPresent() {
     // create a copy of file since it will be deleted and consequent test runs will fail
     Files.copy(Path.of(ITEM_RECORD_IN_APP_UPDATED), Path.of(ITEM_RECORD_IN_APP_UPDATED_COPY), StandardCopyOption.REPLACE_EXISTING);
 
@@ -397,6 +403,31 @@ class BulkEditTest extends BaseBatchTest {
     var request = wireMockServer.getAllServeEvents().get(0).getRequest();
     assertThat(request.getMethod().getName()).isEqualTo("PUT");
     assertThat(request.getUrl()).isEqualTo("/inventory/items/8a29baff-b703-4c3a-8b7b-ef476b2cd583");
+  }
+
+  @Test
+  @DisplayName("Run holdings records in-app update - successful")
+  @SneakyThrows
+  void shouldRunHoldingsInAppUpdateJob() {
+    var fileName = FilenameUtils.getName(HOLDINGS_RECORD_IN_APP_UPDATED);
+    minIOObjectStorageRepository.uploadObject(fileName, HOLDINGS_RECORD_IN_APP_UPDATED, null, "text/plain", false);
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateHoldingsRecordsJob);
+    var jobParameters = new JobParametersBuilder()
+      .addString(JOB_ID, UUID.randomUUID().toString())
+      .addString(EXPORT_TYPE, BULK_EDIT_UPDATE.getValue())
+      .addString(ENTITY_TYPE, HOLDINGS_RECORD.getValue())
+      .addString(IDENTIFIER_TYPE, ID.getValue())
+      .addString(UPDATED_FILE_NAME, fileName)
+      .toJobParameters();
+
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+    assertNotNull(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE));
+
+    var request = wireMockServer.getAllServeEvents().get(0).getRequest();
+    assertThat(request.getMethod().getName()).isEqualTo("PUT");
+    assertThat(request.getUrl()).isEqualTo("/holdings-storage/holdings/0b1e3760-f689-493e-a98e-9cc9dadb7e83");
   }
 
   @Test

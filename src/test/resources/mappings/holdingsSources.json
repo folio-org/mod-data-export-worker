@@ -16,11 +16,11 @@
     {
       "request": {
         "method": "GET",
-        "url": "/holdings-sources?query%3Dname%3D%3DFOLIO"
+        "url": "/holdings-sources?query=name%3D%3D%22FOLIO%22"
       },
       "response": {
         "status": 200,
-        "body": "{\n  \"id\": \"f32d531e-df79-46b3-8932-cdd35f7a2264\",\n  \"name\": \"FOLIO\",\n  \"source\": \"folio\"\n}",
+        "body": "{\"holdingsRecordsSources\": [{\n  \"id\": \"f32d531e-df79-46b3-8932-cdd35f7a2264\",\n  \"name\": \"FOLIO\",\n  \"source\": \"folio\"\n}], \"totalRecords\": 1}",
         "headers": {
           "Content-Type": "application/json"
         }

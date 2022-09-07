@@ -165,6 +165,7 @@ public class BulkEditController implements JobIdApi {
         .toJobParameters());
     }
     var updatesResult = userContentUpdateService.process(jobCommand, contentUpdateCollection);
+    log.info("postUserContentUpdate: {} users", updatesResult.getEntitiesForPreview().size());
     jobCommandsReceiverService.updateJobCommand(jobCommand);
     return new ResponseEntity<>(prepareUserContentUpdateResponse(updatesResult, limit), HttpStatus.OK);
   }
@@ -405,7 +406,7 @@ public class BulkEditController implements JobIdApi {
   }
 
   private ItemCollection prepareItemContentUpdateResponse(UpdatesResult<ItemFormat> updatesResult, Integer limit) {
-      var items = updatesResult.getItemsForPreview().stream()
+      var items = updatesResult.getEntitiesForPreview().stream()
         .limit(isNull(limit) ? Integer.MAX_VALUE : limit)
         .map(bulkEditParseService::mapItemFormatToItem)
         .collect(Collectors.toList());
@@ -413,7 +414,7 @@ public class BulkEditController implements JobIdApi {
   }
 
   private UserCollection prepareUserContentUpdateResponse(UpdatesResult<UserFormat> updatesResult, Integer limit) {
-    var users = updatesResult.getUsersForPreview().stream()
+    var users = updatesResult.getEntitiesForPreview().stream()
       .limit(isNull(limit) ? Integer.MAX_VALUE : limit)
       .map(bulkEditParseService::mapUserFormatToUser)
       .collect(Collectors.toList());

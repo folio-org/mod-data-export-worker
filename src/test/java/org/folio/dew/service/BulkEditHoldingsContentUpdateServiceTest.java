@@ -3,6 +3,8 @@ package org.folio.dew.service;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.domain.dto.HoldingsContentUpdate.ActionEnum.REPLACE_WITH;
+import static org.folio.dew.domain.dto.HoldingsContentUpdate.OptionEnum.TEMPORARY_LOCATION;
 import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
@@ -18,10 +20,9 @@ import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.BaseBatchTest;
-import org.folio.dew.domain.dto.UserContentUpdate;
-import org.folio.dew.domain.dto.UserContentUpdateAction;
-import org.folio.dew.domain.dto.UserContentUpdateCollection;
-import org.folio.dew.service.update.BulkEditUserContentUpdateService;
+import org.folio.dew.domain.dto.HoldingsContentUpdate;
+import org.folio.dew.domain.dto.HoldingsContentUpdateCollection;
+import org.folio.dew.service.update.BulkEditHoldingsContentUpdateService;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,41 +30,40 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Collections;
 import java.util.UUID;
 
-class BulkEditUserContentUpdateServiceTest extends BaseBatchTest {
-  private static final String USER_DATA = "src/test/resources/upload/user_data.csv";
+class BulkEditHoldingsContentUpdateServiceTest extends BaseBatchTest {
+  private static final String HOLDINGS_DATA = "src/test/resources/output/bulk_edit_holdings_records_output.csv";
 
   @Autowired
-  private BulkEditUserContentUpdateService contentUpdateService;
+  private BulkEditHoldingsContentUpdateService contentUpdateService;
 
   @Test
   @SneakyThrows
   void shouldCreateUpdatedAndPreviewFilesAndUpdateJobCommand() {
-    var uploadedFileName = FilenameUtils.getName(USER_DATA);
+    var uploadedFileName = FilenameUtils.getName(HOLDINGS_DATA);
     var updatedFileName = UPDATED_PREFIX + uploadedFileName;
     var previewFileName = PREVIEW_PREFIX + uploadedFileName;
-    minIOObjectStorageRepository.uploadObject(uploadedFileName, USER_DATA, null, "text/plain", false);
+    minIOObjectStorageRepository.uploadObject(uploadedFileName, HOLDINGS_DATA, null, "text/plain", false);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
     jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
     jobCommand.setJobParameters(new JobParametersBuilder()
-      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + USER_DATA.replace(CSV_EXTENSION, EMPTY))
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + HOLDINGS_DATA.replace(CSV_EXTENSION, EMPTY))
       .toJobParameters());
 
     jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
 
-    var contentUpdates = new UserContentUpdateCollection()
-      .userContentUpdates(Collections.singletonList(new UserContentUpdate()
-        .option(UserContentUpdate.OptionEnum.PATRON_GROUP)
-        .actions(Collections.singletonList(new UserContentUpdateAction()
-          .name(UserContentUpdateAction.NameEnum.REPLACE_WITH)
-          .value("PatronGroup")))))
+    var contentUpdates = new HoldingsContentUpdateCollection()
+      .holdingsContentUpdates(Collections.singletonList(new HoldingsContentUpdate()
+        .option(TEMPORARY_LOCATION)
+        .action(REPLACE_WITH)
+        .value("Annex")))
       .totalRecords(1);
 
     var res = contentUpdateService.process(jobCommand, contentUpdates);
 
     assertThat(res.getEntitiesForPreview(), hasSize(2));
-    assertThat(res.getEntitiesForPreview().stream().allMatch(userFormat -> "PatronGroup".equals(userFormat.getPatronGroup())), is(true));
+    assertThat(res.getEntitiesForPreview().stream().allMatch(holdingsFormat -> "Annex".equals(holdingsFormat.getTemporaryLocation())), is(true));
 
     assertThat(minIOObjectStorageRepository.containsFile(updatedFileName), is(true));
     assertThat(minIOObjectStorageRepository.containsFile(previewFileName), is(true));

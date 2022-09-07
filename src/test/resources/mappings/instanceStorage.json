@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/instance-storage/instances?query=hrid%3D%3D123"
+        "url": "/instance-storage/instances?query=hrid%3D%3D%22123%22"
       },
       "response": {
         "status": 200,
@@ -29,7 +29,7 @@
     {
       "request": {
         "method": "GET",
-        "urlPattern": "/instance-storage/instances\\?query=hrid%3D%3D(456|789)"
+        "urlPattern": "/instance-storage/instances\\?query=hrid%3D%3D(%22456%22|%22789%22)"
       },
       "response": {
         "status": 200,

@@ -22,7 +22,6 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -59,7 +58,7 @@ import org.springframework.core.io.FileSystemResource;
   @Bean @StepScope public FlatFileItemReader<ItemFormat> csvItemRecordsReader(
     @Value("#{jobParameters['" + FILE_NAME + "']}") String fileName,
     @Value("#{jobParameters['" + UPDATED_FILE_NAME + "']}") String updatedFileName) {
-    LineMapper<ItemFormat> itemLineMapper = JobConfigReaderHelper.createItemLineMapper();
+    var itemLineMapper = JobConfigReaderHelper.createLineMapper(ItemFormat.class, ItemFormat.getItemFieldsArray());
     return new FlatFileItemReaderBuilder<ItemFormat>().name("itemReader")
       .resource(new FileSystemResource(isEmpty(updatedFileName) ? fileName : updatedFileName))
       .linesToSkip(1)

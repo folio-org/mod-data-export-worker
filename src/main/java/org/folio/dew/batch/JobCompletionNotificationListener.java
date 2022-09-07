@@ -20,7 +20,6 @@ import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,7 +43,6 @@ import org.folio.dew.service.BulkEditChangedRecordsService;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditStatisticService;
 import org.folio.dew.utils.CsvHelper;
-import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
@@ -111,11 +109,11 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
         String filePath = requireNonNull(isNull(updatedFilePath) ? jobExecution.getJobParameters().getString(FILE_NAME) : updatedFilePath);
         if (Files.notExists(Paths.get(filePath)) && repository.containsFile(filePath)) {
           int totalUsers = CsvHelper.readRecordsFromMinio(repository, filePath, UserFormat.class, true).size();
-          jobExecution.getExecutionContext().putLong(TOTAL_RECORDS, totalUsers);
+          jobExecution.getExecutionContext().putInt(TOTAL_RECORDS, totalUsers);
         } else {
           try (var lines = Files.lines(Paths.get(filePath))) {
             int totalUsers = (int) lines.count() - 1;
-            jobExecution.getExecutionContext().putLong(TOTAL_RECORDS, totalUsers);
+            jobExecution.getExecutionContext().putInt(TOTAL_RECORDS, totalUsers);
           } catch (NullPointerException e) {
             String msg = String.format("Couldn't open a required for the job file. File path '%s'", FILE_NAME);
             log.debug(msg);

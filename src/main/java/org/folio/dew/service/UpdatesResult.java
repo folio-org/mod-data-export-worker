@@ -15,6 +15,5 @@ import java.util.List;
 @NoArgsConstructor
 public class UpdatesResult<T> {
   private int total;
-  private List<T> itemsForPreview;
-  private List<T> usersForPreview;
+  private List<T> entitiesForPreview;
 }

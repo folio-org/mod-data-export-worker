@@ -512,6 +512,8 @@ components:
       $ref: '../../../../folio-export-common/schemas/inventory/illPolicyCollection.json#/IllPolicyCollection'
     holdingsRecordsSourceCollection:
       $ref: '../../../../folio-export-common/schemas/inventory/holdingsRecordsSourceCollection.json#/HoldingsRecordsSourceCollection'
+    holdingsContentUpdateCollection:
+      $ref: '../../../../folio-export-common/schemas/bulk-edit/holdingsContentUpdateCollection.json#/HoldingsContentUpdateCollection'
   examples:
     errors:
       value:

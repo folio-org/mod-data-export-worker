@@ -6,7 +6,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.folio.de.entity.Job;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
@@ -34,7 +34,7 @@ public class UpdateRecordWriteListener<T> implements ItemWriteListener<T> {
   @Value("#{jobExecution}")
   private JobExecution jobExecution;
 
-  private AtomicLong processedRecords = new AtomicLong();
+  private AtomicInteger processedRecords = new AtomicInteger();
   private final BulkEditStatisticService bulkEditUpdateStatisticService;
 
   @Override
@@ -54,7 +54,7 @@ public class UpdateRecordWriteListener<T> implements ItemWriteListener<T> {
   }
 
   private Job prepareJobWithProgress() {
-    long totalRecords = jobExecution.getExecutionContext().getLong(TOTAL_RECORDS);
+    var totalRecords = jobExecution.getExecutionContext().getInt(TOTAL_RECORDS);
     if (totalRecords < BATCH_SIZE) {
       processedRecords.addAndGet(totalRecords);
     } else {
@@ -71,9 +71,9 @@ public class UpdateRecordWriteListener<T> implements ItemWriteListener<T> {
     job.setUpdatedDate(new Date());
 
     Progress progress = new Progress();
-    progress.setTotal((int) totalRecords);
-    progress.setProcessed((int) processedRecords.get());
-    progress.setProgress((int) getProgressBarValue(processedRecords.get(), totalRecords));
+    progress.setTotal(totalRecords);
+    progress.setProcessed(processedRecords.get());
+    progress.setProgress(getProgressBarValue(processedRecords.get(), totalRecords));
 
     var statistic = bulkEditUpdateStatisticService.getStatistic();
     progress.setSuccess(statistic.getSuccess());
@@ -81,11 +81,11 @@ public class UpdateRecordWriteListener<T> implements ItemWriteListener<T> {
     return job;
   }
 
-  private long getProgressBarValue(long processed, long totalRecords) {
+  private int getProgressBarValue(int processed, int totalRecords) {
     if (totalRecords < BATCH_SIZE) {
       return 90;
     }
     var progress = ((double) processed / totalRecords) * 100;
-    return progress < 100 ? (long) progress : 99;
+    return progress < 100 ? (int) progress : 99;
   }
 }

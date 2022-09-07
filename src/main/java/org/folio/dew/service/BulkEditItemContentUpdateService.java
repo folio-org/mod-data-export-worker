@@ -80,7 +80,7 @@ public class BulkEditItemContentUpdateService {
       log.info("Reading of file {} complete, number of itemFormats: {}", outputFileName, records.size());
       updateResult.setTotal(records.size());
       var contentUpdated = applyContentUpdates(records, contentUpdates, jobCommand);
-      updateResult.setItemsForPreview(contentUpdated.getPreview());
+      updateResult.setEntitiesForPreview(contentUpdated.getPreview());
       var previewOutputFileName = workdir + PREVIEW_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       saveResultToFile(contentUpdated.getPreview(), jobCommand, previewOutputFileName, PREVIEW_FILE_NAME);
       saveResultToFile(contentUpdated.getUpdated(), jobCommand, outputFileName, UPDATED_FILE_NAME);

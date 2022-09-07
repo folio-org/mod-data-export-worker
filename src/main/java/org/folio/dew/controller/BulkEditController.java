@@ -77,7 +77,6 @@ import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.UpdatesResult;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.dew.service.update.BulkEditUserContentUpdateService;
-import org.folio.dew.service.validation.UserContentUpdateValidatorService;
 import org.folio.dew.utils.CsvHelper;
 import org.folio.spring.DefaultFolioExecutionContext;
 import org.folio.spring.FolioExecutionContext;
@@ -85,7 +84,6 @@ import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 import org.openapitools.api.JobIdApi;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionException;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
@@ -128,11 +126,11 @@ public class BulkEditController implements JobIdApi {
   private final List<Job> jobs;
   private final BulkEditItemContentUpdateService itemContentUpdateService;
   private final BulkEditUserContentUpdateService userContentUpdateService;
-  private final UserContentUpdateValidatorService userContentUpdateValidatorService;
   private final BulkEditParseService bulkEditParseService;
   private final MinIOObjectStorageRepository repository;
   private final FolioModuleMetadata folioModuleMetadata;
   private final FolioExecutionContext folioExecutionContext;
+  private final MinIOObjectStorageRepository minIOObjectStorageRepository;
 
   @Value("${spring.application.name}")
   private String springApplicationName;
@@ -159,7 +157,6 @@ public class BulkEditController implements JobIdApi {
 
   @Override
   public ResponseEntity<UserCollection> postUserContentUpdates(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId, @ApiParam(value = "" ,required=true )  @Valid @RequestBody UserContentUpdateCollection contentUpdateCollection, @ApiParam(value = "The numbers of records to return") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
-    userContentUpdateValidatorService.validateContentUpdateCollection(contentUpdateCollection);
     bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId.toString());
     var jobCommand = getJobCommandById(jobId.toString());
     if (nonNull(jobCommand.getIdentifierType())) {
@@ -235,7 +232,7 @@ public class BulkEditController implements JobIdApi {
   }
 
   @Override
-  public ResponseEntity<Resource> downloadPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId) {
+  public ResponseEntity<Resource> downloadItemsPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId) {
     var jobCommand = getJobCommandById(jobId.toString());
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
@@ -250,6 +247,25 @@ public class BulkEditController implements JobIdApi {
     } catch (Exception e) {
       return ResponseEntity.internalServerError().body(new DescriptiveResource(e.getMessage()));
     }
+  }
+
+  @Override
+  public ResponseEntity<Resource> downloadUsersPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId) {
+    var jobCommand = getJobCommandById(jobId.toString());
+    var fileName = jobCommand.getJobParameters().getString(PREVIEW_FILE_NAME);
+    if (nonNull(fileName)) {
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+      try {
+        var updatedUsersResource = new ByteArrayResource(minIOObjectStorageRepository.getObject(fileName).readAllBytes());
+        headers.setContentLength(updatedUsersResource.contentLength());
+        headers.setContentDispositionFormData(fileName, fileName);
+        return ResponseEntity.ok().headers(headers).body(updatedUsersResource);
+      } catch (Exception e) {
+        return ResponseEntity.internalServerError().body(new DescriptiveResource(e.getMessage()));
+      }
+    }
+    throw new NotFoundException("Preview is not available");
   }
 
   @Override

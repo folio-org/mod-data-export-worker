@@ -57,13 +57,13 @@ class BulkEditUserContentUpdateServiceTest extends BaseBatchTest {
         .option(UserContentUpdate.OptionEnum.PATRON_GROUP)
         .actions(Collections.singletonList(new UserContentUpdateAction()
           .name(UserContentUpdateAction.NameEnum.REPLACE_WITH)
-          .value("new patron group")))))
+          .value("PatronGroup")))))
       .totalRecords(1);
 
     var res = contentUpdateService.process(jobCommand, contentUpdates);
 
     assertThat(res.getUsersForPreview(), hasSize(2));
-    assertThat(res.getUsersForPreview().stream().allMatch(userFormat -> "new patron group".equals(userFormat.getPatronGroup())), is(true));
+    assertThat(res.getUsersForPreview().stream().allMatch(userFormat -> "PatronGroup".equals(userFormat.getPatronGroup())), is(true));
 
     assertThat(minIOObjectStorageRepository.containsFile(updatedFileName), is(true));
     assertThat(minIOObjectStorageRepository.containsFile(previewFileName), is(true));

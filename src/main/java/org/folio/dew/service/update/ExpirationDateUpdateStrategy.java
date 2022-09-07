@@ -1,30 +1,20 @@
 package org.folio.dew.service.update;
 
-import static org.apache.commons.lang3.ObjectUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.utils.BulkEditProcessorHelper.dateFromString;
 
 import org.folio.dew.domain.dto.UserContentUpdate;
 import org.folio.dew.domain.dto.UserFormat;
-import org.folio.dew.error.BulkEditException;
+import org.springframework.stereotype.Component;
 
+import java.util.Date;
+
+@Component
 public class ExpirationDateUpdateStrategy implements UpdateStrategy<UserFormat, UserContentUpdate> {
   @Override
-  public UserFormat applyUpdate(UserFormat userFormat, UserContentUpdate update, boolean isPreview) {
+  public UserFormat applyUpdate(UserFormat userFormat, UserContentUpdate update) {
     var action = update.getActions().get(0);
-    var newExpirationDate = isEmpty(action.getValue()) ? EMPTY : action.getValue().toString();
-    switch (action.getName()) {
-    case REPLACE_WITH:
-      if (!isPreview && newExpirationDate.equals(userFormat.getExpirationDate())) {
-        throw new BulkEditException("Expiration date: No change in value needed");
-      }
-      return userFormat.withExpirationDate(newExpirationDate);
-    case CLEAR_FIELD:
-      if (!isPreview && EMPTY.equals(userFormat.getExpirationDate())) {
-        throw new BulkEditException("Expiration date: No change in value needed");
-      }
-      return userFormat.withExpirationDate(EMPTY);
-    default:
-      return userFormat;
-    }
+    return userFormat
+      .withExpirationDate(action.getValue().toString())
+      .withActive(Boolean.toString(dateFromString(action.getValue().toString()).after(new Date())));
   }
 }

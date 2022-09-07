@@ -16,7 +16,6 @@ import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
 import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
-import static org.folio.dew.domain.dto.UserContentUpdateAction.NameEnum.CLEAR_FIELD;
 import static org.folio.dew.domain.dto.UserContentUpdateAction.NameEnum.FIND;
 import static org.folio.dew.domain.dto.UserContentUpdateAction.NameEnum.REPLACE_WITH;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
@@ -27,7 +26,6 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -79,7 +77,6 @@ import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.JobCommandsReceiverService;
-import org.folio.dew.service.validation.UserContentUpdateInvalidTestData;
 import org.folio.spring.DefaultFolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.integration.XOkapiHeaders;
@@ -108,6 +105,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -130,6 +128,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/item-content-update/upload";
   private static final String USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/user-content-update/upload";
   private static final String ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-items/download";
+  private static final String USERS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-users/download";
   private static final String ITEMS_FOR_LOCATION_UPDATE = "src/test/resources/upload/bulk_edit_items_for_location_update.csv";
   private static final String ITEMS_FOR_LOAN_TYPE_UPDATE = "src/test/resources/upload/bulk_edit_items_for_loan_type_update.csv";
   private static final String ITEMS_FOR_STATUS_UPDATE = "src/test/resources/upload/bulk_edit_items_for_status_update.csv";
@@ -755,7 +754,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @ParameterizedTest
   @EnumSource(value = ItemsContentUpdateTestData.class, names = ".+_LOCATION", mode = EnumSource.Mode.MATCH_ANY)
-  @DisplayName("Download preview - successful")
+  @DisplayName("Download items preview - successful")
   @SneakyThrows
   void shouldDownloadPreviewAfterContentUpdate(ItemsContentUpdateTestData testData) {
     repository.uploadObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
@@ -844,6 +843,51 @@ class BulkEditControllerTest extends BaseBatchTest {
       .headers(defaultHeaders()))
       .andExpect(status().isNotFound())
       .andReturn();
+  }
+
+  @Test
+  @SneakyThrows
+  @DisplayName("Download users preview when preview is not available - NOT FOUND")
+  void shouldReturnNotFoundIfPreviewIsNotAvailable() {
+    var jobCommand = new JobCommand();
+    var jobId = UUID.randomUUID();
+    jobCommand.setId(jobId);
+    jobCommand.setJobParameters(new JobParameters());
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
+    mockMvc.perform(get(format(USERS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE, jobId))
+        .headers(defaultHeaders()))
+      .andExpect(status().isNotFound());
+  }
+
+  @Test
+  @SneakyThrows
+  @DisplayName("Download users preview - successful")
+  void shouldDownloadPreviewAfterUserContentUpdate() {
+    var fileName = FilenameUtils.getName(PREVIEW_USER_DATA);
+    repository.uploadObject(fileName, PREVIEW_USER_DATA, null, "text/plain", false);
+    var jobCommand = new JobCommand();
+    var jobId = UUID.randomUUID();
+    jobCommand.setId(jobId);
+    jobCommand.setJobParameters(new JobParametersBuilder().addString(PREVIEW_FILE_NAME, fileName).toJobParameters());
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
+    var response = mockMvc.perform(get(format(USERS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE, jobId))
+            .headers(defaultHeaders()))
+        .andExpect(status().isOk())
+        .andReturn();
+
+    var expectedCsv = new FileSystemResource(PREVIEW_USER_DATA);
+    var actualCsvByteArr = response.getResponse().getContentAsByteArray();
+    Path actualDownloadedCsvTmp = Paths.get("actualDownloaded.csv");
+    Files.write(actualDownloadedCsvTmp, actualCsvByteArr);
+    var actualCsv = new FileSystemResource(actualDownloadedCsvTmp);
+
+    assertFileEquals(expectedCsv, actualCsv);
+
+    Files.delete(actualDownloadedCsvTmp);
   }
 
   @Test
@@ -1134,69 +1178,6 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @Test
-  @DisplayName("Post user content update with clear expiration date")
-  @SneakyThrows
-  void shouldClearUserExpirationDate() {
-    when(userClient.getUserByQuery("barcode==\"123\"", 1))
-      .thenReturn(new UserCollection().addUsersItem(new User().barcode("123").active(true).personal(new Personal().email("123@example.com"))
-        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
-    when(userClient.getUserByQuery("barcode==\"456\"", 1))
-      .thenReturn(new UserCollection().addUsersItem(new User().barcode("456").active(true).personal(new Personal().email("456@example.com"))
-        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
-    when(userClient.getUserByQuery("barcode==\"789\"", 1))
-      .thenReturn(new UserCollection().addUsersItem(new User().barcode("789").active(true).personal(new Personal().email("789@example.com"))
-        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
-    UserGroup userGroup;
-    when(groupClient.getGroupById("3684a786-6671-4268-8ed0-9db82ebca60b"))
-      .thenReturn(userGroup = new UserGroup().group("some group").id("3684a786-6671-4268-8ed0-9db82ebca60b"));
-    when(groupClient.getGroupByQuery("group==\"some group\""))
-      .thenReturn(new UserGroupCollection().usergroups(List.of(userGroup)));
-
-    var jobId = UUID.randomUUID();
-    var jobCommand = new JobCommand();
-    jobCommand.setId(jobId);
-    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
-    jobCommand.setEntityType(USER);
-    jobCommand.setIdentifierType(BARCODE);
-    jobCommand.setJobParameters(new JobParametersBuilder().addString(JobParameterNames.JOB_ID, jobId.toString()).toJobParameters());
-
-    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
-
-    var bytes = new FileInputStream("src/test/resources/upload/barcodes.csv").readAllBytes();
-    var file = new MockMultipartFile("file", "barcodes.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
-
-    var responseUpload = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
-      .file(file)
-      .headers(defaultHeaders()))
-      .andExpect(status().isOk())
-      .andReturn();
-
-    Map<String, Collection<String>> okapiHeaders = new LinkedHashMap<>();
-    okapiHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
-    var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
-    FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
-
-    createTestLauncher(bulkEditProcessUserIdentifiersJob).launchJob(jobCommand.getJobParameters());
-
-    assertThat(responseUpload.getResponse().getContentAsString(), equalTo("3"));
-
-    var updates = objectMapper.writeValueAsString(new UserContentUpdateCollection()
-      .userContentUpdates(Collections.singletonList(new UserContentUpdate()
-        .option(UserContentUpdate.OptionEnum.EXPIRATION_DATE)
-        .actions(List.of(new UserContentUpdateAction().name(CLEAR_FIELD)))))
-      .totalRecords(1));
-
-    var responseContentUpdateUpload = mockMvc.perform(post(format(USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
-        .headers(defaultHeaders())
-        .content(updates))
-      .andExpect(status().isOk())
-      .andReturn();
-    var actualUsers = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
-      UserCollection.class);
-    actualUsers.getUsers().forEach(u -> assertNull(u.getExpirationDate()));
-  }
-
-  @Test
   @DisplayName("Post user content update to replace email")
   @SneakyThrows
   void shouldReplaceEmailAddress() {
@@ -1285,7 +1266,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @Test
-  @DisplayName("Post user content update to replace patron group and clear expiration date")
+  @DisplayName("Post user content update to replace patron group and replace expiration date")
   @SneakyThrows
   void shouldAndReplacePatronGroupAndClearExpirationDate() {
     when(userClient.getUserByQuery("barcode==\"123\"", 1))
@@ -1342,7 +1323,7 @@ class BulkEditControllerTest extends BaseBatchTest {
         new UserContentUpdate()
           .option(UserContentUpdate.OptionEnum.EXPIRATION_DATE)
           .actions(List.of(
-            new UserContentUpdateAction().name(CLEAR_FIELD)))))
+            new UserContentUpdateAction().name(REPLACE_WITH).value("2022-06-12 23:59:00.000Z")))))
       .totalRecords(3));
 
     var responseContentUpdateUpload = mockMvc.perform(post(format(USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
@@ -1353,7 +1334,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var actualUsers = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
       UserCollection.class);
     actualUsers.getUsers().forEach(u -> {
-      assertEquals(null, u.getExpirationDate());
+      assertEquals(new Date(Instant.parse("2022-06-12T23:59:00.00Z").toEpochMilli()), u.getExpirationDate());
       assertEquals("some new group", groupClient.getGroupById(u.getPatronGroup()).getGroup());
     });
 
@@ -1365,20 +1346,6 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertEquals("COMPLETED", jobExecution.getStatus().name());
     assertEquals(Files.readString(Path.of(EXPECTED_USER_CONTENT_UPDATE_OUTPUT)), new String(minIOObjectStorageRepository.getObject
       (jobExecution.getJobParameters().getString(UPDATED_FILE_NAME)).readAllBytes()));
-  }
-
-  @ParameterizedTest
-  @EnumSource(UserContentUpdateInvalidTestData.class)
-  @DisplayName("Post invalid user content update - BAD_REQUEST")
-  @SneakyThrows
-  void shouldReturnBadRequestIfUserContentUpdateIsNotValid(UserContentUpdateInvalidTestData update) {
-    var updates = objectMapper.writeValueAsString(new UserContentUpdateCollection()
-      .userContentUpdates(Collections.singletonList(update.getUpdate()))
-      .totalRecords(1));
-    mockMvc.perform(post(format(USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, UUID.randomUUID()))
-        .headers(defaultHeaders())
-        .content(updates))
-      .andExpect(status().isBadRequest());
   }
 
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType, EntityType entityType, IdentifierType identifierType) {

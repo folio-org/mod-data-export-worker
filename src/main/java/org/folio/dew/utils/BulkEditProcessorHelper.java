@@ -1,7 +1,9 @@
 package org.folio.dew.utils;
 
+import static java.time.ZoneOffset.UTC;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.folio.dew.domain.dto.IdentifierType.ACCESSION_NUMBER;
 import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
 import static org.folio.dew.domain.dto.IdentifierType.EXTERNAL_SYSTEM_ID;
@@ -17,6 +19,8 @@ import org.folio.dew.domain.dto.IdentifierType;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.TimeZone;
@@ -44,6 +48,14 @@ public class BulkEditProcessorHelper {
 
   public static String dateToString(Date date) {
     return nonNull(date) ? dateFormat.format(date) : EMPTY;
+  }
+
+  public static Date dateFromString(String date) {
+    if (isNotEmpty(date)) {
+      LocalDateTime localDateTime = LocalDateTime.parse(date, DateTimeFormatter.ofPattern(DATE_TIME_PATTERN));
+      return Date.from(localDateTime.atZone(UTC).toInstant());
+    }
+    return null;
   }
 
   public static String resolveIdentifier(String identifier) {

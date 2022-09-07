@@ -1,21 +1,17 @@
 package org.folio.dew.service;
 
-import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.folio.dew.utils.BulkEditProcessorHelper.dateFromString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
-import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_PATTERN;
 import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
 import static org.folio.dew.utils.Constants.LINE_BREAK;
 import static org.folio.dew.utils.Constants.LINE_BREAK_REPLACEMENT;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -135,10 +131,10 @@ public class BulkEditParseService {
     user.setDepartments(getUserDepartments(userFormat));
     user.setProxyFor(getProxyFor(userFormat));
     user.setPersonal(getUserPersonalInfo(userFormat));
-    user.setEnrollmentDate(getDate(userFormat.getEnrollmentDate()));
-    user.setExpirationDate(getDate(userFormat.getExpirationDate()));
-    user.setCreatedDate(getDate(userFormat.getCreatedDate()));
-    user.setUpdatedDate(getDate(userFormat.getUpdatedDate()));
+    user.setEnrollmentDate(dateFromString(userFormat.getEnrollmentDate()));
+    user.setExpirationDate(dateFromString(userFormat.getExpirationDate()));
+    user.setCreatedDate(dateFromString(userFormat.getCreatedDate()));
+    user.setUpdatedDate(dateFromString(userFormat.getUpdatedDate()));
     user.setTags(getTags(userFormat));
     user.setCustomFields(getCustomFields(userFormat));
   }
@@ -207,18 +203,10 @@ public class BulkEditParseService {
     personal.setEmail(userFormat.getEmail());
     personal.setPhone(userFormat.getPhone());
     personal.setMobilePhone(userFormat.getMobilePhone());
-    personal.setDateOfBirth(getDate(userFormat.getDateOfBirth()));
+    personal.setDateOfBirth(dateFromString(userFormat.getDateOfBirth()));
     personal.setAddresses(getUserAddresses(userFormat));
     personal.setPreferredContactTypeId(userFormat.getPreferredContactTypeId());
     return personal;
-  }
-
-  private Date getDate(String date) {
-    if (isNotEmpty(date)) {
-      LocalDateTime localDateTime = LocalDateTime.parse(date, DateTimeFormatter.ofPattern(DATE_TIME_PATTERN));
-      return Date.from(localDateTime.atZone(UTC).toInstant());
-    }
-    return null;
   }
 
   private List<Address> getUserAddresses(UserFormat userFormat) {
@@ -469,7 +457,7 @@ public class BulkEditParseService {
           .personal(new Personal()
             .lastName(tokens[tokens.length - CIRC_NOTE_LAST_NAME_OFFSET])
             .firstName(tokens[tokens.length - CIRC_NOTE_FIRST_NAME_OFFSET])))
-        .date(getDate(tokens[tokens.length - CIRC_NOTE_DATE_OFFSET]));
+        .date(dateFromString(tokens[tokens.length - CIRC_NOTE_DATE_OFFSET]));
     }
     return null;
   }
@@ -480,7 +468,7 @@ public class BulkEditParseService {
       if (NUMBER_OF_STATUS_COMPONENTS == tokens.length) {
         return new InventoryItemStatus()
           .name(InventoryItemStatus.NameEnum.fromValue(tokens[STATUS_NAME_INDEX]))
-          .date(getDate(tokens[STATUS_DATE_INDEX]));
+          .date(dateFromString(tokens[STATUS_DATE_INDEX]));
       }
       throw new BulkEditException(String.format("Illegal number of item status elements: %d, expected: %d", tokens.length, NUMBER_OF_STATUS_COMPONENTS));
     }

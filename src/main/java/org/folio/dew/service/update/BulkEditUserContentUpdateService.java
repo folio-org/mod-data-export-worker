@@ -7,6 +7,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
+import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
 import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 
@@ -23,6 +24,7 @@ import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.ContentUpdateRecords;
 import org.folio.dew.service.UpdatesResult;
+import org.folio.dew.service.validation.UserContentUpdateValidatorService;
 import org.folio.dew.utils.CsvHelper;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.stereotype.Component;
@@ -36,8 +38,13 @@ import java.util.Objects;
 public class BulkEditUserContentUpdateService {
   private final MinIOObjectStorageRepository repository;
   private final BulkEditProcessingErrorsService errorsService;
+  private final EmailUpdateStrategy emailUpdateStrategy;
+  private final ExpirationDateUpdateStrategy expirationDateUpdateStrategy;
+  private final PatronGroupUpdateStrategy patronGroupUpdateStrategy;
+  private final UserContentUpdateValidatorService validatorService;
 
   public UpdatesResult<UserFormat> process(JobCommand jobCommand, UserContentUpdateCollection contentUpdates) {
+    validatorService.validateContentUpdateCollection(contentUpdates);
     try {
       var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       var updatedFileName = UPDATED_PREFIX + fileName;
@@ -63,21 +70,20 @@ public class BulkEditUserContentUpdateService {
     var updateResult = new ContentUpdateRecords<UserFormat>();
     userFormats.forEach(userFormat -> {
       var updatedUser = userFormat;
-      var updatedPreview = userFormat;
       for (UserContentUpdate contentUpdate: contentUpdateCollection.getUserContentUpdates()) {
         try {
-          var updateStrategy = resolveUpdateStrategy(contentUpdate);
-          updatedPreview = updateStrategy.applyUpdate(updatedPreview, contentUpdate, true);
-          updatedUser = updateStrategy.applyUpdate(updatedUser, contentUpdate, false);
+          updatedUser = resolveUpdateStrategy(contentUpdate).applyUpdate(updatedUser, contentUpdate);
         } catch (BulkEditException e) {
-          log.error("Failed to update {} for user id={}, reason: {}", contentUpdate.getOption(), userFormat.getId(), e.getMessage());
+          log.error("User content update {} was not applied for user {}, reason: {}", contentUpdate.getOption(), userFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)), e.getMessage());
           errorsService.saveErrorInCSV(jobCommand.getId().toString(), userFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)), e, FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
         }
       }
       if (!Objects.equals(updatedUser, userFormat)) {
         updateResult.addToUpdated(updatedUser);
+      } else {
+        errorsService.saveErrorInCSV(jobCommand.getId().toString(), userFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)), new BulkEditException(NO_CHANGE_MESSAGE), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
       }
-      updateResult.addToPreview(updatedPreview);
+      updateResult.addToPreview(updatedUser);
     });
     return updateResult;
   }
@@ -85,11 +91,11 @@ public class BulkEditUserContentUpdateService {
   private UpdateStrategy<UserFormat, UserContentUpdate> resolveUpdateStrategy(UserContentUpdate update) {
     switch (update.getOption()) {
     case PATRON_GROUP:
-      return new PatronGroupUpdateStrategy();
+      return patronGroupUpdateStrategy;
     case EXPIRATION_DATE:
-      return new ExpirationDateUpdateStrategy();
+      return expirationDateUpdateStrategy;
     case EMAIL_ADDRESS:
-      return new EmailUpdateStrategy();
+      return emailUpdateStrategy;
     default:
       throw new BulkEditException(String.format("Content updates for %s not implemented", update.getOption()));
     }

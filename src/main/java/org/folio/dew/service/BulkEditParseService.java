@@ -533,12 +533,4 @@ public class BulkEditParseService {
     }
     return null;
   }
-
-  public HoldingsRecord mapHoldingsFormatToHoldingsRecord(HoldingsFormat holdingsFormat) {
-    var holdingsRecord  = new HoldingsRecord();
-    holdingsRecord.setId(holdingsFormat.getId());
-    holdingsRecord.setHrid(holdingsFormat.getHrid());
-    return holdingsRecord;
-  }
-
 }

@@ -76,6 +76,7 @@ import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.UpdatesResult;
 import org.folio.dew.service.JobCommandsReceiverService;
+import org.folio.dew.service.mapper.HoldingsMapper;
 import org.folio.dew.service.update.BulkEditUserContentUpdateService;
 import org.folio.dew.utils.CsvHelper;
 import org.folio.spring.DefaultFolioExecutionContext;
@@ -131,6 +132,7 @@ public class BulkEditController implements JobIdApi {
   private final FolioModuleMetadata folioModuleMetadata;
   private final FolioExecutionContext folioExecutionContext;
   private final MinIOObjectStorageRepository minIOObjectStorageRepository;
+  private final HoldingsMapper holdingsMapper;
 
   @Value("${spring.application.name}")
   private String springApplicationName;
@@ -219,7 +221,7 @@ public class BulkEditController implements JobIdApi {
       try {
         var holdings = CsvHelper.readRecordsFromMinio(repository, fileName, limit, HoldingsFormat.class)
           .stream()
-          .map(bulkEditParseService::mapHoldingsFormatToHoldingsRecord)
+          .map(holdingsMapper::mapToHoldingsRecord)
           .collect(Collectors.toList());
         return new ResponseEntity<>(new HoldingsRecordCollection().holdingsRecords(holdings).totalRecords(holdings.size()), HttpStatus.OK);
       } catch (Exception e) {

@@ -160,7 +160,7 @@ public class BulkEditController implements JobIdApi {
         .toJobParameters());
     }
     var updatesResult = userContentUpdateService.process(jobCommand, contentUpdateCollection);
-    log.info("postUserContentUpdate: {}", updatesResult.getEntitiesForPreview());
+    log.info("postUserContentUpdate: {} users", updatesResult.getEntitiesForPreview().size());
     jobCommandsReceiverService.updateJobCommand(jobCommand);
     return new ResponseEntity<>(prepareUserContentUpdateResponse(updatesResult, limit), HttpStatus.OK);
   }

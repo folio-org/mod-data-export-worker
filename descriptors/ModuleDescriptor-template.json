@@ -156,7 +156,13 @@
           "methods": [ "GET" ],
           "pathPattern": "/bulk-edit/{jobId}/preview/holdings",
           "permissionsRequired": [ "bulk-edit.preview-holdings.collection.get" ],
-          "modulePermissions": []
+          "modulePermissions": [
+            "inventory-storage.holdings-types.collection.get",
+            "inventory-storage.locations.collection.get",
+            "inventory-storage.call-number-types.collection.get",
+            "inventory-storage.ill-policies.collection.get",
+            "inventory-storage.holdings-sources.collection.get"
+          ]
         },
         {
           "methods": [ "GET" ],

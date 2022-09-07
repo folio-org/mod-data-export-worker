@@ -20,6 +20,8 @@ import org.folio.dew.config.properties.MinioClientProperties;
 import org.folio.dew.error.FileOperationException;
 import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
@@ -91,9 +93,14 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     createBucketIfNotExists();
 
     if (isComposeWithAwsSdk) {
-      var awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
+      AwsCredentialsProvider credentialsProvider;
 
-      var credentialsProvider = StaticCredentialsProvider.create(awsCredentials);
+      if (StringUtils.isNotBlank(accessKey) && StringUtils.isNotBlank(secretKey)) {
+        var awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
+        credentialsProvider = StaticCredentialsProvider.create(awsCredentials);
+      } else {
+        credentialsProvider = DefaultCredentialsProvider.create();
+      }
 
       s3Client = S3Client.builder()
         .endpointOverride(URI.create(endpoint))

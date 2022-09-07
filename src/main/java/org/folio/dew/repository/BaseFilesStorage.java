@@ -19,6 +19,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.config.properties.MinioClientProperties;
 import org.folio.dew.error.FileOperationException;
 import org.jetbrains.annotations.NotNull;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
+import software.amazon.awssdk.services.s3.model.CompletedPart;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -27,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
@@ -41,8 +53,11 @@ import static io.minio.ObjectWriteArgs.MIN_MULTIPART_SIZE;
 public class BaseFilesStorage implements S3CompatibleStorage {
 
   private final MinioClient client;
+  private S3Client s3Client;
   private final String bucket;
   private final String region;
+
+  private final boolean isComposeWithAwsSdk;
 
   public BaseFilesStorage(MinioClientProperties properties) {
     final String accessKey = properties.getAccessKey();
@@ -50,6 +65,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     final String regionName = properties.getRegion();
     final String bucketName = properties.getBucket();
     final String secretKey = properties.getSecretKey();
+    isComposeWithAwsSdk = properties.isComposeWithAwsSdk();
     log.info("Creating MinIO client endpoint {},region {},bucket {},accessKey {},secretKey {}.", endpoint, regionName, bucketName,
       StringUtils.isNotBlank(accessKey) ? "<set>" : "<not set>", StringUtils.isNotBlank(secretKey) ? "<set>" : "<not set>");
 
@@ -73,6 +89,19 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     this.region = regionName;
 
     createBucketIfNotExists();
+
+    if (isComposeWithAwsSdk) {
+      var awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
+
+      var credentialsProvider = StaticCredentialsProvider.create(awsCredentials);
+
+      s3Client = S3Client.builder()
+        .endpointOverride(URI.create(endpoint))
+        .region(Region.of(regionName))
+        .credentialsProvider(credentialsProvider)
+        .build();
+    }
+
   }
 
   public MinioClient getMinioClient() {
@@ -136,26 +165,79 @@ public class BaseFilesStorage implements S3CompatibleStorage {
           .object(path).build()).size();
 
         if (size > MIN_MULTIPART_SIZE) {
-          var temporaryFileName = path + "_temp";
-          write(temporaryFileName, bytes);
 
-          client.composeObject(ComposeObjectArgs.builder()
-            .bucket(bucket)
-            .region(region)
-            .object(path)
-            .sources(List.of(ComposeSource.builder()
-                .bucket(bucket)
-                .region(region)
-                .object(path)
-                .build(),
-              ComposeSource.builder()
-                .bucket(bucket)
-                .region(region)
-                .object(temporaryFileName)
-                .build()))
-            .build());
+          if (isComposeWithAwsSdk) {
 
-          delete(temporaryFileName);
+            var createMultipartUploadRequest = CreateMultipartUploadRequest.builder()
+              .bucket(bucket)
+              .key(path)
+              .build();
+
+            var uploadId = s3Client.createMultipartUpload(createMultipartUploadRequest).uploadId();
+
+            var uploadPartRequest1 = UploadPartCopyRequest.builder()
+              .sourceBucket(bucket)
+              .sourceKey(path)
+              .uploadId(uploadId)
+              .destinationBucket(bucket)
+              .destinationKey(path)
+              .partNumber(1).build();
+
+            var uploadPartRequest2 = UploadPartRequest.builder()
+              .bucket(bucket)
+              .key(path)
+              .uploadId(uploadId)
+              .partNumber(2).build();
+
+            var originalEtag  = s3Client.uploadPartCopy(uploadPartRequest1).copyPartResult().eTag();
+            var appendedEtag = s3Client.uploadPart(uploadPartRequest2, RequestBody.fromBytes(bytes)).eTag();
+
+            var original = CompletedPart.builder()
+              .partNumber(1)
+              .eTag(originalEtag).build();
+            var appended = CompletedPart.builder()
+              .partNumber(2)
+              .eTag(appendedEtag).build();
+
+            var completedMultipartUpload = CompletedMultipartUpload.builder()
+              .parts(original, appended)
+              .build();
+
+            var completeMultipartUploadRequest =
+              CompleteMultipartUploadRequest.builder()
+                .bucket(bucket)
+                .key(path)
+                .uploadId(uploadId)
+                .multipartUpload(completedMultipartUpload)
+                .build();
+
+            s3Client.completeMultipartUpload(completeMultipartUploadRequest);
+
+          } else {
+
+            var temporaryFileName = path + "_temp";
+            write(temporaryFileName, bytes);
+
+            client.composeObject(ComposeObjectArgs.builder()
+              .bucket(bucket)
+              .region(region)
+              .object(path)
+              .sources(List.of(ComposeSource.builder()
+                  .bucket(bucket)
+                  .region(region)
+                  .object(path)
+                  .build(),
+                ComposeSource.builder()
+                  .bucket(bucket)
+                  .region(region)
+                  .object(temporaryFileName)
+                  .build()))
+              .build());
+
+            delete(temporaryFileName);
+
+          }
+
         } else {
           var original = readAllBytes(path);
           byte[] composed = new byte[original.length + bytes.length];

@@ -334,6 +334,30 @@
         "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
       },
       {
+        "name": "LOCAL_FS_URL",
+        "value": "http://127.0.0.1:9000/"
+      },
+      {
+        "name": "LOCAL_FS_REGION",
+        "value": ""
+      },
+      {
+        "name": "LOCAL_FS_BUCKET",
+        "value": "local-test-bucket2"
+      },
+      {
+        "name": "LOCAL_FS_ACCESS_KEY_ID",
+        "value": "AKIAIOSFODNN7EXAMPLE"
+      },
+      {
+        "name": "LOCAL_FS_SECRET_ACCESS_KEY",
+        "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+      },
+      {
+        "name": "LOCAL_FS_COMPOSE_WITH_AWS_SDK",
+        "value": "false"
+      },
+      {
         "name": "ENV",
         "value": "folio"
       }

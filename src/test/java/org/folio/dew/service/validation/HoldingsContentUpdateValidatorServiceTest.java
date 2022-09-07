@@ -33,7 +33,8 @@ class HoldingsContentUpdateValidatorServiceTest extends BaseBatchTest {
   @ParameterizedTest
   @EnumSource(HoldingsContentUpdateInvalidTestData.class)
   void shouldRejectInvalidContentUpdateData(HoldingsContentUpdateInvalidTestData testData) {
-    assertThrows(ContentUpdateValidationException.class, () -> validatorService.validateContentUpdateCollection(testData.getUpdateCollection()));
+    var updates = testData.getUpdateCollection();
+    assertThrows(ContentUpdateValidationException.class, () -> validatorService.validateContentUpdateCollection(updates));
   }
 
   @AllArgsConstructor

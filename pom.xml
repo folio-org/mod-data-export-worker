@@ -67,6 +67,7 @@
         <wiremock.version>2.27.2</wiremock.version>
         <marc4j.version>2.9.1</marc4j.version>
         <testcontainers.version>1.15.3</testcontainers.version>
+        <aws.sdk.version>2.17.267</aws.sdk.version>
     </properties>
 
     <dependencies>
@@ -194,6 +195,12 @@
         <version>${marc4j.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>aws-sdk-java</artifactId>
+        <version>${aws.sdk.version}</version>
+      </dependency>
+
         <!-- Test dependencies -->
 
       <dependency>
@@ -277,6 +284,12 @@
             <version>${wiremock.version}</version>
             <scope>test</scope>
         </dependency>
+      <dependency>
+        <groupId>io.findify</groupId>
+        <artifactId>s3mock_2.13</artifactId>
+        <version>0.2.6</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
 
     <build>
@@ -574,7 +587,7 @@
         <url>https://github.com/folio-org/${project.artifactId}</url>
         <connection>scm:git:git://github.com/folio-org/${project.artifactId}.git</connection>
         <developerConnection>scm:git:git@github.com:folio-org/${project.artifactId}.git</developerConnection>
-        <tag>v1.4.0</tag>
+        <tag>v1.4.5</tag>
     </scm>
 
     <repositories>

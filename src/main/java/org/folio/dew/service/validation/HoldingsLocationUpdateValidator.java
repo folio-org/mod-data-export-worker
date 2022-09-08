@@ -1,5 +1,6 @@
 package org.folio.dew.service.validation;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.folio.dew.domain.dto.HoldingsContentUpdate.ActionEnum.REPLACE_WITH;
 import static org.folio.dew.domain.dto.HoldingsContentUpdate.OptionEnum.PERMANENT_LOCATION;
@@ -11,8 +12,6 @@ import org.folio.dew.error.ContentUpdateValidationException;
 import org.folio.dew.service.HoldingsReferenceService;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
-
 @Component
 @RequiredArgsConstructor
 public class HoldingsLocationUpdateValidator implements ContentUpdateValidator<HoldingsContentUpdate> {
@@ -22,10 +21,11 @@ public class HoldingsLocationUpdateValidator implements ContentUpdateValidator<H
     String errorMessage = null;
     if (REPLACE_WITH == update.getAction()) {
       try {
-        var locationName = Objects.toString(update.getValue());
+        if (isNull(update.getValue())) {
+          errorMessage = "Location name cannot be empty";
+        }
+        var locationName = update.getValue().toString();
         referenceService.getLocationByName(locationName);
-      } catch (NullPointerException npe) {
-        errorMessage = "Location name cannot be empty";
       } catch (BulkEditException e) {
         errorMessage = "Location does not exist";
       }

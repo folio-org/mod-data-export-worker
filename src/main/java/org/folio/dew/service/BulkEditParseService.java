@@ -28,9 +28,6 @@ import org.folio.dew.domain.dto.CustomField;
 import org.folio.dew.domain.dto.Department;
 import org.folio.dew.domain.dto.EffectiveCallNumberComponents;
 
-import org.folio.dew.domain.dto.HoldingsFormat;
-import org.folio.dew.domain.dto.HoldingsRecord;
-
 import org.folio.dew.domain.dto.InventoryItemStatus;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemFormat;

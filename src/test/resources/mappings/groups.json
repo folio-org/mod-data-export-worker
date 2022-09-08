@@ -16,11 +16,24 @@
     {
       "request": {
         "method": "GET",
-        "url": "/groups?query=group%3DPatronGroup"
+        "url": "/groups?query=group%3D%3D%22PatronGroup%22"
       },
       "response": {
         "status": 200,
         "body": "{\n    \"usergroups\": [\n        {\n            \"group\": \"PatronGroup\",\n            \"desc\": \"Staff Member\",\n            \"id\": \"3684a786-6671-4268-8ed0-9db82ebca60b\",\n            \"expirationOffsetInDays\": 730,\n            \"metadata\": {\n                \"createdDate\": \"2021-12-12T01:51:57.960+00:00\",\n                \"updatedDate\": \"2021-12-12T01:51:57.960+00:00\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/groups?query=group%3D%3D%22non-existing%20group%22"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"usergroups\": [],\n    \"totalRecords\": 0\n}",
         "headers": {
           "Content-Type": "application/json"
         }

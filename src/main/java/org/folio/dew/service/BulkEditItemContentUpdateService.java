@@ -5,11 +5,12 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.folio.dew.domain.dto.ContentUpdate.ActionEnum.CLEAR_FIELD;
-import static org.folio.dew.domain.dto.ContentUpdate.ActionEnum.REPLACE_WITH;
-import static org.folio.dew.domain.dto.ContentUpdate.OptionEnum.PERMANENT_LOCATION;
-import static org.folio.dew.domain.dto.ContentUpdate.OptionEnum.STATUS;
-import static org.folio.dew.domain.dto.ContentUpdate.OptionEnum.TEMPORARY_LOCATION;
+import static org.folio.dew.domain.dto.ItemContentUpdate.ActionEnum.CLEAR_FIELD;
+import static org.folio.dew.domain.dto.ItemContentUpdate.ActionEnum.REPLACE_WITH;
+import static org.folio.dew.domain.dto.ItemContentUpdate.OptionEnum.PERMANENT_LOAN_TYPE;
+import static org.folio.dew.domain.dto.ItemContentUpdate.OptionEnum.PERMANENT_LOCATION;
+import static org.folio.dew.domain.dto.ItemContentUpdate.OptionEnum.STATUS;
+import static org.folio.dew.domain.dto.ItemContentUpdate.OptionEnum.TEMPORARY_LOCATION;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
@@ -31,8 +32,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
-import org.folio.dew.domain.dto.ContentUpdate;
-import org.folio.dew.domain.dto.ContentUpdateCollection;
+import org.folio.dew.domain.dto.ItemContentUpdate;
+import org.folio.dew.domain.dto.ItemContentUpdateCollection;
 import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.FileOperationException;
@@ -68,18 +69,18 @@ public class BulkEditItemContentUpdateService {
     workdir = System.getProperty(TMP_DIR_PROPERTY) + PATH_SEPARATOR + springApplicationName + PATH_SEPARATOR;
   }
 
-  public ItemUpdatesResult processContentUpdates(JobCommand jobCommand, ContentUpdateCollection contentUpdates) {
+  public UpdatesResult<ItemFormat> processContentUpdates(JobCommand jobCommand, ItemContentUpdateCollection contentUpdates) {
     var outputFileName = workdir + UPDATED_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
     try {
       log.info("Processing content updates for job id {}", jobCommand.getId());
       Files.deleteIfExists(Path.of(outputFileName));
       repository.downloadObject(FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION, outputFileName);
-      var updateResult = new ItemUpdatesResult();
+      var updateResult = new UpdatesResult<ItemFormat>();
       var records = CsvHelper.readRecordsFromFile(outputFileName, ItemFormat.class, true);
       log.info("Reading of file {} complete, number of itemFormats: {}", outputFileName, records.size());
       updateResult.setTotal(records.size());
       var contentUpdated = applyContentUpdates(records, contentUpdates, jobCommand);
-      updateResult.setItemsForPreview(contentUpdated.getPreview());
+      updateResult.setEntitiesForPreview(contentUpdated.getPreview());
       var previewOutputFileName = workdir + PREVIEW_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       saveResultToFile(contentUpdated.getPreview(), jobCommand, previewOutputFileName, PREVIEW_FILE_NAME);
       saveResultToFile(contentUpdated.getUpdated(), jobCommand, outputFileName, UPDATED_FILE_NAME);
@@ -106,13 +107,13 @@ public class BulkEditItemContentUpdateService {
     }
   }
 
-  private ContentUpdateRecords applyContentUpdates(List<ItemFormat> itemFormats, ContentUpdateCollection contentUpdates, JobCommand jobCommand) {
-    var result = new ContentUpdateRecords();
+  private ContentUpdateRecords<ItemFormat> applyContentUpdates(List<ItemFormat> itemFormats, ItemContentUpdateCollection contentUpdates, JobCommand jobCommand) {
+    var result = new ContentUpdateRecords<ItemFormat>();
     for (ItemFormat itemFormat: itemFormats) {
       log.info("Applying updates to item id={}", itemFormat.getId());
       var updatedItemFormat = itemFormat;
       var errorMessage = new ErrorMessage();
-      for (ContentUpdate contentUpdate: contentUpdates.getContentUpdates()) {
+      for (ItemContentUpdate contentUpdate: contentUpdates.getItemContentUpdates()) {
         updatedItemFormat = applyContentUpdate(updatedItemFormat, contentUpdate, errorMessage);
       }
       if (!Objects.equals(itemFormat, updatedItemFormat)) {
@@ -129,7 +130,7 @@ public class BulkEditItemContentUpdateService {
         }
       }
       if (errorMessage.getValue() != null) {
-        log.error(errorMessage);
+        log.error(errorMessage.getValue());
         errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)), new BulkEditException(errorMessage.getValue()), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
       }
     }
@@ -137,12 +138,14 @@ public class BulkEditItemContentUpdateService {
   }
 
 
-  private ItemFormat applyContentUpdate(ItemFormat itemFormat, ContentUpdate contentUpdate, ErrorMessage errorMessage) {
+  private ItemFormat applyContentUpdate(ItemFormat itemFormat, ItemContentUpdate contentUpdate, ErrorMessage errorMessage) {
     if (REPLACE_WITH == contentUpdate.getAction()) {
       return applyReplaceWith(itemFormat, contentUpdate, errorMessage);
     } else if (CLEAR_FIELD == contentUpdate.getAction()) {
       if (STATUS == contentUpdate.getOption()) {
         errorMessage.setValue(STATUS_FIELD_CAN_NOT_CLEARED);
+      } else if (PERMANENT_LOAN_TYPE == contentUpdate.getOption()) {
+        errorMessage.setValue("Permanent loan type cannot be cleared");
       } else {
         return applyClearField(itemFormat, contentUpdate);
       }
@@ -150,24 +153,44 @@ public class BulkEditItemContentUpdateService {
     return itemFormat;
   }
 
-  private ItemFormat applyReplaceWith(ItemFormat itemFormat, ContentUpdate contentUpdate, ErrorMessage errorMessage) {
-    if (TEMPORARY_LOCATION == contentUpdate.getOption()) {
-      return itemFormat.withTemporaryLocation(isNull(contentUpdate.getValue()) ? EMPTY : contentUpdate.getValue().toString());
-    } else if (PERMANENT_LOCATION == contentUpdate.getOption()) {
-      return itemFormat.withPermanentLocation(isNull(contentUpdate.getValue()) ? EMPTY : contentUpdate.getValue().toString());
-    } else if (STATUS == contentUpdate.getOption()) {
-      return replaceStatusIfAllowed(itemFormat, contentUpdate.getValue(), errorMessage);
+  private ItemFormat applyReplaceWith(ItemFormat itemFormat, ItemContentUpdate contentUpdate, ErrorMessage errorMessage) {
+    var newValue = isEmpty(contentUpdate.getValue()) ? EMPTY : contentUpdate.getValue().toString();
+    switch (contentUpdate.getOption()) {
+    case PERMANENT_LOAN_TYPE:
+      return replacePermanentLoanTypeIfAllowed(itemFormat, newValue, errorMessage);
+    case TEMPORARY_LOAN_TYPE:
+      return itemFormat.withTemporaryLoanType(newValue);
+    case TEMPORARY_LOCATION:
+      return itemFormat.withTemporaryLocation(newValue);
+    case PERMANENT_LOCATION:
+      return itemFormat.withPermanentLocation(newValue);
+    case STATUS:
+      return replaceStatusIfAllowed(itemFormat, newValue, errorMessage);
+    default:
+      return itemFormat;
     }
-    return itemFormat;
   }
 
-  private ItemFormat applyClearField(ItemFormat itemFormat, ContentUpdate contentUpdate) {
-    if (TEMPORARY_LOCATION == contentUpdate.getOption()) {
-      return itemFormat.withTemporaryLocation(EMPTY);
-    } else if (PERMANENT_LOCATION == contentUpdate.getOption()) {
-      return itemFormat.withPermanentLocation(EMPTY);
+  private ItemFormat replacePermanentLoanTypeIfAllowed(ItemFormat itemFormat, String newValue, ErrorMessage errorMessage) {
+    if (newValue.isEmpty()) {
+      errorMessage.setValue("Permanent loan type value cannot be empty");
+      return itemFormat;
+    } else {
+      return itemFormat.withPermanentLoanType(newValue);
     }
-    return itemFormat;
+  }
+
+  private ItemFormat applyClearField(ItemFormat itemFormat, ItemContentUpdate contentUpdate) {
+    switch (contentUpdate.getOption()) {
+    case PERMANENT_LOCATION:
+      return itemFormat.withPermanentLocation(EMPTY);
+    case TEMPORARY_LOCATION:
+      return itemFormat.withTemporaryLocation(EMPTY);
+    case TEMPORARY_LOAN_TYPE:
+      return itemFormat.withTemporaryLoanType(EMPTY);
+    default:
+      return itemFormat;
+    }
   }
 
   private void updateEffectiveLocation(ItemFormat itemFormat) {
@@ -180,14 +203,13 @@ public class BulkEditItemContentUpdateService {
     }
   }
 
-  private boolean isLocationChange(ContentUpdateCollection contentUpdates) {
-    return contentUpdates.getContentUpdates().stream()
+  private boolean isLocationChange(ItemContentUpdateCollection contentUpdates) {
+    return contentUpdates.getItemContentUpdates().stream()
       .anyMatch(update -> TEMPORARY_LOCATION == update.getOption() || PERMANENT_LOCATION == update.getOption());
   }
 
-  private ItemFormat replaceStatusIfAllowed(ItemFormat itemFormat, Object value, ErrorMessage errorMessage) {
+  private ItemFormat replaceStatusIfAllowed(ItemFormat itemFormat, String newStatus, ErrorMessage errorMessage) {
     var currentStatus = extractStatusName(itemFormat.getStatus());
-    var newStatus = isNull(value) ? EMPTY : value.toString();
     if (!currentStatus.equals(newStatus)) {
       if (itemReferenceService.getAllowedStatuses(currentStatus).contains(newStatus)) {
         return itemFormat.withStatus(String.join(ARRAY_DELIMITER, newStatus, dateToString(Date.from(LocalDateTime.now().atZone(UTC).toInstant()))));
@@ -204,12 +226,27 @@ public class BulkEditItemContentUpdateService {
     return tokens.length > 0 ? tokens[0] : EMPTY;
   }
 
-  private ItemFormat applyUpdatesForPreview(ContentUpdateCollection contentUpdates, ItemFormat itemFormat) {
-    var statusUpdate = contentUpdates.getContentUpdates().stream()
+  private ItemFormat applyUpdatesForPreview(ItemContentUpdateCollection contentUpdates, ItemFormat itemFormat) {
+    var updatedItemFormat = applyStatusUpdateForPreview(contentUpdates, itemFormat);
+    return applyLoanTypeUpdateForPreview(contentUpdates, updatedItemFormat);
+  }
+
+  private ItemFormat applyStatusUpdateForPreview(ItemContentUpdateCollection contentUpdates, ItemFormat itemFormat) {
+    var statusUpdate = contentUpdates.getItemContentUpdates().stream()
       .filter(contentUpdate -> contentUpdate.getOption() == STATUS)
       .findFirst();
     if (statusUpdate.isPresent() && nonNull(statusUpdate.get().getValue()) && !extractStatusName(itemFormat.getStatus()).equals(statusUpdate.get().getValue())) {
       return itemFormat.withStatus(String.join(ARRAY_DELIMITER, statusUpdate.get().getValue().toString(), dateToString(Date.from(LocalDateTime.now().atZone(UTC).toInstant()))));
+    }
+    return itemFormat;
+  }
+
+  private ItemFormat applyLoanTypeUpdateForPreview(ItemContentUpdateCollection contentUpdates, ItemFormat itemFormat) {
+    var update = contentUpdates.getItemContentUpdates().stream()
+      .filter(contentUpdate -> contentUpdate.getOption() == PERMANENT_LOAN_TYPE)
+      .findFirst();
+    if (update.isPresent() && !Objects.equals(update.get().getValue(), itemFormat.getPermanentLoanType())) {
+      return itemFormat.withPermanentLoanType(isNull(update.get().getValue()) ? EMPTY : update.get().getValue().toString());
     }
     return itemFormat;
   }

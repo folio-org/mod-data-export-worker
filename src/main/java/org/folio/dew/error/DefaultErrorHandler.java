@@ -81,6 +81,17 @@ public class DefaultErrorHandler {
       HttpStatus.BAD_REQUEST);
   }
 
+  @ExceptionHandler(ContentUpdateValidationException.class)
+  public ResponseEntity<Errors> handleContentUpdateValidationException(final ContentUpdateValidationException e) {
+    return new ResponseEntity<>(new Errors()
+      .errors(Collections.singletonList(new Error()
+        .message(e.getMessage())
+        .code(VALIDATION_ERROR.getDescription())
+        .type(INTERNAL.getValue())))
+      .totalRecords(1),
+      HttpStatus.BAD_REQUEST);
+  }
+
   private Parameter processValidationError(ObjectError error) {
     return new Parameter()
       .key(((FieldError) error).getField())

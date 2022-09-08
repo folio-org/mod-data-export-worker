@@ -1,8 +1,9 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
-<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+                    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
-    <include file="db/changelog/changelog-1.4.0.xml"/>
+  <include file="changes/initial_schema.xml" relativeToChangelogFile="true"/>
+  <include file="changes/create_job_command_table.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

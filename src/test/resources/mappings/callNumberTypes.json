@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/call-number-types?query=name%3D%3DLC%20Modified"
+        "urlPattern": "/call-number-types\\?query=name%3D%3D(%22LC%20Modified%22|LC%20Modified)"
       },
       "response": {
         "status": 200,
@@ -29,11 +29,23 @@
     {
       "request": {
         "method": "GET",
-        "url": "/call-number-types?query=name%3D%3DLCModified"
+        "url": "/call-number-types?query=name%3D%3D%22LCModified%22"
       },
       "response": {
         "status": 200,
         "body": "{\n    \"callNumberTypes\": [],\n    \"totalRecords\": 0\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/call-number-types/1d51c4da-0d5f-4303-a922-3e9d7a9b22f3"
+      },
+      "response": {
+        "status": 404,
         "headers": {
           "Content-Type": "application/json"
         }

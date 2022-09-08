@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
+import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
 import org.folio.dew.batch.acquisitions.edifact.services.ExpenseClassService;
 import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
@@ -41,7 +42,7 @@ import lombok.extern.log4j.Log4j2;
 @SpringBootTest
 @AutoConfigureMockMvc
 @RunWith(MockitoJUnitRunner.class)
-class MappingOrdersToEdifactTest {
+class MappingOrdersToEdifactTest extends BaseBatchTest {
   @Autowired
   private ObjectMapper objectMapper;
   @Autowired

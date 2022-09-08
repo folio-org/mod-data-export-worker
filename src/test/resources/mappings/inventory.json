@@ -3,7 +3,20 @@
     {
       "request": {
         "method": "GET",
-        "urlPattern": "/inventory/items\\?query=(barcode|id|hrid|accessionNumber|holdingsRecordId)%3D%3D90000&limit=\\d*"
+        "urlPattern": "/inventory/items\\?query=(id|hrid|accessionNumber|holdingsRecordId)%3D%3D90000&limit=\\d*"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"items\": [ {  \"id\": \"100d10bf-2f06-4aa0-be15-0b95b2d9f9e3\",  \"_version\": \"6\",  \"status\": {   \"name\": \"Paged\",   \"date\": \"2022-03-15T12:23:02.942+00:00\"  },  \"administrativeNotes\": [],  \"title\": \"A semantic web primer\",  \"callNumber\": \"TK5105.88815 . A58 2004 FT MEADE\",  \"hrid\": \"item000000000015\",  \"contributorNames\": [   {    \"name\": \"Antoniou, Grigoris\"   },   {    \"name\": \"Van Harmelen, Frank\"   }  ],  \"formerIds\": [],  \"discoverySuppress\": null,  \"holdingsRecordId\": \"e3ff6133-b9a2-4d4c-a1c9-dc1867d4df19\",  \"barcode\": \"90000\",  \"itemLevelCallNumber\": \"TK5105.88815 . A58 2004 FT MEADE\",  \"enumeration\": \"\",  \"chronology\": \"\",  \"notes\": [   {    \"itemNoteTypeId\": \"8d0a5eca-25de-4391-81a9-236eeefdd20b\",    \"note\": \"Sample note\",    \"staffOnly\": false   }  ],  \"circulationNotes\": [   {    \"id\": \"f735aa68-7c5d-428d-b2ce-886d4533dfac\",    \"noteType\": \"Check in\",    \"note\": \"Check in note\",    \"staffOnly\": false,    \"source\": {     \"id\": \"46a73c04-db50-5da1-99da-7ff8718f3da2\",     \"personal\": {      \"lastName\": \"ADMINISTRATOR\",      \"firstName\": \"DIKU\"     }    },    \"date\": \"2022-03-15T13:56:18.119+0000\"   }  ],  \"itemDamagedStatusId\": \"516b82eb-1f19-4a63-8c48-8f1a3e9ff311\",  \"itemDamagedStatusDate\": \"2022-03-15\",  \"tags\": {   \"tagList\": []  },  \"yearCaption\": [],  \"electronicAccess\": [   {    \"uri\": \"http://www.loc.gov/catdir/toc/ecip0718/2007020429.html\",    \"linkText\": \"Links available\",    \"materialsSpecification\": \"Table of contents\",    \"publicNote\": \"Table of contents only\",    \"relationshipId\": \"3b430592-2e09-4b48-9a0c-0636d66b9fb3\"   }  ],  \"statisticalCodeIds\": [   \"b5968c9e-cddc-4576-99e3-8e60aed8b0dd\"  ],  \"purchaseOrderLineIdentifier\": null,  \"materialType\": {   \"id\": \"1a54b431-2e4f-452d-9cae-9cee66c9a892\",   \"name\": \"book\"  },  \"permanentLoanType\": {   \"id\": \"2b94c631-fca9-4892-a730-03ee529ffe27\",   \"name\": \"Can circulate\"  },  \"permanentLocation\": {   \"id\": \"fcd64ce1-6995-48f0-840e-89ffa2288371\",   \"name\": \"Main Library\"  },  \"temporaryLocation\": {   \"id\": \"53cf956f-c1df-410b-8bea-27f712cca7c0\",   \"name\": \"Annex\"  },  \"metadata\": {   \"createdDate\": \"2022-03-15T01:50:24.897+00:00\",   \"updatedDate\": \"2022-03-15T13:56:18.138+00:00\",   \"updatedByUserId\": \"46a73c04-db50-5da1-99da-7ff8718f3da2\"  },  \"links\": {   \"self\": \"http://folio-snapshot-okapi.dev.folio.org/inventory/items/100d10bf-2f06-4aa0-be15-0b95b2d9f9e3\"  },\"lastCheckIn\": { \"servicePointId\": \"c4c90014-c8c9-4ade-8f24-b5e313319f4b\", \"staffMemberId\": \"bec20636-fb68-41fd-84ea-2cf910673599\", \"dateTime\": \"2022-03-16T07:22:16.470Z\" },  \"effectiveCallNumberComponents\": {   \"callNumber\": \"TK5105.88815 . A58 2004 FT MEADE\",   \"prefix\": null,   \"suffix\": null,   \"typeId\": \"512173a7-bd09-490e-b773-17d83f2b63fe\"  },  \"effectiveShelvingOrder\": \"TK 45105.88815 A58 42004 FT MEADE\",  \"isBoundWith\": false,  \"effectiveLocation\": {   \"id\": \"53cf956f-c1df-410b-8bea-27f712cca7c0\",   \"name\": \"Annex\"  } }],\"totalRecords\": 1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D%2290000%22&limit=1"
       },
       "response": {
         "status": 200,
@@ -29,7 +42,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3D12345&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%2212345%22&limit=1"
       },
       "response": {
         "status": 200,
@@ -42,7 +55,7 @@
     {
       "request": {
         "method": "GET",
-        "urlPattern": "/inventory/items\\?query=barcode%3D%3Dbar\\d*&limit=1"
+        "urlPattern": "/inventory/items\\?query=barcode%3D%3D%22bar\\d*%22&limit=1"
       },
       "response": {
         "status": 200,
@@ -55,7 +68,7 @@
     {
       "request": {
         "method": "GET",
-        "urlPattern": "/inventory/items\\?query=barcode%3D%3Dfoo\\d*&limit=1"
+        "urlPattern": "/inventory/items\\?query=barcode%3D%3D%22foo\\d*%22&limit=1"
       },
       "response": {
         "status": 200,
@@ -68,7 +81,20 @@
     {
       "request": {
         "method": "GET",
-        "urlPattern": "/inventory/items\\?query=(barcode|id|hrid|accessionNumber|holdingsRecordId)%3D%3D10101&limit=\\d*"
+        "urlPattern": "/inventory/items\\?query=(id|hrid|accessionNumber|holdingsRecordId)%3D%3D10101&limit=\\d*"
+      },
+      "response": {
+        "status": 200,
+        "body": "{  \"items\": [   {    \"id\": \"7212ba6a-8dcf-45a1-be9a-ffaa847c4423\",    \"_version\": \"4\",    \"status\": {     \"name\": \"Paged\",     \"date\": \"2022-03-15T10:48:09.765+00:00\"    },    \"administrativeNotes\": [],    \"title\": \"A semantic web primer\",    \"callNumber\": \"TK5105.88815 . A58 2004 FT MEADE\",    \"hrid\": \"item000000000014\",    \"contributorNames\": [     {      \"name\": \"Antoniou, Grigoris\"     },     {      \"name\": \"Van Harmelen, Frank\"     }    ],    \"formerIds\": [],    \"discoverySuppress\": null,    \"holdingsRecordId\": \"e3ff6133-b9a2-4d4c-a1c9-dc1867d4df19\",    \"barcode\": \"10101\",    \"itemLevelCallNumber\": \"TK5105.88815 . A58 2004 FT MEADE\",    \"enumeration\": \"\",    \"chronology\": \"\",    \"copyNumber\": \"Copy 2\",    \"notes\": [],    \"circulationNotes\": [],    \"tags\": {     \"tagList\": []    },    \"yearCaption\": [],    \"electronicAccess\": [     {      \"uri\": \"http://www.loc.gov/catdir/toc/ecip0718/2007020429.html\",      \"linkText\": \"Links available\",      \"materialsSpecification\": \"Table of contents\",      \"publicNote\": \"Table of contents only\",      \"relationshipId\": \"3b430592-2e09-4b48-9a0c-0636d66b9fb3\"     }    ],    \"statisticalCodeIds\": [     \"b5968c9e-cddc-4576-99e3-8e60aed8b0dd\"    ],    \"purchaseOrderLineIdentifier\": null,    \"materialType\": {     \"id\": \"1a54b431-2e4f-452d-9cae-9cee66c9a892\",     \"name\": \"book\"    },    \"permanentLoanType\": {     \"id\": \"2b94c631-fca9-4892-a730-03ee529ffe27\",     \"name\": \"Can circulate\"    },    \"permanentLocation\": {     \"id\": \"fcd64ce1-6995-48f0-840e-89ffa2288371\",     \"name\": \"Main Library\"    },    \"metadata\": {     \"createdDate\": \"2022-03-15T01:50:24.897+00:00\",     \"updatedDate\": \"2022-03-15T10:48:09.763+00:00\",     \"updatedByUserId\": \"46a73c04-db50-5da1-99da-7ff8718f3da2\"    },    \"links\": {     \"self\": \"http://folio-snapshot-okapi.dev.folio.org/inventory/items/7212ba6a-8dcf-45a1-be9a-ffaa847c4423\"    },    \"effectiveCallNumberComponents\": {     \"callNumber\": \"TK5105.88815 . A58 2004 FT MEADE\",     \"prefix\": null,     \"suffix\": null,     \"typeId\": \"512173a7-bd09-490e-b773-17d83f2b63fe\"    },    \"effectiveShelvingOrder\": \"TK 45105.88815 A58 42004 FT MEADE COPY 12\",    \"isBoundWith\": false,    \"effectiveLocation\": {     \"id\": \"fcd64ce1-6995-48f0-840e-89ffa2288371\",     \"name\": \"Main Library\"    }   }  ],  \"totalRecords\": 1 }",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D%2210101%22&limit=1"
       },
       "response": {
         "status": 200,
@@ -94,7 +120,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3Ddouble_quote&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%22double_quote%22&limit=1"
       },
       "response": {
         "status": 200,
@@ -167,6 +193,58 @@
       "request": {
         "method": "GET",
         "url": "/inventory/items?query=holdingsRecordId%3D%3Dinvalid_holding_uuid&limit=2147483647"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"items\": [ ],\"totalRecords\": 0}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/instances?query=hrid%3D%3Dinvalid_holding_uuid&limit=2147483647"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"items\": [ ],\"totalRecords\": 0}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D%22123%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"items\": [ {\"id\": \"8a42ad3f-7ec4-4e03-869c-f66ce74cd914\", \"holdingsRecordId\": \"0b1e3760-f689-493e-a98e-9cc9dadb7e83\"} ],\"totalRecords\": 1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D%22456%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"items\": [ {\"id\": \"a1b701c1-26cd-43d6-813d-2810f92f7190\", \"holdingsRecordId\": \"855d4693-4087-4339-8c14-c25c350e5e59\"} ],\"totalRecords\": 1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D%22789%22&limit=1"
       },
       "response": {
         "status": 200,

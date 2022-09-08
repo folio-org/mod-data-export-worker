@@ -1,5 +1,8 @@
 package org.folio.dew.config.kafka;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -10,15 +13,13 @@ import org.folio.spring.FolioExecutionContext;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.core.env.Environment;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.util.Assert;
 
 
 @Component
@@ -32,6 +33,7 @@ public class KafkaService {
   private final KafkaTemplate<String, Object> kafkaTemplate;
   private final KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
   private final BeanFactory beanFactory;
+  private final Environment springEnvironment;
   private final FolioExecutionContext folioExecutionContext;
 
   @Value("${env:folio}")
@@ -41,7 +43,6 @@ public class KafkaService {
   @AllArgsConstructor
   @Getter
   public enum Topic {
-    JOB_COMMAND("data-export.job.command"),
     JOB_UPDATE("data-export.job.update"),
     EXPORT_HISTORY_CREATE("Default", "edi-export-history.create");
     private String nameSpace;
@@ -69,19 +70,22 @@ public class KafkaService {
   public void restartEventListeners() {
     log.info("Restarting kafka consumer to start listening created topics [id: {}]", EVENT_LISTENER_ID);
     var listenerContainer = kafkaListenerEndpointRegistry.getListenerContainer(EVENT_LISTENER_ID);
+    Assert.notNull(listenerContainer, "Listener container not found");
     listenerContainer.stop();
     listenerContainer.start();
   }
 
   private List<NewTopic> tenantSpecificTopics(String tenant) {
     return Arrays.stream(Topic.values())
-      .map(topic -> getTenantTopicName(topic, tenant))
-      .map(this::toKafkaTopic)
+      .map(topic -> toKafkaTopic(tenant, topic))
       .collect(Collectors.toList());
   }
 
-  private NewTopic toKafkaTopic(String topic) {
-    return TopicBuilder.name(topic).build();
+  private NewTopic toKafkaTopic(String tenant, Topic topic) {
+    var envProperty = String.format("application.kafka.topic-configuration.%s.partitions", topic.getTopicName());
+    var partitions = Integer.parseInt(springEnvironment.getProperty(envProperty, "50"));
+    var tenantTopicName = getTenantTopicName(topic, tenant);
+    return TopicBuilder.name(tenantTopicName).partitions(partitions).build();
   }
 
   /**

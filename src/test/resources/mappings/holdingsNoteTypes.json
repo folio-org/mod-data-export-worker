@@ -1,0 +1,42 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/holdings-note-types/b160f13a-ddba-4053-b9c4-60ec5ea45d56"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n  \"id\": \"b160f13a-ddba-4053-b9c4-60ec5ea45d56\",\n  \"name\": \"Note\",\n  \"source\": \"folio\"\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/holdings-note-types?query=name%3D%3D%22Note%22"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"holdingsNoteTypes\": [{\n  \"id\": \"b160f13a-ddba-4053-b9c4-60ec5ea45d56\",\n  \"name\": \"Note\",\n  \"source\": \"folio\"\n}], \"totalRecords\": 1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/holdings-note-types/1d51c4da-0d5f-4303-a922-3e9d7a9b22f3"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

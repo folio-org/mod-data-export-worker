@@ -1,21 +1,17 @@
 package org.folio.dew.service;
 
-import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.folio.dew.utils.BulkEditProcessorHelper.dateFromString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
-import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_PATTERN;
 import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
 import static org.folio.dew.utils.Constants.LINE_BREAK;
 import static org.folio.dew.utils.Constants.LINE_BREAK_REPLACEMENT;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -31,7 +27,6 @@ import org.folio.dew.domain.dto.ContributorName;
 import org.folio.dew.domain.dto.CustomField;
 import org.folio.dew.domain.dto.Department;
 import org.folio.dew.domain.dto.EffectiveCallNumberComponents;
-import org.folio.dew.domain.dto.ElectronicAccess;
 import org.folio.dew.domain.dto.InventoryItemStatus;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemFormat;
@@ -60,6 +55,8 @@ public class BulkEditParseService {
 
   private final UserReferenceService userReferenceService;
   private final ItemReferenceService itemReferenceService;
+
+  private final ElectronicAccessService electronicAccessService;
 
   private static final int ADDRESS_ID = 0;
   private static final int ADDRESS_COUNTRY_ID = 1;
@@ -100,14 +97,7 @@ public class BulkEditParseService {
   private static final int HOLDING_HRID_INDEX = 0;
   private static final int INSTANCE_HRID_INDEX = 1;
 
-  private static final int NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS = 5;
-  private static final int ELECTRONIC_ACCESS_URI_INDEX = 0;
-  private static final int ELECTRONIC_ACCESS_LINK_TEXT_INDEX = 1;
-  private static final int ELECTRONIC_ACCESS_MATERIAL_SPECIFICATION_INDEX = 2;
-  private static final int ELECTRONIC_ACCESS_PUBLIC_NOTE_INDEX = 3;
-  private static final int ELECTRONIC_ACCESS_RELATIONSHIP_INDEX = 4;
-
-  private static final int NUMBER_OF_LAST_CHECK_IN_COMPONENTS = 3;
+    private static final int NUMBER_OF_LAST_CHECK_IN_COMPONENTS = 3;
   private static final int LAST_CHECK_IN_SERVICE_POINT_NAME_INDEX = 0;
   private static final int LAST_CHECK_IN_USERNAME_INDEX = 1;
   private static final int LAST_CHECK_IN_DATE_TIME_INDEX = 2;
@@ -133,10 +123,10 @@ public class BulkEditParseService {
     user.setDepartments(getUserDepartments(userFormat));
     user.setProxyFor(getProxyFor(userFormat));
     user.setPersonal(getUserPersonalInfo(userFormat));
-    user.setEnrollmentDate(getDate(userFormat.getEnrollmentDate()));
-    user.setExpirationDate(getDate(userFormat.getExpirationDate()));
-    user.setCreatedDate(getDate(userFormat.getCreatedDate()));
-    user.setUpdatedDate(getDate(userFormat.getUpdatedDate()));
+    user.setEnrollmentDate(dateFromString(userFormat.getEnrollmentDate()));
+    user.setExpirationDate(dateFromString(userFormat.getExpirationDate()));
+    user.setCreatedDate(dateFromString(userFormat.getCreatedDate()));
+    user.setUpdatedDate(dateFromString(userFormat.getUpdatedDate()));
     user.setTags(getTags(userFormat));
     user.setCustomFields(getCustomFields(userFormat));
   }
@@ -205,18 +195,10 @@ public class BulkEditParseService {
     personal.setEmail(userFormat.getEmail());
     personal.setPhone(userFormat.getPhone());
     personal.setMobilePhone(userFormat.getMobilePhone());
-    personal.setDateOfBirth(getDate(userFormat.getDateOfBirth()));
+    personal.setDateOfBirth(dateFromString(userFormat.getDateOfBirth()));
     personal.setAddresses(getUserAddresses(userFormat));
     personal.setPreferredContactTypeId(userFormat.getPreferredContactTypeId());
     return personal;
-  }
-
-  private Date getDate(String date) {
-    if (isNotEmpty(date)) {
-      LocalDateTime localDateTime = LocalDateTime.parse(date, DateTimeFormatter.ofPattern(DATE_TIME_PATTERN));
-      return Date.from(localDateTime.atZone(UTC).toInstant());
-    }
-    return null;
   }
 
   private List<Address> getUserAddresses(UserFormat userFormat) {
@@ -365,7 +347,7 @@ public class BulkEditParseService {
       .permanentLocation(restoreLocation(itemFormat.getPermanentLocation()))
       .temporaryLocation(restoreLocation(itemFormat.getTemporaryLocation()))
       .effectiveLocation(restoreLocation(itemFormat.getEffectiveLocation()))
-      .electronicAccess(restoreElectronicAccess(itemFormat.getElectronicAccess()))
+      .electronicAccess(electronicAccessService.restoreElectronicAccess(itemFormat.getElectronicAccess()))
       .inTransitDestinationServicePointId(restoreServicePointId(itemFormat.getInTransitDestinationServicePoint()))
       .statisticalCodeIds(restoreStatisticalCodeIds(itemFormat.getStatisticalCodes()))
       .purchaseOrderLineIdentifier(restoreStringValue(itemFormat.getPurchaseOrderLineIdentifier()))
@@ -467,7 +449,7 @@ public class BulkEditParseService {
           .personal(new Personal()
             .lastName(tokens[tokens.length - CIRC_NOTE_LAST_NAME_OFFSET])
             .firstName(tokens[tokens.length - CIRC_NOTE_FIRST_NAME_OFFSET])))
-        .date(getDate(tokens[tokens.length - CIRC_NOTE_DATE_OFFSET]));
+        .date(dateFromString(tokens[tokens.length - CIRC_NOTE_DATE_OFFSET]));
     }
     return null;
   }
@@ -478,7 +460,7 @@ public class BulkEditParseService {
       if (NUMBER_OF_STATUS_COMPONENTS == tokens.length) {
         return new InventoryItemStatus()
           .name(InventoryItemStatus.NameEnum.fromValue(tokens[STATUS_NAME_INDEX]))
-          .date(getDate(tokens[STATUS_DATE_INDEX]));
+          .date(dateFromString(tokens[STATUS_DATE_INDEX]));
       }
       throw new BulkEditException(String.format("Illegal number of item status elements: %d, expected: %d", tokens.length, NUMBER_OF_STATUS_COMPONENTS));
     }
@@ -518,30 +500,6 @@ public class BulkEditParseService {
     return isEmpty(s) ? null : itemReferenceService.getLocationByName(s);
   }
 
-  private List<ElectronicAccess> restoreElectronicAccess(String s) {
-    return isEmpty(s) ? Collections.emptyList() :
-      Arrays.stream(s.split(ITEM_DELIMITER_PATTERN))
-        .map(this::restoreElectronicAccessItem)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-  }
-
-  private ElectronicAccess restoreElectronicAccessItem(String s) {
-    if (isNotEmpty(s)) {
-      var tokens = s.split(ARRAY_DELIMITER, -1);
-      if (NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS == tokens.length) {
-        return new ElectronicAccess()
-          .uri(tokens[ELECTRONIC_ACCESS_URI_INDEX])
-          .linkText(tokens[ELECTRONIC_ACCESS_LINK_TEXT_INDEX])
-          .materialsSpecification(tokens[ELECTRONIC_ACCESS_MATERIAL_SPECIFICATION_INDEX])
-          .publicNote(tokens[ELECTRONIC_ACCESS_PUBLIC_NOTE_INDEX])
-          .relationshipId(itemReferenceService.getElectronicAccessRelationshipByName(tokens[ELECTRONIC_ACCESS_RELATIONSHIP_INDEX]).getId());
-      }
-      throw new BulkEditException(String.format("Illegal number of electronic access elements: %d, expected: %d", tokens.length, NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS));
-    }
-    return null;
-  }
-
   private String restoreServicePointId(String s) {
     return isEmpty(s) ? null : itemReferenceService.getServicePointByName(s).getId();
   }
@@ -567,7 +525,7 @@ public class BulkEditParseService {
           .staffMemberId(itemReferenceService.getUserByUserName(tokens[LAST_CHECK_IN_USERNAME_INDEX]).getId())
           .dateTime(restoreStringValue(tokens[LAST_CHECK_IN_DATE_TIME_INDEX]));
       }
-      throw new BulkEditException(String.format("Illegal number of last check in elements: %d, expected: %d", tokens.length, NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS));
+      throw new BulkEditException(String.format("Illegal number of last check in elements: %d, expected: %d", tokens.length, NUMBER_OF_LAST_CHECK_IN_COMPONENTS));
     }
     return null;
   }

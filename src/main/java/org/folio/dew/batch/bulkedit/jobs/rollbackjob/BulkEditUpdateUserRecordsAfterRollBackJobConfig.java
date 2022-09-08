@@ -13,7 +13,6 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -59,7 +58,7 @@ public class BulkEditUpdateUserRecordsAfterRollBackJobConfig {
   @Bean
   @StepScope
   public FlatFileItemReader<UserFormat> bulkEditRollBackReader(@Value("#{jobParameters['fileName']}") String fileName) {
-   LineMapper<UserFormat> userLineMapper = JobConfigReaderHelper.createUserLineMapper();
+   var userLineMapper = JobConfigReaderHelper.createLineMapper(UserFormat.class, UserFormat.getUserFieldsArray());
     return new FlatFileItemReaderBuilder<UserFormat>()
       .name("bulkEditRollBackReader")
       .resource(new FileSystemResource(fileName))

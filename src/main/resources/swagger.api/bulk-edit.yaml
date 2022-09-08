@@ -5,10 +5,10 @@ info:
 servers:
   - url: /bulk-edit/
 paths:
-  /{jobId}/items-content-update/upload:
+  /{jobId}/item-content-update/upload:
     post:
-      description: Upload content updates
-      operationId: postContentUpdates
+      description: Upload item content updates
+      operationId: postItemContentUpdates
       parameters:
         - name: jobId
           in: path
@@ -27,7 +27,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/contentUpdateCollection"
+              $ref: "#/components/schemas/itemContentUpdateCollection"
       responses:
         "200":
           description: Collection of items for preview
@@ -59,10 +59,64 @@ paths:
                 $ref: "#/components/examples/errors"
               schema:
                 $ref: "#/components/schemas/errors"
+  /{jobId}/user-content-update/upload:
+    post:
+      description: Upload user content updates
+      operationId: postUserContentUpdates
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: UUID of the JobCommand
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+          description: The numbers of records to return
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/userContentUpdateCollection"
+      responses:
+        "200":
+          description: Collection of users for preview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/userCollection"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "500":
+          description: Internal server errors, e.g. due to misconfiguration
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
   /{jobId}/preview/updated-items/download:
     get:
-      description: Download preview as csv-file
-      operationId: downloadPreviewByJobId
+      description: Download updated items preview as csv-file
+      operationId: downloadItemsPreviewByJobId
       parameters:
         - name: jobId
           in: path
@@ -72,7 +126,50 @@ paths:
             $ref: "#/components/schemas/UUID"
       responses:
         '200':
-          description: Preview updated of items to download
+          description: Preview of updated items to download
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "500":
+          description: Internal server errors, e.g. due to misconfiguration
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+  /{jobId}/preview/updated-users/download:
+    get:
+      description: Download updated users preview as csv-file
+      operationId: downloadUsersPreviewByJobId
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: UUID of the JobCommand
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        '200':
+          description: Preview of updated items to download
           content:
             text/csv:
               schema:
@@ -366,7 +463,7 @@ components:
     departmentCollection:
       $ref: '../../../../folio-export-common/schemas/user/departmentCollection.json#/DepartmentCollection'
     userCollection:
-      $ref: '../../../../folio-export-common/schemas/user/userCollection.json'
+      $ref: '../../../../folio-export-common/schemas/user/userCollection.json#/UserCollection'
     itemCollection:
       $ref: '../../../../folio-export-common/schemas/inventory/itemCollection.json#/ItemCollection'
     callNumberType:
@@ -399,10 +496,24 @@ components:
       $ref: '../../../../folio-export-common/schemas/inventory/electronicAccessRelationshipCollection.json#/ElectronicAccessRelationshipCollection'
     statisticalCodes:
       $ref: '../../../../folio-export-common/schemas/inventory/statisticalCodeCollection.json#/StatisticalCodeCollection'
-    contentUpdateCollection:
-      $ref: '../../../../folio-export-common/schemas/bulk-edit/contentUpdateCollection.json#/ContentUpdateCollection'
+    itemContentUpdateCollection:
+      $ref: '../../../../folio-export-common/schemas/bulk-edit/itemContentUpdateCollection.json#/ItemContentUpdateCollection'
+    userContentUpdateCollection:
+      $ref: '../../../../folio-export-common/schemas/bulk-edit/userContentUpdateCollection.json#/UserContentUpdateCollection'
     customFieldCollection:
       $ref: '../../../../folio-export-common/schemas/user/customFieldCollection.json#/CustomFieldCollection'
+    holdingsRecordCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/holdingsRecordCollection.json#/HoldingsRecordCollection'
+    holdingsTypeCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/holdingsTypeCollection.json#/HoldingsTypeCollection'
+    holdingsNoteTypeCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/holdingsNoteTypeCollection.json#/HoldingsNoteTypeCollection'
+    illPolicyCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/illPolicyCollection.json#/IllPolicyCollection'
+    holdingsRecordsSourceCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/holdingsRecordsSourceCollection.json#/HoldingsRecordsSourceCollection'
+    holdingsContentUpdateCollection:
+      $ref: '../../../../folio-export-common/schemas/bulk-edit/holdingsContentUpdateCollection.json#/HoldingsContentUpdateCollection'
   examples:
     errors:
       value:

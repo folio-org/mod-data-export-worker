@@ -12,13 +12,13 @@ import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.CirculationNote;
 import org.folio.dew.domain.dto.ContributorName;
 import org.folio.dew.domain.dto.EffectiveCallNumberComponents;
-import org.folio.dew.domain.dto.ElectronicAccess;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.domain.dto.ItemNote;
 import org.folio.dew.domain.dto.LastCheckIn;
 import org.folio.dew.domain.dto.StatisticalCode;
 import org.folio.dew.domain.dto.Title;
+import org.folio.dew.service.ElectronicAccessService;
 import org.folio.dew.service.ItemReferenceService;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
   private final ItemReferenceService itemReferenceService;
+  private final ElectronicAccessService electronicAccessService;
 
   @Override
   public ItemFormat process(Item item) {
@@ -81,7 +82,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .permanentLocation(isEmpty(item.getPermanentLocation()) ? EMPTY : item.getPermanentLocation().getName())
       .temporaryLocation(isEmpty(item.getTemporaryLocation()) ? EMPTY : item.getTemporaryLocation().getName())
       .effectiveLocation(isEmpty(item.getEffectiveLocation()) ? EMPTY : item.getEffectiveLocation().getName())
-      .electronicAccess(fetchElectronicAccess(item))
+      .electronicAccess(electronicAccessService.electronicAccessesToString(item.getElectronicAccess()))
       .inTransitDestinationServicePoint(isNull(inTransitServicePoint) ? EMPTY : inTransitServicePoint.getName())
       .statisticalCodes(fetchStatisticalCodes(item))
       .purchaseOrderLineIdentifier(item.getPurchaseOrderLineIdentifier())
@@ -159,24 +160,6 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       title.getBriefHoldingsRecord().getHrid(),
       title.getBriefInstance().getHrid(),
       title.getBriefInstance().getTitle());
-  }
-
-  private String fetchElectronicAccess(Item item) {
-    return isEmpty(item.getElectronicAccess()) ?
-      EMPTY :
-      item.getElectronicAccess().stream()
-        .map(this::electronicAccessToString)
-        .collect(Collectors.joining(ITEM_DELIMITER));
-  }
-
-  private String electronicAccessToString(ElectronicAccess access) {
-    var relationship = isEmpty(access.getRelationshipId()) ? null : itemReferenceService.getRelationshipById(access.getRelationshipId());
-    return String.join(ARRAY_DELIMITER,
-      access.getUri(),
-      isEmpty(access.getLinkText()) ? EMPTY : access.getLinkText(),
-      isEmpty(access.getMaterialsSpecification()) ? EMPTY : access.getMaterialsSpecification(),
-      isEmpty(access.getPublicNote()) ? EMPTY : access.getPublicNote(),
-      isNull(relationship) ? EMPTY : relationship.getName());
   }
 
   private String fetchStatisticalCodes(Item item) {

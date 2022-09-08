@@ -1,0 +1,42 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/ill-policies/9e49924b-f649-4b36-ab57-e66e639a9b0e"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n  \"id\": \"9e49924b-f649-4b36-ab57-e66e639a9b0e\",\n  \"name\": \"Limited lending policy\",\n  \"source\": \"folio\"\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/ill-policies?query=name%3D%3D%22Limited%20lending%20policy%22"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"illPolicies\": [{\n  \"id\": \"9e49924b-f649-4b36-ab57-e66e639a9b0e\",\n  \"name\": \"Limited lending policy\",\n  \"source\": \"folio\"\n}], \"totalRecords\":1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/ill-policies/1d51c4da-0d5f-4303-a922-3e9d7a9b22f3"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

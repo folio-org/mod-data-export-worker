@@ -10,7 +10,7 @@
   "provides": [
     {
       "id": "bulk-edit",
-      "version": "2.0",
+      "version": "3.0",
       "handlers": [
         {
           "methods": [ "POST" ],
@@ -30,7 +30,7 @@
         },
         {
           "methods": [ "POST" ],
-          "pathPattern": "/bulk-edit/{id}/items-content-update/upload",
+          "pathPattern": "/bulk-edit/{id}/item-content-update/upload",
           "permissionsRequired": [ "bulk-edit.items-content-update.collection.post" ],
           "modulePermissions": [
             "inventory-storage.call-number-types.item.get",
@@ -56,6 +56,22 @@
             "inventory-storage.holdings.item.get",
             "inventory-storage.holdings.collection.get",
             "configuration.entries.collection.get"
+          ]
+        },
+        {
+          "methods": [ "POST" ],
+          "pathPattern": "/bulk-edit/{id}/user-content-update/upload",
+          "permissionsRequired": [ "bulk-edit.users-content-update.collection.post" ],
+          "modulePermissions": [
+            "users.collection.get",
+            "users.item.get",
+            "users.item.put",
+            "usergroups.item.get",
+            "addresstypes.item.get",
+            "proxiesfor.item.get",
+            "departments.item.get",
+            "usergroups.collection.get",
+            "addresstypes.collection.get"
           ]
         },
         {
@@ -147,6 +163,12 @@
           "pathPattern": "/bulk-edit/{jobId}/preview/updated-items/download",
           "permissionsRequired": [ "bulk-edit.preview.updated-items.collection.get" ],
           "modulePermissions": []
+        },
+        {
+          "methods": [ "GET" ],
+          "pathPattern": "/bulk-edit/{jobId}/preview/updated-users/download",
+          "permissionsRequired": [ "bulk-edit.preview.updated-users.collection.get" ],
+          "modulePermissions": []
         }
       ]
     },
@@ -207,9 +229,19 @@
       "description" : "Upload collection of item content updates"
     },
     {
+      "permissionName" : "bulk-edit.users-content-update.collection.post",
+      "displayName" : "upload users content update collection",
+      "description" : "Upload collection of user content updates"
+    },
+    {
       "permissionName" : "bulk-edit.preview.updated-items.collection.get",
       "displayName" : "download updated items preview csv",
       "description" : "Download csv of preview updated items"
+    },
+    {
+      "permissionName" : "bulk-edit.preview.updated-users.collection.get",
+      "displayName" : "download updated users preview csv",
+      "description" : "Download csv with preview of updated users"
     },
     {
       "permissionName": "bulk-edit.start.item.post",
@@ -244,7 +276,9 @@
       "subPermissions" : [
         "bulk-edit.item.post",
         "bulk-edit.items-content-update.collection.post",
+        "bulk-edit.users-content-update.collection.post",
         "bulk-edit.preview.updated-items.collection.get",
+        "bulk-edit.preview.updated-users.collection.get",
         "bulk-edit.start.item.post",
         "bulk-edit.roll-back.item.post",
         "bulk-edit.preview-users.collection.get",

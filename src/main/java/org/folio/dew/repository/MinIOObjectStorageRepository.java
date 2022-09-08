@@ -6,10 +6,12 @@ import io.minio.ComposeSource;
 import io.minio.DownloadObjectArgs;
 import io.minio.GetObjectArgs;
 import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.ListObjectsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.ObjectWriteArgs;
 import io.minio.ObjectWriteResponse;
+import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectsArgs;
 import io.minio.Result;
 import io.minio.UploadObjectArgs;
@@ -25,15 +27,21 @@ import io.minio.errors.XmlParserException;
 import io.minio.http.Method;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
+
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import io.minio.messages.Item;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
@@ -118,6 +126,30 @@ public class MinIOObjectStorageRepository {
     return client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectToGet).build());
   }
 
+  public void putObject(byte[] bytes, String fileName) throws IOException, InvalidKeyException,
+    InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,
+    InternalException, XmlParserException, ErrorResponseException {
+    try (var inputStream = new ByteArrayInputStream(bytes)) {
+      client.putObject(PutObjectArgs.builder()
+        .bucket(bucket)
+        .stream(inputStream, bytes.length, -1)
+        .object(fileName)
+        .contentType("text/csv")
+        .build());
+    }
+  }
+
+  public boolean containsFile(String fileName)
+    throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException,
+    InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+    for (Result<Item> itemResult : client.listObjects(ListObjectsArgs.builder().bucket(bucket).build())) {
+      if (fileName.equals(itemResult.get().objectName())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public ObjectWriteResponse composeObject(String destObject, List<String> sourceObjects, String downloadFilename,
       String contentType)
       throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
@@ -154,6 +186,19 @@ public class MinIOObjectStorageRepository {
         .region(region)
         .versionId(response.versionId())
         .build());
+    log.info("Created presigned URL {}.", result);
+    return result;
+  }
+
+  public String objectToPresignedObjectUrl(String object)
+    throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
+    ServerException, InternalException, XmlParserException, ErrorResponseException {
+    String result = client.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+      .method(Method.GET)
+      .bucket(bucket)
+      .object(object)
+      .region(region)
+      .build());
     log.info("Created presigned URL {}.", result);
     return result;
   }

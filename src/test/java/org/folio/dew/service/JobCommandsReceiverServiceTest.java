@@ -5,25 +5,35 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.folio.de.entity.JobCommandType;
+
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.BaseBatchTest;
+
+import org.folio.dew.repository.JobCommandRepository;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.JobExecutionException;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.support.Acknowledgment;
 
 class JobCommandsReceiverServiceTest extends BaseBatchTest {
+
+  @MockBean
+  private JobCommandRepository jobCommandRepository;
 
   @Test
   @DisplayName("Start CirculationLog job by kafka request")
@@ -72,9 +82,57 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     verify(acknowledgment, times(1)).acknowledge();
   }
 
+  @Test
+  void addBulkEditJobCommandIfJobCommandDoesNotExistTest() {
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+
+    when(jobCommandRepository.existsById(jobId)).thenReturn(false);
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+
+    verify(jobCommandRepository, times(1)).save(any());
+  }
+
+  @Test
+  void addBulkEditJobCommandIfJobCommandExistTest() {
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+
+    when(jobCommandRepository.existsById(jobId)).thenReturn(true);
+
+    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
+
+    verify(jobCommandRepository, times(0)).save(any());
+  }
+
+  @Test
+  void getBulkEditJobCommandByIdTest() {
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+
+    jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
+
+    verify(jobCommandRepository, times(1)).findById(jobId);
+  }
+
+  @Test
+  void updateJobCommandTest() {
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+
+    jobCommandsReceiverService.updateJobCommand(jobCommand);
+
+    verify(jobCommandRepository, times(1)).save(any());
+  }
+
   private JobCommand createStartCirculationLogJobRequest(UUID id) {
     JobCommand jobCommand = new JobCommand();
-    jobCommand.setType(JobCommand.Type.START);
+    jobCommand.setType(JobCommandType.START);
     jobCommand.setId(id);
     jobCommand.setName(ExportType.CIRCULATION_LOG.toString());
     jobCommand.setDescription("Start job test desc");
@@ -88,7 +146,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
   private JobCommand createStartEHoldingsJobRequest(UUID id) {
     JobCommand jobCommand = new JobCommand();
-    jobCommand.setType(JobCommand.Type.START);
+    jobCommand.setType(JobCommandType.START);
     jobCommand.setId(id);
     jobCommand.setName(ExportType.E_HOLDINGS.toString());
     jobCommand.setDescription("Start job test desc");
@@ -108,7 +166,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
   private JobCommand createDeleteJobRequest(UUID id) {
     JobCommand jobCommand = new JobCommand();
-    jobCommand.setType(JobCommand.Type.DELETE);
+    jobCommand.setType(JobCommandType.DELETE);
     jobCommand.setId(id);
     jobCommand.setJobParameters(
         new JobParameters(Collections.singletonMap(JobParameterNames.OUTPUT_FILES_IN_STORAGE, new JobParameter("https://x-host.com/560b33d8-7220-4c97-bfd1-dbc5b9c49537_duplicate.csv"))));

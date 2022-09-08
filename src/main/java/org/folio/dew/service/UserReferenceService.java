@@ -73,7 +73,7 @@ public class UserReferenceService {
 
   @Cacheable(cacheNames = "userGroups")
   public UserGroupCollection getUserGroupByGroupName(String name) {
-    return groupClient.getGroupByQuery("group=" + name);
+    return groupClient.getGroupByQuery(String.format("group==\"%s\"", name));
   }
 
   @Cacheable(cacheNames = "proxies")
@@ -94,7 +94,7 @@ public class UserReferenceService {
   @Cacheable(cacheNames = "customFields")
   public CustomField getCustomFieldByRefId(String refId) {
 
-    var customFields = customFieldsClient.getCustomFieldsByQuery(getModuleId(MOD_USERS),"refId==" + refId);
+    var customFields = customFieldsClient.getCustomFieldsByQuery(getModuleId(MOD_USERS),String.format("refId==\"%s\"", refId));
     if (customFields.getCustomFields().isEmpty()) {
       var msg = format("Custom field with refId=%s not found", refId);
       log.error(msg);
@@ -105,7 +105,7 @@ public class UserReferenceService {
 
   @Cacheable(cacheNames = "customFields")
   public CustomField getCustomFieldByName(String name) {
-    var customFields = customFieldsClient.getCustomFieldsByQuery(getModuleId(MOD_USERS), "name==" + name);
+    var customFields = customFieldsClient.getCustomFieldsByQuery(getModuleId(MOD_USERS), String.format("name==\"%s\"", name));
     if (customFields.getCustomFields().isEmpty()) {
       var msg = format("Custom field with name=%s not found", name);
       log.error(msg);

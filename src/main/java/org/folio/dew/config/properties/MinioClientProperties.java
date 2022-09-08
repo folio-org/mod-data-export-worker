@@ -29,4 +29,8 @@ public class MinioClientProperties {
    *  The credentials for access to object storage - secretKey.
    */
   private String secretKey;
+  /**
+   * Key that enables files merging in storage with using AWS SDK capabilities.
+   */
+  private boolean composeWithAwsSdk;
 }

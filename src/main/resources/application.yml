@@ -76,12 +76,14 @@ application:
     bucket: ${AWS_BUCKET:}
     accessKey: ${AWS_ACCESS_KEY_ID:}
     secretKey: ${AWS_SECRET_ACCESS_KEY:}
+    composeWithAwsSdk: ${LOCAL_FS_COMPOSE_WITH_AWS_SDK:false}
   minio-local:
     endpoint: ${LOCAL_FS_URL:http://127.0.0.1:9000/}
     region: ${LOCAL_FS_REGION:}
     bucket: ${LOCAL_FS_BUCKET:}
     accessKey: ${LOCAL_FS_ACCESS_KEY_ID:}
     secretKey: ${LOCAL_FS_SECRET_ACCESS_KEY:}
+    composeWithAwsSdk: ${LOCAL_FS_COMPOSE_WITH_AWS_SDK:false}
   ftp:
     bufferSize: 1048576 #that 1024 * 1024
     defaultPort: 21

@@ -1,3 +1,10 @@
+## 2022-09-07 v1.4.6
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.5...v1.4.6)
+
+### Stories
+* [MODEXPW-238](https://issues.folio.org/browse/MODEXPW-238) Optimize remote files composing
+
 ## 2022-09-02 v1.4.5
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.4...v1.4.5)

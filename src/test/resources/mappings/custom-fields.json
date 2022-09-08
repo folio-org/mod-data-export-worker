@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "urlPattern": "/custom-fields\\?query=(refId%3D%3Dtestcheckbox|name%3D%3DTestCheckbox)",
+        "urlPattern": "/custom-fields\\?query=(refId%3D%3D%22testcheckbox%22|name%3D%3D%22TestCheckbox%22)",
         "headers": {
           "x-okapi-module-id": {
             "contains": "mod-users-1.2.3"
@@ -21,7 +21,7 @@
     {
       "request": {
         "method": "GET",
-        "urlPattern": "/custom-fields\\?query=(refId%3D%3Dtestmultiselect|name%3D%3DTestMultiSelect)",
+        "urlPattern": "/custom-fields\\?query=(refId%3D%3D%22testmultiselect%22|name%3D%3D%22TestMultiSelect%22)",
         "headers": {
           "x-okapi-module-id": {
             "contains": "mod-users-1.2.3"
@@ -39,7 +39,7 @@
     {
       "request": {
         "method": "GET",
-        "urlPattern": "/custom-fields\\?query=(refId%3D%3Dtestradio|name%3D%3DTestRadio)",
+        "urlPattern": "/custom-fields\\?query=(refId%3D%3D%22testradio%22|name%3D%3D%22TestRadio%22)",
         "headers": {
           "x-okapi-module-id": {
             "contains": "mod-users-1.2.3"
@@ -57,7 +57,7 @@
     {
       "request": {
         "method": "GET",
-        "urlPattern": "/custom-fields\\?query=(refId%3D%3Dtestsingleselect|name%3D%3DTestSingleSelect)",
+        "urlPattern": "/custom-fields\\?query=(refId%3D%3D%22testsingleselect%22|name%3D%3D%22TestSingleSelect%22)",
         "headers": {
           "x-okapi-module-id": {
             "contains": "mod-users-1.2.3"
@@ -75,7 +75,7 @@
     {
       "request": {
         "method": "GET",
-        "urlPattern": "/custom-fields\\?query=(refId%3D%3Dtesttextarea|name%3D%3DTestTextArea)",
+        "urlPattern": "/custom-fields\\?query=(refId%3D%3D%22testtextarea%22|name%3D%3D%22TestTextArea%22)",
         "headers": {
           "x-okapi-module-id": {
             "contains": "mod-users-1.2.3"
@@ -93,7 +93,7 @@
     {
       "request": {
         "method": "GET",
-        "urlPattern": "/custom-fields\\?query=(refId%3D%3Dtesttextfield|name%3D%3DTestTextField)",
+        "urlPattern": "/custom-fields\\?query=(refId%3D%3D%22testtextfield%22|name%3D%3D%22TestTextField%22)",
         "headers": {
           "x-okapi-module-id": {
             "contains": "mod-users-1.2.3"
@@ -111,7 +111,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/custom-fields?query=name%3D%3DCustom",
+        "url": "/custom-fields?query=name%3D%3D%22Custom%22",
         "headers": {
           "x-okapi-module-id": {
             "contains": "mod-users-1.2.3"

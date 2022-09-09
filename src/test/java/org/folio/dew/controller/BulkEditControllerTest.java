@@ -6,6 +6,7 @@ import static org.folio.dew.controller.ItemsContentUpdateTestData.CLEAR_FIELD_PE
 import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_ALLOWED_STATUS;
 import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_NOT_ALLOWED_STATUS;
 import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_NULL_PERMANENT_LOAN_TYPE;
+import static org.folio.dew.domain.dto.EntityType.HOLDINGS_RECORD;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
@@ -51,6 +52,7 @@ import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.HoldingsRecordCollection;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.InventoryItemStatus;
 import org.folio.dew.domain.dto.Item;
@@ -121,6 +123,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String START_URL_TEMPLATE = "/bulk-edit/%s/start";
   private static final String PREVIEW_USERS_URL_TEMPLATE = "/bulk-edit/%s/preview/users";
   private static final String PREVIEW_ITEMS_URL_TEMPLATE = "/bulk-edit/%s/preview/items";
+  private static final String PREVIEW_HOLDINGS_RECORD_URL_TEMPLATE = "/bulk-edit/%s/preview/holdings";
   private static final String ERRORS_URL_TEMPLATE = "/bulk-edit/%s/errors";
   private static final String ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/item-content-update/upload";
   private static final String USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/user-content-update/upload";
@@ -135,6 +138,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String ITEM_DATA = "src/test/resources/upload/item_data.csv";
   private static final String PREVIEW_USER_DATA = "src/test/resources/upload/preview_user_data.csv";
   private static final String PREVIEW_ITEM_DATA = "src/test/resources/upload/preview_item_data.csv";
+  private static final String PREVIEW_HOLDINGS_RECORD_DATA = "src/test/resources/upload/preview_holdings_record_data.csv";
   private static final String EXPECTED_ERRORS_FOR_CLEAR_PATRON_GROUP = "src/test/resources/output/expected_errors_for_clear_patron_group.json";
   private static final String EXPECTED_USER_CONTENT_UPDATE_OUTPUT = "src/test/resources/output/bulk_edit_user_content_updates_expected_output.csv";
   private static final SimpleDateFormat itemStatusDateFormat = new SimpleDateFormat(DATE_TIME_PATTERN);
@@ -327,6 +331,34 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(items.getItems(), hasSize(3));
   }
 
+  @ParameterizedTest
+  @EnumSource(value = IdentifierType.class, names = {"ID", "HOLDINGS_RECORD_ID","INSTANCE_HRID","ITEM_BARCODE"})
+  @SneakyThrows
+  void shouldReturnCompleteHoldingsRecordPreview(IdentifierType identifierType) {
+    repository.uploadObject(FilenameUtils.getName(PREVIEW_HOLDINGS_RECORD_DATA), PREVIEW_HOLDINGS_RECORD_DATA, null, "text/plain", false);
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(HOLDINGS_RECORD);
+    jobCommand.setIdentifierType(identifierType);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + PREVIEW_HOLDINGS_RECORD_DATA.replace(CSV_EXTENSION, EMPTY))
+      .toJobParameters());
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
+    var headers = defaultHeaders();
+    var response = mockMvc.perform(get(format(PREVIEW_HOLDINGS_RECORD_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(1)))
+      .andExpect(status().isOk());
+
+    var holdingsRecord = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), HoldingsRecordCollection.class);
+    assertThat(holdingsRecord.getTotalRecords(), equalTo(1));
+    assertThat(holdingsRecord.getHoldingsRecords(), hasSize(1));
+  }
+
   @SneakyThrows
   @ParameterizedTest
   @EnumSource(value = IdentifierType.class,
@@ -381,6 +413,33 @@ class BulkEditControllerTest extends BaseBatchTest {
     var items = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), ItemCollection.class);
     assertThat(items.getTotalRecords(), equalTo(0));
     assertThat(items.getItems(), hasSize(0));
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = IdentifierType.class, names = {"ID", "HOLDINGS_RECORD_ID","INSTANCE_HRID","ITEM_BARCODE"})
+  @SneakyThrows
+  void shouldReturnEmptyHoldingsRecordPreviewIfNoRecordsAvailable(IdentifierType identifierType) {
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(HOLDINGS_RECORD);
+    jobCommand.setIdentifierType(identifierType);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/no_file")
+      .toJobParameters());
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
+    var headers = defaultHeaders();
+    var response = mockMvc.perform(get(format(PREVIEW_HOLDINGS_RECORD_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(1)))
+      .andExpect(status().isOk());
+
+    var holdingsRecord = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), HoldingsRecordCollection.class);
+    assertThat(holdingsRecord.getTotalRecords(), equalTo(0));
+    assertThat(holdingsRecord.getHoldingsRecords(), hasSize(0));
   }
 
   @SneakyThrows
@@ -452,7 +511,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @SneakyThrows
   @Test
-  void shouldReturnErroJobNotFound() {
+  void shouldReturnErrorJobNotFound() {
 
     var headers = defaultHeaders();
 

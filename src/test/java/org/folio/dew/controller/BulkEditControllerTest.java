@@ -13,6 +13,7 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
+import static org.folio.dew.domain.dto.IdentifierType.ID;
 import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
@@ -51,6 +52,8 @@ import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.HoldingsContentUpdate;
+import org.folio.dew.domain.dto.HoldingsContentUpdateCollection;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.InventoryItemStatus;
@@ -126,6 +129,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String ERRORS_URL_TEMPLATE = "/bulk-edit/%s/errors";
   private static final String ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/item-content-update/upload";
   private static final String USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/user-content-update/upload";
+  private static final String HOLDINGS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/holdings-content-update/upload";
   private static final String ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-items/download";
   private static final String USERS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-users/download";
   private static final String ITEMS_FOR_LOCATION_UPDATE = "src/test/resources/upload/bulk_edit_items_for_location_update.csv";
@@ -140,6 +144,8 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String PREVIEW_HOLDINGS_RECORD_DATA = "src/test/resources/upload/preview_holdings_record_data.csv";
   private static final String EXPECTED_ERRORS_FOR_CLEAR_PATRON_GROUP = "src/test/resources/output/expected_errors_for_clear_patron_group.json";
   private static final String EXPECTED_USER_CONTENT_UPDATE_OUTPUT = "src/test/resources/output/bulk_edit_user_content_updates_expected_output.csv";
+  private static final String HOLDINGS_RECORDS_FOR_UPDATE = "src/test/resources/output/bulk_edit_holdings_records_output.csv";
+  private static final String UPDATED_HOLDINGS_RECORDS_JSON = "src/test/resources/output/bulk_edit_updated_holdings_records_output.json";
   private static final UUID JOB_ID = UUID.randomUUID();
   public static final String LIMIT = "limit";
 
@@ -1347,6 +1353,44 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertEquals("COMPLETED", jobExecution.getStatus().name());
     assertEquals(Files.readString(Path.of(EXPECTED_USER_CONTENT_UPDATE_OUTPUT)), new String(minIOObjectStorageRepository.getObject
       (jobExecution.getJobParameters().getString(UPDATED_FILE_NAME)).readAllBytes()));
+  }
+
+  @Test
+  @SneakyThrows
+  @DisplayName("Post holdings content updates - successful")
+  void shouldReplaceHoldingsLocationAndReturnPreview() {
+    repository.uploadObject(FilenameUtils.getName(HOLDINGS_RECORDS_FOR_UPDATE), HOLDINGS_RECORDS_FOR_UPDATE, null, "text/plain", false);
+
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(HOLDINGS_RECORD);
+    jobCommand.setIdentifierType(ID);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(JobParameterNames.JOB_ID, jobId.toString())
+      .addString(TEMP_OUTPUT_FILE_PATH, FilenameUtils.getBaseName(HOLDINGS_RECORDS_FOR_UPDATE))
+      .toJobParameters());
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
+    var contentUpdates = objectMapper.writeValueAsString(new HoldingsContentUpdateCollection()
+      .holdingsContentUpdates(Collections.singletonList(new HoldingsContentUpdate()
+        .option(HoldingsContentUpdate.OptionEnum.TEMPORARY_LOCATION)
+        .action(HoldingsContentUpdate.ActionEnum.REPLACE_WITH)
+        .value("Annex")))
+      .totalRecords(1));
+
+    var responseContentUpdateUpload = mockMvc.perform(post(format(HOLDINGS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+        .headers(defaultHeaders())
+        .content(contentUpdates))
+      .andExpect(status().isOk())
+      .andReturn();
+    var actualHoldings = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
+      HoldingsRecordCollection.class).getHoldingsRecords();
+    var expectedHoldings = objectMapper.readValue(Path.of(UPDATED_HOLDINGS_RECORDS_JSON).toFile(), HoldingsRecordCollection.class).getHoldingsRecords();
+
+    assertThat(actualHoldings, equalTo(expectedHoldings));
   }
 
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType, EntityType entityType, IdentifierType identifierType) {

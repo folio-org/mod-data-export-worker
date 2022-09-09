@@ -76,6 +76,28 @@
         },
         {
           "methods": [ "POST" ],
+          "pathPattern": "/bulk-edit/{id}/holdings-content-update/upload",
+          "permissionsRequired": [ "bulk-edit.holdings-content-update.collection.post" ],
+          "modulePermissions": [
+            "inventory-storage.instances.item.get",
+            "inventory-storage.holdings-types.collection.get",
+            "inventory-storage.holdings-types.item.get",
+            "inventory-storage.locations.collection.get",
+            "inventory-storage.locations.item.get",
+            "inventory-storage.call-number-types.collection.get",
+            "inventory-storage.call-number-types.item.get",
+            "inventory-storage.holdings-note-types.collection.get",
+            "inventory-storage.holdings-note-types.item.get",
+            "inventory-storage.ill-policies.collection.get",
+            "inventory-storage.ill-policies.item.get",
+            "inventory-storage.holdings-sources.collection.get",
+            "inventory-storage.holdings-sources.item.get",
+            "inventory-storage.statistical-codes.collection.get",
+            "inventory-storage.statistical-codes.item.get"
+          ]
+        },
+        {
+          "methods": [ "POST" ],
           "pathPattern": "/bulk-edit/{id}/start",
           "permissionsRequired": [ "bulk-edit.start.item.post" ],
           "modulePermissions": [
@@ -112,7 +134,18 @@
             "inventory-storage.instances.item.get",
             "inventory-storage.instances.collection.get",
             "inventory-storage.holdings.item.get",
-            "inventory-storage.holdings.collection.get"
+            "inventory-storage.holdings.collection.get",
+            "inventory-storage.holdings-types.collection.get",
+            "inventory-storage.holdings-types.item.get",
+            "inventory-storage.call-number-types.collection.get",
+            "inventory-storage.call-number-types.item.get",
+            "inventory-storage.holdings-note-types.collection.get",
+            "inventory-storage.holdings-note-types.item.get",
+            "inventory-storage.ill-policies.collection.get",
+            "inventory-storage.ill-policies.item.get",
+            "inventory-storage.holdings-sources.collection.get",
+            "inventory-storage.holdings-sources.item.get",
+            "inventory-storage.holdings.item.put"
           ]
         },
         {
@@ -261,6 +294,11 @@
       "description" : "Upload collection of user content updates"
     },
     {
+      "permissionName" : "bulk-edit.holdings-content-update.collection.post",
+      "displayName" : "upload holdings records content update collection",
+      "description" : "Upload collection of holdings records content updates"
+    },
+    {
       "permissionName" : "bulk-edit.preview.updated-items.collection.get",
       "displayName" : "download updated items preview csv",
       "description" : "Download csv of preview updated items"
@@ -309,6 +347,7 @@
         "bulk-edit.item.post",
         "bulk-edit.items-content-update.collection.post",
         "bulk-edit.users-content-update.collection.post",
+        "bulk-edit.holdings-content-update.collection.post",
         "bulk-edit.preview.updated-items.collection.get",
         "bulk-edit.preview.updated-users.collection.get",
         "bulk-edit.preview.updated-holdings.collection.get",

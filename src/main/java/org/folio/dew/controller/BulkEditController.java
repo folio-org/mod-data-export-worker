@@ -136,7 +136,6 @@ public class BulkEditController implements JobIdApi {
   private final FolioModuleMetadata folioModuleMetadata;
   private final FolioExecutionContext folioExecutionContext;
   private final MinIOObjectStorageRepository minIOObjectStorageRepository;
-  private final HoldingsMapper holdingsMapper;
 
   @Value("${spring.application.name}")
   private String springApplicationName;

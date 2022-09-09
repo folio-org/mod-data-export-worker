@@ -24,6 +24,7 @@ import org.folio.dew.repository.MinIOObjectStorageRepository;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.ContentUpdateRecords;
 import org.folio.dew.service.UpdatesResult;
+import org.folio.dew.service.validation.HoldingsContentUpdateValidatorService;
 import org.folio.dew.utils.CsvHelper;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.stereotype.Component;
@@ -38,8 +39,10 @@ public class BulkEditHoldingsContentUpdateService {
   private final MinIOObjectStorageRepository repository;
   private final BulkEditProcessingErrorsService errorsService;
   private final HoldingsLocationUpdateStrategy locationUpdateStrategy;
+  private final HoldingsContentUpdateValidatorService validatorService;
 
   public UpdatesResult<HoldingsFormat> process(JobCommand jobCommand, HoldingsContentUpdateCollection contentUpdates) {
+    validatorService.validateContentUpdateCollection(contentUpdates);
     try {
       var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       var updatedFileName = UPDATED_PREFIX + fileName;

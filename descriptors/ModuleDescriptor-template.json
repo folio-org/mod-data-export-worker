@@ -285,6 +285,11 @@
       "description" : "Get N items for preview"
     },
     {
+      "permissionName" : "bulk-edit.preview-holdings.collection.get",
+      "displayName" : "get N holdings for preview",
+      "description" : "Get N holdings for preview"
+    },
+    {
       "permissionName" : "bulk-edit.errors.collection.get",
       "displayName" : "get errors for preview",
       "description" : "Get errors for preview"

@@ -144,6 +144,7 @@ public class HoldingsMapper {
       .instanceId(restoreInstanceId(holdingsFormat.getInstance()))
       .permanentLocationId(holdingsReferenceService.getLocationByName(holdingsFormat.getPermanentLocation()).getId())
       .temporaryLocationId(isEmpty(holdingsFormat.getTemporaryLocation()) ? null : holdingsReferenceService.getLocationByName(holdingsFormat.getTemporaryLocation()).getId())
+      .effectiveLocationId(isEmpty(holdingsFormat.getEffectiveLocation()) ? null : holdingsReferenceService.getLocationByName(holdingsFormat.getEffectiveLocation()).getId())
       .electronicAccess(isEmpty(holdingsFormat.getElectronicAccess()) ? Collections.emptyList() : electronicAccessService.restoreElectronicAccess(holdingsFormat.getElectronicAccess()))
       .callNumberTypeId(isEmpty(holdingsFormat.getCallNumberType()) ? null : holdingsReferenceService.getCallNumberTypeIdByName(holdingsFormat.getCallNumberType()))
       .callNumberPrefix(restoreStringValue(holdingsFormat.getCallNumberPrefix()))

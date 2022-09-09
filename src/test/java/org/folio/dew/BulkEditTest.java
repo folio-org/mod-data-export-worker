@@ -25,6 +25,7 @@ import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
@@ -121,6 +122,8 @@ class BulkEditTest extends BaseBatchTest {
   private final static String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_INST_HRID = "src/test/resources/output/bulk_edit_holdings_records_errors_output_inst_hrid.csv";
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_ITEM_BARCODE = "src/test/resources/output/bulk_edit_holdings_records_errors_output_item_barcode.csv";
   private final static String EXPECTED_BULK_EDIT_ITEM_IDENTIFIERS_HOLDINGS_ERRORS_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_holdings_errors_output.csv";
+  private final static String ITEM_NO_VERSION = "src/test/resources/upload/bulk_edit_item_record_no_version.csv";
+  private final static String HOLDINGS_RECORD_NO_VERSION = "src/test/resources/upload/bulk_edit_holdings_record_no_version.csv";
 
   @Autowired
   private Job bulkEditProcessUserIdentifiersJob;
@@ -456,6 +459,37 @@ class BulkEditTest extends BaseBatchTest {
     verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_ITEM_OUTPUT_ESCAPED);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  @Test
+  @DisplayName("_version field should be absent in item PUT body if its value is empty")
+  @SneakyThrows
+  void emptyVersionFieldShouldBeAbsentInItemUpdateRequestBody() {
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateItemRecordsJob);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, ITEM, BARCODE, ITEM_NO_VERSION, true);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+    assertThat(wireMockServer.getAllServeEvents().get(0).getRequest().getMethod().getName()).isEqualTo("PUT");
+    assertFalse(wireMockServer.getAllServeEvents().get(0).getRequest().getBodyAsString().contains("_version"));
+  }
+
+  @Test
+  @DisplayName("_version field should be absent in holdings record PUT body if its value is empty")
+  @SneakyThrows
+  void emptyVersionFieldShouldBeAbsentInHoldingsUpdateRequestBody() {
+    var fileName = FilenameUtils.getName(HOLDINGS_RECORD_NO_VERSION);
+    minIOObjectStorageRepository.uploadObject(fileName, HOLDINGS_RECORD_NO_VERSION, null, "text/plain", false);
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateHoldingsRecordsJob);
+    final JobParameters jobParameters = new JobParametersBuilder()
+      .addString(JOB_ID, UUID.randomUUID().toString())
+      .addString(UPDATED_FILE_NAME, fileName)
+      .toJobParameters();
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+    assertThat(wireMockServer.getAllServeEvents().get(0).getRequest().getMethod().getName()).isEqualTo("PUT");
+    assertFalse(wireMockServer.getAllServeEvents().get(0).getRequest().getBodyAsString().contains("_version"));
   }
 
   @SneakyThrows

@@ -81,6 +81,19 @@
     {
       "request": {
         "method": "GET",
+        "url": "/locations?query=name%3D%3D%22Abc%22"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"locations\": [ ],\n    \"totalRecords\": 0\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
         "url": "/locations/1d51c4da-0d5f-4303-a922-3e9d7a9b22f3"
       },
       "response": {

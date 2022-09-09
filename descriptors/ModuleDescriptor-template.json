@@ -154,6 +154,27 @@
         },
         {
           "methods": [ "GET" ],
+          "pathPattern": "/bulk-edit/{jobId}/preview/holdings",
+          "permissionsRequired": [ "bulk-edit.preview-holdings.collection.get" ],
+          "modulePermissions": [
+            "inventory-storage.holdings.collection.get",
+            "inventory-storage.holdings-types.collection.get",
+            "inventory-storage.holdings-types.item.get",
+            "inventory-storage.locations.collection.get",
+            "inventory-storage.locations.item.get",
+            "inventory-storage.call-number-types.collection.get",
+            "inventory-storage.call-number-types.item.get",
+            "inventory-storage.ill-policies.collection.get",
+            "inventory-storage.ill-policies.item.get",
+            "inventory-storage.holdings-sources.collection.get",
+            "inventory-storage.instances.item.get",
+            "inventory-storage.statistical-codes.collection.get",
+            "inventory-storage.statistical-codes.item.get"
+
+          ]
+        },
+        {
+          "methods": [ "GET" ],
           "pathPattern": "/bulk-edit/{jobId}/errors",
           "permissionsRequired": [ "bulk-edit.errors.collection.get" ],
           "modulePermissions": []
@@ -295,6 +316,7 @@
         "bulk-edit.roll-back.item.post",
         "bulk-edit.preview-users.collection.get",
         "bulk-edit.preview-items.collection.get",
+        "bulk-edit.preview-holdings.collection.get",
         "bulk-edit.errors.collection.get"
       ]
     }

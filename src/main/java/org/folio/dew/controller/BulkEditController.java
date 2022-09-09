@@ -264,6 +264,15 @@ public class BulkEditController implements JobIdApi {
 
   @Override
   public ResponseEntity<Resource> downloadUsersPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId) {
+    return downloadPreviewByJobId(jobId);
+  }
+
+  @Override
+  public ResponseEntity<Resource> downloadHoldingsPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId) {
+    return downloadPreviewByJobId(jobId);
+  }
+
+  private ResponseEntity<Resource> downloadPreviewByJobId(UUID jobId) {
     var jobCommand = getJobCommandById(jobId.toString());
     var fileName = jobCommand.getJobParameters().getString(PREVIEW_FILE_NAME);
     if (nonNull(fileName)) {

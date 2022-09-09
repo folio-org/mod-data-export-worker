@@ -89,6 +89,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionException;
@@ -848,10 +849,11 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andReturn();
   }
 
-  @Test
+  @ParameterizedTest
+  @ValueSource(strings = {"/bulk-edit/%s/preview/updated-users/download", "/bulk-edit/%s/preview/updated-holdings/download"})
   @SneakyThrows
-  @DisplayName("Download users preview when preview is not available - NOT FOUND")
-  void shouldReturnNotFoundIfPreviewIsNotAvailable() {
+  @DisplayName("Download users/holdings preview when preview is not available - NOT FOUND")
+  void shouldReturnNotFoundIfPreviewIsNotAvailable(String urlTemplate) {
     var jobCommand = new JobCommand();
     var jobId = UUID.randomUUID();
     jobCommand.setId(jobId);
@@ -859,17 +861,19 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
-    mockMvc.perform(get(format(USERS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE, jobId))
+    mockMvc.perform(get(format(urlTemplate, jobId))
         .headers(defaultHeaders()))
       .andExpect(status().isNotFound());
   }
 
-  @Test
+  @ParameterizedTest
+  @CsvSource({"src/test/resources/upload/preview_user_data.csv,/bulk-edit/%s/preview/updated-users/download",
+    "src/test/resources/output/bulk_edit_holdings_records_output.csv,/bulk-edit/%s/preview/updated-holdings/download"})
   @SneakyThrows
-  @DisplayName("Download users preview - successful")
-  void shouldDownloadPreviewAfterUserContentUpdate() {
-    var fileName = FilenameUtils.getName(PREVIEW_USER_DATA);
-    repository.uploadObject(fileName, PREVIEW_USER_DATA, null, "text/plain", false);
+  @DisplayName("Download users/holdings preview - successful")
+  void shouldDownloadPreviewAfterUserContentUpdate(String previewPath, String urlTemplate) {
+    var fileName = FilenameUtils.getName(previewPath);
+    repository.uploadObject(fileName, previewPath, null, "text/plain", false);
     var jobCommand = new JobCommand();
     var jobId = UUID.randomUUID();
     jobCommand.setId(jobId);
@@ -877,12 +881,12 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
-    var response = mockMvc.perform(get(format(USERS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE, jobId))
+    var response = mockMvc.perform(get(format(urlTemplate, jobId))
             .headers(defaultHeaders()))
         .andExpect(status().isOk())
         .andReturn();
 
-    var expectedCsv = new FileSystemResource(PREVIEW_USER_DATA);
+    var expectedCsv = new FileSystemResource(previewPath);
     var actualCsvByteArr = response.getResponse().getContentAsByteArray();
     Path actualDownloadedCsvTmp = Paths.get("actualDownloaded.csv");
     Files.write(actualDownloadedCsvTmp, actualCsvByteArr);

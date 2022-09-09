@@ -57,6 +57,7 @@ import org.folio.dew.batch.ExportJobManagerSync;
 import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
+import org.folio.dew.domain.dto.HoldingsContentUpdateCollection;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
 import org.folio.dew.domain.dto.ItemContentUpdateCollection;
@@ -77,6 +78,7 @@ import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.UpdatesResult;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.dew.service.mapper.HoldingsMapper;
+import org.folio.dew.service.update.BulkEditHoldingsContentUpdateService;
 import org.folio.dew.service.update.BulkEditUserContentUpdateService;
 import org.folio.dew.utils.CsvHelper;
 import org.folio.spring.DefaultFolioExecutionContext;
@@ -127,12 +129,13 @@ public class BulkEditController implements JobIdApi {
   private final List<Job> jobs;
   private final BulkEditItemContentUpdateService itemContentUpdateService;
   private final BulkEditUserContentUpdateService userContentUpdateService;
+  private final BulkEditHoldingsContentUpdateService holdingsContentUpdateService;
   private final BulkEditParseService bulkEditParseService;
+  private final HoldingsMapper holdingsMapper;
   private final MinIOObjectStorageRepository repository;
   private final FolioModuleMetadata folioModuleMetadata;
   private final FolioExecutionContext folioExecutionContext;
   private final MinIOObjectStorageRepository minIOObjectStorageRepository;
-  private final HoldingsMapper holdingsMapper;
 
   @Value("${spring.application.name}")
   private String springApplicationName;
@@ -145,13 +148,7 @@ public class BulkEditController implements JobIdApi {
 
   @Override
   public ResponseEntity<ItemCollection> postItemContentUpdates(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId,@ApiParam(value = "" ,required=true )  @Valid @RequestBody ItemContentUpdateCollection contentUpdateCollection,@ApiParam(value = "The numbers of records to return") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
-    bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId.toString());
-    var jobCommand = getJobCommandById(jobId.toString());
-    if (nonNull(jobCommand.getIdentifierType())) {
-      jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())
-          .addString(IDENTIFIER_TYPE, jobCommand.getIdentifierType().getValue())
-          .toJobParameters());
-    }
+    var jobCommand = prepareForContentUpdates(jobId);
     var updatesResult = itemContentUpdateService.processContentUpdates(jobCommand, contentUpdateCollection);
     jobCommandsReceiverService.updateJobCommand(jobCommand);
     return new ResponseEntity<>(prepareItemContentUpdateResponse(updatesResult, limit), HttpStatus.OK);
@@ -159,17 +156,30 @@ public class BulkEditController implements JobIdApi {
 
   @Override
   public ResponseEntity<UserCollection> postUserContentUpdates(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId, @ApiParam(value = "" ,required=true )  @Valid @RequestBody UserContentUpdateCollection contentUpdateCollection, @ApiParam(value = "The numbers of records to return") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
-    bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId.toString());
-    var jobCommand = getJobCommandById(jobId.toString());
-    if (nonNull(jobCommand.getIdentifierType())) {
-      jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())
-        .addString(IDENTIFIER_TYPE, jobCommand.getIdentifierType().getValue())
-        .toJobParameters());
-    }
+    var jobCommand = prepareForContentUpdates(jobId);
     var updatesResult = userContentUpdateService.process(jobCommand, contentUpdateCollection);
     log.info("postUserContentUpdate: {} users", updatesResult.getEntitiesForPreview().size());
     jobCommandsReceiverService.updateJobCommand(jobCommand);
     return new ResponseEntity<>(prepareUserContentUpdateResponse(updatesResult, limit), HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<HoldingsRecordCollection> postHoldingsContentUpdates(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId, @ApiParam(value = "" ,required=true )  @Valid @RequestBody HoldingsContentUpdateCollection contentUpdateCollection, @ApiParam(value = "The numbers of records to return") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
+    var jobCommand = prepareForContentUpdates(jobId);
+    var updatesResult = holdingsContentUpdateService.process(jobCommand, contentUpdateCollection);
+    jobCommandsReceiverService.updateJobCommand(jobCommand);
+    return new ResponseEntity<>(prepareHoldingsContentUpdateResponse(updatesResult, limit), HttpStatus.OK);
+  }
+
+  private JobCommand prepareForContentUpdates(UUID jobId) {
+    bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId.toString());
+    var jobCommand = getJobCommandById(jobId.toString());
+    if (nonNull(jobCommand.getIdentifierType())) {
+      jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())
+          .addString(IDENTIFIER_TYPE, jobCommand.getIdentifierType().getValue())
+          .toJobParameters());
+    }
+    return jobCommand;
   }
 
   @Override
@@ -421,6 +431,14 @@ public class BulkEditController implements JobIdApi {
       .map(bulkEditParseService::mapUserFormatToUser)
       .collect(Collectors.toList());
     return new UserCollection().users(users).totalRecords(updatesResult.getTotal());
+  }
+
+  private HoldingsRecordCollection prepareHoldingsContentUpdateResponse(UpdatesResult<HoldingsFormat> updatesResult, Integer limit) {
+    var holdingsRecords = updatesResult.getEntitiesForPreview().stream()
+        .limit(isNull(limit) ? Integer.MAX_VALUE : limit)
+        .map(holdingsMapper::mapToHoldingsRecord)
+        .collect(Collectors.toList());
+    return new HoldingsRecordCollection().holdingsRecords(holdingsRecords).totalRecords(updatesResult.getTotal());
   }
 
   private String buildPreviewUsersQueryFromJobCommand(JobCommand jobCommand, int limit) {

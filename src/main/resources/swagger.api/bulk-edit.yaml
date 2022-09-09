@@ -113,6 +113,60 @@ paths:
                 $ref: "#/components/examples/errors"
               schema:
                 $ref: "#/components/schemas/errors"
+  /{jobId}/holdings-content-update/upload:
+    post:
+      description: Upload holdings record content updates
+      operationId: postHoldingsContentUpdates
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: UUID of the JobCommand
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+          description: The numbers of records to return
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/holdingsContentUpdateCollection"
+      responses:
+        "200":
+          description: Collection of holdings records for preview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/holdingsRecordCollection"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "500":
+          description: Internal server errors, e.g. due to misconfiguration
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
   /{jobId}/preview/updated-items/download:
     get:
       description: Download updated items preview as csv-file
@@ -170,6 +224,49 @@ paths:
       responses:
         '200':
           description: Preview of updated items to download
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        "500":
+          description: Internal server errors, e.g. due to misconfiguration
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+  /{jobId}/preview/updated-holdings/download:
+    get:
+      description: Download updated holdings records preview as csv-file
+      operationId: downloadHoldingsPreviewByJobId
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: UUID of the JobCommand
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        '200':
+          description: Preview of updated holdings to download
           content:
             text/csv:
               schema:

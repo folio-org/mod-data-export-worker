@@ -54,6 +54,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManagerSync;
+import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.HoldingsContentUpdateCollection;
@@ -116,9 +117,11 @@ public class BulkEditController implements JobIdApi {
 
 
   private static final String JOB_COMMAND_NOT_FOUND_ERROR = "JobCommand with id %s doesn't exist.";
+  private static final String FAILED_TO_READ_FILE_ERROR = "Failed to read %s for job id %s, reason: %s";
 
   private final UserClient userClient;
   private final InventoryClient inventoryClient;
+  private final HoldingClient holdingClient;
   private final JobCommandsReceiverService jobCommandsReceiverService;
   private final ExportJobManagerSync exportJobManagerSync;
   private final BulkEditRollBackService bulkEditRollBackService;
@@ -133,6 +136,7 @@ public class BulkEditController implements JobIdApi {
   private final FolioModuleMetadata folioModuleMetadata;
   private final FolioExecutionContext folioExecutionContext;
   private final MinIOObjectStorageRepository minIOObjectStorageRepository;
+  private final HoldingsMapper holdingsMapper;
 
   @Value("${spring.application.name}")
   private String springApplicationName;
@@ -191,7 +195,7 @@ public class BulkEditController implements JobIdApi {
           .collect(Collectors.toList());
         return new ResponseEntity<>(new UserCollection().users(users).totalRecords(users.size()), HttpStatus.OK);
       } catch (Exception e) {
-        var msg = String.format("Failed to read %s for job id %s, reason: %s", fileName, jobCommand.getId(), e.getMessage());
+        var msg = String.format(FAILED_TO_READ_FILE_ERROR, fileName, jobCommand.getId(), e.getMessage());
         log.error(msg);
         return new ResponseEntity<>(new UserCollection().users(Collections.emptyList()).totalRecords(0), HttpStatus.OK);
       }
@@ -211,12 +215,33 @@ public class BulkEditController implements JobIdApi {
           .collect(Collectors.toList());
         return new ResponseEntity<>(new ItemCollection().items(items).totalRecords(items.size()), HttpStatus.OK);
       } catch (Exception e) {
-        var msg = String.format("Failed to read %s for job id %s, reason: %s", fileName, jobCommand.getId(), e.getMessage());
+        var msg = String.format(FAILED_TO_READ_FILE_ERROR, fileName, jobCommand.getId(), e.getMessage());
         log.error(msg);
         return new ResponseEntity<>(new ItemCollection().items(Collections.emptyList()).totalRecords(0), HttpStatus.OK);
       }
     } else {
       return new ResponseEntity<>(inventoryClient.getItemByQuery(buildPreviewQueryFromJobCommand(jobCommand, limit), limit), HttpStatus.OK);
+    }
+  }
+
+  @Override
+  public ResponseEntity<HoldingsRecordCollection> getPreviewHoldingsByJobId(UUID jobId, Integer limit) {
+    var jobCommand = getJobCommandById(jobId.toString());
+    if (BULK_EDIT_IDENTIFIERS == jobCommand.getExportType()) {
+      var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
+      try {
+        var holdings = CsvHelper.readRecordsFromMinio(repository, fileName, limit, HoldingsFormat.class)
+          .stream()
+          .map(holdingsMapper::mapToHoldingsRecord)
+          .collect(Collectors.toList());
+        return new ResponseEntity<>(new HoldingsRecordCollection().holdingsRecords(holdings).totalRecords(holdings.size()), HttpStatus.OK);
+      } catch (Exception e) {
+        var msg = String.format(FAILED_TO_READ_FILE_ERROR, fileName, jobCommand.getId(), e.getMessage());
+        log.error(msg);
+        return new ResponseEntity<>(new HoldingsRecordCollection().holdingsRecords(Collections.emptyList()).totalRecords(0), HttpStatus.OK);
+      }
+    } else {
+      return new ResponseEntity<>(holdingClient.getHoldingsByQuery(buildPreviewQueryFromJobCommand(jobCommand, limit), limit), HttpStatus.OK);
     }
   }
 

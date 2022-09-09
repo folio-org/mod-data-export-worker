@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/erm/sas?filters=items.reference%3D123355-3228463-4530592"
+        "url": "/erm/sas?filters=items.reference%3D1-22-333"
       },
       "response": {
         "status": 200,
@@ -16,37 +16,37 @@
     {
       "request": {
         "method": "GET",
-        "url": "/erm/sas?filters=items.reference%3D123355-3228463-19888492"
+        "url": "/erm/sas?filters=items.reference%3D1-22-3334"
+      },
+      "response": {
+        "status": 200,
+        "body": "[{\"id\":\"3ed66817-4699-4c8e-9eef-f99d985494f8\",\"dateCreated\":\"2022-06-09T10:25:25Z\",\"name\":\"Test2\",\"orgs\":[],\"externalLicenseDocs\":[],\"outwardRelationships\":[],\"customProperties\":{},\"contacts\":[],\"tags\":[],\"lastUpdated\":\"2022-06-09T10:25:25Z\",\"inwardRelationships\":[],\"startDate\":\"2022-06-02\",\"linkedLicenses\":[],\"docs\":[],\"periods\":[{\"id\":\"1b8ea3bc-10a5-458a-b176-8dcd02e012ce\",\"startDate\":\"2022-06-02\",\"owner\":{\"id\":\"3ed66817-4699-4c8e-9eef-f99d985494f8\"},\"periodStatus\":\"current\"}],\"usageDataProviders\":[],\"agreementStatus\":{\"id\":\"2c91809c814621890181462896ce0022\",\"value\":\"draft\",\"label\":\"Draft\"},\"supplementaryDocs\":[],\"cancellationDeadline\":null,\"alternateNames\":[],\"version\":0},{\"id\":\"e947c05f-b791-4389-8bfd-3b40ba80c5e3\",\"dateCreated\":\"2022-06-09T08:51:27Z\",\"name\":\"Test\",\"orgs\":[],\"externalLicenseDocs\":[],\"outwardRelationships\":[],\"customProperties\":{},\"contacts\":[],\"tags\":[],\"lastUpdated\":\"2022-06-09T08:51:27Z\",\"inwardRelationships\":[],\"startDate\":\"2022-06-01\",\"linkedLicenses\":[],\"docs\":[],\"periods\":[{\"id\":\"aab95c87-3f93-496e-81d2-db8828f1c647\",\"startDate\":\"2022-06-01\",\"owner\":{\"id\":\"e947c05f-b791-4389-8bfd-3b40ba80c5e3\"},\"periodStatus\":\"current\"}],\"usageDataProviders\":[],\"agreementStatus\":{\"id\":\"2c91809c814621890181462896dc0025\",\"value\":\"active\",\"label\":\"Active\"},\"supplementaryDocs\":[],\"cancellationDeadline\":null,\"alternateNames\":[],\"version\":0}]",
+        "headers": {
+          "Content-Type": "application/vnd.api+json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/erm/sas?filters=items.reference%3D1-22"
+      },
+      "response": {
+        "status": 200,
+        "body": "[{\"id\":\"3ed66817-4699-4c8e-9eef-f99d985494f8\",\"dateCreated\":\"2022-06-09T10:25:25Z\",\"name\":\"Test2\",\"orgs\":[],\"externalLicenseDocs\":[],\"outwardRelationships\":[],\"customProperties\":{},\"contacts\":[],\"tags\":[],\"lastUpdated\":\"2022-06-09T10:25:25Z\",\"inwardRelationships\":[],\"startDate\":\"2022-06-02\",\"linkedLicenses\":[],\"docs\":[],\"periods\":[{\"id\":\"1b8ea3bc-10a5-458a-b176-8dcd02e012ce\",\"startDate\":\"2022-06-02\",\"owner\":{\"id\":\"3ed66817-4699-4c8e-9eef-f99d985494f8\"},\"periodStatus\":\"current\"}],\"usageDataProviders\":[],\"agreementStatus\":{\"id\":\"2c91809c814621890181462896ce0022\",\"value\":\"draft\",\"label\":\"Draft\"},\"supplementaryDocs\":[],\"cancellationDeadline\":null,\"alternateNames\":[],\"version\":0},{\"id\":\"e947c05f-b791-4389-8bfd-3b40ba80c5e3\",\"dateCreated\":\"2022-06-09T08:51:27Z\",\"name\":\"Test\",\"orgs\":[],\"externalLicenseDocs\":[],\"outwardRelationships\":[],\"customProperties\":{},\"contacts\":[],\"tags\":[],\"lastUpdated\":\"2022-06-09T08:51:27Z\",\"inwardRelationships\":[],\"startDate\":\"2022-06-01\",\"linkedLicenses\":[],\"docs\":[],\"periods\":[{\"id\":\"aab95c87-3f93-496e-81d2-db8828f1c647\",\"startDate\":\"2022-06-01\",\"owner\":{\"id\":\"e947c05f-b791-4389-8bfd-3b40ba80c5e3\"},\"periodStatus\":\"current\"}],\"usageDataProviders\":[],\"agreementStatus\":{\"id\":\"2c91809c814621890181462896dc0025\",\"value\":\"active\",\"label\":\"Active\"},\"supplementaryDocs\":[],\"cancellationDeadline\":null,\"alternateNames\":[],\"version\":0}]",
+        "headers": {
+          "Content-Type": "application/vnd.api+json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/erm/sas?filters=items.reference%3D1-23"
       },
       "response": {
         "status": 200,
         "body": "[]",
-        "headers": {
-          "Content-Type": "application/vnd.api+json"
-        }
-      }
-    },
-    {
-      "request": {
-        "method": "GET",
-        "url": "/erm/sas?filters=items.reference%3D123355-3228463-1113826"
-      },
-      "response": {
-        "status": 200,
-        "body": "[{\"id\":\"3ed66817-4699-4c8e-9eef-f99d985494f8\",\"dateCreated\":\"2022-06-09T10:25:25Z\",\"name\":\"Test2\",\"orgs\":[],\"externalLicenseDocs\":[],\"outwardRelationships\":[],\"customProperties\":{},\"contacts\":[],\"tags\":[],\"lastUpdated\":\"2022-06-09T10:25:25Z\",\"inwardRelationships\":[],\"startDate\":\"2022-06-02\",\"linkedLicenses\":[],\"docs\":[],\"periods\":[{\"id\":\"1b8ea3bc-10a5-458a-b176-8dcd02e012ce\",\"startDate\":\"2022-06-02\",\"owner\":{\"id\":\"3ed66817-4699-4c8e-9eef-f99d985494f8\"},\"periodStatus\":\"current\"}],\"usageDataProviders\":[],\"agreementStatus\":{\"id\":\"2c91809c814621890181462896ce0022\",\"value\":\"draft\",\"label\":\"Draft\"},\"supplementaryDocs\":[],\"cancellationDeadline\":null,\"alternateNames\":[],\"version\":0},{\"id\":\"e947c05f-b791-4389-8bfd-3b40ba80c5e3\",\"dateCreated\":\"2022-06-09T08:51:27Z\",\"name\":\"Test\",\"orgs\":[],\"externalLicenseDocs\":[],\"outwardRelationships\":[],\"customProperties\":{},\"contacts\":[],\"tags\":[],\"lastUpdated\":\"2022-06-09T08:51:27Z\",\"inwardRelationships\":[],\"startDate\":\"2022-06-01\",\"linkedLicenses\":[],\"docs\":[],\"periods\":[{\"id\":\"aab95c87-3f93-496e-81d2-db8828f1c647\",\"startDate\":\"2022-06-01\",\"owner\":{\"id\":\"e947c05f-b791-4389-8bfd-3b40ba80c5e3\"},\"periodStatus\":\"current\"}],\"usageDataProviders\":[],\"agreementStatus\":{\"id\":\"2c91809c814621890181462896dc0025\",\"value\":\"active\",\"label\":\"Active\"},\"supplementaryDocs\":[],\"cancellationDeadline\":null,\"alternateNames\":[],\"version\":0}]",
-        "headers": {
-          "Content-Type": "application/vnd.api+json"
-        }
-      }
-    },
-    {
-      "request": {
-        "method": "GET",
-        "url": "/erm/sas?filters=items.reference%3D123355-3228463"
-      },
-      "response": {
-        "status": 200,
-        "body": "[{\"id\":\"3ed66817-4699-4c8e-9eef-f99d985494f8\",\"dateCreated\":\"2022-06-09T10:25:25Z\",\"name\":\"Test2\",\"orgs\":[],\"externalLicenseDocs\":[],\"outwardRelationships\":[],\"customProperties\":{},\"contacts\":[],\"tags\":[],\"lastUpdated\":\"2022-06-09T10:25:25Z\",\"inwardRelationships\":[],\"startDate\":\"2022-06-02\",\"linkedLicenses\":[],\"docs\":[],\"periods\":[{\"id\":\"1b8ea3bc-10a5-458a-b176-8dcd02e012ce\",\"startDate\":\"2022-06-02\",\"owner\":{\"id\":\"3ed66817-4699-4c8e-9eef-f99d985494f8\"},\"periodStatus\":\"current\"}],\"usageDataProviders\":[],\"agreementStatus\":{\"id\":\"2c91809c814621890181462896ce0022\",\"value\":\"draft\",\"label\":\"Draft\"},\"supplementaryDocs\":[],\"cancellationDeadline\":null,\"alternateNames\":[],\"version\":0},{\"id\":\"e947c05f-b791-4389-8bfd-3b40ba80c5e3\",\"dateCreated\":\"2022-06-09T08:51:27Z\",\"name\":\"Test\",\"orgs\":[],\"externalLicenseDocs\":[],\"outwardRelationships\":[],\"customProperties\":{},\"contacts\":[],\"tags\":[],\"lastUpdated\":\"2022-06-09T08:51:27Z\",\"inwardRelationships\":[],\"startDate\":\"2022-06-01\",\"linkedLicenses\":[],\"docs\":[],\"periods\":[{\"id\":\"aab95c87-3f93-496e-81d2-db8828f1c647\",\"startDate\":\"2022-06-01\",\"owner\":{\"id\":\"e947c05f-b791-4389-8bfd-3b40ba80c5e3\"},\"periodStatus\":\"current\"}],\"usageDataProviders\":[],\"agreementStatus\":{\"id\":\"2c91809c814621890181462896dc0025\",\"value\":\"active\",\"label\":\"Active\"},\"supplementaryDocs\":[],\"cancellationDeadline\":null,\"alternateNames\":[],\"version\":0}]",
         "headers": {
           "Content-Type": "application/vnd.api+json"
         }

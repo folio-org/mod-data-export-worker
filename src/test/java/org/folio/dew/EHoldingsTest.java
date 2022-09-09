@@ -48,8 +48,10 @@ class EHoldingsTest extends BaseBatchTest {
 
   private final static String RESOURCE_ID = "1-22-333";
   private final static String PACKAGE_ID = "1-22";
+  private final static String SINGLE_PACKAGE_ID = "1-23";
   private final static String EXPECTED_RESOURCE_OUTPUT = "src/test/resources/output/eholdings_resource_export.csv";
   private final static String EXPECTED_PACKAGE_OUTPUT = "src/test/resources/output/eholdings_package_export.csv";
+  private final static String EXPECTED_SINGLE_PACKAGE_OUTPUT = "src/test/resources/output/eholdings_single_package_export.csv";
 
   @Test
   @DisplayName("Run EHoldingsJob export resource successfully")
@@ -85,6 +87,24 @@ class EHoldingsTest extends BaseBatchTest {
       getRequestedFor(
         urlEqualTo(
           "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&page=1&count=1")));
+  }
+
+  @Test
+  @DisplayName("Run EHoldingsJob export package without resources successfully")
+  void eHoldingsJobSinglePackageTest() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
+
+    final JobParameters jobParameters = prepareJobParameters(SINGLE_PACKAGE_ID, PACKAGE);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    verifyFileOutput(jobExecution, EXPECTED_SINGLE_PACKAGE_OUTPUT);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
+    wireMockServer.verify(
+      getRequestedFor(
+        urlEqualTo(
+          "/eholdings/packages/1-23/resources?filter%5Bname%5D=*&page=1&count=1")));
   }
 
   private void verifyFileOutput(JobExecution jobExecution, String expectedFile) throws Exception {

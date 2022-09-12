@@ -2,6 +2,7 @@ package org.folio.dew.client;
 
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import org.folio.dew.config.feign.FeignClientConfiguration;
+import org.folio.dew.config.feign.FeignEncoderConfiguration;
 import org.folio.dew.domain.dto.BriefHoldingsRecordCollection;
 import org.folio.dew.domain.dto.HoldingsRecord;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
@@ -14,7 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "holdings-storage/holdings", configuration = FeignClientConfiguration.class)
+@FeignClient(name = "holdings-storage/holdings", configuration = { FeignClientConfiguration.class, FeignEncoderConfiguration.class })
 public interface HoldingClient {
   @GetMapping(value = "/{holdingsRecordId}", produces = MediaType.APPLICATION_JSON_VALUE)
   JsonNode getHoldingById(@PathVariable String holdingsRecordId);

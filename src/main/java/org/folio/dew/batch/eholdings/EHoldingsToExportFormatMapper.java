@@ -11,6 +11,7 @@ import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -50,7 +51,7 @@ public class EHoldingsToExportFormatMapper {
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   public List<EHoldingsResourceExportFormat> convertToExportFormat(EHoldingsPackage eHoldingsPackage, List<EHoldingsResource> data) {
-    if (data.isEmpty()) return singletonList(convertToExportFormat(eHoldingsPackage));
+    if (data.isEmpty()) return new ArrayList<>(singletonList(convertToExportFormat(eHoldingsPackage)));
 
     return data.stream()
       .map(resource -> convertToExportFormat(eHoldingsPackage, resource))

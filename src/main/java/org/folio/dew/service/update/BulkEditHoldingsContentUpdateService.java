@@ -20,7 +20,7 @@ import org.folio.dew.domain.dto.HoldingsContentUpdateCollection;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.FileOperationException;
-import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.ContentUpdateRecords;
 import org.folio.dew.service.UpdatesResult;
@@ -36,7 +36,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Log4j2
 public class BulkEditHoldingsContentUpdateService {
-  private final MinIOObjectStorageRepository repository;
+  private final RemoteFilesStorage remoteFilesStorage;
   private final BulkEditProcessingErrorsService errorsService;
   private final HoldingsLocationUpdateStrategy locationUpdateStrategy;
   private final HoldingsContentUpdateValidatorService validatorService;
@@ -47,10 +47,10 @@ public class BulkEditHoldingsContentUpdateService {
       var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       var updatedFileName = UPDATED_PREFIX + fileName;
       var previewFileName = PREVIEW_PREFIX + fileName;
-      var holdingsFormats = CsvHelper.readRecordsFromMinio(repository, fileName, HoldingsFormat.class, true);
+      var holdingsFormats = CsvHelper.readRecordsFromMinio(remoteFilesStorage, fileName, HoldingsFormat.class, true);
       var updatedHoldings = applyContentUpdates(holdingsFormats, contentUpdates, jobCommand);
-      CsvHelper.saveRecordsToMinio(repository, updatedHoldings.getUpdated(), HoldingsFormat.class, updatedFileName);
-      CsvHelper.saveRecordsToMinio(repository, updatedHoldings.getPreview(), HoldingsFormat.class, previewFileName);
+      CsvHelper.saveRecordsToMinio(remoteFilesStorage, updatedHoldings.getUpdated(), HoldingsFormat.class, updatedFileName);
+      CsvHelper.saveRecordsToMinio(remoteFilesStorage, updatedHoldings.getPreview(), HoldingsFormat.class, previewFileName);
       jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())
         .addString(UPDATED_FILE_NAME, updatedFileName)
         .addString(PREVIEW_FILE_NAME, previewFileName)

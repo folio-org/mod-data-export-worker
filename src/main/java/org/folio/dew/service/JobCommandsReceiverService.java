@@ -11,13 +11,11 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -43,7 +41,8 @@ import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.JobCommandRepository;
-import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 
 import org.springframework.batch.core.Job;
@@ -74,11 +73,11 @@ public class JobCommandsReceiverService {
   private final ExportJobManagerSync exportJobManagerSync;
   private final BursarExportService bursarExportService;
   private final IAcknowledgementRepository acknowledgementRepository;
-  private final MinIOObjectStorageRepository remoteObjectStorageRepository;
+  private final RemoteFilesStorage remoteFilesStorage;
+  private final LocalFilesStorage localFilesStorage;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   private final SearchClient searchClient;
   private final FileNameResolver fileNameResolver;
-  private final MinIOObjectStorageRepository minIOObjectStorageRepository;
   private final JobCommandRepository jobCommandRepository;
   private final List<Job> jobs;
   private Map<String, Job> jobMap;
@@ -93,17 +92,7 @@ public class JobCommandsReceiverService {
       jobMap.put(job.getName(), job);
     }
 
-    workDir = System.getProperty("java.io.tmpdir") + '/' + springApplicationName + '/';
-    var file = new File(workDir);
-    if (!file.exists()) {
-      if (file.mkdir()) {
-        log.info("Created working directory {}.", workDir);
-      } else {
-        throw new IllegalStateException(String.format("Can't create working directory %s.", workDir));
-      }
-    } else {
-      log.info("Working directory {}.", workDir);
-    }
+    workDir = getWorkingDirectory(springApplicationName);
   }
 
   @KafkaListener(
@@ -164,7 +153,7 @@ public class JobCommandsReceiverService {
       var uploadedFilePath = jobCommand.getJobParameters().getString(FILE_NAME);
       if (nonNull(uploadedFilePath) && FilenameUtils.isExtension(uploadedFilePath, "cql")) {
         var tempIdentifiersFileName = workDir + FilenameUtils.getBaseName(uploadedFilePath) + CSV_EXTENSION;
-        try (var lines = Files.lines(Path.of(uploadedFilePath));
+        try (var lines = localFilesStorage.lines(uploadedFilePath);
              var outputStream = new FileOutputStream(tempIdentifiersFileName)) {
           var query = lines.collect(Collectors.joining());
           // TODO enrich entityType.json with values INSTANCE, HOLDINGS
@@ -177,8 +166,8 @@ public class JobCommandsReceiverService {
           if (nonNull(resource)) {
             resource.getInputStream().transferTo(outputStream);
           }
-          var identifiersUrl = minIOObjectStorageRepository.objectWriteResponseToPresignedObjectUrl(
-            minIOObjectStorageRepository.uploadObject(FilenameUtils.getName(tempIdentifiersFileName), tempIdentifiersFileName, null, "text/csv", true));
+          var identifiersUrl = remoteFilesStorage.objectWriteResponseToPresignedObjectUrl(
+            remoteFilesStorage.uploadObject(FilenameUtils.getName(tempIdentifiersFileName), tempIdentifiersFileName, null, "text/csv", true));
           paramsBuilder.addString(FILE_NAME, identifiersUrl);
         } catch (Exception e) {
           var msg = String.format("Failed to read %s, reason: %s", FilenameUtils.getBaseName(uploadedFilePath), e.getMessage());
@@ -258,10 +247,10 @@ public class JobCommandsReceiverService {
       }
     }).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
     if (!objects.isEmpty()) {
-      remoteObjectStorageRepository.removeObjects(objects);
+      remoteFilesStorage.removeObjects(objects);
     }
     jobCommandRepository.delete(jobCommand);
-    bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobCommand.getId().toString());
+    bulkEditProcessingErrorsService.removeTemporaryErrorStorage();
     return true;
   }
 

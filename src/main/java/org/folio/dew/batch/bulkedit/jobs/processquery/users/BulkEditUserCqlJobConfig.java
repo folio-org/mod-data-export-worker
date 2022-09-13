@@ -6,6 +6,7 @@ import static org.folio.dew.domain.dto.UserFormat.getUserFieldsArray;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
+import org.folio.dew.batch.AbstractStorageStreamWriter;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.batch.CsvFileAssembler;
@@ -16,6 +17,7 @@ import org.folio.dew.batch.bulkedit.jobs.BulkEditUserProcessor;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -23,7 +25,6 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,7 +39,7 @@ public class BulkEditUserCqlJobConfig {
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
   private final UserClient userClient;
-
+  private final RemoteFilesStorage remoteFilesStorage;
   @Bean
   public Job bulkEditUserCqlJob(
       JobCompletionNotificationListener jobCompletionNotificationListener,
@@ -72,7 +73,7 @@ public class BulkEditUserCqlJobConfig {
   @Bean
   public Step bulkEditUserCqlPartitionStep(
     BulkEditCqlUserReader bulkEditCqlUserReader,
-    FlatFileItemWriter<UserFormat> userWriter,
+    AbstractStorageStreamWriter<UserFormat, RemoteFilesStorage> userWriter,
     BulkEditUserProcessor processor,
     CsvPartStepExecutionListener csvPartStepExecutionListener
   ) {
@@ -110,8 +111,8 @@ public class BulkEditUserCqlJobConfig {
 
   @Bean
   @StepScope
-  public FlatFileItemWriter<UserFormat> userWriter(
+  public AbstractStorageStreamWriter<UserFormat, RemoteFilesStorage> userWriter(
     @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath) {
-    return new CsvWriter<>(tempOutputFilePath, getUserColumnHeaders(), getUserFieldsArray(), (field, i) -> field);
+    return new CsvWriter<>(tempOutputFilePath, getUserColumnHeaders(), getUserFieldsArray(), (field, i) -> field, remoteFilesStorage);
   }
 }

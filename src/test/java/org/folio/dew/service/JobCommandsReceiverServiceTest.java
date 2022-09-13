@@ -1,5 +1,6 @@
 package org.folio.dew.service;
 
+import static org.hamcrest.Matchers.isA;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;

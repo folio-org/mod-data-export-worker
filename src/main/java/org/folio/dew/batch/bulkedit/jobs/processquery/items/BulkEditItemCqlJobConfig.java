@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bulkedit.jobs.processquery.items;
 
+import org.folio.dew.batch.AbstractStorageStreamWriter;
 import org.folio.dew.batch.CsvFileAssembler;
 import org.folio.dew.batch.CsvPartStepExecutionListener;
 import org.folio.dew.batch.CsvWriter;
@@ -10,6 +11,7 @@ import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemFormat;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -17,7 +19,6 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,6 +39,7 @@ public class BulkEditItemCqlJobConfig {
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
   private final InventoryClient inventoryClient;
+  private final RemoteFilesStorage remoteFilesStorage;
 
   @Bean
   public Job bulkEditItemCqlJob(
@@ -72,7 +74,7 @@ public class BulkEditItemCqlJobConfig {
   @Bean
   public Step bulkEditItemCqlPartitionStep(
     BulkEditCqlItemReader bulkEditCqlItemReader,
-    FlatFileItemWriter<ItemFormat> itemWriter,
+    AbstractStorageStreamWriter<ItemFormat, RemoteFilesStorage> itemWriter,
     BulkEditItemProcessor processor,
     CsvPartStepExecutionListener csvPartStepExecutionListener
   ) {
@@ -110,8 +112,8 @@ public class BulkEditItemCqlJobConfig {
 
   @Bean
   @StepScope
-  public FlatFileItemWriter<ItemFormat> itemWriter(
+  public AbstractStorageStreamWriter<ItemFormat, RemoteFilesStorage> itemWriter(
     @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath) {
-    return new CsvWriter<>(tempOutputFilePath, getItemColumnHeaders(), getItemFieldsArray(), (field, i) -> field);
+    return new CsvWriter<>(tempOutputFilePath, getItemColumnHeaders(), getItemFieldsArray(), (field, i) -> field, remoteFilesStorage);
   }
 }

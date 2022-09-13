@@ -15,7 +15,7 @@ import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.bulkedit.jobs.JobConfigReaderHelper;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsRecord;
-import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -68,12 +68,12 @@ import java.security.NoSuchAlgorithmException;
   @StepScope
   public FlatFileItemReader<HoldingsFormat> csvHoldingsRecordsReader(
     @Value("#{jobParameters['" + UPDATED_FILE_NAME + "']}") String updatedFileName,
-    MinIOObjectStorageRepository repository)
-    throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException,
-    InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+    RemoteFilesStorage remoteFilesStorage)
+    throws IOException,
+    InvalidResponseException, XmlParserException, InternalException {
     var holdingsLineMapper = JobConfigReaderHelper.createLineMapper(HoldingsFormat.class, HoldingsFormat.getItemFieldsArray());
     return new FlatFileItemReaderBuilder<HoldingsFormat>().name("holdingsReader")
-      .resource(new InputStreamResource(repository.getObject(updatedFileName)))
+      .resource(new InputStreamResource(remoteFilesStorage.newInputStream(updatedFileName)))
       .linesToSkip(1)
       .lineMapper(holdingsLineMapper)
       .build();

@@ -21,20 +21,16 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.FILE_UPLOAD_ERROR;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
-import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
-import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
+import static org.folio.dew.utils.Constants.getWorkingDirectory;
 import static org.folio.dew.utils.CsvHelper.countLines;
 
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -49,7 +45,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.opencsv.CSVReader;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
@@ -70,7 +65,8 @@ import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.error.NotFoundException;
 import org.folio.dew.error.NonSupportedEntityException;
-import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.BulkEditItemContentUpdateService;
 import org.folio.dew.service.BulkEditParseService;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
@@ -132,10 +128,10 @@ public class BulkEditController implements JobIdApi {
   private final BulkEditHoldingsContentUpdateService holdingsContentUpdateService;
   private final BulkEditParseService bulkEditParseService;
   private final HoldingsMapper holdingsMapper;
-  private final MinIOObjectStorageRepository repository;
+  private final RemoteFilesStorage remoteFilesStorage;
+  private final LocalFilesStorage localFilesStorage;
   private final FolioModuleMetadata folioModuleMetadata;
   private final FolioExecutionContext folioExecutionContext;
-  private final MinIOObjectStorageRepository minIOObjectStorageRepository;
 
   @Value("${spring.application.name}")
   private String springApplicationName;
@@ -143,7 +139,7 @@ public class BulkEditController implements JobIdApi {
 
   @PostConstruct
   public void postConstruct() {
-    workDir = System.getProperty(TMP_DIR_PROPERTY) + PATH_SEPARATOR + springApplicationName + PATH_SEPARATOR;
+    workDir = getWorkingDirectory(springApplicationName);
   }
 
   @Override
@@ -172,7 +168,7 @@ public class BulkEditController implements JobIdApi {
   }
 
   private JobCommand prepareForContentUpdates(UUID jobId) {
-    bulkEditProcessingErrorsService.removeTemporaryErrorStorage(jobId.toString());
+    bulkEditProcessingErrorsService.removeTemporaryErrorStorage();
     var jobCommand = getJobCommandById(jobId.toString());
     if (nonNull(jobCommand.getIdentifierType())) {
       jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())
@@ -188,7 +184,7 @@ public class BulkEditController implements JobIdApi {
     if (BULK_EDIT_IDENTIFIERS == jobCommand.getExportType()) {
       var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       try {
-        var userFormats = CsvHelper.readRecordsFromMinio(repository, fileName, limit, UserFormat.class);
+        var userFormats = CsvHelper.readRecordsFromRemoteFilesStorage(remoteFilesStorage, fileName, limit, UserFormat.class);
         var users = userFormats.stream()
           .map(bulkEditParseService::mapUserFormatToUser)
           .collect(Collectors.toList());
@@ -208,7 +204,7 @@ public class BulkEditController implements JobIdApi {
     if (BULK_EDIT_IDENTIFIERS == jobCommand.getExportType()) {
       var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       try {
-        var items = CsvHelper.readRecordsFromMinio(repository, fileName, limit, ItemFormat.class)
+        var items = CsvHelper.readRecordsFromRemoteFilesStorage(remoteFilesStorage, fileName, limit, ItemFormat.class)
           .stream()
           .map(bulkEditParseService::mapItemFormatToItem)
           .collect(Collectors.toList());
@@ -229,7 +225,7 @@ public class BulkEditController implements JobIdApi {
     if (BULK_EDIT_IDENTIFIERS == jobCommand.getExportType()) {
       var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       try {
-        var holdings = CsvHelper.readRecordsFromMinio(repository, fileName, limit, HoldingsFormat.class)
+        var holdings = CsvHelper.readRecordsFromRemoteFilesStorage(remoteFilesStorage, fileName, limit, HoldingsFormat.class)
           .stream()
           .map(holdingsMapper::mapToHoldingsRecord)
           .collect(Collectors.toList());
@@ -252,9 +248,10 @@ public class BulkEditController implements JobIdApi {
     try {
       var updatedFileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(PREVIEW_FILE_NAME));
       var updatedFullPath = FilenameUtils.getFullPath(jobCommand.getJobParameters().getString(PREVIEW_FILE_NAME));
-      Path updatedFilePath = Paths.get(updatedFullPath + updatedFileName);
-      ByteArrayResource updatedFileResource = new ByteArrayResource(Files.readAllBytes(updatedFilePath));
-      headers.setContentLength(updatedFilePath.toFile().length());
+      var updatedFilePath = updatedFullPath + updatedFileName;
+      var content = localFilesStorage.readAllBytes(updatedFilePath);
+      ByteArrayResource updatedFileResource = new ByteArrayResource(content);
+      headers.setContentLength(content.length);
       headers.setContentDispositionFormData(updatedFileName, updatedFileName);
       return ResponseEntity.ok().headers(headers).body(updatedFileResource);
     } catch (Exception e) {
@@ -278,8 +275,8 @@ public class BulkEditController implements JobIdApi {
     if (nonNull(fileName)) {
       HttpHeaders headers = new HttpHeaders();
       headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-      try {
-        var updatedUsersResource = new ByteArrayResource(minIOObjectStorageRepository.getObject(fileName).readAllBytes());
+      try (InputStream is = remoteFilesStorage.newInputStream(fileName)) {
+        var updatedUsersResource = new ByteArrayResource(is.readAllBytes());
         headers.setContentLength(updatedUsersResource.contentLength());
         headers.setContentDispositionFormData(fileName, fileName);
         return ResponseEntity.ok().headers(headers).body(updatedUsersResource);
@@ -306,17 +303,15 @@ public class BulkEditController implements JobIdApi {
     }
 
     var jobCommand = getJobCommandById(jobId.toString());
-    var uploadedPath = Path.of(workDir, file.getOriginalFilename());
+    var uploadedPath = workDir + file.getOriginalFilename();
 
     try {
-      if (Files.exists(uploadedPath)) {
-        FileUtils.forceDelete(uploadedPath.toFile());
-      }
-      Files.write(uploadedPath, file.getBytes());
+      localFilesStorage.delete(uploadedPath);
+      localFilesStorage.write(uploadedPath, file.getBytes());
       prepareJobParameters(jobCommand, uploadedPath);
       jobCommandsReceiverService.updateJobCommand(jobCommand);
       if (isBulkEditUpdate(jobCommand) && jobCommand.getEntityType() == USER) {
-        Files.write( Path.of(workDir, INITIAL_PREFIX + file.getOriginalFilename()), file.getBytes());
+        localFilesStorage.write(workDir + INITIAL_PREFIX + file.getOriginalFilename(), file.getBytes());
       }
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
       if (!isBulkEditUpdate(jobCommand) && ITEM != jobCommand.getEntityType()) {
@@ -397,13 +392,12 @@ public class BulkEditController implements JobIdApi {
       .orElseThrow(() -> new IllegalStateException("Job was not found, aborting"));
   }
 
-  private void prepareJobParameters(JobCommand jobCommand, Path uploadedPath) throws IOException {
-    var fileName = uploadedPath.toString();
+  private void prepareJobParameters(JobCommand jobCommand, String uploadedPath) throws IOException {
     var paramsBuilder = new JobParametersBuilder(jobCommand.getJobParameters());
-    paramsBuilder.addString(FILE_NAME, fileName);
-    paramsBuilder.addLong(TOTAL_CSV_LINES, countLines(uploadedPath, isBulkEditUpdate(jobCommand)));
+    paramsBuilder.addString(FILE_NAME, uploadedPath);
+    paramsBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, uploadedPath, isBulkEditUpdate(jobCommand)));
     paramsBuilder.addString(TEMP_OUTPUT_FILE_PATH,
-      workDir + (isBulkEditUpdate(jobCommand) ? EMPTY : LocalDate.now() + MATCHED_RECORDS) + FilenameUtils.getBaseName(fileName));
+      workDir + (isBulkEditUpdate(jobCommand) ? EMPTY : LocalDate.now() + MATCHED_RECORDS) + FilenameUtils.getBaseName(uploadedPath));
     paramsBuilder.addString(EXPORT_TYPE, jobCommand.getExportType().getValue());
     ofNullable(jobCommand.getIdentifierType()).ifPresent(type ->
       paramsBuilder.addString("identifierType", type.getValue()));
@@ -482,10 +476,10 @@ public class BulkEditController implements JobIdApi {
     try {
       Reader inputReader;
       var minioFileName = PREVIEW_PREFIX + FilenameUtils.getName(fileName);
-      if (Files.notExists(Path.of(fileName)) && repository.containsFile(minioFileName)) {
-        inputReader = new InputStreamReader(repository.getObject(minioFileName));
+      if (localFilesStorage.notExists(fileName) && remoteFilesStorage.containsFile(minioFileName)) {
+        inputReader = new InputStreamReader(remoteFilesStorage.newInputStream(minioFileName));
       } else {
-        inputReader = new FileReader(fileName);
+        inputReader = new InputStreamReader(localFilesStorage.newInputStream(fileName));
       }
       try (var reader = new CSVReader(inputReader)) {
         var values = reader.readAll().stream()

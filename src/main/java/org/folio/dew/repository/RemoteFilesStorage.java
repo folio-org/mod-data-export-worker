@@ -22,7 +22,6 @@ import io.minio.http.Method;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -109,19 +108,6 @@ public class RemoteFilesStorage extends BaseFilesStorage {
       }
     }
     return false;
-  }
-
-  public void putObject(byte[] bytes, String fileName) throws IOException, InvalidKeyException,
-    InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,
-    InternalException, XmlParserException, ErrorResponseException {
-    try (var inputStream = new ByteArrayInputStream(bytes)) {
-      client.putObject(PutObjectArgs.builder()
-        .bucket(bucket)
-        .stream(inputStream, bytes.length, -1)
-        .object(fileName)
-        .contentType("text/csv")
-        .build());
-    }
   }
 
   public ObjectWriteResponse composeObject(String destObject, List<String> sourceObjects, String downloadFilename,

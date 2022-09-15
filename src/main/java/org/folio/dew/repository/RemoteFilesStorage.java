@@ -24,7 +24,6 @@ import io.minio.messages.DeleteObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -111,12 +110,6 @@ public class RemoteFilesStorage extends BaseFilesStorage {
     }
     return false;
   }
-//
-//  public InputStream getObject(String objectToGet) throws IOException, InvalidKeyException,
-//    InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,
-//    InternalException, XmlParserException, ErrorResponseException {
-//    return client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectToGet).build());
-//  }
 
   public void putObject(byte[] bytes, String fileName) throws IOException, InvalidKeyException,
     InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,

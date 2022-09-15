@@ -5,11 +5,8 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
-import io.minio.errors.ErrorResponseException;
-import io.minio.errors.InsufficientDataException;
 import io.minio.errors.InternalException;
 import io.minio.errors.InvalidResponseException;
-import io.minio.errors.ServerException;
 import io.minio.errors.XmlParserException;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.bulkedit.jobs.JobConfigReaderHelper;
@@ -35,8 +32,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.InputStreamResource;
 
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 
 @Configuration public class BulkEditUpdateHoldingsRecordsJobConfig {
 
@@ -69,8 +64,7 @@ import java.security.NoSuchAlgorithmException;
   public FlatFileItemReader<HoldingsFormat> csvHoldingsRecordsReader(
     @Value("#{jobParameters['" + UPDATED_FILE_NAME + "']}") String updatedFileName,
     RemoteFilesStorage remoteFilesStorage)
-    throws IOException,
-    InvalidResponseException, XmlParserException, InternalException {
+    throws IOException {
     var holdingsLineMapper = JobConfigReaderHelper.createLineMapper(HoldingsFormat.class, HoldingsFormat.getItemFieldsArray());
     return new FlatFileItemReaderBuilder<HoldingsFormat>().name("holdingsReader")
       .resource(new InputStreamResource(remoteFilesStorage.newInputStream(updatedFileName)))

@@ -1,11 +1,5 @@
 package org.folio.dew.batch.bulkedit.jobs.updatejob;
 
-import io.minio.errors.ErrorResponseException;
-import io.minio.errors.InsufficientDataException;
-import io.minio.errors.InternalException;
-import io.minio.errors.InvalidResponseException;
-import io.minio.errors.ServerException;
-import io.minio.errors.XmlParserException;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.bulkedit.jobs.JobConfigReaderHelper;
 import org.folio.dew.batch.bulkedit.jobs.updatejob.listeners.BulkEditUpdateUserRecordsListener;
@@ -33,8 +27,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.InputStreamResource;
 
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.folio.dew.domain.dto.EntityType.USER;

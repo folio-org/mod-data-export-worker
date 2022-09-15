@@ -5,9 +5,6 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
-import io.minio.errors.InternalException;
-import io.minio.errors.InvalidResponseException;
-import io.minio.errors.XmlParserException;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.bulkedit.jobs.JobConfigReaderHelper;
 import org.folio.dew.domain.dto.HoldingsFormat;

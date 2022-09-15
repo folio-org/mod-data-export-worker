@@ -27,6 +27,7 @@ import org.folio.dew.domain.dto.ContributorName;
 import org.folio.dew.domain.dto.CustomField;
 import org.folio.dew.domain.dto.Department;
 import org.folio.dew.domain.dto.EffectiveCallNumberComponents;
+
 import org.folio.dew.domain.dto.InventoryItemStatus;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemFormat;
@@ -306,7 +307,7 @@ public class BulkEditParseService {
   public Item mapItemFormatToItem(ItemFormat itemFormat) {
     return new Item()
       .id(itemFormat.getId())
-      .version(Integer.parseInt(itemFormat.getVersion()))
+      .version(isEmpty(itemFormat.getVersion()) ? null : Integer.parseInt(itemFormat.getVersion()))
       .hrid(itemFormat.getHrid())
       .holdingsRecordId(itemFormat.getHoldingsRecordId())
       .formerIds(restoreListValue(itemFormat.getFormerIds()))

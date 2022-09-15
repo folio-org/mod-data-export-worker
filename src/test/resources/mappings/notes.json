@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/note-links/domain/eholdings/type/resource/id/123355-3228463-4530592?status=assigned"
+        "url": "/note-links/domain/eholdings/type/resource/id/1-22-333?status=assigned"
       },
       "response": {
         "status": 200,
@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/note-links/domain/eholdings/type/resource/id/123355-3228463-19888492?status=assigned"
+        "url": "/note-links/domain/eholdings/type/resource/id/1-22-3334?status=assigned"
       },
       "response": {
         "status": 200,
@@ -29,7 +29,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/note-links/domain/eholdings/type/resource/id/123355-3228463-1113826?status=assigned"
+        "url": "/note-links/domain/eholdings/type/package/id/1-22?status=assigned"
       },
       "response": {
         "status": 200,
@@ -42,7 +42,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/note-links/domain/eholdings/type/package/id/123355-3228463?status=assigned"
+        "url": "/note-links/domain/eholdings/type/package/id/1-23?status=assigned"
       },
       "response": {
         "status": 200,

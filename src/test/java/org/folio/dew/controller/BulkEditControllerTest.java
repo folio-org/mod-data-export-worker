@@ -6,19 +6,20 @@ import static org.folio.dew.controller.ItemsContentUpdateTestData.CLEAR_FIELD_PE
 import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_ALLOWED_STATUS;
 import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_NOT_ALLOWED_STATUS;
 import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_NULL_PERMANENT_LOAN_TYPE;
+import static org.folio.dew.domain.dto.EntityType.HOLDINGS_RECORD;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
+import static org.folio.dew.domain.dto.IdentifierType.ID;
 import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.domain.dto.UserContentUpdateAction.NameEnum.FIND;
 import static org.folio.dew.domain.dto.UserContentUpdateAction.NameEnum.REPLACE_WITH;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
-import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
@@ -51,6 +52,9 @@ import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.HoldingsContentUpdate;
+import org.folio.dew.domain.dto.HoldingsContentUpdateCollection;
+import org.folio.dew.domain.dto.HoldingsRecordCollection;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.InventoryItemStatus;
 import org.folio.dew.domain.dto.Item;
@@ -85,6 +89,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionException;
@@ -102,7 +107,6 @@ import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
@@ -121,9 +125,11 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String START_URL_TEMPLATE = "/bulk-edit/%s/start";
   private static final String PREVIEW_USERS_URL_TEMPLATE = "/bulk-edit/%s/preview/users";
   private static final String PREVIEW_ITEMS_URL_TEMPLATE = "/bulk-edit/%s/preview/items";
+  private static final String PREVIEW_HOLDINGS_RECORD_URL_TEMPLATE = "/bulk-edit/%s/preview/holdings";
   private static final String ERRORS_URL_TEMPLATE = "/bulk-edit/%s/errors";
   private static final String ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/item-content-update/upload";
   private static final String USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/user-content-update/upload";
+  private static final String HOLDINGS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/holdings-content-update/upload";
   private static final String ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-items/download";
   private static final String USERS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE = "/bulk-edit/%s/preview/updated-users/download";
   private static final String ITEMS_FOR_LOCATION_UPDATE = "src/test/resources/upload/bulk_edit_items_for_location_update.csv";
@@ -135,9 +141,11 @@ class BulkEditControllerTest extends BaseBatchTest {
   private static final String ITEM_DATA = "src/test/resources/upload/item_data.csv";
   private static final String PREVIEW_USER_DATA = "src/test/resources/upload/preview_user_data.csv";
   private static final String PREVIEW_ITEM_DATA = "src/test/resources/upload/preview_item_data.csv";
+  private static final String PREVIEW_HOLDINGS_RECORD_DATA = "src/test/resources/upload/preview_holdings_record_data.csv";
   private static final String EXPECTED_ERRORS_FOR_CLEAR_PATRON_GROUP = "src/test/resources/output/expected_errors_for_clear_patron_group.json";
   private static final String EXPECTED_USER_CONTENT_UPDATE_OUTPUT = "src/test/resources/output/bulk_edit_user_content_updates_expected_output.csv";
-  private static final SimpleDateFormat itemStatusDateFormat = new SimpleDateFormat(DATE_TIME_PATTERN);
+  private static final String HOLDINGS_RECORDS_FOR_UPDATE = "src/test/resources/output/bulk_edit_holdings_records_output.csv";
+  private static final String UPDATED_HOLDINGS_RECORDS_JSON = "src/test/resources/output/bulk_edit_updated_holdings_records_output.json";
   private static final UUID JOB_ID = UUID.randomUUID();
   public static final String LIMIT = "limit";
 
@@ -327,6 +335,34 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(items.getItems(), hasSize(3));
   }
 
+  @ParameterizedTest
+  @EnumSource(value = IdentifierType.class, names = {"ID", "HOLDINGS_RECORD_ID","INSTANCE_HRID","ITEM_BARCODE"})
+  @SneakyThrows
+  void shouldReturnCompleteHoldingsRecordPreview(IdentifierType identifierType) {
+    repository.uploadObject(FilenameUtils.getName(PREVIEW_HOLDINGS_RECORD_DATA), PREVIEW_HOLDINGS_RECORD_DATA, null, "text/plain", false);
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(HOLDINGS_RECORD);
+    jobCommand.setIdentifierType(identifierType);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + PREVIEW_HOLDINGS_RECORD_DATA.replace(CSV_EXTENSION, EMPTY))
+      .toJobParameters());
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
+    var headers = defaultHeaders();
+    var response = mockMvc.perform(get(format(PREVIEW_HOLDINGS_RECORD_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(1)))
+      .andExpect(status().isOk());
+
+    var holdingsRecord = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), HoldingsRecordCollection.class);
+    assertThat(holdingsRecord.getTotalRecords(), equalTo(1));
+    assertThat(holdingsRecord.getHoldingsRecords(), hasSize(1));
+  }
+
   @SneakyThrows
   @ParameterizedTest
   @EnumSource(value = IdentifierType.class,
@@ -381,6 +417,33 @@ class BulkEditControllerTest extends BaseBatchTest {
     var items = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), ItemCollection.class);
     assertThat(items.getTotalRecords(), equalTo(0));
     assertThat(items.getItems(), hasSize(0));
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = IdentifierType.class, names = {"ID", "HOLDINGS_RECORD_ID","INSTANCE_HRID","ITEM_BARCODE"})
+  @SneakyThrows
+  void shouldReturnEmptyHoldingsRecordPreviewIfNoRecordsAvailable(IdentifierType identifierType) {
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(HOLDINGS_RECORD);
+    jobCommand.setIdentifierType(identifierType);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/no_file")
+      .toJobParameters());
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
+    var headers = defaultHeaders();
+    var response = mockMvc.perform(get(format(PREVIEW_HOLDINGS_RECORD_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(1)))
+      .andExpect(status().isOk());
+
+    var holdingsRecord = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), HoldingsRecordCollection.class);
+    assertThat(holdingsRecord.getTotalRecords(), equalTo(0));
+    assertThat(holdingsRecord.getHoldingsRecords(), hasSize(0));
   }
 
   @SneakyThrows
@@ -452,7 +515,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @SneakyThrows
   @Test
-  void shouldReturnErroJobNotFound() {
+  void shouldReturnErrorJobNotFound() {
 
     var headers = defaultHeaders();
 
@@ -786,10 +849,11 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andReturn();
   }
 
-  @Test
+  @ParameterizedTest
+  @ValueSource(strings = {"/bulk-edit/%s/preview/updated-users/download", "/bulk-edit/%s/preview/updated-holdings/download"})
   @SneakyThrows
-  @DisplayName("Download users preview when preview is not available - NOT FOUND")
-  void shouldReturnNotFoundIfPreviewIsNotAvailable() {
+  @DisplayName("Download users/holdings preview when preview is not available - NOT FOUND")
+  void shouldReturnNotFoundIfPreviewIsNotAvailable(String urlTemplate) {
     var jobCommand = new JobCommand();
     var jobId = UUID.randomUUID();
     jobCommand.setId(jobId);
@@ -797,17 +861,19 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
-    mockMvc.perform(get(format(USERS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE, jobId))
+    mockMvc.perform(get(format(urlTemplate, jobId))
         .headers(defaultHeaders()))
       .andExpect(status().isNotFound());
   }
 
-  @Test
+  @ParameterizedTest
+  @CsvSource({"src/test/resources/upload/preview_user_data.csv,/bulk-edit/%s/preview/updated-users/download",
+    "src/test/resources/output/bulk_edit_holdings_records_output.csv,/bulk-edit/%s/preview/updated-holdings/download"})
   @SneakyThrows
-  @DisplayName("Download users preview - successful")
-  void shouldDownloadPreviewAfterUserContentUpdate() {
-    var fileName = FilenameUtils.getName(PREVIEW_USER_DATA);
-    repository.uploadObject(fileName, PREVIEW_USER_DATA, null, "text/plain", false);
+  @DisplayName("Download users/holdings preview - successful")
+  void shouldDownloadPreviewAfterUserContentUpdate(String previewPath, String urlTemplate) {
+    var fileName = FilenameUtils.getName(previewPath);
+    repository.uploadObject(fileName, previewPath, null, "text/plain", false);
     var jobCommand = new JobCommand();
     var jobId = UUID.randomUUID();
     jobCommand.setId(jobId);
@@ -815,12 +881,12 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
-    var response = mockMvc.perform(get(format(USERS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE, jobId))
+    var response = mockMvc.perform(get(format(urlTemplate, jobId))
             .headers(defaultHeaders()))
         .andExpect(status().isOk())
         .andReturn();
 
-    var expectedCsv = new FileSystemResource(PREVIEW_USER_DATA);
+    var expectedCsv = new FileSystemResource(previewPath);
     var actualCsvByteArr = response.getResponse().getContentAsByteArray();
     Path actualDownloadedCsvTmp = Paths.get("actualDownloaded.csv");
     Files.write(actualDownloadedCsvTmp, actualCsvByteArr);
@@ -1287,6 +1353,44 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertEquals("COMPLETED", jobExecution.getStatus().name());
     assertEquals(Files.readString(Path.of(EXPECTED_USER_CONTENT_UPDATE_OUTPUT)), new String(minIOObjectStorageRepository.getObject
       (jobExecution.getJobParameters().getString(UPDATED_FILE_NAME)).readAllBytes()));
+  }
+
+  @Test
+  @SneakyThrows
+  @DisplayName("Post holdings content updates - successful")
+  void shouldReplaceHoldingsLocationAndReturnPreview() {
+    repository.uploadObject(FilenameUtils.getName(HOLDINGS_RECORDS_FOR_UPDATE), HOLDINGS_RECORDS_FOR_UPDATE, null, "text/plain", false);
+
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
+    jobCommand.setEntityType(HOLDINGS_RECORD);
+    jobCommand.setIdentifierType(ID);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(JobParameterNames.JOB_ID, jobId.toString())
+      .addString(TEMP_OUTPUT_FILE_PATH, FilenameUtils.getBaseName(HOLDINGS_RECORDS_FOR_UPDATE))
+      .toJobParameters());
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
+    var contentUpdates = objectMapper.writeValueAsString(new HoldingsContentUpdateCollection()
+      .holdingsContentUpdates(Collections.singletonList(new HoldingsContentUpdate()
+        .option(HoldingsContentUpdate.OptionEnum.TEMPORARY_LOCATION)
+        .action(HoldingsContentUpdate.ActionEnum.REPLACE_WITH)
+        .value("Annex")))
+      .totalRecords(1));
+
+    var responseContentUpdateUpload = mockMvc.perform(post(format(HOLDINGS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+        .headers(defaultHeaders())
+        .content(contentUpdates))
+      .andExpect(status().isOk())
+      .andReturn();
+    var actualHoldings = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
+      HoldingsRecordCollection.class).getHoldingsRecords();
+    var expectedHoldings = objectMapper.readValue(Path.of(UPDATED_HOLDINGS_RECORDS_JSON).toFile(), HoldingsRecordCollection.class).getHoldingsRecords();
+
+    assertThat(actualHoldings, equalTo(expectedHoldings));
   }
 
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType, EntityType entityType, IdentifierType identifierType) {

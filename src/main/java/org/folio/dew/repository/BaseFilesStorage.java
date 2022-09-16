@@ -50,6 +50,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static io.minio.ObjectWriteArgs.MIN_MULTIPART_SIZE;
+import static java.lang.String.format;
 
 @Log4j2
 public class BaseFilesStorage implements S3CompatibleStorage {
@@ -279,6 +280,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
             .build());
         } catch (Exception e) {
           sb.append(p).append(StringUtils.SPACE);
+          log.error(format("Cannot delete file: %s", p), e);
         }
       });
       if (StringUtils.isNotEmpty(sb)) {

@@ -31,7 +31,7 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
   private LineAggregator<T> lineAggregator;
 
   public AbstractStorageStreamWriter(String tempOutputFilePath, LocalFilesStorage localFilesStorage) {
-    //
+    // TODO Should be implemented for MarcWriter
   }
 
   public AbstractStorageStreamWriter(String tempOutputFilePath, String columnHeaders, String[] extractedFieldNames, FieldProcessor fieldProcessor, S storage) {

@@ -10,7 +10,5 @@ import org.marc4j.marc.Record;
 public class MarcWriter extends AbstractStorageStreamWriter<Record, LocalFilesStorage> {
   public MarcWriter(String tempOutputFilePath, LocalFilesStorage localFilesStorage) {
     super(tempOutputFilePath, localFilesStorage);
-    setResource(new S3CompatibleResource<>(tempOutputFilePath, localFilesStorage));
-    log.info("Creating file {}.", tempOutputFilePath);
   }
 }

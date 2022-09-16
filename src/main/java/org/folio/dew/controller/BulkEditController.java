@@ -473,14 +473,10 @@ public class BulkEditController implements JobIdApi {
     var fileName = extractFileName(jobCommand);
     if (StringUtils.isEmpty(fileName)) throw new FileOperationException("File for preview is not present or was not uploaded");
     if (!fileName.contains(CSV_EXTENSION)) fileName += CSV_EXTENSION;
-    try {
-      Reader inputReader;
-      var minioFileName = PREVIEW_PREFIX + FilenameUtils.getName(fileName);
-      if (localFilesStorage.notExists(fileName) && remoteFilesStorage.containsFile(minioFileName)) {
-        inputReader = new InputStreamReader(remoteFilesStorage.newInputStream(minioFileName));
-      } else {
-        inputReader = new InputStreamReader(localFilesStorage.newInputStream(fileName));
-      }
+    var minioFileName = PREVIEW_PREFIX + FilenameUtils.getName(fileName);
+    try (var inputReader = localFilesStorage.notExists(fileName) && remoteFilesStorage.containsFile(minioFileName) ?
+      new InputStreamReader(remoteFilesStorage.newInputStream(minioFileName)) :
+      new InputStreamReader(localFilesStorage.newInputStream(fileName))) {
       try (var reader = new CSVReader(inputReader)) {
         var values = reader.readAll().stream()
           .skip(getNumberOfLinesToSkip(jobCommand))

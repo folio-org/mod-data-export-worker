@@ -127,7 +127,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
         log.info("Bucket has already exist.");
       }
     } catch(Exception e) {
-      log.error("Error creating bucket: " + bucket, e.getMessage());
+      log.error("Error creating bucket: " + bucket, e);
     }
   }
 
@@ -318,7 +318,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     try {
       return iterator.hasNext() && Objects.nonNull(iterator.next().get());
     } catch (Exception e) {
-      log.error("Error file existing verification, path: " + path);
+      log.error("Error file existing verification, path: " + path, e);
       return false;
     }
   }
@@ -386,8 +386,8 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @throws IOException - if an I/O error occurs reading from the file
    */
   public List<String> readAllLines(String path) throws IOException {
-    try {
-      return lines(path).collect(Collectors.toList());
+    try (var lines = lines(path)) {
+      return lines.collect(Collectors.toList());
     } catch(Exception e) {
       throw new IOException("Error reading file: " + path, e);
     }

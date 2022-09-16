@@ -158,7 +158,7 @@ class BulkEditTest extends BaseBatchTest {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
 
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, BARCODES_CSV, true);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, BARCODES_CSV);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_USER_OUTPUT);
@@ -175,7 +175,7 @@ class BulkEditTest extends BaseBatchTest {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
 
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, BARCODES_FOR_PROGRESS_CSV, true);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, BARCODES_FOR_PROGRESS_CSV);
     testLauncher.launchJob(jobParameters);
 
     var jobCaptor = ArgumentCaptor.forClass(org.folio.de.entity.Job.class);
@@ -192,7 +192,7 @@ class BulkEditTest extends BaseBatchTest {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, BARCODES_FOR_PROGRESS_CSV, true);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, BARCODES_FOR_PROGRESS_CSV);
     testLauncher.launchJob(jobParameters);
 
     var jobCaptor = ArgumentCaptor.forClass(org.folio.de.entity.Job.class);
@@ -210,7 +210,7 @@ class BulkEditTest extends BaseBatchTest {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, identifierType, ITEM_BARCODES_CSV, true);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, identifierType, ITEM_BARCODES_CSV);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_ITEM_OUTPUT);
@@ -228,7 +228,7 @@ class BulkEditTest extends BaseBatchTest {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
 
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, identifierType, HOLDINGS_IDENTIFIERS_CSV, true);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, identifierType, HOLDINGS_IDENTIFIERS_CSV);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     String expectedErrorsOutputFilePath;
@@ -251,7 +251,7 @@ class BulkEditTest extends BaseBatchTest {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
 
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, ID, HOLDINGS_IDENTIFIERS_BAD_REFERENCE_IDS_CSV, true);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, ID, HOLDINGS_IDENTIFIERS_BAD_REFERENCE_IDS_CSV);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EMPTY, EXPECTED_BULK_EDIT_HOLDINGS_BAD_REFERENCE_IDS_ERRORS);
@@ -265,7 +265,7 @@ class BulkEditTest extends BaseBatchTest {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, HOLDINGS_RECORD_ID, ITEM_HOLDINGS_CSV, true);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, HOLDINGS_RECORD_ID, ITEM_HOLDINGS_CSV);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_ITEM_OUTPUT, EXPECTED_BULK_EDIT_ITEM_IDENTIFIERS_HOLDINGS_ERRORS_OUTPUT);
@@ -278,7 +278,7 @@ class BulkEditTest extends BaseBatchTest {
   void bulkEditUserJobTestWithErrors() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
 
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, BARCODES_SOME_NOT_FOUND, true);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, BARCODES_SOME_NOT_FOUND);
 
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
@@ -295,7 +295,7 @@ class BulkEditTest extends BaseBatchTest {
   void bulkEditItemJobTestWithErrors() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, ITEM_BARCODES_SOME_NOT_FOUND, true);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, ITEM_BARCODES_SOME_NOT_FOUND);
 
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
@@ -309,7 +309,7 @@ class BulkEditTest extends BaseBatchTest {
   void bulkEditUserQueryJobTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUserCqlJob);
 
-    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, USER, BARCODE, USERS_QUERY_FILE_PATH, true);
+    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, USER, BARCODE, USERS_QUERY_FILE_PATH);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_USER_OUTPUT);
@@ -322,7 +322,7 @@ class BulkEditTest extends BaseBatchTest {
   void shouldProcessUsersWithoutPatronGroupIdSuccessfully() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUserCqlJob);
 
-    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, USER, BARCODE, QUERY_NO_GROUP_FILE_PATH, true);
+    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, USER, BARCODE, QUERY_NO_GROUP_FILE_PATH);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_NO_GROUP_OUTPUT);
@@ -335,7 +335,7 @@ class BulkEditTest extends BaseBatchTest {
   void bulkEditItemQueryJobTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditItemCqlJob);
 
-    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, ITEM, BARCODE, ITEMS_QUERY_FILE_PATH, true);
+    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, ITEM, BARCODE, ITEMS_QUERY_FILE_PATH);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_ITEMS_QUERY_OUTPUT);
@@ -348,7 +348,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run update user records w/ and w/o errors")
   void uploadUserRecordsJobTest(String csvFileName) throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateUserRecordsJob);
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, USER, BARCODE, csvFileName, true);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, USER, BARCODE, csvFileName);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
@@ -376,7 +376,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run update item records w/ and w/o errors")
   void uploadItemRecordsJobTest(String csvFileName) throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateItemRecordsJob);
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, ITEM, BARCODE, csvFileName, true);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, ITEM, BARCODE, csvFileName);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
@@ -399,7 +399,7 @@ class BulkEditTest extends BaseBatchTest {
     localFilesStorage.write(ITEM_RECORD_IN_APP_UPDATED_COPY, Files.readAllBytes(new File(ITEM_RECORD_IN_APP_UPDATED).toPath()));
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateItemRecordsJob);
-    var builder = new JobParametersBuilder(prepareJobParameters(BULK_EDIT_UPDATE, ITEM, BARCODE, ITEM_RECORD_CSV, true));
+    var builder = new JobParametersBuilder(prepareJobParameters(BULK_EDIT_UPDATE, ITEM, BARCODE, ITEM_RECORD_CSV));
     builder.addString(UPDATED_FILE_NAME, ITEM_RECORD_IN_APP_UPDATED_COPY);
     JobExecution jobExecution = testLauncher.launchJob(builder.toJobParameters());
 
@@ -453,7 +453,7 @@ class BulkEditTest extends BaseBatchTest {
   void shouldEscapeDoubleQuotes() {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, ITEM_BARCODES_DOUBLE_QOUTES_CSV, true);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, ITEM_BARCODES_DOUBLE_QOUTES_CSV);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_ITEM_OUTPUT_ESCAPED);
@@ -466,7 +466,7 @@ class BulkEditTest extends BaseBatchTest {
   @SneakyThrows
   void emptyVersionFieldShouldBeAbsentInItemUpdateRequestBody() {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateItemRecordsJob);
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, ITEM, BARCODE, ITEM_NO_VERSION, true);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, ITEM, BARCODE, ITEM_NO_VERSION);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
@@ -531,18 +531,16 @@ class BulkEditTest extends BaseBatchTest {
   }
 
   @SneakyThrows
-  private JobParameters prepareJobParameters(ExportType exportType, EntityType entityType, IdentifierType identifierType, String path, boolean hasOutcomeFile) {
+  private JobParameters prepareJobParameters(ExportType exportType, EntityType entityType, IdentifierType identifierType, String path) {
     Map<String, JobParameter> params = new HashMap<>();
     String jobId = UUID.randomUUID().toString();
-    if (true) {
-      String workDir = getWorkingDirectory(springApplicationName);
-      params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
-      try {
-        localFilesStorage.write(workDir + "out", new byte[0]);
-        localFilesStorage.write(workDir + "out.csv", new byte[0]);
-      } catch (Exception e) {
-        fail(e.getMessage());
-      }
+    String workDir = getWorkingDirectory(springApplicationName);
+    params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
+    try {
+      localFilesStorage.write(workDir + "out", new byte[0]);
+      localFilesStorage.write(workDir + "out.csv", new byte[0]);
+    } catch (Exception e) {
+      fail(e.getMessage());
     }
     Path of = Path.of(path);
     if (BULK_EDIT_UPDATE == exportType) {

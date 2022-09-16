@@ -267,9 +267,15 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       log.error("Path to found records does not exist: {}", path);
       return true;
     }
-    return localFilesStorage.notExists(path) ?
-      CsvHelper.readRecordsFromStorage(remoteFilesStorage, path, UserFormat.class, true).isEmpty() :
-      localFilesStorage.lines(path).count() <= 1;
+
+    if (localFilesStorage.notExists(path)) {
+      return CsvHelper.readRecordsFromStorage(remoteFilesStorage, path, UserFormat.class, true).isEmpty();
+    }
+
+    try (var lines = localFilesStorage.lines(path)) {
+      return lines.count() <= 1;
+    }
+
   }
 
   private String prepareObject(JobExecution jobExecution, String path) {

@@ -280,7 +280,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
             .build());
         } catch (Exception e) {
           sb.append(p).append(StringUtils.SPACE);
-          log.error(format("Cannot delete file: %s", p), e);
+          log.error(format("Cannot delete file: %s", p), e.getMessage());
         }
       });
       if (StringUtils.isNotEmpty(sb)) {

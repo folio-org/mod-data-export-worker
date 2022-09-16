@@ -279,13 +279,9 @@ public class BaseFilesStorage implements S3CompatibleStorage {
             .object(p)
             .build());
         } catch (Exception e) {
-          sb.append(p).append(StringUtils.SPACE);
           log.error(format("Cannot delete file: %s", p), e.getMessage());
         }
       });
-      if (StringUtils.isNotEmpty(sb)) {
-        throw new FileOperationException("Cannot delete files: " + sb);
-      }
     } catch (Exception e) {
       throw new FileOperationException("Cannot delete file: " + path, e);
     }

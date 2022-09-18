@@ -38,6 +38,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Repository;
 
+import static io.minio.ObjectWriteArgs.MIN_MULTIPART_SIZE;
+
 @Repository
 @Log4j2
 public class RemoteFilesStorage extends BaseFilesStorage {
@@ -66,7 +68,7 @@ public class RemoteFilesStorage extends BaseFilesStorage {
 
     ObjectWriteResponse result;
     try (var is = localFilesStorage.newInputStream(filename)) {
-      result = client.putObject(createArgs(PutObjectArgs.builder().stream(is, -1, ObjectWriteArgs.MIN_MULTIPART_SIZE + 1L), object, downloadFilename, contentType));
+      result = client.putObject(createArgs(PutObjectArgs.builder().stream(is, -1, MIN_MULTIPART_SIZE + 1L), object, downloadFilename, contentType));
     }
 
     if (isSourceShouldBeDeleted) {
@@ -96,7 +98,7 @@ public class RemoteFilesStorage extends BaseFilesStorage {
   public void downloadObject(String objectToGet, String fileToSave) throws IOException, InvalidKeyException,
     InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,
     InternalException, XmlParserException, ErrorResponseException {
-    localFilesStorage.write(fileToSave, client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectToGet).build()).readAllBytes());
+    localFilesStorage.write(fileToSave, client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectToGet).build()));
   }
 
   public boolean containsFile(String fileName)

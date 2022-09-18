@@ -1,6 +1,7 @@
 package org.folio.dew.batch;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.error.FileOperationException;
@@ -14,6 +15,7 @@ import org.springframework.batch.item.file.transform.LineAggregator;
 import org.springframework.core.io.WritableResource;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.folio.dew.utils.Constants.LINE_SEPARATOR;
@@ -90,7 +92,7 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
 
     if (StringUtils.isNotBlank(columnHeaders)) {
       try {
-        storage.write(tempOutputFilePath, (columnHeaders + '\n').getBytes());
+        storage.write(tempOutputFilePath, IOUtils.toInputStream(columnHeaders + '\n', StandardCharsets.UTF_8));
       } catch (IOException e) {
         throw new FileOperationException(e);
       }
@@ -120,7 +122,7 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
     for (T item : items) {
       sb.append(lineAggregator.aggregate(item)).append('\n');
     }
-    storage.append(resource.getFilename(), sb.toString().getBytes());
+    storage.append(resource.getFilename(), IOUtils.toInputStream(sb.toString(), StandardCharsets.UTF_8));
 
   }
 }

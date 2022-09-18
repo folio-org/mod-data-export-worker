@@ -3,8 +3,10 @@ package org.folio.dew.repository;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.future.AuthFuture;
@@ -97,7 +99,7 @@ public class SFTPObjectStorageRepository {
   private String createTempFile(String filename, String content) throws IOException {
 
     localFilesStorage.delete(filename);
-    localFilesStorage.write(filename, content.getBytes());
+    localFilesStorage.write(filename, IOUtils.toInputStream(content, StandardCharsets.UTF_8));
 
     return filename;
   }

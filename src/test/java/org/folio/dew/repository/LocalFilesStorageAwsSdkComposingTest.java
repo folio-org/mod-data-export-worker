@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
@@ -41,9 +42,9 @@ class LocalFilesStorageAwsSdkComposingTest {
 
     assertTrue(Objects.deepEquals(file, expected));
 
-    localFilesStorage.append(name, first);
-    localFilesStorage.append(name, second);
-    localFilesStorage.append(name, third);
+    localFilesStorage.append(name, new ByteArrayInputStream(first));
+    localFilesStorage.append(name, new ByteArrayInputStream(second));
+    localFilesStorage.append(name, new ByteArrayInputStream(third));
 
     var result = localFilesStorage.readAllBytes(name);
 

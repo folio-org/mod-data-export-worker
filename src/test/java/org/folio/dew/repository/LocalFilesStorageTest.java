@@ -12,6 +12,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -50,7 +51,7 @@ class LocalFilesStorageTest {
       expected = original.stream()
         .map(p -> {
           try {
-            return localFilesStorage.write(p, content);
+            return localFilesStorage.write(p, new ByteArrayInputStream(content));
           } catch (IOException ex) {
             throw new RuntimeException(ex);
           }
@@ -111,14 +112,14 @@ class LocalFilesStorageTest {
     byte[] patch = getRandomBytes(size);
     var remoteFilePath = "directory_1/directory_2/CSV_Data.csv";
 
-    assertThat(localFilesStorage.write(remoteFilePath, original), is(remoteFilePath));
+    assertThat(localFilesStorage.write(remoteFilePath, new ByteArrayInputStream(original)), is(remoteFilePath));
     assertTrue(localFilesStorage.exists(remoteFilePath));
 
     assertTrue(Objects.deepEquals(localFilesStorage.readAllBytes(remoteFilePath), original));
     assertTrue(Objects.deepEquals(localFilesStorage.lines(remoteFilePath)
       .collect(toList()), localFilesStorage.readAllLines(remoteFilePath)));
 
-    localFilesStorage.append(remoteFilePath, patch);
+    localFilesStorage.append(remoteFilePath, new ByteArrayInputStream(patch));
 
     var patched = localFilesStorage.readAllBytes(remoteFilePath);
     assertThat(patched.length, is(original.length + patch.length));

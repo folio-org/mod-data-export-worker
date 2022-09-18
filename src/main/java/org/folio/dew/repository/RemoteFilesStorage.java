@@ -96,7 +96,7 @@ public class RemoteFilesStorage extends BaseFilesStorage {
   public void downloadObject(String objectToGet, String fileToSave) throws IOException, InvalidKeyException,
     InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,
     InternalException, XmlParserException, ErrorResponseException {
-    localFilesStorage.write(fileToSave, client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectToGet).build()).readAllBytes());
+    localFilesStorage.write(fileToSave, client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectToGet).build()));
   }
 
   public boolean containsFile(String fileName)

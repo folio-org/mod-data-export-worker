@@ -27,7 +27,6 @@ import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
-import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 import static org.folio.dew.utils.CsvHelper.countLines;
 
 import java.io.FileReader;

@@ -1421,9 +1421,6 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(actualHoldings, equalTo(expectedHoldings));
   }
 
-
-
-
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType, EntityType entityType, IdentifierType identifierType) {
     JobCommand jobCommand = new JobCommand();
     jobCommand.setType(JobCommandType.START);

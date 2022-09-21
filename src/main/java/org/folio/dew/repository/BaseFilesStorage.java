@@ -444,8 +444,8 @@ public class BaseFilesStorage implements S3CompatibleStorage {
 
       @Override
       public void close() {
-        try {
-          BaseFilesStorage.this.write(path, new ByteArrayInputStream(buffer));
+        try (var bis = new ByteArrayInputStream(buffer)) {
+          BaseFilesStorage.this.write(path, bis);
         } catch (IOException e) {
           throw new FileOperationException("Error closing stream and writes bytes to path: " + path, e);
         } finally {

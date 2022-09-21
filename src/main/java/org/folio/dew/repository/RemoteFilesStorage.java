@@ -48,14 +48,12 @@ public class RemoteFilesStorage extends BaseFilesStorage {
   private LocalFilesStorage localFilesStorage;
   private final String bucket;
   private final String region;
-  private boolean isComposeWithAwsSdk;
 
   public RemoteFilesStorage(RemoteFilesStorageProperties properties) {
     super(properties);
     this.bucket = properties.getBucket();
     this.region = properties.getRegion();
     this.client = getMinioClient();
-    isComposeWithAwsSdk = properties.isComposeWithAwsSdk();
   }
 
   public String uploadObject(String object, String filename, String downloadFilename, String contentType, boolean isSourceShouldBeDeleted)

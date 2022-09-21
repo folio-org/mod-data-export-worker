@@ -10,15 +10,17 @@ import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
 import io.minio.StatObjectArgs;
+import io.minio.UploadObjectArgs;
 import io.minio.credentials.IamAwsProvider;
 import io.minio.credentials.Provider;
 import io.minio.credentials.StaticProvider;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.config.properties.MinioClientProperties;
 import org.folio.dew.error.FileOperationException;
-import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
@@ -30,6 +32,7 @@ import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 
@@ -39,17 +42,20 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Writer;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.SequenceInputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static io.minio.ObjectWriteArgs.MIN_MULTIPART_SIZE;
+import static java.lang.String.format;
 
 @Log4j2
 public class BaseFilesStorage implements S3CompatibleStorage {
@@ -127,7 +133,29 @@ public class BaseFilesStorage implements S3CompatibleStorage {
         log.info("Bucket has already exist.");
       }
     } catch(Exception e) {
-      log.error("Error creating bucket: " + bucket, e.getMessage());
+      log.error("Error creating bucket: " + bucket, e);
+    }
+  }
+
+  /**
+   * Upload file on S3-compatible storage
+   *
+   * @param path - the path to the file on S3-compatible storage
+   * @param filename – path to uploaded file
+   * @return the path to the file
+   * @throws IOException - if an I/O error occurs
+   */
+  public String upload(String path, String filename) throws IOException {
+    try {
+      return client.uploadObject(UploadObjectArgs.builder()
+          .bucket(bucket)
+          .region(region)
+          .object(path)
+          .filename(filename)
+          .build())
+        .object();
+    } catch (Exception e) {
+      throw new IOException("Cannot upload file: " + path, e);
     }
   }
 
@@ -135,36 +163,49 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * Writes bytes to a file on S3-compatible storage
    *
    * @param path - the path to the file on S3-compatible storage
-   * @param bytes – the byte array with the bytes to write
+   * @param is – the input stream with the bytes to write
    * @return the path to the file
    * @throws IOException - if an I/O error occurs
    */
-  public String write(String path, byte[] bytes) throws IOException {
-
-    try(var is = new ByteArrayInputStream(bytes)) {
-      return client.putObject(PutObjectArgs.builder()
-          .bucket(bucket)
-          .region(region)
-          .object(path)
-          .stream(is, -1, MIN_MULTIPART_SIZE)
-          .build())
-        .object();
+  public String write(String path, InputStream is, Map<String, String> headers) throws IOException {
+    try (is) {
+      if (isComposeWithAwsSdk) {
+        s3Client.putObject(PutObjectRequest.builder().bucket(bucket)
+            .key(path).build(),
+          RequestBody.fromBytes(IOUtils.toByteArray(is)));
+        return path;
+      } else {
+        return client.putObject(PutObjectArgs.builder()
+            .bucket(bucket)
+            .region(region)
+            .object(path)
+            .headers(headers)
+            .stream(is, -1, MIN_MULTIPART_SIZE)
+            .build())
+          .object();
+      }
     } catch (Exception e) {
       throw new IOException("Cannot write file: " + path, e);
     }
   }
 
+  @Override
+  public String write(String path, InputStream is) throws IOException {
+    return write(path, is, new HashMap<>());
+  }
+
+
   /**
    * Appends byte[] to existing on the storage file.
    *
    * @param path - the path to the file on S3-compatible storage
-   * @param bytes - the byte array with the bytes to write
+   * @param is - the input stream with the bytes to write
    * @throws IOException if an I/O error occurs
    */
-  public void append(String path, byte[] bytes) throws IOException {
+  public void append(String path, InputStream is) throws IOException {
     try {
       if (notExists(path)) {
-        write(path, bytes);
+        write(path, is);
       } else {
         var size = client.statObject(StatObjectArgs.builder()
           .bucket(bucket)
@@ -197,7 +238,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
               .partNumber(2).build();
 
             var originalEtag  = s3Client.uploadPartCopy(uploadPartRequest1).copyPartResult().eTag();
-            var appendedEtag = s3Client.uploadPart(uploadPartRequest2, RequestBody.fromBytes(bytes)).eTag();
+            var appendedEtag = s3Client.uploadPart(uploadPartRequest2, RequestBody.fromInputStream(is, is.available())).eTag();
 
             var original = CompletedPart.builder()
               .partNumber(1)
@@ -223,7 +264,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
           } else {
 
             var temporaryFileName = path + "_temp";
-            write(temporaryFileName, bytes);
+            write(temporaryFileName, is);
 
             client.composeObject(ComposeObjectArgs.builder()
               .bucket(bucket)
@@ -246,11 +287,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
           }
 
         } else {
-          var original = readAllBytes(path);
-          byte[] composed = new byte[original.length + bytes.length];
-          System.arraycopy(original, 0, composed, 0, original.length);
-          System.arraycopy(bytes, 0, composed, original.length, bytes.length);
-          write(path, composed);
+          write(path, new SequenceInputStream(newInputStream(path), is));
         }
       }
     } catch (Exception e) {
@@ -268,8 +305,6 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     try {
       var paths = walk(path).collect(Collectors.toList());
 
-      var sb = new StringBuilder();
-
       paths.forEach(p -> {
         try {
           client.removeObject(RemoveObjectArgs.builder()
@@ -278,12 +313,9 @@ public class BaseFilesStorage implements S3CompatibleStorage {
             .object(p)
             .build());
         } catch (Exception e) {
-          sb.append(p).append(StringUtils.SPACE);
+          log.error(format("Cannot delete file: %s", p), e.getMessage());
         }
       });
-      if (StringUtils.isNotEmpty(sb)) {
-        throw new FileOperationException("Cannot delete files: " + sb);
-      }
     } catch (Exception e) {
       throw new FileOperationException("Cannot delete file: " + path, e);
     }
@@ -318,7 +350,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     try {
       return iterator.hasNext() && Objects.nonNull(iterator.next().get());
     } catch (Exception e) {
-      log.error("Error file existing verification, path: " + path);
+      log.error("Error file existing verification, path: " + path, e);
       return false;
     }
   }
@@ -386,51 +418,45 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @throws IOException - if an I/O error occurs reading from the file
    */
   public List<String> readAllLines(String path) throws IOException {
-    try {
-      return lines(path).collect(Collectors.toList());
+    try (var lines = lines(path)) {
+      return lines.collect(Collectors.toList());
     } catch(Exception e) {
       throw new IOException("Error reading file: " + path, e);
     }
   }
 
-  public BufferedWriter writer(String path) {
+  public OutputStream newOutputStream(String path) {
 
-    var writer = new Writer() {
+
+    return new OutputStream() {
+
       byte[] buffer = new byte[0];
 
       @Override
-      public void write(@NotNull char[] cbuf, int off, int len) {
-        synchronized (lock) {
-          buffer = ArrayUtils.addAll(buffer, new String(Arrays.copyOfRange(cbuf, off, len)).getBytes(StandardCharsets.UTF_8));
-        }
+      public void write(int b) {
+        buffer = ArrayUtils.add(buffer, (byte) b);
       }
 
       @Override
       public void flush() {
-        throw new UnsupportedOperationException("flush() isn't implemented");
+        throw new NotImplementedException("Method isn't implemented yet");
       }
 
       @Override
       public void close() {
-
-          try(var is = new ByteArrayInputStream(buffer)) {
-            synchronized (lock) {
-              client.putObject(PutObjectArgs.builder()
-                  .bucket(bucket)
-                  .region(region)
-                  .object(path)
-                  .stream(is, buffer.length, -1)
-                  .build())
-                .object();
-            }
-          } catch (Exception e) {
-            throw new FileOperationException("Cannot write file: " + path, e);
-          } finally {
-            buffer = new byte[0];
-          }
+        try (var bis = new ByteArrayInputStream(buffer)) {
+          BaseFilesStorage.this.write(path, bis);
+        } catch (IOException e) {
+          throw new FileOperationException("Error closing stream and writes bytes to path: " + path, e);
+        } finally {
+          buffer = new byte[0];
         }
+      }
     };
-    return new BufferedWriter(writer);
+  }
+
+  public BufferedWriter writer(String path) {
+    return new BufferedWriter(new OutputStreamWriter(newOutputStream(path)));
   }
 
   private Stream<String> getInternalStructure(String path, boolean isRecursive)  {

@@ -2,6 +2,7 @@ package org.folio.dew.repository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.future.AuthFuture;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Repository;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2
@@ -96,7 +98,7 @@ public class SFTPObjectStorageRepository {
   private String createTempFile(String filename, String content) throws IOException {
 
     localFilesStorage.delete(filename);
-    localFilesStorage.write(filename, content.getBytes());
+    localFilesStorage.write(filename, IOUtils.toInputStream(content, StandardCharsets.UTF_8));
 
     return filename;
   }

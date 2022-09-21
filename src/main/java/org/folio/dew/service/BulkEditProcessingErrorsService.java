@@ -9,6 +9,7 @@ import io.minio.ObjectWriteResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.folio.dew.domain.dto.Error;
 import org.folio.dew.domain.dto.Errors;
 import org.folio.dew.error.FileOperationException;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -55,7 +57,7 @@ public class BulkEditProcessingErrorsService {
       var errorLine = affectedIdentifier + COMMA_SEPARATOR + errorMessage + System.lineSeparator();
       var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
       try {
-        localFilesStorage.append(pathToCSVFile, errorLine.getBytes());
+        localFilesStorage.append(pathToCSVFile, IOUtils.toInputStream(errorLine, StandardCharsets.UTF_8));
       } catch (IOException ioException) {
         log.error("Failed to save {} error file with job id {} cause {}", csvFileName, jobId, ioException);
       }
@@ -112,7 +114,7 @@ public class BulkEditProcessingErrorsService {
 
   private String saveErrorFile(String downloadFilename, String filename) {
     try {
-      ObjectWriteResponse objectWriteResponse = remoteFilesStorage.uploadObject(downloadFilename, filename, downloadFilename, CONTENT_TYPE, false);
+      var objectWriteResponse = remoteFilesStorage.uploadObject(downloadFilename, filename, downloadFilename, CONTENT_TYPE, false);
       log.info("CSV error file {} was saved into S3 successfully", downloadFilename);
       return getDownloadLink(objectWriteResponse);
     } catch (Exception e) {
@@ -121,9 +123,9 @@ public class BulkEditProcessingErrorsService {
     }
   }
 
-  private String getDownloadLink(ObjectWriteResponse objectWriteResponse) {
+  private String getDownloadLink(String objectWriteResponse) {
     try {
-      return remoteFilesStorage.objectWriteResponseToPresignedObjectUrl(objectWriteResponse);
+      return remoteFilesStorage.objectToPresignedObjectUrl(objectWriteResponse);
     } catch (Exception e) {
       log.error("Error occurred while getting the link to error CSV file from S3", e);
       throw new IllegalStateException(e);

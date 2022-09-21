@@ -247,7 +247,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       if (localFilesStorage.notExists(path) && remoteFilesStorage.containsFile(path)) {
         return remoteFilesStorage.objectToPresignedObjectUrl(path);
       }
-      return remoteFilesStorage.objectWriteResponseToPresignedObjectUrl(
+      return remoteFilesStorage.objectToPresignedObjectUrl(
         remoteFilesStorage.uploadObject(prepareObject(jobExecution, path), path, prepareDownloadFilename(jobExecution, path), "text/csv", !isBulkEditUpdateJob(jobExecution)));
     } catch (Exception e) {
       throw new IllegalStateException(e);

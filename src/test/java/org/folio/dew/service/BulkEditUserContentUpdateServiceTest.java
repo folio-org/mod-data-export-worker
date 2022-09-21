@@ -41,7 +41,7 @@ class BulkEditUserContentUpdateServiceTest extends BaseBatchTest {
     var uploadedFileName = FilenameUtils.getName(USER_DATA);
     var updatedFileName = UPDATED_PREFIX + uploadedFileName;
     var previewFileName = PREVIEW_PREFIX + uploadedFileName;
-    remoteFilesStorage.writeObject(uploadedFileName, USER_DATA, null, "text/plain", false);
+    remoteFilesStorage.upload(uploadedFileName, USER_DATA);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);

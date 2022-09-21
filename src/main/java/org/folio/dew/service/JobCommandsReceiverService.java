@@ -166,7 +166,7 @@ public class JobCommandsReceiverService {
           if (nonNull(resource)) {
             resource.getInputStream().transferTo(outputStream);
           }
-          var identifiersUrl = remoteFilesStorage.objectWriteResponseToPresignedObjectUrl(
+          var identifiersUrl = remoteFilesStorage.objectToPresignedObjectUrl(
             remoteFilesStorage.uploadObject(FilenameUtils.getName(tempIdentifiersFileName), tempIdentifiersFileName, null, "text/csv", true));
           paramsBuilder.addString(FILE_NAME, identifiersUrl);
         } catch (Exception e) {

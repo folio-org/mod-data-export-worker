@@ -42,7 +42,7 @@ class BulkEditHoldingsContentUpdateServiceTest extends BaseBatchTest {
     var uploadedFileName = FilenameUtils.getName(HOLDINGS_DATA);
     var updatedFileName = UPDATED_PREFIX + uploadedFileName;
     var previewFileName = PREVIEW_PREFIX + uploadedFileName;
-    remoteFilesStorage.writeObject(uploadedFileName, HOLDINGS_DATA, null, "text/plain", false);
+    remoteFilesStorage.upload(uploadedFileName, HOLDINGS_DATA);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);

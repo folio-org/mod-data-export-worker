@@ -417,7 +417,7 @@ class BulkEditTest extends BaseBatchTest {
   @SneakyThrows
   void shouldRunHoldingsInAppUpdateJob() {
     var fileName = FilenameUtils.getName(HOLDINGS_RECORD_IN_APP_UPDATED);
-    remoteFilesStorage.writeObject(fileName, HOLDINGS_RECORD_IN_APP_UPDATED, null, "text/plain", false);
+    remoteFilesStorage.upload(fileName, HOLDINGS_RECORD_IN_APP_UPDATED);
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateHoldingsRecordsJob);
     var jobParameters = new JobParametersBuilder()
       .addString(JOB_ID, UUID.randomUUID().toString())
@@ -481,7 +481,7 @@ class BulkEditTest extends BaseBatchTest {
   @SneakyThrows
   void emptyVersionFieldShouldBeAbsentInHoldingsUpdateRequestBody() {
     var fileName = FilenameUtils.getName(HOLDINGS_RECORD_NO_VERSION);
-    remoteFilesStorage.writeObject(fileName, HOLDINGS_RECORD_NO_VERSION, null, "text/plain", false);
+    remoteFilesStorage.upload(fileName, HOLDINGS_RECORD_NO_VERSION);
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateHoldingsRecordsJob);
     final JobParameters jobParameters = new JobParametersBuilder()
       .addString(JOB_ID, UUID.randomUUID().toString())

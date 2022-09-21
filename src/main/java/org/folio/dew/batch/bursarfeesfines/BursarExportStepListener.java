@@ -37,7 +37,7 @@ public class BursarExportStepListener extends BaseStepListener {
 
     String url;
     try {
-      url = remoteFilesStorage.objectWriteResponseToPresignedObjectUrl(
+      url = remoteFilesStorage.objectToPresignedObjectUrl(
           remoteFilesStorage.uploadObject(FilenameUtils.getName(filename), filename, downloadFilename, MediaType.TEXT_MARKDOWN_VALUE, true));
     } catch (Exception e) {
       log.error(e.toString(), e);

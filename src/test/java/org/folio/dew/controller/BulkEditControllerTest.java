@@ -294,7 +294,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     when(groupClient.getGroupByQuery("group==\"PatronGroup\""))
       .thenReturn(new UserGroupCollection().usergroups(List.of(new UserGroup().group("PatronGroup")
         .desc("Staff Member").id("3684a786-6671-4268-8ed0-9db82ebca60b").expirationOffsetInDays(730))).totalRecords(1));
-    remoteFilesStorage.writeObject(FilenameUtils.getName(PREVIEW_USER_DATA), PREVIEW_USER_DATA, null, "text/plain", false);
+    remoteFilesStorage.upload(FilenameUtils.getName(PREVIEW_USER_DATA), PREVIEW_USER_DATA);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
@@ -322,7 +322,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @EnumSource(value = IdentifierType.class, names = { "EXTERNAL_SYSTEM_ID", "USER_NAME" }, mode = EnumSource.Mode.EXCLUDE)
   @SneakyThrows
   void shouldReturnCompleteItemPreview(IdentifierType identifierType) {
-    remoteFilesStorage.writeObject(FilenameUtils.getName(PREVIEW_ITEM_DATA), PREVIEW_ITEM_DATA, null, "text/plain", false);
+    remoteFilesStorage.upload(FilenameUtils.getName(PREVIEW_ITEM_DATA), PREVIEW_ITEM_DATA);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
@@ -350,7 +350,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @EnumSource(value = IdentifierType.class, names = {"ID", "HOLDINGS_RECORD_ID","INSTANCE_HRID","ITEM_BARCODE"})
   @SneakyThrows
   void shouldReturnCompleteHoldingsRecordPreview(IdentifierType identifierType) {
-    remoteFilesStorage.writeObject(FilenameUtils.getName(PREVIEW_HOLDINGS_RECORD_DATA), PREVIEW_HOLDINGS_RECORD_DATA, null, "text/plain", false);
+    remoteFilesStorage.upload(FilenameUtils.getName(PREVIEW_HOLDINGS_RECORD_DATA), PREVIEW_HOLDINGS_RECORD_DATA);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
@@ -678,7 +678,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Post item location content updates - successful")
   @SneakyThrows
   void shouldPreviewUpdatesEffectiveLocationOnChangeLocationContentUpdate(ItemsContentUpdateTestData testData) {
-    remoteFilesStorage.writeObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
+    remoteFilesStorage.upload(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
@@ -723,7 +723,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Post item loan type content updates - successful")
   @SneakyThrows
   void shouldPreviewUpdatesOnChangeLoanTypeContentUpdate(ItemsContentUpdateTestData testData) {
-    remoteFilesStorage.writeObject(FilenameUtils.getName(ITEMS_FOR_LOAN_TYPE_UPDATE), ITEMS_FOR_LOAN_TYPE_UPDATE, null, "text/plain", false);
+    remoteFilesStorage.upload(FilenameUtils.getName(ITEMS_FOR_LOAN_TYPE_UPDATE), ITEMS_FOR_LOAN_TYPE_UPDATE);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
@@ -773,7 +773,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Download items preview - successful")
   @SneakyThrows
   void shouldDownloadPreviewAfterContentUpdate(ItemsContentUpdateTestData testData) {
-    remoteFilesStorage.writeObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
+    remoteFilesStorage.upload(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
@@ -820,7 +820,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Download preview - Job not found by ID - NOT FOUND")
   @SneakyThrows
   void shouldReturn404causeJobNotFoundById(ItemsContentUpdateTestData testData) {
-    remoteFilesStorage.writeObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
+    remoteFilesStorage.upload(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
@@ -885,7 +885,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Download users/holdings preview - successful")
   void shouldDownloadPreviewAfterUserContentUpdate(String previewPath, String urlTemplate) {
     var fileName = FilenameUtils.getName(previewPath);
-    remoteFilesStorage.writeObject(fileName, previewPath, null, "text/plain", false);
+    remoteFilesStorage.upload(fileName, previewPath);
     var jobCommand = new JobCommand();
     var jobId = UUID.randomUUID();
     jobCommand.setId(jobId);
@@ -913,7 +913,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Post content updates with limit - successful")
   @SneakyThrows
   void shouldLimitItemsInResponseWhenLimitIsNotNull() {
-    remoteFilesStorage.writeObject(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE, null, "text/plain", false);
+    remoteFilesStorage.upload(FilenameUtils.getName(ITEMS_FOR_LOCATION_UPDATE), ITEMS_FOR_LOCATION_UPDATE);
     var jobId = JOB_ID;
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
@@ -948,7 +948,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @SneakyThrows
   void shouldPreviewChangeItemStatusAndAddErrorIfNot(ItemsContentUpdateTestData testData) {
     var itemId = "b7a9718a-0c26-4d43-ace9-52234ff74ad8";
-    remoteFilesStorage.writeObject(FilenameUtils.getName(ITEMS_FOR_STATUS_UPDATE), ITEMS_FOR_STATUS_UPDATE, null, "text/plain", false);
+    remoteFilesStorage.upload(FilenameUtils.getName(ITEMS_FOR_STATUS_UPDATE), ITEMS_FOR_STATUS_UPDATE);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
@@ -1014,7 +1014,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @DisplayName("Errors should contain correct identifier values")
   @SneakyThrows
   void shouldPlaceCorrectIdentifierInCaseOfError(IdentifierType identifierType) {
-    remoteFilesStorage.writeObject(FilenameUtils.getName(ITEM_FOR_STATUS_UPDATE_ERROR), ITEM_FOR_STATUS_UPDATE_ERROR, null, "text/plain", false);
+    remoteFilesStorage.upload(FilenameUtils.getName(ITEM_FOR_STATUS_UPDATE_ERROR), ITEM_FOR_STATUS_UPDATE_ERROR);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
@@ -1051,7 +1051,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @Test
   @SneakyThrows
   void shouldProvideErrorsIfNotingToUpdate() {
-    remoteFilesStorage.writeObject(FilenameUtils.getName(ITEMS_FOR_NOTHING_UPDATE), ITEMS_FOR_NOTHING_UPDATE, null, "text/plain", false);
+    remoteFilesStorage.upload(FilenameUtils.getName(ITEMS_FOR_NOTHING_UPDATE), ITEMS_FOR_NOTHING_UPDATE);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
@@ -1371,7 +1371,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @SneakyThrows
   @DisplayName("Post holdings content updates - successful")
   void shouldReplaceHoldingsLocationAndReturnPreview() {
-    remoteFilesStorage.writeObject(FilenameUtils.getName(HOLDINGS_RECORDS_FOR_UPDATE), HOLDINGS_RECORDS_FOR_UPDATE, null, "text/plain", false);
+    remoteFilesStorage.upload(FilenameUtils.getName(HOLDINGS_RECORDS_FOR_UPDATE), HOLDINGS_RECORDS_FOR_UPDATE);
 
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();

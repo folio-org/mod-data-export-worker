@@ -34,7 +34,7 @@ public class EHoldingsStepListener extends BaseStepListener {
 
     String url;
     try {
-      url = remoteFilesStorage.objectWriteResponseToPresignedObjectUrl(
+      url = remoteFilesStorage.objectToPresignedObjectUrl(
         remoteFilesStorage.uploadObject(FilenameUtils.getName(filename), filename, null, "text/csv", true));
     } catch (Exception e) {
       log.error(e.toString(), e);

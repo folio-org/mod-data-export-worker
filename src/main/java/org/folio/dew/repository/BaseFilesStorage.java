@@ -10,10 +10,12 @@ import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
 import io.minio.StatObjectArgs;
+import io.minio.UploadObjectArgs;
 import io.minio.credentials.IamAwsProvider;
 import io.minio.credentials.Provider;
 import io.minio.credentials.StaticProvider;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +32,7 @@ import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 
@@ -43,7 +46,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.SequenceInputStream;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -133,6 +138,28 @@ public class BaseFilesStorage implements S3CompatibleStorage {
   }
 
   /**
+   * Upload file on S3-compatible storage
+   *
+   * @param path - the path to the file on S3-compatible storage
+   * @param filename – path to uploaded file
+   * @return the path to the file
+   * @throws IOException - if an I/O error occurs
+   */
+  public String upload(String path, String filename) throws IOException {
+    try {
+      return client.uploadObject(UploadObjectArgs.builder()
+          .bucket(bucket)
+          .region(region)
+          .object(path)
+          .filename(filename)
+          .build())
+        .object();
+    } catch (Exception e) {
+      throw new IOException("Cannot upload file: " + path, e);
+    }
+  }
+
+  /**
    * Writes bytes to a file on S3-compatible storage
    *
    * @param path - the path to the file on S3-compatible storage
@@ -140,20 +167,33 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @return the path to the file
    * @throws IOException - if an I/O error occurs
    */
-
-  public String write(String path, InputStream is) throws IOException {
+  public String write(String path, InputStream is, Map<String, String> headers) throws IOException {
     try (is) {
-      return client.putObject(PutObjectArgs.builder()
-          .bucket(bucket)
-          .region(region)
-          .object(path)
-          .stream(is, -1, MIN_MULTIPART_SIZE + 1L)
-          .build())
-        .object();
+      if (isComposeWithAwsSdk) {
+        s3Client.putObject(PutObjectRequest.builder().bucket(bucket)
+            .key(path).build(),
+          RequestBody.fromBytes(IOUtils.toByteArray(is)));
+        return path;
+      } else {
+        return client.putObject(PutObjectArgs.builder()
+            .bucket(bucket)
+            .region(region)
+            .object(path)
+            .headers(headers)
+            .stream(is, -1, MIN_MULTIPART_SIZE)
+            .build())
+          .object();
+      }
     } catch (Exception e) {
       throw new IOException("Cannot write file: " + path, e);
     }
   }
+
+  @Override
+  public String write(String path, InputStream is) throws IOException {
+    return write(path, is, new HashMap<>());
+  }
+
 
   /**
    * Appends byte[] to existing on the storage file.
@@ -264,8 +304,6 @@ public class BaseFilesStorage implements S3CompatibleStorage {
   public void delete(String path) {
     try {
       var paths = walk(path).collect(Collectors.toList());
-
-      var sb = new StringBuilder();
 
       paths.forEach(p -> {
         try {

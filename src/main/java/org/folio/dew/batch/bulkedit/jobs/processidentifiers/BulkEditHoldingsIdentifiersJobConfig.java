@@ -39,7 +39,7 @@ public class BulkEditHoldingsIdentifiersJobConfig {
   @StepScope
   public FlatFileItemWriter<List<HoldingsFormat>> csvHoldingsListWriter(
     @Value("#{jobParameters['tempOutputFilePath']}") String outputFileName) {
-    return new CsvListWriter<>(outputFileName, HoldingsFormat.getItemColumnHeaders(), HoldingsFormat.getItemFieldsArray(), (field, i) -> field);
+    return new CsvListWriter<>(outputFileName, HoldingsFormat.getHoldingsColumnHeaders(), HoldingsFormat.getHoldingsFieldsArray(), (field, i) -> field);
   }
 
   @Bean

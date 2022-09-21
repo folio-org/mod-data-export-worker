@@ -5,6 +5,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.domain.dto.EntityType.HOLDINGS_RECORD;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
@@ -26,6 +27,7 @@ import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
+import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 import static org.folio.dew.utils.CsvHelper.countLines;
 
 import java.io.FileReader;
@@ -541,6 +543,8 @@ public class BulkEditController implements JobIdApi {
       return Arrays.asList(UserFormat.getUserFieldsArray()).indexOf(resolveIdentifier(jobCommand.getIdentifierType().getValue()));
     } else if (ITEM == jobCommand.getEntityType()) {
       return Arrays.asList(ItemFormat.getItemFieldsArray()).indexOf(resolveIdentifier(jobCommand.getIdentifierType().getValue()));
+    } else if (HOLDINGS_RECORD == jobCommand.getEntityType()) {
+      return  Arrays.asList(HoldingsFormat.getHoldingsFieldsArray()).indexOf(resolveIdentifier(jobCommand.getIdentifierType().getValue()));
     } else {
       throw new NonSupportedEntityException(format("Non-supported entity type: %s", jobCommand.getEntityType()));
     }

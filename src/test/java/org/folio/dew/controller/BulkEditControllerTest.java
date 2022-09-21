@@ -363,6 +363,34 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(holdingsRecord.getHoldingsRecords(), hasSize(1));
   }
 
+  @ParameterizedTest
+  @EnumSource(value = IdentifierType.class, names = {"ID", "HOLDINGS_RECORD_ID","INSTANCE_HRID","ITEM_BARCODE"})
+  @SneakyThrows
+  void shouldReturnChangedHoldingsRecordPreview(IdentifierType identifierType) {
+    repository.uploadObject(FilenameUtils.getName(PREVIEW_HOLDINGS_RECORD_DATA), PREVIEW_HOLDINGS_RECORD_DATA, null, "text/plain", false);
+    var jobId = UUID.randomUUID();
+    var jobCommand = new JobCommand();
+    jobCommand.setId(jobId);
+    jobCommand.setExportType(BULK_EDIT_UPDATE);
+    jobCommand.setEntityType(HOLDINGS_RECORD);
+    jobCommand.setIdentifierType(identifierType);
+    jobCommand.setJobParameters(new JobParametersBuilder()
+      .addString(UPDATED_FILE_NAME, "test/path/" + PREVIEW_HOLDINGS_RECORD_DATA.replace(CSV_EXTENSION, EMPTY))
+      .toJobParameters());
+
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
+    var headers = defaultHeaders();
+    var response = mockMvc.perform(get(format(PREVIEW_HOLDINGS_RECORD_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(1)))
+      .andExpect(status().isOk());
+
+    var holdingsRecord = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), HoldingsRecordCollection.class);
+    assertThat(holdingsRecord.getTotalRecords(), equalTo(1));
+    assertThat(holdingsRecord.getHoldingsRecords(), hasSize(1));
+  }
+
   @SneakyThrows
   @ParameterizedTest
   @EnumSource(value = IdentifierType.class,
@@ -1392,6 +1420,9 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     assertThat(actualHoldings, equalTo(expectedHoldings));
   }
+
+
+
 
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType, EntityType entityType, IdentifierType identifierType) {
     JobCommand jobCommand = new JobCommand();

@@ -41,6 +41,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.Collection;
@@ -62,6 +63,7 @@ import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.HoldingsContentUpdateCollection;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
+import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.ItemContentUpdateCollection;
 import org.folio.dew.domain.dto.Errors;
 import org.folio.dew.domain.dto.ItemCollection;
@@ -483,8 +485,8 @@ public class BulkEditController implements JobIdApi {
     if (!fileName.contains(CSV_EXTENSION)) fileName += CSV_EXTENSION;
     try {
       Reader inputReader;
-      var minioFileName = PREVIEW_PREFIX + FilenameUtils.getName(fileName);
-      if (Files.notExists(Path.of(fileName)) && repository.containsFile(minioFileName)) {
+      var minioFileName = nonNull(jobCommand.getJobParameters().getString(UPDATED_FILE_NAME)) ? FilenameUtils.getName(fileName) : PREVIEW_PREFIX + FilenameUtils.getName(fileName);
+      if (repository.containsFile(minioFileName)) {
         inputReader = new InputStreamReader(repository.getObject(minioFileName));
       } else {
         inputReader = new FileReader(fileName);
@@ -496,13 +498,20 @@ public class BulkEditController implements JobIdApi {
           .map(line -> extractIdentifiersFromLine(line, jobCommand))
           .map(identifier -> String.format("\"%s\"", identifier))
           .collect(Collectors.joining(" OR ", "(", ")"));
-        var identifierType = jobCommand.getIdentifierType().getValue();
+        var identifierType = getIdentifierType(jobCommand);
         return format(getMatchPattern(identifierType), resolveIdentifier(identifierType), values);
       }
 
     } catch (Exception e) {
       throw new FileOperationException(format("Failed to read %s file, reason: %s", fileName, e.getMessage()));
     }
+  }
+
+  private String getIdentifierType(JobCommand jobCommand) {
+    if (jobCommand.getEntityType() == HOLDINGS_RECORD) {
+      return IdentifierType.ID.getValue();
+    }
+    return  jobCommand.getIdentifierType().getValue();
   }
 
   private String extractIdentifiersFromLine(String[] line, JobCommand jobCommand) {
@@ -523,11 +532,15 @@ public class BulkEditController implements JobIdApi {
   }
 
   private String extractFileName(JobCommand jobCommand) {
-    if (isItemUpdatePreview(jobCommand)) {
+    if (isItemUpdatePreview(jobCommand) || isHoldingUpdatePreview(jobCommand)) {
         return jobCommand.getJobParameters().getString(UPDATED_FILE_NAME);
     }
     var fileProperty = isUserUpdatePreview(jobCommand) ? TEMP_OUTPUT_FILE_PATH : FILE_NAME;
     return jobCommand.getJobParameters().getString(fileProperty);
+  }
+
+  private boolean isHoldingUpdatePreview(JobCommand jobCommand) {
+    return jobCommand.getExportType() == BULK_EDIT_UPDATE && jobCommand.getEntityType() == HOLDINGS_RECORD;
   }
 
   private boolean isUserUpdatePreview(JobCommand jobCommand) {
@@ -544,7 +557,7 @@ public class BulkEditController implements JobIdApi {
     } else if (ITEM == jobCommand.getEntityType()) {
       return Arrays.asList(ItemFormat.getItemFieldsArray()).indexOf(resolveIdentifier(jobCommand.getIdentifierType().getValue()));
     } else if (HOLDINGS_RECORD == jobCommand.getEntityType()) {
-      return  Arrays.asList(HoldingsFormat.getHoldingsFieldsArray()).indexOf(resolveIdentifier(jobCommand.getIdentifierType().getValue()));
+      return  Arrays.asList(HoldingsFormat.getHoldingsFieldsArray()).indexOf(IdentifierType.ID.getValue().toLowerCase());
     } else {
       throw new NonSupportedEntityException(format("Non-supported entity type: %s", jobCommand.getEntityType()));
     }

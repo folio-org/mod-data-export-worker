@@ -1,5 +1,12 @@
 ## 2022-09-07 v1.4.6
 
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.6...v1.4.7)
+
+### Stories
+* [MODEXPW-150](https://issues.folio.org/browse/MODEXPW-150) A job stays in "In progress" status after Query execution and switching to Identifier tab
+
+## 2022-09-07 v1.4.6
+
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.5...v1.4.6)
 
 ### Stories

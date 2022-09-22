@@ -174,7 +174,8 @@
           "pathPattern": "/bulk-edit/{jobId}/preview/users",
           "permissionsRequired": [ "bulk-edit.preview-users.collection.get" ],
           "modulePermissions": [
-            "users.collection.get"
+            "users.collection.get",
+            "addresstypes.collection.get"
           ]
         },
         {
@@ -182,7 +183,8 @@
           "pathPattern": "/bulk-edit/{jobId}/preview/items",
           "permissionsRequired": [ "bulk-edit.preview-items.collection.get" ],
           "modulePermissions": [
-            "inventory.items.collection.get"
+            "inventory.items.collection.get",
+            "inventory-storage.material-types.collection.get"
           ]
         },
         {

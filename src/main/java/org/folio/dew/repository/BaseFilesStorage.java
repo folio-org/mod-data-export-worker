@@ -30,6 +30,7 @@ import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 
@@ -141,16 +142,24 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    */
   public String write(String path, byte[] bytes) throws IOException {
 
-    try(var is = new ByteArrayInputStream(bytes)) {
-      return client.putObject(PutObjectArgs.builder()
-          .bucket(bucket)
-          .region(region)
-          .object(path)
-          .stream(is, -1, MIN_MULTIPART_SIZE)
-          .build())
-        .object();
-    } catch (Exception e) {
-      throw new IOException("Cannot write file: " + path, e);
+    if (isComposeWithAwsSdk) {
+      s3Client.putObject(PutObjectRequest.builder().bucket(bucket)
+          .key(path).build(),
+        RequestBody.fromBytes(bytes));
+      return path;
+    } else {
+      try(var is = new ByteArrayInputStream(bytes)) {
+        return client.putObject(PutObjectArgs.builder()
+            .bucket(bucket)
+            .region(region)
+            .object(path)
+            .stream(is, -1, MIN_MULTIPART_SIZE)
+            .build())
+          .object();
+      } catch (Exception e) {
+        throw new IOException("Cannot write file: " + path, e);
+      }
+
     }
   }
 

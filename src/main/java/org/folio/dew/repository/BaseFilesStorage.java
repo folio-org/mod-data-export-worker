@@ -15,7 +15,6 @@ import io.minio.credentials.IamAwsProvider;
 import io.minio.credentials.Provider;
 import io.minio.credentials.StaticProvider;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +43,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.SequenceInputStream;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
@@ -163,16 +161,16 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * Writes bytes to a file on S3-compatible storage
    *
    * @param path - the path to the file on S3-compatible storage
-   * @param is – the input stream with the bytes to write
+   * @param bytes – the input stream with the bytes to write
    * @return the path to the file
    * @throws IOException - if an I/O error occurs
    */
-  public String write(String path, InputStream is, Map<String, String> headers) throws IOException {
-    try (is) {
+  public String write(String path, byte[] bytes, Map<String, String> headers) throws IOException {
+    try {
       if (isComposeWithAwsSdk) {
         s3Client.putObject(PutObjectRequest.builder().bucket(bucket)
             .key(path).build(),
-          RequestBody.fromBytes(IOUtils.toByteArray(is)));
+          RequestBody.fromBytes(bytes));
         return path;
       } else {
         return client.putObject(PutObjectArgs.builder()
@@ -180,7 +178,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
             .region(region)
             .object(path)
             .headers(headers)
-            .stream(is, -1, MIN_MULTIPART_SIZE)
+            .stream(new ByteArrayInputStream(bytes), -1, MIN_MULTIPART_SIZE)
             .build())
           .object();
       }
@@ -190,8 +188,8 @@ public class BaseFilesStorage implements S3CompatibleStorage {
   }
 
   @Override
-  public String write(String path, InputStream is) throws IOException {
-    return write(path, is, new HashMap<>());
+  public String write(String path, byte[] bytes) throws IOException {
+    return write(path, bytes, new HashMap<>());
   }
 
 
@@ -199,13 +197,13 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * Appends byte[] to existing on the storage file.
    *
    * @param path - the path to the file on S3-compatible storage
-   * @param is - the input stream with the bytes to write
+   * @param bytes - the array with the bytes to write
    * @throws IOException if an I/O error occurs
    */
-  public void append(String path, InputStream is) throws IOException {
+  public void append(String path, byte[] bytes) throws IOException {
     try {
       if (notExists(path)) {
-        write(path, is);
+        write(path, bytes);
       } else {
         var size = client.statObject(StatObjectArgs.builder()
           .bucket(bucket)
@@ -238,7 +236,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
               .partNumber(2).build();
 
             var originalEtag  = s3Client.uploadPartCopy(uploadPartRequest1).copyPartResult().eTag();
-            var appendedEtag = s3Client.uploadPart(uploadPartRequest2, RequestBody.fromInputStream(is, is.available())).eTag();
+            var appendedEtag = s3Client.uploadPart(uploadPartRequest2, RequestBody.fromBytes(bytes)).eTag();
 
             var original = CompletedPart.builder()
               .partNumber(1)
@@ -264,7 +262,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
           } else {
 
             var temporaryFileName = path + "_temp";
-            write(temporaryFileName, is);
+            write(temporaryFileName, bytes);
 
             client.composeObject(ComposeObjectArgs.builder()
               .bucket(bucket)
@@ -287,7 +285,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
           }
 
         } else {
-          write(path, new SequenceInputStream(newInputStream(path), is));
+          write(path, ArrayUtils.addAll(readAllBytes(path), bytes));
         }
       }
     } catch (Exception e) {
@@ -444,8 +442,8 @@ public class BaseFilesStorage implements S3CompatibleStorage {
 
       @Override
       public void close() {
-        try (var bis = new ByteArrayInputStream(buffer)) {
-          BaseFilesStorage.this.write(path, bis);
+        try {
+          BaseFilesStorage.this.write(path, buffer);
         } catch (IOException e) {
           throw new FileOperationException("Error closing stream and writes bytes to path: " + path, e);
         } finally {

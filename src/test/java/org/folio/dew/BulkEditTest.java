@@ -335,7 +335,7 @@ class BulkEditTest extends BaseBatchTest {
   @SneakyThrows
   void shouldUseInAppUpdatesFileIfPresent() {
     // create a copy of file since it will be deleted and consequent test runs will fail
-    localFilesStorage.write(ITEM_RECORD_IN_APP_UPDATED_COPY, Files.newInputStream(new File(ITEM_RECORD_IN_APP_UPDATED).toPath()));
+    localFilesStorage.write(ITEM_RECORD_IN_APP_UPDATED_COPY, Files.readAllBytes(new File(ITEM_RECORD_IN_APP_UPDATED).toPath()));
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateItemRecordsJob);
     var builder = new JobParametersBuilder(prepareJobParameters(BULK_EDIT_UPDATE, ITEM, BARCODE, ITEM_RECORD_CSV, true));
@@ -353,7 +353,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run rollback user records successfully")
   void rollBackUserRecordsJobTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditRollBackJob);
-    localFilesStorage.write(USER_RECORD_ROLLBACK_CSV, Files.newInputStream(new File(USER_RECORD_CSV).toPath()));
+    localFilesStorage.write(USER_RECORD_ROLLBACK_CSV, Files.readAllBytes(new File(USER_RECORD_CSV).toPath()));
     var parameters = new HashMap<String, JobParameter>();
     parameters.put(Constants.JOB_ID, new JobParameter("74914e57-3406-4757-938b-9a3f718d0ee6"));
     parameters.put(Constants.FILE_NAME, new JobParameter(USER_RECORD_ROLLBACK_CSV));
@@ -417,8 +417,8 @@ class BulkEditTest extends BaseBatchTest {
       String workDir = getWorkingDirectory(springApplicationName);
       params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
       try {
-        localFilesStorage.write(workDir + "out", new ByteArrayInputStream(new byte[0]));
-        localFilesStorage.write(workDir + "out.csv", new ByteArrayInputStream(new byte[0]));
+        localFilesStorage.write(workDir + "out", new byte[0]);
+        localFilesStorage.write(workDir + "out.csv", new byte[0]);
       } catch (Exception e) {
         fail(e.getMessage());
       }
@@ -428,14 +428,14 @@ class BulkEditTest extends BaseBatchTest {
       params.put(ROLLBACK_FILE, new JobParameter("rollback/file/path"));
       // Put file on MinIO FS
       var fsPath = getWorkingDirectory(springApplicationName) + FileNameUtils.getBaseName(path) + "E" + FileNameUtils.getExtension(path);
-      localFilesStorage.write(fsPath, Files.newInputStream(of));
+      localFilesStorage.write(fsPath, Files.readAllBytes(of));
       params.put(FILE_NAME, new JobParameter(fsPath));
     } else if (ExportType.BULK_EDIT_QUERY == exportType) {
       params.put("query", new JobParameter(readQueryString(path)));
     } else if (BULK_EDIT_IDENTIFIERS == exportType) {
       var file = getWorkingDirectory("mod-data-export-worker")  +  FileNameUtils.getBaseName(path) + "E" + FileNameUtils.getExtension(path);
       params.put(FILE_NAME, new JobParameter(file));
-      localFilesStorage.write(file, Files.newInputStream(of));
+      localFilesStorage.write(file, Files.readAllBytes(of));
       params.put(TOTAL_CSV_LINES, new JobParameter(countLines(localFilesStorage, file, false), false));
     }
 

@@ -61,20 +61,19 @@ public class RemoteFilesStorage extends BaseFilesStorage {
     log.info("Writing object {},filename {},downloadFilename {},contentType {}.", object, filename, downloadFilename,
       contentType);
 
-    try (var is = localFilesStorage.newInputStream(filename)) {
-      return this.write(object, is, prepareHeaders(downloadFilename, contentType));
-    } finally {
+      var result = this.write(object, localFilesStorage.readAllBytes(filename), prepareHeaders(downloadFilename, contentType));
+
       if (isSourceShouldBeDeleted) {
         localFilesStorage.delete(filename);
         log.info("Deleted temp file {}.", filename);
       }
-    }
+      return result;
   }
 
   public void downloadObject(String objectToGet, String fileToSave) throws IOException, InvalidKeyException,
     InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,
     InternalException, XmlParserException, ErrorResponseException {
-    localFilesStorage.write(fileToSave, client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectToGet).build()));
+    localFilesStorage.write(fileToSave, client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectToGet).build()).readAllBytes());
   }
 
   public boolean containsFile(String fileName)

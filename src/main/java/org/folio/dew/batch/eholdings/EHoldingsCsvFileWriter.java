@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.S3CompatibleResource;
 import org.jetbrains.annotations.NotNull;
@@ -94,7 +95,7 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
       .flatMap(List::stream)
       .collect(Collectors.joining(","));
 
-    localFilesStorage.write(tempOutputFilePath, IOUtils.toInputStream(columnHeaders + lineSeparator, StandardCharsets.UTF_8));
+    localFilesStorage.write(tempOutputFilePath, StringUtils.getBytes(columnHeaders + lineSeparator, StandardCharsets.UTF_8));
   }
 
   @Override
@@ -119,7 +120,7 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
 
   @Override
   public void write(List<? extends EHoldingsResourceExportFormat> items) throws Exception {
-    localFilesStorage.append(tempOutputFilePath, IOUtils.toInputStream(doWrite(items), StandardCharsets.UTF_8));
+    localFilesStorage.append(tempOutputFilePath, StringUtils.getBytes(doWrite(items), StandardCharsets.UTF_8));
   }
 
 

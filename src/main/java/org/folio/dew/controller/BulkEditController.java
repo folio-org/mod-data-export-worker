@@ -200,11 +200,11 @@ public class BulkEditController implements JobIdApi {
 
     try {
       localFilesStorage.delete(uploadedPath);
-      localFilesStorage.write(uploadedPath, file.getInputStream());
+      localFilesStorage.write(uploadedPath, file.getBytes());
       prepareJobParameters(jobCommand, uploadedPath);
       jobCommandsReceiverService.updateJobCommand(jobCommand);
       if (isBulkEditUpdate(jobCommand) && jobCommand.getEntityType() == USER) {
-        localFilesStorage.write( workDir + INITIAL_PREFIX + file.getOriginalFilename(), file.getInputStream());
+        localFilesStorage.write( workDir + INITIAL_PREFIX + file.getOriginalFilename(), file.getBytes());
         processUpdateUsers(uploadedPath, file, jobId);
       }
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
@@ -413,12 +413,12 @@ public class BulkEditController implements JobIdApi {
     try {
       var updatedUserFormats = getDifferenceBetweenInitialAndEditedUsersCSV(file.getInputStream(), jobId);
       if (updatedUserFormats.isEmpty()) { // If no records changed, just write column headers.
-        localFilesStorage.write(uploadedPath, new ByteArrayInputStream(UserFormat.getUserColumnHeaders().getBytes()));
+        localFilesStorage.write(uploadedPath, UserFormat.getUserColumnHeaders().getBytes());
       } else {
         CsvHelper.saveRecordsToLocalFilesStorage(localFilesStorage, updatedUserFormats, UserFormat.class, uploadedPath);
       }
     } catch (Exception e) { // If any issues in the file, delegate them to the SkipListener.
-      localFilesStorage.write(uploadedPath, file.getInputStream());
+      localFilesStorage.write(uploadedPath, file.getBytes());
     }
   }
 

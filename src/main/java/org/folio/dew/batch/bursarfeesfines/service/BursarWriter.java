@@ -3,6 +3,8 @@ package org.folio.dew.batch.bursarfeesfines.service;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.springframework.batch.item.ExecutionContext;
@@ -58,13 +60,13 @@ public class BursarWriter<T> extends AbstractItemStreamItemWriter<T>
     for (T item : items) {
       lines.append(this.lineAggregator.aggregate(item)).append(this.lineSeparator);
     }
-    localFilesStorage.append(resource.getFilename(), IOUtils.toInputStream(lines.toString(), StandardCharsets.UTF_8));
+    localFilesStorage.append(resource.getFilename(), StringUtils.getBytes(lines.toString(), StandardCharsets.UTF_8));
   }
 
   @Override
   public void open(ExecutionContext executionContext) throws ItemStreamException {
     try {
-      localFilesStorage.write(resource.getFilename(), IOUtils.toInputStream(header + lineSeparator, StandardCharsets.UTF_8));
+      localFilesStorage.write(resource.getFilename(), StringUtils.getBytes(header + lineSeparator, StandardCharsets.UTF_8));
     } catch (Exception e) {
       throw new FileOperationException(e);
     }

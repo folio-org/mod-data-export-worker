@@ -42,9 +42,9 @@ class LocalFilesStorageAwsSdkComposingTest {
 
     assertTrue(Objects.deepEquals(file, expected));
 
-    localFilesStorage.append(name, new ByteArrayInputStream(first));
-    localFilesStorage.append(name, new ByteArrayInputStream(second));
-    localFilesStorage.append(name, new ByteArrayInputStream(third));
+    localFilesStorage.append(name, first);
+    localFilesStorage.append(name, second);
+    localFilesStorage.append(name, third);
 
     var result = localFilesStorage.readAllBytes(name);
 

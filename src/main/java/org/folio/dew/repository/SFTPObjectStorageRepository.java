@@ -98,7 +98,7 @@ public class SFTPObjectStorageRepository {
   private String createTempFile(String filename, String content) throws IOException {
 
     localFilesStorage.delete(filename);
-    localFilesStorage.write(filename, IOUtils.toInputStream(content, StandardCharsets.UTF_8));
+    localFilesStorage.write(filename, StringUtils.getBytes(content, StandardCharsets.UTF_8));
 
     return filename;
   }

@@ -44,7 +44,9 @@ import java.io.Writer;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -69,8 +71,8 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     final String bucketName = properties.getBucket();
     final String secretKey = properties.getSecretKey();
     isComposeWithAwsSdk = properties.isComposeWithAwsSdk();
-    log.info("Creating MinIO client endpoint {},region {},bucket {},accessKey {},secretKey {}.", endpoint, regionName, bucketName,
-      StringUtils.isNotBlank(accessKey) ? "<set>" : "<not set>", StringUtils.isNotBlank(secretKey) ? "<set>" : "<not set>");
+    log.info("Creating MinIO client endpoint {},region {},bucket {},accessKey {},secretKey {}, isComposedWithAwsSdk {}.", endpoint, regionName, bucketName,
+      StringUtils.isNotBlank(accessKey) ? "<set>" : "<not set>", StringUtils.isNotBlank(secretKey) ? "<set>" : "<not set>", isComposeWithAwsSdk);
 
     var builder = MinioClient.builder().endpoint(endpoint);
     if (StringUtils.isNotBlank(regionName)) {
@@ -137,22 +139,26 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    *
    * @param path - the path to the file on S3-compatible storage
    * @param bytes – the byte array with the bytes to write
+   * @param headers - headers
    * @return the path to the file
    * @throws IOException - if an I/O error occurs
    */
-  public String write(String path, byte[] bytes) throws IOException {
+  public String write(String path, byte[] bytes, Map<String, String> headers) throws IOException {
 
     if (isComposeWithAwsSdk) {
+      log.info("Writing with using AWS SDK client");
       s3Client.putObject(PutObjectRequest.builder().bucket(bucket)
           .key(path).build(),
         RequestBody.fromBytes(bytes));
       return path;
     } else {
+      log.info("Writing with using Minio client");
       try(var is = new ByteArrayInputStream(bytes)) {
         return client.putObject(PutObjectArgs.builder()
             .bucket(bucket)
             .region(region)
             .object(path)
+            .headers(headers)
             .stream(is, -1, MIN_MULTIPART_SIZE)
             .build())
           .object();
@@ -161,6 +167,10 @@ public class BaseFilesStorage implements S3CompatibleStorage {
       }
 
     }
+  }
+
+  public String write(String path, byte[] bytes) throws IOException {
+    return write(path, bytes, new HashMap<>());
   }
 
   /**
@@ -173,6 +183,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
   public void append(String path, byte[] bytes) throws IOException {
     try {
       if (notExists(path)) {
+        log.info("Appending non-existing file");
         write(path, bytes);
       } else {
         var size = client.statObject(StatObjectArgs.builder()
@@ -180,6 +191,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
           .region(region)
           .object(path).build()).size();
 
+        log.info("Appending to {} with size {}", path, size);
         if (size > MIN_MULTIPART_SIZE) {
 
           if (isComposeWithAwsSdk) {

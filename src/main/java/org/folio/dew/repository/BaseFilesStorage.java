@@ -146,11 +146,13 @@ public class BaseFilesStorage implements S3CompatibleStorage {
   public String write(String path, byte[] bytes, Map<String, String> headers) throws IOException {
 
     if (isComposeWithAwsSdk) {
+      log.info("Writing with using AWS SDK client");
       s3Client.putObject(PutObjectRequest.builder().bucket(bucket)
           .key(path).build(),
         RequestBody.fromBytes(bytes));
       return path;
     } else {
+      log.info("Writing with using Minio client");
       try(var is = new ByteArrayInputStream(bytes)) {
         return client.putObject(PutObjectArgs.builder()
             .bucket(bucket)
@@ -181,6 +183,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
   public void append(String path, byte[] bytes) throws IOException {
     try {
       if (notExists(path)) {
+        log.info("Appending non-existing file");
         write(path, bytes);
       } else {
         var size = client.statObject(StatObjectArgs.builder()
@@ -188,6 +191,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
           .region(region)
           .object(path).build()).size();
 
+        log.info("Appending to {} with size {}", path, size);
         if (size > MIN_MULTIPART_SIZE) {
 
           if (isComposeWithAwsSdk) {

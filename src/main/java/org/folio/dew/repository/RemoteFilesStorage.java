@@ -66,7 +66,7 @@ public class RemoteFilesStorage extends BaseFilesStorage {
     log.info("Uploading object {},filename {},downloadFilename {},contentType {}.", object, filename, downloadFilename,
         contentType);
 
-    var result = write(object, localFilesStorage.readAllBytes(filename));
+    var result = write(object, localFilesStorage.readAllBytes(filename), prepareHeaders(downloadFilename, contentType));
 
     if (isSourceShouldBeDeleted) {
       localFilesStorage.delete(filename);

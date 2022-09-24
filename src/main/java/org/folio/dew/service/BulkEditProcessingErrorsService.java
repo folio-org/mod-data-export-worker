@@ -112,7 +112,7 @@ public class BulkEditProcessingErrorsService {
 
   private String saveErrorFile(String downloadFilename, String filename) {
     try {
-      ObjectWriteResponse objectWriteResponse = remoteFilesStorage.uploadObject(downloadFilename, filename, downloadFilename, CONTENT_TYPE, false);
+      var objectWriteResponse = remoteFilesStorage.uploadObject(downloadFilename, filename, downloadFilename, CONTENT_TYPE, false);
       log.info("CSV error file {} was saved into S3 successfully", downloadFilename);
       return getDownloadLink(objectWriteResponse);
     } catch (Exception e) {
@@ -121,9 +121,9 @@ public class BulkEditProcessingErrorsService {
     }
   }
 
-  private String getDownloadLink(ObjectWriteResponse objectWriteResponse) {
+  private String getDownloadLink(String objectWriteResponse) {
     try {
-      return remoteFilesStorage.objectWriteResponseToPresignedObjectUrl(objectWriteResponse);
+      return remoteFilesStorage.objectToPresignedObjectUrl(objectWriteResponse);
     } catch (Exception e) {
       log.error("Error occurred while getting the link to error CSV file from S3", e);
       throw new IllegalStateException(e);

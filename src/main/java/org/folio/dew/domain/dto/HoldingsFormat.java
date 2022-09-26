@@ -153,13 +153,13 @@ public class HoldingsFormat {
   private String instanceHrid;
   private String itemBarcode;
 
-  public static String[] getItemFieldsArray() {
+  public static String[] getHoldingsFieldsArray() {
     return FieldUtils.getFieldsListWithAnnotation(HoldingsFormat.class, CsvBindByName.class).stream()
       .map(Field::getName)
       .toArray(String[]::new);
   }
 
-  public static String getItemColumnHeaders() {
+  public static String getHoldingsColumnHeaders() {
     return FieldUtils.getFieldsListWithAnnotation(HoldingsFormat.class, CsvBindByName.class).stream()
       .map(field -> field.getAnnotation(CsvBindByName.class).column())
       .collect(Collectors.joining(","));

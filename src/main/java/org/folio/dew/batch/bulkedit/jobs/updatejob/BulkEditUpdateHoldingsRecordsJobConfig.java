@@ -71,7 +71,7 @@ import java.security.NoSuchAlgorithmException;
     MinIOObjectStorageRepository repository)
     throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException,
     InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-    var holdingsLineMapper = JobConfigReaderHelper.createLineMapper(HoldingsFormat.class, HoldingsFormat.getItemFieldsArray());
+    var holdingsLineMapper = JobConfigReaderHelper.createLineMapper(HoldingsFormat.class, HoldingsFormat.getHoldingsFieldsArray());
     return new FlatFileItemReaderBuilder<HoldingsFormat>().name("holdingsReader")
       .resource(new InputStreamResource(repository.getObject(updatedFileName)))
       .linesToSkip(1)

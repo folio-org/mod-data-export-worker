@@ -7,10 +7,8 @@ import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
 import io.minio.ObjectWriteArgs;
-import io.minio.ObjectWriteResponse;
 import io.minio.RemoveObjectsArgs;
 import io.minio.Result;
-import io.minio.UploadObjectArgs;
 import io.minio.errors.ErrorResponseException;
 import io.minio.errors.InsufficientDataException;
 import io.minio.errors.InternalException;
@@ -33,7 +31,6 @@ import io.minio.messages.Item;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.config.properties.RemoteFilesStorageProperties;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Repository;
@@ -51,14 +48,12 @@ public class RemoteFilesStorage extends BaseFilesStorage {
   private LocalFilesStorage localFilesStorage;
   private final String bucket;
   private final String region;
-  private boolean isComposeWithAwsSdk;
 
   public RemoteFilesStorage(RemoteFilesStorageProperties properties) {
     super(properties);
     this.bucket = properties.getBucket();
     this.region = properties.getRegion();
     this.client = getMinioClient();
-    isComposeWithAwsSdk = properties.isComposeWithAwsSdk();
   }
 
   public String uploadObject(String object, String filename, String downloadFilename, String contentType, boolean isSourceShouldBeDeleted)

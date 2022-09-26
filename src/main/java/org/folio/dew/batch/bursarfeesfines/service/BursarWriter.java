@@ -2,7 +2,6 @@ package org.folio.dew.batch.bursarfeesfines.service;
 
 
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.io.IOUtils;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.springframework.batch.item.ExecutionContext;

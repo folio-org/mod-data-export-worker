@@ -40,7 +40,7 @@ class LocalFilesStorageAwsSdkComposingTest {
     byte[] original = getRandomBytes(size);
     var remoteFilePath = "CSV_Data.csv";
 
-    assertThat(localFilesStorage.write(remoteFilePath, new ByteArrayInputStream(original)), is(remoteFilePath));
+    assertThat(localFilesStorage.write(remoteFilePath, original), is(remoteFilePath));
     assertTrue(localFilesStorage.exists(remoteFilePath));
 
     assertTrue(Objects.deepEquals(localFilesStorage.readAllBytes(remoteFilePath), original));
@@ -68,9 +68,9 @@ class LocalFilesStorageAwsSdkComposingTest {
 
     assertTrue(Objects.deepEquals(file, expected));
 
-    localFilesStorage.append(name, new ByteArrayInputStream(first));
-    localFilesStorage.append(name, new ByteArrayInputStream(second));
-    localFilesStorage.append(name, new ByteArrayInputStream(third));
+    localFilesStorage.append(name, first);
+    localFilesStorage.append(name, second);
+    localFilesStorage.append(name, third);
 
     var result = localFilesStorage.readAllBytes(name);
 

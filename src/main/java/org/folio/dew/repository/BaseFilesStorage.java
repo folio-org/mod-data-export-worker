@@ -218,11 +218,6 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     return write(path, bytes, new HashMap<>());
   }
 
-  @Override
-  public String write(String path, InputStream is) throws IOException {
-    return write(path, is, new HashMap<>());
-  }
-
 
   /**
    * Appends byte[] to existing on the storage file.
@@ -318,7 +313,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
           }
 
         } else {
-          write(path, new SequenceInputStream(newInputStream(path), is));
+          write(path, ArrayUtils.addAll(readAllBytes(path), bytes));
         }
       }
     } catch (Exception e) {
@@ -476,7 +471,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
       @Override
       public void close() {
         try {
-          BaseFilesStorage.this.write(path, new ByteArrayInputStream(buffer));
+          BaseFilesStorage.this.write(path, buffer);
         } catch (IOException e) {
           throw new FileOperationException("Error closing stream and writes bytes to path: " + path, e);
         } finally {

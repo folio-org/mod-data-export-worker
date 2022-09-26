@@ -307,11 +307,11 @@ public class BulkEditController implements JobIdApi {
 
     try {
       localFilesStorage.delete(uploadedPath);
-      localFilesStorage.write(uploadedPath, file.getInputStream());
+      localFilesStorage.write(uploadedPath, file.getBytes());
       prepareJobParameters(jobCommand, uploadedPath);
       jobCommandsReceiverService.updateJobCommand(jobCommand);
       if (isBulkEditUpdate(jobCommand) && jobCommand.getEntityType() == USER) {
-        localFilesStorage.write(workDir + INITIAL_PREFIX + file.getOriginalFilename(), file.getInputStream());
+        localFilesStorage.write(workDir + INITIAL_PREFIX + file.getOriginalFilename(), file.getBytes());
       }
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
       if (!isBulkEditUpdate(jobCommand) && ITEM != jobCommand.getEntityType()) {

@@ -58,13 +58,13 @@ public class BursarWriter<T> extends AbstractItemStreamItemWriter<T>
     for (T item : items) {
       lines.append(this.lineAggregator.aggregate(item)).append(this.lineSeparator);
     }
-    localFilesStorage.append(resource.getFilename(), IOUtils.toInputStream(lines, StandardCharsets.UTF_8));
+    localFilesStorage.append(resource.getFilename(), lines.toString().getBytes(StandardCharsets.UTF_8));
   }
 
   @Override
   public void open(ExecutionContext executionContext) throws ItemStreamException {
     try {
-      localFilesStorage.write(resource.getFilename(), IOUtils.toInputStream(header + lineSeparator, StandardCharsets.UTF_8));
+      localFilesStorage.write(resource.getFilename(), (header + lineSeparator).getBytes(StandardCharsets.UTF_8));
     } catch (Exception e) {
       throw new FileOperationException(e);
     }

@@ -7,8 +7,10 @@ import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
 import io.minio.ObjectWriteArgs;
+import io.minio.ObjectWriteResponse;
 import io.minio.RemoveObjectsArgs;
 import io.minio.Result;
+import io.minio.UploadObjectArgs;
 import io.minio.errors.ErrorResponseException;
 import io.minio.errors.InsufficientDataException;
 import io.minio.errors.InternalException;
@@ -74,24 +76,10 @@ public class RemoteFilesStorage extends BaseFilesStorage {
     return result;
   }
 
-  public ObjectWriteResponse writeObject(String object, String filename, String downloadFilename, String contentType, boolean isSourceShouldBeDeleted)
-    throws IOException, ServerException, InsufficientDataException, InternalException, InvalidResponseException,
-    InvalidKeyException, NoSuchAlgorithmException, XmlParserException, ErrorResponseException {
-    log.info("Writing object {},filename {},downloadFilename {},contentType {}.", object, filename, downloadFilename,
-      contentType);
-    ObjectWriteResponse result = client.uploadObject(
-      createArgs(UploadObjectArgs.builder().filename(filename), object, downloadFilename, contentType));
-
-    if (isSourceShouldBeDeleted) {
-      localFilesStorage.delete(filename);
-      log.info("Deleted temp file {}.", filename);
-    }
-  }
-
   public void downloadObject(String objectToGet, String fileToSave) throws IOException, InvalidKeyException,
     InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,
     InternalException, XmlParserException, ErrorResponseException {
-    localFilesStorage.write(fileToSave, client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectToGet).build()));
+    localFilesStorage.write(fileToSave, client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectToGet).build()).readAllBytes());
   }
 
   public boolean containsFile(String fileName)
@@ -115,7 +103,7 @@ public class RemoteFilesStorage extends BaseFilesStorage {
     log.info("Composing object {},sources [{}],downloadFilename {},contentType {}.", destObject,
         sources.stream().map(s -> String.format("bucket %s,object %s", s.bucket(), s.object())).collect(Collectors.joining(",")),
         downloadFilename, contentType);
-    String result = client.composeObject(
+    var result = client.composeObject(
         createArgs(ComposeObjectArgs.builder().sources(sources), destObject, downloadFilename, contentType)).object();
 
     removeObjects(sourceObjects);
@@ -134,7 +122,6 @@ public class RemoteFilesStorage extends BaseFilesStorage {
   public String objectToPresignedObjectUrl(String object)
     throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
     ServerException, InternalException, XmlParserException, ErrorResponseException {
-
     String result = client.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
       .method(Method.GET)
       .bucket(bucket)
@@ -163,4 +150,5 @@ public class RemoteFilesStorage extends BaseFilesStorage {
     }
     return headers;
   }
+
 }

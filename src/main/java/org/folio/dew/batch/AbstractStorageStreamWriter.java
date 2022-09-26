@@ -92,7 +92,7 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
 
     if (StringUtils.isNotBlank(columnHeaders)) {
       try {
-        storage.write(tempOutputFilePath, IOUtils.toInputStream(columnHeaders + '\n', StandardCharsets.UTF_8));
+        storage.write(tempOutputFilePath, (columnHeaders + '\n').getBytes(StandardCharsets.UTF_8));
       } catch (IOException e) {
         throw new FileOperationException(e);
       }
@@ -122,7 +122,7 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
     for (T item : items) {
       sb.append(lineAggregator.aggregate(item)).append('\n');
     }
-    storage.append(resource.getFilename(), IOUtils.toInputStream(sb.toString(), StandardCharsets.UTF_8));
+    storage.append(resource.getFilename(), sb.toString().getBytes(StandardCharsets.UTF_8));
 
   }
 }

@@ -57,7 +57,7 @@ public class BulkEditProcessingErrorsService {
       var errorLine = affectedIdentifier + COMMA_SEPARATOR + errorMessage + System.lineSeparator();
       var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
       try {
-        localFilesStorage.append(pathToCSVFile, IOUtils.toInputStream(errorLine, StandardCharsets.UTF_8));
+        localFilesStorage.append(pathToCSVFile, errorLine.getBytes(StandardCharsets.UTF_8));
       } catch (IOException ioException) {
         log.error("Failed to save {} error file with job id {} cause {}", csvFileName, jobId, ioException);
       }

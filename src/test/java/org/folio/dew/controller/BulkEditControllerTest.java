@@ -1423,7 +1423,7 @@ class BulkEditControllerTest extends BaseBatchTest {
       byte[] bytes = new byte[0];
       try {
         bytes = Files.readAllBytes(Path.of(fileName));
-        localFilesStorage.write(fileName, new ByteArrayInputStream(bytes));
+        localFilesStorage.write(fileName, bytes);
       } catch (IOException e) {
         throw new FileOperationException(e.getMessage());
       }
@@ -1433,7 +1433,7 @@ class BulkEditControllerTest extends BaseBatchTest {
         try {
           var bytes = Files.readAllBytes(Path.of(fileName));
           fileName = UPDATED_PREFIX + FilenameUtils.getName(fileName);
-          localFilesStorage.write(fileName, new ByteArrayInputStream(bytes));
+          localFilesStorage.write(fileName, bytes);
         } catch (Exception e) {
           throw new FileOperationException(e.getMessage());
         }

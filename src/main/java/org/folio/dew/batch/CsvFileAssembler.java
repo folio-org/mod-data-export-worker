@@ -31,7 +31,7 @@ public class CsvFileAssembler implements StepExecutionAggregator {
     String url;
     try {
       url = remoteFilesStorage.objectToPresignedObjectUrl(
-          remoteFilesStorage.composeObject(destObject, csvFilePartObjectNames, null, "text/csv"));
+          remoteFilesStorage.composeObject(destObject, csvFilePartObjectNames, null, "text/csv").object());
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }

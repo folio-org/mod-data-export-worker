@@ -114,7 +114,7 @@ public class BulkEditProcessingErrorsService {
 
   private String saveErrorFile(String downloadFilename, String filename) {
     try {
-      String objectWriteResponse = remoteFilesStorage.uploadObject(downloadFilename, filename, downloadFilename, CONTENT_TYPE, false);
+      var objectWriteResponse = remoteFilesStorage.uploadObject(downloadFilename, filename, downloadFilename, CONTENT_TYPE, false);
       log.info("CSV error file {} was saved into S3 successfully", downloadFilename);
       return getDownloadLink(objectWriteResponse);
     } catch (Exception e) {

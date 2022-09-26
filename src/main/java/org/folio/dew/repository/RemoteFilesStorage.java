@@ -31,6 +31,7 @@ import io.minio.messages.Item;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.config.properties.RemoteFilesStorageProperties;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Repository;
@@ -60,16 +61,30 @@ public class RemoteFilesStorage extends BaseFilesStorage {
 
   public String uploadObject(String object, String filename, String downloadFilename, String contentType, boolean isSourceShouldBeDeleted)
       throws IOException {
+    log.info("Uploading object {},filename {},downloadFilename {},contentType {}.", object, filename, downloadFilename,
+        contentType);
+
+    var result = write(object, localFilesStorage.readAllBytes(filename), prepareHeaders(downloadFilename, contentType));
+
+    if (isSourceShouldBeDeleted) {
+      localFilesStorage.delete(filename);
+      log.info("Deleted temp file {}.", filename);
+    }
+
+    return result;
+  }
+
+  public ObjectWriteResponse writeObject(String object, String filename, String downloadFilename, String contentType, boolean isSourceShouldBeDeleted)
+    throws IOException, ServerException, InsufficientDataException, InternalException, InvalidResponseException,
+    InvalidKeyException, NoSuchAlgorithmException, XmlParserException, ErrorResponseException {
     log.info("Writing object {},filename {},downloadFilename {},contentType {}.", object, filename, downloadFilename,
       contentType);
+    ObjectWriteResponse result = client.uploadObject(
+      createArgs(UploadObjectArgs.builder().filename(filename), object, downloadFilename, contentType));
 
-    try (var is = localFilesStorage.newInputStream(filename)) {
-      return this.write(object, is, prepareHeaders(downloadFilename, contentType));
-    } finally {
-      if (isSourceShouldBeDeleted) {
-        localFilesStorage.delete(filename);
-        log.info("Deleted temp file {}.", filename);
-      }
+    if (isSourceShouldBeDeleted) {
+      localFilesStorage.delete(filename);
+      log.info("Deleted temp file {}.", filename);
     }
   }
 

@@ -62,7 +62,7 @@ import java.io.IOException;
     @Value("#{jobParameters['" + UPDATED_FILE_NAME + "']}") String updatedFileName,
     RemoteFilesStorage remoteFilesStorage)
     throws IOException {
-    var holdingsLineMapper = JobConfigReaderHelper.createLineMapper(HoldingsFormat.class, HoldingsFormat.getItemFieldsArray());
+    var holdingsLineMapper = JobConfigReaderHelper.createLineMapper(HoldingsFormat.class, HoldingsFormat.getHoldingsFieldsArray());
     return new FlatFileItemReaderBuilder<HoldingsFormat>().name("holdingsReader")
       .resource(new InputStreamResource(remoteFilesStorage.newInputStream(updatedFileName)))
       .linesToSkip(1)

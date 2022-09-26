@@ -24,6 +24,10 @@ with further FOLIO Developer documentation at
 In case of no matched records found when uploading CSV file with items or users, link to download matched records is not available for user.
 The maximum value of size for uploading file is 15MB. It could be changed with spring.servlet.multipart.max-file-size application argument.
 
+### Memory configuration
+To stable module operating the following mod-data-export-worker configuration is required: Java args -XX:MetaspaceSize=384m -XX:MaxMetaspaceSize=512m -Xmx2048m,
+AWS container: memory - 3072, memory (soft limit) - 2600, cpu - 1024.
+
 ### Environment variables
 This module uses separate storage of temporary (local) files for its work. These files are necessary for processing bulk-edit business flows. 
 Any S3-compatible storage (AWS S3, Minio Server) supported by the Minio Client can be used as such storage. Thus, in addition to the 

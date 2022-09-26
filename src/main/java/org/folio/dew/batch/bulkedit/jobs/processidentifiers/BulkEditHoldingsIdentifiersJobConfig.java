@@ -41,7 +41,7 @@ public class BulkEditHoldingsIdentifiersJobConfig {
   @StepScope
   public AbstractStorageStreamWriter<List<HoldingsFormat>, LocalFilesStorage> csvHoldingsListWriter(
     @Value("#{jobParameters['tempOutputFilePath']}") String outputFileName) {
-    return new CsvListWriter<>(outputFileName, HoldingsFormat.getItemColumnHeaders(), HoldingsFormat.getItemFieldsArray(), (field, i) -> field, localFilesStorage);
+    return new CsvListWriter<>(outputFileName, HoldingsFormat.getHoldingsColumnHeaders(), HoldingsFormat.getHoldingsFieldsArray(), (field, i) -> field, localFilesStorage);
   }
 
   @Bean

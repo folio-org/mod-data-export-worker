@@ -378,7 +378,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   @EnumSource(value = IdentifierType.class, names = {"ID", "HOLDINGS_RECORD_ID","INSTANCE_HRID","ITEM_BARCODE"})
   @SneakyThrows
   void shouldReturnChangedHoldingsRecordPreview(IdentifierType identifierType) {
-    repository.uploadObject(FilenameUtils.getName(PREVIEW_HOLDINGS_RECORD_DATA), PREVIEW_HOLDINGS_RECORD_DATA, null, "text/plain", false);
+    remoteFilesStorage.upload(FilenameUtils.getName(PREVIEW_HOLDINGS_RECORD_DATA), PREVIEW_HOLDINGS_RECORD_DATA);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);

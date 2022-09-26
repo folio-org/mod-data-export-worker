@@ -23,12 +23,20 @@ application:
     group-id: ${ENV:folio}-mod-data-export-worker-events-group
   bucket:
     size: ${BUCKET_SIZE:50}
-  minio:
+  minio-remote:
     endpoint: http://${embedded.minio.host}:${embedded.minio.port}/
     region: ${AWS_REGION:region}
-    bucket: ${AWS_BUCKET:test}
+    bucket: ${AWS_BUCKET:remote-files-test}
     accessKey: ${AWS_ACCESS_KEY_ID:AKIAIOSFODNN7EXAMPLE}
     secretKey: ${AWS_SECRET_ACCESS_KEY:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}
+    composeWithAwsSdk: ${LOCAL_FS_COMPOSE_WITH_AWS_SDK:false}
+  minio-local:
+    endpoint: http://${embedded.minio.host}:${embedded.minio.port}/
+    region: ${LOCAL_FS_REGION:region}
+    bucket: ${LOCAL_FS_BUCKET:local-files-test}
+    accessKey: ${LOCAL_FS_ACCESS_KEY_ID:AKIAIOSFODNN7EXAMPLE}
+    secretKey: ${LOCAL_FS_SECRET_ACCESS_KEY:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}
+    composeWithAwsSdk: ${LOCAL_FS_COMPOSE_WITH_AWS_SDK:false}
 folio:
   tenant:
     validation:

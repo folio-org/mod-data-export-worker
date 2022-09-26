@@ -31,6 +31,9 @@ public class Constants {
   public static final String IDENTIFIER_TYPE = "identifierType";
   public static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss.SSSX";
 
+  public static final String LINE_SEPARATOR = System.getProperty("line.separator");
+  public static final String LINE_SEPARATOR_REPLACEMENT = "\\n";
+
 
   public static final String LINE_BREAK = "\n";
   public static final String LINE_BREAK_REPLACEMENT = "\\n";
@@ -47,5 +50,9 @@ public class Constants {
   public static final String STATUSES_CONFIG_NAME = "statuses";
   public static final String BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE = "module==%s and configName==%s";
   public static final String FILE_UPLOAD_ERROR = "Cannot upload a file. Reason: %s.";
+
+  public static String getWorkingDirectory(String springApplicationName) {
+    return springApplicationName + PATH_SEPARATOR + "bulk_edit" + PATH_SEPARATOR;
+  }
 
 }

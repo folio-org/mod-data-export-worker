@@ -41,7 +41,7 @@ class BulkEditUserContentUpdateServiceTest extends BaseBatchTest {
     var uploadedFileName = FilenameUtils.getName(USER_DATA);
     var updatedFileName = UPDATED_PREFIX + uploadedFileName;
     var previewFileName = PREVIEW_PREFIX + uploadedFileName;
-    minIOObjectStorageRepository.uploadObject(uploadedFileName, USER_DATA, null, "text/plain", false);
+    remoteFilesStorage.upload(uploadedFileName, USER_DATA);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
@@ -65,8 +65,8 @@ class BulkEditUserContentUpdateServiceTest extends BaseBatchTest {
     assertThat(res.getEntitiesForPreview(), hasSize(2));
     assertThat(res.getEntitiesForPreview().stream().allMatch(userFormat -> "PatronGroup".equals(userFormat.getPatronGroup())), is(true));
 
-    assertThat(minIOObjectStorageRepository.containsFile(updatedFileName), is(true));
-    assertThat(minIOObjectStorageRepository.containsFile(previewFileName), is(true));
+    assertThat(remoteFilesStorage.containsFile(updatedFileName), is(true));
+    assertThat(remoteFilesStorage.containsFile(previewFileName), is(true));
 
     assertThat(jobCommand.getExportType(), equalTo(BULK_EDIT_UPDATE));
     assertThat(jobCommand.getJobParameters().getString(UPDATED_FILE_NAME), equalTo(updatedFileName));

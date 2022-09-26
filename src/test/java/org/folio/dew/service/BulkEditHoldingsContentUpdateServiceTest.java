@@ -42,7 +42,7 @@ class BulkEditHoldingsContentUpdateServiceTest extends BaseBatchTest {
     var uploadedFileName = FilenameUtils.getName(HOLDINGS_DATA);
     var updatedFileName = UPDATED_PREFIX + uploadedFileName;
     var previewFileName = PREVIEW_PREFIX + uploadedFileName;
-    minIOObjectStorageRepository.uploadObject(uploadedFileName, HOLDINGS_DATA, null, "text/plain", false);
+    remoteFilesStorage.upload(uploadedFileName, HOLDINGS_DATA);
     var jobId = UUID.randomUUID();
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
@@ -65,8 +65,8 @@ class BulkEditHoldingsContentUpdateServiceTest extends BaseBatchTest {
     assertThat(res.getEntitiesForPreview(), hasSize(2));
     assertThat(res.getEntitiesForPreview().stream().allMatch(holdingsFormat -> "Annex".equals(holdingsFormat.getTemporaryLocation())), is(true));
 
-    assertThat(minIOObjectStorageRepository.containsFile(updatedFileName), is(true));
-    assertThat(minIOObjectStorageRepository.containsFile(previewFileName), is(true));
+    assertThat(remoteFilesStorage.containsFile(updatedFileName), is(true));
+    assertThat(remoteFilesStorage.containsFile(previewFileName), is(true));
 
     assertThat(jobCommand.getExportType(), equalTo(BULK_EDIT_UPDATE));
     assertThat(jobCommand.getJobParameters().getString(UPDATED_FILE_NAME), equalTo(updatedFileName));

@@ -114,7 +114,7 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setPackageType(packageAtr.getPackageType());
     exportFormat.setPackageContentType(packageAtr.getContentType().getValue());
     exportFormat.setPackageCustomCoverage(mapCoverage(packageAtr.getCustomCoverage()));
-    exportFormat.setPackageToken(mapToken(packageAtr.getPackageToken()));
+    exportFormat.setPackageLevelToken(mapToken(packageAtr.getPackageToken()));
     exportFormat.setPackageProxy(mapProxy(packageAtr.getProxy()));
     exportFormat.setPackageTags(mapTags(packageAtr.getTags()));
     exportFormat.setPackageHoldingsStatus(mapHoldingsStatus(packageAtr.getIsSelected()));
@@ -183,7 +183,7 @@ public class EHoldingsToExportFormatMapper {
 
   private String mapToken(Token token) {
     if (isNull(token)) { return ""; }
-    return token.getPrompt() + ':' + token.getValue();
+    return token.getPrompt() + ';' + token.getValue();
   }
 
   private String mapAccessType(List<Object> included) {

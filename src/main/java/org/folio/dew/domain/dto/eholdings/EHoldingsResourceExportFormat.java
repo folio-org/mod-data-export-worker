@@ -18,7 +18,7 @@ public class EHoldingsResourceExportFormat {
   private String packageCustomCoverage;
   private String packageShowToPatrons;
   private String packageAutomaticallySelect;
-  private String packageToken;
+  private String packageLevelToken;
   private String packageProxy;
   private String packageAccessStatusType;
   private String packageTags;

@@ -1,3 +1,63 @@
+## 2022-09-07 v1.4.6
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.5...v1.4.6)
+
+### Stories
+* [MODEXPW-238](https://issues.folio.org/browse/MODEXPW-238) Optimize remote files composing
+
+## 2022-09-02 v1.4.5
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.4...v1.4.5)
+
+### Stories
+* [MODEXPW-227](https://issues.folio.org/browse/MODEXPW-227) Change isolation level to READ_COMMITTED for spring batch
+* [MODEXPW-198](https://issues.folio.org/browse/MODEXPW-198) Removing shared resources
+* [MODEXPW-197](https://issues.folio.org/browse/MODEXPW-197) MinIO Adapter migration
+* [MODEXPW-196](https://issues.folio.org/browse/MODEXPW-196) LocalFS -> MinIO Adapter implementation
+
+## 2022-08-29 v1.4.4
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.3...v1.4.4)
+
+### Bug fixes
+* [MODEXPW-226](https://issues.folio.org/browse/MODEXPW-226) Expense class not included as combined code in edit file
+
+## 2022-08-12 v1.4.3
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.2...v1.4.3)
+
+### Technical tasks
+* [MODEXPW-193](https://issues.folio.org/browse/MODEXPW-193) Support of special symbols in the barcodes
+
+### Stories
+* [MODEXPW-174](https://issues.folio.org/browse/MODEXPW-174) eHoldings: remove data duplication in batch job execution context
+
+### Bug fixes
+* [MODEXPW-209](https://issues.folio.org/browse/MODEXPW-209) Order line is exported when "Manual" checkbox is enabled in PO
+* [MODEXPW-175](https://issues.folio.org/browse/MODEXPW-175) eHoldings: export stops after job failure
+* [MODEXPW-170](https://issues.folio.org/browse/MODEXPW-170) Status of export job of "Package" record (with almost 10k "Titles") hang with "In progress" value
+
+## 2022-08-02 v1.4.2
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.1...v1.4.2)
+
+### Bug fixes
+* [MODEXPW-200](https://issues.folio.org/browse/MODEXPW-200) Jobs pile up in scheduled status when eHoldings, Edifact and Bulk edit run together
+
+## 2022-07-22 v1.4.1
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.0...v1.4.1)
+
+### Technical tasks
+* [MODEXPW-188](https://issues.folio.org/browse/MODEXPW-188) Remove asynchronous launching job for Bursar
+* [MODEXPW-164](https://issues.folio.org/browse/MODEXPW-164) Increase maximal upload file size
+
+### Bug fixes
+* [MODEXPW-192](https://issues.folio.org/browse/MODEXPW-192) 500 Error occurred Clearing Items locations on the MG bugfest
+* [MODEXPW-184](https://issues.folio.org/browse/MODEXPW-184) Are you sure form does not show updated item's status value for initial Checked out status
+* [MODEXPW-182](https://issues.folio.org/browse/MODEXPW-182) 500 Error occurred while Item Status updating
+* [MODEXPW-166](https://issues.folio.org/browse/MODEXPW-166) Bulk Edit: 500 Server Error when editing specific records
+
 ## 2022-07-08 v1.4.0
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.3.0...v1.4.0)

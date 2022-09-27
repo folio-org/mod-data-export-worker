@@ -30,24 +30,7 @@ public abstract class AbstractEHoldingsReader<T> extends AbstractItemCountingIte
       currentChunkOffset = 0;
     }
 
-    if (currentChunk.isEmpty()) {
-      return null;
-    }
-
-    var item = currentChunk.get(currentChunkOffset);
-    currentChunkOffset++;
-
-    return item;
-  }
-
-  @Override
-  protected void doOpen() {
-    // Nothing to do
-  }
-
-  @Override
-  protected void doClose() {
-    // Nothing to do
+    return currentChunk.isEmpty() ? null : currentChunk.get(currentChunkOffset++);
   }
 
   protected abstract List<T> getItems(T last, int limit);

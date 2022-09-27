@@ -1,6 +1,7 @@
 package org.folio.dew.batch.eholdings;
 
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_MAX_PACKAGE_NOTES_COUNT;
+import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_TOTAL_PACKAGES;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PACKAGE_AGREEMENTS;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PACKAGE_NOTES;
 import static org.folio.dew.client.AgreementClient.getFiltersParam;
@@ -84,6 +85,8 @@ public class EHoldingsPreparationTasklet implements Tasklet {
     var jobId = jobExecution.getJobId();
     ePackage.setJobExecutionId(jobId);
     repository.save(ePackage);
+    jobExecution.getExecutionContext().putInt(CONTEXT_TOTAL_PACKAGES,
+      jobExecution.getExecutionContext().getInt(CONTEXT_TOTAL_PACKAGES, 0) + 1);
 
     var noteCollectionSize = eHoldingsPackageDTO.getNotes() != null ?
       eHoldingsPackageDTO.getNotes().size() : 0;

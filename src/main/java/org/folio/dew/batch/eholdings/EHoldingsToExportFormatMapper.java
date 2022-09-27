@@ -138,7 +138,6 @@ public class EHoldingsToExportFormatMapper {
 
     exportFormat.setTitleId(resourceAtr.getTitleId().toString());
     exportFormat.setTitleName(resourceAtr.getName());
-    System.out.println("------------resourceAtr.getName() -> " + resourceAtr.getName());
     exportFormat.setAlternateTitles(mapAlternateTitles(resourceAtr.getAlternateTitles()));
     exportFormat.setTitleHoldingsStatus(mapHoldingsStatus(resourceAtr.getIsSelected()));
     exportFormat.setPublicationType(resourceAtr.getPublicationType().getValue());

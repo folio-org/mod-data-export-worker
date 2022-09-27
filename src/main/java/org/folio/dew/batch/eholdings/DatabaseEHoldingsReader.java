@@ -1,5 +1,6 @@
 package org.folio.dew.batch.eholdings;
 
+import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_TOTAL_RESOURCES;
 import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACKAGE;
 
 import java.util.List;
@@ -10,6 +11,7 @@ import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
 import org.folio.dew.repository.EHoldingsPackageRepository;
 import org.folio.dew.repository.EHoldingsResourceRepository;
+import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
@@ -28,6 +30,8 @@ public class DatabaseEHoldingsReader extends AbstractEHoldingsReader<EHoldingsRe
 
   private EHoldingsPackage eHoldingsPackage;
 
+  private int totalResources;
+
   protected DatabaseEHoldingsReader(EHoldingsPackageRepository packageRepository,
                                     EHoldingsResourceRepository resourceRepository,
                                     EHoldingsToExportFormatMapper mapper,
@@ -43,19 +47,33 @@ public class DatabaseEHoldingsReader extends AbstractEHoldingsReader<EHoldingsRe
   }
 
   @BeforeStep
-  private void beforeStep() {
+  private void beforeStep(StepExecution stepExecution) {
     var packageId = recordType == PACKAGE ? recordId : recordId.split("-\\d+$")[0];
     eHoldingsPackage = packageRepository.findById(packageId).orElse(null);
+
+    var executionContext = stepExecution.getJobExecution().getExecutionContext();
+    totalResources = executionContext.getInt(CONTEXT_TOTAL_RESOURCES, 1);
   }
 
   @Override
   protected List<EHoldingsResourceExportFormat> getItems(EHoldingsResourceExportFormat last, int limit) {
-    String resourceId = recordId;
+    List<EHoldingsResource> eHoldingsResources;
     if (last != null) {
-      resourceId = last.getTitleId();
+      String resourceId = last.getTitleId();
+      eHoldingsResources = resourceRepository.seek(resourceId, limit);
     }
-    List<EHoldingsResource> eHoldingsResources = resourceRepository.findByResourceId(resourceId);
+    else {
+      eHoldingsResources = resourceRepository.seek(limit);
+    }
 
     return mapper.convertToExportFormat(eHoldingsPackage, eHoldingsResources);
   }
+
+  @Override
+  protected void doOpen() {
+    setMaxItemCount(totalResources);
+  }
+
+  @Override
+  protected void doClose(){}
 }

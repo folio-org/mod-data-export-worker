@@ -14,8 +14,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.extern.log4j.Log4j2;
+
 @Component
+@Log4j2
 public class EHoldingsResourceMapper {
+
+  private EHoldingsResourceMapper(){}
   private static final ObjectMapper objectMapper = new ObjectMapper()
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -27,7 +32,8 @@ public class EHoldingsResourceMapper {
       entity.setAgreements(objectMapper.writeValueAsString(dto.getAgreements()));
       entity.setNotes(objectMapper.writeValueAsString(dto.getNotes()));
     } catch (JsonProcessingException e) {
-
+      log.error("An error occurred during parsing of EHoldingsResourceDTO with id: " +
+        dto.getResourcesData().getId(), e);
     }
     return entity;
   }
@@ -47,7 +53,8 @@ public class EHoldingsResourceMapper {
         .agreements(agreements)
         .build();
     } catch (JsonProcessingException e) {
-
+      log.error("An error occurred during parsing of EHoldingsResource with id: " +
+        entity.getResourceId(), e);
     }
     return dto;
   }

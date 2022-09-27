@@ -24,8 +24,6 @@ import lombok.extern.log4j.Log4j2;
 @RequiredArgsConstructor
 public class EdiExportJobCompletionListener extends JobExecutionListenerSupport {
 
-  private static final String PATHS_DELIMITER = ";";
-
   private final IAcknowledgementRepository acknowledgementRepository;
   private final KafkaService kafka;
 

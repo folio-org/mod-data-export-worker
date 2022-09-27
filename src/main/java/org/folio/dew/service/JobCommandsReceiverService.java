@@ -1,10 +1,6 @@
 package org.folio.dew.service;
 
 import static java.util.Objects.nonNull;
-
-import org.folio.de.entity.JobCommandType;
-import org.folio.dew.batch.ExportJobManagerSync;
-
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
@@ -29,9 +25,10 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import org.folio.de.entity.JobCommand;
-import org.folio.dew.batch.ExportJobManager;
+import org.folio.de.entity.JobCommandType;
+import org.folio.dew.batch.ExportJobManagerSync;
+import org.folio.dew.batch.acquisitions.edifact.services.ResendService;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.config.kafka.KafkaService;
@@ -44,7 +41,6 @@ import org.folio.dew.repository.JobCommandRepository;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
-
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -55,7 +51,6 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
-
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -69,7 +64,6 @@ import lombok.extern.log4j.Log4j2;
 public class JobCommandsReceiverService {
 
   private final ObjectMapper objectMapper;
-  private final ExportJobManager exportJobManager;
   private final ExportJobManagerSync exportJobManagerSync;
   private final BursarExportService bursarExportService;
   private final IAcknowledgementRepository acknowledgementRepository;
@@ -79,6 +73,7 @@ public class JobCommandsReceiverService {
   private final SearchClient searchClient;
   private final FileNameResolver fileNameResolver;
   private final JobCommandRepository jobCommandRepository;
+  private final ResendService resendService;
   private final List<Job> jobs;
   private Map<String, Job> jobMap;
   @Value("${spring.application.name}")
@@ -105,6 +100,11 @@ public class JobCommandsReceiverService {
     log.info("Received {}.", jobCommand);
 
     try {
+      if (JobCommandType.RESEND.equals(jobCommand.getType())) {
+        resendService.resendExportedFile(jobCommand, acknowledgment);
+        return;
+      }
+
       if (deleteOldFiles(jobCommand, acknowledgment)) {
         return;
       }

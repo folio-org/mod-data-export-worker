@@ -5,6 +5,7 @@ import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACK
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.EHoldingsPackage;
 import org.folio.de.entity.EHoldingsResource;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
@@ -58,13 +59,8 @@ public class DatabaseEHoldingsReader extends AbstractEHoldingsReader<EHoldingsRe
   @Override
   protected List<EHoldingsResourceExportFormat> getItems(EHoldingsResourceExportFormat last, int limit) {
     List<EHoldingsResource> eHoldingsResources;
-    if (last != null) {
-      String resourceId = last.getTitleId();
-      eHoldingsResources = resourceRepository.seek(resourceId, limit);
-    }
-    else {
-      eHoldingsResources = resourceRepository.seek(limit);
-    }
+    var resourceId = last != null ? last.getTitleId() : StringUtils.EMPTY;
+    eHoldingsResources = resourceRepository.seek(resourceId, limit);
 
     return mapper.convertToExportFormat(eHoldingsPackage, eHoldingsResources);
   }
@@ -75,5 +71,7 @@ public class DatabaseEHoldingsReader extends AbstractEHoldingsReader<EHoldingsRe
   }
 
   @Override
-  protected void doClose(){}
+  protected void doClose(){
+    //Nothing to do
+  }
 }

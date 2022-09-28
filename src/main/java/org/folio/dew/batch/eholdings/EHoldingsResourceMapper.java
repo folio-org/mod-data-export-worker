@@ -16,7 +16,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.log4j.Log4j2;
 
-@Component
 @Log4j2
 public class EHoldingsResourceMapper {
 
@@ -27,7 +26,7 @@ public class EHoldingsResourceMapper {
   public static EHoldingsResource convertToEntity(EHoldingsResourceDTO dto) {
     var entity = new EHoldingsResource();
     try {
-      entity.setResourceId(dto.getResourcesData().getId());
+      entity.setId(dto.getResourcesData().getId());
       entity.setResourcesData(objectMapper.writeValueAsString(dto.getResourcesData()));
       entity.setAgreements(objectMapper.writeValueAsString(dto.getAgreements()));
       entity.setNotes(objectMapper.writeValueAsString(dto.getNotes()));
@@ -54,7 +53,7 @@ public class EHoldingsResourceMapper {
         .build();
     } catch (JsonProcessingException e) {
       log.error("An error occurred during parsing of EHoldingsResource with id: " +
-        entity.getResourceId(), e);
+        entity.getId(), e);
     }
     return dto;
   }

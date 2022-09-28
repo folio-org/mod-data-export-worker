@@ -4,7 +4,6 @@ import org.folio.dew.repository.EHoldingsPackageRepository;
 import org.folio.dew.repository.EHoldingsResourceRepository;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
@@ -12,15 +11,11 @@ import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 @JobScope
 public class EHoldingsCleanupTasklet implements Tasklet, StepExecutionListener {
-
-  @Value("#{jobExecution}")
-  private JobExecution jobExecution;
 
   private Long jobId;
 
@@ -42,7 +37,7 @@ public class EHoldingsCleanupTasklet implements Tasklet, StepExecutionListener {
 
   @Override
   public void beforeStep(@NotNull StepExecution stepExecution) {
-    jobId = jobExecution.getJobId();
+    jobId = stepExecution.getJobExecution().getJobId();
   }
 
   @Override

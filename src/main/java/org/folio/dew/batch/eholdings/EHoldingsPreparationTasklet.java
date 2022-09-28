@@ -93,10 +93,10 @@ public class EHoldingsPreparationTasklet implements Tasklet {
 
     if (noteCollectionSize > 0) {
       var packageMaxNotesCount =
-        jobExecution.getExecutionContext().getInt(CONTEXT_MAX_PACKAGE_NOTES_COUNT, 0); //gets a variable from a context
+        jobExecution.getExecutionContext().getInt(CONTEXT_MAX_PACKAGE_NOTES_COUNT, 0);
       if (packageMaxNotesCount < noteCollectionSize) {
         jobExecution.getExecutionContext()
-          .putInt(CONTEXT_MAX_PACKAGE_NOTES_COUNT, noteCollectionSize); //adds a variable to a context
+          .putInt(CONTEXT_MAX_PACKAGE_NOTES_COUNT, noteCollectionSize);
       }
     }
     log.trace("Records are written to a database.");

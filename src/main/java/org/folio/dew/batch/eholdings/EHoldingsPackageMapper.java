@@ -3,7 +3,6 @@ package org.folio.dew.batch.eholdings;
 import org.folio.de.entity.EHoldingsPackage;
 import org.folio.dew.domain.dto.eholdings.EHoldingsPackageDTO;
 import org.folio.dew.domain.dto.eholdings.EPackage;
-import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -12,7 +11,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.log4j.Log4j2;
 
-@Component
 @Log4j2
 public class EHoldingsPackageMapper {
 

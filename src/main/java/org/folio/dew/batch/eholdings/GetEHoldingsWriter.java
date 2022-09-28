@@ -53,9 +53,9 @@ public class GetEHoldingsWriter implements ItemWriter<EHoldingsResourceDTO> {
 
     if (noteCollectionSize > 0) {
       var resourceMaxNotesCount =
-        stepExecutionContext.getInt(CONTEXT_MAX_TITLE_NOTES_COUNT, 0); //gets a variable from a context
+        stepExecutionContext.getInt(CONTEXT_MAX_TITLE_NOTES_COUNT, 0);
       if (resourceMaxNotesCount < noteCollectionSize) {
-        stepExecutionContext.putInt(CONTEXT_MAX_TITLE_NOTES_COUNT, noteCollectionSize); //adds a variable to a context
+        stepExecutionContext.putInt(CONTEXT_MAX_TITLE_NOTES_COUNT, noteCollectionSize);
       }
     }
   }

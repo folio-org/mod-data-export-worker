@@ -35,6 +35,60 @@ class EmailUpdateStrategyTest {
     assertThat(updatedUserFormat.getEmail(), equalTo("test@newdomain.com"));
   }
 
+  @Test
+  void shouldUpdateLastPartOfEmailIfDomainMatch() {
+    var userFormat = new UserFormat().withEmail("test@somedomain.com");
+    var contentUpdate = new UserContentUpdate()
+      .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
+      .actions(List.of(new UserContentUpdateAction()
+          .name(UserContentUpdateAction.NameEnum.FIND)
+          .value("com"),
+        new UserContentUpdateAction()
+          .name(UserContentUpdateAction.NameEnum.REPLACE_WITH)
+          .value("org")
+      ));
+
+    var updatedUserFormat = updateStrategy.applyUpdate(userFormat, contentUpdate);
+
+    assertThat(updatedUserFormat.getEmail(), equalTo("test@somedomain.org"));
+  }
+
+  @Test
+  void shouldUpdateBeginningPartOfEmailIfDomainMatch() {
+    var userFormat = new UserFormat().withEmail("test@somedomain.com");
+    var contentUpdate = new UserContentUpdate()
+      .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
+      .actions(List.of(new UserContentUpdateAction()
+          .name(UserContentUpdateAction.NameEnum.FIND)
+          .value("somedomain"),
+        new UserContentUpdateAction()
+          .name(UserContentUpdateAction.NameEnum.REPLACE_WITH)
+          .value("newdomain")
+      ));
+
+    var updatedUserFormat = updateStrategy.applyUpdate(userFormat, contentUpdate);
+
+    assertThat(updatedUserFormat.getEmail(), equalTo("test@newdomain.com"));
+  }
+
+  @Test
+  void shouldUpdateMiddlePartOfEmailIfDomainMatch() {
+    var userFormat = new UserFormat().withEmail("test@somedomain.com.uk");
+    var contentUpdate = new UserContentUpdate()
+      .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
+      .actions(List.of(new UserContentUpdateAction()
+          .name(UserContentUpdateAction.NameEnum.FIND)
+          .value("com"),
+        new UserContentUpdateAction()
+          .name(UserContentUpdateAction.NameEnum.REPLACE_WITH)
+          .value("org")
+      ));
+
+    var updatedUserFormat = updateStrategy.applyUpdate(userFormat, contentUpdate);
+
+    assertThat(updatedUserFormat.getEmail(), equalTo("test@somedomain.org.uk"));
+  }
+
   @ParameterizedTest
   @ValueSource(strings = {"another.com", "SomeDomain.com"})
   void shouldThrowExceptionIfDomainDoesNotMatch(String findValue) {

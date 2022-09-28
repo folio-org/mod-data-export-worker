@@ -2,6 +2,7 @@ package org.folio.dew;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
@@ -52,6 +53,8 @@ class EHoldingsTest extends BaseBatchTest {
   private final static String EXPECTED_RESOURCE_OUTPUT = "src/test/resources/output/eholdings_resource_export.csv";
   private final static String EXPECTED_PACKAGE_OUTPUT = "src/test/resources/output/eholdings_package_export.csv";
   private final static String EXPECTED_SINGLE_PACKAGE_OUTPUT = "src/test/resources/output/eholdings_single_package_export.csv";
+
+  private final static List<String> PACKAGE_FIELDS = asList("packageAgreements", "packageNotes", "providerLevelToken");
 
   @Test
   @DisplayName("Run EHoldingsJob export resource successfully")
@@ -121,7 +124,7 @@ class EHoldingsTest extends BaseBatchTest {
     eHoldingsExportConfig.setRecordId(id);
     eHoldingsExportConfig.setRecordType(recordType);
     eHoldingsExportConfig.setTitleFields(getClassFields());
-    eHoldingsExportConfig.setPackageFields(List.of("packageNotes", "packageAgreements", "providerLevelToken"));
+    eHoldingsExportConfig.setPackageFields(PACKAGE_FIELDS);
     eHoldingsExportConfig.setTitleSearchFilters("filter[name]=*&InvalidFilter");
 
     Map<String, JobParameter> params = new HashMap<>();
@@ -148,9 +151,7 @@ class EHoldingsTest extends BaseBatchTest {
   private List<String> getClassFields() {
     return Arrays.stream(EHoldingsResourceExportFormat.class.getDeclaredFields())
       .map(Field::getName)
-      .filter(name -> !name.equals("packageNotes")
-        && !name.equals("packageAgreements")
-        && !name.equals("providerLevelToken"))
+      .filter(name -> !PACKAGE_FIELDS.contains(name))
       .collect(Collectors.toList());
   }
 }

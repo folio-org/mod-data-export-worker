@@ -54,9 +54,11 @@ public class EHoldingsPreparationTasklet implements Tasklet, StepExecutionListen
     this.agreementClient = agreementClient;
     this.recordId = exportConfig.getRecordId();
     this.recordType = exportConfig.getRecordType();
-    this.loadNotes = exportConfig.getPackageFields() != null && exportConfig.getPackageFields().contains(LOAD_FIELD_PACKAGE_NOTES);
-    this.loadAgreements = exportConfig.getPackageFields() != null && exportConfig.getPackageFields().contains(LOAD_FIELD_PACKAGE_AGREEMENTS);
-    this.loadProvider = exportConfig.getPackageFields() != null && exportConfig.getPackageFields().contains(LOAD_FIELD_PACKAGE_PROVIDER);
+
+    var packageFields = exportConfig.getPackageFields();
+    this.loadNotes = packageFields != null && packageFields.contains(LOAD_FIELD_PACKAGE_NOTES);
+    this.loadProvider = packageFields != null && packageFields.contains(LOAD_FIELD_PACKAGE_PROVIDER);
+    this.loadAgreements = packageFields != null && packageFields.contains(LOAD_FIELD_PACKAGE_AGREEMENTS);
 
     this.eHoldingsPackage = new EHoldingsPackage();
   }

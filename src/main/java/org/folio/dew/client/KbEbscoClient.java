@@ -26,7 +26,7 @@ public interface KbEbscoClient {
   @GetMapping(value = "/packages/{packageId}", produces = APPLICATION_VND_JSON_VALUE)
   EPackage getPackageById(@PathVariable String packageId, @RequestParam String include);
 
-  @GetMapping(value = "/packages/{providerId}", produces = APPLICATION_VND_JSON_VALUE)
+  @GetMapping(value = "/providers/{providerId}", produces = APPLICATION_VND_JSON_VALUE)
   EProvider getProviderById(@PathVariable String providerId, @RequestParam String include);
 
   @GetMapping(value = "/resources/{resourceId}", produces = APPLICATION_VND_JSON_VALUE)

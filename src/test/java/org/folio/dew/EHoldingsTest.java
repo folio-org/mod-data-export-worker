@@ -121,7 +121,7 @@ class EHoldingsTest extends BaseBatchTest {
     eHoldingsExportConfig.setRecordId(id);
     eHoldingsExportConfig.setRecordType(recordType);
     eHoldingsExportConfig.setTitleFields(getClassFields());
-    eHoldingsExportConfig.setPackageFields(List.of("packageNotes", "packageAgreements"));
+    eHoldingsExportConfig.setPackageFields(List.of("packageNotes", "packageAgreements", "providerLevelToken"));
     eHoldingsExportConfig.setTitleSearchFilters("filter[name]=*&InvalidFilter");
 
     Map<String, JobParameter> params = new HashMap<>();
@@ -148,7 +148,9 @@ class EHoldingsTest extends BaseBatchTest {
   private List<String> getClassFields() {
     return Arrays.stream(EHoldingsResourceExportFormat.class.getDeclaredFields())
       .map(Field::getName)
-      .filter(name -> !name.equals("packageNotes") && !name.equals("packageAgreements"))
+      .filter(name -> !name.equals("packageNotes")
+        && !name.equals("packageAgreements")
+        && !name.equals("providerLevelToken"))
       .collect(Collectors.toList());
   }
 }

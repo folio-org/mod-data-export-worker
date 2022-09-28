@@ -13,8 +13,8 @@ public class EHoldingsResourceExportFormat {
   private String providerLevelToken;
 
   //Package fields
-  private String packageName;
   private String packageId;
+  private String packageName;
   private String packageType;
   private String packageHoldingsStatus;
   private String packageContentType;

@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import joptsimple.internal.Strings;
+import org.folio.dew.domain.dto.eholdings.Token;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -105,9 +106,13 @@ public class EHoldingsToExportFormatMapper {
   private void mapPackageToExportFormat(EHoldingsResourceExportFormat exportFormat, EHoldingsPackage eHoldingsPackage) {
     var ePackage = eHoldingsPackage.getEPackage();
     var packageAtr = ePackage.getData().getAttributes();
+    var eProvider = eHoldingsPackage.getEProvider();
+    var providerAtr = eProvider.getData().getAttributes();
 
-    exportFormat.setProviderId(packageAtr.getProviderId().toString());
-    exportFormat.setProviderName(packageAtr.getProviderName());
+    exportFormat.setProviderId(eProvider.getData().getId());
+    exportFormat.setProviderName(providerAtr.getName());
+    exportFormat.setProviderLevelToken(mapToken(providerAtr.getProviderToken()));
+
     exportFormat.setPackageId(ePackage.getData().getId());
     exportFormat.setPackageName(packageAtr.getName());
     exportFormat.setPackageType(packageAtr.getPackageType());
@@ -177,6 +182,11 @@ public class EHoldingsToExportFormatMapper {
   private String convertBoolToStr(Boolean isTrue) {
     if (isNull(isTrue)) { return ""; }
     return Boolean.TRUE.equals(isTrue) ? "Yes" : "No";
+  }
+
+  private String mapToken(Token token) {
+    if (isNull(token)) { return ""; }
+    return token.getPrompt() + ';' + token.getValue();
   }
 
   private String mapAccessType(List<Object> included) {

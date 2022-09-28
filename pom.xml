@@ -379,11 +379,7 @@
                         <generateApiDocumentation>false</generateApiDocumentation>
                         <generateModels>true</generateModels>
                         <modelsToGenerate>
-                          EPackage,PackageData,PackageAttributes,
-                          EProvider,ProviderData,ProviderAttributes,
-                          EResources,EResource,ResourcesData,ResourcesAttributes,
-                          AlternateTitle,Contributor,Identifier,PublicationType,Subject,Tags,ContentTypeEnum,Note,Metadata,
-                          Coverage,Proxy,Token,VisibilityData,EmbargoPeriod,AccessTypeData,AccessTypeAttributes,MetaTotalResults
+                          EPackage,PackageData,PackageAttributes,EProvider,ProviderData,ProviderAttributes,EResources,EResource,ResourcesData,ResourcesAttributes,AlternateTitle,Contributor,Identifier,PublicationType,Subject,Tags,ContentTypeEnum,Note,Metadata,Coverage,Proxy,Token,VisibilityData,EmbargoPeriod,AccessTypeData,AccessTypeAttributes,MetaTotalResults
                         </modelsToGenerate>
                         <generateModelTests>false</generateModelTests>
                         <generateSupportingFiles>false</generateSupportingFiles>

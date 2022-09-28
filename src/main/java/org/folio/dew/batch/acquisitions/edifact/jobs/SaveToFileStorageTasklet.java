@@ -2,7 +2,7 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
-import org.folio.dew.batch.acquisitions.edifact.services.SaveToFileStorageService;
+import org.folio.dew.batch.acquisitions.edifact.services.SaveToFTPStorageService;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -23,7 +23,7 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class SaveToFileStorageTasklet implements Tasklet {
   private final ObjectMapper objectMapper;
-  private final SaveToFileStorageService saveToFileStorageService;
+  private final SaveToFTPStorageService saveToFTPStorageService;
 
   private static final String SFTP_PROTOCOL = "sftp://";
 
@@ -43,7 +43,7 @@ public class SaveToFileStorageTasklet implements Tasklet {
     }
 
     var fileContent = (String) ExecutionContextUtils.getExecutionVariable(stepExecution,"edifactOrderAsString");
-    String filename = saveToFileStorageService.uploadToFtp(ediExportConfig, fileContent);
+    String filename = saveToFTPStorageService.uploadToFtp(ediExportConfig, fileContent);
 
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, "edifactFileName", filename, "");
     return RepeatStatus.FINISHED;

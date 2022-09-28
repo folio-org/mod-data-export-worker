@@ -17,7 +17,7 @@ import lombok.extern.log4j.Log4j2;
 @RequiredArgsConstructor
 @Service
 @Log4j2
-public class SaveToFileStorageService {
+public class SaveToFTPStorageService {
   private final SFTPObjectStorageRepository sftpObjectStorageRepository;
   private final FTPObjectStorageRepository ftpObjectStorageRepository;
   private final OrganizationsService organizationsService;
@@ -38,7 +38,7 @@ public class SaveToFileStorageService {
     String host = ediExportConfig.getEdiFtp().getServerAddress().replace(SFTP_PROTOCOL, "");
     int port = ediExportConfig.getEdiFtp().getFtpPort();
 
-    if (ediExportConfig.getEdiFtp().getFtpFormat().equals(EdiFtp.FtpFormatEnum.SFTP)) {
+    if (EdiFtp.FtpFormatEnum.SFTP.equals(ediExportConfig.getEdiFtp().getFtpFormat())) {
       sftpObjectStorageRepository.upload(username, password, host, port, folder, filename, fileContent);
     }
     else {

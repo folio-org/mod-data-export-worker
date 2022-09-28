@@ -4,6 +4,7 @@ import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_MAX_PA
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_PACKAGE;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PACKAGE_AGREEMENTS;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PACKAGE_NOTES;
+import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PACKAGE_PROVIDER;
 import static org.folio.dew.client.AgreementClient.getFiltersParam;
 import static org.folio.dew.client.KbEbscoClient.ACCESS_TYPE;
 import static org.folio.dew.client.NotesClient.NoteLinkDomain.EHOLDINGS;
@@ -40,6 +41,7 @@ public class EHoldingsPreparationTasklet implements Tasklet, StepExecutionListen
   private final String recordId;
   private final boolean loadNotes;
   private final boolean loadAgreements;
+  private final boolean loadProvider;
 
   private final EHoldingsPackage eHoldingsPackage;
 
@@ -54,6 +56,7 @@ public class EHoldingsPreparationTasklet implements Tasklet, StepExecutionListen
     this.recordType = exportConfig.getRecordType();
     this.loadNotes = exportConfig.getPackageFields() != null && exportConfig.getPackageFields().contains(LOAD_FIELD_PACKAGE_NOTES);
     this.loadAgreements = exportConfig.getPackageFields() != null && exportConfig.getPackageFields().contains(LOAD_FIELD_PACKAGE_AGREEMENTS);
+    this.loadProvider = exportConfig.getPackageFields() != null && exportConfig.getPackageFields().contains(LOAD_FIELD_PACKAGE_PROVIDER);
 
     this.eHoldingsPackage = new EHoldingsPackage();
   }
@@ -64,10 +67,16 @@ public class EHoldingsPreparationTasklet implements Tasklet, StepExecutionListen
     var packageId = recordType == PACKAGE ? recordId : recordId.split("-\\d+$")[0];
 
     eHoldingsPackage.setEPackage(kbEbscoClient.getPackageById(packageId, ACCESS_TYPE));
-    if (loadNotes) loadNotes(stepExecutionContext);
+    if (loadProvider) loadProvider();
     if (loadAgreements) loadAgreements();
+    if (loadNotes) loadNotes(stepExecutionContext);
 
     return RepeatStatus.FINISHED;
+  }
+
+  private void loadProvider() {
+    var providerId = eHoldingsPackage.getEPackage().getData().getAttributes().getProviderId();
+    eHoldingsPackage.setEProvider(kbEbscoClient.getProviderById(providerId, null));
   }
 
   private void loadNotes(ExecutionContext stepExecutionContext) {

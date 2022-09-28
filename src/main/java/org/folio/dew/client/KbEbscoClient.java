@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.eholdings.EPackage;
+import org.folio.dew.domain.dto.eholdings.EProvider;
 import org.folio.dew.domain.dto.eholdings.EResource;
 import org.folio.dew.domain.dto.eholdings.EResources;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -24,6 +25,9 @@ public interface KbEbscoClient {
 
   @GetMapping(value = "/packages/{packageId}", produces = APPLICATION_VND_JSON_VALUE)
   EPackage getPackageById(@PathVariable String packageId, @RequestParam String include);
+
+  @GetMapping(value = "/packages/{providerId}", produces = APPLICATION_VND_JSON_VALUE)
+  EProvider getProviderById(@PathVariable String providerId, @RequestParam String include);
 
   @GetMapping(value = "/resources/{resourceId}", produces = APPLICATION_VND_JSON_VALUE)
   EResource getResourceById(@PathVariable String resourceId, @RequestParam String include);

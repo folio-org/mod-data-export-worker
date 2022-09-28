@@ -11,6 +11,7 @@ import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESO
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -54,14 +55,18 @@ class EHoldingsTest extends BaseBatchTest {
   private final static String EXPECTED_PACKAGE_OUTPUT = "src/test/resources/output/eholdings_package_export.csv";
   private final static String EXPECTED_SINGLE_PACKAGE_OUTPUT = "src/test/resources/output/eholdings_single_package_export.csv";
 
-  private final static List<String> PACKAGE_FIELDS = asList("packageAgreements", "packageNotes", "providerLevelToken");
+  private final static List<String> PACKAGE_FIELDS = new ArrayList<>(asList("packageAgreements", "packageNotes", "providerLevelToken"));
 
   @Test
-  @DisplayName("Run EHoldingsJob export resource successfully")
+  @DisplayName("Run EHoldingsJob export resource without provider load successfully")
   void eHoldingsJobResourceTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
+    var exportConfig = buildExportConfig(RESOURCE_ID, RESOURCE);
 
-    final JobParameters jobParameters = prepareJobParameters(RESOURCE_ID, RESOURCE);
+    PACKAGE_FIELDS.remove("providerLevelToken");
+    final JobParameters jobParameters = prepareJobParameters(exportConfig);
+    PACKAGE_FIELDS.add("providerLevelToken");
+
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_RESOURCE_OUTPUT);
@@ -78,8 +83,9 @@ class EHoldingsTest extends BaseBatchTest {
   @DisplayName("Run EHoldingsJob export package successfully")
   void eHoldingsJobPackageTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
+    var exportConfig = buildExportConfig(PACKAGE_ID, PACKAGE);
 
-    final JobParameters jobParameters = prepareJobParameters(PACKAGE_ID, PACKAGE);
+    final JobParameters jobParameters = prepareJobParameters(exportConfig);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_PACKAGE_OUTPUT);
@@ -96,8 +102,9 @@ class EHoldingsTest extends BaseBatchTest {
   @DisplayName("Run EHoldingsJob export package without resources successfully")
   void eHoldingsJobSinglePackageTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
+    var exportConfig = buildExportConfig(SINGLE_PACKAGE_ID, PACKAGE);
 
-    final JobParameters jobParameters = prepareJobParameters(SINGLE_PACKAGE_ID, PACKAGE);
+    final JobParameters jobParameters = prepareJobParameters(exportConfig);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyFileOutput(jobExecution, EXPECTED_SINGLE_PACKAGE_OUTPUT);
@@ -119,19 +126,22 @@ class EHoldingsTest extends BaseBatchTest {
     assertFileEquals(expectedCharges, actualChargeFeesFinesOutput);
   }
 
-  private JobParameters prepareJobParameters(String id, EHoldingsExportConfig.RecordTypeEnum recordType) throws JsonProcessingException {
+  private EHoldingsExportConfig buildExportConfig(String id, EHoldingsExportConfig.RecordTypeEnum recordType) {
     var eHoldingsExportConfig = new EHoldingsExportConfig();
     eHoldingsExportConfig.setRecordId(id);
     eHoldingsExportConfig.setRecordType(recordType);
     eHoldingsExportConfig.setTitleFields(getClassFields());
     eHoldingsExportConfig.setPackageFields(PACKAGE_FIELDS);
     eHoldingsExportConfig.setTitleSearchFilters("filter[name]=*&InvalidFilter");
+    return eHoldingsExportConfig;
+  }
 
-    Map<String, JobParameter> params = new HashMap<>();
-    params.put("eHoldingsExportConfig", new JobParameter(objectMapper.writeValueAsString(eHoldingsExportConfig)));
-
+  private JobParameters prepareJobParameters(EHoldingsExportConfig eHoldingsExportConfig) throws JsonProcessingException {
     String jobId = UUID.randomUUID().toString();
+    Map<String, JobParameter> params = new HashMap<>();
+
     params.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
+    params.put("eHoldingsExportConfig", new JobParameter(objectMapper.writeValueAsString(eHoldingsExportConfig)));
 
     String workDir =
       System.getProperty("java.io.tmpdir")

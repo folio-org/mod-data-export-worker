@@ -1,21 +1,19 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.lang3.StringUtils;
-import org.folio.dew.batch.ExecutionContextUtils;
-import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.domain.dto.EdiFtp;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.repository.FTPObjectStorageRepository;
+import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.SFTPObjectStorageRepository;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,14 +30,21 @@ public class SaveToFileStorageTasklet implements Tasklet {
   private final ObjectMapper objectMapper;
   private final SFTPObjectStorageRepository sftpObjectStorageRepository;
   private final FTPObjectStorageRepository ftpObjectStorageRepository;
-  private final OrganizationsService organizationsService;
+
+  private final LocalFilesStorage localFilesStorage;
 
   private static final String SFTP_PROTOCOL = "sftp://";
+  @Value("#{jobParameters['edifactFileName']}")
+  private String edifactFileName;
+
+  @Value("#{jobParameters['edifactOrderAsString']}")
+  private String edifactOrderAsString;
+  @Value("#{jobParameters['uploadedFilePath']}")
+  private String uploadedFilePath;
 
   @Override
   @SneakyThrows
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-    var stepExecution = chunkContext.getStepContext().getStepExecution();
 
     var jobParameters = chunkContext.getStepContext().getJobParameters();
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
@@ -49,32 +54,28 @@ public class SaveToFileStorageTasklet implements Tasklet {
     String password = ediExportConfig.getEdiFtp().getPassword();
     String host = ediExportConfig.getEdiFtp().getServerAddress().replace(SFTP_PROTOCOL, "");
     int port = ediExportConfig.getEdiFtp().getFtpPort();
-    String filename = generateFileName(ediExportConfig);
 
     // skip ftp upload if address not specified
     if (StringUtils.isEmpty(host)) {
       return RepeatStatus.FINISHED;
     }
 
-    var fileContent = (String) ExecutionContextUtils.getExecutionVariable(stepExecution,"edifactOrderAsString");
 
     if (ediExportConfig.getEdiFtp().getFtpFormat().equals(EdiFtp.FtpFormatEnum.SFTP)) {
-      sftpObjectStorageRepository.upload(username, password, host, port, folder, filename, fileContent);
+      try {
+        var uploadedFile = new String(localFilesStorage.readAllBytes(uploadedFilePath), StandardCharsets.UTF_8);
+        sftpObjectStorageRepository.upload(username, password, host, port, folder, edifactFileName, uploadedFile);
+      }
+      finally {
+        localFilesStorage.delete(uploadedFilePath);
+      }
     }
     else {
-      ftpObjectStorageRepository.login(host, username,password);
-      ftpObjectStorageRepository.upload(filename, fileContent);
+      ftpObjectStorageRepository.login(host, username, password);
+      ftpObjectStorageRepository.upload(edifactFileName, edifactOrderAsString);
     }
-    ExecutionContextUtils.addToJobExecutionContext(stepExecution, "edifactFileName", filename, "");
 
     return RepeatStatus.FINISHED;
   }
 
-  private String generateFileName(VendorEdiOrdersExportConfig ediExportConfig) {
-    var orgName = organizationsService.getOrganizationById(ediExportConfig.getVendorId().toString()).get("code").asText();
-    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
-    var fileDate = dateFormat.format(new Date());
-    // exclude restricted symbols after implementing naming convention feature
-    return orgName + "_" + ediExportConfig.getConfigName() + "_" + fileDate + ".edi";
-  }
 }

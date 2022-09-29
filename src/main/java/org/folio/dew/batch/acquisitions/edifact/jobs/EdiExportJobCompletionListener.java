@@ -11,7 +11,9 @@ import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.repository.IAcknowledgementRepository;
+import org.folio.dew.repository.LocalFilesStorage;
 import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +30,7 @@ public class EdiExportJobCompletionListener extends JobExecutionListenerSupport 
 
   private final IAcknowledgementRepository acknowledgementRepository;
   private final KafkaService kafka;
-
+  private final LocalFilesStorage localFilesStorage;
 
   @Override
   public void beforeJob(JobExecution jobExecution) {
@@ -50,6 +52,8 @@ public class EdiExportJobCompletionListener extends JobExecutionListenerSupport 
     }
     log.info("Job update {}.", jobExecution);
 
+    cleanupLocalFileStorage(jobParameters);
+
     var jobExecutionUpdate = createJobExecutionUpdate(jobId, jobExecution);
 
     var acknowledgment = acknowledgementRepository.getAcknowledgement(jobId);
@@ -61,6 +65,13 @@ public class EdiExportJobCompletionListener extends JobExecutionListenerSupport 
     kafka.send(KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     if (after) {
       log.info("-----------------------------JOB---ENDS-----------------------------");
+    }
+  }
+
+  private void cleanupLocalFileStorage(JobParameters jobParameters) {
+    var uploadedFilePath = jobParameters.getString(JobParameterNames.UPLOADED_FILE_PATH);
+    if (StringUtils.isNotEmpty(uploadedFilePath)) {
+      localFilesStorage.delete(uploadedFilePath);
     }
   }
 

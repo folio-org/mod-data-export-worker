@@ -38,6 +38,7 @@ public class SaveToMinioTasklet implements Tasklet {
   private final LocalFilesStorage localFilesStorage;
   private final OrganizationsService organizationsService;
   private final ObjectMapper objectMapper;
+  private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
 
   @Value("${spring.application.name}")
   protected String springApplicationName;
@@ -63,7 +64,6 @@ public class SaveToMinioTasklet implements Tasklet {
     var vendorId = ediExportConfig.getVendorId().toString();
     var vendor = organizationsService.getOrganizationById(vendorId);
     var vendorName = vendor.get("code").asText();
-    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
     var fileDate = dateFormat.format(new Date());
     // exclude restricted symbols after implementing naming convention feature
     return vendorName + "_" + ediExportConfig.getConfigName() + "_" + fileDate + ".edi";

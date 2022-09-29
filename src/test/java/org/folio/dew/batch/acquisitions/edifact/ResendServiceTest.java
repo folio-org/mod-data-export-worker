@@ -11,7 +11,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -23,7 +26,10 @@ import org.folio.dew.batch.acquisitions.edifact.services.SaveToFTPStorageService
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.repository.RemoteFilesStorage;
-import org.folio.spring.FolioExecutionContext;
+import org.folio.spring.DefaultFolioExecutionContext;
+import org.folio.spring.FolioModuleMetadata;
+import org.folio.spring.integration.XOkapiHeaders;
+import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
@@ -38,6 +44,8 @@ class ResendServiceTest extends BaseBatchTest {
   private SaveToFTPStorageService saveToFTPStorageService;
   @MockBean
   private KafkaService kafka;
+  @Autowired
+  private FolioModuleMetadata folioModuleMetadata;
   @Autowired
   private ResendService resendService;
 
@@ -65,6 +73,11 @@ class ResendServiceTest extends BaseBatchTest {
     doNothing().when(saveToFTPStorageService).uploadToFtp(any(), anyString(), anyString());
     String exportedFile = getMockData("edifact/edifactFTPOrdersExport.json");
     doReturn(exportedFile.getBytes()).when(remoteFilesStorage).readAllBytes(anyString());
+
+    Map<String, Collection<String>> okapiHeaders = new LinkedHashMap<>();
+    okapiHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
+    var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
+    FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
 
     resendService.resendExportedFile(getJobCommand(ID), acknowledgment);
 

@@ -38,7 +38,7 @@ public class SaveToMinioTasklet implements Tasklet {
   private final LocalFilesStorage localFilesStorage;
   private final OrganizationsService organizationsService;
   private final ObjectMapper objectMapper;
-  private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+  private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
 
   @Value("${spring.application.name}")
   protected String springApplicationName;

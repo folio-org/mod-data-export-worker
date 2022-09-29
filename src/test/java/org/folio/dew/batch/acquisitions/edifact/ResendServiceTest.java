@@ -11,13 +11,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
@@ -25,11 +23,7 @@ import org.folio.dew.batch.acquisitions.edifact.services.ResendService;
 import org.folio.dew.batch.acquisitions.edifact.services.SaveToFTPStorageService;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
-import org.folio.dew.repository.RemoteFilesStorage;
-import org.folio.spring.DefaultFolioExecutionContext;
-import org.folio.spring.FolioModuleMetadata;
-import org.folio.spring.integration.XOkapiHeaders;
-import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
+import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
@@ -39,20 +33,18 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 class ResendServiceTest extends BaseBatchTest {
 
   @MockBean
-  private RemoteFilesStorage remoteFilesStorage;
-  @MockBean
   private SaveToFTPStorageService saveToFTPStorageService;
   @MockBean
   private KafkaService kafka;
-  @Autowired
-  private FolioModuleMetadata folioModuleMetadata;
   @Autowired
   private ResendService resendService;
 
   private final static String EMPTY_ID = "";
   private final static String ID = UUID.randomUUID().toString();
-  private static final String EDIFACT_ORDERS_EXPORT_KEY = "EDIFACT_ORDERS_EXPORT";
   private static final String FILE_NAME_KEY = "FILE_NAME";
+  private static final String EDIFACT_ORDERS_EXPORT_KEY = "EDIFACT_ORDERS_EXPORT";
+  private static final String TENANT_FOLDER = TENANT + "/testExportedFile.csv";
+  private static final String EDIFACT_ORDERS_EXPORT_DATA = "src/test/resources/upload/testExportedFile.csv";
 
   @Test
   public void shouldFailedResend() {
@@ -71,17 +63,10 @@ class ResendServiceTest extends BaseBatchTest {
     doNothing().when(acknowledgment).acknowledge();
     doNothing().when(kafka).send(any(), anyString(), any());
     doNothing().when(saveToFTPStorageService).uploadToFtp(any(), anyString(), anyString());
-    String exportedFile = getMockData("edifact/edifactFTPOrdersExport.json");
-    doReturn(exportedFile.getBytes()).when(remoteFilesStorage).readAllBytes(anyString());
-
-    Map<String, Collection<String>> okapiHeaders = new LinkedHashMap<>();
-    okapiHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
-    var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
-    FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
+    remoteFilesStorage.upload(TENANT_FOLDER, EDIFACT_ORDERS_EXPORT_DATA);
 
     resendService.resendExportedFile(getJobCommand(ID), acknowledgment);
 
-    verify(remoteFilesStorage, times(1)).readAllBytes(anyString());
     verify(saveToFTPStorageService, times(1)).uploadToFtp(any(), anyString(), anyString());
   }
 

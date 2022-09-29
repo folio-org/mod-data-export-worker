@@ -19,9 +19,11 @@ import org.folio.de.entity.JobCommand;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
 import org.folio.dew.batch.acquisitions.edifact.services.ResendService;
+import org.folio.dew.batch.acquisitions.edifact.services.SaveToFTPStorageService;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.repository.RemoteFilesStorage;
+import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
@@ -32,6 +34,8 @@ class ResendServiceTest extends BaseBatchTest {
 
   @MockBean
   private RemoteFilesStorage remoteFilesStorage;
+  @MockBean
+  private SaveToFTPStorageService saveToFTPStorageService;
   @MockBean
   private KafkaService kafka;
   @Autowired
@@ -44,6 +48,7 @@ class ResendServiceTest extends BaseBatchTest {
 
   @Test
   public void shouldFailedResend() {
+    doNothing().when(acknowledgment).acknowledge();
     Exception exception = assertThrows(EdifactException.class, () -> {
       resendService.resendExportedFile(getJobCommand(EMPTY_ID), acknowledgment);
     });
@@ -57,12 +62,14 @@ class ResendServiceTest extends BaseBatchTest {
   public void shouldResendSuccessful() throws Exception {
     doNothing().when(acknowledgment).acknowledge();
     doNothing().when(kafka).send(any(), anyString(), any());
+    doNothing().when(saveToFTPStorageService).uploadToFtp(any(), anyString(), anyString());
     String exportedFile = getMockData("edifact/edifactFTPOrdersExport.json");
     doReturn(exportedFile.getBytes()).when(remoteFilesStorage).readAllBytes(anyString());
 
     resendService.resendExportedFile(getJobCommand(ID), acknowledgment);
 
     verify(remoteFilesStorage, times(1)).readAllBytes(anyString());
+    verify(saveToFTPStorageService, times(1)).uploadToFtp(any(), anyString(), anyString());
   }
 
   private JobCommand getJobCommand(String id) throws IOException {

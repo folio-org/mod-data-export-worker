@@ -28,7 +28,7 @@ public class ResendService {
 
   private final RemoteFilesStorage remoteFilesStorage;
   private final FolioExecutionContext folioExecutionContext;
-//  private final SaveToFTPStorageService saveToFTPStorageService;
+  private final SaveToFTPStorageService saveToFTPStorageService;
   private final ObjectMapper objectMapper;
   private final KafkaService kafka;
 
@@ -56,7 +56,7 @@ public class ResendService {
       String path = String.format("%s/%s", tenantName, fileName);
 
       byte[] exportFile = remoteFilesStorage.readAllBytes(path);
-//      saveToFTPStorageService.uploadToFtp(ediConfig, new String(exportFile), fileName);
+      saveToFTPStorageService.uploadToFtp(ediConfig, new String(exportFile), fileName);
       job.setStatus(JobStatus.SUCCESSFUL);
       log.info("Resend operation finished");
     } catch (Exception e) {

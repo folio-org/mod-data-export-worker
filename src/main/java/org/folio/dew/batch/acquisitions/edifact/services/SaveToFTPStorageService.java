@@ -42,7 +42,7 @@ public class SaveToFTPStorageService {
       sftpObjectStorageRepository.upload(username, password, host, port, folder, filename, fileContent);
     }
     else {
-      ftpObjectStorageRepository.login(host, username,password);
+      ftpObjectStorageRepository.login(host, username, password);
       ftpObjectStorageRepository.upload(filename, fileContent);
     }
   }

@@ -28,7 +28,7 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-public class ResendServiceTest extends BaseBatchTest {
+class ResendServiceTest extends BaseBatchTest {
 
   @MockBean
   private RemoteFilesStorage remoteFilesStorage;

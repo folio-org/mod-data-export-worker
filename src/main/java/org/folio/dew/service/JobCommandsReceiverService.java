@@ -27,6 +27,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.de.entity.JobCommandType;
+import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.ExportJobManagerSync;
 import org.folio.dew.batch.acquisitions.edifact.services.ResendService;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
@@ -64,6 +65,7 @@ import lombok.extern.log4j.Log4j2;
 public class JobCommandsReceiverService {
 
   private final ObjectMapper objectMapper;
+  private final ExportJobManager exportJobManager;
   private final ExportJobManagerSync exportJobManagerSync;
   private final BursarExportService bursarExportService;
   private final IAcknowledgementRepository acknowledgementRepository;

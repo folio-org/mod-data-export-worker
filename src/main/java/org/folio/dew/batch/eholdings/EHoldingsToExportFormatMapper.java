@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import joptsimple.internal.Strings;
-import org.folio.dew.domain.dto.eholdings.Token;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 

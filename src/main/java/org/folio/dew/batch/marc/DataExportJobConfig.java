@@ -2,11 +2,13 @@ package org.folio.dew.batch.marc;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.folio.dew.batch.AbstractStorageStreamWriter;
 import org.folio.dew.batch.CsvFileAssembler;
 import org.folio.dew.batch.CsvPartStepExecutionListener;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.NonSupportedEntityException;
+import org.folio.dew.repository.LocalFilesStorage;
 import org.marc4j.marc.Record;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -16,7 +18,6 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +30,7 @@ public class DataExportJobConfig {
   private static final int POOL_SIZE = 10;
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
+  private final LocalFilesStorage localFilesStorage;
 
   @Bean
   public Job dataExportJob(
@@ -63,7 +65,7 @@ public class DataExportJobConfig {
   @Bean
   public Step dataExportPartitionStep(
     DataExportCsvItemReader dataExportCsvItemReader,
-    FlatFileItemWriter<Record> recordWriter,
+    AbstractStorageStreamWriter<Record, LocalFilesStorage> recordWriter,
     ItemProcessor<ItemIdentifier, Record> processor,
     CsvPartStepExecutionListener csvPartStepExecutionListener
   ) {
@@ -87,7 +89,7 @@ public class DataExportJobConfig {
     @Value("#{jobParameters['offset']}") Long offset,
     @Value("#{jobParameters['limit']}") Long limit,
     @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath) {
-    return new DataExportCsvPartitioner(offset, limit, tempOutputFilePath, fileName);
+    return new DataExportCsvPartitioner(offset, limit, tempOutputFilePath, fileName, localFilesStorage);
   }
 
   @Bean
@@ -96,14 +98,14 @@ public class DataExportJobConfig {
     @Value("#{jobParameters['fileName']}") String fileName,
     @Value("#{stepExecutionContext['offset']}") Long offset,
     @Value("#{stepExecutionContext['limit']}") Long limit) {
-    return new DataExportCsvItemReader(fileName, offset, limit);
+    return new DataExportCsvItemReader(fileName, offset, limit, localFilesStorage);
   }
 
   @Bean
   @StepScope
-  public FlatFileItemWriter<Record> recordWriter(
+  public AbstractStorageStreamWriter<Record, LocalFilesStorage> recordWriter(
     @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath) {
-    return new MarcWriter(tempOutputFilePath);
+    return new MarcWriter(tempOutputFilePath, localFilesStorage);
   }
 
   @Bean

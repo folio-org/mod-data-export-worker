@@ -3,33 +3,29 @@ package org.folio.dew.service;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.isNull;
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
-import io.minio.ObjectWriteResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.folio.dew.domain.dto.Error;
 import org.folio.dew.domain.dto.Errors;
 import org.folio.dew.error.FileOperationException;
-import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -40,13 +36,15 @@ public class BulkEditProcessingErrorsService {
   public static final DateTimeFormatter CSV_NAME_DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
   public static final String STORAGE = "storage";
 
-  private static final String STORAGE_TEMPLATE = "." + File.separator + STORAGE + File.separator + "%s";
+  private static final String STORAGE_TEMPLATE = "E" + File.separator + STORAGE + File.separator + "%s";
   private static final String CSV_FILE_TEMPLATE = STORAGE_TEMPLATE + File.separator + "%s";
   private static final String CONTENT_TYPE = "text/csv";
   public static final String COMMA_SEPARATOR = ",";
   public static final String BULK_EDIT_ERROR_TYPE_NAME = "BULK_EDIT_ERROR";
 
-  private final MinIOObjectStorageRepository minIOObjectStorageRepository;
+  private final RemoteFilesStorage remoteFilesStorage;
+
+  private final LocalFilesStorage localFilesStorage;
 
   public void saveErrorInCSV(String jobId, String affectedIdentifier, Throwable reasonForError, String fileName) {
     if (isNull(jobId) || isNull(affectedIdentifier) || isNull(reasonForError) || isNull(fileName)) {
@@ -57,11 +55,9 @@ public class BulkEditProcessingErrorsService {
     var errorMessages = reasonForError.getMessage().split(COMMA_SEPARATOR);
     for (var errorMessage: errorMessages) {
       var errorLine = affectedIdentifier + COMMA_SEPARATOR + errorMessage + System.lineSeparator();
-      var pathToStorage = getPathToStorage(jobId);
       var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
       try {
-        Files.createDirectories(pathToStorage);
-        Files.write(pathToCSVFile, errorLine.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        localFilesStorage.append(pathToCSVFile, errorLine.getBytes(StandardCharsets.UTF_8));
       } catch (IOException ioException) {
         log.error("Failed to save {} error file with job id {} cause {}", csvFileName, jobId, ioException);
       }
@@ -73,8 +69,8 @@ public class BulkEditProcessingErrorsService {
     var csvFileName = getCsvFileName(jobId, fileName);
     var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
 
-    if (Files.exists(pathToCSVFile)) {
-      try (var lines = Files.lines(pathToCSVFile)) {
+    if (localFilesStorage.exists(pathToCSVFile)) {
+      try (var lines = localFilesStorage.lines(pathToCSVFile)) {
         var errors = lines.limit(limit)
           .map(message -> new Error().message(message).type(BULK_EDIT_ERROR_TYPE_NAME))
           .collect(toList());
@@ -90,29 +86,21 @@ public class BulkEditProcessingErrorsService {
     }
   }
 
-  public void removeTemporaryErrorStorage(String jobId) {
-    Path storage = Paths.get("." + File.separator + BulkEditProcessingErrorsService.STORAGE);
-    if (Files.exists(storage)) {
-      try (Stream<Path> stream = Files.walk(storage)) {
-        stream.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
-        log.info("Deleted temporary error storage of job {}.", jobId);
-      } catch (IOException e) {
-        log.error("Error occurred while deleting temporary error storage", e);
-      }
-    }
+  public void removeTemporaryErrorStorage() {
+    localFilesStorage.delete("E" + File.separator + BulkEditProcessingErrorsService.STORAGE);
   }
 
   public String saveErrorFileAndGetDownloadLink(String jobId) {
     var pathToStorage = getPathToStorage(jobId);
-    if (Files.exists(pathToStorage)) {
-      try (Stream<Path> stream = Files.list(pathToStorage)) {
-        Optional<Path> csvErrorFile = stream.filter(Files::isRegularFile).findFirst();
+    if (localFilesStorage.exists(pathToStorage)) {
+      try (Stream<String> stream = localFilesStorage.walk(pathToStorage)) {
+        Optional<String> csvErrorFile = stream.findFirst();
         if (csvErrorFile.isPresent()) {
-          var filename = csvErrorFile.get().toAbsolutePath().toString();
+          var filename = csvErrorFile.get();
           var downloadFilename = FilenameUtils.getName(filename);
           return saveErrorFile(downloadFilename, filename);
         } else {
-          log.error("Download link cannot be created because CSV error file cannot be found at {}", pathToStorage.toString());
+          log.error("Download link cannot be created because CSV error file cannot be found at {}", pathToStorage);
           throw new FileNotFoundException();
         }
       } catch (IOException e) {
@@ -126,7 +114,7 @@ public class BulkEditProcessingErrorsService {
 
   private String saveErrorFile(String downloadFilename, String filename) {
     try {
-      ObjectWriteResponse objectWriteResponse = minIOObjectStorageRepository.uploadObject(downloadFilename, filename, downloadFilename, CONTENT_TYPE, false);
+      var objectWriteResponse = remoteFilesStorage.uploadObject(downloadFilename, filename, downloadFilename, CONTENT_TYPE, false);
       log.info("CSV error file {} was saved into S3 successfully", downloadFilename);
       return getDownloadLink(objectWriteResponse);
     } catch (Exception e) {
@@ -135,30 +123,32 @@ public class BulkEditProcessingErrorsService {
     }
   }
 
-  private String getDownloadLink(ObjectWriteResponse objectWriteResponse) {
+  private String getDownloadLink(String objectWriteResponse) {
     try {
-      return minIOObjectStorageRepository.objectWriteResponseToPresignedObjectUrl(objectWriteResponse);
+      return remoteFilesStorage.objectToPresignedObjectUrl(objectWriteResponse);
     } catch (Exception e) {
       log.error("Error occurred while getting the link to error CSV file from S3", e);
       throw new IllegalStateException(e);
     }
   }
 
-  private Path getPathToStorage(String jobId) {
-    return Paths.get(format(STORAGE_TEMPLATE, jobId));
+  private String getPathToStorage(String jobId) {
+    return format(STORAGE_TEMPLATE, jobId);
   }
 
-  private Path getPathToCsvFile(String jobId, String csvFileName) {
-    return Paths.get(format(CSV_FILE_TEMPLATE, jobId, csvFileName));
+  private String getPathToCsvFile(String jobId, String csvFileName) {
+    return format(CSV_FILE_TEMPLATE, jobId, csvFileName);
   }
 
   private String getCsvFileName(String jobId, String fileName) {
     var pathToStorage = getPathToStorage(jobId);
     List<String> names = new ArrayList<>();
 
-    if (Files.exists(pathToStorage)) {
-      names = Arrays.stream(requireNonNull(pathToStorage.toFile().listFiles()))
-        .map(File::getName).collect(toList());
+    if (localFilesStorage.exists(pathToStorage)) {
+      names = localFilesStorage.walk(pathToStorage).map(x -> {
+        var n = x.split("/");
+        return n[n.length - 1];
+      }).collect(Collectors.toList());
     }
     if (names.isEmpty()) {
       return LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Errors-" + fileName;

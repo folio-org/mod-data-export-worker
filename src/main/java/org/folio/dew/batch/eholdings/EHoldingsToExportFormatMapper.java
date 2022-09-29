@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import joptsimple.internal.Strings;
+import org.folio.dew.domain.dto.eholdings.Token;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -113,6 +114,7 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setPackageType(packageAtr.getPackageType());
     exportFormat.setPackageContentType(packageAtr.getContentType().getValue());
     exportFormat.setPackageCustomCoverage(mapCoverage(packageAtr.getCustomCoverage()));
+    exportFormat.setPackageLevelToken(mapToken(packageAtr.getPackageToken()));
     exportFormat.setPackageProxy(mapProxy(packageAtr.getProxy()));
     exportFormat.setPackageTags(mapTags(packageAtr.getTags()));
     exportFormat.setPackageHoldingsStatus(mapHoldingsStatus(packageAtr.getIsSelected()));
@@ -177,6 +179,11 @@ public class EHoldingsToExportFormatMapper {
   private String convertBoolToStr(Boolean isTrue) {
     if (isNull(isTrue)) { return ""; }
     return Boolean.TRUE.equals(isTrue) ? "Yes" : "No";
+  }
+
+  private String mapToken(Token token) {
+    if (isNull(token)) { return ""; }
+    return token.getPrompt() + ';' + token.getValue();
   }
 
   private String mapAccessType(List<Object> included) {

@@ -19,7 +19,7 @@ import java.util.UUID;
 
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.repository.InMemoryAcknowledgementRepository;
-import org.folio.dew.repository.MinIOObjectStorageRepository;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.spring.DefaultFolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
@@ -47,7 +47,6 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ContextConfiguration;
@@ -71,7 +70,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 @AutoConfigureMockMvc
 @EmbeddedKafka(topics = { "diku.data-export.job.command" })
-@EnableKafka
 @EnableBatchProcessing
 public abstract class BaseBatchTest {
   protected static final String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjFkM2I1OGNiLTA3YjUtNWZjZC04YTJhLTNjZTA2YTBlYjkwZiIsImlhdCI6MTYxNjQyMDM5MywidGVuYW50IjoiZGlrdSJ9.2nvEYQBbJP1PewEgxixBWLHSX_eELiBEBpjufWiJZRs";
@@ -92,7 +90,7 @@ public abstract class BaseBatchTest {
   @Autowired
   protected ObjectMapper objectMapper;
   @Autowired
-  protected MinIOObjectStorageRepository minIOObjectStorageRepository;
+  protected RemoteFilesStorage remoteFilesStorage;
   @SpyBean
   protected JobCommandsReceiverService jobCommandsReceiverService;
   @Autowired
@@ -170,7 +168,7 @@ public abstract class BaseBatchTest {
     var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
     FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
 
-    minIOObjectStorageRepository.createBucketIfNotExists();
+    remoteFilesStorage.createBucketIfNotExists();
   }
 
   @AfterEach

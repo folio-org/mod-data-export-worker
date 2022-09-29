@@ -175,7 +175,8 @@
           "permissionsRequired": [ "bulk-edit.preview-users.collection.get" ],
           "modulePermissions": [
             "users.collection.get",
-            "addresstypes.collection.get"
+            "addresstypes.collection.get",
+            "usergroups.collection.get"
           ]
         },
         {
@@ -185,7 +186,18 @@
           "modulePermissions": [
             "inventory.items.collection.get",
             "inventory-storage.material-types.collection.get",
-            "inventory-storage.statistical-codes.collection.get"
+            "inventory-storage.statistical-codes.collection.get",
+            "inventory-storage.item-note-types.collection.get",
+            "inventory-storage.call-number-types.collection.get",
+            "inventory-storage.electronic-access-relationships.collection.get",
+            "inventory-storage.service-points.collection.get",
+            "users.collection.get",
+            "inventory-storage.locations.collection.get",
+            "inventory-storage.loan-types.collection.get",
+            "inventory-storage.item-damaged-statuses.collection.get",
+            "inventory-storage.instances.collection.get",
+            "inventory-storage.holdings.collection.get",
+            "configuration.entries.collection.get"
           ]
         },
         {
@@ -447,6 +459,30 @@
       {
         "name": "AWS_SECRET_ACCESS_KEY",
         "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+      },
+      {
+        "name": "LOCAL_FS_URL",
+        "value": "http://127.0.0.1:9000/"
+      },
+      {
+        "name": "LOCAL_FS_REGION",
+        "value": ""
+      },
+      {
+        "name": "LOCAL_FS_BUCKET",
+        "value": "local-test-bucket2"
+      },
+      {
+        "name": "LOCAL_FS_ACCESS_KEY_ID",
+        "value": "AKIAIOSFODNN7EXAMPLE"
+      },
+      {
+        "name": "LOCAL_FS_SECRET_ACCESS_KEY",
+        "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+      },
+      {
+        "name": "LOCAL_FS_COMPOSE_WITH_AWS_SDK",
+        "value": "false"
       },
       {
         "name": "ENV",

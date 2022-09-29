@@ -6,6 +6,8 @@ import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+
 @Component
 @Log4j2
 public class EmailUpdateStrategy implements UpdateStrategy<UserFormat, UserContentUpdate> {
@@ -15,7 +17,7 @@ public class EmailUpdateStrategy implements UpdateStrategy<UserFormat, UserConte
     var findValue = update.getActions().get(0).getValue().toString();
     var replaceWithValue = update.getActions().get(1).getValue().toString();
     if (email.domainMatch(findValue)) {
-      return userFormat.withEmail(email.asStringWithDomain(replaceWithValue));
+      return userFormat.withEmail(email.asStringWithDomain(findValue, replaceWithValue));
     }
     throw new BulkEditException("Email does not match find criteria");
   }
@@ -23,6 +25,7 @@ public class EmailUpdateStrategy implements UpdateStrategy<UserFormat, UserConte
   static class Email {
     private final String localPart;
     private final String domain;
+    private final String [] domainTokens;
 
     public Email(String emailString) {
       var tokens = emailString.split("@");
@@ -33,14 +36,15 @@ public class EmailUpdateStrategy implements UpdateStrategy<UserFormat, UserConte
       }
       localPart = tokens[0];
       domain = tokens[1];
+      domainTokens = domain.split("[.]");
     }
 
     public boolean domainMatch(String value) {
-      return domain.equals(value);
+      return domain.equals(value) || Arrays.stream(domainTokens).anyMatch(t -> t.equals(value));
     }
 
-    public String asStringWithDomain(String value) {
-      return String.join("@", localPart, value);
+    public String asStringWithDomain(String findValue, String replaceWithValue) {
+      return String.join("@", localPart, domain.replace(findValue, replaceWithValue));
     }
   }
 }

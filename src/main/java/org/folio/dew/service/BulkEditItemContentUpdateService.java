@@ -17,6 +17,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
+import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
@@ -65,7 +66,7 @@ public class BulkEditItemContentUpdateService {
 
   @PostConstruct
   public void postConstruct() {
-    workdir = getWorkingDirectory(springApplicationName);
+    workdir = getWorkingDirectory(springApplicationName, BULKEDIT_DIR_NAME);
   }
 
   public UpdatesResult<ItemFormat> processContentUpdates(JobCommand jobCommand, ItemContentUpdateCollection contentUpdates) {

@@ -1,5 +1,6 @@
 package org.folio.dew.batch.acquisitions.edifact.services;
 
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +57,7 @@ public class ResendService {
       String path = String.format("%s/%s", tenantName, fileName);
 
       byte[] exportFile = remoteFilesStorage.readAllBytes(path);
-      ftpStorageService.uploadToFtp(ediConfig, new String(exportFile), fileName);
+      ftpStorageService.uploadToFtp(ediConfig, new String(exportFile, StandardCharsets.UTF_8), fileName);
       job.setStatus(JobStatus.SUCCESSFUL);
       log.info("Resend operation finished for job ID: {}", jobId);
     } catch (Exception e) {

@@ -47,12 +47,14 @@ public class Constants {
   public static final String STATUS_VALUE_NOT_ALLOWED = "New status value \"%s\" is not allowed";
 
   public static final String MODULE_NAME = "BULKEDIT";
+  public static final String BULKEDIT_DIR_NAME = "bulk_edit";
+  public static final String EDIFACT_EXPORT_DIR_NAME = "edifact_export";
   public static final String STATUSES_CONFIG_NAME = "statuses";
   public static final String BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE = "module==%s and configName==%s";
   public static final String FILE_UPLOAD_ERROR = "Cannot upload a file. Reason: %s.";
 
-  public static String getWorkingDirectory(String springApplicationName) {
-    return springApplicationName + PATH_SEPARATOR + "bulk_edit" + PATH_SEPARATOR;
+  public static String getWorkingDirectory(String springApplicationName, String dirName) {
+    return springApplicationName + PATH_SEPARATOR + dirName + PATH_SEPARATOR;
   }
 
 }

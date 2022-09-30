@@ -15,6 +15,7 @@ public class JobParameterNames {
   public static final String UPDATED_FILE_NAME = "updatedFileName";
   public static final String PREVIEW_FILE_NAME = "previewFileName";
   public static final String UPLOADED_FILE_PATH = "uploadedFilePath";
+  public static final String EDIFACT_FILE_NAME = "edifactFileName";
   public static final String QUERY = "query";
 
 }

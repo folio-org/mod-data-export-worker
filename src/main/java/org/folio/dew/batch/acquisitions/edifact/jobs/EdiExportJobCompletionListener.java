@@ -1,5 +1,6 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -20,6 +21,9 @@ import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 
 @Component
 @Log4j2
@@ -85,7 +89,12 @@ public class EdiExportJobCompletionListener extends JobExecutionListenerSupport 
       result.setDescription(jobDescription);
     }
 
-    String ftpUploadedFile = ExecutionContextUtils.getFromJobExecutionContext(jobExecution,"edifactFileName");
+    String outputFilesInStorage = ExecutionContextUtils.getFromJobExecutionContext(jobExecution, OUTPUT_FILES_IN_STORAGE);
+    if (StringUtils.isNotBlank(outputFilesInStorage)) {
+      result.setFiles(Arrays.asList(outputFilesInStorage.split(PATHS_DELIMITER)));
+    }
+
+    String ftpUploadedFile = ExecutionContextUtils.getFromJobExecutionContext(jobExecution, EDIFACT_FILE_NAME);
     if (StringUtils.isNotBlank(ftpUploadedFile)) {
       result.setFileNames(List.of(ftpUploadedFile));
     }

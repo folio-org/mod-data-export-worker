@@ -1,5 +1,8 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+import static org.folio.dew.domain.dto.JobParameterNames.UPLOADED_FILE_PATH;
 import static org.folio.dew.utils.Constants.EDIFACT_EXPORT_DIR_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
@@ -55,11 +58,16 @@ public class SaveToMinioTasklet implements Tasklet {
     var jobParameters = chunkContext.getStepContext().getJobParameters();
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
 
-    var downloadFilename = createTempFile(ediExportConfig, edifactOrderAsString);
-    var pathToUpload = folioExecutionContext.getTenantId() + FilenameUtils.getName(downloadFilename);
+    var uploadedLocalFile = createTempFile(ediExportConfig, edifactOrderAsString);
+    String edifactFileName = FilenameUtils.getName(uploadedLocalFile);
+    var pathToUpload = folioExecutionContext.getTenantId() + edifactFileName;
 
-    var uploadedFilePath = remoteFilesStorage.uploadObject(pathToUpload, downloadFilename, downloadFilename, MediaType.TEXT_PLAIN_VALUE, false);
-    ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), "uploadedFilePath", uploadedFilePath, "");
+    var uploadedFilePath = remoteFilesStorage.objectToPresignedObjectUrl(
+      remoteFilesStorage.uploadObject(pathToUpload, uploadedLocalFile, uploadedLocalFile, MediaType.TEXT_PLAIN_VALUE, false));
+
+    ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), UPLOADED_FILE_PATH, uploadedLocalFile, "");
+    ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), EDIFACT_FILE_NAME, edifactFileName, "");
+    ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), OUTPUT_FILES_IN_STORAGE, uploadedFilePath, ";");
 
     return RepeatStatus.FINISHED;
   }

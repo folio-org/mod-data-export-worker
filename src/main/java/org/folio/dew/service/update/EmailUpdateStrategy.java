@@ -6,8 +6,6 @@ import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-
 @Component
 @Log4j2
 public class EmailUpdateStrategy implements UpdateStrategy<UserFormat, UserContentUpdate> {

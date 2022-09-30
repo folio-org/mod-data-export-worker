@@ -9,11 +9,13 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
+import org.folio.spring.FolioExecutionContext;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -37,6 +39,7 @@ public class SaveToMinioTasklet implements Tasklet {
   private final RemoteFilesStorage remoteFilesStorage;
   private final LocalFilesStorage localFilesStorage;
   private final OrganizationsService organizationsService;
+  private final FolioExecutionContext folioExecutionContext;
   private final ObjectMapper objectMapper;
   private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
 
@@ -53,8 +56,9 @@ public class SaveToMinioTasklet implements Tasklet {
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
 
     var downloadFilename = createTempFile(ediExportConfig, edifactOrderAsString);
+    var pathToUpload = folioExecutionContext.getTenantId() + FilenameUtils.getName(downloadFilename);
 
-    var uploadedFilePath = remoteFilesStorage.uploadObject(edifactOrderAsString, downloadFilename, downloadFilename, MediaType.TEXT_PLAIN_VALUE, false);
+    var uploadedFilePath = remoteFilesStorage.uploadObject(pathToUpload, downloadFilename, downloadFilename, MediaType.TEXT_PLAIN_VALUE, false);
     ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), "uploadedFilePath", uploadedFilePath, "");
 
     return RepeatStatus.FINISHED;

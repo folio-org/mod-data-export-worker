@@ -1,9 +1,10 @@
 package org.folio.dew.service;
 
-import static org.hamcrest.Matchers.isA;
+import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -13,16 +14,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.folio.de.entity.JobCommandType;
-
-import org.folio.dew.domain.dto.EHoldingsExportConfig;
-import org.folio.dew.domain.dto.JobParameterNames;
-import org.folio.dew.domain.dto.ExportType;
 import org.folio.de.entity.JobCommand;
+import org.folio.de.entity.JobCommandType;
 import org.folio.dew.BaseBatchTest;
-
+import org.folio.dew.domain.dto.EHoldingsExportConfig;
+import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.repository.JobCommandRepository;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.JobExecutionException;
@@ -51,6 +50,19 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     final Acknowledgment savedAcknowledgment = repository.getAcknowledgement(id.toString());
 
     assertNotNull(savedAcknowledgment);
+  }
+
+  @Test
+  @DisplayName("Resend job by kafka request")
+  void startResendTest() throws JobExecutionException {
+    doNothing().when(acknowledgment).acknowledge();
+
+    UUID id = UUID.randomUUID();
+    JobCommand jobCommand = createStartResendRequest(id);
+
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
+
+    verify(exportJobManagerSync, never()).launchJob(any());
   }
 
   @Test
@@ -141,6 +153,26 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
     Map<String, JobParameter> params = new HashMap<>();
     params.put("query", new JobParameter(""));
+    jobCommand.setJobParameters(new JobParameters(params));
+    return jobCommand;
+  }
+
+  private JobCommand createStartResendRequest(UUID id) {
+    JobCommand jobCommand = new JobCommand();
+    jobCommand.setType(JobCommandType.RESEND);
+    jobCommand.setId(id);
+    jobCommand.setName(ExportType.EDIFACT_ORDERS_EXPORT.toString());
+    jobCommand.setDescription("Resent job test desc");
+    jobCommand.setExportType(ExportType.EDIFACT_ORDERS_EXPORT);
+
+    VendorEdiOrdersExportConfig config = new VendorEdiOrdersExportConfig();
+    config.setVendorId(UUID.randomUUID());
+
+    Map<String, JobParameter> params = new HashMap<>();
+    params.put(JOB_ID, new JobParameter(id.toString()));
+    params.put("FILE_NAME", new JobParameter("TestFile.csv"));
+    params.put("EDIFACT_ORDERS_EXPORT", new JobParameter(asJsonString(config)));
+
     jobCommand.setJobParameters(new JobParameters(params));
     return jobCommand;
   }

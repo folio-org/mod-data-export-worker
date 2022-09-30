@@ -6,6 +6,7 @@ import static org.folio.dew.utils.Constants.getWorkingDirectory;
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.util.UUID;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
+import org.folio.dew.repository.FTPObjectStorageRepository;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.SFTPObjectStorageRepository;
 import org.junit.jupiter.api.Test;
@@ -38,6 +40,8 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
   @MockBean
   private SFTPObjectStorageRepository sftpObjectStorageRepository;
   @MockBean
+  private FTPObjectStorageRepository ftpObjectStorageRepository;
+  @MockBean
   private OrganizationsService organizationsService;
 
   @Test
@@ -49,13 +53,28 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
     JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
     doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
 
-    JobExecution jobExecution = testLauncher.launchStep("saveToFTPStep", getJobParameters());
+    JobExecution jobExecution = testLauncher.launchStep("saveToFTPStep", getSFTPJobParameters());
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
   }
 
-  private JobParameters getJobParameters() throws IOException {
+  @Test
+  @DirtiesContext
+  void ftpUploadSuccessful() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+
+    JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
+    doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
+    doReturn(true).when(ftpObjectStorageRepository).login(anyString(),anyString(),anyString());
+    doNothing().when(ftpObjectStorageRepository).upload(anyString(), anyString());
+
+    JobExecution jobExecution = testLauncher.launchStep("saveToFTPStep", getFTPJobParameters());
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  private JobParameters getSFTPJobParameters() throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
 
     paramsBuilder.addString("edifactOrdersExport", getMockData("edifact/edifactOrdersExport.json"));
@@ -68,6 +87,15 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
     var fileContent = RandomStringUtils.random(100);
     var uploadedFilePath = localFilesStorage.write(workDir + filename, fileContent.getBytes(StandardCharsets.UTF_8));
     paramsBuilder.addString("uploadedFilePath", uploadedFilePath);
+
+    return paramsBuilder.toJobParameters();
+  }
+
+  private JobParameters getFTPJobParameters() throws IOException {
+    JobParametersBuilder paramsBuilder = new JobParametersBuilder();
+
+    paramsBuilder.addString("edifactOrdersExport", getMockData("edifact/edifactFTPOrdersExport.json"));
+    paramsBuilder.addString("jobId", UUID.randomUUID().toString());
 
     return paramsBuilder.toJobParameters();
   }

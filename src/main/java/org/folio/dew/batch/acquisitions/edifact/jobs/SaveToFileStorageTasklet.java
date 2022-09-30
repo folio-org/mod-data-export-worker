@@ -3,11 +3,10 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.batch.acquisitions.edifact.services.FTPStorageService;
 import org.folio.dew.domain.dto.EdiFtp;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
-import org.folio.dew.repository.FTPObjectStorageRepository;
 import org.folio.dew.repository.LocalFilesStorage;
-import org.folio.dew.repository.SFTPObjectStorageRepository;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -28,8 +27,7 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class SaveToFileStorageTasklet implements Tasklet {
   private final ObjectMapper objectMapper;
-  private final SFTPObjectStorageRepository sftpObjectStorageRepository;
-  private final FTPObjectStorageRepository ftpObjectStorageRepository;
+  private final FTPStorageService ftpStorageService;
 
   private final LocalFilesStorage localFilesStorage;
 
@@ -49,24 +47,17 @@ public class SaveToFileStorageTasklet implements Tasklet {
     var jobParameters = chunkContext.getStepContext().getJobParameters();
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
 
-    String username = ediExportConfig.getEdiFtp().getUsername();
-    String folder = ediExportConfig.getEdiFtp().getOrderDirectory();
-    String password = ediExportConfig.getEdiFtp().getPassword();
     String host = ediExportConfig.getEdiFtp().getServerAddress().replace(SFTP_PROTOCOL, "");
-    int port = ediExportConfig.getEdiFtp().getFtpPort();
-
     // skip ftp upload if address not specified
     if (StringUtils.isEmpty(host)) {
       return RepeatStatus.FINISHED;
     }
 
-    if (ediExportConfig.getEdiFtp().getFtpFormat().equals(EdiFtp.FtpFormatEnum.SFTP)) {
+    if (EdiFtp.FtpFormatEnum.SFTP.equals(ediExportConfig.getEdiFtp().getFtpFormat())) {
       var uploadedFile = new String(localFilesStorage.readAllBytes(uploadedFilePath), StandardCharsets.UTF_8);
-      sftpObjectStorageRepository.upload(username, password, host, port, folder, edifactFileName, uploadedFile);
-    }
-    else {
-      ftpObjectStorageRepository.login(host, username, password);
-      ftpObjectStorageRepository.upload(edifactFileName, edifactOrderAsString);
+      ftpStorageService.uploadToFtp(ediExportConfig, uploadedFile, edifactFileName);
+    } else {
+      ftpStorageService.uploadToFtp(ediExportConfig, edifactOrderAsString, edifactFileName);
     }
 
     return RepeatStatus.FINISHED;

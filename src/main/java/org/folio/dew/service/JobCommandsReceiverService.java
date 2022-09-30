@@ -33,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
+import org.folio.dew.batch.acquisitions.edifact.services.ResendService;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.config.kafka.KafkaService;
@@ -80,6 +81,7 @@ public class JobCommandsReceiverService {
   private final SearchClient searchClient;
   private final FileNameResolver fileNameResolver;
   private final JobCommandRepository jobCommandRepository;
+  private final ResendService resendService;
   private final List<Job> jobs;
   private Map<String, Job> jobMap;
   @Value("${spring.application.name}")
@@ -106,6 +108,11 @@ public class JobCommandsReceiverService {
     log.info("Received {}.", jobCommand);
 
     try {
+      if (JobCommandType.RESEND.equals(jobCommand.getType())) {
+        resendService.resendExportedFile(jobCommand, acknowledgment);
+        return;
+      }
+
       if (deleteOldFiles(jobCommand, acknowledgment)) {
         return;
       }

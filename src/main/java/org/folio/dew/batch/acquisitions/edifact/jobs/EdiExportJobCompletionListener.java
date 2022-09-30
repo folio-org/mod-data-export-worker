@@ -52,7 +52,7 @@ public class EdiExportJobCompletionListener extends JobExecutionListenerSupport 
     }
     log.info("Job update {}.", jobExecution);
 
-    cleanupLocalFileStorage(jobParameters);
+    cleanupLocalFileStorage(jobParameters, after);
 
     var jobExecutionUpdate = createJobExecutionUpdate(jobId, jobExecution);
 
@@ -68,9 +68,9 @@ public class EdiExportJobCompletionListener extends JobExecutionListenerSupport 
     }
   }
 
-  private void cleanupLocalFileStorage(JobParameters jobParameters) {
+  private void cleanupLocalFileStorage(JobParameters jobParameters, boolean isAfterJob) {
     var uploadedFilePath = jobParameters.getString(JobParameterNames.UPLOADED_FILE_PATH);
-    if (StringUtils.isNotEmpty(uploadedFilePath)) {
+    if (isAfterJob && StringUtils.isNotEmpty(uploadedFilePath)) {
       localFilesStorage.delete(uploadedFilePath);
     }
   }

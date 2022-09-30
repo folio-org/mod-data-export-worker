@@ -8,6 +8,7 @@ import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.FTPObjectStorageRepository;
 import org.folio.dew.repository.SFTPObjectStorageRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
@@ -22,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.dew.utils.Constants.EDIFACT_EXPORT_DIR_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 import static org.folio.dew.utils.TestUtils.getMockData;
@@ -54,11 +56,8 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
 
     JobExecution jobExecution = testLauncher.launchStep("saveToFTPStep", getSFTPJobParameters());
 
-    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0)
-      .getStatus()
-      .getBatchStatus()
-      .name();
-    assertEquals("COMPLETED", status);
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
   }
 
   @Test

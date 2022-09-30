@@ -3,7 +3,7 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.lang3.StringUtils;
-import org.folio.dew.batch.acquisitions.edifact.services.SaveToFTPStorageService;
+import org.folio.dew.batch.acquisitions.edifact.services.FTPStorageService;
 import org.folio.dew.domain.dto.EdiFtp;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.repository.LocalFilesStorage;
@@ -27,7 +27,7 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class SaveToFileStorageTasklet implements Tasklet {
   private final ObjectMapper objectMapper;
-  private final SaveToFTPStorageService saveToFTPStorageService;
+  private final FTPStorageService ftpStorageService;
 
   private final LocalFilesStorage localFilesStorage;
 
@@ -55,9 +55,9 @@ public class SaveToFileStorageTasklet implements Tasklet {
 
     if (EdiFtp.FtpFormatEnum.SFTP.equals(ediExportConfig.getEdiFtp().getFtpFormat())) {
       var uploadedFile = new String(localFilesStorage.readAllBytes(uploadedFilePath), StandardCharsets.UTF_8);
-      saveToFTPStorageService.uploadToFtp(ediExportConfig, uploadedFile, edifactFileName);
+      ftpStorageService.uploadToFtp(ediExportConfig, uploadedFile, edifactFileName);
     } else {
-      saveToFTPStorageService.uploadToFtp(ediExportConfig, edifactOrderAsString, edifactFileName);
+      ftpStorageService.uploadToFtp(ediExportConfig, edifactOrderAsString, edifactFileName);
     }
 
     return RepeatStatus.FINISHED;

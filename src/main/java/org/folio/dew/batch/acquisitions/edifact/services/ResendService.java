@@ -28,7 +28,7 @@ public class ResendService {
 
   private final RemoteFilesStorage remoteFilesStorage;
   private final FolioExecutionContext folioExecutionContext;
-  private final SaveToFTPStorageService saveToFTPStorageService;
+  private final FTPStorageService ftpStorageService;
   private final ObjectMapper objectMapper;
   private final KafkaService kafka;
 
@@ -43,7 +43,7 @@ public class ResendService {
       throw new EdifactException("Job update with empty Job ID.");
     }
 
-    log.info("Resend operation started");
+    log.info("Resend operation started for job ID: {}", jobId);
     Job job = new Job();
     job.setId(UUID.fromString(jobId));
     try {
@@ -56,11 +56,11 @@ public class ResendService {
       String path = String.format("%s/%s", tenantName, fileName);
 
       byte[] exportFile = remoteFilesStorage.readAllBytes(path);
-      saveToFTPStorageService.uploadToFtp(ediConfig, new String(exportFile), fileName);
+      ftpStorageService.uploadToFtp(ediConfig, new String(exportFile), fileName);
       job.setStatus(JobStatus.SUCCESSFUL);
-      log.info("Resend operation finished");
+      log.info("Resend operation finished for job ID: {}", jobId);
     } catch (Exception e) {
-      log.error("Resending failed with an error", e);
+      log.error("Resending failed with an error for job Id: {}", jobId, e);
       job.setErrorDetails(getThrowableRootCauseDetails(e));
       job.setStatus(JobStatus.FAILED);
     }

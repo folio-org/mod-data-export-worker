@@ -72,7 +72,6 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.launchStep("saveToFTPStep", getFTPJobParameters());
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-
   }
 
   private JobParameters getSFTPJobParameters() throws IOException {

@@ -12,7 +12,7 @@ import lombok.extern.log4j.Log4j2;
 @RequiredArgsConstructor
 @Service
 @Log4j2
-public class SaveToFTPStorageService {
+public class FTPStorageService {
   private final SFTPObjectStorageRepository sftpObjectStorageRepository;
   private final FTPObjectStorageRepository ftpObjectStorageRepository;
   private static final String SFTP_PROTOCOL = "sftp://";

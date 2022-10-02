@@ -48,11 +48,9 @@ public class ExportHistoryTasklet implements Tasklet {
   ExportHistory buildExportHistory(ChunkContext chunkContext) throws Exception {
     var jobParameters = chunkContext.getStepContext().getJobParameters();
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
-
     var vendorId = ediExportConfig.getVendorId().toString();
     var vendor = organizationsService.getOrganizationById(vendorId);
     var vendorName = vendor.get("code").asText();
-
     var stepExecutionContext = chunkContext.getStepContext().getStepExecution();
     var polineIds = getPoLineIdsFromExecutionContext(stepExecutionContext);
     var fileName = ExecutionContextUtils.getExecutionVariable(stepExecutionContext, "edifactFileName");

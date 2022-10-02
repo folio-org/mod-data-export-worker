@@ -14,6 +14,7 @@ import java.util.Date;
 
 import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
+import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
 import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.repository.LocalFilesStorage;
@@ -58,13 +59,17 @@ public class SaveToMinioTasklet implements Tasklet {
     var jobParameters = chunkContext.getStepContext().getJobParameters();
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
 
-    var uploadedLocalFile = createTempFile(ediExportConfig, edifactOrderAsString);
+    var uploadedLocalFile = createTempEdifactFile(ediExportConfig, edifactOrderAsString);
     String edifactFileName = FilenameUtils.getName(uploadedLocalFile);
     var pathToUpload = folioExecutionContext.getTenantId() + edifactFileName;
-
-    var uploadedFilePath = remoteFilesStorage.objectToPresignedObjectUrl(
-      remoteFilesStorage.uploadObject(pathToUpload, uploadedLocalFile, uploadedLocalFile, MediaType.TEXT_PLAIN_VALUE, false));
-
+    String uploadedFilePath;
+    try {
+      uploadedFilePath = remoteFilesStorage.objectToPresignedObjectUrl(remoteFilesStorage.uploadObject(pathToUpload, uploadedLocalFile, uploadedLocalFile, MediaType.TEXT_PLAIN_VALUE, false));
+    }
+    catch (Exception e) {
+      log.error(e.getMessage());
+      throw new EdifactException("Failed to save edifact file to remote storage");
+    }
     ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), UPLOADED_FILE_PATH, uploadedLocalFile, "");
     ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), EDIFACT_FILE_NAME, edifactFileName, "");
     ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), OUTPUT_FILES_IN_STORAGE, uploadedFilePath, ";");
@@ -81,10 +86,19 @@ public class SaveToMinioTasklet implements Tasklet {
     return vendorName + "_" + ediExportConfig.getConfigName() + "_" + fileDate + ".edi";
   }
 
-  private String createTempFile(VendorEdiOrdersExportConfig ediExportConfig, String content) throws IOException {
-    String workDir = getWorkingDirectory(springApplicationName, EDIFACT_EXPORT_DIR_NAME);
+  private String createTempEdifactFile(VendorEdiOrdersExportConfig ediExportConfig, String content) {
+    var workDir = getWorkingDirectory(springApplicationName, EDIFACT_EXPORT_DIR_NAME);
+    var tenantName = folioExecutionContext.getTenantId();
     var filename = generateFileName(ediExportConfig);
 
-    return localFilesStorage.write(workDir + filename, content.getBytes(StandardCharsets.UTF_8));
+    var filePath = String.format("%s%s%s", workDir, tenantName, filename);
+    String localFilePath;
+    try {
+      localFilePath = localFilesStorage.write(filePath, content.getBytes(StandardCharsets.UTF_8));
+    } catch (Exception e) {
+      log.error(e.getMessage());
+      throw new EdifactException("Failed to save edifact file to local storage");
+    }
+    return localFilePath;
   }
 }

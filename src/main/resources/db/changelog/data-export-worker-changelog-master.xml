@@ -6,4 +6,5 @@
 
   <include file="changes/initial_schema.xml" relativeToChangelogFile="true"/>
   <include file="changes/create_job_command_table.xml" relativeToChangelogFile="true"/>
+  <include file="changes/create_eholdings_export_tables.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

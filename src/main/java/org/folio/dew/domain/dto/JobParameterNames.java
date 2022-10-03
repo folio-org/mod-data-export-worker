@@ -17,6 +17,6 @@ public class JobParameterNames {
   public static final String UPLOADED_FILE_PATH = "uploadedFilePath";
   public static final String EDIFACT_FILE_NAME = "edifactFileName";
   public static final String QUERY = "query";
-  public static final String EDIFACT_ORDER_EXPORT = "edifactOrdersExport";
+  public static final String EDIFACT_ORDERS_EXPORT = "edifactOrdersExport";
 
 }

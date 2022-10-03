@@ -1,7 +1,7 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
-import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDER_EXPORT;
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.UPLOADED_FILE_PATH;
 import static org.folio.dew.utils.Constants.EDIFACT_EXPORT_DIR_NAME;
@@ -57,7 +57,7 @@ public class SaveToMinioTasklet implements Tasklet {
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     // retrieve parameters from job context
     var jobParameters = chunkContext.getStepContext().getJobParameters();
-    var ediExportConfig = objectMapper.readValue((String)jobParameters.get(EDIFACT_ORDER_EXPORT), VendorEdiOrdersExportConfig.class);
+    var ediExportConfig = objectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
 
     var uploadedLocalFile = createTempFile(ediExportConfig, edifactOrderAsString);
     String edifactFileName = FilenameUtils.getName(uploadedLocalFile);

@@ -1,6 +1,6 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
-import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDER_EXPORT;
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 
 import java.nio.charset.StandardCharsets;
 
@@ -47,7 +47,7 @@ public class SaveToFileStorageTasklet implements Tasklet {
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
 
     var jobParameters = chunkContext.getStepContext().getJobParameters();
-    var ediExportConfig = objectMapper.readValue((String)jobParameters.get(EDIFACT_ORDER_EXPORT), VendorEdiOrdersExportConfig.class);
+    var ediExportConfig = objectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
 
     String host = ediExportConfig.getEdiFtp().getServerAddress().replace(SFTP_PROTOCOL, "");
     // skip ftp upload if address not specified

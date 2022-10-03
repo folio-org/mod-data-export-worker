@@ -1,7 +1,7 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
-import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDER_EXPORT;
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 
 import java.util.Collections;
 import java.util.Date;
@@ -52,15 +52,15 @@ public class ExportHistoryTasklet implements Tasklet {
   @SneakyThrows
   ExportHistory buildExportHistory(ChunkContext chunkContext) {
     var jobParameters = chunkContext.getStepContext().getJobParameters();
-    var ediExportConfig = objectMapper.readValue((String)jobParameters.get(EDIFACT_ORDER_EXPORT), VendorEdiOrdersExportConfig.class);
+    var ediExportConfig = objectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
     var vendorId = ediExportConfig.getVendorId().toString();
-    var exportMethod = ediExportConfig.getEdiConfig().toString();
+    var exportMethod = ediExportConfig.getConfigName();
     var vendor = organizationsService.getOrganizationById(vendorId);
     var vendorName = vendor.get("code").asText();
     var stepExecutionContext = chunkContext.getStepContext().getStepExecution();
     var polineIds = getPoLineIdsFromExecutionContext(stepExecutionContext);
     var fileName = ExecutionContextUtils.getExecutionVariable(stepExecutionContext, EDIFACT_FILE_NAME).toString();
-    var jobStatus = chunkContext.getStepContext().getStepExecution().getJobExecution().getStatus().toString();
+    var jobStatus = chunkContext.getStepContext().getStepExecution().getJobExecution().getStatus().name();
 
     return new ExportHistory()
       .id(UUID.randomUUID().toString())

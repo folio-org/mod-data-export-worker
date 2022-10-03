@@ -44,6 +44,7 @@ public class SaveToMinioTasklet implements Tasklet {
   private final FolioExecutionContext folioExecutionContext;
   private final ObjectMapper objectMapper;
   private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+  private static final String REMOTE_STORAGE_ERROR_MESSAGE = "Failed to save edifact file to remote storage";
 
   @Value("${spring.application.name}")
   protected String springApplicationName;
@@ -64,8 +65,8 @@ public class SaveToMinioTasklet implements Tasklet {
       presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(uploadedFilePath);
     }
     catch (Exception e) {
-      log.error(e.getMessage());
-      throw new EdifactException("Failed to save edifact file to remote storage");
+      log.error(REMOTE_STORAGE_ERROR_MESSAGE, e);
+      throw new EdifactException(REMOTE_STORAGE_ERROR_MESSAGE);
     }
     ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), UPLOADED_FILE_PATH, uploadedLocalFile, "");
     ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), EDIFACT_FILE_NAME, edifactFileName, "");

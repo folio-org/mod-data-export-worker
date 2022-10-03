@@ -13,11 +13,10 @@ import java.util.UUID;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
-import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.mockito.Mock;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -31,26 +30,16 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-@RunWith(SpringRunner.class)
-class SaveToMinioTaskletTest extends BaseBatchTest {
+class SaveToMinioTaskletFailTest extends BaseBatchTest {
   @Autowired
   private Job edifactExportJob;
   @MockBean
   private OrganizationsService organizationsService;
 
+  @MockBean
+  private RemoteFilesStorage remoteFilesStorage;
+
   private static final String NULL_POINTER_ERROR_TEXT = "Test null pointer exception message";
-  @Test
-  @DirtiesContext
-  void minioUploadSuccessful() throws IOException {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
-
-    JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
-    doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
-
-    JobExecution jobExecution = testLauncher.launchStep("saveToMinIOStep", getJobParameters());
-
-    assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
-  }
 
   @Test
   @DirtiesContext

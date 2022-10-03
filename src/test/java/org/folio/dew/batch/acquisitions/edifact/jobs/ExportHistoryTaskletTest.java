@@ -9,6 +9,7 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -16,11 +17,8 @@ import org.springframework.test.annotation.DirtiesContext;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
-import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -34,22 +32,44 @@ class ExportHistoryTaskletTest extends BaseBatchTest {
 
   @Test
   @DirtiesContext
-  void createExportHistoryFailedWhenFileNotFound() throws IOException {
+  void testCreateExportHistoryFailedWhenFileNotFound() throws IOException {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
-    Map map = new HashMap();
-    map.put(EDIFACT_FILE_NAME,"TestFile");
     JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
     doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
-    JobExecution jobExecution = testLauncher.launchStep("createExportHistoryRecordsStep", getJobParameters());
 
-    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0)
-        .getStatus()
-        .name();
+    JobExecution jobExecution1 = testLauncher.launchStep("createExportHistoryRecordsStep", getJobParameters());
+
+    var status = new ArrayList<>(jobExecution1.getStepExecutions()).get(0)
+      .getStatus()
+      .name();
     assertEquals("FAILED", status);
+  }
+
+  @Test
+  @DirtiesContext
+  void testCreateExportHistoryWithCompleteStatus() throws IOException {
+    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
+    doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
+
+    JobExecution jobExecution1 = testLauncher.launchStep("createExportHistoryRecordsStep", getJobParameters(), getExecutionContext());
+
+    var status = new ArrayList<>(jobExecution1.getStepExecutions()).get(0)
+      .getStatus()
+      .name();
+    assertEquals("COMPLETED", status);
+  }
+
+  protected ExecutionContext getExecutionContext() {
+    ExecutionContext result = new ExecutionContext();
+    result.put("edifactFileName", "test_file");
+
+    return result;
   }
 
   private JobParameters getJobParameters() throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
+
     paramsBuilder.addString("edifactOrdersExport", getMockData("edifact/edifactOrdersExport.json"));
     paramsBuilder.addString("edifactOrderAsString", RandomStringUtils.random(100, true, true));
     var jobId = UUID.randomUUID().toString();

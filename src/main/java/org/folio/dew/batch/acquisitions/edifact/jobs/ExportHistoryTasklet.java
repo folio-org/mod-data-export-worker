@@ -60,7 +60,6 @@ public class ExportHistoryTasklet implements Tasklet {
     var stepExecutionContext = chunkContext.getStepContext().getStepExecution();
     var polineIds = getPoLineIdsFromExecutionContext(stepExecutionContext);
     var fileName = ExecutionContextUtils.getExecutionVariable(stepExecutionContext, EDIFACT_FILE_NAME).toString();
-    var jobStatus = chunkContext.getStepContext().getStepExecution().getJobExecution().getStatus().name();
 
     return new ExportHistory()
       .id(UUID.randomUUID().toString())
@@ -71,7 +70,6 @@ public class ExportHistoryTasklet implements Tasklet {
       .vendorId(vendorId)
       .vendorName(vendorName)
       .exportType("EDIFACT")
-      .jobStatus(jobStatus)
       .exportedPoLineIds(polineIds);
   }
 

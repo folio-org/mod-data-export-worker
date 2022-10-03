@@ -2,17 +2,22 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.UUID;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
+import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
@@ -21,15 +26,21 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+@RunWith(SpringRunner.class)
 class SaveToMinioTaskletTest extends BaseBatchTest {
   @Autowired
   private Job edifactExportJob;
   @MockBean
   private OrganizationsService organizationsService;
 
+  @MockBean
+  private LocalFilesStorage localFilesStorage;
+
+  private static final String NULL_POINTER_ERROR_TEXT = "Test null pointer exception message";
   @Test
   @DirtiesContext
   void minioUploadSuccessful() throws IOException {
@@ -40,11 +51,23 @@ class SaveToMinioTaskletTest extends BaseBatchTest {
 
     JobExecution jobExecution = testLauncher.launchStep("saveToMinIOStep", getJobParameters());
 
-    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0)
-        .getStatus()
-        .getBatchStatus()
-        .name();
-    assertEquals("COMPLETED", status);
+    assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
+  }
+
+  @Test
+  @DirtiesContext
+  void minioSaveToLocalStorageFailed() throws IOException {
+    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+
+    JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
+
+    doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
+    doThrow(new NullPointerException(NULL_POINTER_ERROR_TEXT)).when(localFilesStorage).write(anyString(), any());
+
+    JobExecution jobExecution = testLauncher.launchStep("saveToMinIOStep", getJobParameters());
+
+    assertEquals(ExitStatus.FAILED.getExitCode(), jobExecution.getExitStatus().getExitCode());
+
   }
 
   private JobParameters getJobParameters() throws IOException {

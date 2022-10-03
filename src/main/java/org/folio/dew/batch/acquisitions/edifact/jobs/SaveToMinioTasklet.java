@@ -6,7 +6,6 @@ import static org.folio.dew.domain.dto.JobParameterNames.UPLOADED_FILE_PATH;
 import static org.folio.dew.utils.Constants.EDIFACT_EXPORT_DIR_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -49,8 +48,6 @@ public class SaveToMinioTasklet implements Tasklet {
 
   @Value("${spring.application.name}")
   protected String springApplicationName;
-  @Value("#{jobParameters['edifactOrderAsString']}")
-  private String edifactOrderAsString;
 
   @Override
   @SneakyThrows
@@ -58,13 +55,15 @@ public class SaveToMinioTasklet implements Tasklet {
     // retrieve parameters from job context
     var jobParameters = chunkContext.getStepContext().getJobParameters();
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
+    var edifactOrderAsString = (String) chunkContext.getStepContext().getStepExecution().getJobExecution().getJobParameters().getParameters().get("edifactOrderAsString").getValue();
 
     var uploadedLocalFile = createTempEdifactFile(ediExportConfig, edifactOrderAsString);
     String edifactFileName = FilenameUtils.getName(uploadedLocalFile);
     var pathToUpload = folioExecutionContext.getTenantId() + edifactFileName;
-    String uploadedFilePath;
+    String presignedUrl;
     try {
-      uploadedFilePath = remoteFilesStorage.objectToPresignedObjectUrl(remoteFilesStorage.uploadObject(pathToUpload, uploadedLocalFile, uploadedLocalFile, MediaType.TEXT_PLAIN_VALUE, false));
+      var uploadedFilePath = remoteFilesStorage.uploadObject(pathToUpload, uploadedLocalFile, uploadedLocalFile, MediaType.TEXT_PLAIN_VALUE, false);
+      presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(uploadedFilePath);
     }
     catch (Exception e) {
       log.error(e.getMessage());
@@ -72,7 +71,7 @@ public class SaveToMinioTasklet implements Tasklet {
     }
     ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), UPLOADED_FILE_PATH, uploadedLocalFile, "");
     ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), EDIFACT_FILE_NAME, edifactFileName, "");
-    ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), OUTPUT_FILES_IN_STORAGE, uploadedFilePath, ";");
+    ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), OUTPUT_FILES_IN_STORAGE, presignedUrl, ";");
 
     return RepeatStatus.FINISHED;
   }
@@ -91,7 +90,7 @@ public class SaveToMinioTasklet implements Tasklet {
     var tenantName = folioExecutionContext.getTenantId();
     var filename = generateFileName(ediExportConfig);
 
-    var filePath = String.format("%s%s%s", workDir, tenantName, filename);
+    var filePath = String.format("%s%s/%s", workDir, tenantName, filename);
     String localFilePath;
     try {
       localFilePath = localFilesStorage.write(filePath, content.getBytes(StandardCharsets.UTF_8));

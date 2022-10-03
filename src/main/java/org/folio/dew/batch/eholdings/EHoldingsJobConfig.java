@@ -2,20 +2,16 @@ package org.folio.dew.batch.eholdings;
 
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_MAX_PACKAGE_NOTES_COUNT;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_MAX_TITLE_NOTES_COUNT;
-import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_RESOURCES;
 
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.batch.core.ExitStatus;
+import org.folio.dew.batch.JobCompletionNotificationListener;
+import org.folio.dew.domain.dto.EHoldingsExportConfig;
+import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.eholdings.EHoldingsResourceDTO;
+import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
@@ -25,17 +21,16 @@ import org.springframework.batch.core.listener.ExecutionContextPromotionListener
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.support.CompositeItemProcessor;
-import org.springframework.batch.item.support.ListItemWriter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import org.folio.dew.batch.JobCompletionNotificationListener;
-import org.folio.dew.domain.dto.EHoldingsExportConfig;
-import org.folio.dew.domain.dto.ExportType;
-import org.folio.dew.domain.dto.eholdings.EHoldingsResource;
-import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 @Configuration
@@ -54,7 +49,8 @@ public class EHoldingsJobConfig {
     JobCompletionNotificationListener jobCompletionNotificationListener,
     @Qualifier("prepareEHoldingsStep") Step prepareEHoldingsStep,
     @Qualifier("getEHoldingsStep") Step getEHoldingsStep,
-    @Qualifier("saveEHoldingsStep") Step saveEHoldingsStep) {
+    @Qualifier("saveEHoldingsStep") Step saveEHoldingsStep,
+    @Qualifier("cleanupEHoldingsStep") Step cleanupEHoldingsStep) {
     return jobBuilderFactory
       .get(ExportType.E_HOLDINGS.toString())
       .repository(jobRepository)
@@ -63,50 +59,58 @@ public class EHoldingsJobConfig {
       .start(prepareEHoldingsStep)
       .next(getEHoldingsStep)
       .next(saveEHoldingsStep)
+      .next(cleanupEHoldingsStep)
       .build();
   }
 
   @Bean("prepareEHoldingsStep")
-  public Step prepareEHoldingsStep(EHoldingsPreparationTasklet preparationTasklet,
+  public Step prepareEHoldingsStep(EHoldingsPreparationTasklet tasklet,
                                    @Qualifier("prepareEHoldingsPromotionListener")
-                                     ExecutionContextPromotionListener prepareEHoldingsPromotionListener) {
+                                   ExecutionContextPromotionListener prepareEHoldingsPromotionListener) {
     return stepBuilderFactory
       .get("prepareEHoldingsStep")
-      .tasklet(preparationTasklet)
+      .tasklet(tasklet)
       .listener(prepareEHoldingsPromotionListener)
       .build();
   }
 
   @Bean("getEHoldingsStep")
   public Step getEHoldingsStep(@Qualifier("eHoldingsItemProcessor")
-                                 ItemProcessor<EHoldingsResource, EHoldingsResource> processor,
+                               ItemProcessor<EHoldingsResourceDTO, EHoldingsResourceDTO> processor,
                                @Qualifier("getEHoldingsPromotionListener")
-                                 ExecutionContextPromotionListener getEHoldingsPromotionListener,
+                               ExecutionContextPromotionListener getEHoldingsPromotionListener,
                                EHoldingsItemReader eHoldingsCsvItemReader,
-                               ListItemWriter<EHoldingsResource> listItemWriter,
+                               GetEHoldingsWriter getEHoldingsWriter,
                                EHoldingsNoteItemProcessor eHoldingsNoteItemProcessor) {
     return stepBuilderFactory
       .get("getEHoldingsStep")
-      .<EHoldingsResource, EHoldingsResource>chunk(PROCESSING_RECORD_CHUNK_SIZE)
+      .<EHoldingsResourceDTO, EHoldingsResourceDTO>chunk(PROCESSING_RECORD_CHUNK_SIZE)
       .reader(eHoldingsCsvItemReader)
       .processor(processor)
-      .writer(listItemWriter)
+      .writer(getEHoldingsWriter)
       .listener(eHoldingsNoteItemProcessor)
-      .listener(stepExecutionListener(listItemWriter))
       .listener(getEHoldingsPromotionListener)
       .build();
   }
 
   @Bean("saveEHoldingsStep")
-  public Step saveEHoldingsStep(EHoldingsListItemReader eholdingsListItemReader,
+  public Step saveEHoldingsStep(DatabaseEHoldingsReader databaseEHoldingsReader,
                                 EHoldingsCsvFileWriter flatFileItemWriter,
                                 EHoldingsStepListener eHoldingsStepListener) {
     return stepBuilderFactory
       .get("saveEHoldingsStep")
       .<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat>chunk(PROCESSING_RECORD_CHUNK_SIZE)
-      .reader(eholdingsListItemReader)
+      .reader(databaseEHoldingsReader)
       .writer(flatFileItemWriter)
       .listener(eHoldingsStepListener)
+      .build();
+  }
+
+  @Bean("cleanupEHoldingsStep")
+  public Step cleanupEHoldingsStep(EHoldingsCleanupTasklet cleanupTasklet) {
+    return stepBuilderFactory
+      .get("cleanupEHoldingsStep")
+      .tasklet(cleanupTasklet)
       .build();
   }
 
@@ -127,30 +131,6 @@ public class EHoldingsJobConfig {
   }
 
   @Bean
-  @StepScope
-  public StepExecutionListener stepExecutionListener(ListItemWriter<EHoldingsResource> listItemWriter) {
-    return new StepExecutionListener() {
-      @Override
-      public void beforeStep(@NotNull StepExecution stepExecution) {
-        //not needed
-      }
-
-      @Override
-      public ExitStatus afterStep(@NotNull StepExecution stepExecution) {
-        var executionContext = stepExecution.getJobExecution().getExecutionContext();
-        executionContext.put(CONTEXT_RESOURCES, listItemWriter.getWrittenItems());
-        return stepExecution.getExitStatus();
-      }
-    };
-  }
-
-  @Bean
-  @StepScope
-  public ListItemWriter<EHoldingsResource> listItemWriter() {
-    return new ListItemWriter<>();
-  }
-
-  @Bean
   @JobScope
   public EHoldingsExportConfig exportConfig(
     @Value("#{jobParameters['eHoldingsExportConfig']}") String exportConfigStr) throws JsonProcessingException {
@@ -159,10 +139,10 @@ public class EHoldingsJobConfig {
 
   @Bean("eHoldingsItemProcessor")
   @StepScope
-  public ItemProcessor<EHoldingsResource, EHoldingsResource> itemProcessor(
+  public ItemProcessor<EHoldingsResourceDTO, EHoldingsResourceDTO> itemProcessor(
     EHoldingsAgreementItemProcessor eHoldingsAgreementItemProcessor,
     EHoldingsNoteItemProcessor eHoldingsNoteItemProcessor) {
-    var itemProcessor = new CompositeItemProcessor<EHoldingsResource, EHoldingsResource>();
+    var itemProcessor = new CompositeItemProcessor<EHoldingsResourceDTO, EHoldingsResourceDTO>();
     itemProcessor.setDelegates(List.of(eHoldingsNoteItemProcessor, eHoldingsAgreementItemProcessor));
     return itemProcessor;
   }

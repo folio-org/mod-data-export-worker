@@ -1,5 +1,7 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -41,7 +43,7 @@ public class MapToEdifactTasklet implements Tasklet {
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
     log.info("Execute MapToEdifactTasklet");
     var jobParameters = chunkContext.getStepContext().getJobParameters();
-    var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
+    var ediExportConfig = objectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
     validateEdiExportConfig(ediExportConfig);
 
     List<CompositePurchaseOrder> compOrders = getCompPOList(ediExportConfig);

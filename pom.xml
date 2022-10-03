@@ -68,6 +68,7 @@
         <marc4j.version>2.9.1</marc4j.version>
         <testcontainers.version>1.15.3</testcontainers.version>
         <aws.sdk.version>2.17.267</aws.sdk.version>
+        <argLine/>
     </properties>
 
     <dependencies>
@@ -561,6 +562,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M5</version>
+                <configuration>
+                    <argLine>
+                        @{argLine} -Xmx=2G -Duser.language=en -Duser.region=US
+                    </argLine>
+                </configuration>
             </plugin>
 
             <plugin>

@@ -186,7 +186,6 @@ public class BaseFilesStorage implements S3CompatibleStorage {
             .build())
           .object();
       } catch (Exception e) {
-        log.error(e.getMessage());
         throw new IOException("Cannot write file: " + path, e);
       }
 

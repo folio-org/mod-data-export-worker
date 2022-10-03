@@ -564,7 +564,7 @@
                 <version>3.0.0-M5</version>
                 <configuration>
                     <argLine>
-                        @{argLine} -Xmx=2G -Duser.language=en -Duser.region=US
+                        @{argLine} -Xmx2G -Duser.language=en -Duser.region=US
                     </argLine>
                 </configuration>
             </plugin>

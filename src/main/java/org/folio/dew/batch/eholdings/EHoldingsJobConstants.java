@@ -13,6 +13,6 @@ public final class EHoldingsJobConstants {
   //execution context constants
   public static final String CONTEXT_MAX_PACKAGE_NOTES_COUNT = "packageMaxNotesCount";
   public static final String CONTEXT_MAX_TITLE_NOTES_COUNT = "titleMaxNotesCount";
-  public static final String CONTEXT_PACKAGE = "package";
-  public static final String CONTEXT_RESOURCES = "resources";
+  public static final String CONTEXT_TOTAL_PACKAGES = "totalPackages";
+  public static final String CONTEXT_TOTAL_RESOURCES = "totalResources";
 }

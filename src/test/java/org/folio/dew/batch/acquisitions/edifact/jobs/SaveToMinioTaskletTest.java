@@ -17,6 +17,7 @@ import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -37,9 +38,6 @@ class SaveToMinioTaskletTest extends BaseBatchTest {
   @MockBean
   private OrganizationsService organizationsService;
 
-  @MockBean
-  private LocalFilesStorage localFilesStorage;
-
   private static final String NULL_POINTER_ERROR_TEXT = "Test null pointer exception message";
   @Test
   @DirtiesContext
@@ -52,22 +50,6 @@ class SaveToMinioTaskletTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.launchStep("saveToMinIOStep", getJobParameters());
 
     assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
-  }
-
-  @Test
-  @DirtiesContext
-  void minioSaveToLocalStorageFailed() throws IOException {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
-
-    JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
-
-    doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
-    doThrow(new NullPointerException(NULL_POINTER_ERROR_TEXT)).when(localFilesStorage).write(anyString(), any());
-
-    JobExecution jobExecution = testLauncher.launchStep("saveToMinIOStep", getJobParameters());
-
-    assertEquals(ExitStatus.FAILED.getExitCode(), jobExecution.getExitStatus().getExitCode());
-
   }
 
   private JobParameters getJobParameters() throws IOException {

@@ -40,7 +40,6 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class SaveToMinioTasklet implements Tasklet {
   private final RemoteFilesStorage remoteFilesStorage;
-  private final LocalFilesStorage localFilesStorage;
   private final OrganizationsService organizationsService;
   private final FolioExecutionContext folioExecutionContext;
   private final ObjectMapper objectMapper;
@@ -57,12 +56,11 @@ public class SaveToMinioTasklet implements Tasklet {
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get("edifactOrdersExport"), VendorEdiOrdersExportConfig.class);
     var edifactOrderAsString = (String) chunkContext.getStepContext().getStepExecution().getJobExecution().getJobParameters().getParameters().get("edifactOrderAsString").getValue();
 
-    var uploadedLocalFile = createTempEdifactFile(ediExportConfig, edifactOrderAsString);
+    var uploadedLocalFile = buildFullFilePath(ediExportConfig);
     String edifactFileName = FilenameUtils.getName(uploadedLocalFile);
-    var pathToUpload = folioExecutionContext.getTenantId() + edifactFileName;
     String presignedUrl;
     try {
-      var uploadedFilePath = remoteFilesStorage.uploadObject(pathToUpload, uploadedLocalFile, uploadedLocalFile, MediaType.TEXT_PLAIN_VALUE, false);
+      var uploadedFilePath = remoteFilesStorage.write(edifactFileName, edifactOrderAsString.getBytes(StandardCharsets.UTF_8));
       presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(uploadedFilePath);
     }
     catch (Exception e) {
@@ -85,19 +83,11 @@ public class SaveToMinioTasklet implements Tasklet {
     return vendorName + "_" + ediExportConfig.getConfigName() + "_" + fileDate + ".edi";
   }
 
-  private String createTempEdifactFile(VendorEdiOrdersExportConfig ediExportConfig, String content) {
+  private String buildFullFilePath(VendorEdiOrdersExportConfig ediExportConfig) {
     var workDir = getWorkingDirectory(springApplicationName, EDIFACT_EXPORT_DIR_NAME);
     var tenantName = folioExecutionContext.getTenantId();
     var filename = generateFileName(ediExportConfig);
 
-    var filePath = String.format("%s%s/%s", workDir, tenantName, filename);
-    String localFilePath;
-    try {
-      localFilePath = localFilesStorage.write(filePath, content.getBytes(StandardCharsets.UTF_8));
-    } catch (Exception e) {
-      log.error(e.getMessage());
-      throw new EdifactException("Failed to save edifact file to local storage");
-    }
-    return localFilePath;
+    return String.format("%s%s/%s", workDir, tenantName, filename);
   }
 }

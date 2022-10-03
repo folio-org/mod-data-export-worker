@@ -1,6 +1,6 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
-import static org.folio.dew.utils.Constants.EDIFACT_ORDER_EXPORT;
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDER_EXPORT;
 
 import java.util.List;
 import java.util.Optional;

@@ -1,10 +1,10 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDER_EXPORT;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.UPLOADED_FILE_PATH;
 import static org.folio.dew.utils.Constants.EDIFACT_EXPORT_DIR_NAME;
-import static org.folio.dew.utils.Constants.EDIFACT_ORDER_EXPORT;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
 import java.io.IOException;

@@ -52,6 +52,7 @@ public class Constants {
   public static final String STATUSES_CONFIG_NAME = "statuses";
   public static final String BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE = "module==%s and configName==%s";
   public static final String FILE_UPLOAD_ERROR = "Cannot upload a file. Reason: %s.";
+  public static final String EDIFACT_ORDER_EXPORT = "edifactOrdersExport";
 
   public static String getWorkingDirectory(String springApplicationName, String dirName) {
     return springApplicationName + PATH_SEPARATOR + dirName + PATH_SEPARATOR;

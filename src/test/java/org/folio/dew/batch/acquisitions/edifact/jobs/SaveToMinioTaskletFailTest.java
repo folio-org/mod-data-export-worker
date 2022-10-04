@@ -20,6 +20,7 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -47,9 +48,9 @@ class SaveToMinioTaskletFailTest extends BaseBatchTest {
     JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
     doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
 
-    doThrow(new NullPointerException(NULL_POINTER_ERROR_TEXT)).when(remoteFilesStorage).write(anyString(), any());
+    doThrow(new NullPointerException(NULL_POINTER_ERROR_TEXT)).when(remoteFilesStorage).write(anyString(), any(byte[].class));
 
-    JobExecution jobExecution = testLauncher.launchStep("saveToMinIOStep", getJobParameters());
+    JobExecution jobExecution = testLauncher.launchStep("saveToMinIOStep", getJobParameters(), getExecutionContext());
 
     assertEquals(ExitStatus.FAILED.getExitCode(), jobExecution.getExitStatus().getExitCode());
   }
@@ -58,11 +59,16 @@ class SaveToMinioTaskletFailTest extends BaseBatchTest {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
 
     paramsBuilder.addString("edifactOrdersExport", getMockData("edifact/edifactOrdersExport.json"));
-    paramsBuilder.addString("edifactOrderAsString", RandomStringUtils.random(100, true, true));
     var jobId = UUID.randomUUID().toString();
     paramsBuilder.addString("jobId", jobId);
 
     return paramsBuilder.toJobParameters();
+  }
+
+  private ExecutionContext getExecutionContext() {
+    ExecutionContext executionContext = new ExecutionContext();
+    executionContext.put("edifactOrderAsString", RandomStringUtils.random(100, true, true));
+    return executionContext;
   }
 
   protected JobLauncherTestUtils createTestLauncher(Job job) {

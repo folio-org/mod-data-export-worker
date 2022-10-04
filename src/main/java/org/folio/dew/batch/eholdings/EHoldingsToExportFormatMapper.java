@@ -139,7 +139,7 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setPackageAgreements(convertAgreements(eHoldingsPackageDTO.getAgreements()));
   }
 
-  private void mapResourceToExportFormat(EHoldingsResourceExportFormat exportFormat, EHoldingsResourceDTO eHoldingsResource) {
+  private void mapResourceToExportFormat(EHoldingsResourceExportFormat exportFormat, EHoldingsResourceDTO eHoldingsResourceDTO) {
     var data = eHoldingsResourceDTO.getResourcesData();
     var resourceAtr = data.getAttributes();
 
@@ -210,7 +210,7 @@ public class EHoldingsToExportFormatMapper {
 
   private String mapToken(Token token) {
     if (isNull(token)) { return ""; }
-    return token.getPrompt() + '; ' + token.getValue();
+    return token.getPrompt() + ';' + token.getValue();
   }
 
   private String mapAccessType(List<Object> included) {

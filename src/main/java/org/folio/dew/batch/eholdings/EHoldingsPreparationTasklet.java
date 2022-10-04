@@ -105,8 +105,8 @@ public class EHoldingsPreparationTasklet implements Tasklet {
 
   private void loadProvider() {
     log.trace("Loading provider...");
-    var providerId = eHoldingsPackage.getEPackage().getData().getAttributes().getProviderId();
-    eHoldingsPackage.setEProvider(kbEbscoClient.getProviderById(providerId, null));
+    var providerId = eHoldingsPackageDTO.getEPackage().getData().getAttributes().getProviderId();
+    eHoldingsPackageDTO.setEProvider(kbEbscoClient.getProviderById(providerId, null));
     log.trace("Provider loaded.");
   }
 

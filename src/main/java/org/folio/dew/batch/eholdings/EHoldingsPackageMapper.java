@@ -24,6 +24,7 @@ public class EHoldingsPackageMapper {
     try {
       entity.setId(dto.getEPackage().getData().getId());
       entity.setEPackage(objectMapper.writeValueAsString(dto.getEPackage()));
+      entity.setEProvider(objectMapper.writeValueAsString(dto.getEProvider()));
       entity.setAgreements(objectMapper.writeValueAsString(dto.getAgreements()));
       entity.setNotes(objectMapper.writeValueAsString(dto.getNotes()));
     } catch (JsonProcessingException e) {

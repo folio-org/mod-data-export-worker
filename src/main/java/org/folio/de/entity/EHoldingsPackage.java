@@ -1,6 +1,5 @@
 package org.folio.de.entity;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -15,6 +14,7 @@ public class EHoldingsPackage {
   private String id;
   private Long jobExecutionId;
   private String ePackage;
+  private String eProvider;
   private String agreements;
   private String notes;
 }

@@ -32,7 +32,7 @@ public class FTPObjectStorageRepository {
     this.ftpClientFactory = ftpClientFactory;
   }
 
-  public boolean login(String ftpUrl, String username, String password) throws URISyntaxException, IOException, FtpException {
+  public boolean login(String ftpUrl, String username, String password) throws URISyntaxException, IOException {
     ftpClient = ftpClientFactory.getObject();
     if (!isUriValid(ftpUrl)) {
       throw new URISyntaxException(ftpUrl, "URI should be valid ftp path");
@@ -75,8 +75,8 @@ public class FTPObjectStorageRepository {
     }
   }
 
-  public void upload(String filename, String content) throws IOException {
-    try (InputStream is = new ByteArrayInputStream(content.getBytes())) {
+  public void upload(String filename, byte[] fileByteContent) throws IOException {
+    try (InputStream is = new ByteArrayInputStream(fileByteContent)) {
       ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
       ftpClient.enterLocalPassiveMode();
       changeWorkingDirectory();

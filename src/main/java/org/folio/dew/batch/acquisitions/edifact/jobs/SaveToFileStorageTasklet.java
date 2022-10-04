@@ -1,14 +1,14 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
+import static org.folio.dew.domain.dto.JobParameterNames.UPLOADED_FILE_PATH;
 
-import java.nio.charset.StandardCharsets;
-
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.services.FTPStorageService;
-import org.folio.dew.domain.dto.EdiFtp;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
-import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -31,36 +31,27 @@ public class SaveToFileStorageTasklet implements Tasklet {
   private final ObjectMapper objectMapper;
   private final FTPStorageService ftpStorageService;
 
-  private final LocalFilesStorage localFilesStorage;
+  private final RemoteFilesStorage remoteFilesStorage;
 
   private static final String SFTP_PROTOCOL = "sftp://";
   @Value("#{jobParameters['edifactFileName']}")
   private String edifactFileName;
 
-  @Value("#{jobParameters['edifactOrderAsString']}")
-  private String edifactOrderAsString;
-  @Value("#{jobParameters['uploadedFilePath']}")
-  private String uploadedFilePath;
-
   @Override
   @SneakyThrows
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-
+    var stepExecution = chunkContext.getStepContext().getStepExecution();
     var jobParameters = chunkContext.getStepContext().getJobParameters();
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
+    var uploadedFilePath = (String) ExecutionContextUtils.getExecutionVariable(stepExecution, UPLOADED_FILE_PATH);
 
     String host = ediExportConfig.getEdiFtp().getServerAddress().replace(SFTP_PROTOCOL, "");
     // skip ftp upload if address not specified
     if (StringUtils.isEmpty(host)) {
       return RepeatStatus.FINISHED;
     }
-
-    if (EdiFtp.FtpFormatEnum.SFTP.equals(ediExportConfig.getEdiFtp().getFtpFormat())) {
-      var uploadedFile = new String(localFilesStorage.readAllBytes(uploadedFilePath), StandardCharsets.UTF_8);
-      ftpStorageService.uploadToFtp(ediExportConfig, uploadedFile, edifactFileName);
-    } else {
-      ftpStorageService.uploadToFtp(ediExportConfig, edifactOrderAsString, edifactFileName);
-    }
+    byte[] fileContent = remoteFilesStorage.readAllBytes(uploadedFilePath);
+    ftpStorageService.uploadToFtp(ediExportConfig, fileContent, FilenameUtils.getName(uploadedFilePath));
 
     return RepeatStatus.FINISHED;
   }

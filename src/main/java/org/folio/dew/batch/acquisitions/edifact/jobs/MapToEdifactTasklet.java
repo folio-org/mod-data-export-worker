@@ -53,7 +53,7 @@ public class MapToEdifactTasklet implements Tasklet {
     String jobName = jobParameters.get(JobParameterNames.JOB_NAME).toString();
     String edifactOrderAsString = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compOrders, ediExportConfig, jobName);
     // save edifact file content in memory
-    ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), "edifactOrderAsString", edifactOrderAsString, "");
+    ExecutionContextUtils.addToJobExecutionContext(chunkContext.getStepContext().getStepExecution(), "edifactOrderAsString", edifactOrderAsString, "");
     return RepeatStatus.FINISHED;
   }
 

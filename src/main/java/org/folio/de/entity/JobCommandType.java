@@ -1,5 +1,5 @@
 package org.folio.de.entity;
 
 public enum JobCommandType {
-  START, DELETE;
+  START, RESEND, DELETE
 }

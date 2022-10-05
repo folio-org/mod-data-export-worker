@@ -3,6 +3,7 @@ package org.folio.dew;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACKAGE;
@@ -11,6 +12,7 @@ import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESO
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,8 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.log4j.Log4j2;
+import org.folio.dew.repository.EHoldingsPackageRepository;
+import org.folio.dew.repository.EHoldingsResourceRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -45,6 +49,10 @@ class EHoldingsTest extends BaseBatchTest {
   private Job getEHoldingsJob;
   @Autowired
   private FileNameResolver fileNameResolver;
+  @Autowired
+  private EHoldingsPackageRepository packageRepository;
+  @Autowired
+  private EHoldingsResourceRepository resourceRepository;
 
   private final static String RESOURCE_ID = "1-22-333";
   private final static String PACKAGE_ID = "1-22";
@@ -69,6 +77,11 @@ class EHoldingsTest extends BaseBatchTest {
       getRequestedFor(
         urlEqualTo(
           "/eholdings/packages/1-22?include=accessType")));
+
+    var packages = packageRepository.findAll();
+    var resources = resourceRepository.findAll();
+    assertEquals(0, ((Collection<?>) packages).size());
+    assertEquals(0, ((Collection<?>) resources).size());
   }
 
   @Test
@@ -87,6 +100,11 @@ class EHoldingsTest extends BaseBatchTest {
       getRequestedFor(
         urlEqualTo(
           "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&page=1&count=1")));
+
+    var packages = packageRepository.findAll();
+    var resources = resourceRepository.findAll();
+    assertEquals(0, ((Collection<?>) packages).size());
+    assertEquals(0, ((Collection<?>) resources).size());
   }
 
   @Test
@@ -105,6 +123,11 @@ class EHoldingsTest extends BaseBatchTest {
       getRequestedFor(
         urlEqualTo(
           "/eholdings/packages/1-23/resources?filter%5Bname%5D=*&page=1&count=1")));
+
+    var packages = packageRepository.findAll();
+    var resources = resourceRepository.findAll();
+    assertEquals(0, ((Collection<?>) packages).size());
+    assertEquals(0, ((Collection<?>) resources).size());
   }
 
   private void verifyFileOutput(JobExecution jobExecution, String expectedFile) throws Exception {

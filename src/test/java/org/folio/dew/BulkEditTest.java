@@ -18,6 +18,7 @@ import static org.folio.dew.domain.dto.IdentifierType.ITEM_BARCODE;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
+import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 import static org.folio.dew.utils.CsvHelper.countLines;
@@ -538,7 +539,7 @@ class BulkEditTest extends BaseBatchTest {
   private JobParameters prepareJobParameters(ExportType exportType, EntityType entityType, IdentifierType identifierType, String path) {
     Map<String, JobParameter> params = new HashMap<>();
     String jobId = UUID.randomUUID().toString();
-    String workDir = getWorkingDirectory(springApplicationName);
+    String workDir = getWorkingDirectory(springApplicationName, BULKEDIT_DIR_NAME);
     params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
     try {
       localFilesStorage.write(workDir + "out", new byte[0]);
@@ -550,13 +551,13 @@ class BulkEditTest extends BaseBatchTest {
     if (BULK_EDIT_UPDATE == exportType) {
       params.put(ROLLBACK_FILE, new JobParameter("rollback/file/path"));
       // Put file on MinIO FS
-      var fsPath = getWorkingDirectory(springApplicationName) + FileNameUtils.getBaseName(path) + "E" + FileNameUtils.getExtension(path);
+      var fsPath = getWorkingDirectory(springApplicationName, BULKEDIT_DIR_NAME) + FileNameUtils.getBaseName(path) + "E" + FileNameUtils.getExtension(path);
       localFilesStorage.write(fsPath, Files.readAllBytes(of));
       params.put(FILE_NAME, new JobParameter(fsPath));
     } else if (ExportType.BULK_EDIT_QUERY == exportType) {
       params.put("query", new JobParameter(readQueryString(path)));
     } else if (BULK_EDIT_IDENTIFIERS == exportType) {
-      var file = getWorkingDirectory("mod-data-export-worker")  +  FileNameUtils.getBaseName(path) + "E" + FileNameUtils.getExtension(path);
+      var file = getWorkingDirectory("mod-data-export-worker", BULKEDIT_DIR_NAME)  +  FileNameUtils.getBaseName(path) + "E" + FileNameUtils.getExtension(path);
       params.put(FILE_NAME, new JobParameter(file));
       localFilesStorage.write(file, Files.readAllBytes(of));
       params.put(TOTAL_CSV_LINES, new JobParameter(countLines(localFilesStorage, file, false), false));

@@ -1,5 +1,9 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -28,7 +32,6 @@ public class EdiExportJobCompletionListener extends JobExecutionListenerSupport 
 
   private final IAcknowledgementRepository acknowledgementRepository;
   private final KafkaService kafka;
-
 
   @Override
   public void beforeJob(JobExecution jobExecution) {
@@ -74,7 +77,12 @@ public class EdiExportJobCompletionListener extends JobExecutionListenerSupport 
       result.setDescription(jobDescription);
     }
 
-    String ftpUploadedFile = ExecutionContextUtils.getFromJobExecutionContext(jobExecution,"edifactFileName");
+    String outputFilesInStorage = ExecutionContextUtils.getFromJobExecutionContext(jobExecution, OUTPUT_FILES_IN_STORAGE);
+    if (StringUtils.isNotBlank(outputFilesInStorage)) {
+      result.setFiles(Arrays.asList(outputFilesInStorage.split(PATHS_DELIMITER)));
+    }
+
+    String ftpUploadedFile = ExecutionContextUtils.getFromJobExecutionContext(jobExecution, EDIFACT_FILE_NAME);
     if (StringUtils.isNotBlank(ftpUploadedFile)) {
       result.setFileNames(List.of(ftpUploadedFile));
     }

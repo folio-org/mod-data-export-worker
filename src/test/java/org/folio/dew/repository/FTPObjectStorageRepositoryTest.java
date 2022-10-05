@@ -119,7 +119,7 @@ class FTPObjectStorageRepositoryTest {
     log.info("=== Test successful upload ===");
 
     assertTrue(repository.login(uri, username_valid, password_valid));
-    assertDoesNotThrow(() -> repository.upload(filename, "Some text"));
+    assertDoesNotThrow(() -> repository.upload(filename, "Some text".getBytes()));
     assertTrue(fakeFtpServer.getFileSystem().exists(user_home_dir + "/" + filename));
     repository.logout();
   }
@@ -129,7 +129,7 @@ class FTPObjectStorageRepositoryTest {
     log.info("=== Test unsuccessful upload ===");
 
     assertTrue(repository.login(uri, username_valid, password_valid));
-    assertThrows(FtpException.class, () -> repository.upload("/invalid/path/" + filename, "Some text"));
+    assertThrows(FtpException.class, () -> repository.upload("/invalid/path/" + filename, "Some text".getBytes()));
     repository.logout();
   }
 }

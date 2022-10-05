@@ -286,8 +286,6 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(users.getUsers(), hasSize(3));
   }
 
-  @Disabled
-  // TODO uncomment when resolved
   @SneakyThrows
   @ParameterizedTest
   @EnumSource(value = IdentifierType.class,

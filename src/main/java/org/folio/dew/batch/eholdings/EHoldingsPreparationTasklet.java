@@ -4,7 +4,7 @@ import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_MAX_PA
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_TOTAL_PACKAGES;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PACKAGE_AGREEMENTS;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PACKAGE_NOTES;
-import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PACKAGE_PROVIDER;
+import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PROVIDER_TOKEN;
 import static org.folio.dew.client.AgreementClient.getFiltersParam;
 import static org.folio.dew.client.KbEbscoClient.ACCESS_TYPE;
 import static org.folio.dew.client.NotesClient.NoteLinkDomain.EHOLDINGS;
@@ -65,7 +65,7 @@ public class EHoldingsPreparationTasklet implements Tasklet {
 
     var packageFields = exportConfig.getPackageFields();
     this.loadNotes = packageFields != null && packageFields.contains(LOAD_FIELD_PACKAGE_NOTES);
-    this.loadProvider = packageFields != null && packageFields.contains(LOAD_FIELD_PACKAGE_PROVIDER);
+    this.loadProvider = packageFields != null && packageFields.contains(LOAD_FIELD_PROVIDER_TOKEN);
     this.loadAgreements = packageFields != null && packageFields.contains(LOAD_FIELD_PACKAGE_AGREEMENTS);
   }
 

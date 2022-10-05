@@ -89,6 +89,7 @@ import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 import org.folio.tenant.domain.dto.Errors;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -285,6 +286,8 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(users.getUsers(), hasSize(3));
   }
 
+  @Disabled
+  // TODO uncomment when resolved
   @SneakyThrows
   @ParameterizedTest
   @EnumSource(value = IdentifierType.class,

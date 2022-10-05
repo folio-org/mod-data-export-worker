@@ -94,7 +94,7 @@ class SFTPObjectStorageRepositoryTest extends BaseBatchTest {
     log.info("=== Test successful upload ===");
     String content = "Some string with content";
     SftpClient sftpClient = sftpRepository.getSftpClient(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT);
-    boolean uploaded = sftpRepository.upload(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT, EXPORT_FOLDER_NAME, FILENAME, content);
+    boolean uploaded = sftpRepository.upload(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT, EXPORT_FOLDER_NAME, FILENAME, content.getBytes());
 
     assertTrue(uploaded);
 
@@ -107,7 +107,7 @@ class SFTPObjectStorageRepositoryTest extends BaseBatchTest {
     log.info("=== Test successful upload for long path ===");
     String content = "Some string with content";
     SftpClient sftpClient = sftpRepository.getSftpClient(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT);
-    boolean uploaded = sftpRepository.upload(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT, EXPORT_FOLDER_NAME + "/test/long/path/creation", FILENAME, content);
+    boolean uploaded = sftpRepository.upload(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT, EXPORT_FOLDER_NAME + "/test/long/path/creation", FILENAME, content.getBytes());
 
     assertTrue(uploaded);
 
@@ -121,7 +121,7 @@ class SFTPObjectStorageRepositoryTest extends BaseBatchTest {
     String content = "Some string with content for download";
     String path = EXPORT_FOLDER_NAME + "/test/download";
     SftpClient sftpClient = sftpRepository.getSftpClient(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT);
-    boolean uploaded = sftpRepository.upload(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT, path, FILENAME, content);
+    boolean uploaded = sftpRepository.upload(USERNAME, PASSWORD, SFTP_HOST, MAPPED_PORT, path, FILENAME, content.getBytes());
     byte[] fileBytes = sftpRepository.download(sftpClient, path + "/" + FILENAME);
 
     assertTrue(uploaded);

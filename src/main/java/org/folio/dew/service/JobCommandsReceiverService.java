@@ -9,6 +9,7 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
+import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
@@ -32,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManager;
+import org.folio.dew.batch.acquisitions.edifact.services.ResendService;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.config.kafka.KafkaService;
@@ -79,6 +81,7 @@ public class JobCommandsReceiverService {
   private final SearchClient searchClient;
   private final FileNameResolver fileNameResolver;
   private final JobCommandRepository jobCommandRepository;
+  private final ResendService resendService;
   private final List<Job> jobs;
   private Map<String, Job> jobMap;
   @Value("${spring.application.name}")
@@ -92,7 +95,7 @@ public class JobCommandsReceiverService {
       jobMap.put(job.getName(), job);
     }
 
-    workDir = getWorkingDirectory(springApplicationName);
+    workDir = getWorkingDirectory(springApplicationName, BULKEDIT_DIR_NAME);
   }
 
   @KafkaListener(
@@ -105,6 +108,11 @@ public class JobCommandsReceiverService {
     log.info("Received {}.", jobCommand);
 
     try {
+      if (JobCommandType.RESEND.equals(jobCommand.getType())) {
+        resendService.resendExportedFile(jobCommand, acknowledgment);
+        return;
+      }
+
       if (deleteOldFiles(jobCommand, acknowledgment)) {
         return;
       }

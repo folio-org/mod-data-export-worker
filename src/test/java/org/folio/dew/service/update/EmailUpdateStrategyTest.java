@@ -10,6 +10,7 @@ import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
@@ -35,14 +36,18 @@ class EmailUpdateStrategyTest {
     assertThat(updatedUserFormat.getEmail(), equalTo("test@newdomain.com"));
   }
 
-  @Test
-  void shouldUpdateLastPartOfEmailIfDomainMatch() {
+  @ParameterizedTest
+  @CsvSource({"test,org@somedomain.com", "te,orgst@somedomain.com", "st,teorg@somedomain.com", "es,torgt@somedomain.com",
+    "@,testorgsomedomain.com", "t@,tesorgsomedomain.com", "@s,testorgomedomain.com", "some,test@orgdomain.com",
+    "med,test@soorgomain.com", "e,torgst@somorgdomain.com", ".com,test@somedomainorg", ".,test@somedomainorgcom",
+    "o,test@sorgmedorgmain.corgm", "co,test@somedomain.orgm", "om,test@sorgedorgain.corg"})
+  void shouldUpdateAnyPartOfEmail(String findValue, String expected) {
     var userFormat = new UserFormat().withEmail("test@somedomain.com");
     var contentUpdate = new UserContentUpdate()
       .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
       .actions(List.of(new UserContentUpdateAction()
           .name(UserContentUpdateAction.NameEnum.FIND)
-          .value("com"),
+          .value(findValue),
         new UserContentUpdateAction()
           .name(UserContentUpdateAction.NameEnum.REPLACE_WITH)
           .value("org")
@@ -50,43 +55,7 @@ class EmailUpdateStrategyTest {
 
     var updatedUserFormat = updateStrategy.applyUpdate(userFormat, contentUpdate);
 
-    assertThat(updatedUserFormat.getEmail(), equalTo("test@somedomain.org"));
-  }
-
-  @Test
-  void shouldUpdateBeginningPartOfEmailIfDomainMatch() {
-    var userFormat = new UserFormat().withEmail("test@somedomain.com");
-    var contentUpdate = new UserContentUpdate()
-      .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
-      .actions(List.of(new UserContentUpdateAction()
-          .name(UserContentUpdateAction.NameEnum.FIND)
-          .value("somedomain"),
-        new UserContentUpdateAction()
-          .name(UserContentUpdateAction.NameEnum.REPLACE_WITH)
-          .value("newdomain")
-      ));
-
-    var updatedUserFormat = updateStrategy.applyUpdate(userFormat, contentUpdate);
-
-    assertThat(updatedUserFormat.getEmail(), equalTo("test@newdomain.com"));
-  }
-
-  @Test
-  void shouldUpdateMiddlePartOfEmailIfDomainMatch() {
-    var userFormat = new UserFormat().withEmail("test@somedomain.com.uk");
-    var contentUpdate = new UserContentUpdate()
-      .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
-      .actions(List.of(new UserContentUpdateAction()
-          .name(UserContentUpdateAction.NameEnum.FIND)
-          .value("com"),
-        new UserContentUpdateAction()
-          .name(UserContentUpdateAction.NameEnum.REPLACE_WITH)
-          .value("org")
-      ));
-
-    var updatedUserFormat = updateStrategy.applyUpdate(userFormat, contentUpdate);
-
-    assertThat(updatedUserFormat.getEmail(), equalTo("test@somedomain.org.uk"));
+    assertThat(updatedUserFormat.getEmail(), equalTo(expected));
   }
 
   @ParameterizedTest
@@ -98,22 +67,6 @@ class EmailUpdateStrategyTest {
       .actions(List.of(new UserContentUpdateAction()
           .name(UserContentUpdateAction.NameEnum.FIND)
           .value(findValue),
-        new UserContentUpdateAction()
-          .name(UserContentUpdateAction.NameEnum.REPLACE_WITH)
-          .value("newdomain.com")
-      ));
-
-    assertThrows(BulkEditException.class, () -> updateStrategy.applyUpdate(userFormat, contentUpdate));
-  }
-
-  @Test
-  void shouldThrowExceptionIfEmailIsNotValid() {
-    var userFormat = new UserFormat().withEmail("test.somedomain.com");
-    var contentUpdate = new UserContentUpdate()
-      .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
-      .actions(List.of(new UserContentUpdateAction()
-          .name(UserContentUpdateAction.NameEnum.FIND)
-          .value("somedomain.com"),
         new UserContentUpdateAction()
           .name(UserContentUpdateAction.NameEnum.REPLACE_WITH)
           .value("newdomain.com")

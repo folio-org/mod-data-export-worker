@@ -16,6 +16,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
@@ -142,7 +143,7 @@ public class BulkEditController implements JobIdApi {
 
   @PostConstruct
   public void postConstruct() {
-    workDir = getWorkingDirectory(springApplicationName);
+    workDir = getWorkingDirectory(springApplicationName, BULKEDIT_DIR_NAME);
   }
 
   @Override

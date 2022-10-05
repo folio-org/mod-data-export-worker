@@ -4,25 +4,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
-import org.folio.dew.BaseBatchTest;
+import org.folio.dew.config.properties.LocalFilesStorageProperties;
 import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.IOException;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-@SpringBootTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@ContextConfiguration(initializers = BaseBatchTest.DockerPostgreDataSourceInitializer.class)
-@Testcontainers
+@SpringBootTest(classes = { LocalFilesStorageProperties.class, LocalFilesStorage.class })
+@EnableConfigurationProperties
 class CsvHelperTest {
   private static final String OUT_PATH = "test-dir/out.csv";
   @Autowired

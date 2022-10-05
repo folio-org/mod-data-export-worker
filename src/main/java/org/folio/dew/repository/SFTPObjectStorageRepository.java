@@ -1,12 +1,11 @@
 package org.folio.dew.repository;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.future.AuthFuture;
@@ -28,7 +27,6 @@ import lombok.extern.log4j.Log4j2;
 public class SFTPObjectStorageRepository {
 
   private SshSimpleClient sshClient;
- private final LocalFilesStorage localFilesStorage;
   private static final int LOGIN_TIMEOUT_SECONDS = 5;
 
   public SftpClient getSftpClient(String username, String password, String host, int port) throws IOException {
@@ -69,9 +67,8 @@ public class SFTPObjectStorageRepository {
     return factory;
   }
 
-  public boolean upload(String username, String password, String host, int port, String folder, String filename, String content)
+  public boolean upload(String username, String password, String host, int port, String folder, String filename, byte[] content)
       throws Exception {
-    var srcFile = createTempFile(filename, content);
     String folderPath = StringUtils.isEmpty(folder) ? "" : (folder + File.separator);
     String remoteAbsPath = folderPath + filename;
 
@@ -81,7 +78,7 @@ public class SFTPObjectStorageRepository {
     } catch (Exception e) {
       throw new EdifactException(String.format("Unable to connect to %s:%d", host, port));
     }
-    try (InputStream inputStream = localFilesStorage.newInputStream(srcFile); var session = sshdFactory.getSession()) {
+    try (InputStream inputStream = new ByteArrayInputStream(content); var session = sshdFactory.getSession()) {
       log.info("Start uploading file to SFTP path: {}", remoteAbsPath);
 
       createRemoteDirectoryIfAbsent(session, folder);
@@ -90,18 +87,8 @@ public class SFTPObjectStorageRepository {
       return true;
     } catch (Exception e) {
       log.info("Error uploading the file", e);
-      return false;
-    } finally {
-      localFilesStorage.delete(srcFile);
+      throw new EdifactException(String.format("Unable to upload to %s:%d%s. %s", host, port, folder, e.getMessage()));
     }
-  }
-
-  private String createTempFile(String filename, String content) throws IOException {
-
-    localFilesStorage.delete(filename);
-    localFilesStorage.write(filename, content.getBytes(StandardCharsets.UTF_8));
-
-    return filename;
   }
 
   public byte[] download(SftpClient sftpClient, String path) {

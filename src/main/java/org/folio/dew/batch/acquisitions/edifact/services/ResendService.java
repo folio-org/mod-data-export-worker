@@ -1,6 +1,8 @@
 package org.folio.dew.batch.acquisitions.edifact.services;
 
-import java.nio.charset.StandardCharsets;
+import static org.folio.dew.utils.Constants.EDIFACT_EXPORT_DIR_NAME;
+import static org.folio.dew.utils.Constants.getWorkingDirectory;
+
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -14,6 +16,7 @@ import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.spring.FolioExecutionContext;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +39,9 @@ public class ResendService {
   private static final String EDIFACT_ORDERS_EXPORT_KEY = "EDIFACT_ORDERS_EXPORT";
   private static final String FILE_NAME_KEY = "FILE_NAME";
 
+  @Value("${spring.application.name}")
+  protected String springApplicationName;
+
   public void resendExportedFile(JobCommand jobCommand, Acknowledgment acknowledgment) {
     JobParameters jobParameters = jobCommand.getJobParameters();
     String jobId = jobParameters.getString(JobParameterNames.JOB_ID);
@@ -53,11 +59,13 @@ public class ResendService {
       String fileName = jobParameters.getString(FILE_NAME_KEY);
       VendorEdiOrdersExportConfig ediConfig = objectMapper.readValue(jobParameters.getString(EDIFACT_ORDERS_EXPORT_KEY),
           VendorEdiOrdersExportConfig.class);
+
+      String workDir = getWorkingDirectory(springApplicationName, EDIFACT_EXPORT_DIR_NAME);
       String tenantName = folioExecutionContext.getTenantId();
-      String path = String.format("%s/%s", tenantName, fileName);
+      String path = String.format("%s%s/%s", workDir, tenantName, fileName);
 
       byte[] exportFile = remoteFilesStorage.readAllBytes(path);
-      ftpStorageService.uploadToFtp(ediConfig, new String(exportFile, StandardCharsets.UTF_8), fileName);
+      ftpStorageService.uploadToFtp(ediConfig, exportFile, fileName);
       job.setStatus(JobStatus.SUCCESSFUL);
       log.info("Resend operation finished for job ID: {}", jobId);
     } catch (Exception e) {

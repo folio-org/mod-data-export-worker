@@ -11,25 +11,25 @@ For the purposes of this form, "store" includes the following:
 
 ## Personal Data Stored by This Module
 - [ ] This module does not store any personal data.
-- [ ] This module provides [custom fields](https://github.com/folio-org/folio-custom-fields).
+- [x] This module provides [custom fields](https://github.com/folio-org/folio-custom-fields).
 - [x] This module stores fields with free-form text (tags, notes, descriptions, etc.)
 - [ ] This module caches personal data
 ---
-- [ ] First name
-- [ ] Last name
-- [ ] Middle name
+- [x] First name
+- [x] Last name
+- [x] Middle name
 - [x] Pseudonym / Alias / Nickname / Username / User ID
 - [ ] Gender
 - [ ] Date of birth
 - [ ] Place of birth
 - [ ] Racial or ethnic origin
-- [ ] Address
+- [x] Address
 - [ ] Location information
-- [ ] Phone numbers
+- [x] Phone numbers
 - [ ] Passport number / National identification numbers
 - [ ] Driver’s license number
 - [ ] Social security number
-- [ ] Email address
+- [x] Email address
 - [ ] Web cookies
 - [ ] IP address
 - [ ] Geolocation data

@@ -396,7 +396,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    */
   public byte[] readAllBytes(String path) throws IOException {
     try (var is = newInputStream(path)) {
-      return  is.readAllBytes();
+      return is.readAllBytes();
     } catch (Exception e) {
       throw new IOException("Error reading file with path: " + path, e);
     }

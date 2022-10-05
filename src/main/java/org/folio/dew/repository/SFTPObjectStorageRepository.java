@@ -87,7 +87,7 @@ public class SFTPObjectStorageRepository {
       return true;
     } catch (Exception e) {
       log.info("Error uploading the file", e);
-      return false;
+      throw new EdifactException(String.format("Unable to upload to %s:%d%s", host, port, folder));
     }
   }
 

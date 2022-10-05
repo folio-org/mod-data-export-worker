@@ -322,7 +322,7 @@ public class BulkEditParseService {
       .itemLevelCallNumberPrefix(restoreStringValue(itemFormat.getItemLevelCallNumberPrefix()))
       .itemLevelCallNumberSuffix(restoreStringValue(itemFormat.getItemLevelCallNumberSuffix()))
       .itemLevelCallNumberTypeId(restoreItemLevelCallNumberTypeId(itemFormat.getItemLevelCallNumberType()))
-      .effectiveCallNumberComponents(restoreEffectiveCallNumberComponents(itemFormat.getEffectiveCallNumberComponents()))
+      .effectiveCallNumberComponents(restoreEffectiveCallNumberComponents(itemFormat))
       .volume(restoreStringValue(itemFormat.getVolume()))
       .enumeration(restoreStringValue(itemFormat.getEnumeration()))
       .chronology(restoreStringValue(itemFormat.getChronology()))
@@ -378,19 +378,12 @@ public class BulkEditParseService {
     return isEmpty(name) ? null : itemReferenceService.getCallNumberTypeByName(name).getId();
   }
 
-  private EffectiveCallNumberComponents restoreEffectiveCallNumberComponents(String s) {
-    if (isNotEmpty(s)) {
-      var tokens = s.split(ARRAY_DELIMITER, -1);
-      if (NUMBER_OF_CALL_NUMBER_COMPONENTS == tokens.length) {
-        return new EffectiveCallNumberComponents()
-          .callNumber(restoreStringValue(tokens[CALL_NUMBER_INDEX]))
-          .prefix(restoreStringValue(tokens[CALL_NUMBER_PREFIX_INDEX]))
-          .suffix(restoreStringValue(tokens[CALL_NUMBER_SUFFIX_INDEX]))
-          .typeId(restoreItemLevelCallNumberTypeId(tokens[CALL_NUMBER_TYPE_INDEX]));
-      }
-      throw new BulkEditException(String.format("Illegal number of effective call number elements: %d, expected: %d", tokens.length, NUMBER_OF_CALL_NUMBER_COMPONENTS));
-    }
-    return null;
+  private EffectiveCallNumberComponents restoreEffectiveCallNumberComponents(ItemFormat itemFormat) {
+    return new EffectiveCallNumberComponents()
+      .callNumber(restoreStringValue(itemFormat.getCallNumber()))
+      .prefix(restoreStringValue(itemFormat.getItemLevelCallNumberPrefix()))
+      .suffix(restoreStringValue(itemFormat.getItemLevelCallNumberSuffix()))
+      .typeId(isEmpty(itemFormat.getItemLevelCallNumberType()) ? null : itemReferenceService.getCallNumberTypeByName(itemFormat.getItemLevelCallNumberType()).getId());
   }
 
   private String restoreItemDamagedStatusId(String name) {

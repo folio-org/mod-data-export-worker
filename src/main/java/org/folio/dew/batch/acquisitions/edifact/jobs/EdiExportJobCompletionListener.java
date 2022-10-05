@@ -1,5 +1,8 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -12,18 +15,13 @@ import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.repository.IAcknowledgementRepository;
-import org.folio.dew.repository.LocalFilesStorage;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
-
-import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
-import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 
 @Component
 @Log4j2
@@ -34,7 +32,6 @@ public class EdiExportJobCompletionListener extends JobExecutionListenerSupport 
 
   private final IAcknowledgementRepository acknowledgementRepository;
   private final KafkaService kafka;
-  private final LocalFilesStorage localFilesStorage;
 
   @Override
   public void beforeJob(JobExecution jobExecution) {
@@ -56,8 +53,6 @@ public class EdiExportJobCompletionListener extends JobExecutionListenerSupport 
     }
     log.info("Job update {}.", jobExecution);
 
-    cleanupLocalFileStorage(jobParameters, after);
-
     var jobExecutionUpdate = createJobExecutionUpdate(jobId, jobExecution);
 
     var acknowledgment = acknowledgementRepository.getAcknowledgement(jobId);
@@ -69,13 +64,6 @@ public class EdiExportJobCompletionListener extends JobExecutionListenerSupport 
     kafka.send(KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     if (after) {
       log.info("-----------------------------JOB---ENDS-----------------------------");
-    }
-  }
-
-  private void cleanupLocalFileStorage(JobParameters jobParameters, boolean isAfterJob) {
-    var uploadedFilePath = jobParameters.getString(JobParameterNames.UPLOADED_FILE_PATH);
-    if (isAfterJob && StringUtils.isNotEmpty(uploadedFilePath)) {
-      localFilesStorage.delete(uploadedFilePath);
     }
   }
 

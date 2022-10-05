@@ -3,7 +3,6 @@ package org.folio.dew.batch.acquisitions.edifact.services;
 import static org.folio.dew.utils.Constants.EDIFACT_EXPORT_DIR_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -66,7 +65,7 @@ public class ResendService {
       String path = String.format("%s%s/%s", workDir, tenantName, fileName);
 
       byte[] exportFile = remoteFilesStorage.readAllBytes(path);
-      ftpStorageService.uploadToFtp(ediConfig, new String(exportFile, StandardCharsets.UTF_8), fileName);
+      ftpStorageService.uploadToFtp(ediConfig, exportFile, fileName);
       job.setStatus(JobStatus.SUCCESSFUL);
       log.info("Resend operation finished for job ID: {}", jobId);
     } catch (Exception e) {

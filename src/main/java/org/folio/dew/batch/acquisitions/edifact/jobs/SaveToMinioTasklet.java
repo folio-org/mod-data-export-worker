@@ -57,18 +57,18 @@ public class SaveToMinioTasklet implements Tasklet {
     var ediExportConfig = objectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
     var edifactOrderAsString = (String) ExecutionContextUtils.getExecutionVariable(stepExecution,"edifactOrderAsString");
 
-    var uploadedLocalFile = buildFullFilePath(ediExportConfig);
-    String edifactFileName = FilenameUtils.getName(uploadedLocalFile);
+    var fullFilePath = buildFullFilePath(ediExportConfig);
+    String edifactFileName = FilenameUtils.getName(fullFilePath);
     String presignedUrl;
     try {
-      var uploadedFilePath = remoteFilesStorage.write(edifactFileName, edifactOrderAsString.getBytes(StandardCharsets.UTF_8));
+      var uploadedFilePath = remoteFilesStorage.write(fullFilePath, edifactOrderAsString.getBytes(StandardCharsets.UTF_8));
       presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(uploadedFilePath);
     }
     catch (Exception e) {
       log.error(REMOTE_STORAGE_ERROR_MESSAGE, e);
       throw new EdifactException(REMOTE_STORAGE_ERROR_MESSAGE);
     }
-    ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), UPLOADED_FILE_PATH, uploadedLocalFile, "");
+    ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), UPLOADED_FILE_PATH, fullFilePath, "");
     ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), EDIFACT_FILE_NAME, edifactFileName, "");
     ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), OUTPUT_FILES_IN_STORAGE, presignedUrl, ";");
 

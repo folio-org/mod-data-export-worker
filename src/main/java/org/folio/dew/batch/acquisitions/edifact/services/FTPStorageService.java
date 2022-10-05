@@ -17,7 +17,7 @@ public class FTPStorageService {
   private final FTPObjectStorageRepository ftpObjectStorageRepository;
   private static final String SFTP_PROTOCOL = "sftp://";
 
-  public void uploadToFtp(VendorEdiOrdersExportConfig ediExportConfig, String fileContent, String filename) throws Exception {
+  public void uploadToFtp(VendorEdiOrdersExportConfig ediExportConfig, byte[] fileByteContent, String filename) throws Exception {
     String username = ediExportConfig.getEdiFtp().getUsername();
     String folder = ediExportConfig.getEdiFtp().getOrderDirectory();
     String password = ediExportConfig.getEdiFtp().getPassword();
@@ -25,11 +25,11 @@ public class FTPStorageService {
     int port = ediExportConfig.getEdiFtp().getFtpPort();
 
     if (EdiFtp.FtpFormatEnum.SFTP.equals(ediExportConfig.getEdiFtp().getFtpFormat())) {
-      sftpObjectStorageRepository.upload(username, password, host, port, folder, filename, fileContent);
+      sftpObjectStorageRepository.upload(username, password, host, port, folder, filename, fileByteContent);
     }
     else {
       ftpObjectStorageRepository.login(host, username, password);
-      ftpObjectStorageRepository.upload(filename, fileContent);
+      ftpObjectStorageRepository.upload(filename, fileByteContent);
     }
   }
 }

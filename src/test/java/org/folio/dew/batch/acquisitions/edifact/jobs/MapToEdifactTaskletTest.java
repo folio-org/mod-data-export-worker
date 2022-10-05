@@ -59,7 +59,6 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
     doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
 
     JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters(false));
-    Collection<StepExecution> actualStepExecutions = jobExecution.getStepExecutions();
 
     Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 

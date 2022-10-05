@@ -1,9 +1,11 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.domain.dto.JobParameterNames.UPLOADED_FILE_PATH;
 import static org.folio.dew.utils.Constants.EDIFACT_EXPORT_DIR_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 import static org.folio.dew.utils.TestUtils.getMockData;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -17,7 +19,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.repository.FTPObjectStorageRepository;
-import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.SFTPObjectStorageRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -25,6 +26,7 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -35,8 +37,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 class SaveToFileStorageTaskletTest extends BaseBatchTest {
   @Autowired
   private Job edifactExportJob;
-  @Autowired
-  private LocalFilesStorage localFilesStorage;
   @MockBean
   private SFTPObjectStorageRepository sftpObjectStorageRepository;
   @MockBean
@@ -49,11 +49,14 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
   void sftpUploadSuccessful() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
 
-    doReturn(true).when(sftpObjectStorageRepository).upload(anyString(), anyString(), anyString(), anyInt(), anyString(), anyString(), anyString());
+    doReturn(true).when(sftpObjectStorageRepository).upload(anyString(), anyString(), anyString(), anyInt(), anyString(), anyString(), any());
     JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
     doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
 
-    JobExecution jobExecution = testLauncher.launchStep("saveToFTPStep", getSFTPJobParameters());
+    JobParameters jobParameters = getSFTPJobParameters();
+    ExecutionContext executionContext = getExecutionContext(jobParameters.getString(UPLOADED_FILE_PATH));
+
+    JobExecution jobExecution = testLauncher.launchStep("saveToFTPStep", getSFTPJobParameters(), executionContext);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
@@ -67,9 +70,11 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
     JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
     doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
     doReturn(true).when(ftpObjectStorageRepository).login(anyString(),anyString(),anyString());
-    doNothing().when(ftpObjectStorageRepository).upload(anyString(), anyString());
+    doNothing().when(ftpObjectStorageRepository).upload(anyString(), any());
 
-    JobExecution jobExecution = testLauncher.launchStep("saveToFTPStep", getFTPJobParameters());
+    JobParameters jobParameters = getSFTPJobParameters();
+    ExecutionContext executionContext = getExecutionContext(jobParameters.getString(UPLOADED_FILE_PATH));
+    JobExecution jobExecution = testLauncher.launchStep("saveToFTPStep", getFTPJobParameters(), executionContext);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
@@ -85,8 +90,8 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
     // prepare local file copy
     var filename = "testEdiFile.edi";
     var fileContent = RandomStringUtils.random(100);
-    var uploadedFilePath = localFilesStorage.write(workDir + filename, fileContent.getBytes(StandardCharsets.UTF_8));
-    paramsBuilder.addString("uploadedFilePath", uploadedFilePath);
+    var uploadedFilePath = remoteFilesStorage.write(workDir + filename, fileContent.getBytes(StandardCharsets.UTF_8));
+    paramsBuilder.addString(UPLOADED_FILE_PATH, uploadedFilePath);
 
     return paramsBuilder.toJobParameters();
   }
@@ -98,6 +103,12 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
     paramsBuilder.addString("jobId", UUID.randomUUID().toString());
 
     return paramsBuilder.toJobParameters();
+  }
+
+  private ExecutionContext getExecutionContext(String uploadedFilePath) {
+    ExecutionContext executionContext = new ExecutionContext();
+    executionContext.put(UPLOADED_FILE_PATH, uploadedFilePath);
+    return executionContext;
   }
 
   protected JobLauncherTestUtils createTestLauncher(Job job) {

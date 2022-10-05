@@ -40,6 +40,7 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.compress.utils.FileNameUtils;
@@ -86,6 +87,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String ITEM_HOLDINGS_CSV = "src/test/resources/upload/item_holdings.csv";
   private static final String USER_RECORD_CSV = "src/test/resources/upload/bulk_edit_user_record.csv";
   private static final String ITEM_RECORD_CSV = "src/test/resources/upload/bulk_edit_item_record.csv";
+  private static final String ITEM_RECORD_1100_CSV = "src/test/resources/upload/bulk_edit_1100_item_records.csv";
   private static final String USER_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_user_record_not_found.csv";
   private static final String ITEM_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_item_record_not_found.csv";
   private static final String USER_RECORD_CSV_BAD_CONTENT = "src/test/resources/upload/bulk_edit_user_record_bad_content.csv";
@@ -371,7 +373,7 @@ class BulkEditTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {ITEM_RECORD_CSV, ITEM_RECORD_CSV_NOT_FOUND, ITEM_RECORD_CSV_BAD_CALL_NUMBER_TYPE,
+  @ValueSource(strings = {ITEM_RECORD_CSV, ITEM_RECORD_1100_CSV, ITEM_RECORD_CSV_NOT_FOUND, ITEM_RECORD_CSV_BAD_CALL_NUMBER_TYPE,
     ITEM_RECORD_CSV_BAD_DAMAGED_STATUS, ITEM_RECORD_CSV_BAD_LOAN_TYPE, ITEM_RECORD_CSV_BAD_LOCATION,
     ITEM_RECORD_CSV_BAD_NOTE_TYPE, ITEM_RECORD_CSV_BAD_RELATIONSHIP, ITEM_RECORD_CSV_BAD_SERVICE_POINT,
     ITEM_RECORD_CSV_INVALID_NOTES, ITEM_RECORD_CSV_INVALID_CIRCULATION_NOTES})
@@ -384,7 +386,7 @@ class BulkEditTest extends BaseBatchTest {
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
     var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobExecution.getJobParameters().getString("jobId"), csvFileName, 10);
-    if (!ITEM_RECORD_CSV.equals(csvFileName)) {
+    if (!Set.of(ITEM_RECORD_CSV, ITEM_RECORD_1100_CSV).contains(csvFileName)) {
       assertThat(errors.getErrors()).hasSize(1);
       assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
     } else {

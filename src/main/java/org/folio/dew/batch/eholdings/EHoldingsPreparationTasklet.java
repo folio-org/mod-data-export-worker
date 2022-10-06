@@ -4,6 +4,7 @@ import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_MAX_PA
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_TOTAL_PACKAGES;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PACKAGE_AGREEMENTS;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PACKAGE_NOTES;
+import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PROVIDER_TOKEN;
 import static org.folio.dew.client.AgreementClient.getFiltersParam;
 import static org.folio.dew.client.KbEbscoClient.ACCESS_TYPE;
 import static org.folio.dew.client.NotesClient.NoteLinkDomain.EHOLDINGS;
@@ -43,6 +44,7 @@ public class EHoldingsPreparationTasklet implements Tasklet {
   private final String recordId;
   private final boolean loadNotes;
   private final boolean loadAgreements;
+  private final boolean loadProvider;
 
   private final EHoldingsPackageDTO eHoldingsPackageDTO;
 
@@ -53,17 +55,18 @@ public class EHoldingsPreparationTasklet implements Tasklet {
                                      NotesClient notesClient,
                                      AgreementClient agreementClient,
                                      EHoldingsExportConfig exportConfig, EHoldingsPackageRepository repository) {
-    this.kbEbscoClient = kbEbscoClient;
+    this.repository = repository;
     this.notesClient = notesClient;
+    this.kbEbscoClient = kbEbscoClient;
     this.agreementClient = agreementClient;
     this.recordId = exportConfig.getRecordId();
     this.recordType = exportConfig.getRecordType();
-    this.loadNotes =
-      exportConfig.getPackageFields() != null && exportConfig.getPackageFields().contains(LOAD_FIELD_PACKAGE_NOTES);
-    this.loadAgreements = exportConfig.getPackageFields() != null &&
-      exportConfig.getPackageFields().contains(LOAD_FIELD_PACKAGE_AGREEMENTS);
-    this.repository = repository;
     this.eHoldingsPackageDTO = new EHoldingsPackageDTO();
+
+    var packageFields = exportConfig.getPackageFields();
+    this.loadNotes = packageFields != null && packageFields.contains(LOAD_FIELD_PACKAGE_NOTES);
+    this.loadProvider = packageFields != null && packageFields.contains(LOAD_FIELD_PROVIDER_TOKEN);
+    this.loadAgreements = packageFields != null && packageFields.contains(LOAD_FIELD_PACKAGE_AGREEMENTS);
   }
 
   @Override
@@ -72,12 +75,9 @@ public class EHoldingsPreparationTasklet implements Tasklet {
     log.trace("Reading record with id: " + packageId);
 
     eHoldingsPackageDTO.setEPackage(kbEbscoClient.getPackageById(packageId, ACCESS_TYPE));
-    if (loadNotes) {
-      loadNotes();
-    }
-    if (loadAgreements) {
-      loadAgreements();
-    }
+    if (loadNotes) loadNotes();
+    if (loadProvider) loadProvider();
+    if (loadAgreements) loadAgreements();
     log.trace("Record is read.");
 
     log.trace("Writing the record to a database.");
@@ -101,6 +101,13 @@ public class EHoldingsPreparationTasklet implements Tasklet {
     }
     log.trace("Records are written to a database.");
     return RepeatStatus.FINISHED;
+  }
+
+  private void loadProvider() {
+    log.trace("Loading provider...");
+    var providerId = eHoldingsPackageDTO.getEPackage().getData().getAttributes().getProviderId();
+    eHoldingsPackageDTO.setEProvider(kbEbscoClient.getProviderById(providerId, null));
+    log.trace("Provider loaded.");
   }
 
   private void loadNotes() {

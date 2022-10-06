@@ -8,6 +8,7 @@ import lombok.Data;
 
 @Data
 public class EHoldingsPackageDTO {
+  private EProvider eProvider;
   private EPackage ePackage;
   private List<Agreement> agreements;
   private List<Note> notes;

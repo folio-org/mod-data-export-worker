@@ -33,11 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -88,6 +86,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String ITEM_HOLDINGS_CSV = "src/test/resources/upload/item_holdings.csv";
   private static final String USER_RECORD_CSV = "src/test/resources/upload/bulk_edit_user_record.csv";
   private static final String ITEM_RECORD_CSV = "src/test/resources/upload/bulk_edit_item_record.csv";
+  private static final String ITEM_RECORD_1100_CSV = "src/test/resources/upload/bulk_edit_1100_item_records.csv";
   private static final String USER_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_user_record_not_found.csv";
   private static final String ITEM_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_item_record_not_found.csv";
   private static final String USER_RECORD_CSV_BAD_CONTENT = "src/test/resources/upload/bulk_edit_user_record_bad_content.csv";

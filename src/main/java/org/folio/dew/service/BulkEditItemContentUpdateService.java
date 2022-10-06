@@ -17,6 +17,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
+import static org.folio.dew.utils.Constants.COMMA;
 import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
@@ -35,7 +36,6 @@ import org.folio.de.entity.JobCommand;
 import org.folio.dew.domain.dto.ItemContentUpdate;
 import org.folio.dew.domain.dto.ItemContentUpdateCollection;
 import org.folio.dew.domain.dto.ItemFormat;
-import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
@@ -80,6 +80,7 @@ public class BulkEditItemContentUpdateService {
       log.info("Reading of file {} complete, number of itemFormats: {}", outputFileName, records.size());
       updateResult.setTotal(records.size());
       var contentUpdated = applyContentUpdates(records, contentUpdates, jobCommand);
+      log.info("Finished processing content updates: {} records, {} preview", contentUpdated.getUpdated().size(), contentUpdated.getPreview().size());
       updateResult.setEntitiesForPreview(contentUpdated.getPreview());
       var previewOutputFileName = workdir + PREVIEW_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       saveResultToFile(contentUpdated.getPreview(), jobCommand, previewOutputFileName, PREVIEW_FILE_NAME);
@@ -109,8 +110,8 @@ public class BulkEditItemContentUpdateService {
 
   private ContentUpdateRecords<ItemFormat> applyContentUpdates(List<ItemFormat> itemFormats, ItemContentUpdateCollection contentUpdates, JobCommand jobCommand) {
     var result = new ContentUpdateRecords<ItemFormat>();
+    var errorStringBuilder = new StringBuilder();
     for (ItemFormat itemFormat: itemFormats) {
-      log.info("Applying updates to item id={}", itemFormat.getId());
       var updatedItemFormat = itemFormat;
       var errorMessage = new ErrorMessage();
       for (ItemContentUpdate contentUpdate: contentUpdates.getItemContentUpdates()) {
@@ -130,9 +131,15 @@ public class BulkEditItemContentUpdateService {
         }
       }
       if (errorMessage.getValue() != null) {
-        log.error(errorMessage.getValue());
-        errorsService.saveErrorInCSV(jobCommand.getId().toString(), itemFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)), new BulkEditException(errorMessage.getValue()), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
+        errorStringBuilder
+          .append(itemFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)))
+          .append(COMMA)
+          .append(errorMessage.getValue())
+          .append(System.lineSeparator());
       }
+    }
+    if (!errorStringBuilder.toString().isEmpty()) {
+      errorsService.saveErrorInCSV(jobCommand.getId().toString(), errorStringBuilder.toString(), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
     }
     return result;
   }

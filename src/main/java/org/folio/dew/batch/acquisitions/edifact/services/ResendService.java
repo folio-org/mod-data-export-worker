@@ -5,12 +5,12 @@ import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
 import java.util.UUID;
 
-import org.apache.commons.lang3.StringUtils;
+import org.folio.de.entity.Job;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
 import org.folio.dew.config.kafka.KafkaService;
-import org.folio.dew.domain.dto.Job;
-import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.ExportTypeSpecificParameters;
 import org.folio.dew.domain.dto.JobStatus;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.repository.RemoteFilesStorage;
@@ -43,22 +43,22 @@ public class ResendService {
   protected String springApplicationName;
 
   public void resendExportedFile(JobCommand jobCommand, Acknowledgment acknowledgment) {
+    acknowledgment.acknowledge();
+    UUID jobId = jobCommand.getId();
     JobParameters jobParameters = jobCommand.getJobParameters();
-    String jobId = jobParameters.getString(JobParameterNames.JOB_ID);
-    if (StringUtils.isBlank(jobId)) {
+
+    if (jobId == null) {
       log.error("Job update with empty Job ID {}.", jobCommand);
       throw new EdifactException("Job update with empty Job ID.");
     }
-
     log.info("Resend operation started for job ID: {}", jobId);
     Job job = new Job();
-    job.setId(UUID.fromString(jobId));
+    job.setType(ExportType.EDIFACT_ORDERS_EXPORT);
+    job.setId(jobId);
     try {
-      acknowledgment.acknowledge();
-
       String fileName = jobParameters.getString(FILE_NAME_KEY);
       VendorEdiOrdersExportConfig ediConfig = objectMapper.readValue(jobParameters.getString(EDIFACT_ORDERS_EXPORT_KEY),
-          VendorEdiOrdersExportConfig.class);
+        VendorEdiOrdersExportConfig.class);
 
       String workDir = getWorkingDirectory(springApplicationName, EDIFACT_EXPORT_DIR_NAME);
       String tenantName = folioExecutionContext.getTenantId();
@@ -66,15 +66,19 @@ public class ResendService {
 
       byte[] exportFile = remoteFilesStorage.readAllBytes(path);
       ftpStorageService.uploadToFtp(ediConfig, exportFile, fileName);
+
+      ExportTypeSpecificParameters parameters = new ExportTypeSpecificParameters();
+      parameters.setVendorEdiOrdersExportConfig(ediConfig);
+      job.setExportTypeSpecificParameters(parameters);
       job.setStatus(JobStatus.SUCCESSFUL);
       log.info("Resend operation finished for job ID: {}", jobId);
     } catch (Exception e) {
       log.error("Resending failed with an error for job Id: {}", jobId, e);
       job.setErrorDetails(getThrowableRootCauseDetails(e));
       job.setStatus(JobStatus.FAILED);
+    } finally {
+      kafka.send(KafkaService.Topic.JOB_UPDATE, jobId.toString(), job);
     }
-
-    kafka.send(KafkaService.Topic.JOB_UPDATE, jobId, job);
   }
 
   private String getThrowableRootCauseDetails(Throwable t) {

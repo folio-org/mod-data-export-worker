@@ -7,11 +7,14 @@ import lombok.Data;
 
 @Data
 public class EHoldingsResourceExportFormat {
-  //Package fields
-  private String providerName;
+  //Provider fields
   private String providerId;
-  private String packageName;
+  private String providerName;
+  private String providerLevelToken;
+
+  //Package fields
   private String packageId;
+  private String packageName;
   private String packageType;
   private String packageHoldingsStatus;
   private String packageContentType;

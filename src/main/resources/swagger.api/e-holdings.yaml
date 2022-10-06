@@ -14,6 +14,8 @@ components:
   schemas:
     note:
       $ref: '../../../../folio-export-common/schemas/note/note.json#/Note'
+    eProvider:
+      $ref: '../../../../folio-export-common/schemas/eholdings/e-provider/provider.json#/EProvider'
     ePackage:
       $ref: '../../../../folio-export-common/schemas/eholdings/e-package/package.json#/EPackage'
     eResource:

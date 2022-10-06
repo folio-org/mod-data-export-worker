@@ -3,6 +3,7 @@ package org.folio.dew.batch.eholdings;
 import org.folio.de.entity.EHoldingsPackage;
 import org.folio.dew.domain.dto.eholdings.EHoldingsPackageDTO;
 import org.folio.dew.domain.dto.eholdings.EPackage;
+import org.folio.dew.domain.dto.eholdings.EProvider;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -24,6 +25,7 @@ public class EHoldingsPackageMapper {
     try {
       entity.setId(dto.getEPackage().getData().getId());
       entity.setEPackage(objectMapper.writeValueAsString(dto.getEPackage()));
+      entity.setEProvider(objectMapper.writeValueAsString(dto.getEProvider()));
       entity.setAgreements(objectMapper.writeValueAsString(dto.getAgreements()));
       entity.setNotes(objectMapper.writeValueAsString(dto.getNotes()));
     } catch (JsonProcessingException e) {
@@ -37,8 +39,8 @@ public class EHoldingsPackageMapper {
     var dto = new EHoldingsPackageDTO();
     try {
       dto.setEPackage(objectMapper.readValue(entity.getEPackage(), EPackage.class));
-      dto.setNotes(objectMapper.readValue(entity.getNotes(), new TypeReference<>() {
-      }));
+      dto.setEProvider(objectMapper.readValue(entity.getEProvider(), EProvider.class));
+      dto.setNotes(objectMapper.readValue(entity.getNotes(), new TypeReference<>() {}));
       dto.setAgreements(
         objectMapper.readValue(entity.getAgreements(), new TypeReference<>() {
         }));

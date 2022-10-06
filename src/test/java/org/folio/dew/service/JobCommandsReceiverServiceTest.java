@@ -1,8 +1,8 @@
 package org.folio.dew.service;
 
-import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -17,6 +17,7 @@ import java.util.UUID;
 import org.folio.de.entity.JobCommand;
 import org.folio.de.entity.JobCommandType;
 import org.folio.dew.BaseBatchTest;
+import org.folio.dew.batch.acquisitions.edifact.services.FTPStorageService;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
@@ -34,6 +35,8 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
   @MockBean
   private JobCommandRepository jobCommandRepository;
+  @MockBean
+  FTPStorageService ftpStorageService;
 
   @Test
   @DisplayName("Start CirculationLog job by kafka request")
@@ -62,6 +65,17 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
     jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
 
+    verify(exportJobManagerSync, never()).launchJob(any());
+  }
+
+  @Test
+  @DisplayName("Resend job should failed")
+  void failedResendTest() throws Exception {
+    doNothing().when(acknowledgment).acknowledge();
+    JobCommand jobCommand = createStartResendRequest(null);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
+
+    verify(ftpStorageService, never()).uploadToFtp(any(), any(), anyString());
     verify(exportJobManagerSync, never()).launchJob(any());
   }
 
@@ -169,7 +183,6 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     config.setVendorId(UUID.randomUUID());
 
     Map<String, JobParameter> params = new HashMap<>();
-    params.put(JOB_ID, new JobParameter(id.toString()));
     params.put("FILE_NAME", new JobParameter("TestFile.csv"));
     params.put("EDIFACT_ORDERS_EXPORT", new JobParameter(asJsonString(config)));
 

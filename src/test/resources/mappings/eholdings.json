@@ -3,6 +3,19 @@
     {
       "request": {
         "method": "GET",
+        "url": "/eholdings/providers/1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n  \"data\" : {\n    \"id\" : \"1\",\n    \"type\" : \"providers\",\n    \"attributes\" : {\n      \"name\" : \"API DEV CORPORATE CUSTOMER\",\n      \"packagesTotal\" : 1,\n      \"packagesSelected\" : 1,\n      \"providerToken\" : {\n        \"factName\" : \"[[vleid]]\",\n        \"prompt\" : \"id=\",\n        \"helpText\" : \"<p></p>\",\n        \"value\" : \"ProviderToken 1\"\n      },\n      \"supportsCustomPackages\" : false,\n      \"proxy\" : {\n        \"id\" : \"ezproxy\",\n        \"inherited\" : true\n      },\n      \"tags\" : {\n        \"tagList\" : [ ]\n      }\n    },\n    \"relationships\" : {\n      \"packages\" : {\n        \"meta\" : {\n          \"included\" : false\n        }\n      }\n    }\n  },\n  \"included\" : [ ],\n  \"jsonapi\" : {\n    \"version\" : \"1.0\"\n  }\n}",
+        "headers": {
+          "Content-Type": "application/vnd.api+json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
         "url": "/eholdings/packages/1-22?include=accessType"
       },
       "response": {

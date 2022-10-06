@@ -8,7 +8,6 @@ import static java.util.stream.Collectors.toList;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.folio.dew.domain.dto.Error;
 import org.folio.dew.domain.dto.Errors;
 import org.folio.dew.error.FileOperationException;
@@ -46,6 +45,8 @@ public class BulkEditProcessingErrorsService {
 
   private final LocalFilesStorage localFilesStorage;
 
+
+
   public void saveErrorInCSV(String jobId, String affectedIdentifier, Throwable reasonForError, String fileName) {
     if (isNull(jobId) || isNull(affectedIdentifier) || isNull(reasonForError) || isNull(fileName)) {
       log.error("Some of the parameters is null, jobId: {}, affectedIdentifier: {}, reasonForError: {}, fileName: {}", jobId, affectedIdentifier, reasonForError, fileName);
@@ -61,6 +62,16 @@ public class BulkEditProcessingErrorsService {
       } catch (IOException ioException) {
         log.error("Failed to save {} error file with job id {} cause {}", csvFileName, jobId, ioException);
       }
+    }
+  }
+
+  public void saveErrorInCSV(String jobId, String errorString, String fileName) {
+    var csvFileName = getCsvFileName(jobId, fileName);
+    var pathToCSVFile = getPathToCsvFile(jobId, getCsvFileName(jobId, fileName));
+    try {
+      localFilesStorage.append(pathToCSVFile, errorString.getBytes(StandardCharsets.UTF_8));
+    } catch (IOException ioException) {
+      log.error("Failed to save {} error file with job id {} cause {}", csvFileName, jobId, ioException);
     }
   }
 

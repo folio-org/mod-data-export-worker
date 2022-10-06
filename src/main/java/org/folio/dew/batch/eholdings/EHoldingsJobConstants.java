@@ -9,10 +9,11 @@ public final class EHoldingsJobConstants {
   public static final String LOAD_FIELD_TITLE_NOTES = "titleNotes";
   public static final String LOAD_FIELD_PACKAGE_AGREEMENTS = "packageAgreements";
   public static final String LOAD_FIELD_TITLE_AGREEMENTS = "titleAgreements";
+  public static final String LOAD_FIELD_PROVIDER_TOKEN = "providerLevelToken";
 
   //execution context constants
   public static final String CONTEXT_MAX_PACKAGE_NOTES_COUNT = "packageMaxNotesCount";
   public static final String CONTEXT_MAX_TITLE_NOTES_COUNT = "titleMaxNotesCount";
-  public static final String CONTEXT_PACKAGE = "package";
-  public static final String CONTEXT_RESOURCES = "resources";
+  public static final String CONTEXT_TOTAL_PACKAGES = "totalPackages";
+  public static final String CONTEXT_TOTAL_RESOURCES = "totalResources";
 }

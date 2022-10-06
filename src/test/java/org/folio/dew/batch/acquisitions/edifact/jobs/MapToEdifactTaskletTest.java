@@ -16,12 +16,14 @@ import java.util.Collection;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.assertj.core.api.Assertions;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.PurchaseOrderCollection;
 import org.junit.jupiter.api.Test;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
@@ -57,10 +59,8 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
     doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
 
     JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters(false));
-    Collection<StepExecution> actualStepExecutions = jobExecution.getStepExecutions();
 
-    var status = new ArrayList<>(actualStepExecutions).get(0).getStatus().getBatchStatus().name();
-    assertEquals("COMPLETED", status);
+    Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
   }
 
@@ -100,8 +100,7 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters(true));
     Collection<StepExecution> actualStepExecutions = jobExecution.getStepExecutions();
 
-    var status = new ArrayList<>(actualStepExecutions).get(0).getStatus().getBatchStatus().name();
-    assertEquals("COMPLETED", status);
+    Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
   }
 

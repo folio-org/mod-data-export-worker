@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -23,6 +24,7 @@ import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.repository.JobCommandRepository;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.JobExecutionException;
@@ -35,6 +37,8 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
   @MockBean
   private JobCommandRepository jobCommandRepository;
+  @MockBean
+  RemoteFilesStorage remoteFilesStorage;
   @MockBean
   FTPStorageService ftpStorageService;
 
@@ -57,12 +61,14 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
   @Test
   @DisplayName("Resend job by kafka request")
-  void startResendTest() throws JobExecutionException {
+  void startResendTest() throws Exception {
+    String testString = "Test string";
     doNothing().when(acknowledgment).acknowledge();
+    doReturn(testString.getBytes()).when(remoteFilesStorage).readAllBytes(anyString());
+    doNothing().when(ftpStorageService).uploadToFtp(any(), any(), anyString());
 
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createStartResendRequest(id);
-
     jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
 
     verify(exportJobManagerSync, never()).launchJob(any());

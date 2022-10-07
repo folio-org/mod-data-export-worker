@@ -46,7 +46,6 @@ public class GetEHoldingsWriter implements ItemWriter<EHoldingsResourceDTO> {
       jobExecution.getExecutionContext().getInt(CONTEXT_TOTAL_RESOURCES, 0) + resources.size());
 
     var resourceWithMaxNotes = list.stream()
-      .filter(p -> p.getNotes() != null)
       .max(Comparator.comparing(p -> p.getNotes().size()))
       .orElse(null);
     var noteCollectionSize = resourceWithMaxNotes == null ? 0 : resourceWithMaxNotes.getNotes().size();

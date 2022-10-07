@@ -36,18 +36,19 @@ public class EHoldingsPackageMapper {
   }
 
   public static EHoldingsPackageDTO convertToDTO(EHoldingsPackage entity) {
-    var dto = new EHoldingsPackageDTO();
     try {
-      dto.setEPackage(objectMapper.readValue(entity.getEPackage(), EPackage.class));
-      dto.setEProvider(objectMapper.readValue(entity.getEProvider(), EProvider.class));
-      dto.setNotes(objectMapper.readValue(entity.getNotes(), new TypeReference<>() {}));
-      dto.setAgreements(
-        objectMapper.readValue(entity.getAgreements(), new TypeReference<>() {
-        }));
+      return EHoldingsPackageDTO.builder()
+        .ePackage(objectMapper.readValue(entity.getEPackage(), EPackage.class))
+        .eProvider(objectMapper.readValue(entity.getEProvider(), EProvider.class))
+        .notes(objectMapper.readValue(entity.getNotes(), new TypeReference<>() {
+        }))
+        .agreements(objectMapper.readValue(entity.getAgreements(), new TypeReference<>() {
+        }))
+        .build();
     } catch (JsonProcessingException e) {
       log.error("An error occurred during parsing of EHoldingsPackage with id: " +
         entity.getId(), e);
     }
-    return dto;
+    return EHoldingsPackageDTO.builder().build();
   }
 }

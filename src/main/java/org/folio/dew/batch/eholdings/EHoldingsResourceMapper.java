@@ -38,23 +38,16 @@ public class EHoldingsResourceMapper {
   }
 
   public static EHoldingsResourceDTO convertToDTO(EHoldingsResource entity) {
-    EHoldingsResourceDTO dto = null;
     try {
-      var resourcesData = (objectMapper.readValue(entity.getResourcesData(), ResourcesData.class));
-      var notes = objectMapper.readValue(entity.getNotes(), new TypeReference<List<Note>>() {
-      });
-      var agreements =
-        objectMapper.readValue(entity.getAgreements(), new TypeReference<List<AgreementClient.Agreement>>() {
-        });
-      dto = EHoldingsResourceDTO.builder()
-        .resourcesData(resourcesData)
-        .notes(notes)
-        .agreements(agreements)
+      return EHoldingsResourceDTO.builder()
+        .resourcesData(objectMapper.readValue(entity.getResourcesData(), ResourcesData.class))
+        .notes(objectMapper.readValue(entity.getNotes(), new TypeReference<List<Note>>() {}))
+        .agreements(objectMapper.readValue(entity.getAgreements(), new TypeReference<List<AgreementClient.Agreement>>() {}))
         .build();
     } catch (JsonProcessingException e) {
       log.error("An error occurred during parsing of EHoldingsResource with id: " +
         entity.getId(), e);
     }
-    return dto;
+    return EHoldingsResourceDTO.builder().build();
   }
 }

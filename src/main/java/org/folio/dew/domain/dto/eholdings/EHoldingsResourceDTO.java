@@ -2,6 +2,7 @@ package org.folio.dew.domain.dto.eholdings;
 
 import java.util.List;
 
+import lombok.Singular;
 import org.folio.dew.client.AgreementClient;
 
 import lombok.Builder;
@@ -11,6 +12,6 @@ import lombok.Data;
 @Builder
 public class EHoldingsResourceDTO {
   private ResourcesData resourcesData;
-  private List<AgreementClient.Agreement> agreements;
-  private List<Note> notes;
+  @Singular private List<AgreementClient.Agreement> agreements;
+  @Singular private List<Note> notes;
 }

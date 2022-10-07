@@ -5,7 +5,6 @@ import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_TOTAL_
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceDTO;
@@ -47,9 +46,10 @@ public class GetEHoldingsWriter implements ItemWriter<EHoldingsResourceDTO> {
       jobExecution.getExecutionContext().getInt(CONTEXT_TOTAL_RESOURCES, 0) + resources.size());
 
     var resourceWithMaxNotes = list.stream()
+      .filter(p -> p.getNotes() != null)
       .max(Comparator.comparing(p -> p.getNotes().size()))
-      .orElseThrow(NoSuchElementException::new);
-    var noteCollectionSize = resourceWithMaxNotes.getNotes().size();
+      .orElse(null);
+    var noteCollectionSize = resourceWithMaxNotes == null ? 0 : resourceWithMaxNotes.getNotes().size();
 
     if (noteCollectionSize > 0) {
       var resourceMaxNotesCount =

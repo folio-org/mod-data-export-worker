@@ -27,6 +27,7 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
   static {
     OBJECT_MAPPER =
         new ObjectMapper()
+            .findAndRegisterModules()
             .registerModule(
                 new SimpleModule()
                     .addDeserializer(ExitStatus.class, new ExitStatusDeserializer())

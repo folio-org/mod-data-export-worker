@@ -11,10 +11,11 @@ import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.ExportTypeSpecificParameters;
-import org.folio.dew.domain.dto.JobStatus;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.spring.FolioExecutionContext;
+import org.springframework.batch.core.BatchStatus;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.support.Acknowledgment;
@@ -70,12 +71,14 @@ public class ResendService {
       ExportTypeSpecificParameters parameters = new ExportTypeSpecificParameters();
       parameters.setVendorEdiOrdersExportConfig(ediConfig);
       job.setExportTypeSpecificParameters(parameters);
-      job.setStatus(JobStatus.SUCCESSFUL);
+      job.setBatchStatus(BatchStatus.COMPLETED);
+      job.setExitStatus(ExitStatus.COMPLETED);
       log.info("Resend operation finished for job ID: {}", jobId);
     } catch (Exception e) {
       log.error("Resending failed with an error for job Id: {}", jobId, e);
       job.setErrorDetails(getThrowableRootCauseDetails(e));
-      job.setStatus(JobStatus.FAILED);
+      job.setBatchStatus(BatchStatus.FAILED);
+      job.setExitStatus(ExitStatus.FAILED);
     } finally {
       kafka.send(KafkaService.Topic.JOB_UPDATE, jobId.toString(), job);
     }

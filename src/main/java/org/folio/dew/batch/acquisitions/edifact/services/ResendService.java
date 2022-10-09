@@ -34,8 +34,8 @@ public class ResendService {
   private final RemoteFilesStorage remoteFilesStorage;
   private final FolioExecutionContext folioExecutionContext;
   private final FTPStorageService ftpStorageService;
-  private final ObjectMapper objectMapper;
   private final KafkaService kafka;
+  private ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
   private static final String EDIFACT_ORDERS_EXPORT_KEY = "EDIFACT_ORDERS_EXPORT";
   private static final String FILE_NAME_KEY = "FILE_NAME";

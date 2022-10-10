@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -77,6 +78,21 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
   @Test
   @DisplayName("Resend job should failed")
   void failedResendTest() throws Exception {
+    String testString = "Test string";
+    doNothing().when(acknowledgment).acknowledge();
+    doReturn(testString.getBytes()).when(remoteFilesStorage).readAllBytes(anyString());
+    doThrow(new Exception("Something went wrong")).when(ftpStorageService).uploadToFtp(any(), any(), anyString());
+
+    UUID id = UUID.randomUUID();
+    JobCommand jobCommand = createStartResendRequest(id);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
+
+    verify(exportJobManagerSync, never()).launchJob(any());
+  }
+
+  @Test
+  @DisplayName("Resend job should failed JobId is null")
+  void failedResendTestJobIdIsNull() throws Exception {
     doNothing().when(acknowledgment).acknowledge();
     JobCommand jobCommand = createStartResendRequest(null);
     jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);

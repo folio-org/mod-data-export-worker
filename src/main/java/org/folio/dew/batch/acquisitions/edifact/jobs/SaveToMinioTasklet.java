@@ -41,7 +41,7 @@ public class SaveToMinioTasklet implements Tasklet {
   private final RemoteFilesStorage remoteFilesStorage;
   private final OrganizationsService organizationsService;
   private final FolioExecutionContext folioExecutionContext;
-  private final ObjectMapper objectMapper;
+  private final ObjectMapper ediObjectMapper;
   private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
   private static final String REMOTE_STORAGE_ERROR_MESSAGE = "Failed to save edifact file to remote storage";
 
@@ -54,7 +54,7 @@ public class SaveToMinioTasklet implements Tasklet {
     // retrieve parameters from job context
     var stepExecution = chunkContext.getStepContext().getStepExecution();
     var jobParameters = chunkContext.getStepContext().getJobParameters();
-    var ediExportConfig = objectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
+    var ediExportConfig = ediObjectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
     var edifactOrderAsString = (String) ExecutionContextUtils.getExecutionVariable(stepExecution,"edifactOrderAsString");
 
     var fullFilePath = buildFullFilePath(ediExportConfig);

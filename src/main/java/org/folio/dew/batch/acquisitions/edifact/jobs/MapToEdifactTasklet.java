@@ -34,7 +34,7 @@ import lombok.extern.log4j.Log4j2;
 @StepScope
 @Log4j2
 public class MapToEdifactTasklet implements Tasklet {
-  private final ObjectMapper objectMapper;
+  private final ObjectMapper ediObjectMapper;
 
   private final OrdersService ordersService;
   private final PurchaseOrdersToEdifactMapper purchaseOrdersToEdifactMapper;
@@ -43,7 +43,7 @@ public class MapToEdifactTasklet implements Tasklet {
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
     log.info("Execute MapToEdifactTasklet");
     var jobParameters = chunkContext.getStepContext().getJobParameters();
-    var ediExportConfig = objectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
+    var ediExportConfig = ediObjectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
     validateEdiExportConfig(ediExportConfig);
 
     List<CompositePurchaseOrder> compOrders = getCompPOList(ediExportConfig);
@@ -106,7 +106,7 @@ public class MapToEdifactTasklet implements Tasklet {
       .flatMap(ord -> ord.getCompositePoLines().stream())
       .map(CompositePoLine::getId)
       .collect(Collectors.toList());
-    ExecutionContextUtils.addToJobExecutionContext(chunkContext.getStepContext().getStepExecution(),"polineIds", objectMapper.writeValueAsString(polineIds),"");
+    ExecutionContextUtils.addToJobExecutionContext(chunkContext.getStepContext().getStepExecution(),"polineIds", ediObjectMapper.writeValueAsString(polineIds),"");
   }
 
   private List<CompositePoLine> poLineFilteredOrder(CompositePurchaseOrder order, VendorEdiOrdersExportConfig ediConfig) {

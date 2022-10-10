@@ -23,6 +23,7 @@ import java.util.Map;
 public class JacksonConfiguration implements ObjectMapperSupplier {
 
   private static final ObjectMapper OBJECT_MAPPER;
+  private static final ObjectMapper EDI_OBJECT_MAPPER;
 
   static {
     OBJECT_MAPPER =
@@ -32,6 +33,8 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
                     .addDeserializer(ExitStatus.class, new ExitStatusDeserializer())
                     .addDeserializer(JobParameter.class, new JobParameterDeserializer()))
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    EDI_OBJECT_MAPPER =
+        new ObjectMapper().findAndRegisterModules();
   }
 
   static class ExitStatusDeserializer extends StdDeserializer<ExitStatus> {
@@ -96,6 +99,11 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
   @Bean
   public ObjectMapper objectMapper() {
     return OBJECT_MAPPER;
+  }
+
+  @Bean
+  public ObjectMapper ediObjectMapper() {
+    return EDI_OBJECT_MAPPER;
   }
 
   @Override

@@ -28,7 +28,7 @@ import lombok.extern.log4j.Log4j2;
 @StepScope
 @Log4j2
 public class SaveToFileStorageTasklet implements Tasklet {
-  private final ObjectMapper objectMapper;
+  private final ObjectMapper ediObjectMapper;
   private final FTPStorageService ftpStorageService;
 
   private final RemoteFilesStorage remoteFilesStorage;
@@ -42,7 +42,7 @@ public class SaveToFileStorageTasklet implements Tasklet {
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     var stepExecution = chunkContext.getStepContext().getStepExecution();
     var jobParameters = chunkContext.getStepContext().getJobParameters();
-    var ediExportConfig = objectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
+    var ediExportConfig = ediObjectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
     var uploadedFilePath = (String) ExecutionContextUtils.getExecutionVariable(stepExecution, UPLOADED_FILE_PATH);
 
     String host = ediExportConfig.getEdiFtp().getServerAddress().replace(SFTP_PROTOCOL, "");

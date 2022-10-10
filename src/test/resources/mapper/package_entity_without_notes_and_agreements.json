@@ -1,0 +1,8 @@
+{
+  "id": "1-22-333",
+  "jobExecutionId": 2,
+  "ePackage" : "{\"data\":{\"id\":\"1-22\",\"type\":\"packages\",\"attributes\":{\"contentType\":\"Unknown\",\"customCoverage\":{\"beginCoverage\":\"\",\"endCoverage\":\"\"},\"isCustom\":true,\"isSelected\":true,\"name\":\"custom-package, 13\",\"packageId\":\"22\",\"packageType\":\"Custom\",\"providerId\":\"1\",\"providerName\":\"API DEV CORPORATE CUSTOMER\",\"selectedCount\":2,\"titleCount\":2,\"visibilityData\":{\"isHidden\":false,\"reason\":\"\"},\"allowKbToAddTitles\":false,\"packageToken\":{\"factName\":\"[[proxyid]]\",\"prompt\":\"ISBN\",\"helpText\":\"<div></div>\",\"value\":\"token 1-22\"},\"proxy\":{\"id\":\"ezproxy\",\"inherited\":true},\"tags\":{\"tagList\":[]}}},\"included\":[{\"id\":\"31ba067b-280c-49ec-a76d-ca7deacd6ff6\",\"type\":\"accessTypes\",\"attributes\":\"{name=Test, credentialsId=80898dee-449f-44dd-9c8e-37d5eb469b1d}\",\"creator\":\"{}\",\"usageNumber\":\"0\",\"metadata\":\"{createdDate=2022-05-10T05:45:33.560+00:00, createdByUserId=548a5d79-f628-5a0d-a304-11d0e41ce7b7}\"}]}",
+  "eProvider" : "{\"data\":{\"id\":\"1\",\"type\":\"providers\",\"attributes\":{\"name\":\"API DEV CORPORATE CUSTOMER\",\"packagesTotal\":1,\"packagesSelected\":1,\"providerToken\":{\"factName\":\"[[vleid]]\",\"prompt\":\"id=\",\"helpText\":\"<p></p>\",\"value\":\"ProviderToken 1\"},\"supportsCustomPackages\":false,\"proxy\":{\"id\":\"ezproxy\",\"inherited\":true},\"tags\":{\"tagList\":[]}}},\"included\":[]}",
+  "agreements": "[]",
+  "notes": "[]"
+}

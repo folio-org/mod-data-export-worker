@@ -35,7 +35,7 @@ public class ResendService {
   private final FolioExecutionContext folioExecutionContext;
   private final FTPStorageService ftpStorageService;
   private final KafkaService kafka;
-  private ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+  private final ObjectMapper ediObjectMapper;
 
   private static final String EDIFACT_ORDERS_EXPORT_KEY = "EDIFACT_ORDERS_EXPORT";
   private static final String FILE_NAME_KEY = "FILE_NAME";
@@ -58,7 +58,7 @@ public class ResendService {
     job.setId(jobId);
     try {
       String fileName = jobParameters.getString(FILE_NAME_KEY);
-      VendorEdiOrdersExportConfig ediConfig = objectMapper.readValue(jobParameters.getString(EDIFACT_ORDERS_EXPORT_KEY),
+      VendorEdiOrdersExportConfig ediConfig = ediObjectMapper.readValue(jobParameters.getString(EDIFACT_ORDERS_EXPORT_KEY),
         VendorEdiOrdersExportConfig.class);
 
       String workDir = getWorkingDirectory(springApplicationName, EDIFACT_EXPORT_DIR_NAME);

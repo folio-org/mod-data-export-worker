@@ -35,7 +35,7 @@ import lombok.extern.log4j.Log4j2;
 public class ExportHistoryTasklet implements Tasklet {
 
   private final KafkaService kafkaService;
-  private final ObjectMapper objectMapper;
+  private final ObjectMapper ediObjectMapper;
   private final OrganizationsService organizationsService;
 
   @Value("#{jobParameters['jobId']}")
@@ -52,7 +52,7 @@ public class ExportHistoryTasklet implements Tasklet {
   @SneakyThrows
   ExportHistory buildExportHistory(ChunkContext chunkContext) {
     var jobParameters = chunkContext.getStepContext().getJobParameters();
-    var ediExportConfig = objectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
+    var ediExportConfig = ediObjectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
     var vendorId = ediExportConfig.getVendorId().toString();
     var exportMethod = ediExportConfig.getConfigName();
     var vendor = organizationsService.getOrganizationById(vendorId);
@@ -75,7 +75,7 @@ public class ExportHistoryTasklet implements Tasklet {
 
   List<String> getPoLineIdsFromExecutionContext(StepExecution stepExecutionContext) {
     try {
-      return objectMapper.readValue((String) ExecutionContextUtils.getExecutionVariable(stepExecutionContext, "polineIds"), new TypeReference<>() {});
+      return ediObjectMapper.readValue((String) ExecutionContextUtils.getExecutionVariable(stepExecutionContext, "polineIds"), new TypeReference<>() {});
     } catch (Exception e) {
       return Collections.emptyList();
     }

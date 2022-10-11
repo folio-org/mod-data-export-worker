@@ -15,6 +15,7 @@ import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.ExportHistory;
+import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
@@ -60,6 +61,7 @@ public class ExportHistoryTasklet implements Tasklet {
     var stepExecutionContext = chunkContext.getStepContext().getStepExecution();
     var poLineIds = getPoLineIdsFromExecutionContext(stepExecutionContext);
     var fileName = ExecutionContextUtils.getExecutionVariable(stepExecutionContext, EDIFACT_FILE_NAME).toString();
+    var jobName = jobParameters.get(JobParameterNames.JOB_NAME).toString();
 
     return new ExportHistory()
       .id(UUID.randomUUID().toString())
@@ -70,7 +72,8 @@ public class ExportHistoryTasklet implements Tasklet {
       .vendorId(vendorId)
       .vendorName(vendorName)
       .exportType("EDIFACT")
-      .exportedPoLineIds(poLineIds);
+      .exportedPoLineIds(poLineIds)
+      .jobName(jobName);
   }
 
   List<String> getPoLineIdsFromExecutionContext(StepExecution stepExecutionContext) {

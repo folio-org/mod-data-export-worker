@@ -37,9 +37,9 @@ class ExportHistoryTaskletTest extends BaseBatchTest {
     JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
     doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
 
-    JobExecution jobExecution1 = testLauncher.launchStep("createExportHistoryRecordsStep", getJobParameters());
+    JobExecution jobExecution = testLauncher.launchStep("createExportHistoryRecordsStep", getJobParameters());
 
-    var status = new ArrayList<>(jobExecution1.getStepExecutions()).get(0)
+    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0)
       .getStatus()
       .name();
     assertEquals("FAILED", status);
@@ -72,6 +72,7 @@ class ExportHistoryTaskletTest extends BaseBatchTest {
 
     paramsBuilder.addString("edifactOrdersExport", getMockData("edifact/edifactOrdersExport.json"));
     paramsBuilder.addString("edifactOrderAsString", RandomStringUtils.random(100, true, true));
+    paramsBuilder.addString("jobName", "TestJob00123");
     var jobId = UUID.randomUUID().toString();
     paramsBuilder.addString("jobId", jobId);
 

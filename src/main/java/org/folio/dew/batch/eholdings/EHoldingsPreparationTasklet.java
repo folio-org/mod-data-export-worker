@@ -61,7 +61,7 @@ public class EHoldingsPreparationTasklet implements Tasklet {
     this.agreementClient = agreementClient;
     this.recordId = exportConfig.getRecordId();
     this.recordType = exportConfig.getRecordType();
-    this.eHoldingsPackageDTO = new EHoldingsPackageDTO();
+    this.eHoldingsPackageDTO = EHoldingsPackageDTO.builder().build();
 
     var packageFields = exportConfig.getPackageFields();
     this.loadNotes = packageFields != null && packageFields.contains(LOAD_FIELD_PACKAGE_NOTES);
@@ -88,8 +88,7 @@ public class EHoldingsPreparationTasklet implements Tasklet {
     jobExecution.getExecutionContext().putInt(CONTEXT_TOTAL_PACKAGES,
       jobExecution.getExecutionContext().getInt(CONTEXT_TOTAL_PACKAGES, 0) + 1);
 
-    var noteCollectionSize = eHoldingsPackageDTO.getNotes() != null ?
-      eHoldingsPackageDTO.getNotes().size() : 0;
+    var noteCollectionSize = eHoldingsPackageDTO.getNotes().size();
 
     if (noteCollectionSize > 0) {
       var packageMaxNotesCount =

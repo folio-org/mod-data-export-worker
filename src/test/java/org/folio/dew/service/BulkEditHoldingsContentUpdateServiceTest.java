@@ -106,12 +106,14 @@ class BulkEditHoldingsContentUpdateServiceTest extends BaseBatchTest {
       .totalRecords(1);
 
     var res = contentUpdateService.process(jobCommand, contentUpdates);
-    assertThat(res.getEntitiesForPreview(), hasSize(2));
+    assertThat(res.getEntitiesForPreview(), hasSize(3));
     assertThat(res.getEntitiesForPreview().get(0).getTemporaryLocation(), equalTo("Annex"));
-    assertThat(res.getEntitiesForPreview().get(1).getTemporaryLocation(), equalTo("Main Library"));
+    assertThat(res.getEntitiesForPreview().get(1).getTemporaryLocation(), equalTo("Annex"));
+    assertThat(res.getEntitiesForPreview().get(2).getTemporaryLocation(), equalTo("Main Library"));
 
-    var errors = errorsService.readErrorsFromCSV(jobId.toString(), jobCommand.getJobParameters().getString(FILE_NAME), 1);
-    assertThat(errors.getErrors(), hasSize(1));
-    assertThat(errors.getErrors().get(0).getMessage(), equalTo("ho14,Holdings records that have source \"MARC\" cannot be changed"));
+    var errors = errorsService.readErrorsFromCSV(jobId.toString(), jobCommand.getJobParameters().getString(FILE_NAME), Integer.MAX_VALUE);
+    assertThat(errors.getErrors(), hasSize(2));
+    assertThat(errors.getErrors().get(0).getMessage(), equalTo("ho14,No change in value needed"));
+    assertThat(errors.getErrors().get(1).getMessage(), equalTo("ho15,Holdings records that have source \"MARC\" cannot be changed"));
   }
 }

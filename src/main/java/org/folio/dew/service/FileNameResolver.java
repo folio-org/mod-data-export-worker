@@ -43,9 +43,9 @@ public class FileNameResolver {
         var recordId = config.getRecordId();
         String fileSuffix;
         if (config.getRecordType() == EHoldingsExportConfig.RecordTypeEnum.RESOURCE) {
-          fileSuffix = String.format("%s_resource", recordId);
+          fileSuffix = String.format("%s_resource.csv", recordId);
         } else {
-          fileSuffix = String.format("%s_package", recordId);
+          fileSuffix = String.format("%s_package.csv", recordId);
         }
         return String.format("%s%s_%s", workDir, dateFormat.format(new Date()), fileSuffix);
       } catch (JsonProcessingException e) {

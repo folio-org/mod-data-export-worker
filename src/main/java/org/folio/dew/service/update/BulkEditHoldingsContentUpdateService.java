@@ -4,6 +4,7 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
+import static org.folio.dew.utils.Constants.COMMA;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
@@ -66,20 +67,34 @@ public class BulkEditHoldingsContentUpdateService {
 
   private ContentUpdateRecords<HoldingsFormat> applyContentUpdates(List<HoldingsFormat> holdingsFormats, HoldingsContentUpdateCollection contentUpdateCollection, JobCommand jobCommand) {
     var updateResult = new ContentUpdateRecords<HoldingsFormat>();
+    var errorStringBuilder = new StringBuilder();
     holdingsFormats.forEach(holdingsFormat -> {
       var updatedHoldingsRecord = holdingsFormat;
-      for (HoldingsContentUpdate contentUpdate: contentUpdateCollection.getHoldingsContentUpdates()) {
-        var updateStrategy = resolveUpdateStrategy(contentUpdate);
-        updatedHoldingsRecord = updateStrategy.applyUpdate(updatedHoldingsRecord, contentUpdate);
-      }
-      if (!Objects.equals(updatedHoldingsRecord, holdingsFormat)) {
-        updateResult.addToUpdated(updatedHoldingsRecord);
+      if ("MARC".equals(holdingsFormat.getSource())) {
+        errorStringBuilder
+          .append(holdingsFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)))
+          .append(COMMA)
+          .append("Holdings records that have source \"MARC\" cannot be changed")
+          .append(System.lineSeparator());
       } else {
-        log.info("Holdings record {}: No change in value needed", holdingsFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)));
-        errorsService.saveErrorInCSV(jobCommand.getId().toString(), holdingsFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)), new BulkEditException(NO_CHANGE_MESSAGE), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
+        for (HoldingsContentUpdate contentUpdate: contentUpdateCollection.getHoldingsContentUpdates()) {
+          updatedHoldingsRecord = resolveUpdateStrategy(contentUpdate).applyUpdate(updatedHoldingsRecord, contentUpdate);
+        }
+        if (!Objects.equals(updatedHoldingsRecord, holdingsFormat)) {
+          updateResult.addToUpdated(updatedHoldingsRecord);
+        } else {
+          errorStringBuilder
+            .append(holdingsFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)))
+            .append(COMMA)
+            .append(NO_CHANGE_MESSAGE)
+            .append(System.lineSeparator());
+        }
       }
       updateResult.addToPreview(updatedHoldingsRecord);
     });
+    if (!errorStringBuilder.toString().isEmpty()) {
+      errorsService.saveErrorInCSV(jobCommand.getId().toString(), errorStringBuilder.toString(), FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME)));
+    }
     return updateResult;
   }
 

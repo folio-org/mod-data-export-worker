@@ -16,6 +16,45 @@
     {
       "request": {
         "method": "GET",
+        "url": "/note-links/domain/eholdings/type/resource/id/1-21-3301?status=assigned"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"notes\":[{\"id\":\"9e235fb9-e4f8-4995-89a5-3b2fa06dfbb9\",\"typeId\":\"5bea5cf6-d15f-4bc2-b9e1-f1631a14ab6a\",\"type\":\"Technical note\",\"title\":\"OCLC Record Status\",\"domain\":\"eholdings\",\"content\":\"<p>Not updated</p>\",\"popUpOnCheckOut\":false,\"popUpOnUser\":false,\"links\":[{\"id\":\"145424\",\"type\":\"title\"},{\"id\":\"123355-3124668\",\"type\":\"package\"}],\"metadata\":{\"createdDate\":\"2021-04-01T00:02:01.051Z\",\"createdByUserId\":\"cc47a7f8-b665-4311-8401-d5bb055dc388\",\"updatedDate\":\"2021-04-01T00:02:01.051Z\",\"updatedByUserId\":\"cc47a7f8-b665-4311-8401-d5bb055dc388\"}},{\"id\":\"0bab2772-e2c1-4a33-803c-407fb154d775\",\"typeId\":\"25e17bd3-4c7f-42e5-9e04-65f5ea76c151\",\"type\":\"Customer Support \",\"title\":\"UBM\",\"domain\":\"eholdings\",\"content\":\"<p>UBM</p>\",\"popUpOnCheckOut\":false,\"popUpOnUser\":false,\"links\":[{\"id\":\"123355-3124668\",\"type\":\"package\"},{\"id\":\"18-6523\",\"type\":\"package\"},{\"id\":\"18-12391\",\"type\":\"package\"}],\"metadata\":{\"createdDate\":\"2020-03-26T00:03:07.582Z\",\"createdByUserId\":\"9eb67301-6f6e-468f-9b1a-6134dc39a684\",\"updatedDate\":\"2020-03-26T00:03:07.582Z\",\"updatedByUserId\":\"9eb67301-6f6e-468f-9b1a-6134dc39a684\"}}],\"totalRecords\":2}",
+        "headers": {
+          "Content-Type": "application/vnd.api+json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/note-links/domain/eholdings/type/resource/id/1-21-3302?status=assigned"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"notes\":[{\"id\":\"9e235fb9-e4f8-4995-89a5-3b2fa06dfbb9\",\"typeId\":\"5bea5cf6-d15f-4bc2-b9e1-f1631a14ab6a\",\"type\":\"Technical note\",\"title\":\"OCLC Record Status\",\"domain\":\"eholdings\",\"content\":\"<p>Not updated</p>\",\"popUpOnCheckOut\":false,\"popUpOnUser\":false,\"links\":[{\"id\":\"145424\",\"type\":\"title\"},{\"id\":\"123355-3124668\",\"type\":\"package\"}],\"metadata\":{\"createdDate\":\"2021-04-01T00:02:01.051Z\",\"createdByUserId\":\"cc47a7f8-b665-4311-8401-d5bb055dc388\",\"updatedDate\":\"2021-04-01T00:02:01.051Z\",\"updatedByUserId\":\"cc47a7f8-b665-4311-8401-d5bb055dc388\"}},{\"id\":\"0bab2772-e2c1-4a33-803c-407fb154d775\",\"typeId\":\"25e17bd3-4c7f-42e5-9e04-65f5ea76c151\",\"type\":\"Customer Support \",\"title\":\"UBM\",\"domain\":\"eholdings\",\"content\":\"<p>UBM</p>\",\"popUpOnCheckOut\":false,\"popUpOnUser\":false,\"links\":[{\"id\":\"123355-3124668\",\"type\":\"package\"},{\"id\":\"18-6523\",\"type\":\"package\"},{\"id\":\"18-12391\",\"type\":\"package\"}],\"metadata\":{\"createdDate\":\"2020-03-26T00:03:07.582Z\",\"createdByUserId\":\"9eb67301-6f6e-468f-9b1a-6134dc39a684\",\"updatedDate\":\"2020-03-26T00:03:07.582Z\",\"updatedByUserId\":\"9eb67301-6f6e-468f-9b1a-6134dc39a684\"}}],\"totalRecords\":2}",
+        "headers": {
+          "Content-Type": "application/vnd.api+json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/note-links/domain/eholdings/type/resource/id/1-21-3303?status=assigned"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"notes\":[{\"id\":\"9e235fb9-e4f8-4995-89a5-3b2fa06dfbb9\",\"typeId\":\"5bea5cf6-d15f-4bc2-b9e1-f1631a14ab6a\",\"type\":\"Technical note\",\"title\":\"OCLC Record Status\",\"domain\":\"eholdings\",\"content\":\"<p>Not updated</p>\",\"popUpOnCheckOut\":false,\"popUpOnUser\":false,\"links\":[{\"id\":\"145424\",\"type\":\"title\"},{\"id\":\"123355-3124668\",\"type\":\"package\"}],\"metadata\":{\"createdDate\":\"2021-04-01T00:02:01.051Z\",\"createdByUserId\":\"cc47a7f8-b665-4311-8401-d5bb055dc388\",\"updatedDate\":\"2021-04-01T00:02:01.051Z\",\"updatedByUserId\":\"cc47a7f8-b665-4311-8401-d5bb055dc388\"}},{\"id\":\"0bab2772-e2c1-4a33-803c-407fb154d775\",\"typeId\":\"25e17bd3-4c7f-42e5-9e04-65f5ea76c151\",\"type\":\"Customer Support \",\"title\":\"UBM\",\"domain\":\"eholdings\",\"content\":\"<p>UBM</p>\",\"popUpOnCheckOut\":false,\"popUpOnUser\":false,\"links\":[{\"id\":\"123355-3124668\",\"type\":\"package\"},{\"id\":\"18-6523\",\"type\":\"package\"},{\"id\":\"18-12391\",\"type\":\"package\"}],\"metadata\":{\"createdDate\":\"2020-03-26T00:03:07.582Z\",\"createdByUserId\":\"9eb67301-6f6e-468f-9b1a-6134dc39a684\",\"updatedDate\":\"2020-03-26T00:03:07.582Z\",\"updatedByUserId\":\"9eb67301-6f6e-468f-9b1a-6134dc39a684\"}}],\"totalRecords\":2}",
+        "headers": {
+          "Content-Type": "application/vnd.api+json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
         "url": "/note-links/domain/eholdings/type/resource/id/1-22-3334?status=assigned"
       },
       "response": {
@@ -30,6 +69,19 @@
       "request": {
         "method": "GET",
         "url": "/note-links/domain/eholdings/type/package/id/1-22?status=assigned"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"notes\":[],\"totalRecords\":0}",
+        "headers": {
+          "Content-Type": "application/vnd.api+json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/note-links/domain/eholdings/type/package/id/1-21?status=assigned"
       },
       "response": {
         "status": 200,

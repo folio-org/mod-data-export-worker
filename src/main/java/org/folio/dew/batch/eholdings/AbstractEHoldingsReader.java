@@ -7,14 +7,14 @@ import org.springframework.batch.item.support.AbstractItemCountingItemStreamItem
 
 public abstract class AbstractEHoldingsReader<T> extends AbstractItemCountingItemStreamItemReader<T> {
 
-  private final int quantityToRetrievePerHttpRequest;
+  private final int quantityToRetrievePerRequest;
   private T lastObject;
   private List<T> currentChunk;
   private int currentChunkOffset;
 
   protected AbstractEHoldingsReader(T lastObject, Long limit, Integer perRequest) {
     this.lastObject = lastObject;
-    quantityToRetrievePerHttpRequest = perRequest;
+    quantityToRetrievePerRequest = perRequest;
 
     setCurrentItemCount(0);
     setMaxItemCount(limit.intValue());
@@ -25,7 +25,7 @@ public abstract class AbstractEHoldingsReader<T> extends AbstractItemCountingIte
   @Override
   protected T doRead() {
     if (currentChunk == null || currentChunkOffset >= currentChunk.size()) {
-      currentChunk = getItems(lastObject, quantityToRetrievePerHttpRequest);
+      currentChunk = getItems(lastObject, quantityToRetrievePerRequest);
       lastObject = currentChunk.get(currentChunk.size() - 1);
       currentChunkOffset = 0;
     }

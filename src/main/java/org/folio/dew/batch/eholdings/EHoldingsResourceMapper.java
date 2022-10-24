@@ -27,6 +27,7 @@ public class EHoldingsResourceMapper {
     var entity = new EHoldingsResource();
     try {
       entity.setId(dto.getResourcesData().getId());
+      entity.setName(objectMapper.writeValueAsString(dto.getResourcesData().getAttributes().getName()));
       entity.setResourcesData(objectMapper.writeValueAsString(dto.getResourcesData()));
       entity.setAgreements(objectMapper.writeValueAsString(dto.getAgreements()));
       entity.setNotes(objectMapper.writeValueAsString(dto.getNotes()));

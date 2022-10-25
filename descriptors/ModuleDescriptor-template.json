@@ -25,7 +25,16 @@
             "departments.item.get",
             "data-export.job.item.get",
             "okapi.proxy.tenants.modules.list",
-            "user-settings.custom-fields.collection.get"
+            "user-settings.custom-fields.collection.get",
+            "inventory-storage.holdings.collection.get",
+            "inventory-storage.holdings-types.item.get",
+            "inventory-storage.instances.item.get",
+            "inventory-storage.locations.item.get",
+            "inventory-storage.call-number-types.item.get",
+            "inventory-storage.ill-policies.item.get",
+            "inventory-storage.statistical-codes.item.get",
+            "inventory-storage.electronic-access-relationships.item.get",
+            "inventory-storage.holdings-note-types.item.get"
           ]
         },
         {

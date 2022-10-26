@@ -12,6 +12,7 @@ import lombok.Data;
 public class EHoldingsResource {
   @Id
   private String id;
+  private String name;
   private Long jobExecutionId;
   private String resourcesData;
   private String agreements;

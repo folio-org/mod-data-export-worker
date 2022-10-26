@@ -65,8 +65,8 @@ class EHoldingsTest extends BaseBatchTest {
   private final static String EXPECTED_PACKAGE_OUTPUT = "src/test/resources/output/eholdings_package_export.csv";
   private final static String EXPECTED_SINGLE_PACKAGE_OUTPUT =
     "src/test/resources/output/eholdings_single_package_export.csv";
-  private final static String EXPECTED_PACKAGE_WITH_20_TITLES_OUTPUT =
-    "src/test/resources/output/eholdings_package_export_with_20_titles.csv";
+  private final static String EXPECTED_PACKAGE_WITH_3_TITLES_OUTPUT =
+    "src/test/resources/output/eholdings_package_export_with_3_titles.csv";
 
   private final static List<String> PACKAGE_FIELDS =
     new ArrayList<>(asList("packageAgreements", "packageNotes", "providerLevelToken"));
@@ -130,14 +130,14 @@ class EHoldingsTest extends BaseBatchTest {
   @Test
   @DisplayName("Run EHoldingsJob export package with 3 titles successfully")
   void eHoldingsJobPackageWith3TitlesTest() throws Exception {
-    DatabaseEHoldingsReader.setQuantityToRetrievePerRequest(3);
+    DatabaseEHoldingsReader.setQuantityToRetrievePerRequest(2);
     JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
     var exportConfig = buildExportConfig(PACKAGE_WITH_3_TITLES_ID, PACKAGE);
 
     final JobParameters jobParameters = prepareJobParameters(exportConfig);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
-    verifyFileOutput(jobExecution, EXPECTED_PACKAGE_WITH_20_TITLES_OUTPUT);
+    verifyFileOutput(jobExecution, EXPECTED_PACKAGE_WITH_3_TITLES_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 

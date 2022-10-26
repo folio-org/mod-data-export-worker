@@ -34,7 +34,13 @@
             "inventory-storage.ill-policies.item.get",
             "inventory-storage.statistical-codes.item.get",
             "inventory-storage.electronic-access-relationships.item.get",
-            "inventory-storage.holdings-note-types.item.get"
+            "inventory-storage.electronic-access-relationships.collection.get",
+            "inventory-storage.holdings-note-types.item.get",
+            "inventory-storage.holdings-note-types.collection.get",
+            "inventory-storage.holdings-sources.item.get",
+            "inventory-storage.locations.collection.get",
+            "inventory-storage.instances.collection.get",
+            "inventory.items.collection.get"
           ]
         },
         {

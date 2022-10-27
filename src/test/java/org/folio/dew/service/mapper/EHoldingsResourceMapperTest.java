@@ -59,6 +59,7 @@ class EHoldingsResourceMapperTest extends BaseBatchTest {
     var actualEntity = EHoldingsResourceMapper.convertToEntity(dto);
 
     assertThat(expectedEntity.getResourcesData(), equalTo(actualEntity.getResourcesData()));
+    assertThat(expectedEntity.getName(), equalTo(dto.getResourcesData().getAttributes().getName()));
     assertThat(expectedEntity.getNotes(), equalTo(actualEntity.getNotes()));
     assertThat(expectedEntity.getAgreements(), equalTo(actualEntity.getAgreements()));
   }

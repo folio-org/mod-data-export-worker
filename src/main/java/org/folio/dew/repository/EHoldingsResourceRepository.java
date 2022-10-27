@@ -9,7 +9,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface EHoldingsResourceRepository extends CrudRepository<EHoldingsResource, String> {
-  @Query(value = "SELECT * FROM e_holdings_resource WHERE e_holdings_resource.id > :previousId ORDER BY e_holdings_resource.id ASC LIMIT :limit", nativeQuery = true)
+    @Query(value = "SELECT * FROM e_holdings_resource " +
+      "WHERE name > (coalesce((SELECT name FROM e_holdings_resource WHERE id = :previousId), '')) " +
+      "ORDER BY name ASC LIMIT :limit", nativeQuery = true)
   List<EHoldingsResource> seek(String previousId, Integer limit);
 
   void deleteAllByJobExecutionId(Long jobExecutionId);

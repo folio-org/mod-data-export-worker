@@ -1,8 +1,47 @@
+## 2022-10-26 v2.0.0
 
-## v1.5.0 IN-PROGRESS
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.6...v2.0.0)
 
-* [MODEXPW-199] (https://issues.folio.org/browse/MODEXPW-199) Supports users interface versions 15.4, 16.0
-* 
+### Technical tasks
+[MODEXPW-259](https://issues.folio.org/browse/MODEXPW-259) mod-data-export-worker: spring upgrade
+[MODEXPW-207](https://issues.folio.org/browse/MODEXPW-207) Add personal data disclosure form
+[MODEXPW-199](https://issues.folio.org/browse/MODEXPW-199) Upgrade Users interface to 16.0
+
+### Stories
+[MODEXPW-273](https://issues.folio.org/browse/MODEXPW-273) Populate kafka payload with "jobName" for Export History
+[MODEXPW-250](https://issues.folio.org/browse/MODEXPW-250) E-mail can be edited partially (not entire only)
+[MODEXPW-246](https://issues.folio.org/browse/MODEXPW-246) Implement Re-send EDIFACT export logic
+[MODEXPW-245](https://issues.folio.org/browse/MODEXPW-245) Preview of changed records for holdings update
+[MODEXPW-240](https://issues.folio.org/browse/MODEXPW-240) Populate kafka payload with required fileds for Export History
+[MODEXPW-236](https://issues.folio.org/browse/MODEXPW-236) Improvements for users in-app approach
+[MODEXPW-235](https://issues.folio.org/browse/MODEXPW-235) Holdings in-app approach: Download Holdings Preview API
+[MODEXPW-233](https://issues.folio.org/browse/MODEXPW-233) Migrate MinIO adapter changes to master branch
+[MODEXPW-232](https://issues.folio.org/browse/MODEXPW-232) users in-app approach: Download Users Preview API
+[MODEXPW-222](https://issues.folio.org/browse/MODEXPW-222) Bulk edit: Holdings locations - Holdings Preview API
+[MODEXPW-220](https://issues.folio.org/browse/MODEXPW-220) Bulk edit: holdings locations - Create BulkEditHoldingsContentUpdateService
+[MODEXPW-219](https://issues.folio.org/browse/MODEXPW-219) Bulk edit: holdings locations - Content update validator
+[MODEXPW-218](https://issues.folio.org/browse/MODEXPW-218) eHoldings: rework export job not to store all job data in-memory
+[MODEXPW-217](https://issues.folio.org/browse/MODEXPW-217) Bulk edit: holdings locations - Update BulkEditController to support holdings content update
+[MODEXPW-216](https://issues.folio.org/browse/MODEXPW-216) Get matching records CSV file by holdings records identifiers CSV file
+[MODEXPW-213](https://issues.folio.org/browse/MODEXPW-213) items-in-app-update: item loan types
+[MODEXPW-190](https://issues.folio.org/browse/MODEXPW-190) users-in-app-update: Content update validator
+[MODEXPW-189](https://issues.folio.org/browse/MODEXPW-189) users-in-app-update: E-mails bulk-edit updating
+[MODEXPW-181](https://issues.folio.org/browse/MODEXPW-181) users-in-app-update: Update ITEMS content update in BulkEditController
+[MODEXPW-179](https://issues.folio.org/browse/MODEXPW-179) users-in-app-update: Create BulkEditUserContentUpdateService
+[MODEXPW-43](https://issues.folio.org/browse/MODEXPW-43) Add step to save orders in EDIFACT format in the Minio object storage
+
+### Bug fixes
+[MODEXPW-291](https://issues.folio.org/browse/MODEXPW-291) Missing bulk edit Inventory-holdings permissions
+[MODEXPW-285](https://issues.folio.org/browse/MODEXPW-285) User is able to modify Holdings in MARC via Bulk Edit app
+[MODEXPW-255](https://issues.folio.org/browse/MODEXPW-255) Bulk edit: 10528 upstream timed out (110: Connection timed out) Error
+[MODEXPW-242](https://issues.folio.org/browse/MODEXPW-242) Bulk Edit: uploading file with identifiers fails when call number contains semicolon
+[MODEXPW-237](https://issues.folio.org/browse/MODEXPW-237) Not all items in mod-inventory-storage on PTF env have value in _version table
+[MODEXPW-229](https://issues.folio.org/browse/MODEXPW-229) custom-fields query fails due to CQL format
+[MODEXPW-212](https://issues.folio.org/browse/MODEXPW-212) "Preview of records matched" is not populated using limited permissions
+[MODEXPW-211](https://issues.folio.org/browse/MODEXPW-211) "A job instance already exists" error bulk editing Items on large bulk edit job
+[MODEXPW-203](https://issues.folio.org/browse/MODEXPW-203) "Fail to upload file" error with large amount of Users barcodes
+[MODEXPW-183](https://issues.folio.org/browse/MODEXPW-183) Less than 10 records returned for preview of matched records
+
 ## 2022-09-07 v1.4.6
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.5...v1.4.6)

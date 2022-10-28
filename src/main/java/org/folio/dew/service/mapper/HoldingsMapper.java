@@ -173,12 +173,7 @@ public class HoldingsMapper {
 
   private String restoreInstanceId(String instanceString) {
     var tokens = instanceString.split(ARRAY_DELIMITER);
-    if (tokens.length != 2) {
-      var msg = String.format("Invalid number of tokens for instance: %d, expected 2", tokens.length);
-      log.error(msg);
-      throw new BulkEditException(msg);
-    }
-    return tokens[1];
+    return tokens[tokens.length - 1];
   }
 
   private List<HoldingsNote> restoreHoldingsNotes(String notesString) {

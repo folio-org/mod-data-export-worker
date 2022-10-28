@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 public class DatabaseEHoldingsReader extends AbstractEHoldingsReader<EHoldingsResourceExportFormat> {
+  private Long jobExecutionId;
   private static int quantityToRetrievePerRequest = 20;
   private final EHoldingsPackageRepository packageRepository;
   private final EHoldingsResourceRepository resourceRepository;
@@ -51,8 +52,12 @@ public class DatabaseEHoldingsReader extends AbstractEHoldingsReader<EHoldingsRe
 
   @BeforeStep
   private void beforeStep(StepExecution stepExecution) {
+    jobExecutionId = stepExecution.getJobExecutionId();
     var packageId = recordType == PACKAGE ? recordId : recordId.split("-\\d+$")[0];
-    eHoldingsPackage = packageRepository.findById(packageId).orElse(null);
+    var packageComposedId = new EHoldingsPackage.PackageId();
+    packageComposedId.setId(packageId);
+    packageComposedId.setJobExecutionId(jobExecutionId);
+    eHoldingsPackage = packageRepository.findById(packageComposedId).orElse(null);
 
     var executionContext = stepExecution.getJobExecution().getExecutionContext();
     totalResources = executionContext.getInt(CONTEXT_TOTAL_RESOURCES, 1);
@@ -62,7 +67,7 @@ public class DatabaseEHoldingsReader extends AbstractEHoldingsReader<EHoldingsRe
   protected List<EHoldingsResourceExportFormat> getItems(EHoldingsResourceExportFormat last, int limit) {
     List<EHoldingsResource> eHoldingsResources;
     var resourceId = last != null ? last.getPackageId() + '-' + last.getTitleId() : StringUtils.EMPTY;
-    eHoldingsResources = resourceRepository.seek(resourceId, limit);
+    eHoldingsResources = resourceRepository.seek(resourceId, jobExecutionId, limit);
 
     return mapper.convertToExportFormat(eHoldingsPackage, eHoldingsResources);
   }

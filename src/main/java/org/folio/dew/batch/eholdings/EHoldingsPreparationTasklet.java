@@ -82,7 +82,7 @@ public class EHoldingsPreparationTasklet implements Tasklet {
 
     log.trace("Writing the record to a database.");
     var ePackage = EHoldingsPackageMapper.convertToEntity(eHoldingsPackageDTO);
-    var jobId = jobExecution.getJobId();
+    var jobId = jobExecution.getId();
     ePackage.setJobExecutionId(jobId);
     repository.save(ePackage);
     jobExecution.getExecutionContext().putInt(CONTEXT_TOTAL_PACKAGES,

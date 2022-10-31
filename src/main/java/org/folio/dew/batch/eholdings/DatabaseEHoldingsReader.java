@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @StepScope
 public class DatabaseEHoldingsReader extends AbstractEHoldingsReader<EHoldingsResourceExportFormat> {
   private Long jobExecutionId;
-  private static int quantityToRetrievePerRequest = 20;
+  private static int quantityToRetrievePerRequest = 100;
   private final EHoldingsPackageRepository packageRepository;
   private final EHoldingsResourceRepository resourceRepository;
   private final EHoldingsToExportFormatMapper mapper;
@@ -66,8 +66,9 @@ public class DatabaseEHoldingsReader extends AbstractEHoldingsReader<EHoldingsRe
   @Override
   protected List<EHoldingsResourceExportFormat> getItems(EHoldingsResourceExportFormat last, int limit) {
     List<EHoldingsResource> eHoldingsResources;
+    var resourceName = last != null ? last.getTitleName().toLowerCase() : StringUtils.EMPTY;
     var resourceId = last != null ? last.getPackageId() + '-' + last.getTitleId() : StringUtils.EMPTY;
-    eHoldingsResources = resourceRepository.seek(resourceId, jobExecutionId, limit);
+    eHoldingsResources = resourceRepository.seek(resourceName, resourceId, jobExecutionId, limit);
 
     return mapper.convertToExportFormat(eHoldingsPackage, eHoldingsResources);
   }

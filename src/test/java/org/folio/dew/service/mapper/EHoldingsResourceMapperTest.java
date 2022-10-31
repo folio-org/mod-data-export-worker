@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.EHoldingsResource;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.eholdings.EHoldingsResourceMapper;
@@ -45,6 +46,7 @@ class EHoldingsResourceMapperTest extends BaseBatchTest {
     var actualDto = EHoldingsResourceMapper.convertToDTO(entity);
 
     assertThat(expectedDto.getResourcesData().getAttributes(), equalTo(actualDto.getResourcesData().getAttributes()));
+    assertThat(entity.getName(), equalTo(actualDto.getResourcesData().getAttributes().getName()));
     assertThat(expectedDto.getNotes(), equalTo(actualDto.getNotes()));
     assertThat(expectedDto.getAgreements(), equalTo(actualDto.getAgreements()));
   }
@@ -67,8 +69,9 @@ class EHoldingsResourceMapperTest extends BaseBatchTest {
   @AllArgsConstructor
   @Getter
   enum MapperTestData {
-    RESOURCE_WITH_NOTES_AND_AGREEMENTS(dtoWithNotesAnsAgreements(), "src/test/resources/mapper/resource_entity_with_notes_and_agreements.json"),
-    RESOURCE_WITHOUT_NOTES_AND_AGREEMENTS(dtoWithoutNotesAnsAgreements(), "src/test/resources/mapper/resource_entity_without_notes_and_agreements.json");
+    RESOURCE_WITH_NOTES_AND_AGREEMENTS(dtoWithNotesAndAgreements(), "src/test/resources/mapper/resource_entity_with_notes_and_agreements.json"),
+    RESOURCE_WITHOUT_NOTES_AND_AGREEMENTS(dtoWithoutNotesAndAgreements(), "src/test/resources/mapper/resource_entity_without_notes_and_agreements.json"),
+    RESOURCE_WIT_LONG_TITLE_NAME(dtoWithLongTitleName(), "src/test/resources/mapper/resource_entity_with_long_title_name.json");
 
     final EHoldingsResourceDTO dto;
     final String entity;
@@ -197,7 +200,7 @@ class EHoldingsResourceMapperTest extends BaseBatchTest {
     return resourcesData;
   }
 
-  private static EHoldingsResourceDTO dtoWithNotesAnsAgreements(){
+  private static EHoldingsResourceDTO dtoWithNotesAndAgreements(){
     var agreement1 = new AgreementClient.Agreement();
     agreement1.setStatus("Active");
     agreement1.setName("Test");
@@ -248,9 +251,19 @@ class EHoldingsResourceMapperTest extends BaseBatchTest {
       .build();
   }
 
-  private static EHoldingsResourceDTO dtoWithoutNotesAnsAgreements(){
+  private static EHoldingsResourceDTO dtoWithoutNotesAndAgreements(){
     return EHoldingsResourceDTO.builder()
       .resourcesData(getResourcesData())
+      .agreements(Collections.emptyList())
+      .notes(Collections.emptyList())
+      .build();
+  }
+
+  private static EHoldingsResourceDTO dtoWithLongTitleName(){
+    var resourceData = getResourcesData();
+    resourceData.getAttributes().setName(StringUtils.repeat('a', 259));
+    return EHoldingsResourceDTO.builder()
+      .resourcesData(resourceData)
       .agreements(Collections.emptyList())
       .notes(Collections.emptyList())
       .build();

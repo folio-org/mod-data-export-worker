@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/electronic-access-relationships?query=name%3D%3DVersion%20of%20resource"
+        "url": "/electronic-access-relationships?query=name%3D%3D%22Version%20of%20resource%22"
       },
       "response": {
         "status": 200,

@@ -55,6 +55,19 @@
     {
       "request": {
         "method": "GET",
+        "url": "/eholdings/packages/1-24?include=accessType"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n  \"data\": {\n    \"id\": \"1-24\",\n    \"type\": \"packages\",\n    \"attributes\": {\n      \"contentType\": \"Unknown\",\n      \"customCoverage\": {\n        \"beginCoverage\": \"\",\n        \"endCoverage\": \"\"\n      },\n      \"isCustom\": true,\n      \"isSelected\": true,\n      \"name\": \"custom-package, 13\",\n      \"packageId\": 24,\n      \"packageType\": \"Custom\",\n      \"providerId\": 1,\n      \"providerName\": \"API DEV CORPORATE CUSTOMER\",\n      \"selectedCount\": 2,\n      \"titleCount\": 2,\n      \"visibilityData\": {\n        \"isHidden\": false,\n        \"reason\": \"\"\n      },\n      \"allowKbToAddTitles\": false,\n      \"packageToken\": {\n      \"factName\": \"[[proxyid]]\",\n       \"prompt\": \"ISBN\",\n     \"helpText\": \"<div></div>\",\n       \"value\": \"token 1-24\"\n  },\n    \"proxy\": {\n      \"id\": \"ezproxy\",\n        \"inherited\": true\n      },\n      \"tags\": {\n        \"tagList\": []\n       }\n    },\n      \"jsonapi\": {\n      \"version\": \"1.0\"\n     }\n  },\n    \"included\": [\n     {\n    \"id\": \"31ba067b-280c-49ec-a76d-ca7deacd6ff6\",\n        \"type\": \"accessTypes\",\n       \"attributes\": {\n     \"name\": \"Test\",\n      \"credentialsId\": \"80898dee-449f-44dd-9c8e-37d5eb469b1d\"\n      },\n      \"creator\": {},\n      \"usageNumber\": 0,\n     \"metadata\": {\n  \"createdDate\": \"2022-05-10T05:45:33.560+00:00\",\n \"createdByUserId\": \"548a5d79-f628-5a0d-a304-11d0e41ce7b7\"\n }\n  }\n ]\n}",
+        "headers": {
+          "Content-Type": "application/vnd.api+json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
         "url": "/eholdings/resources/1-22-333?include=accessType"
       },
       "response": {
@@ -68,7 +81,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&page=1&count=20&include=accessType"
+        "url": "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&sort=name&page=1&count=20&include=accessType"
       },
       "response": {
         "status": 200,
@@ -81,7 +94,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/eholdings/packages/1-21/resources?filter%5Bname%5D=*&page=1&count=20&include=accessType"
+        "url": "/eholdings/packages/1-21/resources?filter%5Bname%5D=*&sort=name&page=1&count=20&include=accessType"
       },
       "response": {
         "status": 200,
@@ -94,7 +107,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&page=1&count=1"
+        "url": "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&sort=name&page=1&count=1"
       },
       "response": {
         "status": 200,
@@ -107,7 +120,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/eholdings/packages/1-21/resources?filter%5Bname%5D=*&page=1&count=1"
+        "url": "/eholdings/packages/1-21/resources?filter%5Bname%5D=*&sort=name&page=1&count=1"
       },
       "response": {
         "status": 200,
@@ -120,7 +133,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/eholdings/packages/1-23/resources?filter%5Bname%5D=*&page=1&count=20&include=accessType"
+        "url": "/eholdings/packages/1-23/resources?filter%5Bname%5D=*&sort=name&page=1&count=20&include=accessType"
       },
       "response": {
         "status": 200,
@@ -133,11 +146,37 @@
     {
       "request": {
         "method": "GET",
-        "url": "/eholdings/packages/1-23/resources?filter%5Bname%5D=*&page=1&count=1"
+        "url": "/eholdings/packages/1-23/resources?filter%5Bname%5D=*&sort=name&page=1&count=1"
       },
       "response": {
         "status": 200,
         "body": "{\n  \"data\": [],\n  \"meta\": {\n    \"totalResults\": 0\n  },\n  \"jsonapi\": {\n    \"version\": \"1.0\"\n  }\n}\n",
+        "headers": {
+          "Content-Type": "application/vnd.api+json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/eholdings/packages/1-24/resources?filter%5Bname%5D=*&sort=name&page=1&count=20&include=accessType"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n  \"data\": [\n    {\n      \"id\": \"1-24-3301\",\n      \"type\": \"resources\",\n      \"attributes\": {\n        \"alternateTitles\": [],\n        \"isTitleCustom\": true,\n        \"publisherName\": \"\",\n        \"titleId\": 3301,\n        \"contributors\": [],\n        \"identifiers\": [],\n        \"name\": \"custom title Aa\",\n        \"publicationType\": \"Database\",\n        \"subjects\": [],\n        \"coverageStatement\": \"Test Coverage Statement\",\n        \"customEmbargoPeriod\": {\n          \"embargoValue\": 5\n        },\n        \"isPackageCustom\": true,\n        \"isSelected\": true,\n        \"isTokenNeeded\": false,\n        \"locationId\": 1022377620,\n        \"managedEmbargoPeriod\": {\n          \"embargoValue\": 0\n        },\n        \"packageId\": \"1-21\",\n        \"packageName\": \"custom-package-c2c5be92-0850-437e-aac4-26f4954070d4 13\",\n        \"url\": \"https://test\",\n        \"providerId\": 1,\n        \"providerName\": \"API DEV CORPORATE CUSTOMER\",\n        \"visibilityData\": {\n          \"isHidden\": false,\n          \"reason\": \"\"\n        },\n        \"managedCoverages\": [],\n        \"customCoverages\": [\n          {\n            \"beginCoverage\": \"2001-01-01\",\n            \"endCoverage\": \"9999-12-31\"\n          }\n        ],\n        \"proxy\": {\n          \"id\": \"ezproxy\",\n          \"inherited\": true\n        },\n        \"tags\": {\n          \"tagList\": []\n        }\n      },\n      \"relationships\": {\n        \"provider\": {\n          \"meta\": {\n            \"included\": false\n          }\n        },\n        \"title\": {\n          \"meta\": {\n            \"included\": false\n          }\n        },\n        \"package\": {\n          \"meta\": {\n            \"included\": false\n          }\n        }\n      },\n      \"included\": [\n        {\n          \"id\": \"31ba067b-280c-49ec-a76d-ca7deacd6ff6\",\n          \"type\": \"accessTypes\",\n          \"attributes\": {\n            \"name\": \"Test\",\n            \"credentialsId\": \"80898dee-449f-44dd-9c8e-37d5eb469b1d\"\n          },\n          \"creator\": {},\n          \"usageNumber\": 0,\n          \"metadata\": {\n            \"createdDate\": \"2022-05-10T05:45:33.560+00:00\",\n            \"createdByUserId\": \"548a5d79-f628-5a0d-a304-11d0e41ce7b7\"\n          }\n        }\n      ]\n    },\n    {\n      \"id\": \"1-24-3302\",\n      \"type\": \"resources\",\n      \"attributes\": {\n        \"alternateTitles\": [],\n        \"isTitleCustom\": true,\n        \"publisherName\": \"\",\n        \"titleId\": 3302,\n        \"contributors\": [],\n        \"identifiers\": [],\n        \"name\": \"custom title AB\",\n        \"publicationType\": \"Database\",\n        \"subjects\": [],\n        \"coverageStatement\": \"Test Coverage Statement\",\n        \"customEmbargoPeriod\": {\n          \"embargoValue\": 5\n        },\n        \"isPackageCustom\": true,\n        \"isSelected\": true,\n        \"isTokenNeeded\": false,\n        \"locationId\": 1022377620,\n        \"managedEmbargoPeriod\": {\n          \"embargoValue\": 0\n        },\n        \"packageId\": \"1-21\",\n        \"packageName\": \"custom-package-c2c5be92-0850-437e-aac4-26f4954070d4 13\",\n        \"url\": \"https://test\",\n        \"providerId\": 1,\n        \"providerName\": \"API DEV CORPORATE CUSTOMER\",\n        \"visibilityData\": {\n          \"isHidden\": false,\n          \"reason\": \"\"\n        },\n        \"managedCoverages\": [],\n        \"customCoverages\": [\n          {\n            \"beginCoverage\": \"2001-01-01\",\n            \"endCoverage\": \"9999-12-31\"\n          }\n        ],\n        \"proxy\": {\n          \"id\": \"ezproxy\",\n          \"inherited\": true\n        },\n        \"tags\": {\n          \"tagList\": []\n        }\n      },\n      \"relationships\": {\n        \"provider\": {\n          \"meta\": {\n            \"included\": false\n          }\n        },\n        \"title\": {\n          \"meta\": {\n            \"included\": false\n          }\n        },\n        \"package\": {\n          \"meta\": {\n            \"included\": false\n          }\n        }\n      },\n      \"included\": [\n        {\n          \"id\": \"31ba067b-280c-49ec-a76d-ca7deacd6ff6\",\n          \"type\": \"accessTypes\",\n          \"attributes\": {\n            \"name\": \"Test\",\n            \"credentialsId\": \"80898dee-449f-44dd-9c8e-37d5eb469b1d\"\n          },\n          \"creator\": {},\n          \"usageNumber\": 0,\n          \"metadata\": {\n            \"createdDate\": \"2022-05-10T05:45:33.560+00:00\",\n            \"createdByUserId\": \"548a5d79-f628-5a0d-a304-11d0e41ce7b7\"\n          }\n        }\n      ]\n    },\n    {\n      \"id\": \"1-24-3303\",\n      \"type\": \"resources\",\n      \"attributes\": {\n        \"alternateTitles\": [],\n        \"isTitleCustom\": true,\n        \"publisherName\": \"\",\n        \"titleId\": 3303,\n        \"contributors\": [],\n        \"identifiers\": [],\n        \"name\": \"custom title AB\",\n        \"publicationType\": \"Database\",\n        \"subjects\": [],\n        \"coverageStatement\": \"Test Coverage Statement\",\n        \"customEmbargoPeriod\": {\n          \"embargoValue\": 5\n        },\n        \"isPackageCustom\": true,\n        \"isSelected\": true,\n        \"isTokenNeeded\": false,\n        \"locationId\": 1022377620,\n        \"managedEmbargoPeriod\": {\n          \"embargoValue\": 0\n        },\n        \"packageId\": \"1-21\",\n        \"packageName\": \"custom-package-c2c5be92-0850-437e-aac4-26f4954070d4 13\",\n        \"url\": \"https://test\",\n        \"providerId\": 1,\n        \"providerName\": \"API DEV CORPORATE CUSTOMER\",\n        \"visibilityData\": {\n          \"isHidden\": false,\n          \"reason\": \"\"\n        },\n        \"managedCoverages\": [],\n        \"customCoverages\": [\n          {\n            \"beginCoverage\": \"2001-01-01\",\n            \"endCoverage\": \"9999-12-31\"\n          }\n        ],\n        \"proxy\": {\n          \"id\": \"ezproxy\",\n          \"inherited\": true\n        },\n        \"tags\": {\n          \"tagList\": []\n        }\n      },\n      \"relationships\": {\n        \"provider\": {\n          \"meta\": {\n            \"included\": false\n          }\n        },\n        \"title\": {\n          \"meta\": {\n            \"included\": false\n          }\n        },\n        \"package\": {\n          \"meta\": {\n            \"included\": false\n          }\n        }\n      },\n      \"included\": [\n        {\n          \"id\": \"31ba067b-280c-49ec-a76d-ca7deacd6ff6\",\n          \"type\": \"accessTypes\",\n          \"attributes\": {\n            \"name\": \"Test\",\n            \"credentialsId\": \"80898dee-449f-44dd-9c8e-37d5eb469b1d\"\n          },\n          \"creator\": {},\n          \"usageNumber\": 0,\n          \"metadata\": {\n            \"createdDate\": \"2022-05-10T05:45:33.560+00:00\",\n            \"createdByUserId\": \"548a5d79-f628-5a0d-a304-11d0e41ce7b7\"\n          }\n        }\n      ]\n    }\n  ],\n  \"meta\": {\n    \"totalResults\": 3\n  },\n  \"jsonapi\": {\n    \"version\": \"1.0\"\n  }\n}\n",
+        "headers": {
+          "Content-Type": "application/vnd.api+json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/eholdings/packages/1-24/resources?filter%5Bname%5D=*&sort=name&page=1&count=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n  \"meta\": {\n    \"totalResults\": 3\n  },\n  \"jsonapi\": {\n    \"version\": \"1.0\"\n  }\n}\n",
         "headers": {
           "Content-Type": "application/vnd.api+json"
         }

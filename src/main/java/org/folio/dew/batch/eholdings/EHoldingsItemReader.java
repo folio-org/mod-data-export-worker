@@ -8,7 +8,6 @@ import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESO
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.folio.dew.batch.CsvItemReader;
 import org.folio.dew.client.KbEbscoClient;
@@ -39,7 +38,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceDTO> {
     this.recordId = exportConfig.getRecordId();
     this.recordType = exportConfig.getRecordType();
     this.titleFields = exportConfig.getTitleFields();
-    this.titleSearchFilters = exportConfig.getTitleSearchFilters();
+    this.titleSearchFilters = exportConfig.getTitleSearchFilters() + "&sort=name";
   }
 
   @Override

@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.folio.de.entity.EHoldingsPackage;
+import org.folio.de.entity.EHoldingsResource;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.eholdings.DatabaseEHoldingsReader;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
@@ -174,6 +176,51 @@ class EHoldingsTest extends BaseBatchTest {
     var resources = resourceRepository.findAll();
     assertEquals(0, ((Collection<?>) packages).size());
     assertEquals(0, ((Collection<?>) resources).size());
+  }
+
+  @Test
+  @DisplayName("Run 2 EHoldingsJob export package successfully")
+  void eHoldingsJobPackageConcurrentTest() throws Exception {
+    populateOtherJobsDataInDatabase();
+
+    JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
+    var exportConfig = buildExportConfig(PACKAGE_ID, PACKAGE);
+
+    final JobParameters jobParameters = prepareJobParameters(exportConfig);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+    verifyFileOutput(jobExecution, EXPECTED_PACKAGE_OUTPUT);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
+    wireMockServer.verify(
+      getRequestedFor(
+        urlEqualTo(
+          "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&page=1&count=1")));
+
+    var packages = packageRepository.findAll();
+    var resources = resourceRepository.findAll();
+    assertEquals(1, ((Collection<?>) packages).size());
+    assertEquals(1, ((Collection<?>) resources).size());
+
+    cleanJobDataInDatabase();
+  }
+
+  private void populateOtherJobsDataInDatabase(){
+    var packageFromAnotherJob = new EHoldingsPackage();
+    packageFromAnotherJob.setId("1-22");
+    packageFromAnotherJob.setJobExecutionId(2L);
+    packageRepository.save(packageFromAnotherJob);
+
+    var resourceFromAnotherJob = new EHoldingsResource();
+    resourceFromAnotherJob.setId("1-22-3334");
+    resourceFromAnotherJob.setJobExecutionId(2L);
+    resourceFromAnotherJob.setName("ABC of Diabetes (ABC Series)");
+    resourceRepository.save(resourceFromAnotherJob);
+  }
+
+  private void cleanJobDataInDatabase(){
+    packageRepository.deleteAll();
+    resourceRepository.deleteAll();
   }
 
   private void verifyFileOutput(JobExecution jobExecution, String expectedFile) throws Exception {

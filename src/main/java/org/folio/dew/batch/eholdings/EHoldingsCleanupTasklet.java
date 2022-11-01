@@ -37,7 +37,7 @@ public class EHoldingsCleanupTasklet implements Tasklet, StepExecutionListener {
 
   @Override
   public void beforeStep(@NotNull StepExecution stepExecution) {
-    jobId = stepExecution.getJobExecution().getJobId();
+    jobId = stepExecution.getJobExecutionId();
   }
 
   @Override

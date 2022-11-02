@@ -15,6 +15,7 @@ import org.folio.dew.client.ElectronicAccessRelationshipClient;
 import org.folio.dew.domain.dto.ElectronicAccess;
 import org.folio.dew.domain.dto.ElectronicAccessRelationship;
 import org.folio.dew.error.BulkEditException;
+import org.folio.dew.error.NotFoundException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -57,16 +58,22 @@ public class ElectronicAccessService {
 
   @Cacheable(cacheNames = "relationships")
   public ElectronicAccessRelationship getRelationshipById(String id) {
-    return relationshipClient.getById(id);
+    try {
+      return relationshipClient.getById(id);
+    } catch (NotFoundException e) {
+      var msg = "Electronic access relationship not found by id=" + id;
+      log.error(msg);
+      throw new BulkEditException(msg);
+    }
   }
 
   @Cacheable(cacheNames = "relationships")
-  public ElectronicAccessRelationship getElectronicAccessRelationshipByName(String name) {
-    var relationships = relationshipClient.getByQuery("name==" + name);
+  public String getElectronicAccessRelationshipIdByName(String name) {
+    var relationships = relationshipClient.getByQuery(String.format("name==\"%s\"", name));
     if (relationships.getElectronicAccessRelationships().isEmpty()) {
-      throw new BulkEditException("Electronic access relationship not found: " + name);
+      return EMPTY;
     }
-    return relationships.getElectronicAccessRelationships().get(0);
+    return relationships.getElectronicAccessRelationships().get(0).getId();
   }
 
   public List<ElectronicAccess> restoreElectronicAccess(String s) {
@@ -86,7 +93,7 @@ public class ElectronicAccessService {
           .linkText(tokens[ELECTRONIC_ACCESS_LINK_TEXT_INDEX])
           .materialsSpecification(tokens[ELECTRONIC_ACCESS_MATERIAL_SPECIFICATION_INDEX])
           .publicNote(tokens[ELECTRONIC_ACCESS_PUBLIC_NOTE_INDEX])
-          .relationshipId(getElectronicAccessRelationshipByName(tokens[ELECTRONIC_ACCESS_RELATIONSHIP_INDEX]).getId());
+          .relationshipId(getElectronicAccessRelationshipIdByName(tokens[ELECTRONIC_ACCESS_RELATIONSHIP_INDEX]));
       }
       throw new BulkEditException(String.format("Illegal number of electronic access elements: %d, expected: %d", tokens.length, NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS));
     }

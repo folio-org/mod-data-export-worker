@@ -1,15 +1,11 @@
 package org.folio.dew.batch.eholdings;
 
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_TOTAL_RESOURCES;
-import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACKAGE;
 
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.de.entity.EHoldingsPackage;
 import org.folio.de.entity.EHoldingsResource;
-import org.folio.dew.domain.dto.EHoldingsExportConfig;
-import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
-import org.folio.dew.repository.EHoldingsPackageRepository;
+import org.folio.dew.domain.dto.eholdings.EHoldingsResourceDTO;
 import org.folio.dew.repository.EHoldingsResourceRepository;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
@@ -18,17 +14,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 @StepScope
-public class DatabaseEHoldingsReader extends AbstractEHoldingsReader<EHoldingsResourceExportFormat> {
+public class DatabaseEHoldingsReader extends AbstractEHoldingsReader<EHoldingsResourceDTO> {
   private Long jobExecutionId;
   private static int quantityToRetrievePerRequest = 100;
-  private final EHoldingsPackageRepository packageRepository;
   private final EHoldingsResourceRepository resourceRepository;
-  private final EHoldingsToExportFormatMapper mapper;
-
-  private final EHoldingsExportConfig.RecordTypeEnum recordType;
-  private final String recordId;
-
-  private EHoldingsPackage eHoldingsPackage;
 
   private int totalResources;
 
@@ -36,41 +25,32 @@ public class DatabaseEHoldingsReader extends AbstractEHoldingsReader<EHoldingsRe
     DatabaseEHoldingsReader.quantityToRetrievePerRequest = quantityToRetrievePerRequest;
   }
 
-  protected DatabaseEHoldingsReader(EHoldingsPackageRepository packageRepository,
-                                    EHoldingsResourceRepository resourceRepository,
-                                    EHoldingsToExportFormatMapper mapper,
-                                    EHoldingsExportConfig exportConfig) {
+  protected DatabaseEHoldingsReader(EHoldingsResourceRepository resourceRepository) {
     super(null, 1L, quantityToRetrievePerRequest);
-
-    this.packageRepository = packageRepository;
     this.resourceRepository = resourceRepository;
-    this.mapper = mapper;
-
-    this.recordId = exportConfig.getRecordId();
-    this.recordType = exportConfig.getRecordType();
   }
 
   @BeforeStep
   private void beforeStep(StepExecution stepExecution) {
     jobExecutionId = stepExecution.getJobExecutionId();
-    var packageId = recordType == PACKAGE ? recordId : recordId.split("-\\d+$")[0];
-    var packageComposedId = new EHoldingsPackage.PackageId();
-    packageComposedId.setId(packageId);
-    packageComposedId.setJobExecutionId(jobExecutionId);
-    eHoldingsPackage = packageRepository.findById(packageComposedId).orElse(null);
 
     var executionContext = stepExecution.getJobExecution().getExecutionContext();
     totalResources = executionContext.getInt(CONTEXT_TOTAL_RESOURCES, 1);
   }
 
   @Override
-  protected List<EHoldingsResourceExportFormat> getItems(EHoldingsResourceExportFormat last, int limit) {
+  protected List<EHoldingsResourceDTO> getItems(EHoldingsResourceDTO last, int limit) {
     List<EHoldingsResource> eHoldingsResources;
-    var resourceName = last != null ? last.getTitleName().toLowerCase() : StringUtils.EMPTY;
-    var resourceId = last != null ? last.getPackageId() + '-' + last.getTitleId() : StringUtils.EMPTY;
-    eHoldingsResources = resourceRepository.seek(resourceName, resourceId, jobExecutionId, limit);
+    var resourceName = StringUtils.EMPTY;
+    var resourceId = StringUtils.EMPTY;
+    if (last != null) {
+      var resourceAttributes = last.getResourcesData().getAttributes();
+      resourceName = resourceAttributes.getName().toLowerCase();
+      resourceId = resourceAttributes.getPackageId() + '-' + resourceAttributes.getTitleId();
+    }
 
-    return mapper.convertToExportFormat(eHoldingsPackage, eHoldingsResources);
+    eHoldingsResources = resourceRepository.seek(resourceName, resourceId, jobExecutionId, limit);
+    return EHoldingsResourceMapper.convertToDTO(eHoldingsResources);
   }
 
   @Override

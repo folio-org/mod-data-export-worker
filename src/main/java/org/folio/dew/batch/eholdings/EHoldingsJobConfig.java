@@ -93,11 +93,13 @@ public class EHoldingsJobConfig {
   @Bean("saveEHoldingsStep")
   public Step saveEHoldingsStep(DatabaseEHoldingsReader databaseEHoldingsReader,
                                 EHoldingsCsvFileWriter flatFileItemWriter,
-                                EHoldingsStepListener eHoldingsStepListener) {
+                                EHoldingsStepListener eHoldingsStepListener,
+                                ItemProcessor<EHoldingsResourceDTO, EHoldingsResourceExportFormat> resourceProcessor) {
     return stepBuilderFactory
       .get("saveEHoldingsStep")
-      .<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat>chunk(PROCESSING_RECORD_CHUNK_SIZE)
+      .<EHoldingsResourceDTO, EHoldingsResourceExportFormat>chunk(PROCESSING_RECORD_CHUNK_SIZE)
       .reader(databaseEHoldingsReader)
+      .processor(resourceProcessor)
       .writer(flatFileItemWriter)
       .listener(eHoldingsStepListener)
       .build();
@@ -142,5 +144,11 @@ public class EHoldingsJobConfig {
     var itemProcessor = new CompositeItemProcessor<EHoldingsResourceDTO, EHoldingsResourceDTO>();
     itemProcessor.setDelegates(List.of(eHoldingsNoteItemProcessor, eHoldingsAgreementItemProcessor));
     return itemProcessor;
+  }
+
+  @Bean("eHoldingsResourceProcessor")
+  public ItemProcessor<EHoldingsResourceDTO, EHoldingsResourceExportFormat> resourceProcessor(
+    EHoldingsToExportFormatMapper mapper) {
+    return mapper::convertToExportFormat;
   }
 }

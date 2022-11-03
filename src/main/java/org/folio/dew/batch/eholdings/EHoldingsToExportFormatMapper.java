@@ -155,7 +155,7 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setPeerReviewed(convertBoolToStr(resourceAtr.getIsPeerReviewed()));
     exportFormat.setDescription(resourceAtr.getDescription());
     exportFormat.setManagedCoverage(mapCoverage(resourceAtr.getManagedCoverages()));
-    exportFormat.setCustomCoverage(mapCoverage(resourceAtr.getManagedCoverages()));
+    exportFormat.setCustomCoverage(mapCoverage(resourceAtr.getCustomCoverages()));
     exportFormat.setCoverageStatement(resourceAtr.getCoverageStatement());
     exportFormat.setManagedEmbargo(mapEmbargo(resourceAtr.getManagedEmbargoPeriod()));
     exportFormat.setCustomEmbargo(mapEmbargo(resourceAtr.getCustomEmbargoPeriod()));

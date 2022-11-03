@@ -1,5 +1,6 @@
 package org.folio.dew.batch.eholdings;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_MAX_PACKAGE_NOTES_COUNT;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_TOTAL_PACKAGES;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PACKAGE_AGREEMENTS;
@@ -10,6 +11,7 @@ import static org.folio.dew.client.KbEbscoClient.ACCESS_TYPE;
 import static org.folio.dew.client.NotesClient.NoteLinkDomain.EHOLDINGS;
 import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACKAGE;
 
+import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.AgreementClient;
 import org.folio.dew.client.KbEbscoClient;
 import org.folio.dew.client.NotesClient;
@@ -25,8 +27,6 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.log4j.Log4j2;
 
 @Component
 @JobScope
@@ -54,7 +54,10 @@ public class EHoldingsPreparationTasklet implements Tasklet {
   public EHoldingsPreparationTasklet(KbEbscoClient kbEbscoClient,
                                      NotesClient notesClient,
                                      AgreementClient agreementClient,
-                                     EHoldingsExportConfig exportConfig, EHoldingsPackageRepository repository) {
+                                     EHoldingsExportConfig exportConfig,
+                                     EHoldingsPackageRepository repository) {
+    validateExportFields(exportConfig);
+
     this.repository = repository;
     this.notesClient = notesClient;
     this.kbEbscoClient = kbEbscoClient;
@@ -128,5 +131,11 @@ public class EHoldingsPreparationTasklet implements Tasklet {
       eHoldingsPackageDTO.setAgreements(agreements);
     }
     log.trace("Agreements loaded.");
+  }
+
+  private void validateExportFields(EHoldingsExportConfig exportConfig) {
+    if (isEmpty(exportConfig.getPackageFields()) && isEmpty(exportConfig.getTitleFields())) {
+      throw new IllegalArgumentException("Export fields are empty");
+    }
   }
 }

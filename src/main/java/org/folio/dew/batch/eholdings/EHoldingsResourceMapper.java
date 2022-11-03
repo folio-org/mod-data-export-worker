@@ -1,20 +1,17 @@
 package org.folio.dew.batch.eholdings;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
-
+import java.util.stream.Collectors;
+import lombok.extern.log4j.Log4j2;
 import org.folio.de.entity.EHoldingsResource;
 import org.folio.dew.client.AgreementClient;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceDTO;
 import org.folio.dew.domain.dto.eholdings.Note;
 import org.folio.dew.domain.dto.eholdings.ResourcesData;
-import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 public class EHoldingsResourceMapper {
@@ -27,7 +24,7 @@ public class EHoldingsResourceMapper {
     var entity = new EHoldingsResource();
     try {
       entity.setId(dto.getResourcesData().getId());
-      entity.setName(objectMapper.writeValueAsString(dto.getResourcesData().getAttributes().getName()));
+      entity.setName(dto.getResourcesData().getAttributes().getName());
       entity.setResourcesData(objectMapper.writeValueAsString(dto.getResourcesData()));
       entity.setAgreements(objectMapper.writeValueAsString(dto.getAgreements()));
       entity.setNotes(objectMapper.writeValueAsString(dto.getNotes()));
@@ -50,5 +47,11 @@ public class EHoldingsResourceMapper {
         entity.getId(), e);
     }
     return EHoldingsResourceDTO.builder().build();
+  }
+
+  public static List<EHoldingsResourceDTO> convertToDTO(List<EHoldingsResource> entities) {
+    return entities.stream()
+      .map(EHoldingsResourceMapper::convertToDTO)
+      .collect(Collectors.toList());
   }
 }

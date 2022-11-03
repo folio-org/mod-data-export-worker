@@ -16,6 +16,7 @@ import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.eholdings.EHoldingsResourceMapper;
 import org.folio.dew.client.AgreementClient;
 import org.folio.dew.domain.dto.eholdings.Contributor;
+import org.folio.dew.domain.dto.eholdings.Coverage;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceDTO;
 import org.folio.dew.domain.dto.eholdings.EmbargoPeriod;
 import org.folio.dew.domain.dto.eholdings.Identifier;
@@ -128,6 +129,10 @@ class EHoldingsResourceMapperTest extends BaseBatchTest {
     managedEmbargoPeriod.setEmbargoUnit(null);
     managedEmbargoPeriod.setEmbargoValue(0);
 
+    var managedCoverage = new Coverage();
+    managedCoverage.setBeginCoverage("1888-01-01");
+    managedCoverage.setEndCoverage("");
+
     var visibilityData = new VisibilityData();
     visibilityData.setIsHidden(false);
     visibilityData.setReason("");
@@ -182,7 +187,7 @@ class EHoldingsResourceMapperTest extends BaseBatchTest {
     attributes.setProviderId(1);
     attributes.setProviderName("API DEV CORPORATE CUSTOMER");
     attributes.setVisibilityData(visibilityData);
-    attributes.setManagedCoverages(Collections.emptyList());
+    attributes.setManagedCoverages(List.of(managedCoverage));
     attributes.setCustomCoverages(Collections.emptyList());
     attributes.setProxy(proxy);
     attributes.setTags(tags);

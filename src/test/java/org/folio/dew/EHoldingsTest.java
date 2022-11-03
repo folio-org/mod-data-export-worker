@@ -9,9 +9,9 @@ import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESO
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
+import lombok.extern.log4j.Log4j2;
 import org.folio.de.entity.EHoldingsPackage;
 import org.folio.de.entity.EHoldingsResource;
 import org.folio.de.entity.JobCommand;
@@ -27,6 +27,7 @@ import org.folio.dew.batch.eholdings.DatabaseEHoldingsReader;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.eholdings.EHoldingsPackageExportFormat;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
 import org.folio.dew.repository.EHoldingsPackageRepository;
 import org.folio.dew.repository.EHoldingsResourceRepository;
@@ -44,10 +45,6 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
-import lombok.extern.log4j.Log4j2;
-
 @Log4j2
 class EHoldingsTest extends BaseBatchTest {
   @Autowired
@@ -63,15 +60,15 @@ class EHoldingsTest extends BaseBatchTest {
   private final static String PACKAGE_ID = "1-22";
   private final static String SINGLE_PACKAGE_ID = "1-23";
   private final static String PACKAGE_WITH_3_TITLES_ID = "1-21";
+  private final static String PACKAGE_WITH_SAME_TITLE_NAMES_ID = "1-24";
   private final static String EXPECTED_RESOURCE_OUTPUT = "src/test/resources/output/eholdings_resource_export.csv";
   private final static String EXPECTED_PACKAGE_OUTPUT = "src/test/resources/output/eholdings_package_export.csv";
   private final static String EXPECTED_SINGLE_PACKAGE_OUTPUT =
     "src/test/resources/output/eholdings_single_package_export.csv";
   private final static String EXPECTED_PACKAGE_WITH_3_TITLES_OUTPUT =
     "src/test/resources/output/eholdings_package_export_with_3_titles.csv";
-
-  private final static List<String> PACKAGE_FIELDS =
-    new ArrayList<>(asList("packageAgreements", "packageNotes", "providerLevelToken"));
+  private final static String EXPECTED_PACKAGE_WITH_SAME_TITLE_NAMES_OUTPUT =
+    "src/test/resources/output/eholdings_package_export_with_same_title_names.csv";
 
   @BeforeEach
   void beforeEach(){
@@ -83,10 +80,9 @@ class EHoldingsTest extends BaseBatchTest {
   void eHoldingsJobResourceTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
     var exportConfig = buildExportConfig(RESOURCE_ID, RESOURCE);
+    exportConfig.getPackageFields().remove("providerLevelToken");
 
-    PACKAGE_FIELDS.remove("providerLevelToken");
     final JobParameters jobParameters = prepareJobParameters(exportConfig);
-    PACKAGE_FIELDS.add("providerLevelToken");
 
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
@@ -121,7 +117,7 @@ class EHoldingsTest extends BaseBatchTest {
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(
-          "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&page=1&count=1")));
+          "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&sort=name&page=1&count=1")));
 
     var packages = packageRepository.findAll();
     var resources = resourceRepository.findAll();
@@ -146,7 +142,7 @@ class EHoldingsTest extends BaseBatchTest {
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(
-          "/eholdings/packages/1-21/resources?filter%5Bname%5D=*&page=1&count=1")));
+          "/eholdings/packages/1-21/resources?filter%5Bname%5D=*&sort=name&page=1&count=1")));
 
     var packages = packageRepository.findAll();
     var resources = resourceRepository.findAll();
@@ -170,7 +166,7 @@ class EHoldingsTest extends BaseBatchTest {
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(
-          "/eholdings/packages/1-23/resources?filter%5Bname%5D=*&page=1&count=1")));
+          "/eholdings/packages/1-23/resources?filter%5Bname%5D=*&sort=name&page=1&count=1")));
 
     var packages = packageRepository.findAll();
     var resources = resourceRepository.findAll();
@@ -195,7 +191,7 @@ class EHoldingsTest extends BaseBatchTest {
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(
-          "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&page=1&count=1")));
+          "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&sort=name&page=1&count=1")));
 
     var packages = packageRepository.findAll();
     var resources = resourceRepository.findAll();
@@ -203,6 +199,33 @@ class EHoldingsTest extends BaseBatchTest {
     assertEquals(1, ((Collection<?>) resources).size());
 
     cleanJobDataInDatabase();
+  }
+
+  @Test
+  @DisplayName("Run EHoldingsJob export package with same title names successfully")
+  void eHoldingsJobPackageWithSameTitleNamesTest() throws Exception {
+    DatabaseEHoldingsReader.setQuantityToRetrievePerRequest(2);
+    JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
+    var exportConfig = buildExportConfig(PACKAGE_WITH_SAME_TITLE_NAMES_ID, PACKAGE);
+    exportConfig.getTitleFields().removeAll(asList("titleAgreements", "titleNotes"));
+    exportConfig.getPackageFields().removeAll(asList("packageAgreements", "packageNotes"));
+
+    final JobParameters jobParameters = prepareJobParameters(exportConfig);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    verifyFileOutput(jobExecution, EXPECTED_PACKAGE_WITH_SAME_TITLE_NAMES_OUTPUT);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
+    wireMockServer.verify(
+      getRequestedFor(
+        urlEqualTo(
+          "/eholdings/packages/1-24/resources?filter%5Bname%5D=*&sort=name&page=1&count=1")));
+
+    var packages = packageRepository.findAll();
+    var resources = resourceRepository.findAll();
+    assertEquals(0, ((Collection<?>) packages).size());
+    assertEquals(0, ((Collection<?>) resources).size());
   }
 
   private void populateOtherJobsDataInDatabase(){
@@ -227,17 +250,17 @@ class EHoldingsTest extends BaseBatchTest {
     final ExecutionContext executionContext = jobExecution.getExecutionContext();
     final String fileInStorage = executionContext.getString("outputFilesInStorage");
 
-    final FileSystemResource actualChargeFeesFinesOutput = actualFileOutput(fileInStorage);
-    FileSystemResource expectedCharges = new FileSystemResource(expectedFile);
-    assertFileEquals(expectedCharges, actualChargeFeesFinesOutput);
+    final FileSystemResource actualOutput = actualFileOutput(fileInStorage);
+    FileSystemResource expectedOutput = new FileSystemResource(expectedFile);
+    assertFileEquals(expectedOutput, actualOutput);
   }
 
   private EHoldingsExportConfig buildExportConfig(String id, EHoldingsExportConfig.RecordTypeEnum recordType) {
     var eHoldingsExportConfig = new EHoldingsExportConfig();
     eHoldingsExportConfig.setRecordId(id);
     eHoldingsExportConfig.setRecordType(recordType);
-    eHoldingsExportConfig.setTitleFields(getClassFields());
-    eHoldingsExportConfig.setPackageFields(PACKAGE_FIELDS);
+    eHoldingsExportConfig.setTitleFields(getTitleFields());
+    eHoldingsExportConfig.setPackageFields(getPackageFields());
     eHoldingsExportConfig.setTitleSearchFilters("filter[name]=*&InvalidFilter");
     return eHoldingsExportConfig;
   }
@@ -265,10 +288,17 @@ class EHoldingsTest extends BaseBatchTest {
     return new JobParameters(params);
   }
 
-  private List<String> getClassFields() {
-    return Arrays.stream(EHoldingsResourceExportFormat.class.getDeclaredFields())
+  private List<String> getTitleFields() {
+    return convertFields(EHoldingsResourceExportFormat.class.getDeclaredFields());
+  }
+
+  private List<String> getPackageFields() {
+    return convertFields(EHoldingsPackageExportFormat.class.getDeclaredFields());
+  }
+
+  private List<String> convertFields(Field[] fields) {
+    return Arrays.stream(fields)
       .map(Field::getName)
-      .filter(name -> !PACKAGE_FIELDS.contains(name))
       .collect(Collectors.toList());
   }
 }

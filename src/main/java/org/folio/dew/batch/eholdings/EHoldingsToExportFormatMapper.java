@@ -1,35 +1,29 @@
 package org.folio.dew.batch.eholdings;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import joptsimple.internal.Strings;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
-
 import org.folio.de.entity.EHoldingsPackage;
-import org.folio.de.entity.EHoldingsResource;
 import org.folio.dew.client.AgreementClient.Agreement;
 import org.folio.dew.domain.dto.eholdings.AccessTypeData;
 import org.folio.dew.domain.dto.eholdings.AlternateTitle;
 import org.folio.dew.domain.dto.eholdings.Contributor;
 import org.folio.dew.domain.dto.eholdings.Coverage;
 import org.folio.dew.domain.dto.eholdings.EHoldingsPackageDTO;
+import org.folio.dew.domain.dto.eholdings.EHoldingsPackageExportFormat;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceDTO;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
 import org.folio.dew.domain.dto.eholdings.EProvider;
@@ -44,6 +38,8 @@ import org.folio.dew.domain.dto.eholdings.Subject;
 import org.folio.dew.domain.dto.eholdings.Tags;
 import org.folio.dew.domain.dto.eholdings.Token;
 import org.folio.dew.domain.dto.eholdings.VisibilityData;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
 
 @Component
 public class EHoldingsToExportFormatMapper {
@@ -54,31 +50,17 @@ public class EHoldingsToExportFormatMapper {
   private final ObjectMapper objectMapper = new ObjectMapper()
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-  public List<EHoldingsResourceExportFormat> convertToExportFormat(EHoldingsPackage eHoldingsPackage, List<EHoldingsResource> data) {
-    var eHoldingsPackageDTO = eHoldingsPackage == null ? null :
-      EHoldingsPackageMapper.convertToDTO(eHoldingsPackage);
-
-    if (data.isEmpty()) {
-      return new ArrayList<>(singletonList(convertToExportFormat(eHoldingsPackageDTO)));
+  public EHoldingsPackageExportFormat convertToExportFormat(EHoldingsPackage eHoldingsPackage) {
+    if (eHoldingsPackage == null) {
+      return null;
     }
 
-    var dataDTO = data.stream().map(EHoldingsResourceMapper::convertToDTO).collect(Collectors.toList());
-    return dataDTO.stream()
-      .map(resource -> convertToExportFormat(eHoldingsPackageDTO, resource))
-      .collect(Collectors.toList());
+    var eHoldingsPackageDTO = EHoldingsPackageMapper.convertToDTO(eHoldingsPackage);
+    return mapPackageToExportFormat(eHoldingsPackageDTO);
   }
 
-  public EHoldingsResourceExportFormat convertToExportFormat(EHoldingsPackageDTO eHoldingsPackageDTO) {
-    var exportFormat = new EHoldingsResourceExportFormat();
-    mapPackageToExportFormat(exportFormat, eHoldingsPackageDTO);
-    return exportFormat;
-  }
-
-  public EHoldingsResourceExportFormat convertToExportFormat(EHoldingsPackageDTO eHoldingsPackageDTO, EHoldingsResourceDTO eHoldingsResourceDTO) {
-    var exportFormat = new EHoldingsResourceExportFormat();
-    mapPackageToExportFormat(exportFormat, eHoldingsPackageDTO);
-    mapResourceToExportFormat(exportFormat, eHoldingsResourceDTO);
-    return exportFormat;
+  public EHoldingsResourceExportFormat convertToExportFormat(EHoldingsResourceDTO eHoldingsResourceDTO) {
+    return mapResourceToExportFormat(eHoldingsResourceDTO);
   }
 
   public List<String> convertNotes(List<Note> notes) {
@@ -112,7 +94,9 @@ public class EHoldingsToExportFormatMapper {
     return nonNull(date) ? OffsetDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC).format(DATE_FORMAT) : EMPTY;
   }
 
-  private void mapPackageToExportFormat(EHoldingsResourceExportFormat exportFormat, EHoldingsPackageDTO eHoldingsPackageDTO) {
+  private EHoldingsPackageExportFormat mapPackageToExportFormat(EHoldingsPackageDTO eHoldingsPackageDTO) {
+    var exportFormat = new EHoldingsPackageExportFormat();
+
     var ePackage = eHoldingsPackageDTO.getEPackage();
     var eProvider = eHoldingsPackageDTO.getEProvider();
     var packageAtr = ePackage.getData().getAttributes();
@@ -137,9 +121,12 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setPackageAccessStatusType(mapAccessType(ePackage.getIncluded()));
     exportFormat.setPackageNotes(convertNotes(eHoldingsPackageDTO.getNotes()));
     exportFormat.setPackageAgreements(convertAgreements(eHoldingsPackageDTO.getAgreements()));
+
+    return exportFormat;
   }
 
-  private void mapResourceToExportFormat(EHoldingsResourceExportFormat exportFormat, EHoldingsResourceDTO eHoldingsResourceDTO) {
+  private EHoldingsResourceExportFormat mapResourceToExportFormat(EHoldingsResourceDTO eHoldingsResourceDTO) {
+    var exportFormat = new EHoldingsResourceExportFormat();
     var data = eHoldingsResourceDTO.getResourcesData();
     var resourceAtr = data.getAttributes();
 
@@ -155,7 +142,7 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setPeerReviewed(convertBoolToStr(resourceAtr.getIsPeerReviewed()));
     exportFormat.setDescription(resourceAtr.getDescription());
     exportFormat.setManagedCoverage(mapCoverage(resourceAtr.getManagedCoverages()));
-    exportFormat.setCustomCoverage(mapCoverage(resourceAtr.getManagedCoverages()));
+    exportFormat.setCustomCoverage(mapCoverage(resourceAtr.getCustomCoverages()));
     exportFormat.setCoverageStatement(resourceAtr.getCoverageStatement());
     exportFormat.setManagedEmbargo(mapEmbargo(resourceAtr.getManagedEmbargoPeriod()));
     exportFormat.setCustomEmbargo(mapEmbargo(resourceAtr.getCustomEmbargoPeriod()));
@@ -180,9 +167,11 @@ public class EHoldingsToExportFormatMapper {
       mapIdentifierId(resourceAtr.getIdentifiers(), TypeEnum.ISSN, SubtypeEnum.ONLINE));
     exportFormat.setTitleNotes(convertNotes(eHoldingsResourceDTO.getNotes()));
     exportFormat.setTitleAgreements(convertAgreements(eHoldingsResourceDTO.getAgreements()));
+
+    return exportFormat;
   }
 
-  private void mapProviderToExportFormat(EHoldingsResourceExportFormat exportFormat, EProvider eProvider) {
+  private void mapProviderToExportFormat(EHoldingsPackageExportFormat exportFormat, EProvider eProvider) {
     var providerAtr = eProvider.getData().getAttributes();
 
     exportFormat.setProviderId(eProvider.getData().getId());
@@ -190,7 +179,7 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setProviderLevelToken(mapToken(providerAtr.getProviderToken()));
   }
 
-  private void mapProviderToExportFormatFromPackageFields(EHoldingsResourceExportFormat exportFormat, PackageAttributes packageAtr) {
+  private void mapProviderToExportFormatFromPackageFields(EHoldingsPackageExportFormat exportFormat, PackageAttributes packageAtr) {
     exportFormat.setProviderId(packageAtr.getProviderId());
     exportFormat.setProviderName(packageAtr.getProviderName());
   }

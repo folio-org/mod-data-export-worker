@@ -2,7 +2,6 @@ package org.folio.dew.batch.eholdings;
 
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
 
 public abstract class AbstractEHoldingsReader<T> extends AbstractItemCountingItemStreamItemReader<T> {
@@ -26,7 +25,9 @@ public abstract class AbstractEHoldingsReader<T> extends AbstractItemCountingIte
   protected T doRead() {
     if (currentChunk == null || currentChunkOffset >= currentChunk.size()) {
       currentChunk = getItems(lastObject, quantityToRetrievePerRequest);
-      lastObject = currentChunk.get(currentChunk.size() - 1);
+      if (!currentChunk.isEmpty()) {
+        lastObject = currentChunk.get(currentChunk.size() - 1);
+      }
       currentChunkOffset = 0;
     }
 

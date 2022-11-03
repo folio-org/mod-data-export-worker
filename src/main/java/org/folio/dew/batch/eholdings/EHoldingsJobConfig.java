@@ -3,8 +3,11 @@ package org.folio.dew.batch.eholdings;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_MAX_PACKAGE_NOTES_COUNT;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_MAX_TITLE_NOTES_COUNT;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.ExportType;
@@ -26,18 +29,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-
 @Log4j2
 @Configuration
 @RequiredArgsConstructor
 public class EHoldingsJobConfig {
 
-  private static final int PROCESSING_RECORD_CHUNK_SIZE = 5;
+  private static final int PROCESSING_RECORD_CHUNK_SIZE = 100;
 
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
@@ -96,11 +93,13 @@ public class EHoldingsJobConfig {
   @Bean("saveEHoldingsStep")
   public Step saveEHoldingsStep(DatabaseEHoldingsReader databaseEHoldingsReader,
                                 EHoldingsCsvFileWriter flatFileItemWriter,
-                                EHoldingsStepListener eHoldingsStepListener) {
+                                EHoldingsStepListener eHoldingsStepListener,
+                                ItemProcessor<EHoldingsResourceDTO, EHoldingsResourceExportFormat> resourceProcessor) {
     return stepBuilderFactory
       .get("saveEHoldingsStep")
-      .<EHoldingsResourceExportFormat, EHoldingsResourceExportFormat>chunk(PROCESSING_RECORD_CHUNK_SIZE)
+      .<EHoldingsResourceDTO, EHoldingsResourceExportFormat>chunk(PROCESSING_RECORD_CHUNK_SIZE)
       .reader(databaseEHoldingsReader)
+      .processor(resourceProcessor)
       .writer(flatFileItemWriter)
       .listener(eHoldingsStepListener)
       .build();
@@ -145,5 +144,11 @@ public class EHoldingsJobConfig {
     var itemProcessor = new CompositeItemProcessor<EHoldingsResourceDTO, EHoldingsResourceDTO>();
     itemProcessor.setDelegates(List.of(eHoldingsNoteItemProcessor, eHoldingsAgreementItemProcessor));
     return itemProcessor;
+  }
+
+  @Bean("eHoldingsResourceProcessor")
+  public ItemProcessor<EHoldingsResourceDTO, EHoldingsResourceExportFormat> resourceProcessor(
+    EHoldingsToExportFormatMapper mapper) {
+    return mapper::convertToExportFormat;
   }
 }

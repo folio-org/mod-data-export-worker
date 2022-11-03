@@ -1,6 +1,6 @@
 Provider Id,Provider Name,Provider Level Token,Package Id,Package Name,Package Type,Package Holdings Status,Package Content Type,Package Custom Coverage,Package Show To Patrons,Package Automatically Select,Package Level Token,Package Proxy,Package Access Status Type,Package Tags
 1,API DEV CORPORATE CUSTOMER,id=;ProviderToken 1,1-24,"custom-package, 13",Custom,Selected,Unknown,,Yes,No,ISBN;token 1-24,ezproxy(inherited),Test,
 Title Id,Title Name,Alternate Titles,Title Holdings Status,Publication Type,Title Type,Contributors,Edition,Publisher,ISSN Print,ISSN Online,ISBN Print,ISBN Online,Subjects,Peer Reviewed,Description,Managed Coverage,Custom Coverage,Coverage Statement,Managed Embargo,Custom Embargo,Title Show To Patrons,Title Proxy,Url,Title Access Status Type,Custom Value 1,Custom Value 2,Custom Value 3,Custom Value 4,Custom Value 5,Title Tags
-3301,custom title Aa,,Selected,Database,Custom,,,,,,,,,,,,,Test Coverage Statement,,5 null,Yes,ezproxy(inherited),https://test,Test,,,,,,
-3302,custom title AB,,Selected,Database,Custom,,,,,,,,,,,,,Test Coverage Statement,,5 null,Yes,ezproxy(inherited),https://test,Test,,,,,,
-3303,custom title AB,,Selected,Database,Custom,,,,,,,,,,,,,Test Coverage Statement,,5 null,Yes,ezproxy(inherited),https://test,Test,,,,,,
+3301,custom title Aa,,Selected,Database,Custom,,,,,,,,,,,,2001/01/01 - 9999/12/31,Test Coverage Statement,,5 null,Yes,ezproxy(inherited),https://test,Test,,,,,,
+3302,custom title AB,,Selected,Database,Custom,,,,,,,,,,,,2001/01/01 - 9999/12/31,Test Coverage Statement,,5 null,Yes,ezproxy(inherited),https://test,Test,,,,,,
+3303,custom title AB,,Selected,Database,Custom,,,,,,,,,,,,2001/01/01 - 9999/12/31,Test Coverage Statement,,5 null,Yes,ezproxy(inherited),https://test,Test,,,,,,

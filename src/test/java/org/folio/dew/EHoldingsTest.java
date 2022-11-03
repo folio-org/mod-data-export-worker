@@ -12,11 +12,9 @@ import static org.springframework.batch.test.AssertFile.assertFileEquals;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -29,6 +27,7 @@ import org.folio.dew.batch.eholdings.DatabaseEHoldingsReader;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.eholdings.EHoldingsPackageExportFormat;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
 import org.folio.dew.repository.EHoldingsPackageRepository;
 import org.folio.dew.repository.EHoldingsResourceRepository;
@@ -70,9 +69,6 @@ class EHoldingsTest extends BaseBatchTest {
     "src/test/resources/output/eholdings_package_export_with_3_titles.csv";
   private final static String EXPECTED_PACKAGE_WITH_SAME_TITLE_NAMES_OUTPUT =
     "src/test/resources/output/eholdings_package_export_with_same_title_names.csv";
-
-  private final static List<String> PACKAGE_FIELDS =
-    new ArrayList<>(asList("packageAgreements", "packageNotes", "providerLevelToken"));
 
   @BeforeEach
   void beforeEach(){
@@ -254,17 +250,17 @@ class EHoldingsTest extends BaseBatchTest {
     final ExecutionContext executionContext = jobExecution.getExecutionContext();
     final String fileInStorage = executionContext.getString("outputFilesInStorage");
 
-    final FileSystemResource actualChargeFeesFinesOutput = actualFileOutput(fileInStorage);
-    FileSystemResource expectedCharges = new FileSystemResource(expectedFile);
-    assertFileEquals(expectedCharges, actualChargeFeesFinesOutput);
+    final FileSystemResource actualOutput = actualFileOutput(fileInStorage);
+    FileSystemResource expectedOutput = new FileSystemResource(expectedFile);
+    assertFileEquals(expectedOutput, actualOutput);
   }
 
   private EHoldingsExportConfig buildExportConfig(String id, EHoldingsExportConfig.RecordTypeEnum recordType) {
     var eHoldingsExportConfig = new EHoldingsExportConfig();
     eHoldingsExportConfig.setRecordId(id);
     eHoldingsExportConfig.setRecordType(recordType);
-    eHoldingsExportConfig.setTitleFields(getClassFields());
-    eHoldingsExportConfig.setPackageFields(new LinkedList<>(PACKAGE_FIELDS));
+    eHoldingsExportConfig.setTitleFields(getTitleFields());
+    eHoldingsExportConfig.setPackageFields(getPackageFields());
     eHoldingsExportConfig.setTitleSearchFilters("filter[name]=*&InvalidFilter");
     return eHoldingsExportConfig;
   }
@@ -292,10 +288,17 @@ class EHoldingsTest extends BaseBatchTest {
     return new JobParameters(params);
   }
 
-  private List<String> getClassFields() {
-    return Arrays.stream(EHoldingsResourceExportFormat.class.getDeclaredFields())
+  private List<String> getTitleFields() {
+    return convertFields(EHoldingsResourceExportFormat.class.getDeclaredFields());
+  }
+
+  private List<String> getPackageFields() {
+    return convertFields(EHoldingsPackageExportFormat.class.getDeclaredFields());
+  }
+
+  private List<String> convertFields(Field[] fields) {
+    return Arrays.stream(fields)
       .map(Field::getName)
-      .filter(name -> !PACKAGE_FIELDS.contains(name))
       .collect(Collectors.toList());
   }
 }

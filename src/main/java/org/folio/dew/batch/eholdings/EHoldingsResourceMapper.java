@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.folio.de.entity.EHoldingsResource;
 import org.folio.dew.client.AgreementClient;
@@ -46,5 +47,11 @@ public class EHoldingsResourceMapper {
         entity.getId(), e);
     }
     return EHoldingsResourceDTO.builder().build();
+  }
+
+  public static List<EHoldingsResourceDTO> convertToDTO(List<EHoldingsResource> entities) {
+    return entities.stream()
+      .map(EHoldingsResourceMapper::convertToDTO)
+      .collect(Collectors.toList());
   }
 }

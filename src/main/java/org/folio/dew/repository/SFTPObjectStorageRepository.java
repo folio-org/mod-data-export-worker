@@ -27,7 +27,7 @@ import lombok.extern.log4j.Log4j2;
 public class SFTPObjectStorageRepository {
 
   private SshSimpleClient sshClient;
-  private static final int LOGIN_TIMEOUT_SECONDS = 5;
+  private static final int LOGIN_TIMEOUT_SECONDS = 30;
 
   public SftpClient getSftpClient(String username, String password, String host, int port) throws IOException {
     sshClient = new SshSimpleClient(username, password, host, port);
@@ -50,7 +50,6 @@ public class SFTPObjectStorageRepository {
     return SftpClientFactory.instance().createSftpClient(session);
   }
 
-
   protected ApacheSshdSftpSessionFactory getSshdSessionFactory(String username, String password, String host, int port) throws Exception {
     var ssh = SshClient.setUpDefaultClient();
     ssh.start();
@@ -61,8 +60,8 @@ public class SFTPObjectStorageRepository {
     factory.setUsername(username);
     factory.setPassword(password);
     factory.setSshClient(ssh);
-    factory.setConnectTimeout(TimeUnit.SECONDS.toMillis(7L));
-    factory.setAuthenticationTimeout(TimeUnit.SECONDS.toMillis(11L));
+    factory.setConnectTimeout(TimeUnit.SECONDS.toMillis(30L));
+    factory.setAuthenticationTimeout(TimeUnit.SECONDS.toMillis(30L));
     factory.afterPropertiesSet();
     return factory;
   }
@@ -119,7 +118,6 @@ public class SFTPObjectStorageRepository {
       log.info("A directory has been created: {}", folder);
     }
   }
-
 
   public void logout() {
     if (sshClient.getSshClient().isStarted()) {

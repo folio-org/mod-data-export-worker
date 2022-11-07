@@ -28,8 +28,7 @@ public class FTPStorageService {
       sftpObjectStorageRepository.upload(username, password, host, port, folder, filename, fileByteContent);
     }
     else {
-      ftpObjectStorageRepository.login(host, username, password);
-      ftpObjectStorageRepository.upload(filename, fileByteContent);
+      ftpObjectStorageRepository.upload(host, username, password, filename, fileByteContent);
     }
   }
 }

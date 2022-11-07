@@ -1,8 +1,9 @@
 package org.folio.dew.repository;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -85,19 +86,11 @@ class FTPObjectStorageRepositoryTest {
   }
 
   @Test
-  void testSuccessfulLogin() throws URISyntaxException, IOException, FtpException {
-    log.info("=== Test successful login ===");
-
-    assertTrue(repository.login(uri, username_valid, password_valid));
-    repository.logout();
-  }
-
-  @Test
   void testFailedConnect() {
     log.info("=== Test unsuccessful login ===");
 
     Exception exception = assertThrows(URISyntaxException.class, () -> {
-      repository.login(invalid_uri, username_valid, password_valid);
+      repository.upload(invalid_uri, username_valid, password_valid, filename, "Some text".getBytes());
     });
 
     String expectedMessage = "URI should be valid ftp path";
@@ -109,27 +102,20 @@ class FTPObjectStorageRepositoryTest {
   @Test
   void testFailedLogin() {
     log.info("=== Test unsuccessful login ===");
-
-    assertThrows(FtpException.class, () -> repository.login(uri, username_valid, password_invalid));
-    repository.logout();
+    assertThrows(FtpException.class, () -> repository.upload(uri, username_valid, password_invalid, filename, "Some text".getBytes()));
   }
 
   @Test
-  void testSuccessfulUpload() throws URISyntaxException, FtpException, IOException {
+  void testSuccessfulUpload() {
     log.info("=== Test successful upload ===");
 
-    assertTrue(repository.login(uri, username_valid, password_valid));
-    assertDoesNotThrow(() -> repository.upload(filename, "Some text".getBytes()));
+    assertDoesNotThrow(() -> repository.upload(uri, username_valid, password_valid, filename, "Some text".getBytes()));
     assertTrue(fakeFtpServer.getFileSystem().exists(user_home_dir + "/" + filename));
-    repository.logout();
   }
 
   @Test
-  void testFailedUpload() throws URISyntaxException, FtpException, IOException {
+  void testFailedUpload() {
     log.info("=== Test unsuccessful upload ===");
-
-    assertTrue(repository.login(uri, username_valid, password_valid));
-    assertThrows(FtpException.class, () -> repository.upload("/invalid/path/" + filename, "Some text".getBytes()));
-    repository.logout();
+    assertThrows(FtpException.class, () -> repository.upload(uri, username_valid, password_valid, "/invalid/path/" + filename, "Some text".getBytes()));
   }
 }

@@ -33,7 +33,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceDTO> {
 
   protected EHoldingsItemReader(KbEbscoClient kbEbscoClient, EHoldingsExportConfig exportConfig,
                                 EHoldingsJobProperties jobProperties) {
-    super(1L, 1L, jobProperties.getChunkSize());
+    super(1L, 1L, jobProperties.getKbEbscoChunkSize());
     setOffsetStep(PAGE_OFFSET_STEP);
     this.kbEbscoClient = kbEbscoClient;
     this.recordId = exportConfig.getRecordId();

@@ -23,7 +23,7 @@ public class DatabaseEHoldingsReader extends AbstractEHoldingsReader<EHoldingsRe
 
   protected DatabaseEHoldingsReader(EHoldingsResourceRepository resourceRepository,
                                     EHoldingsJobProperties jobProperties) {
-    super(null, 1L, jobProperties.getChunkSize());
+    super(null, 1L, jobProperties.getJobChunkSize());
     this.resourceRepository = resourceRepository;
   }
 

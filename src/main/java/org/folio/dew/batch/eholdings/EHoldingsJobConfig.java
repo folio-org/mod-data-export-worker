@@ -81,7 +81,7 @@ public class EHoldingsJobConfig {
                                EHoldingsNoteItemProcessor eHoldingsNoteItemProcessor) {
     return stepBuilderFactory
       .get("getEHoldingsStep")
-      .<EHoldingsResourceDTO, EHoldingsResourceDTO>chunk(jobProperties.getChunkSize())
+      .<EHoldingsResourceDTO, EHoldingsResourceDTO>chunk(jobProperties.getJobChunkSize())
       .reader(eHoldingsCsvItemReader)
       .processor(processor)
       .writer(getEHoldingsWriter)
@@ -97,7 +97,7 @@ public class EHoldingsJobConfig {
                                 ItemProcessor<EHoldingsResourceDTO, EHoldingsResourceExportFormat> resourceProcessor) {
     return stepBuilderFactory
       .get("saveEHoldingsStep")
-      .<EHoldingsResourceDTO, EHoldingsResourceExportFormat>chunk(jobProperties.getChunkSize())
+      .<EHoldingsResourceDTO, EHoldingsResourceExportFormat>chunk(jobProperties.getJobChunkSize())
       .reader(databaseEHoldingsReader)
       .processor(resourceProcessor)
       .writer(flatFileItemWriter)

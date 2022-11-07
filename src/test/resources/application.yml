@@ -38,7 +38,8 @@ application:
     secretKey: ${LOCAL_FS_SECRET_ACCESS_KEY:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}
     composeWithAwsSdk: ${LOCAL_FS_COMPOSE_WITH_AWS_SDK:false}
   e-holdings-batch:
-    chunk-size: 2
+    job-chunk-size: 2
+    kb-ebsco-chunk-size: 2
 folio:
   tenant:
     validation:

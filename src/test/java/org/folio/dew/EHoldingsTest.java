@@ -23,7 +23,6 @@ import lombok.extern.log4j.Log4j2;
 import org.folio.de.entity.EHoldingsPackage;
 import org.folio.de.entity.EHoldingsResource;
 import org.folio.de.entity.JobCommand;
-import org.folio.dew.batch.eholdings.DatabaseEHoldingsReader;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
@@ -32,7 +31,6 @@ import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
 import org.folio.dew.repository.EHoldingsPackageRepository;
 import org.folio.dew.repository.EHoldingsResourceRepository;
 import org.folio.dew.service.FileNameResolver;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -69,11 +67,6 @@ class EHoldingsTest extends BaseBatchTest {
     "src/test/resources/output/eholdings_package_export_with_3_titles.csv";
   private final static String EXPECTED_PACKAGE_WITH_SAME_TITLE_NAMES_OUTPUT =
     "src/test/resources/output/eholdings_package_export_with_same_title_names.csv";
-
-  @BeforeEach
-  void beforeEach(){
-    DatabaseEHoldingsReader.setQuantityToRetrievePerRequest(20);
-  }
 
   @Test
   @DisplayName("Run EHoldingsJob export resource without provider load successfully")
@@ -128,7 +121,6 @@ class EHoldingsTest extends BaseBatchTest {
   @Test
   @DisplayName("Run EHoldingsJob export package with 3 titles successfully")
   void eHoldingsJobPackageWith3TitlesTest() throws Exception {
-    DatabaseEHoldingsReader.setQuantityToRetrievePerRequest(2);
     JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
     var exportConfig = buildExportConfig(PACKAGE_WITH_3_TITLES_ID, PACKAGE);
 
@@ -204,7 +196,6 @@ class EHoldingsTest extends BaseBatchTest {
   @Test
   @DisplayName("Run EHoldingsJob export package with same title names successfully")
   void eHoldingsJobPackageWithSameTitleNamesTest() throws Exception {
-    DatabaseEHoldingsReader.setQuantityToRetrievePerRequest(2);
     JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
     var exportConfig = buildExportConfig(PACKAGE_WITH_SAME_TITLE_NAMES_ID, PACKAGE);
     exportConfig.getTitleFields().removeAll(asList("titleAgreements", "titleNotes"));

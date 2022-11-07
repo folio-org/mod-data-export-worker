@@ -5,6 +5,7 @@ import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_TOTAL_
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.EHoldingsResource;
+import org.folio.dew.config.properties.EHoldingsJobProperties;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceDTO;
 import org.folio.dew.repository.EHoldingsResourceRepository;
 import org.springframework.batch.core.StepExecution;
@@ -16,17 +17,13 @@ import org.springframework.stereotype.Component;
 @StepScope
 public class DatabaseEHoldingsReader extends AbstractEHoldingsReader<EHoldingsResourceDTO> {
   private Long jobExecutionId;
-  private static int quantityToRetrievePerRequest = 100;
   private final EHoldingsResourceRepository resourceRepository;
 
   private int totalResources;
 
-  public static void setQuantityToRetrievePerRequest(int quantityToRetrievePerRequest){
-    DatabaseEHoldingsReader.quantityToRetrievePerRequest = quantityToRetrievePerRequest;
-  }
-
-  protected DatabaseEHoldingsReader(EHoldingsResourceRepository resourceRepository) {
-    super(null, 1L, quantityToRetrievePerRequest);
+  protected DatabaseEHoldingsReader(EHoldingsResourceRepository resourceRepository,
+                                    EHoldingsJobProperties jobProperties) {
+    super(null, 1L, jobProperties.getJobChunkSize());
     this.resourceRepository = resourceRepository;
   }
 

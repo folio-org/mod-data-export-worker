@@ -9,6 +9,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.JobCompletionNotificationListener;
+import org.folio.dew.config.properties.EHoldingsJobProperties;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceDTO;
@@ -34,11 +35,10 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class EHoldingsJobConfig {
 
-  private static final int PROCESSING_RECORD_CHUNK_SIZE = 100;
-
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
   private final ObjectMapper objectMapper;
+  private final EHoldingsJobProperties jobProperties;
 
   @Bean
   public Job getEHoldingsJob(
@@ -81,7 +81,7 @@ public class EHoldingsJobConfig {
                                EHoldingsNoteItemProcessor eHoldingsNoteItemProcessor) {
     return stepBuilderFactory
       .get("getEHoldingsStep")
-      .<EHoldingsResourceDTO, EHoldingsResourceDTO>chunk(PROCESSING_RECORD_CHUNK_SIZE)
+      .<EHoldingsResourceDTO, EHoldingsResourceDTO>chunk(jobProperties.getJobChunkSize())
       .reader(eHoldingsCsvItemReader)
       .processor(processor)
       .writer(getEHoldingsWriter)
@@ -97,7 +97,7 @@ public class EHoldingsJobConfig {
                                 ItemProcessor<EHoldingsResourceDTO, EHoldingsResourceExportFormat> resourceProcessor) {
     return stepBuilderFactory
       .get("saveEHoldingsStep")
-      .<EHoldingsResourceDTO, EHoldingsResourceExportFormat>chunk(PROCESSING_RECORD_CHUNK_SIZE)
+      .<EHoldingsResourceDTO, EHoldingsResourceExportFormat>chunk(jobProperties.getJobChunkSize())
       .reader(databaseEHoldingsReader)
       .processor(resourceProcessor)
       .writer(flatFileItemWriter)

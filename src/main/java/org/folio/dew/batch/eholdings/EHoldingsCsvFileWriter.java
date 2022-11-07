@@ -96,7 +96,7 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
   protected String doWrite(List<? extends EHoldingsResourceExportFormat> items) {
     return items.stream()
       .map(item -> getItemRow(maxTitleNotesLength, item, exportConfig.getTitleFields()))
-      .collect(Collectors.joining(lineSeparator));
+      .collect(Collectors.joining(lineSeparator, EMPTY, lineSeparator));
   }
 
   @Override

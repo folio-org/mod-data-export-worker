@@ -92,6 +92,8 @@ application:
     controlKeepAliveTimeout: 30
   bucket:
     size: ${BUCKET_SIZE:50}
+  e-holdings-batch:
+      chunk-size: ${E_HOLDINGS_BATCH_JOB_CHUNK_SIZE:100}
 folio:
   tenant:
     validation:

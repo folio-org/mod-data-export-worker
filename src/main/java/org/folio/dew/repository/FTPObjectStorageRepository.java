@@ -21,8 +21,6 @@ import lombok.extern.log4j.Log4j2;
 @Repository
 public class FTPObjectStorageRepository {
 
-  private FTPClient ftpClient;
-
   private final ObjectFactory<FTPClient> ftpClientFactory;
   private final FTPProperties ftpProperties;
   private static final String FILE_UPLOAD_FAILED = "File upload failed. ";
@@ -32,8 +30,8 @@ public class FTPObjectStorageRepository {
     this.ftpClientFactory = ftpClientFactory;
   }
 
-  public boolean login(String ftpUrl, String username, String password) throws URISyntaxException, IOException {
-    ftpClient = ftpClientFactory.getObject();
+  private FTPClient login(String ftpUrl, String username, String password) throws URISyntaxException, IOException {
+    FTPClient ftpClient = ftpClientFactory.getObject();
     if (!isUriValid(ftpUrl)) {
       throw new URISyntaxException(ftpUrl, "URI should be valid ftp path");
     }
@@ -52,14 +50,14 @@ public class FTPObjectStorageRepository {
       log.info("Success login to FTP");
     } else {
       log.error("Failed login to FTP");
-      disconnect();
+      disconnect(ftpClient);
       throw new FtpException(ftpClient.getReplyCode(), "Failed login to FTP");
     }
 
-    return true;
+    return ftpClient;
   }
 
-  public void logout() {
+  private void logout(FTPClient ftpClient) {
     try {
       if (ftpClient != null && ftpClient.isConnected()) {
         if (ftpClient.logout()) {
@@ -71,15 +69,18 @@ public class FTPObjectStorageRepository {
     } catch (Exception e) {
       log.error("Error logging out", e);
     } finally {
-      disconnect();
+      if (ftpClient != null) {
+        disconnect(ftpClient);
+      }
     }
   }
 
-  public void upload(String filename, byte[] fileByteContent) throws IOException {
+  public void upload(String ftpUrl, String username, String password, String filename, byte[] fileByteContent) throws Exception {
+    FTPClient ftpClient = login(ftpUrl, username, password);
     try (InputStream is = new ByteArrayInputStream(fileByteContent)) {
       ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
       ftpClient.enterLocalPassiveMode();
-      changeWorkingDirectory();
+      changeWorkingDirectory(ftpClient);
       if (ftpClient.storeFile(filename, is)) {
         log.debug("File uploaded on FTP");
       } else {
@@ -90,25 +91,19 @@ public class FTPObjectStorageRepository {
       log.error("Error uploading file", ioException);
       throw ioException;
     } finally {
-      try {
-        ftpClient.logout();
-      } catch (IOException e) {
-        log.error("Error logout from FTP", e);
-      } finally {
-        disconnect();
-      }
+      logout(ftpClient);
     }
   }
 
-  private void changeWorkingDirectory() throws IOException {
-    if (isDirectoryAbsent(ftpProperties.getWorkingDir())) {
+  private void changeWorkingDirectory(FTPClient ftpClient) throws IOException {
+    if (isDirectoryAbsent(ftpClient, ftpProperties.getWorkingDir())) {
       log.info("A directory has been created: " + ftpProperties.getWorkingDir());
       ftpClient.makeDirectory(ftpProperties.getWorkingDir());
     }
     ftpClient.changeWorkingDirectory(ftpProperties.getWorkingDir());
   }
 
-  private boolean isDirectoryAbsent(String dirPath) throws IOException {
+  private boolean isDirectoryAbsent(FTPClient ftpClient, String dirPath) throws IOException {
     ftpClient.changeWorkingDirectory(dirPath);
     int returnCode = ftpClient.getReplyCode();
     return returnCode == 550;
@@ -119,7 +114,7 @@ public class FTPObjectStorageRepository {
     return StringUtils.isEmpty(proto) || proto.equalsIgnoreCase("FTP");
   }
 
-  private void disconnect() {
+  private void disconnect(FTPClient ftpClient) {
     try {
       ftpClient.disconnect();
     } catch (IOException e) {
@@ -128,12 +123,10 @@ public class FTPObjectStorageRepository {
   }
 
   private static String getReplyMessage(Integer replyCode, String replyMessage) {
-    switch (replyCode) {
-    case 550:
+    if (replyCode == 550) {
       return FILE_UPLOAD_FAILED + "Please check if user has write permissions";
-    default:
-      return FILE_UPLOAD_FAILED + replyMessage;
     }
+    return FILE_UPLOAD_FAILED + replyMessage;
   }
 
 }

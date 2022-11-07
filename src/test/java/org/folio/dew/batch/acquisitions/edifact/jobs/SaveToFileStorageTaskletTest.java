@@ -69,8 +69,7 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
 
     JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
     doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
-    doReturn(true).when(ftpObjectStorageRepository).login(anyString(),anyString(),anyString());
-    doNothing().when(ftpObjectStorageRepository).upload(anyString(), any());
+    doNothing().when(ftpObjectStorageRepository).upload(anyString(),anyString(),anyString(), anyString(), any());
 
     JobParameters jobParameters = getSFTPJobParameters();
     ExecutionContext executionContext = getExecutionContext(jobParameters.getString(UPLOADED_FILE_PATH));

@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.folio.dew.batch.CsvItemReader;
 import org.folio.dew.client.KbEbscoClient;
+import org.folio.dew.config.properties.EHoldingsJobProperties;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceDTO;
@@ -22,7 +23,6 @@ import org.springframework.stereotype.Component;
 @StepScope
 public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceDTO> {
 
-  private static final int QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST = 20;
   private static final int PAGE_OFFSET_STEP = 1;
 
   private final KbEbscoClient kbEbscoClient;
@@ -31,8 +31,9 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceDTO> {
   private final String titleSearchFilters;
   private final String recordId;
 
-  protected EHoldingsItemReader(KbEbscoClient kbEbscoClient, EHoldingsExportConfig exportConfig) {
-    super(1L, 1L, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST);
+  protected EHoldingsItemReader(KbEbscoClient kbEbscoClient, EHoldingsExportConfig exportConfig,
+                                EHoldingsJobProperties jobProperties) {
+    super(1L, 1L, jobProperties.getKbEbscoChunkSize());
     setOffsetStep(PAGE_OFFSET_STEP);
     this.kbEbscoClient = kbEbscoClient;
     this.recordId = exportConfig.getRecordId();

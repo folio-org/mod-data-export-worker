@@ -92,6 +92,9 @@ application:
     controlKeepAliveTimeout: 30
   bucket:
     size: ${BUCKET_SIZE:50}
+  e-holdings-batch:
+    job-chunk-size: ${E_HOLDINGS_BATCH_JOB_CHUNK_SIZE:100}
+    kb-ebsco-chunk-size: ${E_HOLDINGS_BATCH_KB_EBSCO_CHUNK_SIZE:105}
 folio:
   tenant:
     validation:

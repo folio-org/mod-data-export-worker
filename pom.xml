@@ -50,6 +50,7 @@
         <commons-collections4.version>4.4</commons-collections4.version>
         <hibernate-types-52.version>2.10.3</hibernate-types-52.version>
         <opencsv.version>5.6</opencsv.version>
+        <hibernate-validator.version>6.2.4.Final</hibernate-validator.version>
 
         <sonar.exclusions>
             **/src/main/java/org/folio/dew/ModDataExportWorkerApplication.java,
@@ -204,6 +205,13 @@
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java</artifactId>
         <version>${aws.sdk.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.hibernate.validator</groupId>
+        <artifactId>hibernate-validator</artifactId>
+        <version>${hibernate-validator.version}</version>
+        <scope>compile</scope>
       </dependency>
 
         <!-- Test dependencies -->

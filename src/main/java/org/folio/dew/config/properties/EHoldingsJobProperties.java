@@ -5,11 +5,13 @@ import javax.validation.constraints.Min;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * Application properties for eHoldings batch job configuration
  */
 @Data
+@Validated
 @Component
 @ConfigurationProperties("application.e-holdings-batch")
 public class EHoldingsJobProperties {

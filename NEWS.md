@@ -1,3 +1,16 @@
+## 2022-11-09 v2.0.1
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v2.0.0...v2.0.1)
+
+### Stories
+[MODEXPW-301](https://issues.folio.org/browse/MODEXPW-301) export eholdings package details updated requirements
+
+### Bug fixes
+[MODEXPW-293](https://issues.folio.org/browse/MODEXPW-293) The "Resource" data transfers between packages when they are exporting
+[MODEXPW-298](https://issues.folio.org/browse/MODEXPW-298) Export of "Package" / "Title+Package" with more than 255 characters in "Title" field is failed
+[MODEXPW-300](https://issues.folio.org/browse/MODEXPW-300) "Custom Coverage" field is filled with "Managed Coverage" field value in the exported ".csv" file
+[MODEXPW-303](https://issues.folio.org/browse/MODEXPW-303) eHoldings: change title sort logic
+
 ## 2022-10-26 v2.0.0
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.6...v2.0.0)

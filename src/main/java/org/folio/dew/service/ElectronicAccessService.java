@@ -65,7 +65,7 @@ public class ElectronicAccessService {
     try {
       return relationshipClient.getById(id).getName() + ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER + id;
     } catch (NotFoundException e) {
-      return EMPTY + ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER + id;
+      return ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER + id;
     }
   }
 

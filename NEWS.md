@@ -1,3 +1,14 @@
+## 2022-11-11 v2.0.2
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v2.0.1...v2.0.2)
+
+### Technical tasks
+[MODEXPW-302](https://issues.folio.org/browse/MODEXPW-302) Investigate and fix FTP connection issues
+
+### Bug fixes
+[MODEXPW-291](https://issues.folio.org/browse/MODEXPW-291) Missing bulk edit Inventory-holdings permissions
+[MODEXPW-266](https://issues.folio.org/browse/MODEXPW-266) The "Preview of records matched" is missing for Holdings contain special characters
+
 ## 2022-11-09 v2.0.1
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v2.0.0...v2.0.1)

@@ -38,7 +38,7 @@ public class ElectronicAccessService {
   private static final int ELECTRONIC_ACCESS_PUBLIC_NOTE_INDEX = 3;
   private static final int ELECTRONIC_ACCESS_RELATIONSHIP_INDEX = 4;
 
-  public String electronicAccessesToString(List<ElectronicAccess> electronicAccesses, String formatIdentifier, String jobId, String fileName) {
+  public String getElectronicAccessesToString(List<ElectronicAccess> electronicAccesses, String formatIdentifier, String jobId, String fileName) {
     return isEmpty(electronicAccesses) ?
       EMPTY :
       electronicAccesses.stream()

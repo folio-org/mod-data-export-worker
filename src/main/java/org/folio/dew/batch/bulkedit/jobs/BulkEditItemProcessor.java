@@ -96,7 +96,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .tags(isEmpty(item.getTags().getTagList()) ? EMPTY : String.join(ARRAY_DELIMITER, item.getTags().getTagList()))
       .lastCheckIn(lastCheckInToString(item.getLastCheckIn()))
       .build();
-    itemFormat.setElectronicAccess(electronicAccessService.electronicAccessesToString(item.getElectronicAccess(), itemFormat.getIdentifier(identifierType), jobId, fileName));
+    itemFormat.setElectronicAccess(electronicAccessService.getElectronicAccessesToString(item.getElectronicAccess(), itemFormat.getIdentifier(identifierType), jobId, fileName));
     return itemFormat;
   }
 

@@ -3,8 +3,10 @@ package org.folio.dew.service;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import org.folio.dew.client.ElectronicAccessRelationshipClient;
+import org.folio.dew.domain.dto.ElectronicAccess;
 import org.folio.dew.domain.dto.ElectronicAccessRelationship;
 import org.folio.dew.domain.dto.ElectronicAccessRelationshipCollection;
+import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,9 +29,59 @@ class ElectronicAccessServiceTest {
 
   @Mock
   private ElectronicAccessRelationshipClient relationshipClient;
+  @Mock
+  private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
 
   @InjectMocks
   private ElectronicAccessService electronicAccessService;
+
+  @Test
+  void electronicAccessesToStringTest() {
+    var relationshipId = "relationshipId";
+    var electronicAccess = new ElectronicAccess();
+    electronicAccess.setRelationshipId(relationshipId);
+    electronicAccess.setUri("uri");
+
+    var electronicAccessRelationship = new ElectronicAccessRelationship();
+    electronicAccessRelationship.setId(relationshipId);
+    electronicAccessRelationship.setName("name");
+
+    when(relationshipClient.getById(relationshipId)).thenReturn(electronicAccessRelationship);
+
+    var expected = "uri;;;;name;relationshipId";
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), "formatIdentifier", "jobId", "fileName");
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void getElectronicAccessesToStringElectronicAccessRelationshipNotFoundByIdTest() {
+    var relationshipId = "relationshipId";
+    var electronicAccess = new ElectronicAccess();
+    electronicAccess.setRelationshipId(relationshipId);
+    electronicAccess.setUri("uri");
+
+    when(relationshipClient.getById(relationshipId)).thenThrow(new NotFoundException("error message"));
+
+    var expected = "uri;;;;;relationshipId";
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess),
+      "formatIdentifier", "jobId", "fileName");
+
+    verify(bulkEditProcessingErrorsService).saveErrorInCSV(isA(String.class), isA(String.class), isA(BulkEditException.class), isA(String.class));
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void getElectronicAccessesToStringElectronicAccessRelationshipIsNullTest() {
+    var electronicAccess = new ElectronicAccess();
+    electronicAccess.setUri("uri");
+
+    var expected = "uri;;;;";
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess),
+      "formatIdentifier", "jobId", "fileName");
+
+    assertEquals(expected, actual);
+  }
 
   @Test
   void getRelationshipNameAndIdByIdTest() {

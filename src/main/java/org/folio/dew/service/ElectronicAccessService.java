@@ -47,8 +47,8 @@ public class ElectronicAccessService {
   }
 
   private String electronicAccessToString(ElectronicAccess access, String identifier, String jobId, String fileName) {
-    var relationshipNameAndId = isEmpty(access.getRelationshipId()) ? EMPTY : getRelationshipNameAndIdById(access.getRelationshipId());
-    if (relationshipNameAndId.startsWith(ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER))
+    var relationshipNameAndId = isEmpty(access.getRelationshipId()) ? ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER : getRelationshipNameAndIdById(access.getRelationshipId());
+    if (isNotEmpty(access.getRelationshipId()) && relationshipNameAndId.startsWith(ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER))
       bulkEditProcessingErrorsService.saveErrorInCSV(jobId,
         identifier, new BulkEditException("Electronic access relationship not found by id=" + access.getRelationshipId()),
         fileName);

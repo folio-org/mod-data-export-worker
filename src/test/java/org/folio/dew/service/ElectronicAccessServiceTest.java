@@ -76,7 +76,7 @@ class ElectronicAccessServiceTest {
     var electronicAccess = new ElectronicAccess();
     electronicAccess.setUri("uri");
 
-    var expected = "uri;;;;";
+    var expected = "uri;;;;;";
     var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess),
       "formatIdentifier", "jobId", "fileName");
 

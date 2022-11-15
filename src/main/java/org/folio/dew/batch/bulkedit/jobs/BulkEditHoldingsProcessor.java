@@ -4,10 +4,12 @@ import static org.folio.dew.domain.dto.IdentifierType.INSTANCE_HRID;
 import static org.folio.dew.domain.dto.IdentifierType.ITEM_BARCODE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.client.HoldingClient;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
@@ -16,6 +18,7 @@ import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.HoldingsReferenceService;
 import org.folio.dew.service.mapper.HoldingsMapper;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,7 +64,7 @@ public class BulkEditHoldingsProcessor implements ItemProcessor<ItemIdentifier, 
     var itemBarcode = ITEM_BARCODE == IdentifierType.fromValue(identifierType) ? itemIdentifier.getItemId() : null;
 
     return holdings.getHoldingsRecords().stream()
-      .map(r -> holdingsMapper.mapToHoldingsFormat(r, itemIdentifier.getItemId(), jobId, fileName))
+      .map(r -> holdingsMapper.mapToHoldingsFormat(r, itemIdentifier.getItemId(), jobId, FilenameUtils.getName(fileName)))
       .map(holdingsFormat -> holdingsFormat.withInstanceHrid(instanceHrid))
       .map(holdingsFormat -> holdingsFormat.withItemBarcode(itemBarcode))
       .collect(Collectors.toList());

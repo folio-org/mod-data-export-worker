@@ -38,20 +38,19 @@ public class ElectronicAccessService {
   private static final int ELECTRONIC_ACCESS_LINK_TEXT_INDEX = 1;
   private static final int ELECTRONIC_ACCESS_MATERIAL_SPECIFICATION_INDEX = 2;
   private static final int ELECTRONIC_ACCESS_PUBLIC_NOTE_INDEX = 3;
-  private static final int ELECTRONIC_ACCESS_RELATIONSHIP_INDEX = 4;
 
   public String getElectronicAccessesToString(List<ElectronicAccess> electronicAccesses, String formatIdentifier, String jobId, String fileName) {
     var errors = new HashSet<String>();
     var stringOutput = isEmpty(electronicAccesses) ?
       EMPTY :
       electronicAccesses.stream()
-        .map(electronicAccess -> this.electronicAccessToString(electronicAccess, formatIdentifier, errors))
+        .map(electronicAccess -> this.electronicAccessToString(electronicAccess, errors))
         .collect(Collectors.joining(ITEM_DELIMITER));
-    errors.forEach(e -> bulkEditProcessingErrorsService.saveErrorInCSV(jobId, formatIdentifier, new BulkEditException(e),fileName));
+    errors.forEach(e -> bulkEditProcessingErrorsService.saveErrorInCSV(jobId, formatIdentifier, new BulkEditException(e), fileName));
     return stringOutput;
   }
 
-  private String electronicAccessToString(ElectronicAccess access, String identifier, Set<String> errors) {
+  private String electronicAccessToString(ElectronicAccess access, Set<String> errors) {
     var relationshipNameAndId = isEmpty(access.getRelationshipId()) ? ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER : getRelationshipNameAndIdById(access.getRelationshipId());
     if (isNotEmpty(access.getRelationshipId()) && relationshipNameAndId.startsWith(ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER))
       errors.add("Electronic access relationship not found by id=" + access.getRelationshipId());

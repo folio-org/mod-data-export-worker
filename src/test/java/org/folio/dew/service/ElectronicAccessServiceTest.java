@@ -21,6 +21,7 @@ import java.util.UUID;
 import static org.folio.dew.utils.Constants.ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,7 +37,7 @@ class ElectronicAccessServiceTest {
   private ElectronicAccessService electronicAccessService;
 
   @Test
-  void electronicAccessesToStringTest() {
+  void getElectronicAccessesToStringTest() {
     var relationshipId = "relationshipId";
     var electronicAccess = new ElectronicAccess();
     electronicAccess.setRelationshipId(relationshipId);
@@ -56,18 +57,28 @@ class ElectronicAccessServiceTest {
 
   @Test
   void getElectronicAccessesToStringElectronicAccessRelationshipNotFoundByIdTest() {
-    var relationshipId = "relationshipId";
-    var electronicAccess = new ElectronicAccess();
-    electronicAccess.setRelationshipId(relationshipId);
-    electronicAccess.setUri("uri");
+    var relationshipId1 = "relationshipId1";
+    var electronicAccess1 = new ElectronicAccess();
+    electronicAccess1.setRelationshipId(relationshipId1);
+    electronicAccess1.setUri("uri1");
 
-    when(relationshipClient.getById(relationshipId)).thenThrow(new NotFoundException("error message"));
+    var relationshipId2 = "relationshipId2";
+    var electronicAccess2 = new ElectronicAccess();
+    electronicAccess2.setRelationshipId(relationshipId2);
+    electronicAccess2.setUri("uri2");
 
-    var expected = "uri;;;;;relationshipId";
-    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess),
+    var electronicAccess3 = new ElectronicAccess();
+    electronicAccess3.setRelationshipId(relationshipId1);
+    electronicAccess3.setUri("uri3");
+
+    when(relationshipClient.getById(relationshipId1)).thenThrow(new NotFoundException("error message"));
+    when(relationshipClient.getById(relationshipId2)).thenThrow(new NotFoundException("error message"));
+
+    var expected = "uri1;;;;;relationshipId1|uri2;;;;;relationshipId2|uri3;;;;;relationshipId1";
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess1, electronicAccess2, electronicAccess3),
       "formatIdentifier", "jobId", "fileName");
 
-    verify(bulkEditProcessingErrorsService).saveErrorInCSV(isA(String.class), isA(String.class), isA(BulkEditException.class), isA(String.class));
+    verify(bulkEditProcessingErrorsService, times(2)).saveErrorInCSV(isA(String.class), isA(String.class), isA(BulkEditException.class), isA(String.class));
     assertEquals(expected, actual);
   }
 

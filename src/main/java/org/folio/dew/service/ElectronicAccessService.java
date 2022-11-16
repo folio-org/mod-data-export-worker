@@ -20,8 +20,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,19 +41,20 @@ public class ElectronicAccessService {
   private static final int ELECTRONIC_ACCESS_RELATIONSHIP_INDEX = 4;
 
   public String getElectronicAccessesToString(List<ElectronicAccess> electronicAccesses, String formatIdentifier, String jobId, String fileName) {
-    return isEmpty(electronicAccesses) ?
+    var errors = new HashSet<String>();
+    var stringOutput = isEmpty(electronicAccesses) ?
       EMPTY :
       electronicAccesses.stream()
-        .map(electronicAccess -> this.electronicAccessToString(electronicAccess, formatIdentifier, jobId, fileName))
+        .map(electronicAccess -> this.electronicAccessToString(electronicAccess, formatIdentifier, errors))
         .collect(Collectors.joining(ITEM_DELIMITER));
+    errors.forEach(e -> bulkEditProcessingErrorsService.saveErrorInCSV(jobId, formatIdentifier, new BulkEditException(e),fileName));
+    return stringOutput;
   }
 
-  private String electronicAccessToString(ElectronicAccess access, String identifier, String jobId, String fileName) {
+  private String electronicAccessToString(ElectronicAccess access, String identifier, Set<String> errors) {
     var relationshipNameAndId = isEmpty(access.getRelationshipId()) ? ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER : getRelationshipNameAndIdById(access.getRelationshipId());
     if (isNotEmpty(access.getRelationshipId()) && relationshipNameAndId.startsWith(ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER))
-      bulkEditProcessingErrorsService.saveErrorInCSV(jobId,
-        identifier, new BulkEditException("Electronic access relationship not found by id=" + access.getRelationshipId()),
-        fileName);
+      errors.add("Electronic access relationship not found by id=" + access.getRelationshipId());
     return String.join(ARRAY_DELIMITER,
       access.getUri(),
       isEmpty(access.getLinkText()) ? EMPTY : access.getLinkText(),

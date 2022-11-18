@@ -1,3 +1,10 @@
+## 2022-11-18 v1.4.11
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.10...v1.4.11)
+
+### Stories
+* [MODEXPW-229](https://issues.folio.org/browse/MODEXPW-229) custom-fields query fails due to CQL format
+* 
 ## 2022-09-25 v1.4.10
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.6...v1.4.10)

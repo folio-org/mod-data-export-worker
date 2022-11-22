@@ -8,6 +8,7 @@ import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
+import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 
@@ -47,9 +48,9 @@ public class BulkEditUserContentUpdateService {
     validatorService.validateContentUpdateCollection(contentUpdates);
     try {
       var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
-      var updatedFileName = UPDATED_PREFIX + fileName;
-      var previewFileName = PREVIEW_PREFIX + fileName;
-      var userFormats = CsvHelper.readRecordsFromStorage(remoteFilesStorage, fileName, UserFormat.class, true);
+      var updatedFileName = jobCommand.getId() + PATH_SEPARATOR + UPDATED_PREFIX + fileName;
+      var previewFileName = jobCommand.getId() + PATH_SEPARATOR + PREVIEW_PREFIX + fileName;
+      var userFormats = CsvHelper.readRecordsFromStorage(remoteFilesStorage, jobCommand.getId() + PATH_SEPARATOR + fileName, UserFormat.class, true);
       var contentUpdatedUsers = applyContentUpdates(userFormats, contentUpdates, jobCommand);
       CsvHelper.saveRecordsToStorage(remoteFilesStorage, contentUpdatedUsers.getUpdated(), UserFormat.class, updatedFileName);
       CsvHelper.saveRecordsToStorage(remoteFilesStorage, contentUpdatedUsers.getPreview(), UserFormat.class, previewFileName);

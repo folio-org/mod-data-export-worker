@@ -4,6 +4,7 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
+import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -108,7 +109,7 @@ public class BulkEditProcessingErrorsService {
         Optional<String> csvErrorFile = stream.findFirst();
         if (csvErrorFile.isPresent()) {
           var filename = csvErrorFile.get();
-          var downloadFilename = FilenameUtils.getName(filename);
+          var downloadFilename = jobId + PATH_SEPARATOR + FilenameUtils.getName(filename);
           return saveErrorFile(downloadFilename, filename);
         } else {
           log.error("Download link cannot be created because CSV error file cannot be found at {}", pathToStorage);

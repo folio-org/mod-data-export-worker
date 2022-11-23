@@ -12,6 +12,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
+import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -47,16 +48,17 @@ class BulkEditHoldingsContentUpdateServiceTest extends BaseBatchTest {
   @Test
   @SneakyThrows
   void shouldCreateUpdatedAndPreviewFilesAndUpdateJobCommand() {
-    var uploadedFileName = FilenameUtils.getName(HOLDINGS_DATA);
-    var updatedFileName = UPDATED_PREFIX + uploadedFileName;
-    var previewFileName = PREVIEW_PREFIX + uploadedFileName;
-    remoteFilesStorage.upload(uploadedFileName, HOLDINGS_DATA);
     var jobId = UUID.randomUUID();
+    var uploadedFileName = FilenameUtils.getName(HOLDINGS_DATA);
+    var updatedFileName = jobId + PATH_SEPARATOR + UPDATED_PREFIX + uploadedFileName;
+    var previewFileName = jobId + PATH_SEPARATOR + PREVIEW_PREFIX + uploadedFileName;
+    remoteFilesStorage.upload(jobId + PATH_SEPARATOR + uploadedFileName, HOLDINGS_DATA);
+
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
     jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
     jobCommand.setJobParameters(new JobParametersBuilder()
-      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + HOLDINGS_DATA.replace(CSV_EXTENSION, EMPTY))
+      .addString(TEMP_OUTPUT_FILE_PATH, jobId + PATH_SEPARATOR + FilenameUtils.getName(HOLDINGS_DATA).replace(CSV_EXTENSION, EMPTY))
       .toJobParameters());
 
     jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
@@ -84,9 +86,10 @@ class BulkEditHoldingsContentUpdateServiceTest extends BaseBatchTest {
   @Test
   @SneakyThrows
   void shouldNotUpdateHoldingsWithSourceMARC() {
-    var uploadedFileName = FilenameUtils.getName(HOLDINGS_DATA_MARC);
-    remoteFilesStorage.upload(uploadedFileName, HOLDINGS_DATA_MARC);
     var jobId = UUID.randomUUID();
+    var uploadedFileName = FilenameUtils.getName(HOLDINGS_DATA_MARC);
+    remoteFilesStorage.upload(jobId + PATH_SEPARATOR + uploadedFileName, HOLDINGS_DATA_MARC);
+
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
     jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);

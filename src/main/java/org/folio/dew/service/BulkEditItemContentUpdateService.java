@@ -23,6 +23,7 @@ import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
+import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
 import static org.folio.dew.utils.Constants.STATUS_FIELD_CAN_NOT_CLEARED;
 import static org.folio.dew.utils.Constants.STATUS_VALUE_NOT_ALLOWED;
@@ -70,11 +71,11 @@ public class BulkEditItemContentUpdateService {
   }
 
   public UpdatesResult<ItemFormat> processContentUpdates(JobCommand jobCommand, ItemContentUpdateCollection contentUpdates) {
-    var outputFileName = workdir + UPDATED_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
+    var outputFileName = workdir + jobCommand.getId() + PATH_SEPARATOR + UPDATED_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
     try {
       log.info("Processing content updates for job id {}", jobCommand.getId());
       localFilesStorage.delete(outputFileName);
-      remoteFilesStorage.downloadObject(FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION, outputFileName);
+      remoteFilesStorage.downloadObject(jobCommand.getId() + PATH_SEPARATOR + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION, outputFileName);
       var updateResult = new UpdatesResult<ItemFormat>();
       var records = CsvHelper.readRecordsFromStorage(localFilesStorage, outputFileName, ItemFormat.class, true);
       log.info("Reading of file {} complete, number of itemFormats: {}", outputFileName, records.size());
@@ -82,7 +83,7 @@ public class BulkEditItemContentUpdateService {
       var contentUpdated = applyContentUpdates(records, contentUpdates, jobCommand);
       log.info("Finished processing content updates: {} records, {} preview", contentUpdated.getUpdated().size(), contentUpdated.getPreview().size());
       updateResult.setEntitiesForPreview(contentUpdated.getPreview());
-      var previewOutputFileName = workdir + PREVIEW_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
+      var previewOutputFileName = workdir + jobCommand.getId() + PATH_SEPARATOR + PREVIEW_PREFIX + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       saveResultToFile(contentUpdated.getPreview(), jobCommand, previewOutputFileName, PREVIEW_FILE_NAME);
       saveResultToFile(contentUpdated.getUpdated(), jobCommand, outputFileName, UPDATED_FILE_NAME);
       jobCommand.setExportType(BULK_EDIT_UPDATE);

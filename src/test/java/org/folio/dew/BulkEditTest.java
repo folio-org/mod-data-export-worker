@@ -19,6 +19,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
+import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 import static org.folio.dew.utils.CsvHelper.countLines;
@@ -419,11 +420,12 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run holdings records in-app update - successful")
   @SneakyThrows
   void shouldRunHoldingsInAppUpdateJob() {
-    var fileName = FilenameUtils.getName(HOLDINGS_RECORD_IN_APP_UPDATED);
+    var jobId = UUID.randomUUID().toString();
+    var fileName = jobId + PATH_SEPARATOR + FilenameUtils.getName(HOLDINGS_RECORD_IN_APP_UPDATED);
     remoteFilesStorage.upload(fileName, HOLDINGS_RECORD_IN_APP_UPDATED);
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateHoldingsRecordsJob);
     var jobParameters = new JobParametersBuilder()
-      .addString(JOB_ID, UUID.randomUUID().toString())
+      .addString(JOB_ID, jobId)
       .addString(EXPORT_TYPE, BULK_EDIT_UPDATE.getValue())
       .addString(ENTITY_TYPE, HOLDINGS_RECORD.getValue())
       .addString(IDENTIFIER_TYPE, ID.getValue())

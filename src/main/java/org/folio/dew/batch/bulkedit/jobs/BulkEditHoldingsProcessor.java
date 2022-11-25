@@ -8,6 +8,7 @@ import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.client.HoldingClient;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
@@ -37,6 +38,10 @@ public class BulkEditHoldingsProcessor implements ItemProcessor<ItemIdentifier, 
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
+  @Value("#{jobParameters['jobId']}")
+  private String jobId;
+  @Value("#{jobParameters['fileName']}")
+  private String fileName;
 
   private Set<ItemIdentifier> identifiersToCheckDuplication = new HashSet<>();
 
@@ -57,7 +62,7 @@ public class BulkEditHoldingsProcessor implements ItemProcessor<ItemIdentifier, 
     var itemBarcode = ITEM_BARCODE == IdentifierType.fromValue(identifierType) ? itemIdentifier.getItemId() : null;
 
     return holdings.getHoldingsRecords().stream()
-      .map(holdingsMapper::mapToHoldingsFormat)
+      .map(r -> holdingsMapper.mapToHoldingsFormat(r, itemIdentifier.getItemId(), jobId, FilenameUtils.getName(fileName)))
       .map(holdingsFormat -> holdingsFormat.withInstanceHrid(instanceHrid))
       .map(holdingsFormat -> holdingsFormat.withItemBarcode(itemBarcode))
       .collect(Collectors.toList());

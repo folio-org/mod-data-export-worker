@@ -257,7 +257,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
   private String preparePath(JobExecution jobExecution) {
     if (isBulkEditContentUpdateJob(jobExecution)) {
-      return jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID) + PATH_SEPARATOR + jobExecution.getJobParameters().getString(UPDATED_FILE_NAME);
+      return jobExecution.getJobParameters().getString(UPDATED_FILE_NAME);
     } else if (isBulkEditUpdateJob(jobExecution)) {
       return prepareChangedUsersFile(jobExecution.getJobParameters().getString(FILE_NAME), jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID));
     }

@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.KbEbscoClient;
 import org.folio.dew.config.properties.EHoldingsJobProperties;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
@@ -30,7 +29,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@Log4j2
 @ExtendWith(MockitoExtension.class)
 class EHoldingsItemReaderTest {
 

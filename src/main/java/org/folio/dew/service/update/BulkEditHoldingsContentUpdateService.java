@@ -9,6 +9,7 @@ import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.NO_CHANGE_MESSAGE;
+import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 
@@ -46,9 +47,9 @@ public class BulkEditHoldingsContentUpdateService {
     validatorService.validateContentUpdateCollection(contentUpdates);
     try {
       var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
-      var updatedFileName = UPDATED_PREFIX + fileName;
-      var previewFileName = PREVIEW_PREFIX + fileName;
-      var holdingsFormats = CsvHelper.readRecordsFromStorage(remoteFilesStorage, fileName, HoldingsFormat.class, true);
+      var updatedFileName = jobCommand.getId() + PATH_SEPARATOR + UPDATED_PREFIX + fileName;
+      var previewFileName = jobCommand.getId() + PATH_SEPARATOR + PREVIEW_PREFIX + fileName;
+      var holdingsFormats = CsvHelper.readRecordsFromStorage(remoteFilesStorage, jobCommand.getId() + PATH_SEPARATOR + fileName, HoldingsFormat.class, true);
       var updatedHoldings = applyContentUpdates(holdingsFormats, contentUpdates, jobCommand);
       CsvHelper.saveRecordsToStorage(remoteFilesStorage, updatedHoldings.getUpdated(), HoldingsFormat.class, updatedFileName);
       CsvHelper.saveRecordsToStorage(remoteFilesStorage, updatedHoldings.getPreview(), HoldingsFormat.class, previewFileName);

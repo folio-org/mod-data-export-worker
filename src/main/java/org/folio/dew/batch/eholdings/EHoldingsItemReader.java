@@ -8,6 +8,7 @@ import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESO
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections.CollectionUtils;
 import org.folio.dew.batch.CsvItemReader;
 import org.folio.dew.client.KbEbscoClient;
@@ -19,11 +20,13 @@ import org.folio.dew.domain.dto.eholdings.ResourcesData;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 
+@Log4j2
 @Component
 @StepScope
 public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceDTO> {
 
   private static final int PAGE_OFFSET_STEP = 1;
+  static final int MAX_RETRIEVABLE_RESULTS = 9_999;
 
   private final KbEbscoClient kbEbscoClient;
   private final RecordTypeEnum recordType;
@@ -43,7 +46,8 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceDTO> {
   }
 
   @Override
-  protected List<EHoldingsResourceDTO> getItems(int offset, int limit) {
+  protected List<EHoldingsResourceDTO> getItems(int page, int limit) {
+    limit = calculateLimit(page, limit);
     if (recordType == RESOURCE) {
       var resourceById = kbEbscoClient.getResourceById(recordId, ACCESS_TYPE);
       var resourceIncluded = resourceById.getIncluded();
@@ -54,7 +58,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceDTO> {
     }
 
     if (recordType == PACKAGE && CollectionUtils.isNotEmpty(titleFields)) {
-      var parameters = kbEbscoClient.constructParams(offset, limit, titleSearchFilters, ACCESS_TYPE);
+      var parameters = kbEbscoClient.constructParams(page, limit, titleSearchFilters, ACCESS_TYPE);
       var packageResources = kbEbscoClient.getResourcesByPackageId(recordId, parameters);
 
       return getEHoldingsResources(packageResources.getData());
@@ -76,12 +80,34 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceDTO> {
       var parameters = kbEbscoClient.constructParams(1, 1, titleSearchFilters);
       var resources = kbEbscoClient.getResourcesByPackageId(recordId, parameters);
       var totalResults = resources.getMeta().getTotalResults();
-      return totalResults > 0 ? totalResults : 1;
+      return calculateTotalResults(totalResults);
     } else if (recordType == RESOURCE) {
       return 1;
     } else {
       return 0;
     }
+  }
+
+  private int calculateTotalResults(Integer totalResults) {
+    if (totalResults <= 0) {
+      return 1;
+    }
+    if (totalResults > MAX_RETRIEVABLE_RESULTS) {
+      return MAX_RETRIEVABLE_RESULTS;
+    }
+    return totalResults;
+  }
+
+  private int calculateLimit(int page, int limit) {
+    var newLimit = limit;
+    if (page * limit > MAX_RETRIEVABLE_RESULTS) {
+      newLimit -= page * limit % MAX_RETRIEVABLE_RESULTS;
+    }
+    if (newLimit <= 0) {
+      log.error("Invalid limit. Original page {}, limit {}. New limit {}", page, limit, newLimit);
+      throw new IllegalArgumentException("Invalid limit: " + newLimit);
+    }
+    return newLimit;
   }
 
   private List<EHoldingsResourceDTO> getEHoldingsResources(List<ResourcesData> resourcesData) {

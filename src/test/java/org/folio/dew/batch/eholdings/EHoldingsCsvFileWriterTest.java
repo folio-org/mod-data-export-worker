@@ -31,20 +31,28 @@ import org.springframework.batch.item.ExecutionContext;
 
 @ExtendWith(MockitoExtension.class)
 class EHoldingsCsvFileWriterTest {
-  @Mock private LocalFilesStorage localFilesStorage;
-  @Mock private EHoldingsPackageRepository packageRepository;
-  @Mock private EHoldingsExportConfig exportConfig;
-  @Mock private EHoldingsToExportFormatMapper mapper;
-  @Mock  private StepExecution stepExecution;
-  @Mock private JobExecution jobExecution;
-  @Mock private ExecutionContext executionContext;
+  @Mock
+  private LocalFilesStorage localFilesStorage;
+  @Mock
+  private EHoldingsPackageRepository packageRepository;
+  @Mock
+  private EHoldingsExportConfig exportConfig;
+  @Mock
+  private EHoldingsToExportFormatMapper mapper;
+  @Mock
+  private StepExecution stepExecution;
+  @Mock
+  private JobExecution jobExecution;
+  @Mock
+  private ExecutionContext executionContext;
 
- private EHoldingsCsvFileWriter eHoldingsCsvFileWriter;
+  private EHoldingsCsvFileWriter eHoldingsCsvFileWriter;
 
   @SneakyThrows
   @BeforeEach
   void setUp() {
-    eHoldingsCsvFileWriter= new EHoldingsCsvFileWriter("any", exportConfig, packageRepository, mapper, localFilesStorage);
+    eHoldingsCsvFileWriter =
+      new EHoldingsCsvFileWriter("any", exportConfig, packageRepository, mapper, localFilesStorage);
     lenient().when(stepExecution.getJobExecutionId()).thenReturn(1L);
     lenient().when(stepExecution.getJobExecution()).thenReturn(jobExecution);
     lenient().when(jobExecution.getExecutionContext()).thenReturn(executionContext);
@@ -61,11 +69,11 @@ class EHoldingsCsvFileWriterTest {
   @SneakyThrows
   @ParameterizedTest
   @MethodSource("provideParameters")
-  void beforeStep_1(List<String> packageFields,
-                    List<String> titleFields,
-                    int localFileStorageInvocations,
-                    int packageRepositoryInvocations,
-                    int mapperInvocations) {
+  void testBeforeStep(List<String> packageFields,
+                      List<String> titleFields,
+                      int localFileStorageInvocations,
+                      int packageRepositoryInvocations,
+                      int mapperInvocations) {
 
     when(exportConfig.getPackageFields()).thenReturn(packageFields);
     when(exportConfig.getTitleFields()).thenReturn(titleFields);

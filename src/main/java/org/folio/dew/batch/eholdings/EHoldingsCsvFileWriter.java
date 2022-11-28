@@ -104,7 +104,9 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
 
   @Override
   public void write(List<? extends EHoldingsResourceExportFormat> items) throws Exception {
-    writeString(doWrite(items));
+    if (CollectionUtils.isNotEmpty(exportConfig.getTitleFields())) {
+      writeString(doWrite(items));
+    }
   }
 
   private void writePackage(Long jobExecutionId) throws IOException {

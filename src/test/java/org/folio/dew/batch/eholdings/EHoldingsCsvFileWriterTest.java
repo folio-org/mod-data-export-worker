@@ -2,9 +2,7 @@ package org.folio.dew.batch.eholdings;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -123,5 +121,4 @@ class EHoldingsCsvFileWriterTest {
       Arguments.of(List.of("titleId"), 1)
     );
   }
-
 }

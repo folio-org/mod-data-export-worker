@@ -76,13 +76,13 @@ public class EHoldingsJobConfig {
                                ItemProcessor<EHoldingsResourceDTO, EHoldingsResourceDTO> processor,
                                @Qualifier("getEHoldingsPromotionListener")
                                ExecutionContextPromotionListener getEHoldingsPromotionListener,
-                               EHoldingsItemReader eHoldingsCsvItemReader,
+                               EHoldingsItemReader eHoldingsItemReader,
                                GetEHoldingsWriter getEHoldingsWriter,
                                EHoldingsNoteItemProcessor eHoldingsNoteItemProcessor) {
     return stepBuilderFactory
       .get("getEHoldingsStep")
       .<EHoldingsResourceDTO, EHoldingsResourceDTO>chunk(jobProperties.getJobChunkSize())
-      .reader(eHoldingsCsvItemReader)
+      .reader(eHoldingsItemReader)
       .processor(processor)
       .writer(getEHoldingsWriter)
       .listener(eHoldingsNoteItemProcessor)

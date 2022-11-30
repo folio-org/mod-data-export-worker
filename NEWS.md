@@ -1,3 +1,13 @@
+## 2022-11-30 v2.0.3
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v2.0.2...v2.0.3)
+
+### Bug fixes
+[MODEXPW-318](https://issues.folio.org/browse/MODEXPW-318) Export jobs is failed when "Package fields to export" or "Titles fields to export" are without chosen options in multi-select
+[MODEXPW-312](https://issues.folio.org/browse/MODEXPW-312) Export of "Package" record with 9923 "Titles" fails
+[MODEXPW-294](https://issues.folio.org/browse/MODEXPW-294) Fail to bulk edit Holdings records with missing Electronic access relationship type
+[MODEXPW-204](https://issues.folio.org/browse/MODEXPW-204) User can see preview of the file of another user when uploading file with equal name
+
 ## 2022-11-11 v2.0.2
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v2.0.1...v2.0.2)

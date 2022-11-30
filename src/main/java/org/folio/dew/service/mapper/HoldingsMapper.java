@@ -50,7 +50,7 @@ public class HoldingsMapper {
   private static final int RECEIVING_HISTORY_ENTRY_ENUMERATION_INDEX = 1;
   private static final int RECEIVING_HISTORY_ENTRY_CHRONOLOGY_INDEX = 2;
 
-  public HoldingsFormat mapToHoldingsFormat(HoldingsRecord holdingsRecord) {
+  public HoldingsFormat mapToHoldingsFormat(HoldingsRecord holdingsRecord, String identifier, String jobId, String errorFileName) {
     return HoldingsFormat.builder()
       .id(holdingsRecord.getId())
       .version(isEmpty(holdingsRecord.getVersion()) ? EMPTY : Integer.toString(holdingsRecord.getVersion()))
@@ -61,7 +61,7 @@ public class HoldingsMapper {
       .permanentLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getPermanentLocationId()))
       .temporaryLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getTemporaryLocationId()))
       .effectiveLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getEffectiveLocationId()))
-      .electronicAccess(electronicAccessService.electronicAccessesToString(holdingsRecord.getElectronicAccess()))
+      .electronicAccess((electronicAccessService.getElectronicAccessesToString(holdingsRecord.getElectronicAccess(), identifier, jobId, errorFileName)))
       .callNumberType(holdingsReferenceService.getCallNumberTypeNameById(holdingsRecord.getCallNumberTypeId()))
       .callNumberPrefix(isEmpty(holdingsRecord.getCallNumberPrefix()) ? EMPTY : holdingsRecord.getCallNumberPrefix())
       .callNumber(isEmpty(holdingsRecord.getCallNumber()) ? EMPTY : holdingsRecord.getCallNumber())

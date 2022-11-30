@@ -9,6 +9,7 @@ import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.domain.dto.CirculationNote;
 import org.folio.dew.domain.dto.ContributorName;
 import org.folio.dew.domain.dto.EffectiveCallNumberComponents;
@@ -22,6 +23,7 @@ import org.folio.dew.service.ElectronicAccessService;
 import org.folio.dew.service.ItemReferenceService;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
@@ -34,12 +36,19 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
   private final ItemReferenceService itemReferenceService;
   private final ElectronicAccessService electronicAccessService;
 
+  @Value("#{jobParameters['identifierType']}")
+  private String identifierType;
+  @Value("#{jobParameters['jobId']}")
+  private String jobId;
+  @Value("#{jobParameters['fileName']}")
+  private String fileName;
+
   @Override
   public ItemFormat process(Item item) {
     var callNumberType = isEmpty(item.getItemLevelCallNumberTypeId()) ? null : itemReferenceService.getCallNumberTypeById(item.getItemLevelCallNumberTypeId());
     var damagedStatus = isEmpty(item.getItemDamagedStatusId()) ? null : itemReferenceService.getDamagedStatusById(item.getItemDamagedStatusId());
     var inTransitServicePoint = isEmpty(item.getInTransitDestinationServicePointId()) ? null : itemReferenceService.getServicePointById(item.getInTransitDestinationServicePointId());
-    return ItemFormat.builder()
+    var itemFormat = ItemFormat.builder()
       .id(item.getId())
       .version(isEmpty(item.getVersion()) ? EMPTY : Integer.toString(item.getVersion()))
       .hrid(item.getHrid())
@@ -82,13 +91,14 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .permanentLocation(isEmpty(item.getPermanentLocation()) ? EMPTY : item.getPermanentLocation().getName())
       .temporaryLocation(isEmpty(item.getTemporaryLocation()) ? EMPTY : item.getTemporaryLocation().getName())
       .effectiveLocation(isEmpty(item.getEffectiveLocation()) ? EMPTY : item.getEffectiveLocation().getName())
-      .electronicAccess(electronicAccessService.electronicAccessesToString(item.getElectronicAccess()))
       .inTransitDestinationServicePoint(isNull(inTransitServicePoint) ? EMPTY : inTransitServicePoint.getName())
       .statisticalCodes(fetchStatisticalCodes(item))
       .purchaseOrderLineIdentifier(item.getPurchaseOrderLineIdentifier())
       .tags(isEmpty(item.getTags().getTagList()) ? EMPTY : String.join(ARRAY_DELIMITER, item.getTags().getTagList()))
       .lastCheckIn(lastCheckInToString(item.getLastCheckIn()))
       .build();
+    itemFormat.setElectronicAccess(electronicAccessService.getElectronicAccessesToString(item.getElectronicAccess(), itemFormat.getIdentifier(identifierType), jobId, FilenameUtils.getName(fileName)));
+    return itemFormat;
   }
 
   private String fetchContributorNames(Item item) {

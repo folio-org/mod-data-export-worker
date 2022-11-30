@@ -15,6 +15,7 @@ import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.CHANGED_RECORDS;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
+import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
@@ -279,14 +280,16 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
   }
 
   private String prepareObject(JobExecution jobExecution, String path) {
-    return FilenameUtils.getName(path) + (!isBulkEditUpdateJob(jobExecution) ? CSV_EXTENSION : EMPTY);
+    return jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID) + PATH_SEPARATOR + FilenameUtils.getName(path) + (!isBulkEditUpdateJob(jobExecution) ? CSV_EXTENSION : EMPTY);
   }
 
   private String prepareDownloadFilename(JobExecution jobExecution, String path) {
     if (isBulkEditIdentifiersJob(jobExecution)) {
       return null;
     }
-    return FilenameUtils.getName(path).replace(MATCHED_RECORDS, CHANGED_RECORDS).replace(UPDATED_PREFIX, EMPTY)
+    return jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID) + PATH_SEPARATOR + FilenameUtils.getName(path)
+      .replace(MATCHED_RECORDS, CHANGED_RECORDS)
+      .replace(UPDATED_PREFIX, EMPTY)
       .replace(INITIAL_PREFIX, EMPTY);
   }
 

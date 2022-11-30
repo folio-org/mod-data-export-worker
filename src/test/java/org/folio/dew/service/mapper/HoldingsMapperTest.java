@@ -25,7 +25,7 @@ class HoldingsMapperTest extends BaseBatchTest {
   void shouldMapHoldingsRecordToHoldingsFormat(HoldingsMapperTestData testData) {
     var holdingsRecord = objectMapper.readValue(Path.of(testData.getHoldingsRecordPath()).toFile(), HoldingsRecord.class);
     var expectedHoldingsFormat = objectMapper.readValue(Path.of(testData.getHoldingsFormatPath()).toFile(), HoldingsFormat.class);
-    var actualHoldingsFormat = holdingsMapper.mapToHoldingsFormat(holdingsRecord);
+    var actualHoldingsFormat = holdingsMapper.mapToHoldingsFormat(holdingsRecord, null, null, null);
 
     assertThat(actualHoldingsFormat, equalTo(expectedHoldingsFormat));
   }

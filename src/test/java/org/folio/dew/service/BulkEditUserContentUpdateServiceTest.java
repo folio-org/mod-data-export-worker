@@ -7,6 +7,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
+import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -38,11 +39,12 @@ class BulkEditUserContentUpdateServiceTest extends BaseBatchTest {
   @Test
   @SneakyThrows
   void shouldCreateUpdatedAndPreviewFilesAndUpdateJobCommand() {
-    var uploadedFileName = FilenameUtils.getName(USER_DATA);
-    var updatedFileName = UPDATED_PREFIX + uploadedFileName;
-    var previewFileName = PREVIEW_PREFIX + uploadedFileName;
-    remoteFilesStorage.upload(uploadedFileName, USER_DATA);
     var jobId = UUID.randomUUID();
+    var uploadedFileName = FilenameUtils.getName(USER_DATA);
+    var updatedFileName = jobId + PATH_SEPARATOR + UPDATED_PREFIX + uploadedFileName;
+    var previewFileName = jobId + PATH_SEPARATOR + PREVIEW_PREFIX + uploadedFileName;
+    remoteFilesStorage.upload(jobId + PATH_SEPARATOR + uploadedFileName, USER_DATA);
+
     var jobCommand = new JobCommand();
     jobCommand.setId(jobId);
     jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);

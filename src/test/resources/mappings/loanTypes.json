@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/loan-types?query=name%3D%3DCan%20circulate"
+        "url": "/loan-types?query=name%3D%3D%22Can%20circulate%22"
       },
       "response": {
         "status": 200,
@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/loan-types?query=name%3D%3DReading%20room"
+        "url": "/loan-types?query=name%3D%3D%22Reading%20room%22"
       },
       "response": {
         "status": 200,

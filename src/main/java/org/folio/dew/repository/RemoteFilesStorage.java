@@ -31,7 +31,6 @@ import io.minio.messages.Item;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.config.properties.RemoteFilesStorageProperties;
-import org.folio.dew.domain.dto.PresignedUrl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Repository;
@@ -105,18 +104,6 @@ public class RemoteFilesStorage extends BaseFilesStorage {
     removeObjects(sourceObjects);
 
     return result;
-  }
-
-  public PresignedUrl refreshPresignedUrl(String uploadedFilePath) {
-    PresignedUrl presignedUrl = new PresignedUrl();
-    try {
-      String url = objectToPresignedObjectUrl(uploadedFilePath);
-      presignedUrl.setUrl(url);
-      log.debug("Presigned Url generated");
-    } catch (Exception e) {
-      throw new IllegalStateException(e);
-    }
-    return presignedUrl;
   }
 
   public Iterable<Result<DeleteError>> removeObjects(List<String> objects) {

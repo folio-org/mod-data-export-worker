@@ -128,7 +128,11 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
     case TEXTBOX_LONG:
     case TEXTBOX_SHORT:
     case SINGLE_CHECKBOX:
-      return escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + escaper.escape((String)entry.getValue());
+      if (entry.getValue() instanceof String) {
+        return escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + escaper.escape((String) entry.getValue());
+      } else {
+        return escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + entry.getValue();
+      }
     case SINGLE_SELECT_DROPDOWN:
     case RADIO_BUTTON:
       return escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + escaper.escape(extractValueById(customField, entry.getValue().toString()));

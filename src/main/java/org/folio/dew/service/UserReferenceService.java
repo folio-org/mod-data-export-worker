@@ -53,7 +53,7 @@ public class UserReferenceService {
 
   @Cacheable(cacheNames = "addressTypes")
   public AddressTypeCollection getAddressTypeByDesc(String name) {
-    return addressTypeClient.getAddressTypeByQuery("desc=" + name);
+    return addressTypeClient.getAddressTypeByQuery(String.format("desc=\"%s\"", name));
   }
 
   @Cacheable(cacheNames = "departments")
@@ -63,7 +63,7 @@ public class UserReferenceService {
 
   @Cacheable(cacheNames = "departments")
   public DepartmentCollection getDepartmentByName(String name) {
-    return departmentClient.getDepartmentByQuery("name=" + name);
+    return departmentClient.getDepartmentByQuery(String.format("name=\"%s\"", name));
   }
 
   @Cacheable(cacheNames = "userGroups")
@@ -88,7 +88,7 @@ public class UserReferenceService {
 
   @Cacheable(cacheNames = "users")
   public UserCollection getUserByName(String name) {
-    return userClient.getUserByQuery("username=" + name);
+    return userClient.getUserByQuery(String.format("username=\"%s\"", name));
   }
 
   @Cacheable(cacheNames = "customFields")

@@ -59,7 +59,7 @@ public class HoldingsMapper {
       .hrid(isEmpty(holdingsRecord.getHrid()) ? EMPTY : holdingsRecord.getHrid())
       .holdingsType(holdingsReferenceService.getHoldingsTypeNameById(holdingsRecord.getHoldingsTypeId()))
       .formerIds(isEmpty(holdingsRecord.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, holdingsRecord.getFormerIds()))
-      .instance(isEmpty(holdingsRecord.getInstanceId()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(holdingsReferenceService.getInstanceTitleById(holdingsRecord.getInstanceId())), holdingsRecord.getInstanceId()))
+      .instance(isEmpty(holdingsRecord.getInstanceId()) ? EMPTY : String.join(ARRAY_DELIMITER, holdingsReferenceService.getInstanceTitleById(holdingsRecord.getInstanceId()), holdingsRecord.getInstanceId()))
       .permanentLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getPermanentLocationId()))
       .temporaryLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getTemporaryLocationId()))
       .effectiveLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getEffectiveLocationId()))

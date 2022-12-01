@@ -42,7 +42,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/service-points?query=name%3D%3DCirc%20Desk%202&limit=1"
+        "url": "/service-points?query=name%3D%3D%22Circ%20Desk%202%22&limit=1"
       },
       "response": {
         "status": 200,

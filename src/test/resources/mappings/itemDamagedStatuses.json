@@ -29,7 +29,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/item-damaged-statuses?query=name%3D%3DNotDamaged"
+        "url": "/item-damaged-statuses?query=name%3D%3D%22NotDamaged%22"
       },
       "response": {
         "status": 200,

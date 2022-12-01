@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/item-note-types?query=name%3D%3DNote"
+        "url": "/item-note-types?query=name%3D%3D%22Note%22"
       },
       "response": {
         "status": 200,

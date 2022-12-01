@@ -3,7 +3,6 @@ package org.folio.dew.controller;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import static org.mockito.ArgumentMatchers.anyString;
@@ -12,9 +11,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class PresignedUrlControllerTest extends BaseBatchTest {
-
-  @Autowired
-  PresignedUrlController presignedUrlController;
 
   @MockBean
   private RemoteFilesStorage filesStorage;

@@ -3,6 +3,7 @@ package org.folio.dew.service;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,7 +39,7 @@ public class SpecialCharacterEscaperTest {
     var escaper = new SpecialCharacterEscaper();
     List<String> arg = null;
     List<String> actual = escaper.escape(arg);
-    assertEquals(null, actual);
+    assertEquals(Collections.emptyList(), actual);
   }
 
   @Test
@@ -71,6 +72,6 @@ public class SpecialCharacterEscaperTest {
     var escaper = new SpecialCharacterEscaper();
     List<String> arg = null;
     List<String> actual = escaper.escape(arg);
-    assertEquals(null, actual);
+    assertEquals(Collections.emptyList(), actual);
   }
 }

@@ -71,7 +71,7 @@ public class SpecialCharacterEscaperTest {
   void restoreListIfNullTest() {
     var escaper = new SpecialCharacterEscaper();
     List<String> arg = null;
-    List<String> actual = escaper.escape(arg);
+    List<String> actual = escaper.restore(arg);
     assertEquals(Collections.emptyList(), actual);
   }
 }

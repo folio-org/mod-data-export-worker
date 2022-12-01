@@ -3,6 +3,7 @@ package org.folio.dew.service;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,7 +26,7 @@ public class SpecialCharacterEscaper {
   }
 
   public List<String> escape(List<String> initial) {
-    if (initial == null) return null;
+    if (initial == null) return Collections.emptyList();
     return initial.stream().map(this::escape).collect(Collectors.toList());
   }
 
@@ -39,7 +40,7 @@ public class SpecialCharacterEscaper {
   }
 
   public List<String> restore(List<String> escaped) {
-    if (escaped == null) return null;
+    if (escaped == null) return Collections.emptyList();
     return escaped.stream().map(this::restore).collect(Collectors.toList());
   }
 }

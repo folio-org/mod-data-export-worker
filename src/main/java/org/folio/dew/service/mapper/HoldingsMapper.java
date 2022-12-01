@@ -20,6 +20,7 @@ import org.folio.dew.domain.dto.Tags;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.ElectronicAccessService;
 import org.folio.dew.service.HoldingsReferenceService;
+import org.folio.dew.service.SpecialCharacterEscaper;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 public class HoldingsMapper {
   private final HoldingsReferenceService holdingsReferenceService;
   private final ElectronicAccessService electronicAccessService;
+  private final SpecialCharacterEscaper escaper;
 
   private static final int NUMBER_OF_HOLDINGS_NOTE_ELEMENTS = 3;
   private static final int HOLDINGS_NOTE_NOTE_TYPE_INDEX = 0;
@@ -57,7 +59,7 @@ public class HoldingsMapper {
       .hrid(isEmpty(holdingsRecord.getHrid()) ? EMPTY : holdingsRecord.getHrid())
       .holdingsType(holdingsReferenceService.getHoldingsTypeNameById(holdingsRecord.getHoldingsTypeId()))
       .formerIds(isEmpty(holdingsRecord.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, holdingsRecord.getFormerIds()))
-      .instance(isEmpty(holdingsRecord.getInstanceId()) ? EMPTY : String.join(ARRAY_DELIMITER, holdingsReferenceService.getInstanceTitleById(holdingsRecord.getInstanceId()), holdingsRecord.getInstanceId()))
+      .instance(isEmpty(holdingsRecord.getInstanceId()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(holdingsReferenceService.getInstanceTitleById(holdingsRecord.getInstanceId())), holdingsRecord.getInstanceId()))
       .permanentLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getPermanentLocationId()))
       .temporaryLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getTemporaryLocationId()))
       .effectiveLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getEffectiveLocationId()))
@@ -91,15 +93,16 @@ public class HoldingsMapper {
   private String notesToString(List<HoldingsNote> notes) {
     return isEmpty(notes) ? EMPTY : notes.stream()
       .map(note -> String.join(ARRAY_DELIMITER,
-        holdingsReferenceService.getNoteTypeNameById(note.getHoldingsNoteTypeId()),
-        note.getNote(),
+        escaper.escape(holdingsReferenceService.getNoteTypeNameById(note.getHoldingsNoteTypeId())),
+        escaper.escape(note.getNote()),
         Boolean.toString(note.getStaffOnly())))
       .collect(Collectors.joining(ITEM_DELIMITER));
   }
 
   private String holdingsStatementsToString(List<HoldingsStatement> statements) {
     return isEmpty(statements) ? EMPTY : statements.stream()
-      .map(statement -> String.join(ARRAY_DELIMITER, statement.getStatement(), statement.getNote(), statement.getStaffNote()))
+      .map(statement -> String.join(ARRAY_DELIMITER, escaper.escape(statement.getStatement()),
+        escaper.escape(statement.getNote()), escaper.escape(statement.getStaffNote())))
       .collect(Collectors.joining(ITEM_DELIMITER));
   }
 
@@ -117,13 +120,14 @@ public class HoldingsMapper {
   private String receivingHistoryEntryToString(ReceivingHistoryEntry entry) {
     return String.join(ARRAY_DELIMITER,
       isEmpty(entry.getPublicDisplay()) ? EMPTY : Boolean.toString(entry.getPublicDisplay()),
-      isEmpty(entry.getEnumeration()) ? EMPTY : entry.getEnumeration(),
-      isEmpty(entry.getChronology()) ? EMPTY : entry.getChronology());
+      isEmpty(entry.getEnumeration()) ? EMPTY : escaper.escape(entry.getEnumeration()),
+      isEmpty(entry.getChronology()) ? EMPTY : escaper.escape(entry.getChronology()));
   }
 
   private String getStatisticalCodeNames(List<String> codeIds) {
     return isEmpty(codeIds) ? EMPTY : codeIds.stream()
       .map(holdingsReferenceService::getStatisticalCodeNameById)
+      .map(escaper::escape)
       .collect(Collectors.joining(ARRAY_DELIMITER));
   }
 
@@ -131,7 +135,7 @@ public class HoldingsMapper {
     if (isEmpty(tags)) {
       return EMPTY;
     }
-    return isEmpty(tags.getTagList()) ? EMPTY : String.join(ARRAY_DELIMITER, tags.getTagList());
+    return isEmpty(tags.getTagList()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(tags.getTagList()));
   }
 
   public HoldingsRecord mapToHoldingsRecord(HoldingsFormat holdingsFormat) {
@@ -195,8 +199,8 @@ public class HoldingsMapper {
         NUMBER_OF_HOLDINGS_NOTE_ELEMENTS));
     }
     return new HoldingsNote()
-      .holdingsNoteTypeId(holdingsReferenceService.getNoteTypeIdByName(tokens[HOLDINGS_NOTE_NOTE_TYPE_INDEX]))
-      .note(tokens[HOLDINGS_NOTE_NOTE_INDEX])
+      .holdingsNoteTypeId(holdingsReferenceService.getNoteTypeIdByName(escaper.restore(tokens[HOLDINGS_NOTE_NOTE_TYPE_INDEX])))
+      .note(escaper.restore(tokens[HOLDINGS_NOTE_NOTE_INDEX]))
       .staffOnly(isEmpty(tokens[HOLDINGS_NOTE_STAFF_ONLY_INDEX]) ? null : Boolean.parseBoolean(tokens[HOLDINGS_NOTE_STAFF_ONLY_INDEX]));
   }
 
@@ -218,9 +222,9 @@ public class HoldingsMapper {
       throw new BulkEditException(String.format("Illegal number of holdings statement elements: %d, expected: %d", tokens.length, NUMBER_OF_HOLDINGS_STATEMENT_ELEMENTS));
     }
     return new HoldingsStatement()
-      .statement(tokens[HOLDINGS_STATEMENT_STATEMENT_INDEX])
-      .note(tokens[HOLDINGS_STATEMENT_NOTE_INDEX])
-      .staffNote(tokens[HOLDINGS_STATEMENT_STAFF_NOTE_INDEX]);
+      .statement(escaper.restore(tokens[HOLDINGS_STATEMENT_STATEMENT_INDEX]))
+      .note(escaper.restore(tokens[HOLDINGS_STATEMENT_NOTE_INDEX]))
+      .staffNote(escaper.restore(tokens[HOLDINGS_STATEMENT_STAFF_NOTE_INDEX]));
   }
 
   private ReceivingHistoryEntries restoreReceivingHistory(String historyString) {
@@ -244,8 +248,8 @@ public class HoldingsMapper {
     if (tokens.length == NUMBER_OF_RECEIVING_HISTORY_ENTRY_ELEMENTS) {
       return new ReceivingHistoryEntry()
         .publicDisplay(isEmpty(tokens[RECEIVING_HISTORY_ENTRY_PUBLIC_DISPLAY_INDEX]) ? null : Boolean.parseBoolean(tokens[RECEIVING_HISTORY_ENTRY_PUBLIC_DISPLAY_INDEX]))
-        .enumeration(tokens[RECEIVING_HISTORY_ENTRY_ENUMERATION_INDEX])
-        .chronology(tokens[RECEIVING_HISTORY_ENTRY_CHRONOLOGY_INDEX]);
+        .enumeration(escaper.restore(tokens[RECEIVING_HISTORY_ENTRY_ENUMERATION_INDEX]))
+        .chronology(escaper.restore(tokens[RECEIVING_HISTORY_ENTRY_CHRONOLOGY_INDEX]));
     }
     throw new BulkEditException(String.format("Invalid number of tokens in receiving history entry: %d, expected %d", tokens.length, NUMBER_OF_RECEIVING_HISTORY_ENTRY_ELEMENTS));
   }
@@ -254,6 +258,7 @@ public class HoldingsMapper {
     return isEmpty(codesString) ?
       Collections.emptyList() :
       Arrays.stream(codesString.split(ARRAY_DELIMITER))
+        .map(escaper::restore)
         .map(holdingsReferenceService::getStatisticalCodeIdByName)
         .collect(Collectors.toList());
   }

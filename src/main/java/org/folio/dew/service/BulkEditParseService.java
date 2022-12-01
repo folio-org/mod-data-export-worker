@@ -58,6 +58,7 @@ public class BulkEditParseService {
   private final ItemReferenceService itemReferenceService;
 
   private final ElectronicAccessService electronicAccessService;
+  private final SpecialCharacterEscaper escaper;
 
   private static final int ADDRESS_ID = 0;
   private static final int ADDRESS_COUNTRY_ID = 1;
@@ -160,6 +161,7 @@ public class BulkEditParseService {
     if (departmentNames.length > 0) {
       return Arrays.stream(departmentNames).parallel()
         .filter(StringUtils::isNotEmpty)
+        .map(escaper::restore)
         .map(userReferenceService::getDepartmentByName)
         .flatMap(departmentCollection -> departmentCollection.getDepartments().stream())
         .map(Department::getId)
@@ -175,6 +177,7 @@ public class BulkEditParseService {
       return Arrays.stream(proxyUserNames)
         .parallel()
         .filter(StringUtils::isNotEmpty)
+        .map(escaper::restore)
         .map(userReferenceService::getUserByName)
         .flatMap(userCollection -> userCollection.getUsers().stream())
         .map(User::getId)
@@ -216,7 +219,7 @@ public class BulkEditParseService {
 
   private Address getAddressFromString(String stringAddress) {
     Address address = new Address();
-    List<String> addressFields = Arrays.asList(stringAddress.split(ARRAY_DELIMITER));
+    List<String> addressFields = escaper.restore(Arrays.asList(stringAddress.split(ARRAY_DELIMITER)));
     address.setId(addressFields.get(ADDRESS_ID));
     address.setCountryId(addressFields.get(ADDRESS_COUNTRY_ID));
     address.setAddressLine1(addressFields.get(ADDRESS_LINE_1));
@@ -236,7 +239,7 @@ public class BulkEditParseService {
   private Tags getTags(UserFormat userFormat) {
     if (isNotEmpty(userFormat.getTags())) {
       Tags tags = new Tags();
-      List<String> tagList = Arrays.asList(userFormat.getTags().split(ARRAY_DELIMITER));
+      List<String> tagList = escaper.restore(Arrays.asList(userFormat.getTags().split(ARRAY_DELIMITER)));
       return tags.tagList(tagList);
     }
     return null;
@@ -275,7 +278,7 @@ public class BulkEditParseService {
   private Pair<String, String> stringToPair(String value) {
     var tokens = value.split(KEY_VALUE_DELIMITER, -1);
     if (tokens.length == 2) {
-      return Pair.of(tokens[0], tokens[1]);
+      return Pair.of(escaper.restore(tokens[0]), escaper.restore(tokens[1]));
     } else {
       var msg = "Invalid key/value pair: " + value;
       log.error(msg);
@@ -363,13 +366,14 @@ public class BulkEditParseService {
   private List<String> restoreListValue(String s) {
     return isEmpty(s) ?
       Collections.emptyList() :
-      Arrays.asList(s.split(ARRAY_DELIMITER));
+      escaper.restore(Arrays.asList(s.split(ARRAY_DELIMITER)));
   }
 
   private List<ContributorName> restoreContributorNames(String s) {
     return isEmpty(s) ?
       Collections.emptyList() :
       Arrays.stream(s.split(ARRAY_DELIMITER))
+        .map(escaper::restore)
         .map(token -> new ContributorName().name(token))
         .collect(Collectors.toList());
   }
@@ -404,9 +408,11 @@ public class BulkEditParseService {
       if (tokens.length < NUMBER_OF_ITEM_NOTE_COMPONENTS) {
         throw new BulkEditException(String.format("Illegal number of item note elements: %d, expected: %d", tokens.length, NUMBER_OF_ITEM_NOTE_COMPONENTS));
       }
+
       return new ItemNote()
         .itemNoteTypeId(restoreNoteTypeId(tokens[NOTE_TYPE_NAME_INDEX]))
         .note(Arrays.stream(tokens, NOTE_INDEX, tokens.length - STAFF_ONLY_OFFSET)
+          .map(escaper::restore)
           .collect(Collectors.joining(";")))
         .staffOnly(Boolean.valueOf(tokens[tokens.length - STAFF_ONLY_OFFSET]));
 
@@ -436,13 +442,14 @@ public class BulkEditParseService {
         .id(tokens[CIRC_NOTE_ID_INDEX])
         .noteType(CirculationNote.NoteTypeEnum.fromValue(tokens[CIRC_NOTE_TYPE_INDEX]))
         .note(Arrays.stream(tokens, CIRC_NOTE_NOTE_INDEX, tokens.length - CIRC_NOTE_STAFF_ONLY_OFFSET)
+          .map(escaper::restore)
           .collect(Collectors.joining(";")))
         .staffOnly(Boolean.valueOf(tokens[tokens.length - CIRC_NOTE_STAFF_ONLY_OFFSET]))
         .source(new Source()
           .id(tokens[tokens.length - CIRC_NOTE_SOURCE_ID_OFFSET])
           .personal(new Personal()
-            .lastName(tokens[tokens.length - CIRC_NOTE_LAST_NAME_OFFSET])
-            .firstName(tokens[tokens.length - CIRC_NOTE_FIRST_NAME_OFFSET])))
+            .lastName(escaper.restore(tokens[tokens.length - CIRC_NOTE_LAST_NAME_OFFSET]))
+            .firstName(escaper.restore(tokens[tokens.length - CIRC_NOTE_FIRST_NAME_OFFSET]))))
         .date(dateFromString(tokens[tokens.length - CIRC_NOTE_DATE_OFFSET]));
     }
     return null;
@@ -478,8 +485,8 @@ public class BulkEditParseService {
       var tokens = s.split(ARRAY_DELIMITER, -1);
       if (NUMBER_OF_TITLE_COMPONENTS == tokens.length) {
         return new Title()
-          .briefHoldingsRecord(itemReferenceService.getBriefHoldingsRecordByHrid(tokens[HOLDING_HRID_INDEX]))
-          .briefInstance(itemReferenceService.getBriefInstanceByHrid(tokens[INSTANCE_HRID_INDEX]));
+          .briefHoldingsRecord(itemReferenceService.getBriefHoldingsRecordByHrid(escaper.restore(tokens[HOLDING_HRID_INDEX])))
+          .briefInstance(itemReferenceService.getBriefInstanceByHrid(escaper.restore(tokens[INSTANCE_HRID_INDEX])));
       }
       throw new BulkEditException(String.format("Illegal number of title elements: %d, expected: %d", tokens.length, NUMBER_OF_TITLE_COMPONENTS));
     }
@@ -502,6 +509,7 @@ public class BulkEditParseService {
     return isEmpty(s) ? Collections.emptyList() :
       Arrays.stream(s.split(ARRAY_DELIMITER))
         .map(this::restoreStatisticalCodeId)
+        .map(escaper::restore)
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }
@@ -515,8 +523,8 @@ public class BulkEditParseService {
       var tokens = s.split(ARRAY_DELIMITER, -1);
       if (NUMBER_OF_LAST_CHECK_IN_COMPONENTS == tokens.length) {
         return new LastCheckIn()
-          .servicePointId(itemReferenceService.getServicePointByName(tokens[LAST_CHECK_IN_SERVICE_POINT_NAME_INDEX]).getId())
-          .staffMemberId(itemReferenceService.getUserByUserName(tokens[LAST_CHECK_IN_USERNAME_INDEX]).getId())
+          .servicePointId(itemReferenceService.getServicePointByName(escaper.restore(tokens[LAST_CHECK_IN_SERVICE_POINT_NAME_INDEX])).getId())
+          .staffMemberId(itemReferenceService.getUserByUserName(escaper.restore(tokens[LAST_CHECK_IN_USERNAME_INDEX])).getId())
           .dateTime(restoreStringValue(tokens[LAST_CHECK_IN_DATE_TIME_INDEX]));
       }
       throw new BulkEditException(String.format("Illegal number of last check in elements: %d, expected: %d", tokens.length, NUMBER_OF_LAST_CHECK_IN_COMPONENTS));

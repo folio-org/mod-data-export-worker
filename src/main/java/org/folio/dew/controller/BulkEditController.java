@@ -303,6 +303,11 @@ public class BulkEditController implements JobIdApi {
 
   @Override
   public ResponseEntity<String> uploadCsvFile(UUID jobId, MultipartFile file) {
+    try {
+      Thread.sleep(3000);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
     if (file.isEmpty()) {
       return new ResponseEntity<>(format(FILE_UPLOAD_ERROR, "file is empty"), HttpStatus.BAD_REQUEST);
     }

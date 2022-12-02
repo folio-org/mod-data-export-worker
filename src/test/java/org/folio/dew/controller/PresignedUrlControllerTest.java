@@ -1,5 +1,6 @@
 package org.folio.dew.controller;
 
+import io.minio.errors.InsufficientDataException;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.junit.jupiter.api.Test;
@@ -28,5 +29,17 @@ public class PresignedUrlControllerTest extends BaseBatchTest {
         .headers(headers)
         .queryParam(FILE_PATH, FILE_PATH_EXAMPLE))
       .andExpect(status().isOk());
+  }
+
+  @Test
+  void shouldReturnErrorWhenRetrievingPresignedUrlFailed() throws Exception {
+    Mockito.when(filesStorage.objectToPresignedObjectUrl(anyString())).thenThrow(new InsufficientDataException("Something went wrong"));
+
+    var headers = defaultHeaders();
+
+    mockMvc.perform(get(REFRESH_PRESIGNED_URL)
+        .headers(headers)
+        .queryParam(FILE_PATH, FILE_PATH_EXAMPLE))
+      .andExpect(status().is5xxServerError());
   }
 }

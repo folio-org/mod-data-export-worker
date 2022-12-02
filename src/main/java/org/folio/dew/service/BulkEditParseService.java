@@ -410,7 +410,7 @@ public class BulkEditParseService {
       }
 
       return new ItemNote()
-        .itemNoteTypeId(restoreNoteTypeId(tokens[NOTE_TYPE_NAME_INDEX]))
+        .itemNoteTypeId(restoreNoteTypeId(escaper.restore(tokens[NOTE_TYPE_NAME_INDEX])))
         .note(Arrays.stream(tokens, NOTE_INDEX, tokens.length - STAFF_ONLY_OFFSET)
           .map(escaper::restore)
           .collect(Collectors.joining(";")))

@@ -26,10 +26,8 @@ public class PresignedUrlController implements RefreshPresignedUrlApi {
       presignedUrl.setUrl(url);
       return new ResponseEntity<>(presignedUrl, HttpStatus.OK);
     } catch (Exception e) {
-      String errorMessage = String.format("Retrieving presigned url was failed for file path %s", filePath);
-      log.error(errorMessage, e);
+      log.error("Retrieving presigned url was failed for file path {}", filePath, e);
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
   }
 }

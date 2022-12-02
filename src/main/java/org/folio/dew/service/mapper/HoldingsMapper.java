@@ -171,7 +171,7 @@ public class HoldingsMapper {
       .receivingHistory(restoreReceivingHistory(holdingsFormat.getReceivingHistory()))
       .discoverySuppress(isEmpty(holdingsFormat.getDiscoverySuppress()) ? null : Boolean.parseBoolean(holdingsFormat.getDiscoverySuppress()))
       .statisticalCodeIds(restoreStatisticalCodeIds(holdingsFormat.getStatisticalCodes()))
-      .tags(isEmpty(holdingsFormat.getTags()) ? null : new Tags().tagList(restoreListValue(holdingsFormat.getTags())))
+      .tags(isEmpty(holdingsFormat.getTags()) ? null : new Tags().tagList(escaper.restore(restoreListValue(holdingsFormat.getTags()))))
       .sourceId(isEmpty(holdingsFormat.getSource()) ? null : holdingsReferenceService.getSourceIdByName(holdingsFormat.getSource()));
   }
 

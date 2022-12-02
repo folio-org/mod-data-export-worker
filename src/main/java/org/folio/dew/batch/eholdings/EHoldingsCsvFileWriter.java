@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.apache.commons.collections.CollectionUtils;
 import org.folio.de.entity.EHoldingsPackage;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
@@ -36,7 +37,6 @@ import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.support.AbstractFileItemWriter;
 import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
@@ -47,8 +47,7 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
   private int maxPackageNotesLength;
   private int maxTitleNotesLength;
   private final String tempOutputFilePath;
-  @Autowired
-  private LocalFilesStorage localFilesStorage;
+  private final LocalFilesStorage localFilesStorage;
   private final EHoldingsPackageRepository packageRepository;
   private final EHoldingsExportConfig exportConfig;
   private final EHoldingsToExportFormatMapper mapper;
@@ -56,13 +55,15 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
   public EHoldingsCsvFileWriter(@Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
                                 EHoldingsExportConfig exportConfig,
                                 EHoldingsPackageRepository packageRepository,
-                                EHoldingsToExportFormatMapper mapper) {
+                                EHoldingsToExportFormatMapper mapper,
+                                LocalFilesStorage localFilesStorage) {
     setEholdingsResource(tempOutputFilePath);
     this.setExecutionContextName(ClassUtils.getShortName(EHoldingsCsvFileWriter.class));
     this.tempOutputFilePath = tempOutputFilePath;
     this.packageRepository = packageRepository;
     this.exportConfig = exportConfig;
     this.mapper = mapper;
+    this.localFilesStorage = localFilesStorage;
   }
 
   private void setEholdingsResource(String tempOutputFilePath) {
@@ -80,8 +81,10 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
 
     writePackage(stepExecution.getJobExecutionId());
 
-    var resourceHeaders = getHeader(exportConfig.getTitleFields()) + lineSeparator;
-    writeString(resourceHeaders);
+    if (CollectionUtils.isNotEmpty(exportConfig.getTitleFields())) {
+      var resourceHeaders = getHeader(exportConfig.getTitleFields()) + lineSeparator;
+      writeString(resourceHeaders);
+    }
   }
 
   @Override
@@ -101,25 +104,30 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
 
   @Override
   public void write(List<? extends EHoldingsResourceExportFormat> items) throws Exception {
-    writeString(doWrite(items));
+    if (CollectionUtils.isNotEmpty(exportConfig.getTitleFields())) {
+      writeString(doWrite(items));
+    }
   }
 
   private void writePackage(Long jobExecutionId) throws IOException {
 
     var packageFields = exportConfig.getPackageFields();
-    var packageHeader = getHeader(packageFields) + lineSeparator;
-    writeString(packageHeader);
+    if (CollectionUtils.isNotEmpty(packageFields)) {
+      var packageHeader = getHeader(packageFields) + lineSeparator;
+      writeString(packageHeader);
 
-    var recordId = exportConfig.getRecordId();
-    var packageId = exportConfig.getRecordType() == PACKAGE ? recordId : recordId.split("-\\d+$")[0];
-    var packageComposedId = new EHoldingsPackage.PackageId();
-    packageComposedId.setId(packageId);
-    packageComposedId.setJobExecutionId(jobExecutionId);
-    var eHoldingsPackage = packageRepository.findById(packageComposedId).orElse(null);
-    var packageExportFormat = mapper.convertToExportFormat(eHoldingsPackage);
+      var recordId = exportConfig.getRecordId();
+      var packageId = exportConfig.getRecordType() == PACKAGE ? recordId : recordId.split("-\\d+$")[0];
+      var packageComposedId = new EHoldingsPackage.PackageId();
+      packageComposedId.setId(packageId);
+      packageComposedId.setJobExecutionId(jobExecutionId);
+      var eHoldingsPackage = packageRepository.findById(packageComposedId).orElse(null);
+      var packageExportFormat = mapper.convertToExportFormat(eHoldingsPackage);
 
-    var packageRow = getItemRow(maxPackageNotesLength, packageExportFormat, exportConfig.getPackageFields()) + lineSeparator;
-    writeString(packageRow);
+      var packageRow =
+        getItemRow(maxPackageNotesLength, packageExportFormat, exportConfig.getPackageFields()) + lineSeparator;
+      writeString(packageRow);
+    }
   }
 
   private void writeString(String str) throws IOException {

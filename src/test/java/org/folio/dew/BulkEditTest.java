@@ -228,9 +228,6 @@ class BulkEditTest extends BaseBatchTest {
     verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_ITEM_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-
-    // check if caching works
-    wireMockServer.verify(1, getRequestedFor(urlEqualTo("/item-note-types/8d0a5eca-25de-4391-81a9-236eeefdd20b")));
   }
 
   @Test
@@ -355,8 +352,6 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (user identifiers) with errors")
   void bulkEditUserJobTestWithErrors() throws Exception {
-    wireMockServer.resetAll();
-
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, BARCODES_SOME_NOT_FOUND);
@@ -366,9 +361,6 @@ class BulkEditTest extends BaseBatchTest {
     verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_OUTPUT_SOME_NOT_FOUND);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-
-    // check if caching works
-    wireMockServer.verify(1, getRequestedFor(urlEqualTo("/groups/3684a786-6671-4268-8ed0-9db82ebca60b")));
   }
 
   @Test

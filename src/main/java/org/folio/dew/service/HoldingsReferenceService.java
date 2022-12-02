@@ -1,6 +1,5 @@
 package org.folio.dew.service;
 
-import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -70,7 +69,7 @@ public class HoldingsReferenceService {
 
   @Cacheable(cacheNames = "holdingsTypesNames")
   public String getHoldingsTypeNameById(String id, ErrorServiceArgs args) {
-    if (isNull(id)) {
+    if (isEmpty(id)) {
       return EMPTY;
     }
     try {
@@ -85,7 +84,7 @@ public class HoldingsReferenceService {
 
   @Cacheable(cacheNames = "holdingsTypeIds")
   public String getHoldingsTypeIdByName(String name) {
-    if (isNull(name)) {
+    if (isEmpty(name)) {
       return null;
     }
     var holdingsTypes = holdingsTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
@@ -176,7 +175,7 @@ public class HoldingsReferenceService {
 
   @Cacheable(cacheNames = "illPolicies")
   public String getIllPolicyIdByName(String name) {
-    if (isNull(name)) {
+    if (isEmpty(name)) {
       return null;
     }
     var illPolicies = illPolicyClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));

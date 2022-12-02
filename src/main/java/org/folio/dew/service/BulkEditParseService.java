@@ -146,10 +146,7 @@ public class BulkEditParseService {
     personal.setMobilePhone(userFormat.getMobilePhone());
     personal.setDateOfBirth(dateFromString(userFormat.getDateOfBirth()));
     personal.setAddresses(getUserAddresses(userFormat));
-    if (isEmpty(userFormat.getPreferredContactTypeId())) {
-      throw new BulkEditException("Missing required data: Preferred contact - record cannot be updated");
-    }
-    personal.setPreferredContactTypeId(userFormat.getPreferredContactTypeId());
+    personal.setPreferredContactTypeId(isEmpty(userFormat.getPreferredContactTypeId()) ? null : userFormat.getPreferredContactTypeId());
     return personal;
   }
 

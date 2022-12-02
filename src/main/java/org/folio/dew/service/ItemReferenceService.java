@@ -1,6 +1,5 @@
 package org.folio.dew.service;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -68,7 +67,7 @@ public class ItemReferenceService {
   @Cacheable(cacheNames = "callNumberTypeNames")
   public String getCallNumberTypeNameById(String callNumberTypeId, ErrorServiceArgs args) {
     try {
-      return isNull(callNumberTypeId) ? EMPTY : callNumberTypeClient.getById(callNumberTypeId).getName();
+      return isEmpty(callNumberTypeId) ? EMPTY : callNumberTypeClient.getById(callNumberTypeId).getName();
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Call number type was not found by id: [%s]", callNumberTypeId)), args.getFileName());
       return callNumberTypeId;
@@ -90,7 +89,7 @@ public class ItemReferenceService {
   @Cacheable(cacheNames = "damagedStatusNames")
   public String getDamagedStatusNameById(String damagedStatusId, ErrorServiceArgs args) {
     try {
-      return isNull(damagedStatusId) ? EMPTY : damagedStatusClient.getById(damagedStatusId).getName();
+      return isEmpty(damagedStatusId) ? EMPTY : damagedStatusClient.getById(damagedStatusId).getName();
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Damaged status was not found by id: [%s]", damagedStatusId)), args.getFileName());
       return damagedStatusId;
@@ -112,7 +111,7 @@ public class ItemReferenceService {
   @Cacheable(cacheNames = "noteTypeNames")
   public String getNoteTypeNameById(String noteTypeId, ErrorServiceArgs args) {
     try {
-      return isNull(noteTypeId) ? EMPTY : itemNoteTypeClient.getById(noteTypeId).getName();
+      return isEmpty(noteTypeId) ? EMPTY : itemNoteTypeClient.getById(noteTypeId).getName();
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Note type was not found by id: [%s]", noteTypeId)), args.getFileName());
       return noteTypeId;
@@ -134,7 +133,7 @@ public class ItemReferenceService {
   @Cacheable(cacheNames = "servicePointNames")
   public String getServicePointNameById(String servicePointId, ErrorServiceArgs args) {
     try {
-      return isNull(servicePointId) ? EMPTY : servicePointClient.getById(servicePointId).getName();
+      return isEmpty(servicePointId) ? EMPTY : servicePointClient.getById(servicePointId).getName();
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Service point was not found by id: [%s]", servicePointId)), args.getFileName());
       return servicePointId;
@@ -156,7 +155,7 @@ public class ItemReferenceService {
   @Cacheable(cacheNames = "statisticalCodeNames")
   public String getStatisticalCodeById(String statisticalCodeId, ErrorServiceArgs args) {
     try {
-      return isNull(statisticalCodeId) ? EMPTY : statisticalCodeClient.getById(statisticalCodeId).getCode();
+      return isEmpty(statisticalCodeId) ? EMPTY : statisticalCodeClient.getById(statisticalCodeId).getCode();
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Statistical code was not found by id: [%s]", statisticalCodeId)), args.getFileName());
       return statisticalCodeId;
@@ -178,7 +177,7 @@ public class ItemReferenceService {
   @Cacheable(cacheNames = "userNames")
   public String getUserNameById(String userId, ErrorServiceArgs args) {
     try {
-      return isNull(userId) ? EMPTY : userClient.getUserById(userId).getUsername();
+      return isEmpty(userId) ? EMPTY : userClient.getUserById(userId).getUsername();
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("User name was not found by id: [%s]", userId)), args.getFileName());
       return userId;
@@ -239,10 +238,10 @@ public class ItemReferenceService {
   @Cacheable(cacheNames = "holdings")
   public String getHoldingEffectiveLocationCodeById(String id) {
     var holdingJson = holdingClient.getHoldingById(id);
-    var effectiveLocationId = isNull(holdingJson.get("effectiveLocationId")) ? getHoldingsEffectiveLocation(holdingJson) : holdingJson.get("effectiveLocationId");
+    var effectiveLocationId = isEmpty(holdingJson.get("effectiveLocationId")) ? getHoldingsEffectiveLocation(holdingJson) : holdingJson.get("effectiveLocationId");
     if (nonNull(effectiveLocationId)) {
       var locationJson = locationClient.getLocation(effectiveLocationId.asText());
-      return isNull(locationJson.get("name")) ? EMPTY : locationJson.get("name").asText();
+      return isEmpty(locationJson.get("name")) ? EMPTY : locationJson.get("name").asText();
     }
     return EMPTY;
   }
@@ -265,6 +264,6 @@ public class ItemReferenceService {
   }
 
   private JsonNode getHoldingsEffectiveLocation(JsonNode holdingsJson) {
-    return isNull(holdingsJson.get("temporaryLocationId")) ? holdingsJson.get("permanentLocationId") : holdingsJson.get("temporaryLocationId");
+    return isEmpty(holdingsJson.get("temporaryLocationId")) ? holdingsJson.get("permanentLocationId") : holdingsJson.get("temporaryLocationId");
   }
 }

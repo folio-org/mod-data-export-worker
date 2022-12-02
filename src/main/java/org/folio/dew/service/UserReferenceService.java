@@ -11,7 +11,8 @@ import org.folio.dew.client.CustomFieldsClient;
 import org.folio.dew.client.DepartmentClient;
 import org.folio.dew.client.GroupClient;
 import org.folio.dew.client.OkapiClient;
-import org.folio.dew.domain.dto.*;
+import org.folio.dew.domain.dto.CustomField;
+import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.folio.spring.FolioExecutionContext;
@@ -77,7 +78,7 @@ public class UserReferenceService {
     } else {
       var response = departmentClient.getDepartmentByQuery("name==" + name);
       if (response.getDepartments().isEmpty()) {
-        throw new BulkEditException(String.format("Department was not found by name: [%s] - record cannot be updated", name));
+        return name;
       }
       return response.getDepartments().get(0).getId();
     }

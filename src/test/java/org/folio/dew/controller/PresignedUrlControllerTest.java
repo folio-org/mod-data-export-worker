@@ -1,45 +1,45 @@
 package org.folio.dew.controller;
 
-import io.minio.errors.InsufficientDataException;
+import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.mockito.ArgumentMatchers.anyString;
+
+import java.util.UUID;
 
 public class PresignedUrlControllerTest extends BaseBatchTest {
-  @MockBean
-  private RemoteFilesStorage filesStorage;
+  @Autowired
+  private RemoteFilesStorage remoteFilesStorage;
 
+  private static final String PREVIEW_ITEM_DATA = "src/test/resources/upload/preview_item_data.csv";
   private static final String REFRESH_PRESIGNED_URL = "/refresh-presigned-url";
   private static final String FILE_PATH = "filePath";
-  private static final String FILE_PATH_EXAMPLE = "file/path/example";
-  private static final String PRESIGNED_URL_EXAMPLE = "http://test/url";
 
   @Test
   void shouldRetrievePresignedUrl() throws Exception {
-    Mockito.when(filesStorage.objectToPresignedObjectUrl(anyString())).thenReturn(PRESIGNED_URL_EXAMPLE);
+    var jobId = UUID.randomUUID();
+    var filePath = jobId + PATH_SEPARATOR + FilenameUtils.getName(PREVIEW_ITEM_DATA);
+    remoteFilesStorage.upload(filePath, PREVIEW_ITEM_DATA);
 
     var headers = defaultHeaders();
 
     mockMvc.perform(get(REFRESH_PRESIGNED_URL)
         .headers(headers)
-        .queryParam(FILE_PATH, FILE_PATH_EXAMPLE))
+        .queryParam(FILE_PATH, filePath))
       .andExpect(status().isOk());
   }
 
   @Test
   void shouldReturnErrorWhenRetrievingPresignedUrlFailed() throws Exception {
-    Mockito.when(filesStorage.objectToPresignedObjectUrl(anyString())).thenThrow(new InsufficientDataException("Something went wrong"));
-
     var headers = defaultHeaders();
 
     mockMvc.perform(get(REFRESH_PRESIGNED_URL)
         .headers(headers)
-        .queryParam(FILE_PATH, FILE_PATH_EXAMPLE))
+        .queryParam(FILE_PATH, ""))
       .andExpect(status().is5xxServerError());
   }
 }

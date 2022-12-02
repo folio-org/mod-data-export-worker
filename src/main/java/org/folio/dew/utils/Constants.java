@@ -2,6 +2,8 @@ package org.folio.dew.utils;
 
 import lombok.experimental.UtilityClass;
 
+import java.util.regex.Pattern;
+
 @UtilityClass
 public class Constants {
   public static final int CHUNKS = 100;
@@ -57,5 +59,4 @@ public class Constants {
   public static String getWorkingDirectory(String springApplicationName, String dirName) {
     return springApplicationName + PATH_SEPARATOR + dirName + PATH_SEPARATOR;
   }
-
 }

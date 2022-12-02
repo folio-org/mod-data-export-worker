@@ -1,0 +1,147 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D%22badCallNumberType%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"items\": [ {\n            \"id\": \"8feb55ab-a2d1-4358-abb0-6ca462e7d847\",\n            \"_version\": \"1\",\n            \"status\": {\n                \"name\": \"Available\",\n                \"date\": \"2022-12-02T06:41:03.391+00:00\"\n            },\n            \"administrativeNotes\": [],\n            \"title\": \"Sample instance\",\n            \"hrid\": \"it00000000001\",\n            \"contributorNames\": [],\n            \"formerIds\": [],\n            \"discoverySuppress\": null,\n            \"holdingsRecordId\": \"9f5e359f-3e23-4936-942b-3827f7d5e683\",\n            \"barcode\": \"badCallNumberType\",\n            \"itemLevelCallNumberTypeId\": \"1d51c4da-0d5f-4303-a922-3e9d7a9b22f3\",\n            \"notes\": [],\n            \"circulationNotes\": [],\n            \"tags\": {\n                \"tagList\": []\n            },\n            \"yearCaption\": [],\n            \"electronicAccess\": [],\n            \"statisticalCodeIds\": [],\n            \"purchaseOrderLineIdentifier\": null,\n            \"materialType\": {\n                \"id\": \"1a54b431-2e4f-452d-9cae-9cee66c9a892\",\n                \"name\": \"book\"\n            },\n            \"permanentLoanType\": {\n                \"id\": \"2b94c631-fca9-4892-a730-03ee529ffe27\",\n                \"name\": \"Can circulate\"\n            },\n            \"metadata\": {\n                \"createdDate\": \"2022-12-02T06:41:03.391+00:00\",\n                \"createdByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\",\n                \"updatedDate\": \"2022-12-02T06:41:03.391+00:00\",\n                \"updatedByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\"\n            },\n            \"effectiveCallNumberComponents\": {\n                \"callNumber\": null,\n                \"prefix\": null,\n                \"suffix\": null,\n                \"typeId\": \"03dd64d0-5626-4ecd-8ece-4531e0069f35\"\n            },\n            \"isBoundWith\": false,\n            \"effectiveLocation\": {\n                \"id\": \"fcd64ce1-6995-48f0-840e-89ffa2288371\",\n                \"name\": \"Main Library\"\n            }\n        }],\"totalRecords\": 1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D%22badDamagedStatus%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"items\": [ {\n            \"id\": \"8feb55ab-a2d1-4358-abb0-6ca462e7d847\",\n            \"_version\": \"2\",\n            \"status\": {\n                \"name\": \"Available\",\n                \"date\": \"2022-12-02T06:41:03.391+00:00\"\n            },\n            \"administrativeNotes\": [],\n            \"title\": \"Sample instance\",\n            \"hrid\": \"it00000000001\",\n            \"contributorNames\": [],\n            \"formerIds\": [],\n            \"discoverySuppress\": null,\n            \"holdingsRecordId\": \"9f5e359f-3e23-4936-942b-3827f7d5e683\",\n            \"barcode\": \"badDamagedStatus\",\n            \"notes\": [],\n            \"circulationNotes\": [],\n            \"itemDamagedStatusId\": \"a6236035-b88f-4d0c-a1ca-48af9bdde3c8\",\n            \"itemDamagedStatusDate\": \"2022-12-02\",\n            \"tags\": {\n                \"tagList\": []\n            },\n            \"yearCaption\": [],\n            \"electronicAccess\": [],\n            \"statisticalCodeIds\": [],\n            \"purchaseOrderLineIdentifier\": null,\n            \"materialType\": {\n                \"id\": \"1a54b431-2e4f-452d-9cae-9cee66c9a892\",\n                \"name\": \"book\"\n            },\n            \"permanentLoanType\": {\n                \"id\": \"2b94c631-fca9-4892-a730-03ee529ffe27\",\n                \"name\": \"Can circulate\"\n            },\n            \"metadata\": {\n                \"createdDate\": \"2022-12-02T06:41:03.391+00:00\",\n                \"createdByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\",\n                \"updatedDate\": \"2022-12-02T06:44:19.438+00:00\",\n                \"updatedByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\"\n            },\n            \"effectiveCallNumberComponents\": {\n                \"callNumber\": null,\n                \"prefix\": null,\n                \"suffix\": null,\n                \"typeId\": null\n            },\n            \"isBoundWith\": false,\n            \"effectiveLocation\": {\n                \"id\": \"fcd64ce1-6995-48f0-840e-89ffa2288371\",\n                \"name\": \"Main Library\"\n            }\n        }],\"totalRecords\": 1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D%22badNoteType%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"items\": [\n        {\n            \"id\": \"8feb55ab-a2d1-4358-abb0-6ca462e7d847\",\n            \"_version\": \"3\",\n            \"status\": {\n                \"name\": \"Available\",\n                \"date\": \"2022-12-02T06:41:03.391+00:00\"\n            },\n            \"administrativeNotes\": [],\n            \"title\": \"Sample instance\",\n            \"hrid\": \"it00000000001\",\n            \"contributorNames\": [],\n            \"formerIds\": [],\n            \"discoverySuppress\": null,\n            \"holdingsRecordId\": \"9f5e359f-3e23-4936-942b-3827f7d5e683\",\n            \"barcode\": \"badNoteType\",\n            \"notes\": [\n                {\n                    \"itemNoteTypeId\": \"43286219-6c16-4884-b967-65b419e48f8d\",\n                    \"note\": \"Note\",\n                    \"staffOnly\": false\n                }\n            ],\n            \"circulationNotes\": [],\n            \"itemDamagedStatusDate\": \"2022-12-02T06:47:29.787Z\",\n            \"tags\": {\n                \"tagList\": []\n            },\n            \"yearCaption\": [],\n            \"electronicAccess\": [],\n            \"statisticalCodeIds\": [],\n            \"purchaseOrderLineIdentifier\": null,\n            \"materialType\": {\n                \"id\": \"1a54b431-2e4f-452d-9cae-9cee66c9a892\",\n                \"name\": \"book\"\n            },\n            \"permanentLoanType\": {\n                \"id\": \"2b94c631-fca9-4892-a730-03ee529ffe27\",\n                \"name\": \"Can circulate\"\n            },\n            \"metadata\": {\n                \"createdDate\": \"2022-12-02T06:41:03.391+00:00\",\n                \"createdByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\",\n                \"updatedDate\": \"2022-12-02T06:47:37.805+00:00\",\n                \"updatedByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\"\n            },\n            \"effectiveCallNumberComponents\": {\n                \"callNumber\": null,\n                \"prefix\": null,\n                \"suffix\": null,\n                \"typeId\": null\n            },\n            \"isBoundWith\": false,\n            \"effectiveLocation\": {\n                \"id\": \"fcd64ce1-6995-48f0-840e-89ffa2288371\",\n                \"name\": \"Main Library\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D%22badStatisticalCode%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"items\": [\n        {\n            \"id\": \"8feb55ab-a2d1-4358-abb0-6ca462e7d847\",\n            \"_version\": \"4\",\n            \"status\": {\n                \"name\": \"Available\",\n                \"date\": \"2022-12-02T06:41:03.391+00:00\"\n            },\n            \"administrativeNotes\": [],\n            \"title\": \"Sample instance\",\n            \"hrid\": \"it00000000001\",\n            \"contributorNames\": [],\n            \"formerIds\": [],\n            \"discoverySuppress\": null,\n            \"holdingsRecordId\": \"9f5e359f-3e23-4936-942b-3827f7d5e683\",\n            \"barcode\": \"badStatisticalCode\",\n            \"notes\": [],\n            \"circulationNotes\": [],\n            \"itemDamagedStatusDate\": \"2022-12-02T06:49:25.148Z\",\n            \"tags\": {\n                \"tagList\": []\n            },\n            \"yearCaption\": [],\n            \"electronicAccess\": [],\n            \"statisticalCodeIds\": [\n                \"1d51c4da-0d5f-4303-a922-3e9d7a9b22f3\"\n            ],\n            \"purchaseOrderLineIdentifier\": null,\n            \"materialType\": {\n                \"id\": \"1a54b431-2e4f-452d-9cae-9cee66c9a892\",\n                \"name\": \"book\"\n            },\n            \"permanentLoanType\": {\n                \"id\": \"2b94c631-fca9-4892-a730-03ee529ffe27\",\n                \"name\": \"Can circulate\"\n            },\n            \"metadata\": {\n                \"createdDate\": \"2022-12-02T06:41:03.391+00:00\",\n                \"createdByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\",\n                \"updatedDate\": \"2022-12-02T06:49:51.056+00:00\",\n                \"updatedByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\"\n            },\n            \"effectiveCallNumberComponents\": {\n                \"callNumber\": null,\n                \"prefix\": null,\n                \"suffix\": null,\n                \"typeId\": null\n            },\n            \"isBoundWith\": false,\n            \"effectiveLocation\": {\n                \"id\": \"fcd64ce1-6995-48f0-840e-89ffa2288371\",\n                \"name\": \"Main Library\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D%22badServicePoint%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"items\": [\n        {\n            \"id\": \"8feb55ab-a2d1-4358-abb0-6ca462e7d847\",\n            \"_version\": \"7\",\n            \"status\": {\n                \"name\": \"In transit\",\n                \"date\": \"2022-12-02T06:52:20.283+00:00\"\n            },\n            \"administrativeNotes\": [],\n            \"title\": \"Sample instance\",\n            \"hrid\": \"it00000000001\",\n            \"inTransitDestinationServicePointId\": \"bf3dd85b-af88-4adf-88d0-51d7ec7bf656\",\n            \"contributorNames\": [],\n            \"formerIds\": [],\n            \"discoverySuppress\": null,\n            \"holdingsRecordId\": \"9f5e359f-3e23-4936-942b-3827f7d5e683\",\n            \"barcode\": \"badServicePoint\",\n            \"notes\": [],\n            \"circulationNotes\": [],\n            \"itemDamagedStatusDate\": \"2022-12-02T06:49:25.148Z\",\n            \"tags\": {\n                \"tagList\": []\n            },\n            \"yearCaption\": [],\n            \"electronicAccess\": [],\n            \"statisticalCodeIds\": [],\n            \"purchaseOrderLineIdentifier\": null,\n            \"materialType\": {\n                \"id\": \"1a54b431-2e4f-452d-9cae-9cee66c9a892\",\n                \"name\": \"book\"\n            },\n            \"permanentLoanType\": {\n                \"id\": \"2b94c631-fca9-4892-a730-03ee529ffe27\",\n                \"name\": \"Can circulate\"\n            },\n            \"metadata\": {\n                \"createdDate\": \"2022-12-02T06:41:03.391+00:00\",\n                \"createdByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\",\n                \"updatedDate\": \"2022-12-02T06:52:20.279+00:00\",\n                \"updatedByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\"\n            },\n            \"lastCheckIn\": {\n                \"servicePointId\": \"bf3dd85b-af88-4adf-88d0-51d7ec7bf656\",\n                \"staffMemberId\": \"bec20636-fb68-41fd-84ea-2cf910673599\",\n                \"dateTime\": \"2022-12-02T06:52:19.743Z\"\n            },\n            \"effectiveCallNumberComponents\": {\n                \"callNumber\": null,\n                \"prefix\": null,\n                \"suffix\": null,\n                \"typeId\": null\n            },\n            \"isBoundWith\": false,\n            \"effectiveLocation\": {\n                \"id\": \"fcd64ce1-6995-48f0-840e-89ffa2288371\",\n                \"name\": \"Main Library\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D%22badUserName%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"items\": [\n        {\n            \"id\": \"8feb55ab-a2d1-4358-abb0-6ca462e7d847\",\n            \"_version\": \"7\",\n            \"status\": {\n                \"name\": \"In transit\",\n                \"date\": \"2022-12-02T06:52:20.283+00:00\"\n            },\n            \"administrativeNotes\": [],\n            \"title\": \"Sample instance\",\n            \"hrid\": \"it00000000001\",\n            \"inTransitDestinationServicePointId\": \"bf3dd85b-af88-4adf-88d0-51d7ec7bf656\",\n            \"contributorNames\": [],\n            \"formerIds\": [],\n            \"discoverySuppress\": null,\n            \"holdingsRecordId\": \"9f5e359f-3e23-4936-942b-3827f7d5e683\",\n            \"barcode\": \"badUserName\",\n            \"notes\": [],\n            \"circulationNotes\": [],\n            \"itemDamagedStatusDate\": \"2022-12-02T06:49:25.148Z\",\n            \"tags\": {\n                \"tagList\": []\n            },\n            \"yearCaption\": [],\n            \"electronicAccess\": [],\n            \"statisticalCodeIds\": [],\n            \"purchaseOrderLineIdentifier\": null,\n            \"materialType\": {\n                \"id\": \"1a54b431-2e4f-452d-9cae-9cee66c9a892\",\n                \"name\": \"book\"\n            },\n            \"permanentLoanType\": {\n                \"id\": \"2b94c631-fca9-4892-a730-03ee529ffe27\",\n                \"name\": \"Can circulate\"\n            },\n            \"metadata\": {\n                \"createdDate\": \"2022-12-02T06:41:03.391+00:00\",\n                \"createdByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\",\n                \"updatedDate\": \"2022-12-02T06:52:20.279+00:00\",\n                \"updatedByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\"\n            },\n            \"lastCheckIn\": {\n                \"servicePointId\": \"c4c90014-c8c9-4ade-8f24-b5e313319f4b\",\n                \"staffMemberId\": \"af50a162-42a8-4ca2-8768-8c53630cc4ae\",\n                \"dateTime\": \"2022-12-02T06:52:19.743Z\"\n            },\n            \"effectiveCallNumberComponents\": {\n                \"callNumber\": null,\n                \"prefix\": null,\n                \"suffix\": null,\n                \"typeId\": null\n            },\n            \"isBoundWith\": false,\n            \"effectiveLocation\": {\n                \"id\": \"fcd64ce1-6995-48f0-840e-89ffa2288371\",\n                \"name\": \"Main Library\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D%22emptyCallNumberType%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"items\": [ {\n            \"id\": \"8feb55ab-a2d1-4358-abb0-6ca462e7d847\",\n            \"_version\": \"1\",\n            \"status\": {\n                \"name\": \"Available\",\n                \"date\": \"2022-12-02T06:41:03.391+00:00\"\n            },\n            \"administrativeNotes\": [],\n            \"title\": \"Sample instance\",\n            \"hrid\": \"it00000000001\",\n            \"contributorNames\": [],\n            \"formerIds\": [],\n            \"discoverySuppress\": null,\n            \"holdingsRecordId\": \"9f5e359f-3e23-4936-942b-3827f7d5e683\",\n            \"barcode\": \"emptyCallNumberType\",\n            \"notes\": [],\n            \"circulationNotes\": [],\n            \"tags\": {\n                \"tagList\": []\n            },\n            \"yearCaption\": [],\n            \"electronicAccess\": [],\n            \"statisticalCodeIds\": [],\n            \"purchaseOrderLineIdentifier\": null,\n            \"materialType\": {\n                \"id\": \"1a54b431-2e4f-452d-9cae-9cee66c9a892\",\n                \"name\": \"book\"\n            },\n            \"permanentLoanType\": {\n                \"id\": \"2b94c631-fca9-4892-a730-03ee529ffe27\",\n                \"name\": \"Can circulate\"\n            },\n            \"metadata\": {\n                \"createdDate\": \"2022-12-02T06:41:03.391+00:00\",\n                \"createdByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\",\n                \"updatedDate\": \"2022-12-02T06:41:03.391+00:00\",\n                \"updatedByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\"\n            },\n            \"effectiveCallNumberComponents\": {\n                \"callNumber\": null,\n                \"prefix\": null,\n                \"suffix\": null,\n                \"typeId\": \"03dd64d0-5626-4ecd-8ece-4531e0069f35\"\n            },\n            \"isBoundWith\": false,\n            \"effectiveLocation\": {\n                \"id\": \"fcd64ce1-6995-48f0-840e-89ffa2288371\",\n                \"name\": \"Main Library\"\n            }\n        }],\"totalRecords\": 1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D%22emptyDamagedStatus%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"items\": [ {\n            \"id\": \"8feb55ab-a2d1-4358-abb0-6ca462e7d847\",\n            \"_version\": \"2\",\n            \"status\": {\n                \"name\": \"Available\",\n                \"date\": \"2022-12-02T06:41:03.391+00:00\"\n            },\n            \"administrativeNotes\": [],\n            \"title\": \"Sample instance\",\n            \"hrid\": \"it00000000001\",\n            \"contributorNames\": [],\n            \"formerIds\": [],\n            \"discoverySuppress\": null,\n            \"holdingsRecordId\": \"9f5e359f-3e23-4936-942b-3827f7d5e683\",\n            \"barcode\": \"emptyDamagedStatus\",\n            \"notes\": [],\n            \"circulationNotes\": [],\n            \"itemDamagedStatusDate\": \"2022-12-02\",\n            \"tags\": {\n                \"tagList\": []\n            },\n            \"yearCaption\": [],\n            \"electronicAccess\": [],\n            \"statisticalCodeIds\": [],\n            \"purchaseOrderLineIdentifier\": null,\n            \"materialType\": {\n                \"id\": \"1a54b431-2e4f-452d-9cae-9cee66c9a892\",\n                \"name\": \"book\"\n            },\n            \"permanentLoanType\": {\n                \"id\": \"2b94c631-fca9-4892-a730-03ee529ffe27\",\n                \"name\": \"Can circulate\"\n            },\n            \"metadata\": {\n                \"createdDate\": \"2022-12-02T06:41:03.391+00:00\",\n                \"createdByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\",\n                \"updatedDate\": \"2022-12-02T06:44:19.438+00:00\",\n                \"updatedByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\"\n            },\n            \"effectiveCallNumberComponents\": {\n                \"callNumber\": null,\n                \"prefix\": null,\n                \"suffix\": null,\n                \"typeId\": null\n            },\n            \"isBoundWith\": false,\n            \"effectiveLocation\": {\n                \"id\": \"fcd64ce1-6995-48f0-840e-89ffa2288371\",\n                \"name\": \"Main Library\"\n            }\n        }],\"totalRecords\": 1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D%22emptyNoteType%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"items\": [\n        {\n            \"id\": \"8feb55ab-a2d1-4358-abb0-6ca462e7d847\",\n            \"_version\": \"3\",\n            \"status\": {\n                \"name\": \"Available\",\n                \"date\": \"2022-12-02T06:41:03.391+00:00\"\n            },\n            \"administrativeNotes\": [],\n            \"title\": \"Sample instance\",\n            \"hrid\": \"it00000000001\",\n            \"contributorNames\": [],\n            \"formerIds\": [],\n            \"discoverySuppress\": null,\n            \"holdingsRecordId\": \"9f5e359f-3e23-4936-942b-3827f7d5e683\",\n            \"barcode\": \"emptyNoteType\",\n            \"notes\": [\n                {\n                                        \"note\": \"Note\",\n                    \"staffOnly\": false\n                }\n            ],\n            \"circulationNotes\": [],\n            \"itemDamagedStatusDate\": \"2022-12-02T06:47:29.787Z\",\n            \"tags\": {\n                \"tagList\": []\n            },\n            \"yearCaption\": [],\n            \"electronicAccess\": [],\n            \"statisticalCodeIds\": [],\n            \"purchaseOrderLineIdentifier\": null,\n            \"materialType\": {\n                \"id\": \"1a54b431-2e4f-452d-9cae-9cee66c9a892\",\n                \"name\": \"book\"\n            },\n            \"permanentLoanType\": {\n                \"id\": \"2b94c631-fca9-4892-a730-03ee529ffe27\",\n                \"name\": \"Can circulate\"\n            },\n            \"metadata\": {\n                \"createdDate\": \"2022-12-02T06:41:03.391+00:00\",\n                \"createdByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\",\n                \"updatedDate\": \"2022-12-02T06:47:37.805+00:00\",\n                \"updatedByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\"\n            },\n            \"effectiveCallNumberComponents\": {\n                \"callNumber\": null,\n                \"prefix\": null,\n                \"suffix\": null,\n                \"typeId\": null\n            },\n            \"isBoundWith\": false,\n            \"effectiveLocation\": {\n                \"id\": \"fcd64ce1-6995-48f0-840e-89ffa2288371\",\n                \"name\": \"Main Library\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D%22emptyServicePoint%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"items\": [\n        {\n            \"id\": \"8feb55ab-a2d1-4358-abb0-6ca462e7d847\",\n            \"_version\": \"7\",\n            \"status\": {\n                \"name\": \"In transit\",\n                \"date\": \"2022-12-02T06:52:20.283+00:00\"\n            },\n            \"administrativeNotes\": [],\n            \"title\": \"Sample instance\",\n            \"hrid\": \"it00000000001\",\n            \"inTransitDestinationServicePointId\": \"c4c90014-c8c9-4ade-8f24-b5e313319f4b\",\n            \"contributorNames\": [],\n            \"formerIds\": [],\n            \"discoverySuppress\": null,\n            \"holdingsRecordId\": \"9f5e359f-3e23-4936-942b-3827f7d5e683\",\n            \"barcode\": \"emptyServicePoint\",\n            \"notes\": [],\n            \"circulationNotes\": [],\n            \"itemDamagedStatusDate\": \"2022-12-02T06:49:25.148Z\",\n            \"tags\": {\n                \"tagList\": []\n            },\n            \"yearCaption\": [],\n            \"electronicAccess\": [],\n            \"statisticalCodeIds\": [],\n            \"purchaseOrderLineIdentifier\": null,\n            \"materialType\": {\n                \"id\": \"1a54b431-2e4f-452d-9cae-9cee66c9a892\",\n                \"name\": \"book\"\n            },\n            \"permanentLoanType\": {\n                \"id\": \"2b94c631-fca9-4892-a730-03ee529ffe27\",\n                \"name\": \"Can circulate\"\n            },\n            \"metadata\": {\n                \"createdDate\": \"2022-12-02T06:41:03.391+00:00\",\n                \"createdByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\",\n                \"updatedDate\": \"2022-12-02T06:52:20.279+00:00\",\n                \"updatedByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\"\n            },\n            \"lastCheckIn\": {\n                \"staffMemberId\": \"bec20636-fb68-41fd-84ea-2cf910673599\",\n                \"dateTime\": \"2022-12-02T06:52:19.743Z\"\n            },\n            \"effectiveCallNumberComponents\": {\n                \"callNumber\": null,\n                \"prefix\": null,\n                \"suffix\": null,\n                \"typeId\": null\n            },\n            \"isBoundWith\": false,\n            \"effectiveLocation\": {\n                \"id\": \"fcd64ce1-6995-48f0-840e-89ffa2288371\",\n                \"name\": \"Main Library\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/items?query=barcode%3D%3D%22emptyUserName%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"items\": [\n        {\n            \"id\": \"8feb55ab-a2d1-4358-abb0-6ca462e7d847\",\n            \"_version\": \"7\",\n            \"status\": {\n                \"name\": \"In transit\",\n                \"date\": \"2022-12-02T06:52:20.283+00:00\"\n            },\n            \"administrativeNotes\": [],\n            \"title\": \"Sample instance\",\n            \"hrid\": \"it00000000001\",\n            \"inTransitDestinationServicePointId\": \"c4c90014-c8c9-4ade-8f24-b5e313319f4b\",\n            \"contributorNames\": [],\n            \"formerIds\": [],\n            \"discoverySuppress\": null,\n            \"holdingsRecordId\": \"9f5e359f-3e23-4936-942b-3827f7d5e683\",\n            \"barcode\": \"emptyUserName\",\n            \"notes\": [],\n            \"circulationNotes\": [],\n            \"itemDamagedStatusDate\": \"2022-12-02T06:49:25.148Z\",\n            \"tags\": {\n                \"tagList\": []\n            },\n            \"yearCaption\": [],\n            \"electronicAccess\": [],\n            \"statisticalCodeIds\": [],\n            \"purchaseOrderLineIdentifier\": null,\n            \"materialType\": {\n                \"id\": \"1a54b431-2e4f-452d-9cae-9cee66c9a892\",\n                \"name\": \"book\"\n            },\n            \"permanentLoanType\": {\n                \"id\": \"2b94c631-fca9-4892-a730-03ee529ffe27\",\n                \"name\": \"Can circulate\"\n            },\n            \"metadata\": {\n                \"createdDate\": \"2022-12-02T06:41:03.391+00:00\",\n                \"createdByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\",\n                \"updatedDate\": \"2022-12-02T06:52:20.279+00:00\",\n                \"updatedByUserId\": \"5f9bec89-7789-5c4f-afe1-3d96ee9a5dc2\"\n            },\n            \"lastCheckIn\": {\n                \"servicePointId\": \"c4c90014-c8c9-4ade-8f24-b5e313319f4b\",\n                \"dateTime\": \"2022-12-02T06:52:19.743Z\"\n            },\n            \"effectiveCallNumberComponents\": {\n                \"callNumber\": null,\n                \"prefix\": null,\n                \"suffix\": null,\n                \"typeId\": null\n            },\n            \"isBoundWith\": false,\n            \"effectiveLocation\": {\n                \"id\": \"fcd64ce1-6995-48f0-840e-89ffa2288371\",\n                \"name\": \"Main Library\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

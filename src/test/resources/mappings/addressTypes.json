@@ -25,6 +25,31 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/addresstypes/db541cda-fcc7-403b-8077-3613f3244901"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/addresstypes?query=desc%3Ddb541cda-fcc7-403b-8077-3613f3244901"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"addressTypes\": [ ],\n    \"totalRecords\": 0\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

@@ -25,8 +25,6 @@ import org.folio.dew.domain.dto.Address;
 import org.folio.dew.domain.dto.CirculationNote;
 import org.folio.dew.domain.dto.ContributorName;
 import org.folio.dew.domain.dto.CustomField;
-import org.folio.dew.domain.dto.Department;
-import org.folio.dew.domain.dto.EffectiveCallNumberComponents;
 
 import org.folio.dew.domain.dto.InventoryItemStatus;
 import org.folio.dew.domain.dto.Item;
@@ -37,13 +35,10 @@ import org.folio.dew.domain.dto.LastCheckIn;
 import org.folio.dew.domain.dto.LoanType;
 import org.folio.dew.domain.dto.MaterialType;
 import org.folio.dew.domain.dto.Personal;
-import org.folio.dew.domain.dto.ProxyFor;
 import org.folio.dew.domain.dto.Source;
 import org.folio.dew.domain.dto.Tags;
-import org.folio.dew.domain.dto.Title;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
-import org.folio.dew.domain.dto.UserGroupCollection;
 import org.folio.dew.error.BulkEditException;
 import org.springframework.stereotype.Component;
 
@@ -68,13 +63,6 @@ public class BulkEditParseService {
   private static final int ADDRESS_POSTAL_CODE = 6;
   private static final int ADDRESS_PRIMARY_ADDRESS = 7;
   private static final int ADDRESS_TYPE = 8;
-
-  private static final int NUMBER_OF_CALL_NUMBER_COMPONENTS = 4;
-  private static final int CALL_NUMBER_INDEX = 0;
-  private static final int CALL_NUMBER_PREFIX_INDEX = 1;
-  private static final int CALL_NUMBER_SUFFIX_INDEX = 2;
-  private static final int CALL_NUMBER_TYPE_INDEX = 3;
-
   private static final int NUMBER_OF_ITEM_NOTE_COMPONENTS = 3;
   private static final int NOTE_TYPE_NAME_INDEX = 0;
   private static final int NOTE_INDEX = 1;
@@ -93,11 +81,6 @@ public class BulkEditParseService {
   private static final int NUMBER_OF_STATUS_COMPONENTS = 2;
   private static final int STATUS_NAME_INDEX = 0;
   private static final int STATUS_DATE_INDEX = 1;
-
-  private static final int NUMBER_OF_TITLE_COMPONENTS = 3;
-  private static final int HOLDING_HRID_INDEX = 0;
-  private static final int INSTANCE_HRID_INDEX = 1;
-
     private static final int NUMBER_OF_LAST_CHECK_IN_COMPONENTS = 3;
   private static final int LAST_CHECK_IN_SERVICE_POINT_NAME_INDEX = 0;
   private static final int LAST_CHECK_IN_USERNAME_INDEX = 1;
@@ -105,7 +88,6 @@ public class BulkEditParseService {
 
   private static final String START_ARRAY = "[";
   private static final String END_ARRAY = "]";
-
 
   public User mapUserFormatToUser(UserFormat userFormat) {
     User user = new User();
@@ -115,14 +97,14 @@ public class BulkEditParseService {
 
   private void populateUserFields(User user, UserFormat userFormat) {
     user.setId(userFormat.getId());
-    user.setUsername(userFormat.getUsername());
+    user.setUsername(isEmpty(userFormat.getUsername()) ? null : userFormat.getUsername());
     user.setExternalSystemId(isBlank(userFormat.getExternalSystemId()) ? null : userFormat.getExternalSystemId());
     user.setBarcode(isBlank(userFormat.getBarcode()) ? null : userFormat.getBarcode());
     user.setActive(getIsActive(userFormat));
     user.setType(userFormat.getType());
-    user.setPatronGroup(getPatronGroupId(userFormat));
+    user.setPatronGroup(userReferenceService.getPatronGroupIdByName(userFormat.getPatronGroup()));
     user.setDepartments(getUserDepartments(userFormat));
-    user.setProxyFor(getProxyFor(userFormat));
+    user.setProxyFor(isEmpty(userFormat.getProxyFor()) ? Collections.emptyList() : Arrays.asList(userFormat.getProxyFor().split(ARRAY_DELIMITER)));
     user.setPersonal(getUserPersonalInfo(userFormat));
     user.setEnrollmentDate(dateFromString(userFormat.getEnrollmentDate()));
     user.setExpirationDate(dateFromString(userFormat.getExpirationDate()));
@@ -141,47 +123,13 @@ public class BulkEditParseService {
     return false;
   }
 
-  private String getPatronGroupId(UserFormat userFormat) {
-    if (isNotEmpty(userFormat.getPatronGroup())) {
-      UserGroupCollection userGroup = userReferenceService.getUserGroupByGroupName(userFormat.getPatronGroup());
-      if (!userGroup.getUsergroups().isEmpty()) {
-        return userGroup.getUsergroups().iterator().next().getId();
-      } else {
-        var msg = "Invalid patron group value: " + userFormat.getPatronGroup();
-        log.error(msg);
-        throw new BulkEditException(msg);
-      }
-    }
-    throw new BulkEditException("Patron group can not be empty");
-  }
-
   private List<UUID> getUserDepartments(UserFormat userFormat) {
     String[] departmentNames = userFormat.getDepartments().split(ARRAY_DELIMITER);
     if (departmentNames.length > 0) {
       return Arrays.stream(departmentNames).parallel()
         .filter(StringUtils::isNotEmpty)
-        .map(userReferenceService::getDepartmentByName)
-        .flatMap(departmentCollection -> departmentCollection.getDepartments().stream())
-        .map(Department::getId)
+        .map(userReferenceService::getDepartmentIdByName)
         .map(UUID::fromString)
-        .collect(Collectors.toList());
-    }
-    return Collections.emptyList();
-  }
-
-  private List<String> getProxyFor(UserFormat userFormat) {
-    String[] proxyUserNames = userFormat.getProxyFor().split(ARRAY_DELIMITER);
-    if (proxyUserNames.length > 0) {
-      return Arrays.stream(proxyUserNames)
-        .parallel()
-        .filter(StringUtils::isNotEmpty)
-        .map(userReferenceService::getUserByName)
-        .flatMap(userCollection -> userCollection.getUsers().stream())
-        .map(User::getId)
-        .filter(StringUtils::isNotEmpty)
-        .map(userReferenceService::getProxyForByProxyUserId)
-        .flatMap(proxyForCollection -> proxyForCollection.getProxiesFor().stream())
-        .map(ProxyFor::getId)
         .collect(Collectors.toList());
     }
     return Collections.emptyList();
@@ -198,6 +146,9 @@ public class BulkEditParseService {
     personal.setMobilePhone(userFormat.getMobilePhone());
     personal.setDateOfBirth(dateFromString(userFormat.getDateOfBirth()));
     personal.setAddresses(getUserAddresses(userFormat));
+    if (isEmpty(userFormat.getPreferredContactTypeId())) {
+      throw new BulkEditException("Missing required data: Preferred contact - record cannot be updated");
+    }
     personal.setPreferredContactTypeId(userFormat.getPreferredContactTypeId());
     return personal;
   }
@@ -225,11 +176,7 @@ public class BulkEditParseService {
     address.setRegion(addressFields.get(ADDRESS_REGION));
     address.setPostalCode(addressFields.get(ADDRESS_POSTAL_CODE));
     address.setPrimaryAddress(Boolean.valueOf(addressFields.get(ADDRESS_PRIMARY_ADDRESS)));
-    //avoid IndexOutOfBoundsException if address type id wasn't set
-    if (addressFields.size() == 9) {
-      String id = userReferenceService.getAddressTypeByDesc(addressFields.get(ADDRESS_TYPE)).getAddressTypes().iterator().next().getId();
-      address.setAddressTypeId(id);
-    }
+    address.setAddressTypeId(userReferenceService.getAddressTypeIdByDesc(addressFields.get(ADDRESS_TYPE)));
     return address;
   }
 
@@ -322,7 +269,6 @@ public class BulkEditParseService {
       .itemLevelCallNumberPrefix(restoreStringValue(itemFormat.getItemLevelCallNumberPrefix()))
       .itemLevelCallNumberSuffix(restoreStringValue(itemFormat.getItemLevelCallNumberSuffix()))
       .itemLevelCallNumberTypeId(restoreItemLevelCallNumberTypeId(itemFormat.getItemLevelCallNumberType()))
-      .effectiveCallNumberComponents(restoreEffectiveCallNumberComponents(itemFormat))
       .volume(restoreStringValue(itemFormat.getVolume()))
       .enumeration(restoreStringValue(itemFormat.getEnumeration()))
       .chronology(restoreStringValue(itemFormat.getChronology()))
@@ -341,8 +287,6 @@ public class BulkEditParseService {
       .circulationNotes(restoreCirculationNotes(itemFormat.getCirculationNotes()))
       .status(restoreStatus(itemFormat.getStatus()))
       .materialType(restoreMaterialType(itemFormat.getMaterialType()))
-      .isBoundWith(Boolean.valueOf(itemFormat.getIsBoundWith()))
-      .boundWithTitles(restoreBoundWithTitles(itemFormat.getBoundWithTitles()))
       .permanentLoanType(restoreLoanType(itemFormat.getPermanentLoanType()))
       .temporaryLoanType(restoreLoanType(itemFormat.getTemporaryLoanType()))
       .permanentLocation(restoreLocation(itemFormat.getPermanentLocation()))
@@ -375,19 +319,11 @@ public class BulkEditParseService {
   }
 
   private String restoreItemLevelCallNumberTypeId(String name) {
-    return isEmpty(name) ? null : itemReferenceService.getCallNumberTypeByName(name).getId();
-  }
-
-  private EffectiveCallNumberComponents restoreEffectiveCallNumberComponents(ItemFormat itemFormat) {
-    return new EffectiveCallNumberComponents()
-      .callNumber(restoreStringValue(itemFormat.getCallNumber()))
-      .prefix(restoreStringValue(itemFormat.getItemLevelCallNumberPrefix()))
-      .suffix(restoreStringValue(itemFormat.getItemLevelCallNumberSuffix()))
-      .typeId(isEmpty(itemFormat.getItemLevelCallNumberType()) ? null : itemReferenceService.getCallNumberTypeByName(itemFormat.getItemLevelCallNumberType()).getId());
+    return itemReferenceService.getCallNumberTypeIdByName(name);
   }
 
   private String restoreItemDamagedStatusId(String name) {
-    return isEmpty(name) ? null : itemReferenceService.getDamagedStatusByName(name).getId();
+    return itemReferenceService.getDamagedStatusIdByName(name);
   }
 
   private List<ItemNote> restoreItemNotes(String s) {
@@ -405,17 +341,13 @@ public class BulkEditParseService {
         throw new BulkEditException(String.format("Illegal number of item note elements: %d, expected: %d", tokens.length, NUMBER_OF_ITEM_NOTE_COMPONENTS));
       }
       return new ItemNote()
-        .itemNoteTypeId(restoreNoteTypeId(tokens[NOTE_TYPE_NAME_INDEX]))
+        .itemNoteTypeId(itemReferenceService.getNoteTypeIdByName(tokens[NOTE_TYPE_NAME_INDEX]))
         .note(Arrays.stream(tokens, NOTE_INDEX, tokens.length - STAFF_ONLY_OFFSET)
           .collect(Collectors.joining(";")))
         .staffOnly(Boolean.valueOf(tokens[tokens.length - STAFF_ONLY_OFFSET]));
 
     }
     return null;
-  }
-
-  private String restoreNoteTypeId(String name) {
-    return isEmpty(name) ? null : itemReferenceService.getNoteTypeByName(name).getId();
   }
 
   private List<CirculationNote> restoreCirculationNotes(String s) {
@@ -465,27 +397,6 @@ public class BulkEditParseService {
     return isEmpty(s) ? null : itemReferenceService.getMaterialTypeByName(s);
   }
 
-  private List<Title> restoreBoundWithTitles(String s) {
-    return isEmpty(s) ? Collections.emptyList() :
-      Arrays.stream(s.split(ITEM_DELIMITER_PATTERN))
-        .map(this::restoreTitle)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-  }
-
-  private Title restoreTitle(String s) {
-    if (isNotEmpty(s)) {
-      var tokens = s.split(ARRAY_DELIMITER, -1);
-      if (NUMBER_OF_TITLE_COMPONENTS == tokens.length) {
-        return new Title()
-          .briefHoldingsRecord(itemReferenceService.getBriefHoldingsRecordByHrid(tokens[HOLDING_HRID_INDEX]))
-          .briefInstance(itemReferenceService.getBriefInstanceByHrid(tokens[INSTANCE_HRID_INDEX]));
-      }
-      throw new BulkEditException(String.format("Illegal number of title elements: %d, expected: %d", tokens.length, NUMBER_OF_TITLE_COMPONENTS));
-    }
-    return null;
-  }
-
   private LoanType restoreLoanType(String s) {
     return isEmpty(s) ? null : itemReferenceService.getLoanTypeByName(s);
   }
@@ -495,19 +406,15 @@ public class BulkEditParseService {
   }
 
   private String restoreServicePointId(String s) {
-    return isEmpty(s) ? null : itemReferenceService.getServicePointByName(s).getId();
+    return itemReferenceService.getServicePointIdByName(s);
   }
 
   private List<String> restoreStatisticalCodeIds(String s) {
     return isEmpty(s) ? Collections.emptyList() :
       Arrays.stream(s.split(ARRAY_DELIMITER))
-        .map(this::restoreStatisticalCodeId)
+        .map(itemReferenceService::getStatisticalCodeIdByCode)
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
-  }
-
-  private String restoreStatisticalCodeId(String s) {
-    return isEmpty(s) ? null : itemReferenceService.getStatisticalCodeByName(s).getId();
   }
 
   private LastCheckIn restoreLastCheckIn(String s) {
@@ -515,8 +422,8 @@ public class BulkEditParseService {
       var tokens = s.split(ARRAY_DELIMITER, -1);
       if (NUMBER_OF_LAST_CHECK_IN_COMPONENTS == tokens.length) {
         return new LastCheckIn()
-          .servicePointId(itemReferenceService.getServicePointByName(tokens[LAST_CHECK_IN_SERVICE_POINT_NAME_INDEX]).getId())
-          .staffMemberId(itemReferenceService.getUserByUserName(tokens[LAST_CHECK_IN_USERNAME_INDEX]).getId())
+          .servicePointId(itemReferenceService.getServicePointIdByName(tokens[LAST_CHECK_IN_SERVICE_POINT_NAME_INDEX]))
+          .staffMemberId(itemReferenceService.getUserIdByUserName(tokens[LAST_CHECK_IN_USERNAME_INDEX]))
           .dateTime(restoreStringValue(tokens[LAST_CHECK_IN_DATE_TIME_INDEX]));
       }
       throw new BulkEditException(String.format("Illegal number of last check in elements: %d, expected: %d", tokens.length, NUMBER_OF_LAST_CHECK_IN_COMPONENTS));

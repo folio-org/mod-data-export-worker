@@ -37,6 +37,19 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/holdings-note-types?query=name%3D%3D%22865e7c84-9219-4f46-9608-2ac460c691c8%22"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"holdingsNoteTypes\": [], \"totalRecords\": 0}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

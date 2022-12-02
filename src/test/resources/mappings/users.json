@@ -293,6 +293,31 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/users/af50a162-42a8-4ca2-8768-8c53630cc4ae"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/users?query=username%3D%3Daf50a162-42a8-4ca2-8768-8c53630cc4ae"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"users\": [],\n    \"totalRecords\": 0,\n    \"resultInfo\": {\n        \"totalRecords\": 0,\n        \"facets\": [],\n        \"diagnostics\": []\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

@@ -10,6 +10,7 @@ import static org.folio.dew.utils.Constants.ITEM_DELIMITER_PATTERN;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsNote;
 import org.folio.dew.domain.dto.HoldingsRecord;
@@ -50,19 +51,22 @@ public class HoldingsMapper {
   private static final int RECEIVING_HISTORY_ENTRY_ENUMERATION_INDEX = 1;
   private static final int RECEIVING_HISTORY_ENTRY_CHRONOLOGY_INDEX = 2;
 
+
+
   public HoldingsFormat mapToHoldingsFormat(HoldingsRecord holdingsRecord, String identifier, String jobId, String errorFileName) {
+    var errorServiceArgs = new ErrorServiceArgs(jobId, identifier, errorFileName);
     return HoldingsFormat.builder()
       .id(holdingsRecord.getId())
       .version(isEmpty(holdingsRecord.getVersion()) ? EMPTY : Integer.toString(holdingsRecord.getVersion()))
       .hrid(isEmpty(holdingsRecord.getHrid()) ? EMPTY : holdingsRecord.getHrid())
-      .holdingsType(holdingsReferenceService.getHoldingsTypeNameById(holdingsRecord.getHoldingsTypeId()))
+      .holdingsType(holdingsReferenceService.getHoldingsTypeNameById(holdingsRecord.getHoldingsTypeId(), errorServiceArgs))
       .formerIds(isEmpty(holdingsRecord.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, holdingsRecord.getFormerIds()))
       .instance(isEmpty(holdingsRecord.getInstanceId()) ? EMPTY : String.join(ARRAY_DELIMITER, holdingsReferenceService.getInstanceTitleById(holdingsRecord.getInstanceId()), holdingsRecord.getInstanceId()))
       .permanentLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getPermanentLocationId()))
       .temporaryLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getTemporaryLocationId()))
       .effectiveLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getEffectiveLocationId()))
       .electronicAccess((electronicAccessService.getElectronicAccessesToString(holdingsRecord.getElectronicAccess(), identifier, jobId, errorFileName)))
-      .callNumberType(holdingsReferenceService.getCallNumberTypeNameById(holdingsRecord.getCallNumberTypeId()))
+      .callNumberType(holdingsReferenceService.getCallNumberTypeNameById(holdingsRecord.getCallNumberTypeId(), errorServiceArgs))
       .callNumberPrefix(isEmpty(holdingsRecord.getCallNumberPrefix()) ? EMPTY : holdingsRecord.getCallNumberPrefix())
       .callNumber(isEmpty(holdingsRecord.getCallNumber()) ? EMPTY : holdingsRecord.getCallNumber())
       .callNumberSuffix(isEmpty(holdingsRecord.getCallNumberSuffix()) ? EMPTY : holdingsRecord.getCallNumberSuffix())
@@ -70,9 +74,9 @@ public class HoldingsMapper {
       .acquisitionFormat(isEmpty(holdingsRecord.getAcquisitionFormat()) ? EMPTY : holdingsRecord.getAcquisitionFormat())
       .acquisitionMethod(isEmpty(holdingsRecord.getAcquisitionMethod()) ? EMPTY : holdingsRecord.getAcquisitionMethod())
       .receiptStatus(isEmpty(holdingsRecord.getReceiptStatus()) ? EMPTY : holdingsRecord.getReceiptStatus())
-      .notes(notesToString(holdingsRecord.getNotes()))
+      .notes(notesToString(holdingsRecord.getNotes(), errorServiceArgs))
       .administrativeNotes(isEmpty(holdingsRecord.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, holdingsRecord.getAdministrativeNotes()))
-      .illPolicy(holdingsReferenceService.getIllPolicyNameById(holdingsRecord.getIllPolicyId()))
+      .illPolicy(holdingsReferenceService.getIllPolicyNameById(holdingsRecord.getIllPolicyId(), errorServiceArgs))
       .retentionPolicy(isEmpty(holdingsRecord.getRetentionPolicy()) ? EMPTY : holdingsRecord.getRetentionPolicy())
       .digitizationPolicy(isEmpty(holdingsRecord.getDigitizationPolicy()) ? EMPTY : holdingsRecord.getDigitizationPolicy())
       .holdingsStatements(holdingsStatementsToString(holdingsRecord.getHoldingsStatements()))
@@ -82,16 +86,16 @@ public class HoldingsMapper {
       .numberOfItems(isEmpty(holdingsRecord.getNumberOfItems()) ? EMPTY : holdingsRecord.getNumberOfItems())
       .receivingHistory(receivingHistoryToString(holdingsRecord.getReceivingHistory()))
       .discoverySuppress(isEmpty(holdingsRecord.getDiscoverySuppress()) ? EMPTY : Boolean.toString(holdingsRecord.getDiscoverySuppress()))
-      .statisticalCodes(getStatisticalCodeNames(holdingsRecord.getStatisticalCodeIds()))
+      .statisticalCodes(getStatisticalCodeNames(holdingsRecord.getStatisticalCodeIds(), errorServiceArgs))
       .tags(tagsToString(holdingsRecord.getTags()))
-      .source(holdingsReferenceService.getSourceNameById(holdingsRecord.getSourceId()))
+      .source(holdingsReferenceService.getSourceNameById(holdingsRecord.getSourceId(), errorServiceArgs))
       .build();
   }
 
-  private String notesToString(List<HoldingsNote> notes) {
+  private String notesToString(List<HoldingsNote> notes, ErrorServiceArgs args) {
     return isEmpty(notes) ? EMPTY : notes.stream()
       .map(note -> String.join(ARRAY_DELIMITER,
-        holdingsReferenceService.getNoteTypeNameById(note.getHoldingsNoteTypeId()),
+        holdingsReferenceService.getNoteTypeNameById(note.getHoldingsNoteTypeId(), args),
         note.getNote(),
         Boolean.toString(note.getStaffOnly())))
       .collect(Collectors.joining(ITEM_DELIMITER));
@@ -121,9 +125,9 @@ public class HoldingsMapper {
       isEmpty(entry.getChronology()) ? EMPTY : entry.getChronology());
   }
 
-  private String getStatisticalCodeNames(List<String> codeIds) {
+  private String getStatisticalCodeNames(List<String> codeIds, ErrorServiceArgs args) {
     return isEmpty(codeIds) ? EMPTY : codeIds.stream()
-      .map(holdingsReferenceService::getStatisticalCodeNameById)
+      .map(id -> holdingsReferenceService.getStatisticalCodeNameById(id, args))
       .collect(Collectors.joining(ARRAY_DELIMITER));
   }
 
@@ -139,7 +143,7 @@ public class HoldingsMapper {
       .id(holdingsFormat.getId())
       .version(isEmpty(holdingsFormat.getVersion()) ? null : Integer.parseInt(holdingsFormat.getVersion()))
       .hrid(holdingsFormat.getHrid())
-      .holdingsTypeId(isEmpty(holdingsFormat.getHoldingsType()) ? null : holdingsReferenceService.getHoldingsTypeIdByName(holdingsFormat.getHoldingsType()))
+      .holdingsTypeId(holdingsReferenceService.getHoldingsTypeIdByName(holdingsFormat.getHoldingsType()))
       .formerIds(restoreListValue(holdingsFormat.getFormerIds()))
       .instanceId(restoreInstanceId(holdingsFormat.getInstance()))
       .permanentLocationId(holdingsReferenceService.getLocationByName(holdingsFormat.getPermanentLocation()).getId())
@@ -156,7 +160,7 @@ public class HoldingsMapper {
       .receiptStatus(restoreStringValue(holdingsFormat.getReceiptStatus()))
       .administrativeNotes(restoreListValue(holdingsFormat.getAdministrativeNotes()))
       .notes(restoreHoldingsNotes(holdingsFormat.getNotes()))
-      .illPolicyId(isEmpty(holdingsFormat.getIllPolicy()) ? null : holdingsReferenceService.getIllPolicyByName(holdingsFormat.getIllPolicy()).getId())
+      .illPolicyId(holdingsReferenceService.getIllPolicyIdByName(holdingsFormat.getIllPolicy()))
       .retentionPolicy(restoreStringValue(holdingsFormat.getRetentionPolicy()))
       .digitizationPolicy(restoreStringValue(holdingsFormat.getDigitizationPolicy()))
       .holdingsStatements(restoreHoldingsStatements(holdingsFormat.getHoldingsStatements()))

@@ -1,7 +1,6 @@
 package org.folio.dew;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -28,9 +27,7 @@ import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 import java.io.BufferedReader;
@@ -40,6 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.apache.commons.compress.utils.FileNameUtils;
@@ -80,6 +78,19 @@ class BulkEditTest extends BaseBatchTest {
 
   private static final String HOLDINGS_IDENTIFIERS_CSV = "src/test/resources/upload/holdings_identifiers.csv";
   private static final String HOLDINGS_IDENTIFIERS_BAD_REFERENCE_IDS_CSV = "src/test/resources/upload/holdings_identifiers_for_bad_reference_ids.csv";
+  private static final String EXPECTED_HOLDINGS_OUTPUT_BAD_REFERENCE_CSV = "src/test/resources/output/bulk_edit_holdings_records_reference_not_found.csv";
+  private static final String HOLDINGS_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV = "src/test/resources/upload/holdings_identifiers_empty_reference_ids.csv";
+  private static final String EXPECTED_HOLDINGS_OUTPUT_EMPTY_REFERENCE_CSV = "src/test/resources/output/bulk_edit_holdings_records_empty_reference.csv";
+  private static final String ITEM_IDENTIFIERS_BAD_REFERENCE_IDS_CSV = "src/test/resources/upload/item_identifiers_bad_reference.csv";
+  private static final String EXPECTED_ITEMS_OUTPUT_BAD_REFERENCE_CSV = "src/test/resources/output/bulk_edit_items_reference_not_found.csv";
+  private final static String EXPECTED_ITEM_OUTPUT_BAD_REFERENCE_ERRORS = "src/test/resources/output/bulk_edit_items_bad_reference_errors.csv";
+  private static final String ITEM_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV = "src/test/resources/upload/item_identifiers_empty_reference.csv";
+  private static final String EXPECTED_ITEM_OUTPUT_EMPTY_REFERENCE_CSV = "src/test/resources/output/bulk_edit_items_empty_reference.csv";
+  private static final String USER_IDENTIFIERS_BAD_REFERENCE_IDS_CSV = "src/test/resources/upload/user_identifiers_bad_reference.csv";
+  private static final String EXPECTED_USER_OUTPUT_BAD_REFERENCE_CSV = "src/test/resources/output/bulk_edit_users_reference_not_found.csv";
+  private final static String EXPECTED_USER_OUTPUT_BAD_REFERENCE_ERRORS = "src/test/resources/output/bulk_edit_users_bad_reference_errors.csv";
+  private static final String USER_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV = "src/test/resources/upload/user_identifiers_empty_reference.csv";
+  private static final String EXPECTED_USER_OUTPUT_EMPTY_REFERENCE_CSV = "src/test/resources/output/bulk_edit_users_empty_reference.csv";
   private static final String BARCODES_CSV = "src/test/resources/upload/barcodes.csv";
   private static final String BARCODES_FOR_PROGRESS_CSV = "src/test/resources/upload/barcodes_for_progress.csv";
   private static final String ITEM_BARCODES_CSV = "src/test/resources/upload/item_barcodes.csv";
@@ -168,9 +179,6 @@ class BulkEditTest extends BaseBatchTest {
     verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_USER_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-
-    // check if caching works
-    wireMockServer.verify(1, getRequestedFor(urlEqualTo("/groups/3684a786-6671-4268-8ed0-9db82ebca60b")));
   }
 
   @Test
@@ -225,6 +233,60 @@ class BulkEditTest extends BaseBatchTest {
     wireMockServer.verify(1, getRequestedFor(urlEqualTo("/item-note-types/8d0a5eca-25de-4391-81a9-236eeefdd20b")));
   }
 
+  @Test
+  @DisplayName("Run bulk-edit (item identifiers) with wrong reference identifiers")
+  void shouldWriteErrorsWhenItemReferenceDataNotFoundAndContinueBulkEdit() throws Exception {
+
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
+
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, ITEM_IDENTIFIERS_BAD_REFERENCE_IDS_CSV);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    verifyFileOutput(jobExecution, EXPECTED_ITEMS_OUTPUT_BAD_REFERENCE_CSV, EXPECTED_ITEM_OUTPUT_BAD_REFERENCE_ERRORS);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  @Test
+  @DisplayName("Run bulk-edit (item identifiers) with empty reference identifiers")
+  void shouldSkipEmptyItemReferenceData() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
+
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, ITEM_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    verifyFileOutput(jobExecution, EXPECTED_ITEM_OUTPUT_EMPTY_REFERENCE_CSV, null);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  @Test
+  @DisplayName("Run bulk-edit (user identifiers) with wrong reference identifiers")
+  void shouldWriteErrorsWhenUserReferenceDataNotFoundAndContinueBulkEdit() throws Exception {
+
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
+
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, USER_IDENTIFIERS_BAD_REFERENCE_IDS_CSV);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    verifyFileOutput(jobExecution, EXPECTED_USER_OUTPUT_BAD_REFERENCE_CSV, EXPECTED_USER_OUTPUT_BAD_REFERENCE_ERRORS);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  @Test
+  @DisplayName("Run bulk-edit (user identifiers) with empty reference identifiers")
+  void shouldSkipEmptyUserReferenceData() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
+
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, USER_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    verifyFileOutput(jobExecution, EXPECTED_USER_OUTPUT_EMPTY_REFERENCE_CSV, null);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
   @ParameterizedTest
   @EnumSource(value = IdentifierType.class, names = {"ID", "HRID", "INSTANCE_HRID", "ITEM_BARCODE"}, mode = EnumSource.Mode.INCLUDE)
   @DisplayName("Run bulk-edit (holdings records identifiers) successfully")
@@ -251,14 +313,27 @@ class BulkEditTest extends BaseBatchTest {
 
   @Test
   @DisplayName("Run bulk-edit (holdings records identifiers) with wrong reference identifiers")
-  void shouldWriteErrorsWhenReferenceDataNotFound() throws Exception {
+  void shouldWriteErrorsWhenHoldingsReferenceDataNotFoundAndContinueBulkEdit() throws Exception {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, ID, HOLDINGS_IDENTIFIERS_BAD_REFERENCE_IDS_CSV);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
-    verifyFileOutput(jobExecution, EMPTY, EXPECTED_BULK_EDIT_HOLDINGS_BAD_REFERENCE_IDS_ERRORS);
+    verifyFileOutput(jobExecution, EXPECTED_HOLDINGS_OUTPUT_BAD_REFERENCE_CSV, EXPECTED_BULK_EDIT_HOLDINGS_BAD_REFERENCE_IDS_ERRORS);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  @Test
+  @DisplayName("Run bulk-edit (holdings records identifiers) with empty reference identifiers")
+  void shouldSkipEmptyHoldingsReferenceData() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
+
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, ID, HOLDINGS_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    verifyFileOutput(jobExecution, EXPECTED_HOLDINGS_OUTPUT_EMPTY_REFERENCE_CSV, null);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
@@ -280,6 +355,8 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (user identifiers) with errors")
   void bulkEditUserJobTestWithErrors() throws Exception {
+    wireMockServer.resetAll();
+
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, BARCODES_SOME_NOT_FOUND);
@@ -375,9 +452,7 @@ class BulkEditTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {ITEM_RECORD_CSV, ITEM_RECORD_CSV_NOT_FOUND, ITEM_RECORD_CSV_BAD_CALL_NUMBER_TYPE,
-    ITEM_RECORD_CSV_BAD_DAMAGED_STATUS, ITEM_RECORD_CSV_BAD_LOAN_TYPE, ITEM_RECORD_CSV_BAD_LOCATION,
-    ITEM_RECORD_CSV_BAD_NOTE_TYPE, ITEM_RECORD_CSV_BAD_RELATIONSHIP, ITEM_RECORD_CSV_BAD_SERVICE_POINT,
+  @ValueSource(strings = {ITEM_RECORD_CSV, ITEM_RECORD_CSV_NOT_FOUND,
     ITEM_RECORD_CSV_INVALID_NOTES, ITEM_RECORD_CSV_INVALID_CIRCULATION_NOTES})
   @DisplayName("Run update item records w/ and w/o errors")
   void uploadItemRecordsJobTest(String csvFileName) throws Exception {
@@ -526,10 +601,14 @@ class BulkEditTest extends BaseBatchTest {
     String fileInStorage = (String) executionContext.get("outputFilesInStorage");
     String[] links = fileInStorage.split(";");
     fileInStorage = links[0];
-    String errorInStorage = links[1];
-    final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
-    final FileSystemResource expectedResultWithErrors = new FileSystemResource(expectedErrorOutput);
-    assertFileEquals(expectedResultWithErrors, actualResultWithErrors);
+    if (Objects.isNull(expectedErrorOutput)) {
+      assertEquals(1, links.length);
+    } else {
+      String errorInStorage = links[1];
+      final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
+      final FileSystemResource expectedResultWithErrors = new FileSystemResource(expectedErrorOutput);
+      assertFileEquals(expectedResultWithErrors, actualResultWithErrors);
+    }
     if (isEmpty(fileInStorage)) {
       assertTrue(isEmpty(output));
     } else {

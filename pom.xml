@@ -42,6 +42,9 @@
         <e-holdings.yaml.file>
           ${project.basedir}/src/main/resources/swagger.api/e-holdings.yaml
         </e-holdings.yaml.file>
+        <refresh-presigned-url.yaml.file>
+          ${project.basedir}/src/main/resources/swagger.api/refresh-presigned-url.yaml
+        </refresh-presigned-url.yaml.file>
         <folio-spring-base.version>5.0.1</folio-spring-base.version>
 
         <commons-io.version>2.11.0</commons-io.version>
@@ -472,6 +475,33 @@
                       <generateModels>true</generateModels>
                       <modelsToGenerate>
                         UserContentUpdate,UserContentUpdateAction,UserContentUpdateCollection,CustomFieldCollection,CustomField,CheckBoxField,CustomFieldTypes,Format,SelectField,SelectFieldOption,SelectFieldOptions,TextField,ItemContentUpdate,ItemContentUpdateCollection,CallNumberType,CallNumberTypeCollection,DamagedStatus,DamagedStatusCollection,NoteType,NoteTypeCollection,ContributorName,EffectiveCallNumberComponents,ItemNote,CirculationNote,Source,InventoryItemStatus,MaterialType,MaterialTypeCollection,BriefHoldingsRecord,BriefHoldingsRecordCollection,BriefInstance,BriefInstanceCollection,Title,LoanType,LoanTypeCollection,ItemLocation,ItemLocationCollection,ElectronicAccess,ElectronicAccessRelationship,ElectronicAccessRelationshipCollection,LastCheckIn,StatisticalCode,StatisticalCodeCollection,Item,ItemCollection,Department,DepartmentCollection,ProxyFor,ProxyForCollection,AddressType,AddressTypeCollection,UserGroup,UserGroupCollection,Parameter,Error,Errors,HoldingsRecord,HoldingsRecordCollection,HoldingsNote,HoldingsStatement,IllPolicy,IllPolicyCollection,ReceivingHistoryEntry,ReceivingHistoryEntries,HoldingsNoteType,HoldingsNoteTypeCollection,HoldingsType,HoldingsTypeCollection,HoldingsRecordsSource,HoldingsRecordsSourceCollection,HoldingsRecordCollection,HoldingsContentUpdate,HoldingsContentUpdateCollection
+                      </modelsToGenerate>
+                      <generateModelTests>false</generateModelTests>
+                      <generateSupportingFiles>true</generateSupportingFiles>
+                      <generateModelDocumentation>true</generateModelDocumentation>
+                      <configOptions>
+                        <java8>true</java8>
+                        <dateLibrary>java</dateLibrary>
+                        <interfaceOnly>true</interfaceOnly>
+                      </configOptions>
+                    </configuration>
+                  </execution>
+                  <execution>
+                    <id>refresh-presigned-url</id>
+                    <goals>
+                      <goal>generate</goal>
+                    </goals>
+                    <configuration>
+                      <inputSpec>${refresh-presigned-url.yaml.file}</inputSpec>
+                      <output>${project.build.directory}/generated-sources</output>
+                      <generatorName>spring</generatorName>
+                      <modelPackage>${project.groupId}.dew.domain.dto</modelPackage>
+                      <generateApis>true</generateApis>
+                      <generateApiTests>false</generateApiTests>
+                      <generateApiDocumentation>false</generateApiDocumentation>
+                      <generateModels>true</generateModels>
+                      <modelsToGenerate>
+                        PresignedUrl
                       </modelsToGenerate>
                       <generateModelTests>false</generateModelTests>
                       <generateSupportingFiles>true</generateSupportingFiles>

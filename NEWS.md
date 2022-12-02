@@ -1,4 +1,4 @@
-## 2022-11-30 v2.0.4
+## 2022-12-02 v2.0.4
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v2.0.3...v2.0.4)
 

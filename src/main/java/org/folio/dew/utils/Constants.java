@@ -2,8 +2,6 @@ package org.folio.dew.utils;
 
 import lombok.experimental.UtilityClass;
 
-import java.util.regex.Pattern;
-
 @UtilityClass
 public class Constants {
   public static final int CHUNKS = 100;

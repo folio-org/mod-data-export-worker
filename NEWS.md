@@ -1,3 +1,10 @@
+## 2022-12-02 v2.0.4
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v2.0.3...v2.0.4)
+
+### Bug fixes
+[MODEXPW-330](https://issues.folio.org/browse/MODEXPW-330) Implement endpoint to get link with fresh expiry token
+
 ## 2022-11-30 v2.0.3
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v2.0.2...v2.0.3)

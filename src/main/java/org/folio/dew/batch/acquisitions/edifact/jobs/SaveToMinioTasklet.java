@@ -59,10 +59,9 @@ public class SaveToMinioTasklet implements Tasklet {
 
     var fullFilePath = buildFullFilePath(ediExportConfig);
     String edifactFileName = FilenameUtils.getName(fullFilePath);
-    String presignedUrl;
+    String uploadedFilePath;
     try {
-      var uploadedFilePath = remoteFilesStorage.write(fullFilePath, edifactOrderAsString.getBytes(StandardCharsets.UTF_8));
-      presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(uploadedFilePath);
+      uploadedFilePath = remoteFilesStorage.write(fullFilePath, edifactOrderAsString.getBytes(StandardCharsets.UTF_8));
     }
     catch (Exception e) {
       log.error(REMOTE_STORAGE_ERROR_MESSAGE, e);
@@ -70,7 +69,7 @@ public class SaveToMinioTasklet implements Tasklet {
     }
     ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), UPLOADED_FILE_PATH, fullFilePath, "");
     ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), EDIFACT_FILE_NAME, edifactFileName, "");
-    ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), OUTPUT_FILES_IN_STORAGE, presignedUrl, ";");
+    ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), OUTPUT_FILES_IN_STORAGE, uploadedFilePath, ";");
 
     return RepeatStatus.FINISHED;
   }

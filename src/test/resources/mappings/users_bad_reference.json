@@ -1,0 +1,69 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/users?query=barcode%3D%3D%22emptyAddressType%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"users\": [\n        {\n            \"username\": \"morty\",\n            \"id\": \"bec20636-fb68-41fd-84ea-2cf910673599\",\n            \"barcode\": \"emptyAddressType\",\n            \"active\": true,\n            \"type\": \"\",\n            \"patronGroup\": \"3684a786-6671-4268-8ed0-9db82ebca60b\",\n            \"departments\": [\"ef0f61a5-d911-4c28-9b52-12ebf959d095\"],\n            \"proxyFor\": [],\n            \"personal\": {\n                \"lastName\": \"morty\",\n                \"firstName\": \"panic\",\n                \"middleName\": \"\",\n                \"preferredFirstName\": \"\",\n                \"email\": \"morty@example.com\",\n                \"phone\": \"\",\n                \"mobilePhone\": \"\",\n                \"addresses\": [{\n                        \"countryId\": \"\",\n                        \"addressLine1\": \"add1\",\n                        \"addressLine2\": \"add2\",\n                        \"city\": \"city\"     }],\n                \"preferredContactTypeId\": \"002\"\n            },\n            \"enrollmentDate\": \"2020-10-07T04:00:00.000+00:00\",\n            \"createdDate\": \"2022-03-31T09:05:38.808+00:00\",\n            \"updatedDate\": \"2022-03-31T09:05:38.808+00:00\",\n            \"metadata\": {\n                \"createdDate\": \"2022-03-31T01:50:51.864+00:00\",\n                \"updatedDate\": \"2022-03-31T09:05:38.806+00:00\",\n                \"updatedByUserId\": \"63d08cb9-669b-56d5-9735-527b802878de\"\n            },\n            \"customFields\": {}\n        }\n    ],\n    \"totalRecords\": 1,\n    \"resultInfo\": {\n        \"totalRecords\": 1,\n        \"facets\": [],\n        \"diagnostics\": []\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/users?query=barcode%3D%3D%22badAddressType%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"users\": [\n        {\n            \"username\": \"morty\",\n            \"id\": \"bec20636-fb68-41fd-84ea-2cf910673599\",\n            \"barcode\": \"badAddressType\",\n            \"active\": true,\n            \"type\": \"\",\n            \"patronGroup\": \"3684a786-6671-4268-8ed0-9db82ebca60b\",\n            \"departments\": [\"ef0f61a5-d911-4c28-9b52-12ebf959d095\"],\n            \"proxyFor\": [],\n            \"personal\": {\n                \"lastName\": \"morty\",\n                \"firstName\": \"panic\",\n                \"middleName\": \"\",\n                \"preferredFirstName\": \"\",\n                \"email\": \"morty@example.com\",\n                \"phone\": \"\",\n                \"mobilePhone\": \"\",\n                \"addresses\": [{\n                        \"countryId\": \"\",\n                        \"addressLine1\": \"add1\",\n                        \"addressLine2\": \"add2\",\n                        \"city\": \"city\",\n                        \"addressTypeId\": \"db541cda-fcc7-403b-8077-3613f3244901\"     }],\n                \"preferredContactTypeId\": \"002\"\n            },\n            \"enrollmentDate\": \"2020-10-07T04:00:00.000+00:00\",\n            \"createdDate\": \"2022-03-31T09:05:38.808+00:00\",\n            \"updatedDate\": \"2022-03-31T09:05:38.808+00:00\",\n            \"metadata\": {\n                \"createdDate\": \"2022-03-31T01:50:51.864+00:00\",\n                \"updatedDate\": \"2022-03-31T09:05:38.806+00:00\",\n                \"updatedByUserId\": \"63d08cb9-669b-56d5-9735-527b802878de\"\n            },\n            \"customFields\": {}\n        }\n    ],\n    \"totalRecords\": 1,\n    \"resultInfo\": {\n        \"totalRecords\": 1,\n        \"facets\": [],\n        \"diagnostics\": []\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/users?query=barcode%3D%3D%22emptyPreferredContactTypeId%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"users\": [\n        {\n            \"username\": \"morty\",\n            \"id\": \"bec20636-fb68-41fd-84ea-2cf910673599\",\n            \"barcode\": \"emptyPreferredContactTypeId\",\n            \"active\": true,\n            \"type\": \"\",\n            \"patronGroup\": \"3684a786-6671-4268-8ed0-9db82ebca60b\",\n            \"departments\": [\"ef0f61a5-d911-4c28-9b52-12ebf959d095\"],\n            \"proxyFor\": [],\n            \"personal\": {\n                \"lastName\": \"morty\",\n                \"firstName\": \"panic\",\n                \"middleName\": \"\",\n                \"preferredFirstName\": \"\",\n                \"email\": \"morty@example.com\",\n                \"phone\": \"\",\n                \"mobilePhone\": \"\",\n                \"addresses\": [{\n                        \"countryId\": \"\",\n                        \"addressLine1\": \"add1\",\n                        \"addressLine2\": \"add2\",\n                        \"city\": \"city\",\n                        \"addressTypeId\": \"93d3d88d-499b-45d0-9bc7-ac73c3a19880\"\n                    }]           },\n            \"enrollmentDate\": \"2020-10-07T04:00:00.000+00:00\",\n            \"createdDate\": \"2022-03-31T09:05:38.808+00:00\",\n            \"updatedDate\": \"2022-03-31T09:05:38.808+00:00\",\n            \"metadata\": {\n                \"createdDate\": \"2022-03-31T01:50:51.864+00:00\",\n                \"updatedDate\": \"2022-03-31T09:05:38.806+00:00\",\n                \"updatedByUserId\": \"63d08cb9-669b-56d5-9735-527b802878de\"\n            },\n            \"customFields\": {}\n        }\n    ],\n    \"totalRecords\": 1,\n    \"resultInfo\": {\n        \"totalRecords\": 1,\n        \"facets\": [],\n        \"diagnostics\": []\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/users?query=barcode%3D%3D%22emptyDepartments%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"users\": [\n        {\n            \"username\": \"morty\",\n            \"id\": \"bec20636-fb68-41fd-84ea-2cf910673599\",\n            \"barcode\": \"emptyDepartments\",\n            \"active\": true,\n            \"type\": \"\",\n            \"patronGroup\": \"3684a786-6671-4268-8ed0-9db82ebca60b\",\n            \"departments\": [],\n            \"proxyFor\": [],\n            \"personal\": {\n                \"lastName\": \"morty\",\n                \"firstName\": \"panic\",\n                \"middleName\": \"\",\n                \"preferredFirstName\": \"\",\n                \"email\": \"morty@example.com\",\n                \"phone\": \"\",\n                \"mobilePhone\": \"\",\n                \"addresses\": [{\n                        \"countryId\": \"\",\n                        \"addressLine1\": \"add1\",\n                        \"addressLine2\": \"add2\",\n                        \"city\": \"city\",\n                        \"addressTypeId\": \"93d3d88d-499b-45d0-9bc7-ac73c3a19880\"\n                    }],\n                \"preferredContactTypeId\": \"002\"\n            },\n            \"enrollmentDate\": \"2020-10-07T04:00:00.000+00:00\",\n            \"createdDate\": \"2022-03-31T09:05:38.808+00:00\",\n            \"updatedDate\": \"2022-03-31T09:05:38.808+00:00\",\n            \"metadata\": {\n                \"createdDate\": \"2022-03-31T01:50:51.864+00:00\",\n                \"updatedDate\": \"2022-03-31T09:05:38.806+00:00\",\n                \"updatedByUserId\": \"63d08cb9-669b-56d5-9735-527b802878de\"\n            },\n            \"customFields\": {}\n        }\n    ],\n    \"totalRecords\": 1,\n    \"resultInfo\": {\n        \"totalRecords\": 1,\n        \"facets\": [],\n        \"diagnostics\": []\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/users?query=barcode%3D%3D%22badDepartments%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"users\": [\n        {\n            \"username\": \"morty\",\n            \"id\": \"bec20636-fb68-41fd-84ea-2cf910673599\",\n            \"barcode\": \"badDepartments\",\n            \"active\": true,\n            \"type\": \"\",\n            \"patronGroup\": \"3684a786-6671-4268-8ed0-9db82ebca60b\",\n            \"departments\": [\"103aee0f-c5f6-44de-94aa-74093f0e45d9\"],\n            \"proxyFor\": [],\n            \"personal\": {\n                \"lastName\": \"morty\",\n                \"firstName\": \"panic\",\n                \"middleName\": \"\",\n                \"preferredFirstName\": \"\",\n                \"email\": \"morty@example.com\",\n                \"phone\": \"\",\n                \"mobilePhone\": \"\",\n                \"addresses\": [{\n                        \"countryId\": \"\",\n                        \"addressLine1\": \"add1\",\n                        \"addressLine2\": \"add2\",\n                        \"city\": \"city\",\n                        \"addressTypeId\": \"93d3d88d-499b-45d0-9bc7-ac73c3a19880\"\n                    }],\n                \"preferredContactTypeId\": \"002\"\n            },\n            \"enrollmentDate\": \"2020-10-07T04:00:00.000+00:00\",\n            \"createdDate\": \"2022-03-31T09:05:38.808+00:00\",\n            \"updatedDate\": \"2022-03-31T09:05:38.808+00:00\",\n            \"metadata\": {\n                \"createdDate\": \"2022-03-31T01:50:51.864+00:00\",\n                \"updatedDate\": \"2022-03-31T09:05:38.806+00:00\",\n                \"updatedByUserId\": \"63d08cb9-669b-56d5-9735-527b802878de\"\n            },\n            \"customFields\": {}\n        }\n    ],\n    \"totalRecords\": 1,\n    \"resultInfo\": {\n        \"totalRecords\": 1,\n        \"facets\": [],\n        \"diagnostics\": []\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

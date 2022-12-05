@@ -57,5 +57,4 @@ public class Constants {
   public static String getWorkingDirectory(String springApplicationName, String dirName) {
     return springApplicationName + PATH_SEPARATOR + dirName + PATH_SEPARATOR;
   }
-
 }

@@ -261,6 +261,12 @@
           "pathPattern": "/bulk-edit/{jobId}/preview/updated-holdings/download",
           "permissionsRequired": [ "bulk-edit.preview.updated-holdings.collection.get" ],
           "modulePermissions": []
+        },
+        {
+          "methods": [ "GET" ],
+          "pathPattern": "/refresh-presigned-url",
+          "permissionsRequired": [ "refresh-presigned-url.get" ],
+          "modulePermissions": []
         }
       ]
     },
@@ -377,6 +383,11 @@
 
     },
     {
+      "permissionName" : "refresh-presigned-url.get",
+      "displayName" : "Get refreshed presigned url for export file",
+      "description" : "Get refreshed presigned url for export file"
+    },
+    {
       "permissionName" : "bulk-edit.all",
       "displayName" : "bulk-edit all",
       "description" : "All permissions for bulk-edit module",
@@ -394,6 +405,14 @@
         "bulk-edit.preview-items.collection.get",
         "bulk-edit.preview-holdings.collection.get",
         "bulk-edit.errors.collection.get"
+      ]
+    },
+    {
+      "permissionName" : "refresh-presigned-url.all",
+      "displayName" : "refresh-presigned-url all",
+      "description" : "All permissions for refresh presigned url",
+      "subPermissions" : [
+        "refresh-presigned-url.get"
       ]
     }
   ],

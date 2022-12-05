@@ -46,7 +46,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemReferenceService {
   private static final String QUERY_PATTERN_NAME = "name==\"%s\"";
-  private static final String QUERY_PATTERN_HRID = "hrid==\"%s\"";
   private static final String QUERY_PATTERN_CODE = "code==\"%s\"";
   private static final String QUERY_PATTERN_USERNAME = "username==\"%s\"";
 
@@ -79,7 +78,7 @@ public class ItemReferenceService {
     if (isEmpty(name)) {
       return null;
     }
-    var response = callNumberTypeClient.getByQuery(QUERY_PATTERN_NAME + name);
+    var response = callNumberTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
     if (response.getCallNumberTypes().isEmpty()) {
       return name;
     }
@@ -101,7 +100,7 @@ public class ItemReferenceService {
     if (isEmpty(name)) {
       return null;
     }
-    var response = damagedStatusClient.getByQuery(QUERY_PATTERN_NAME + name);
+    var response = damagedStatusClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
     if (response.getItemDamageStatuses().isEmpty()) {
       return name;
     }
@@ -123,7 +122,7 @@ public class ItemReferenceService {
     if (isEmpty(name)) {
       return null;
     }
-    var response = itemNoteTypeClient.getByQuery(QUERY_PATTERN_NAME + name);
+    var response = itemNoteTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
     if (response.getItemNoteTypes().isEmpty()) {
       return name;
     }
@@ -145,7 +144,7 @@ public class ItemReferenceService {
     if (isEmpty(name)) {
       return null;
     }
-    var response = servicePointClient.get(QUERY_PATTERN_NAME + name, 1L);
+    var response = servicePointClient.get(String.format(QUERY_PATTERN_NAME, name), 1L);
     if (response.getServicepoints().isEmpty()) {
       return name;
     }
@@ -167,7 +166,7 @@ public class ItemReferenceService {
     if (isEmpty(code)) {
       return null;
     }
-    var response = statisticalCodeClient.getByQuery(QUERY_PATTERN_CODE + code);
+    var response = statisticalCodeClient.getByQuery(String.format(QUERY_PATTERN_CODE, code));
     if (response.getStatisticalCodes().isEmpty()) {
       return code;
     }
@@ -189,7 +188,7 @@ public class ItemReferenceService {
     if (isEmpty(name)) {
       return null;
     }
-    var response = userClient.getUserByQuery(QUERY_PATTERN_USERNAME + name);
+    var response = userClient.getUserByQuery(String.format(QUERY_PATTERN_USERNAME, name));
     if (response.getUsers().isEmpty()) {
       return name;
     }

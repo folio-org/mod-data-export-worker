@@ -322,7 +322,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/users?query=username%3D%3Daf50a162-42a8-4ca2-8768-8c53630cc4ae"
+        "url": "/users?query=username%3D%3D%22af50a162-42a8-4ca2-8768-8c53630cc4ae%22"
       },
       "response": {
         "status": 200,

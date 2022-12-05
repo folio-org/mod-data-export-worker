@@ -54,7 +54,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/item-note-types?query=name%3D%3D43286219-6c16-4884-b967-65b419e48f8d"
+        "url": "/item-note-types?query=name%3D%3D%2243286219-6c16-4884-b967-65b419e48f8d%22"
       },
       "response": {
         "status": 200,

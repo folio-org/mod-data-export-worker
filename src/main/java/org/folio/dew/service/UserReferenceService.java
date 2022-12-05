@@ -53,7 +53,7 @@ public class UserReferenceService {
     if (isEmpty(desc)) {
       return null;
     } else {
-      var response = addressTypeClient.getAddressTypeByQuery("desc==" + desc);
+      var response = addressTypeClient.getAddressTypeByQuery(String.format("desc==\"%s\"", desc));
       if (response.getAddressTypes().isEmpty()) {
         return desc;
       }
@@ -76,7 +76,7 @@ public class UserReferenceService {
     if (isEmpty(name)) {
       return null;
     } else {
-      var response = departmentClient.getDepartmentByQuery("name==" + name);
+      var response = departmentClient.getDepartmentByQuery(String.format("name==\"%s\"", name));
       if (response.getDepartments().isEmpty()) {
         return name;
       }

@@ -123,7 +123,7 @@ public class ItemReferenceService {
     if (isEmpty(name)) {
       return null;
     }
-    var response = itemNoteTypeClient.getByQuery(NAME + name);
+    var response = itemNoteTypeClient.getByQuery(QUERY_PATTERN_NAME + name);
     if (response.getItemNoteTypes().isEmpty()) {
       return name;
     }
@@ -145,7 +145,7 @@ public class ItemReferenceService {
     if (isEmpty(name)) {
       return null;
     }
-    var response = servicePointClient.get(NAME + name, 1L);
+    var response = servicePointClient.get(QUERY_PATTERN_NAME + name, 1L);
     if (response.getServicepoints().isEmpty()) {
       return name;
     }
@@ -189,7 +189,7 @@ public class ItemReferenceService {
     if (isEmpty(name)) {
       return null;
     }
-    var response = userClient.getUserByQuery(USERNAME + name);
+    var response = userClient.getUserByQuery(QUERY_PATTERN_USERNAME + name);
     if (response.getUsers().isEmpty()) {
       return name;
     }

@@ -16,6 +16,7 @@ import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemFormat;
+import org.folio.dew.domain.dto.ItemNote;
 import org.folio.dew.domain.dto.Title;
 import org.folio.dew.service.ElectronicAccessService;
 import org.folio.dew.service.ItemReferenceService;
@@ -24,6 +25,7 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
 
 import java.util.stream.Collectors;
 
@@ -78,7 +80,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .itemDamagedStatus(itemReferenceService.getDamagedStatusNameById(item.getItemDamagedStatusId(), errorServiceArgs))
       .itemDamagedStatusDate(item.getItemDamagedStatusDate())
       .administrativeNotes(isEmpty(item.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getAdministrativeNotes())))
-      .notes(fetchNotes(item))
+      .notes(fetchNotes(item, errorServiceArgs))
       .circulationNotes(fetchCirculationNotes(item))
       .status(String.join(ARRAY_DELIMITER, item.getStatus().getName().getValue(), dateToString(item.getStatus().getDate())))
       .materialType(item.getMaterialType().getName())
@@ -93,7 +95,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .statisticalCodes(fetchStatisticalCodes(item, errorServiceArgs))
       .purchaseOrderLineIdentifier(item.getPurchaseOrderLineIdentifier())
       .tags(isEmpty(item.getTags().getTagList()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getTags().getTagList())))
-      .lastCheckIn(lastCheckInToString(item.getLastCheckIn()))
+      .lastCheckIn(lastCheckInToString(item, errorServiceArgs))
       .build();
     itemFormat.setElectronicAccess(electronicAccessService.getElectronicAccessesToString(item.getElectronicAccess(), itemFormat.getIdentifier(identifierType), jobId, FilenameUtils.getName(fileName)));
     return itemFormat;
@@ -116,7 +118,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       isEmpty(components.getCallNumber()) ? EMPTY : escaper.escape(components.getCallNumber()),
       isEmpty(components.getPrefix()) ? EMPTY : escaper.escape(components.getPrefix()),
       isEmpty(components.getSuffix()) ? EMPTY : escaper.escape(components.getSuffix()),
-      isNull(callNumberType) ? EMPTY : escaper.escape(callNumberType.getName()));
+      escaper.escape(itemReferenceService.getCallNumberTypeNameById(components.getTypeId(), args)));
   }
 
   private String fetchNotes(Item item, ErrorServiceArgs args) {
@@ -130,10 +132,10 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
         .collect(Collectors.joining(ITEM_DELIMITER));
   }
 
-  private String itemNoteToString(ItemNote itemNote) {
-    var noteType = isEmpty(itemNote.getItemNoteTypeId()) ? null : itemReferenceService.getNoteTypeById(itemNote.getItemNoteTypeId());
+  private String itemNoteToString(ItemNote itemNote, ErrorServiceArgs args) {
+    var noteTypeName = itemReferenceService.getNoteTypeNameById(itemNote.getItemNoteTypeId(), args);
     return String.join(ARRAY_DELIMITER,
-      isNull(noteType) ? null : escaper.escape(noteType.getName()),
+      escaper.escape(noteTypeName),
       escaper.escape(itemNote.getNote()),
       escaper.escape(itemNote.getStaffOnly().toString()));
   }
@@ -192,7 +194,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       escaper.escape(itemReferenceService.getUserNameById(lastCheckIn.getStaffMemberId(), args)),
       lastCheckIn.getDateTime());
   }
-  
+
   private String getIdentifier(Item item, String identifierType) {
     try {
       switch (IdentifierType.fromValue(identifierType)) {
@@ -212,4 +214,5 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
     } catch (IllegalArgumentException e) {
       return item.getId();
     }
+  }
 }

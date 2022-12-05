@@ -1,11 +1,10 @@
 package org.folio.dew.service;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.Constants.BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE;
 import static org.folio.dew.utils.Constants.MODULE_NAME;
-import static org.folio.dew.utils.Constants.QUOTE;
 import static org.folio.dew.utils.Constants.STATUSES_CONFIG_NAME;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -17,9 +16,7 @@ import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.CallNumberTypeClient;
 import org.folio.dew.client.ConfigurationClient;
 import org.folio.dew.client.DamagedStatusClient;
-import org.folio.dew.client.ElectronicAccessRelationshipClient;
 import org.folio.dew.client.HoldingClient;
-import org.folio.dew.client.InstanceClient;
 import org.folio.dew.client.ItemNoteTypeClient;
 import org.folio.dew.client.LoanTypeClient;
 import org.folio.dew.client.LocationClient;
@@ -27,30 +24,13 @@ import org.folio.dew.client.MaterialTypeClient;
 import org.folio.dew.client.ServicePointClient;
 import org.folio.dew.client.StatisticalCodeClient;
 import org.folio.dew.client.UserClient;
-import org.folio.dew.domain.dto.BriefHoldingsRecord;
-import org.folio.dew.domain.dto.BriefHoldingsRecordCollection;
-import org.folio.dew.domain.dto.BriefInstance;
-import org.folio.dew.domain.dto.BriefInstanceCollection;
-import org.folio.dew.domain.dto.CallNumberType;
-import org.folio.dew.domain.dto.CallNumberTypeCollection;
-import org.folio.dew.domain.dto.DamagedStatus;
-import org.folio.dew.domain.dto.DamagedStatusCollection;
-import org.folio.dew.domain.dto.ElectronicAccessRelationship;
-import org.folio.dew.domain.dto.ElectronicAccessRelationshipCollection;
+import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.ItemLocation;
 import org.folio.dew.domain.dto.ItemLocationCollection;
 import org.folio.dew.domain.dto.LoanType;
 import org.folio.dew.domain.dto.LoanTypeCollection;
 import org.folio.dew.domain.dto.MaterialType;
 import org.folio.dew.domain.dto.MaterialTypeCollection;
-import org.folio.dew.domain.dto.NoteType;
-import org.folio.dew.domain.dto.NoteTypeCollection;
-import org.folio.dew.domain.dto.ServicePoint;
-import org.folio.dew.domain.dto.ServicePoints;
-import org.folio.dew.domain.dto.StatisticalCode;
-import org.folio.dew.domain.dto.StatisticalCodeCollection;
-import org.folio.dew.domain.dto.User;
-import org.folio.dew.domain.dto.UserCollection;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.ConfigurationException;
 import org.folio.dew.error.NotFoundException;
@@ -65,155 +45,159 @@ import java.util.List;
 @Log4j2
 @RequiredArgsConstructor
 public class ItemReferenceService {
-  private static final String NAME = "name==";
-  private static final String HRID = "hrid==";
-  private static final String CODE = "code==";
-  private static final String USERNAME = "username==";
+  private static final String QUERY_PATTERN_NAME = "name==\"%s\"";
+  private static final String QUERY_PATTERN_CODE = "code==\"%s\"";
+  private static final String QUERY_PATTERN_USERNAME = "username==\"%s\"";
 
   private final CallNumberTypeClient callNumberTypeClient;
   private final DamagedStatusClient damagedStatusClient;
   private final ItemNoteTypeClient itemNoteTypeClient;
-  private final ElectronicAccessRelationshipClient relationshipClient;
   private final ServicePointClient servicePointClient;
   private final StatisticalCodeClient statisticalCodeClient;
   private final UserClient userClient;
   private final LocationClient locationClient;
   private final MaterialTypeClient materialTypeClient;
   private final HoldingClient holdingClient;
-  private final InstanceClient instanceClient;
   private final LoanTypeClient loanTypeClient;
   private final ConfigurationClient configurationClient;
   private final ObjectMapper objectMapper;
+  private final BulkEditProcessingErrorsService errorsService;
 
-  @Cacheable(cacheNames = "callNumberTypes")
-  public CallNumberType getCallNumberTypeById(String id) {
-    return callNumberTypeClient.getById(id);
-  }
-
-  @Cacheable(cacheNames = "callNumberTypes")
-  public CallNumberTypeCollection getCallNumberTypesByName(String name) {
-    return callNumberTypeClient.getByQuery(NAME + name);
-  }
-
-  public CallNumberType getCallNumberTypeByName(String name) {
-    var callNumberTypes = getCallNumberTypesByName(name);
-    if (callNumberTypes.getCallNumberTypes().isEmpty()) {
-      throw new BulkEditException("Call number type not found: " + name);
+  @Cacheable(cacheNames = "callNumberTypeNames")
+  public String getCallNumberTypeNameById(String callNumberTypeId, ErrorServiceArgs args) {
+    try {
+      return isEmpty(callNumberTypeId) ? EMPTY : callNumberTypeClient.getById(callNumberTypeId).getName();
+    } catch (NotFoundException e) {
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Call number type was not found by id: [%s]", callNumberTypeId)), args.getFileName());
+      return callNumberTypeId;
     }
-    return callNumberTypes.getCallNumberTypes().get(0);
   }
 
-  @Cacheable(cacheNames = "damagedStatuses")
-  public DamagedStatus getDamagedStatusById(String id) {
-    return damagedStatusClient.getById(id);
-  }
-
-  @Cacheable(cacheNames = "damagedStatuses")
-  public DamagedStatusCollection getDamagedStatusesByName(String name) {
-    return damagedStatusClient.getByQuery(NAME + name);
-  }
-
-  public DamagedStatus getDamagedStatusByName(String name) {
-    var statuses = getDamagedStatusesByName(name);
-    if (statuses.getItemDamageStatuses().isEmpty()) {
-      throw new BulkEditException("Damaged status not found: " + name);
+  @Cacheable(cacheNames = "callNumberTypeIds")
+  public String getCallNumberTypeIdByName(String name) {
+    if (isEmpty(name)) {
+      return null;
     }
-    return statuses.getItemDamageStatuses().get(0);
-  }
-
-  @Cacheable(cacheNames = "noteTypes")
-  public NoteType getNoteTypeById(String id) {
-    return itemNoteTypeClient.getById(id);
-  }
-
-  @Cacheable(cacheNames = "noteTypes")
-  public NoteTypeCollection getNoteTypesByName(String name) {
-    return itemNoteTypeClient.getByQuery(NAME + name);
-  }
-
-  public NoteType getNoteTypeByName(String name) {
-    var noteTypes = getNoteTypesByName(name);
-    if (noteTypes.getItemNoteTypes().isEmpty()) {
-      throw new BulkEditException("Note type not found: " + name);
+    var response = callNumberTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
+    if (response.getCallNumberTypes().isEmpty()) {
+      return name;
     }
-    return noteTypes.getItemNoteTypes().get(0);
+    return response.getCallNumberTypes().get(0).getId();
   }
 
-  @Cacheable(cacheNames = "relationships")
-  public ElectronicAccessRelationship getRelationshipById(String id) {
-    return relationshipClient.getById(id);
-  }
-
-  @Cacheable(cacheNames = "relationships")
-  public ElectronicAccessRelationshipCollection getRelationshipsByName(String name) {
-    return relationshipClient.getByQuery(NAME + name);
-  }
-
-  public ElectronicAccessRelationship getElectronicAccessRelationshipByName(String name) {
-    var relationships = getRelationshipsByName(name);
-    if (relationships.getElectronicAccessRelationships().isEmpty()) {
-      throw new BulkEditException("Electronic access relationship not found: " + name);
+  @Cacheable(cacheNames = "damagedStatusNames")
+  public String getDamagedStatusNameById(String damagedStatusId, ErrorServiceArgs args) {
+    try {
+      return isEmpty(damagedStatusId) ? EMPTY : damagedStatusClient.getById(damagedStatusId).getName();
+    } catch (NotFoundException e) {
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Damaged status was not found by id: [%s]", damagedStatusId)), args.getFileName());
+      return damagedStatusId;
     }
-    return relationships.getElectronicAccessRelationships().get(0);
   }
 
-  @Cacheable(cacheNames = "servicePoints")
-  public ServicePoint getServicePointById(String id) {
-    return servicePointClient.getById(id);
-  }
-
-  @Cacheable(cacheNames = "servicePoints")
-  public ServicePoints getServicePointsByName(String name) {
-    return servicePointClient.get(NAME + name, 1L);
-  }
-
-  public ServicePoint getServicePointByName(String name) {
-    var servicePoints = getServicePointsByName(name);
-    if (servicePoints.getServicepoints().isEmpty()) {
-      throw new BulkEditException("Service point not found: " + name);
+  @Cacheable(cacheNames = "damagedStatusIds")
+  public String getDamagedStatusIdByName(String name) {
+    if (isEmpty(name)) {
+      return null;
     }
-    return servicePoints.getServicepoints().get(0);
-  }
-
-  @Cacheable(cacheNames = "statisticalCodes")
-  public StatisticalCode getStatisticalCodeById(String id) {
-    return statisticalCodeClient.getById(id);
-  }
-
-  @Cacheable(cacheNames = "statisticalCodes")
-  public StatisticalCodeCollection getStatisticalCodesByCode(String code) {
-    return statisticalCodeClient.getByQuery(CODE + code);
-  }
-
-  public StatisticalCode getStatisticalCodeByName(String name) {
-    var codes = getStatisticalCodesByCode(name);
-    if (codes.getStatisticalCodes().isEmpty()) {
-      throw new BulkEditException("Statistical code not found: " + name);
+    var response = damagedStatusClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
+    if (response.getItemDamageStatuses().isEmpty()) {
+      return name;
     }
-    return codes.getStatisticalCodes().get(0);
+    return response.getItemDamageStatuses().get(0).getId();
   }
 
-  @Cacheable(cacheNames = "users")
-  public User getStaffMemberById(String id) {
-    return userClient.getUserById(id);
-  }
-
-  @Cacheable(cacheNames = "users")
-  public UserCollection getUsersByUsername(String username) {
-    return userClient.getUserByQuery(USERNAME + username);
-  }
-
-  public User getUserByUserName(String name) {
-    var users = getUsersByUsername(name);
-    if (users.getUsers().isEmpty()) {
-      throw new BulkEditException("User not found: " + name);
+  @Cacheable(cacheNames = "noteTypeNames")
+  public String getNoteTypeNameById(String noteTypeId, ErrorServiceArgs args) {
+    try {
+      return isEmpty(noteTypeId) ? EMPTY : itemNoteTypeClient.getById(noteTypeId).getName();
+    } catch (NotFoundException e) {
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Note type was not found by id: [%s]", noteTypeId)), args.getFileName());
+      return noteTypeId;
     }
-    return users.getUsers().get(0);
+  }
+
+  @Cacheable(cacheNames = "noteTypeIds")
+  public String getNoteTypeIdByName(String name) {
+    if (isEmpty(name)) {
+      return null;
+    }
+    var response = itemNoteTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
+    if (response.getItemNoteTypes().isEmpty()) {
+      return name;
+    }
+    return response.getItemNoteTypes().get(0).getId();
+  }
+
+  @Cacheable(cacheNames = "servicePointNames")
+  public String getServicePointNameById(String servicePointId, ErrorServiceArgs args) {
+    try {
+      return isEmpty(servicePointId) ? EMPTY : servicePointClient.getById(servicePointId).getName();
+    } catch (NotFoundException e) {
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Service point was not found by id: [%s]", servicePointId)), args.getFileName());
+      return servicePointId;
+    }
+  }
+
+  @Cacheable(cacheNames = "servicePointIds")
+  public String getServicePointIdByName(String name) {
+    if (isEmpty(name)) {
+      return null;
+    }
+    var response = servicePointClient.get(String.format(QUERY_PATTERN_NAME, name), 1L);
+    if (response.getServicepoints().isEmpty()) {
+      return name;
+    }
+    return response.getServicepoints().get(0).getId();
+  }
+
+  @Cacheable(cacheNames = "statisticalCodeNames")
+  public String getStatisticalCodeById(String statisticalCodeId, ErrorServiceArgs args) {
+    try {
+      return isEmpty(statisticalCodeId) ? EMPTY : statisticalCodeClient.getById(statisticalCodeId).getCode();
+    } catch (NotFoundException e) {
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Statistical code was not found by id: [%s]", statisticalCodeId)), args.getFileName());
+      return statisticalCodeId;
+    }
+  }
+
+  @Cacheable(cacheNames = "statisticalCodeIds")
+  public String getStatisticalCodeIdByCode(String code) {
+    if (isEmpty(code)) {
+      return null;
+    }
+    var response = statisticalCodeClient.getByQuery(String.format(QUERY_PATTERN_CODE, code));
+    if (response.getStatisticalCodes().isEmpty()) {
+      return code;
+    }
+    return response.getStatisticalCodes().get(0).getId();
+  }
+
+  @Cacheable(cacheNames = "userNames")
+  public String getUserNameById(String userId, ErrorServiceArgs args) {
+    try {
+      return isEmpty(userId) ? EMPTY : userClient.getUserById(userId).getUsername();
+    } catch (NotFoundException e) {
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("User name was not found by id: [%s]", userId)), args.getFileName());
+      return userId;
+    }
+  }
+
+  @Cacheable(cacheNames = "userIds")
+  public String getUserIdByUserName(String name) {
+    if (isEmpty(name)) {
+      return null;
+    }
+    var response = userClient.getUserByQuery(String.format(QUERY_PATTERN_USERNAME, name));
+    if (response.getUsers().isEmpty()) {
+      return name;
+    }
+    return response.getUsers().get(0).getId();
   }
 
   @Cacheable(cacheNames = "locations")
   public ItemLocationCollection getItemLocationsByName(String name) {
-    return locationClient.getLocationByQuery(NAME + QUOTE + name + QUOTE);
+    return locationClient.getLocationByQuery(String.format(QUERY_PATTERN_NAME, name));
   }
 
   public ItemLocation getLocationByName(String name) {
@@ -226,7 +210,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "materialTypes")
   public MaterialTypeCollection getMaterialTypesByName(String name) {
-    return materialTypeClient.getByQuery(NAME + name);
+    return materialTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
   }
 
   public MaterialType getMaterialTypeByName(String name) {
@@ -237,35 +221,9 @@ public class ItemReferenceService {
     return types.getMtypes().get(0);
   }
 
-  @Cacheable(cacheNames = "briefHoldings")
-  public BriefHoldingsRecordCollection getBriefHoldingsByHrid(String hrid) {
-    return holdingClient.getBriefHoldingsByQuery(HRID + hrid);
-  }
-
-  public BriefHoldingsRecord getBriefHoldingsRecordByHrid(String hrid) {
-    var holdings = getBriefHoldingsByHrid(hrid);
-    if (holdings.getHoldingsRecords().isEmpty()) {
-      throw new BulkEditException("Holdings record not found: " + hrid);
-    }
-    return holdings.getHoldingsRecords().get(0);
-  }
-
-  @Cacheable(cacheNames = "briefInstances")
-  public BriefInstanceCollection getBriefInstancesByHrid(String hrid) {
-    return instanceClient.getByQuery(HRID + hrid);
-  }
-
-  public BriefInstance getBriefInstanceByHrid(String hrid) {
-    var instances = getBriefInstancesByHrid(hrid);
-    if (instances.getInstances().isEmpty()) {
-      throw new BulkEditException("Instance not found: " + hrid);
-    }
-    return instances.getInstances().get(0);
-  }
-
   @Cacheable(cacheNames = "loanTypes")
   public LoanTypeCollection getLoanTypesByName(String name) {
-    return loanTypeClient.getByQuery(NAME + name);
+    return loanTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
   }
 
   public LoanType getLoanTypeByName(String name) {
@@ -279,10 +237,10 @@ public class ItemReferenceService {
   @Cacheable(cacheNames = "holdings")
   public String getHoldingEffectiveLocationCodeById(String id) {
     var holdingJson = holdingClient.getHoldingById(id);
-    var effectiveLocationId = isNull(holdingJson.get("effectiveLocationId")) ? getHoldingsEffectiveLocation(holdingJson) : holdingJson.get("effectiveLocationId");
+    var effectiveLocationId = isEmpty(holdingJson.get("effectiveLocationId")) ? getHoldingsEffectiveLocation(holdingJson) : holdingJson.get("effectiveLocationId");
     if (nonNull(effectiveLocationId)) {
       var locationJson = locationClient.getLocation(effectiveLocationId.asText());
-      return isNull(locationJson.get("name")) ? EMPTY : locationJson.get("name").asText();
+      return isEmpty(locationJson.get("name")) ? EMPTY : locationJson.get("name").asText();
     }
     return EMPTY;
   }
@@ -305,6 +263,6 @@ public class ItemReferenceService {
   }
 
   private JsonNode getHoldingsEffectiveLocation(JsonNode holdingsJson) {
-    return isNull(holdingsJson.get("temporaryLocationId")) ? holdingsJson.get("permanentLocationId") : holdingsJson.get("temporaryLocationId");
+    return isEmpty(holdingsJson.get("temporaryLocationId")) ? holdingsJson.get("permanentLocationId") : holdingsJson.get("temporaryLocationId");
   }
 }

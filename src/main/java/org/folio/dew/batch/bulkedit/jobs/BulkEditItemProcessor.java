@@ -1,6 +1,5 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
-import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
@@ -13,18 +12,20 @@ import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.domain.dto.CirculationNote;
 import org.folio.dew.domain.dto.ContributorName;
 import org.folio.dew.domain.dto.EffectiveCallNumberComponents;
+import org.folio.dew.domain.dto.ErrorServiceArgs;
+import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.domain.dto.ItemNote;
-import org.folio.dew.domain.dto.LastCheckIn;
-import org.folio.dew.domain.dto.StatisticalCode;
 import org.folio.dew.domain.dto.Title;
 import org.folio.dew.service.ElectronicAccessService;
 import org.folio.dew.service.ItemReferenceService;
+import org.folio.dew.service.SpecialCharacterEscaper;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
 
 import java.util.stream.Collectors;
 
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
   private final ItemReferenceService itemReferenceService;
   private final ElectronicAccessService electronicAccessService;
+  private final SpecialCharacterEscaper escaper;
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
@@ -45,15 +47,13 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
 
   @Override
   public ItemFormat process(Item item) {
-    var callNumberType = isEmpty(item.getItemLevelCallNumberTypeId()) ? null : itemReferenceService.getCallNumberTypeById(item.getItemLevelCallNumberTypeId());
-    var damagedStatus = isEmpty(item.getItemDamagedStatusId()) ? null : itemReferenceService.getDamagedStatusById(item.getItemDamagedStatusId());
-    var inTransitServicePoint = isEmpty(item.getInTransitDestinationServicePointId()) ? null : itemReferenceService.getServicePointById(item.getInTransitDestinationServicePointId());
+    var errorServiceArgs = new ErrorServiceArgs(jobId, getIdentifier(item, identifierType), FilenameUtils.getName(fileName));
     var itemFormat = ItemFormat.builder()
       .id(item.getId())
       .version(isEmpty(item.getVersion()) ? EMPTY : Integer.toString(item.getVersion()))
       .hrid(item.getHrid())
       .holdingsRecordId(item.getHoldingsRecordId())
-      .formerIds(isEmpty(item.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, item.getFormerIds()))
+      .formerIds(isEmpty(item.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getFormerIds())))
       .discoverySuppress(isEmpty(item.getDiscoverySuppress()) ? EMPTY : item.getDiscoverySuppress().toString())
       .title(item.getTitle())
       .contributorNames(fetchContributorNames(item))
@@ -64,12 +64,12 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .itemLevelCallNumber(item.getItemLevelCallNumber())
       .itemLevelCallNumberPrefix(item.getItemLevelCallNumberPrefix())
       .itemLevelCallNumberSuffix(item.getItemLevelCallNumberSuffix())
-      .itemLevelCallNumberType(isNull(callNumberType) ? EMPTY : callNumberType.getName())
-      .effectiveCallNumberComponents(effectiveCallNumberComponentsToString(item.getEffectiveCallNumberComponents()))
+      .itemLevelCallNumberType(itemReferenceService.getCallNumberTypeNameById(item.getItemLevelCallNumberTypeId(), errorServiceArgs))
+      .effectiveCallNumberComponents(effectiveCallNumberComponentsToString(item.getEffectiveCallNumberComponents(), errorServiceArgs))
       .volume(item.getVolume())
       .enumeration(item.getEnumeration())
       .chronology(item.getChronology())
-      .yearCaption(isEmpty(item.getYearCaption()) ? EMPTY : String.join(ARRAY_DELIMITER, item.getYearCaption()))
+      .yearCaption(isEmpty(item.getYearCaption()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getYearCaption())))
       .itemIdentifier(item.getItemIdentifier())
       .copyNumber(item.getCopyNumber())
       .numberOfPieces(item.getNumberOfPieces())
@@ -77,10 +77,10 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .numberOfMissingPieces(item.getNumberOfMissingPieces())
       .missingPieces(item.getMissingPieces())
       .missingPiecesDate(item.getMissingPiecesDate())
-      .itemDamagedStatus(isNull(damagedStatus) ? EMPTY : damagedStatus.getName())
+      .itemDamagedStatus(itemReferenceService.getDamagedStatusNameById(item.getItemDamagedStatusId(), errorServiceArgs))
       .itemDamagedStatusDate(item.getItemDamagedStatusDate())
-      .administrativeNotes(isEmpty(item.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, item.getAdministrativeNotes()))
-      .notes(fetchNotes(item))
+      .administrativeNotes(isEmpty(item.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getAdministrativeNotes())))
+      .notes(fetchNotes(item, errorServiceArgs))
       .circulationNotes(fetchCirculationNotes(item))
       .status(String.join(ARRAY_DELIMITER, item.getStatus().getName().getValue(), dateToString(item.getStatus().getDate())))
       .materialType(item.getMaterialType().getName())
@@ -91,11 +91,11 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .permanentLocation(isEmpty(item.getPermanentLocation()) ? EMPTY : item.getPermanentLocation().getName())
       .temporaryLocation(isEmpty(item.getTemporaryLocation()) ? EMPTY : item.getTemporaryLocation().getName())
       .effectiveLocation(isEmpty(item.getEffectiveLocation()) ? EMPTY : item.getEffectiveLocation().getName())
-      .inTransitDestinationServicePoint(isNull(inTransitServicePoint) ? EMPTY : inTransitServicePoint.getName())
-      .statisticalCodes(fetchStatisticalCodes(item))
+      .inTransitDestinationServicePoint(itemReferenceService.getServicePointNameById(item.getInTransitDestinationServicePointId(), errorServiceArgs))
+      .statisticalCodes(fetchStatisticalCodes(item, errorServiceArgs))
       .purchaseOrderLineIdentifier(item.getPurchaseOrderLineIdentifier())
-      .tags(isEmpty(item.getTags().getTagList()) ? EMPTY : String.join(ARRAY_DELIMITER, item.getTags().getTagList()))
-      .lastCheckIn(lastCheckInToString(item.getLastCheckIn()))
+      .tags(isEmpty(item.getTags().getTagList()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getTags().getTagList())))
+      .lastCheckIn(lastCheckInToString(item, errorServiceArgs))
       .build();
     itemFormat.setElectronicAccess(electronicAccessService.getElectronicAccessesToString(item.getElectronicAccess(), itemFormat.getIdentifier(identifierType), jobId, FilenameUtils.getName(fileName)));
     return itemFormat;
@@ -106,35 +106,30 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       EMPTY :
       item.getContributorNames().stream()
         .map(ContributorName::getName)
+        .map(escaper::escape)
         .collect(Collectors.joining(ARRAY_DELIMITER));
   }
 
-  private String effectiveCallNumberComponentsToString(EffectiveCallNumberComponents components) {
+  private String effectiveCallNumberComponentsToString(EffectiveCallNumberComponents components, ErrorServiceArgs args) {
     if (isEmpty(components)) {
       return EMPTY;
     }
-    var callNumberType = isEmpty(components.getTypeId()) ? null : itemReferenceService.getCallNumberTypeById(components.getTypeId());
     return String.join(ARRAY_DELIMITER,
-      isEmpty(components.getCallNumber()) ? EMPTY : components.getCallNumber(),
-      isEmpty(components.getPrefix()) ? EMPTY : components.getPrefix(),
-      isEmpty(components.getSuffix()) ? EMPTY : components.getSuffix(),
-      isNull(callNumberType) ? EMPTY : callNumberType.getName());
+      isEmpty(components.getCallNumber()) ? EMPTY : escaper.escape(components.getCallNumber()),
+      isEmpty(components.getPrefix()) ? EMPTY : escaper.escape(components.getPrefix()),
+      isEmpty(components.getSuffix()) ? EMPTY : escaper.escape(components.getSuffix()),
+      escaper.escape(itemReferenceService.getCallNumberTypeNameById(components.getTypeId(), args)));
   }
 
-  private String fetchNotes(Item item) {
+  private String fetchNotes(Item item, ErrorServiceArgs args) {
     return isEmpty(item.getNotes()) ?
       EMPTY :
       item.getNotes().stream()
-        .map(this::itemNoteToString)
+        .map(itemNote -> String.join(ARRAY_DELIMITER,
+          escaper.escape(itemReferenceService.getNoteTypeNameById(itemNote.getItemNoteTypeId(), args)),
+          escaper.escape(itemNote.getNote()),
+          escaper.escape(itemNote.getStaffOnly().toString())))
         .collect(Collectors.joining(ITEM_DELIMITER));
-  }
-
-  private String itemNoteToString(ItemNote itemNote) {
-    var noteType = isEmpty(itemNote.getItemNoteTypeId()) ? null : itemReferenceService.getNoteTypeById(itemNote.getItemNoteTypeId());
-    return String.join(ARRAY_DELIMITER,
-      isNull(noteType) ? null : noteType.getName(),
-      itemNote.getNote(),
-      itemNote.getStaffOnly().toString());
   }
 
   private String fetchCirculationNotes(Item item) {
@@ -149,11 +144,11 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
     return String.join(ARRAY_DELIMITER,
       note.getId(),
       note.getNoteType().getValue(),
-      note.getNote(),
+      escaper.escape(note.getNote()),
       note.getStaffOnly().toString(),
       isEmpty(note.getSource().getId()) ? EMPTY : note.getSource().getId(),
-      isEmpty(note.getSource().getPersonal().getLastName()) ? EMPTY : note.getSource().getPersonal().getLastName(),
-      isEmpty(note.getSource().getPersonal().getFirstName()) ? EMPTY : note.getSource().getPersonal().getFirstName(),
+      isEmpty(note.getSource().getPersonal().getLastName()) ? EMPTY : escaper.escape(note.getSource().getPersonal().getLastName()),
+      isEmpty(note.getSource().getPersonal().getFirstName()) ? EMPTY : escaper.escape(note.getSource().getPersonal().getFirstName()),
       dateToString(note.getDate()));
   }
 
@@ -167,29 +162,49 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
 
   private String titleToString(Title title) {
     return String.join(ARRAY_DELIMITER,
-      title.getBriefHoldingsRecord().getHrid(),
-      title.getBriefInstance().getHrid(),
-      title.getBriefInstance().getTitle());
+      escaper.escape(title.getBriefHoldingsRecord().getHrid()),
+      escaper.escape(title.getBriefInstance().getHrid()),
+      escaper.escape(title.getBriefInstance().getTitle()));
   }
 
-  private String fetchStatisticalCodes(Item item) {
+  private String fetchStatisticalCodes(Item item, ErrorServiceArgs args) {
     return isEmpty(item.getStatisticalCodeIds()) ?
       EMPTY :
       item.getStatisticalCodeIds().stream()
-        .map(itemReferenceService::getStatisticalCodeById)
-        .map(StatisticalCode::getCode)
+        .map(id -> itemReferenceService.getStatisticalCodeById(id, args))
+        .map(escaper::escape)
         .collect(Collectors.joining(ARRAY_DELIMITER));
   }
 
-  private String lastCheckInToString(LastCheckIn lastCheckIn) {
+  private String lastCheckInToString(Item item, ErrorServiceArgs args) {
+    var lastCheckIn = item.getLastCheckIn();
     if (isEmpty(lastCheckIn)) {
       return EMPTY;
     }
-      var servicePoint = isEmpty(lastCheckIn.getServicePointId()) ? null : itemReferenceService.getServicePointById(lastCheckIn.getServicePointId());
-      var staffMember = isEmpty(lastCheckIn.getStaffMemberId()) ? null : itemReferenceService.getStaffMemberById(lastCheckIn.getStaffMemberId());
-      return String.join(ARRAY_DELIMITER,
-        isNull(servicePoint) ? EMPTY : servicePoint.getName(),
-        isNull(staffMember) ? EMPTY : staffMember.getUsername(),
-        lastCheckIn.getDateTime());
+    return String.join(ARRAY_DELIMITER,
+      escaper.escape(itemReferenceService.getServicePointNameById(lastCheckIn.getServicePointId(), args)),
+      escaper.escape(itemReferenceService.getUserNameById(lastCheckIn.getStaffMemberId(), args)),
+      lastCheckIn.getDateTime());
+  }
+
+  private String getIdentifier(Item item, String identifierType) {
+    try {
+      switch (IdentifierType.fromValue(identifierType)) {
+      case BARCODE:
+        return item.getBarcode();
+      case HOLDINGS_RECORD_ID:
+        return item.getHoldingsRecordId();
+      case HRID:
+        return item.getHrid();
+      case FORMER_IDS:
+        return String.join(ARRAY_DELIMITER, item.getFormerIds());
+      case ACCESSION_NUMBER:
+        return item.getAccessionNumber();
+      default:
+        return item.getId();
+      }
+    } catch (IllegalArgumentException e) {
+      return item.getId();
+    }
   }
 }

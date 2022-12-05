@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/item-damaged-statuses?query=name%3D%3DNot%20Damaged"
+        "url": "/item-damaged-statuses?query=name%3D%3D%22Not%20Damaged%22"
       },
       "response": {
         "status": 200,
@@ -29,7 +29,32 @@
     {
       "request": {
         "method": "GET",
-        "url": "/item-damaged-statuses?query=name%3D%3DNotDamaged"
+        "url": "/item-damaged-statuses?query=name%3D%3D%22NotDamaged%22"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"itemDamageStatuses\": [],\n    \"totalRecords\": 0\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/item-damaged-statuses/a6236035-b88f-4d0c-a1ca-48af9bdde3c8"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/item-damaged-statuses?query=name%3D%3D%22a6236035-b88f-4d0c-a1ca-48af9bdde3c8%22"
       },
       "response": {
         "status": 200,

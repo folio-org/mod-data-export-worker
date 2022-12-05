@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/item-note-types?query=name%3D%3DNote"
+        "url": "/item-note-types?query=name%3D%3D%22Note%22"
       },
       "response": {
         "status": 200,
@@ -30,6 +30,31 @@
       "request": {
         "method": "GET",
         "url": "/item-note-types?query=name%3D%3DNote2"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"itemNoteTypes\": [],\n    \"totalRecords\": 0\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/item-note-types/43286219-6c16-4884-b967-65b419e48f8d"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/item-note-types?query=name%3D%3D%2243286219-6c16-4884-b967-65b419e48f8d%22"
       },
       "response": {
         "status": 200,

@@ -1,3 +1,12 @@
+## 2022-12-05 v2.0.5
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v2.0.4...v2.0.5)
+
+### Bug fixes
+[MODEXPW-320](https://issues.folio.org/browse/MODEXPW-320) Errors during bulk editing if entry body has special characters
+[MODEXPW-319](https://issues.folio.org/browse/MODEXPW-319) Absence of not editable fields values should not prevent bulk editing
+[MODEXPW-205](https://issues.folio.org/browse/MODEXPW-205) An error occurs when uploading file with Users without required fields
+
 ## 2022-12-02 v2.0.4
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v2.0.3...v2.0.4)

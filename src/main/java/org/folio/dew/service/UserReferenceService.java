@@ -1,6 +1,9 @@
 package org.folio.dew.service;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static java.lang.String.format;
+import static java.util.Objects.isNull;
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.AddressTypeClient;
@@ -8,18 +11,8 @@ import org.folio.dew.client.CustomFieldsClient;
 import org.folio.dew.client.DepartmentClient;
 import org.folio.dew.client.GroupClient;
 import org.folio.dew.client.OkapiClient;
-import org.folio.dew.client.ProxiesForClient;
-import org.folio.dew.client.UserClient;
-import org.folio.dew.domain.dto.AddressType;
-import org.folio.dew.domain.dto.AddressTypeCollection;
 import org.folio.dew.domain.dto.CustomField;
-import org.folio.dew.domain.dto.Department;
-import org.folio.dew.domain.dto.DepartmentCollection;
-import org.folio.dew.domain.dto.ProxyFor;
-import org.folio.dew.domain.dto.ProxyForCollection;
-import org.folio.dew.domain.dto.UserCollection;
-import org.folio.dew.domain.dto.UserGroup;
-import org.folio.dew.domain.dto.UserGroupCollection;
+import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.folio.spring.FolioExecutionContext;
@@ -40,55 +33,79 @@ public class UserReferenceService {
   private final AddressTypeClient addressTypeClient;
   private final DepartmentClient departmentClient;
   private final GroupClient groupClient;
-  private final ProxiesForClient proxiesForClient;
-  private final UserClient userClient;
   private final CustomFieldsClient customFieldsClient;
   private final FolioExecutionContext folioExecutionContext;
   private final OkapiClient okapiClient;
+  private final BulkEditProcessingErrorsService errorsService;
 
-  @Cacheable(cacheNames = "addressTypes")
-  public AddressType getAddressTypeById(String id) {
-    return addressTypeClient.getAddressTypeById(id);
+  @Cacheable(cacheNames = "addressTypeNames")
+  public String getAddressTypeDescById(String id, ErrorServiceArgs args) {
+    try {
+      return isNull(id) ? EMPTY : addressTypeClient.getAddressTypeById(id).getDesc();
+    } catch (NotFoundException e) {
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Address type was not found by id: [%s]", id)), args.getFileName());
+      return id;
+    }
   }
 
-  @Cacheable(cacheNames = "addressTypes")
-  public AddressTypeCollection getAddressTypeByDesc(String name) {
-    return addressTypeClient.getAddressTypeByQuery("desc=" + name);
+  @Cacheable(cacheNames = "addressTypeIds")
+  public String getAddressTypeIdByDesc(String desc) {
+    if (isEmpty(desc)) {
+      return null;
+    } else {
+      var response = addressTypeClient.getAddressTypeByQuery(String.format("desc==\"%s\"", desc));
+      if (response.getAddressTypes().isEmpty()) {
+        return desc;
+      }
+      return response.getAddressTypes().get(0).getId();
+    }
   }
 
-  @Cacheable(cacheNames = "departments")
-  public Department getDepartmentById(String id) {
-    return departmentClient.getDepartmentById(id);
+  @Cacheable(cacheNames = "departmentNames")
+  public String getDepartmentNameById(String id, ErrorServiceArgs args) {
+    try {
+      return isNull(id) ? EMPTY : departmentClient.getDepartmentById(id).getName();
+    } catch (NotFoundException e) {
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Department was not found by id: [%s]", id)), args.getFileName());
+      return id;
+    }
   }
 
-  @Cacheable(cacheNames = "departments")
-  public DepartmentCollection getDepartmentByName(String name) {
-    return departmentClient.getDepartmentByQuery("name=" + name);
+  @Cacheable(cacheNames = "departmentIds")
+  public String getDepartmentIdByName(String name) {
+    if (isEmpty(name)) {
+      return null;
+    } else {
+      var response = departmentClient.getDepartmentByQuery(String.format("name==\"%s\"", name));
+      if (response.getDepartments().isEmpty()) {
+        return name;
+      }
+      return response.getDepartments().get(0).getId();
+    }
   }
 
-  @Cacheable(cacheNames = "userGroups")
-  public UserGroup getUserGroupById(String id) {
-    return groupClient.getGroupById(id);
+  @Cacheable(cacheNames = "patronGroupNames")
+  public String getPatronGroupNameById(String id, ErrorServiceArgs args) {
+    try {
+      return isNull(id) ? EMPTY : groupClient.getGroupById(id).getGroup();
+    } catch (NotFoundException e) {
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Patron group was not found by id: [%s]", id)), args.getFileName());
+      return id;
+    }
   }
 
-  @Cacheable(cacheNames = "userGroups")
-  public UserGroupCollection getUserGroupByGroupName(String name) {
-    return groupClient.getGroupByQuery(String.format("group==\"%s\"", name));
-  }
-
-  @Cacheable(cacheNames = "proxies")
-  public ProxyFor getProxyForById(String id) {
-    return proxiesForClient.getProxiesForById(id);
-  }
-
-  @Cacheable(cacheNames = "proxies")
-  public ProxyForCollection getProxyForByProxyUserId(String id) {
-    return proxiesForClient.getProxiesForByQuery("proxyUserId=" + id);
-  }
-
-  @Cacheable(cacheNames = "users")
-  public UserCollection getUserByName(String name) {
-    return userClient.getUserByQuery("username=" + name);
+  @Cacheable(cacheNames = "patronGroupIds")
+  public String getPatronGroupIdByName(String name) {
+    if (isEmpty(name)) {
+      throw new BulkEditException("Patron group can not be empty");
+    }
+    var response = groupClient.getGroupByQuery(String.format("group==\"%s\"", name));
+    if (response.getUsergroups().isEmpty()) {
+      var msg = "Invalid patron group value: " + name;
+      log.error(msg);
+      throw new BulkEditException(msg);
+    }
+    return response.getUsergroups().get(0).getId();
   }
 
   @Cacheable(cacheNames = "customFields")

@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/statistical-codes?query=code%3D%3Dbooks"
+        "url": "/statistical-codes?query=code%3D%3D%22books%22"
       },
       "response": {
         "status": 200,
@@ -46,6 +46,32 @@
       },
       "response": {
         "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/statistical-codes?query=name%3D%3D%22bdc3d37d-6cd9-4429-8fb8-e40c9c239278%22"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"statisticalCodes\": [ ],\n    \"totalRecords\": 0\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/statistical-codes?query=code%3D%3D%22bdc3d37d-6cd9-4429-8fb8-e40c9c239278%22"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"statisticalCodes\": [ ],\n    \"totalRecords\": 0\n}",
         "headers": {
           "Content-Type": "application/json"
         }

@@ -1,13 +1,8 @@
 package org.folio.dew.service.mapper;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 
 import lombok.experimental.UtilityClass;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 @UtilityClass
 public class MapperHelper {
@@ -15,9 +10,4 @@ public class MapperHelper {
     return isEmpty(s) || "null".equalsIgnoreCase(s) ? null : s;
   }
 
-  public static List<String> restoreListValue(String s) {
-    return isEmpty(s) ?
-      Collections.emptyList() :
-      Arrays.asList(s.split(ARRAY_DELIMITER));
-  }
 }

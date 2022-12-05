@@ -1,5 +1,6 @@
 package org.folio.dew.client;
 
+import org.folio.dew.config.feign.FeignClientConfiguration;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserCollection;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
-@FeignClient(name = "users")
+@FeignClient(name = "users", configuration = FeignClientConfiguration.class)
 public interface UserClient {
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)

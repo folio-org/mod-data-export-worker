@@ -15,9 +15,4 @@ public class MapperHelper {
     return isEmpty(s) || "null".equalsIgnoreCase(s) ? null : s;
   }
 
-  public static List<String> restoreListValue(String s) {
-    return isEmpty(s) ?
-      Collections.emptyList() :
-      Arrays.asList(s.split(ARRAY_DELIMITER));
-  }
 }

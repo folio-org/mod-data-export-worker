@@ -3,7 +3,6 @@ package org.folio.dew.batch.bulkedit.jobs;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;

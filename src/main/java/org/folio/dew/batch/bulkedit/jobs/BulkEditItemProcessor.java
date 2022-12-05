@@ -126,9 +126,9 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       EMPTY :
       item.getNotes().stream()
         .map(itemNote -> String.join(ARRAY_DELIMITER,
-          itemReferenceService.getNoteTypeNameById(itemNote.getItemNoteTypeId(), args),
-          itemNote.getNote(),
-          itemNote.getStaffOnly().toString()))
+          escaper.escape(itemReferenceService.getNoteTypeNameById(itemNote.getItemNoteTypeId(), args)),
+          escaper.escape(itemNote.getNote()),
+          escaper.escape(itemNote.getStaffOnly().toString())))
         .collect(Collectors.joining(ITEM_DELIMITER));
   }
 

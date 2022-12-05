@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/item-damaged-statuses?query=name%3D%3DNot%20Damaged"
+        "url": "/item-damaged-statuses?query=name%3D%3D%22Not%20Damaged%22"
       },
       "response": {
         "status": 200,
@@ -29,7 +29,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/item-damaged-statuses?query=name%3D%3DNotDamaged"
+        "url": "/item-damaged-statuses?query=name%3D%3D%22NotDamaged%22"
       },
       "response": {
         "status": 200,

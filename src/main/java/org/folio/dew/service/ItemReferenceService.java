@@ -5,7 +5,6 @@ import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.Constants.BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE;
 import static org.folio.dew.utils.Constants.MODULE_NAME;
-import static org.folio.dew.utils.Constants.QUOTE;
 import static org.folio.dew.utils.Constants.STATUSES_CONFIG_NAME;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -65,10 +64,10 @@ import java.util.List;
 @Log4j2
 @RequiredArgsConstructor
 public class ItemReferenceService {
-  private static final String NAME = "name==";
-  private static final String HRID = "hrid==";
-  private static final String CODE = "code==";
-  private static final String USERNAME = "username==";
+  private static final String QUERY_PATTERN_NAME = "name==\"%s\"";
+  private static final String QUERY_PATTERN_HRID = "hrid==\"%s\"";
+  private static final String QUERY_PATTERN_CODE = "code==\"%s\"";
+  private static final String QUERY_PATTERN_USERNAME = "username==\"%s\"";
 
   private final CallNumberTypeClient callNumberTypeClient;
   private final DamagedStatusClient damagedStatusClient;
@@ -92,7 +91,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "callNumberTypes")
   public CallNumberTypeCollection getCallNumberTypesByName(String name) {
-    return callNumberTypeClient.getByQuery(NAME + name);
+    return callNumberTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
   }
 
   public CallNumberType getCallNumberTypeByName(String name) {
@@ -110,7 +109,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "damagedStatuses")
   public DamagedStatusCollection getDamagedStatusesByName(String name) {
-    return damagedStatusClient.getByQuery(NAME + name);
+    return damagedStatusClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
   }
 
   public DamagedStatus getDamagedStatusByName(String name) {
@@ -128,7 +127,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "noteTypes")
   public NoteTypeCollection getNoteTypesByName(String name) {
-    return itemNoteTypeClient.getByQuery(NAME + name);
+    return itemNoteTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
   }
 
   public NoteType getNoteTypeByName(String name) {
@@ -146,7 +145,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "relationships")
   public ElectronicAccessRelationshipCollection getRelationshipsByName(String name) {
-    return relationshipClient.getByQuery(NAME + name);
+    return relationshipClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
   }
 
   public ElectronicAccessRelationship getElectronicAccessRelationshipByName(String name) {
@@ -164,7 +163,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "servicePoints")
   public ServicePoints getServicePointsByName(String name) {
-    return servicePointClient.get(NAME + name, 1L);
+    return servicePointClient.get(String.format(QUERY_PATTERN_NAME, name), 1L);
   }
 
   public ServicePoint getServicePointByName(String name) {
@@ -182,7 +181,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "statisticalCodes")
   public StatisticalCodeCollection getStatisticalCodesByCode(String code) {
-    return statisticalCodeClient.getByQuery(CODE + code);
+    return statisticalCodeClient.getByQuery(String.format(QUERY_PATTERN_CODE, code));
   }
 
   public StatisticalCode getStatisticalCodeByName(String name) {
@@ -200,7 +199,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "users")
   public UserCollection getUsersByUsername(String username) {
-    return userClient.getUserByQuery(USERNAME + username);
+    return userClient.getUserByQuery(String.format(QUERY_PATTERN_USERNAME, username));
   }
 
   public User getUserByUserName(String name) {
@@ -213,7 +212,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "locations")
   public ItemLocationCollection getItemLocationsByName(String name) {
-    return locationClient.getLocationByQuery(NAME + QUOTE + name + QUOTE);
+    return locationClient.getLocationByQuery(String.format(QUERY_PATTERN_NAME, name));
   }
 
   public ItemLocation getLocationByName(String name) {
@@ -226,7 +225,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "materialTypes")
   public MaterialTypeCollection getMaterialTypesByName(String name) {
-    return materialTypeClient.getByQuery(NAME + name);
+    return materialTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
   }
 
   public MaterialType getMaterialTypeByName(String name) {
@@ -239,7 +238,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "briefHoldings")
   public BriefHoldingsRecordCollection getBriefHoldingsByHrid(String hrid) {
-    return holdingClient.getBriefHoldingsByQuery(HRID + hrid);
+    return holdingClient.getBriefHoldingsByQuery(String.format(QUERY_PATTERN_HRID, hrid));
   }
 
   public BriefHoldingsRecord getBriefHoldingsRecordByHrid(String hrid) {
@@ -252,7 +251,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "briefInstances")
   public BriefInstanceCollection getBriefInstancesByHrid(String hrid) {
-    return instanceClient.getByQuery(HRID + hrid);
+    return instanceClient.getByQuery(String.format(QUERY_PATTERN_HRID, hrid));
   }
 
   public BriefInstance getBriefInstanceByHrid(String hrid) {
@@ -265,7 +264,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "loanTypes")
   public LoanTypeCollection getLoanTypesByName(String name) {
-    return loanTypeClient.getByQuery(NAME + name);
+    return loanTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
   }
 
   public LoanType getLoanTypeByName(String name) {

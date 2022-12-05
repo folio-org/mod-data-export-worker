@@ -132,14 +132,6 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
         .collect(Collectors.joining(ITEM_DELIMITER));
   }
 
-  private String itemNoteToString(ItemNote itemNote, ErrorServiceArgs args) {
-    var noteTypeName = itemReferenceService.getNoteTypeNameById(itemNote.getItemNoteTypeId(), args);
-    return String.join(ARRAY_DELIMITER,
-      escaper.escape(noteTypeName),
-      escaper.escape(itemNote.getNote()),
-      escaper.escape(itemNote.getStaffOnly().toString()));
-  }
-
   private String fetchCirculationNotes(Item item) {
     return isEmpty(item.getCirculationNotes()) ?
       EMPTY :

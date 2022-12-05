@@ -5,6 +5,7 @@ import org.folio.dew.client.DepartmentClient;
 import org.folio.dew.domain.dto.AddressTypeCollection;
 import org.folio.dew.domain.dto.Department;
 import org.folio.dew.domain.dto.DepartmentCollection;
+import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,29 +28,29 @@ public class UserReferenceServiceTest {
 
   @Test
   void getAddressTypeByDescTest() {
-    when(addressTypeClient.getAddressTypeByQuery("desc=\"name\"")).thenReturn(new AddressTypeCollection());
+    when(addressTypeClient.getAddressTypeByQuery("desc==\"abc\"")).thenReturn(new AddressTypeCollection());
 
-    userReferenceService.getAddressTypeByDesc("name");
+    userReferenceService.getAddressTypeIdByDesc("abc");
 
-    verify(addressTypeClient).getAddressTypeByQuery("desc=\"name\"");
+    verify(addressTypeClient).getAddressTypeByQuery("desc==\"abc\"");
   }
 
   @Test
   void getDepartmentByIdTest() {
     when(departmentClient.getDepartmentById("id")).thenReturn(new Department());
 
-    userReferenceService.getDepartmentById("id");
+    userReferenceService.getDepartmentNameById("id", new ErrorServiceArgs("jobId", "ïdentifier", "fileName"));
 
     verify(departmentClient).getDepartmentById("id");
   }
 
   @Test
   void getDepartmentByNameTest() {
-    when(departmentClient.getDepartmentByQuery("name=\"name\"")).thenReturn(new DepartmentCollection());
+    when(departmentClient.getDepartmentByQuery("name==\"name\"")).thenReturn(new DepartmentCollection());
 
-    userReferenceService.getDepartmentByName("name");
+    userReferenceService.getDepartmentIdByName("name");
 
-    verify(departmentClient).getDepartmentByQuery("name=\"name\"");
+    verify(departmentClient).getDepartmentByQuery("name==\"name\"");
   }
 
 }

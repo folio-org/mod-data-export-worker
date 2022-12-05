@@ -64,6 +64,31 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/service-points/bf3dd85b-af88-4adf-88d0-51d7ec7bf656"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/service-points?query=name%3D%3D%22bf3dd85b-af88-4adf-88d0-51d7ec7bf656%22&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"servicepoints\": [],\n    \"totalRecords\": 0\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

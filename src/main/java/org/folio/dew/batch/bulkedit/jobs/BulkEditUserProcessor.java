@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -14,17 +15,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
-import org.folio.dew.client.UserClient;
-import org.folio.dew.domain.dto.Address;
-import org.folio.dew.domain.dto.CustomField;
-import org.folio.dew.domain.dto.User;
-import org.folio.dew.domain.dto.UserFormat;
+import org.apache.commons.io.FilenameUtils;
+import org.folio.dew.domain.dto.*;
 import org.folio.dew.error.BulkEditException;
+import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.SpecialCharacterEscaper;
 import org.folio.dew.service.UserReferenceService;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
@@ -35,22 +34,29 @@ import lombok.extern.log4j.Log4j2;
 @RequiredArgsConstructor
 @Log4j2
 public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
-  private final UserClient userClient;
   private final UserReferenceService userReferenceService;
+  private final BulkEditProcessingErrorsService errorsService;
   private final SpecialCharacterEscaper escaper;
+
+  @Value("#{jobParameters['identifierType']}")
+  private String identifierType;
+  @Value("#{jobParameters['jobId']}")
+  private String jobId;
+  @Value("#{jobParameters['fileName']}")
+  private String fileName;
 
   @Override
   public UserFormat process(User user) {
+    var errorServiceArgs = new ErrorServiceArgs(jobId, getIdentifier(user, identifierType), FilenameUtils.getName(fileName));
     return UserFormat.builder()
       .username(user.getUsername())
       .id(user.getId())
       .externalSystemId(user.getExternalSystemId())
       .barcode(user.getBarcode())
-      .active(user.getActive().toString())
+      .active((isNull(user.getActive()) ? Boolean.FALSE : user.getActive()).toString())
       .type(user.getType())
-      .patronGroup(StringUtils.isEmpty(user.getPatronGroup()) ? EMPTY : userReferenceService.getUserGroupById(user.getPatronGroup()).getGroup())
-      .departments(fetchDepartments(user))
-      .proxyFor(fetchProxyFor(user))
+      .patronGroup(userReferenceService.getPatronGroupNameById(user.getPatronGroup(), errorServiceArgs))
+      .departments(fetchDepartments(user, errorServiceArgs))
       .lastName(user.getPersonal().getLastName())
       .firstName(user.getPersonal().getFirstName())
       .middleName(user.getPersonal().getMiddleName())
@@ -59,8 +65,8 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       .phone(user.getPersonal().getPhone())
       .mobilePhone(user.getPersonal().getMobilePhone())
       .dateOfBirth(dateToString(user.getPersonal().getDateOfBirth()))
-      .addresses(addressesToString(user.getPersonal().getAddresses()))
-      .preferredContactTypeId(user.getPersonal().getPreferredContactTypeId())
+      .addresses(addressesToString(user.getPersonal().getAddresses(), errorServiceArgs))
+      .preferredContactTypeId(isNull(user.getPersonal().getPreferredContactTypeId()) ? EMPTY : user.getPersonal().getPreferredContactTypeId())
       .enrollmentDate(dateToString(user.getEnrollmentDate()))
       .expirationDate(dateToString(user.getExpirationDate()))
       .createdDate(dateToString(user.getCreatedDate()))
@@ -70,37 +76,26 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       .build();
   }
 
-  private String fetchDepartments(User user) {
+  private String fetchDepartments(User user, ErrorServiceArgs args) {
     if (nonNull(user.getDepartments())) {
       return user.getDepartments().stream()
-        .map(id -> userReferenceService.getDepartmentById(id.toString()).getName())
+        .map(id -> userReferenceService.getDepartmentNameById(id.toString(), args))
         .map(escaper::escape)
         .collect(Collectors.joining(ARRAY_DELIMITER));
     }
     return EMPTY;
   }
 
-  private String fetchProxyFor(User user) {
-    if (nonNull(user.getProxyFor())) {
-      return user.getProxyFor().stream()
-        .map(id -> userReferenceService.getProxyForById(id).getProxyUserId())
-        .map(userId -> userClient.getUserById(userId).getUsername())
-        .map(escaper::escape)
-        .collect(Collectors.joining(ARRAY_DELIMITER));
-    }
-    return EMPTY;
-  }
-
-  private String addressesToString(List<Address> addresses) {
+  private String addressesToString(List<Address> addresses, ErrorServiceArgs args) {
     if (nonNull(addresses)) {
       return addresses.stream()
-        .map(this::addressToString)
+        .map(address -> addressToString(address, args))
         .collect(Collectors.joining(ITEM_DELIMITER));
     }
     return EMPTY;
   }
 
-  private String addressToString(Address address) {
+  private String addressToString(Address address, ErrorServiceArgs args) {
     List<String> addressData = new ArrayList<>();
     addressData.add(ofNullable(address.getId()).orElse(EMPTY));
     addressData.add(ofNullable(address.getCountryId()).orElse(EMPTY));
@@ -110,9 +105,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
     addressData.add(ofNullable(address.getRegion()).orElse(EMPTY));
     addressData.add(ofNullable(address.getPostalCode()).orElse(EMPTY));
     addressData.add(nonNull(address.getPrimaryAddress()) ? address.getPrimaryAddress().toString() : EMPTY);
-    if (nonNull(address.getAddressTypeId())) {
-      addressData.add(userReferenceService.getAddressTypeById(address.getAddressTypeId()).getDesc());
-    }
+    addressData.add(userReferenceService.getAddressTypeDescById(address.getAddressTypeId(), args));
     return String.join(ARRAY_DELIMITER, escaper.escape(addressData));
   }
 
@@ -151,5 +144,22 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       .filter(selectFieldOption -> Objects.equals(id, selectFieldOption.getId()))
       .findFirst();
     return optionalValue.isPresent() ? optionalValue.get().getValue() : EMPTY;
+  }
+
+  private String getIdentifier(User user, String identifierType) {
+    try {
+      switch (IdentifierType.fromValue(identifierType)) {
+        case BARCODE:
+          return user.getBarcode();
+        case USER_NAME:
+          return user.getUsername();
+        case EXTERNAL_SYSTEM_ID:
+          return user.getExternalSystemId();
+        default:
+          return user.getId();
+      }
+    } catch (IllegalArgumentException e) {
+      return user.getId();
+    }
   }
 }

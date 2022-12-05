@@ -5,7 +5,6 @@ import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.Constants.BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE;
 import static org.folio.dew.utils.Constants.MODULE_NAME;
-import static org.folio.dew.utils.Constants.QUOTE;
 import static org.folio.dew.utils.Constants.STATUSES_CONFIG_NAME;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -46,9 +45,10 @@ import java.util.List;
 @Log4j2
 @RequiredArgsConstructor
 public class ItemReferenceService {
-  private static final String NAME = "name==";
-  private static final String CODE = "code==";
-  private static final String USERNAME = "username==";
+  private static final String QUERY_PATTERN_NAME = "name==\"%s\"";
+  private static final String QUERY_PATTERN_HRID = "hrid==\"%s\"";
+  private static final String QUERY_PATTERN_CODE = "code==\"%s\"";
+  private static final String QUERY_PATTERN_USERNAME = "username==\"%s\"";
 
   private final CallNumberTypeClient callNumberTypeClient;
   private final DamagedStatusClient damagedStatusClient;
@@ -79,7 +79,7 @@ public class ItemReferenceService {
     if (isEmpty(name)) {
       return null;
     }
-    var response = callNumberTypeClient.getByQuery(NAME + name);
+    var response = callNumberTypeClient.getByQuery(QUERY_PATTERN_NAME + name);
     if (response.getCallNumberTypes().isEmpty()) {
       return name;
     }
@@ -101,7 +101,7 @@ public class ItemReferenceService {
     if (isEmpty(name)) {
       return null;
     }
-    var response = damagedStatusClient.getByQuery(NAME + name);
+    var response = damagedStatusClient.getByQuery(QUERY_PATTERN_NAME + name);
     if (response.getItemDamageStatuses().isEmpty()) {
       return name;
     }
@@ -167,7 +167,7 @@ public class ItemReferenceService {
     if (isEmpty(code)) {
       return null;
     }
-    var response = statisticalCodeClient.getByQuery(CODE + code);
+    var response = statisticalCodeClient.getByQuery(QUERY_PATTERN_CODE + code);
     if (response.getStatisticalCodes().isEmpty()) {
       return code;
     }
@@ -198,7 +198,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "locations")
   public ItemLocationCollection getItemLocationsByName(String name) {
-    return locationClient.getLocationByQuery(NAME + QUOTE + name + QUOTE);
+    return locationClient.getLocationByQuery(String.format(QUERY_PATTERN_NAME, name));
   }
 
   public ItemLocation getLocationByName(String name) {
@@ -211,7 +211,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "materialTypes")
   public MaterialTypeCollection getMaterialTypesByName(String name) {
-    return materialTypeClient.getByQuery(NAME + name);
+    return materialTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
   }
 
   public MaterialType getMaterialTypeByName(String name) {
@@ -224,7 +224,7 @@ public class ItemReferenceService {
 
   @Cacheable(cacheNames = "loanTypes")
   public LoanTypeCollection getLoanTypesByName(String name) {
-    return loanTypeClient.getByQuery(NAME + name);
+    return loanTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
   }
 
   public LoanType getLoanTypeByName(String name) {

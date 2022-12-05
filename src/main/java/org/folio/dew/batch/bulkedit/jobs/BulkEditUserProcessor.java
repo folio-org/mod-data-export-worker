@@ -20,6 +20,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.domain.dto.*;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
+import org.folio.dew.service.SpecialCharacterEscaper;
 import org.folio.dew.service.UserReferenceService;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
@@ -36,6 +37,7 @@ import lombok.extern.log4j.Log4j2;
 public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
   private final UserReferenceService userReferenceService;
   private final BulkEditProcessingErrorsService errorsService;
+  private final SpecialCharacterEscaper escaper;
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
@@ -56,7 +58,6 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       .type(user.getType())
       .patronGroup(userReferenceService.getPatronGroupNameById(user.getPatronGroup(), errorServiceArgs))
       .departments(fetchDepartments(user, errorServiceArgs))
-      .proxyFor(isEmpty(user.getProxyFor()) ? EMPTY : String.join(ARRAY_DELIMITER, user.getProxyFor()))
       .lastName(user.getPersonal().getLastName())
       .firstName(user.getPersonal().getFirstName())
       .middleName(user.getPersonal().getMiddleName())
@@ -71,7 +72,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       .expirationDate(dateToString(user.getExpirationDate()))
       .createdDate(dateToString(user.getCreatedDate()))
       .updatedDate(dateToString(user.getUpdatedDate()))
-      .tags(nonNull(user.getTags()) ? String.join(ARRAY_DELIMITER, user.getTags().getTagList()) : EMPTY)
+      .tags(nonNull(user.getTags()) ? String.join(ARRAY_DELIMITER, escaper.escape(user.getTags().getTagList())) : EMPTY)
       .customFields(nonNull(user.getCustomFields()) ? customFieldsToString(user.getCustomFields()) : EMPTY)
       .build();
   }
@@ -80,6 +81,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
     if (nonNull(user.getDepartments())) {
       return user.getDepartments().stream()
         .map(id -> userReferenceService.getDepartmentNameById(id.toString(), args))
+        .map(escaper::escape)
         .collect(Collectors.joining(ARRAY_DELIMITER));
     }
     return EMPTY;
@@ -105,7 +107,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
     addressData.add(ofNullable(address.getPostalCode()).orElse(EMPTY));
     addressData.add(nonNull(address.getPrimaryAddress()) ? address.getPrimaryAddress().toString() : EMPTY);
     addressData.add(userReferenceService.getAddressTypeDescById(address.getAddressTypeId(), args));
-    return String.join(ARRAY_DELIMITER, addressData);
+    return String.join(ARRAY_DELIMITER, escaper.escape(addressData));
   }
 
   private String customFieldsToString(Map<String, Object> map) {
@@ -120,14 +122,18 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
     case TEXTBOX_LONG:
     case TEXTBOX_SHORT:
     case SINGLE_CHECKBOX:
-      return customField.getName() + KEY_VALUE_DELIMITER + entry.getValue();
+      if (entry.getValue() instanceof String) {
+        return escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + escaper.escape((String) entry.getValue());
+      } else {
+        return escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + entry.getValue();
+      }
     case SINGLE_SELECT_DROPDOWN:
     case RADIO_BUTTON:
-      return customField.getName() + KEY_VALUE_DELIMITER + extractValueById(customField, entry.getValue().toString());
+      return escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + escaper.escape(extractValueById(customField, entry.getValue().toString()));
     case MULTI_SELECT_DROPDOWN:
       var values = (ArrayList) entry.getValue();
-      return customField.getName() + KEY_VALUE_DELIMITER + values.stream()
-        .map(v -> extractValueById(customField, v.toString()))
+      return escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + values.stream()
+        .map(v -> escaper.escape(extractValueById(customField, v.toString())))
         .collect(Collectors.joining(ARRAY_DELIMITER));
     default:
       throw new BulkEditException("Invalid custom field: " + entry);

@@ -2,7 +2,6 @@ package org.folio.dew.service.mapper;
 
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.folio.dew.service.mapper.MapperHelper.restoreListValue;
 import static org.folio.dew.service.mapper.MapperHelper.restoreStringValue;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
@@ -10,6 +9,7 @@ import static org.folio.dew.utils.Constants.ITEM_DELIMITER_PATTERN;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsNote;
@@ -62,7 +62,7 @@ public class HoldingsMapper {
       .version(isEmpty(holdingsRecord.getVersion()) ? EMPTY : Integer.toString(holdingsRecord.getVersion()))
       .hrid(isEmpty(holdingsRecord.getHrid()) ? EMPTY : holdingsRecord.getHrid())
       .holdingsType(holdingsReferenceService.getHoldingsTypeNameById(holdingsRecord.getHoldingsTypeId(), errorServiceArgs))
-      .formerIds(isEmpty(holdingsRecord.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, holdingsRecord.getFormerIds()))
+      .formerIds(isEmpty(holdingsRecord.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(holdingsRecord.getFormerIds())))
       .instance(isEmpty(holdingsRecord.getInstanceId()) ? EMPTY : String.join(ARRAY_DELIMITER, holdingsReferenceService.getInstanceTitleById(holdingsRecord.getInstanceId()), holdingsRecord.getInstanceId()))
       .permanentLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getPermanentLocationId()))
       .temporaryLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getTemporaryLocationId()))
@@ -77,7 +77,7 @@ public class HoldingsMapper {
       .acquisitionMethod(isEmpty(holdingsRecord.getAcquisitionMethod()) ? EMPTY : holdingsRecord.getAcquisitionMethod())
       .receiptStatus(isEmpty(holdingsRecord.getReceiptStatus()) ? EMPTY : holdingsRecord.getReceiptStatus())
       .notes(notesToString(holdingsRecord.getNotes(), errorServiceArgs))
-      .administrativeNotes(isEmpty(holdingsRecord.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, holdingsRecord.getAdministrativeNotes()))
+      .administrativeNotes(isEmpty(holdingsRecord.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(holdingsRecord.getAdministrativeNotes())))
       .illPolicy(holdingsReferenceService.getIllPolicyNameById(holdingsRecord.getIllPolicyId(), errorServiceArgs))
       .retentionPolicy(isEmpty(holdingsRecord.getRetentionPolicy()) ? EMPTY : holdingsRecord.getRetentionPolicy())
       .digitizationPolicy(isEmpty(holdingsRecord.getDigitizationPolicy()) ? EMPTY : holdingsRecord.getDigitizationPolicy())
@@ -175,7 +175,7 @@ public class HoldingsMapper {
       .receivingHistory(restoreReceivingHistory(holdingsFormat.getReceivingHistory()))
       .discoverySuppress(isEmpty(holdingsFormat.getDiscoverySuppress()) ? null : Boolean.parseBoolean(holdingsFormat.getDiscoverySuppress()))
       .statisticalCodeIds(restoreStatisticalCodeIds(holdingsFormat.getStatisticalCodes()))
-      .tags(isEmpty(holdingsFormat.getTags()) ? null : new Tags().tagList(escaper.restore(restoreListValue(holdingsFormat.getTags()))))
+      .tags(isEmpty(holdingsFormat.getTags()) ? null : new Tags().tagList(restoreListValue(holdingsFormat.getTags())))
       .sourceId(isEmpty(holdingsFormat.getSource()) ? null : holdingsReferenceService.getSourceIdByName(holdingsFormat.getSource()));
   }
 
@@ -265,5 +265,11 @@ public class HoldingsMapper {
         .map(escaper::restore)
         .map(holdingsReferenceService::getStatisticalCodeIdByName)
         .collect(Collectors.toList());
+  }
+
+  private List<String> restoreListValue(String s) {
+    return StringUtils.isEmpty(s) ?
+      Collections.emptyList() :
+      escaper.restore(Arrays.asList(s.split(ARRAY_DELIMITER)));
   }
 }

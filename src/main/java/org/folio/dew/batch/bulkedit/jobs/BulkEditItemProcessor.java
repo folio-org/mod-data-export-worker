@@ -53,7 +53,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .version(isEmpty(item.getVersion()) ? EMPTY : Integer.toString(item.getVersion()))
       .hrid(item.getHrid())
       .holdingsRecordId(item.getHoldingsRecordId())
-      .formerIds(isEmpty(item.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, item.getFormerIds()))
+      .formerIds(isEmpty(item.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getFormerIds())))
       .discoverySuppress(isEmpty(item.getDiscoverySuppress()) ? EMPTY : item.getDiscoverySuppress().toString())
       .title(item.getTitle())
       .contributorNames(fetchContributorNames(item))

@@ -1,3 +1,10 @@
+## 2022-12-08 v2.0.6
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v2.0.5...v2.0.6)
+
+### Bug fixes
+[MODEXPW-326](https://issues.folio.org/browse/MODEXPW-326) Cannot re-run 1 day+ old exports
+
 ## 2022-12-05 v2.0.5
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v2.0.4...v2.0.5)

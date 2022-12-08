@@ -34,7 +34,7 @@ public class MinioClientProperties {
    */
   private boolean composeWithAwsSdk;
   /**
-   * Key that enables files merging in storage with using AWS SDK capabilities.
+   * Presigned url expiration time (in seconds).
    */
   private int urlExpirationTimeInSeconds;
 }

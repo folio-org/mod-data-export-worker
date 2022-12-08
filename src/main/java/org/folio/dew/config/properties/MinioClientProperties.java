@@ -33,4 +33,8 @@ public class MinioClientProperties {
    * Key that enables files merging in storage with using AWS SDK capabilities.
    */
   private boolean composeWithAwsSdk;
+  /**
+   * Key that enables files merging in storage with using AWS SDK capabilities.
+   */
+  private int urlExpirationTimeInSeconds;
 }

@@ -1,6 +1,5 @@
 package org.folio.dew;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -17,6 +16,7 @@ import static org.folio.dew.domain.dto.IdentifierType.ITEM_BARCODE;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
@@ -39,16 +39,21 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.List;
 
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.folio.de.entity.JobCommand;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.HoldingsContentUpdate;
+import org.folio.dew.domain.dto.HoldingsContentUpdateCollection;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
+import org.folio.dew.service.update.BulkEditHoldingsContentUpdateService;
 import org.folio.dew.utils.Constants;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -78,6 +83,7 @@ class BulkEditTest extends BaseBatchTest {
 
   private static final String HOLDINGS_IDENTIFIERS_CSV = "src/test/resources/upload/holdings_identifiers.csv";
   private static final String HOLDINGS_IDENTIFIERS_BAD_REFERENCE_IDS_CSV = "src/test/resources/upload/holdings_identifiers_for_bad_reference_ids.csv";
+  private static final String ITEM_BARCODE_FOR_HOLDINGS_IDENTIFIERS_CSV = "src/test/resources/upload/item_barcode_for_holdings_identifiers.csv";
   private static final String EXPECTED_HOLDINGS_OUTPUT_BAD_REFERENCE_CSV = "src/test/resources/output/bulk_edit_holdings_records_reference_not_found.csv";
   private static final String HOLDINGS_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV = "src/test/resources/upload/holdings_identifiers_empty_reference_ids.csv";
   private static final String EXPECTED_HOLDINGS_OUTPUT_EMPTY_REFERENCE_CSV = "src/test/resources/output/bulk_edit_holdings_records_empty_reference.csv";
@@ -139,6 +145,8 @@ class BulkEditTest extends BaseBatchTest {
   private final static String EXPECTED_BULK_EDIT_ITEM_IDENTIFIERS_HOLDINGS_ERRORS_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_holdings_errors_output.csv";
   private final static String ITEM_NO_VERSION = "src/test/resources/upload/bulk_edit_item_record_no_version.csv";
   private final static String HOLDINGS_RECORD_NO_VERSION = "src/test/resources/upload/bulk_edit_holdings_record_no_version.csv";
+  private final static String HOLDINGS_RECORD_BY_ITEM_BARCODE_IN_APP_UPDATED_NO_CHANGE = "src/test/resources/upload/bulk_edit_holdings_record_by_item_barcode_in_app_updated_no_change.csv";
+  private final static String ERROR_HOLDINGS_BY_ITEM_BARCODE_NO_CHANGE = "src/test/resources/output/expected_error_holdings_by_item_barcode_no_change.csv";
 
   @Autowired
   private Job bulkEditProcessUserIdentifiersJob;
@@ -163,6 +171,9 @@ class BulkEditTest extends BaseBatchTest {
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   @Autowired
   private LocalFilesStorage localFilesStorage;
+
+  @Autowired
+  private BulkEditHoldingsContentUpdateService bulkEditHoldingsContentUpdateService;
 
   @MockBean
   private KafkaService kafkaService;
@@ -509,6 +520,61 @@ class BulkEditTest extends BaseBatchTest {
     assertThat(request.getUrl()).isEqualTo("/holdings-storage/holdings/0b1e3760-f689-493e-a98e-9cc9dadb7e83");
   }
 
+  @Test
+  @DisplayName("Run holdings records in-app update - errors file shows identifier")
+  @SneakyThrows
+  void shouldRunHoldingsInAppUpdateJobAndShowIdentifierWhenHoldingsFoundByItemBarcode() {
+
+    // Bulk edit identifiers part.
+    var testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
+
+    var jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, ITEM_BARCODE, ITEM_BARCODE_FOR_HOLDINGS_IDENTIFIERS_CSV);
+    var jobExecution = testLauncher.launchJob(jobParameters);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
+    var jobId = UUID.randomUUID().toString();
+    var fileName = jobId + PATH_SEPARATOR + FilenameUtils.getName(HOLDINGS_RECORD_BY_ITEM_BARCODE_IN_APP_UPDATED_NO_CHANGE);
+    remoteFilesStorage.upload(fileName, HOLDINGS_RECORD_BY_ITEM_BARCODE_IN_APP_UPDATED_NO_CHANGE);
+
+    // Bulk edit update part.
+    testLauncher = createTestLauncher(bulkEditUpdateHoldingsRecordsJob);
+    jobParameters = new JobParametersBuilder()
+      .addString(JOB_ID, jobId)
+      .addString(EXPORT_TYPE, BULK_EDIT_UPDATE.getValue())
+      .addString(ENTITY_TYPE, HOLDINGS_RECORD.getValue())
+      .addString(IDENTIFIER_TYPE, ITEM_BARCODE.getValue())
+      .addString(UPDATED_FILE_NAME, fileName)
+      .addString(FILE_NAME, ITEM_BARCODE_FOR_HOLDINGS_IDENTIFIERS_CSV)
+      .addString(TEMP_OUTPUT_FILE_PATH, fileName.replaceAll(".csv", ""))
+      .toJobParameters();
+
+    JobCommand jobCommand = new JobCommand();
+    jobCommand.setId(UUID.fromString(jobId));
+    jobCommand.setJobParameters(jobParameters);
+
+    // Holdings record has the Annex permanent location, so no change in value needed.
+    bulkEditHoldingsContentUpdateService.process(jobCommand, new HoldingsContentUpdateCollection()
+      .holdingsContentUpdates(List.of(new HoldingsContentUpdate().option(HoldingsContentUpdate.OptionEnum.PERMANENT_LOCATION)
+            .action(HoldingsContentUpdate.ActionEnum.REPLACE_WITH).value("Annex"))));
+
+    jobExecution = testLauncher.launchJob(jobParameters);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
+    var executionContext = jobExecution.getExecutionContext();
+    var fileInStorage = (String) executionContext.get("outputFilesInStorage");
+    String[] links = fileInStorage.split(";");
+
+    // Make sure there is a link to error file.
+    assertThat(links.length).isEqualTo(2);
+
+    var actualResult = actualFileOutput(links[1]);
+    var expectedResult = new FileSystemResource(ERROR_HOLDINGS_BY_ITEM_BARCODE_NO_CHANGE);
+
+    assertFileEquals(expectedResult, actualResult);
+  }
+
   @Disabled
   // TODO uncomment when resolved
   @Test
@@ -615,7 +681,7 @@ class BulkEditTest extends BaseBatchTest {
     Map<String, JobParameter> params = new HashMap<>();
     String jobId = UUID.randomUUID().toString();
     String workDir = getWorkingDirectory(springApplicationName, BULKEDIT_DIR_NAME);
-    params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
+    params.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
     try {
       localFilesStorage.write(workDir + "out", new byte[0]);
       localFilesStorage.write(workDir + "out.csv", new byte[0]);

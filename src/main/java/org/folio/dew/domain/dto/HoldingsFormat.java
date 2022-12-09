@@ -150,7 +150,12 @@ public class HoldingsFormat {
   @CsvBindByPosition(position = 32)
   private String source;
 
+  @CsvBindByName(column = "Instance HRID")
+  @CsvBindByPosition(position = 33)
   private String instanceHrid;
+
+  @CsvBindByName(column = "Item barcode")
+  @CsvBindByPosition(position = 34)
   private String itemBarcode;
 
   public static String[] getHoldingsFieldsArray() {

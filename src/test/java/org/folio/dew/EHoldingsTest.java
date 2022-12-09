@@ -30,6 +30,7 @@ import org.folio.dew.domain.dto.eholdings.EHoldingsPackageExportFormat;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
 import org.folio.dew.repository.EHoldingsPackageRepository;
 import org.folio.dew.repository.EHoldingsResourceRepository;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.FileNameResolver;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,8 @@ class EHoldingsTest extends BaseBatchTest {
   private EHoldingsPackageRepository packageRepository;
   @Autowired
   private EHoldingsResourceRepository resourceRepository;
+  @Autowired
+  private RemoteFilesStorage remoteFilesStorage;
 
   private final static String RESOURCE_ID = "1-22-333";
   private final static String PACKAGE_ID = "1-22";
@@ -241,7 +244,8 @@ class EHoldingsTest extends BaseBatchTest {
     final ExecutionContext executionContext = jobExecution.getExecutionContext();
     final String fileInStorage = executionContext.getString("outputFilesInStorage");
 
-    final FileSystemResource actualOutput = actualFileOutput(fileInStorage);
+    final String presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(fileInStorage);
+    final FileSystemResource actualOutput = actualFileOutput(presignedUrl);
     FileSystemResource expectedOutput = new FileSystemResource(expectedFile);
     assertFileEquals(expectedOutput, actualOutput);
   }

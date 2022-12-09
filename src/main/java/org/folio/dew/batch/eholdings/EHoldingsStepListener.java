@@ -32,17 +32,16 @@ public class EHoldingsStepListener extends BaseStepListener {
       return ExitStatus.FAILED;
     }
 
-    String url;
+    String uploadedFilePath;
     try {
-      url = remoteFilesStorage.objectToPresignedObjectUrl(
-        remoteFilesStorage.uploadObject(FilenameUtils.getName(filename), filename, null, "text/csv", true));
+      uploadedFilePath = remoteFilesStorage.uploadObject(FilenameUtils.getName(filename), filename, null, "text/csv", true);
     } catch (Exception e) {
       log.error(e.toString(), e);
       stepExecution.getJobExecution().addFailureException(e);
       return ExitStatus.FAILED;
     }
 
-    ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, url, ";");
+    ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, uploadedFilePath, ";");
 
     return exitStatus;
   }

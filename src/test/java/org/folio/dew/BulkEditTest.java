@@ -41,8 +41,10 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.List;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
@@ -79,6 +81,7 @@ import org.springframework.core.io.FileSystemResource;
 import lombok.SneakyThrows;
 
 @ExtendWith(MockitoExtension.class)
+@Log4j2
 class BulkEditTest extends BaseBatchTest {
 
   private static final String HOLDINGS_IDENTIFIERS_CSV = "src/test/resources/upload/holdings_identifiers.csv";
@@ -672,6 +675,9 @@ class BulkEditTest extends BaseBatchTest {
     } else {
       final FileSystemResource actualResult = actualFileOutput(fileInStorage);
       FileSystemResource expectedCharges = new FileSystemResource(output);
+      log.info("expectedErrorOutput: {}", expectedErrorOutput);
+      log.info("expected: {}", IOUtils.toString(expectedCharges.getInputStream()));
+      log.info("actual: {}", IOUtils.toString(actualResult.getInputStream()));
       assertFileEquals(expectedCharges, actualResult);
     }
   }

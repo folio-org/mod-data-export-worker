@@ -6,7 +6,12 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACKAGE;
 import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESOURCE;
+import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -23,6 +28,7 @@ import lombok.extern.log4j.Log4j2;
 import org.folio.de.entity.EHoldingsPackage;
 import org.folio.de.entity.EHoldingsResource;
 import org.folio.de.entity.JobCommand;
+import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
@@ -34,6 +40,8 @@ import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.FileNameResolver;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -42,6 +50,7 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.io.FileSystemResource;
 
 @Log4j2
@@ -56,6 +65,8 @@ class EHoldingsTest extends BaseBatchTest {
   private EHoldingsResourceRepository resourceRepository;
   @Autowired
   private RemoteFilesStorage remoteFilesStorage;
+  @SpyBean
+  private KafkaService kafkaService;
 
   private final static String RESOURCE_ID = "1-22-333";
   private final static String PACKAGE_ID = "1-22";
@@ -70,6 +81,7 @@ class EHoldingsTest extends BaseBatchTest {
     "src/test/resources/output/eholdings_package_export_with_3_titles.csv";
   private final static String EXPECTED_PACKAGE_WITH_SAME_TITLE_NAMES_OUTPUT =
     "src/test/resources/output/eholdings_package_export_with_same_title_names.csv";
+  private static final String FILE_PATH = "mod-data-export-worker/e_holdings_export/diku/";
 
   @Test
   @DisplayName("Run EHoldingsJob export resource without provider load successfully")
@@ -82,7 +94,7 @@ class EHoldingsTest extends BaseBatchTest {
 
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
-    verifyFileOutput(jobExecution, EXPECTED_RESOURCE_OUTPUT);
+    verifyFile(jobExecution, EXPECTED_RESOURCE_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
@@ -95,6 +107,7 @@ class EHoldingsTest extends BaseBatchTest {
     var resources = resourceRepository.findAll();
     assertEquals(0, ((Collection<?>) packages).size());
     assertEquals(0, ((Collection<?>) resources).size());
+    verifyJobEvent();
   }
 
   @Test
@@ -106,7 +119,7 @@ class EHoldingsTest extends BaseBatchTest {
     final JobParameters jobParameters = prepareJobParameters(exportConfig);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
-    verifyFileOutput(jobExecution, EXPECTED_PACKAGE_OUTPUT);
+    verifyFile(jobExecution, EXPECTED_PACKAGE_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
@@ -119,6 +132,7 @@ class EHoldingsTest extends BaseBatchTest {
     var resources = resourceRepository.findAll();
     assertEquals(0, ((Collection<?>) packages).size());
     assertEquals(0, ((Collection<?>) resources).size());
+    verifyJobEvent();
   }
 
   @Test
@@ -130,7 +144,7 @@ class EHoldingsTest extends BaseBatchTest {
     final JobParameters jobParameters = prepareJobParameters(exportConfig);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
-    verifyFileOutput(jobExecution, EXPECTED_PACKAGE_WITH_3_TITLES_OUTPUT);
+    verifyFile(jobExecution, EXPECTED_PACKAGE_WITH_3_TITLES_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
@@ -143,6 +157,7 @@ class EHoldingsTest extends BaseBatchTest {
     var resources = resourceRepository.findAll();
     assertEquals(0, ((Collection<?>) packages).size());
     assertEquals(0, ((Collection<?>) resources).size());
+    verifyJobEvent();
   }
 
   @Test
@@ -154,7 +169,7 @@ class EHoldingsTest extends BaseBatchTest {
     final JobParameters jobParameters = prepareJobParameters(exportConfig);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
-    verifyFileOutput(jobExecution, EXPECTED_SINGLE_PACKAGE_OUTPUT);
+    verifyFile(jobExecution, EXPECTED_SINGLE_PACKAGE_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
@@ -167,6 +182,7 @@ class EHoldingsTest extends BaseBatchTest {
     var resources = resourceRepository.findAll();
     assertEquals(0, ((Collection<?>) packages).size());
     assertEquals(0, ((Collection<?>) resources).size());
+    verifyJobEvent();
   }
 
   @Test
@@ -179,7 +195,7 @@ class EHoldingsTest extends BaseBatchTest {
 
     final JobParameters jobParameters = prepareJobParameters(exportConfig);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
-    verifyFileOutput(jobExecution, EXPECTED_PACKAGE_OUTPUT);
+    verifyFile(jobExecution, EXPECTED_PACKAGE_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
@@ -194,6 +210,7 @@ class EHoldingsTest extends BaseBatchTest {
     assertEquals(1, ((Collection<?>) resources).size());
 
     cleanJobDataInDatabase();
+    verifyJobEvent();
   }
 
   @Test
@@ -207,7 +224,7 @@ class EHoldingsTest extends BaseBatchTest {
     final JobParameters jobParameters = prepareJobParameters(exportConfig);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
-    verifyFileOutput(jobExecution, EXPECTED_PACKAGE_WITH_SAME_TITLE_NAMES_OUTPUT);
+    verifyFile(jobExecution, EXPECTED_PACKAGE_WITH_SAME_TITLE_NAMES_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
@@ -220,6 +237,7 @@ class EHoldingsTest extends BaseBatchTest {
     var resources = resourceRepository.findAll();
     assertEquals(0, ((Collection<?>) packages).size());
     assertEquals(0, ((Collection<?>) resources).size());
+    verifyJobEvent();
   }
 
   private void populateOtherJobsDataInDatabase(){
@@ -240,14 +258,31 @@ class EHoldingsTest extends BaseBatchTest {
     resourceRepository.deleteAll();
   }
 
-  private void verifyFileOutput(JobExecution jobExecution, String expectedFile) throws Exception {
+  private void verifyFile(JobExecution jobExecution, String expectedFile) throws Exception {
     final ExecutionContext executionContext = jobExecution.getExecutionContext();
-    final String fileInStorage = executionContext.getString("outputFilesInStorage");
+    final String fileInStorage = executionContext.getString(OUTPUT_FILES_IN_STORAGE);
+    final String fileName = executionContext.getString(E_HOLDINGS_FILE_NAME);
 
+    assertEquals(FILE_PATH + fileName, fileInStorage);
+    verifyFileOutput(fileInStorage, expectedFile);
+  }
+
+  private void verifyFileOutput(String fileInStorage, String expectedFile) throws Exception {
     final String presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(fileInStorage);
     final FileSystemResource actualOutput = actualFileOutput(presignedUrl);
     FileSystemResource expectedOutput = new FileSystemResource(expectedFile);
     assertFileEquals(expectedOutput, actualOutput);
+  }
+
+  private void verifyJobEvent() {
+    var jobCaptor = ArgumentCaptor.forClass(org.folio.de.entity.Job.class);
+    Mockito.verify(kafkaService, times(2)).send(eq(KafkaService.Topic.JOB_UPDATE), anyString(), jobCaptor.capture());
+
+    var job = jobCaptor.getValue();
+    final String filePath = job.getFiles().get(0);
+    final String fileName = job.getFileNames().get(0);
+
+    assertEquals(FILE_PATH + fileName, filePath);
   }
 
   private EHoldingsExportConfig buildExportConfig(String id, EHoldingsExportConfig.RecordTypeEnum recordType) {

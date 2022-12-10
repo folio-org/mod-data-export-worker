@@ -25,6 +25,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import io.minio.messages.Item;
@@ -32,6 +33,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.config.properties.RemoteFilesStorageProperties;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Repository;
 
@@ -48,11 +50,13 @@ public class RemoteFilesStorage extends BaseFilesStorage {
   private LocalFilesStorage localFilesStorage;
   private final String bucket;
   private final String region;
+  private final int urlExpirationTimeInSeconds;
 
   public RemoteFilesStorage(RemoteFilesStorageProperties properties) {
     super(properties);
     this.bucket = properties.getBucket();
     this.region = properties.getRegion();
+    this.urlExpirationTimeInSeconds = properties.getUrlExpirationTimeInSeconds();
     this.client = getMinioClient();
   }
 
@@ -122,6 +126,7 @@ public class RemoteFilesStorage extends BaseFilesStorage {
       .bucket(bucket)
       .object(object)
       .region(region)
+      .expiry(urlExpirationTimeInSeconds, TimeUnit.SECONDS)
       .build());
     log.info("Created presigned URL {}.", result);
     return result;

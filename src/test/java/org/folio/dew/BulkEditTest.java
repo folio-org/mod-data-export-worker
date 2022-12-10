@@ -27,7 +27,10 @@ import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 import java.io.BufferedReader;
@@ -41,10 +44,8 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.List;
 
-import lombok.extern.log4j.Log4j2;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
@@ -81,7 +82,6 @@ import org.springframework.core.io.FileSystemResource;
 import lombok.SneakyThrows;
 
 @ExtendWith(MockitoExtension.class)
-@Log4j2
 class BulkEditTest extends BaseBatchTest {
 
   private static final String HOLDINGS_IDENTIFIERS_CSV = "src/test/resources/upload/holdings_identifiers.csv";
@@ -107,19 +107,11 @@ class BulkEditTest extends BaseBatchTest {
   private static final String ITEM_HOLDINGS_CSV = "src/test/resources/upload/item_holdings.csv";
   private static final String USER_RECORD_CSV = "src/test/resources/upload/bulk_edit_user_record.csv";
   private static final String ITEM_RECORD_CSV = "src/test/resources/upload/bulk_edit_item_record.csv";
-  private static final String ITEM_RECORD_1100_CSV = "src/test/resources/upload/bulk_edit_1100_item_records.csv";
   private static final String USER_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_user_record_not_found.csv";
   private static final String ITEM_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_item_record_not_found.csv";
   private static final String USER_RECORD_CSV_BAD_CONTENT = "src/test/resources/upload/bulk_edit_user_record_bad_content.csv";
   private static final String USER_RECORD_CSV_BAD_CUSTOM_FIELD = "src/test/resources/upload/bulk_edit_user_record_bad_custom_field.csv";
   private static final String USER_RECORD_CSV_EMPTY_PATRON_GROUP = "src/test/resources/upload/bulk_edit_user_record_empty_patron_group.csv";
-  private static final String ITEM_RECORD_CSV_BAD_CALL_NUMBER_TYPE = "src/test/resources/upload/bulk_edit_item_record_bad_call_number_type.csv";
-  private static final String ITEM_RECORD_CSV_BAD_DAMAGED_STATUS = "src/test/resources/upload/bulk_edit_item_record_bad_damaged_status.csv";
-  private static final String ITEM_RECORD_CSV_BAD_LOAN_TYPE = "src/test/resources/upload/bulk_edit_item_record_bad_loan_type.csv";
-  private static final String ITEM_RECORD_CSV_BAD_LOCATION = "src/test/resources/upload/bulk_edit_item_record_bad_location.csv";
-  private static final String ITEM_RECORD_CSV_BAD_NOTE_TYPE = "src/test/resources/upload/bulk_edit_item_record_bad_note_type.csv";
-  private static final String ITEM_RECORD_CSV_BAD_RELATIONSHIP = "src/test/resources/upload/bulk_edit_item_record_bad_relationship.csv";
-  private static final String ITEM_RECORD_CSV_BAD_SERVICE_POINT = "src/test/resources/upload/bulk_edit_item_record_bad_service_point.csv";
   private static final String ITEM_RECORD_CSV_INVALID_NOTES = "src/test/resources/upload/bulk_edit_item_record_invalid_notes.csv";
   private static final String ITEM_RECORD_CSV_INVALID_CIRCULATION_NOTES = "src/test/resources/upload/bulk_edit_item_record_invalid_circulation_notes.csv";
   private static final String ITEM_RECORD_IN_APP_UPDATED = "src/test/resources/upload/bulk_edit_item_record_in_app_updated.csv";
@@ -678,9 +670,6 @@ class BulkEditTest extends BaseBatchTest {
     } else {
       final FileSystemResource actualResult = actualFileOutput(fileInStorage);
       FileSystemResource expectedCharges = new FileSystemResource(output);
-      log.info("expectedErrorOutput: {}", expectedErrorOutput);
-      log.info("expected: {}", IOUtils.toString(expectedCharges.getInputStream()));
-      log.info("actual: {}", IOUtils.toString(actualResult.getInputStream()));
       assertFileEquals(expectedCharges, actualResult);
     }
   }

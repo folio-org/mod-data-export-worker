@@ -1,6 +1,5 @@
 package org.folio.dew;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -17,6 +16,7 @@ import static org.folio.dew.domain.dto.IdentifierType.ITEM_BARCODE;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
@@ -27,7 +27,10 @@ import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 import java.io.BufferedReader;
@@ -39,16 +42,21 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.List;
 
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.folio.de.entity.JobCommand;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.HoldingsContentUpdate;
+import org.folio.dew.domain.dto.HoldingsContentUpdateCollection;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
+import org.folio.dew.service.update.BulkEditHoldingsContentUpdateService;
 import org.folio.dew.utils.Constants;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -78,6 +86,7 @@ class BulkEditTest extends BaseBatchTest {
 
   private static final String HOLDINGS_IDENTIFIERS_CSV = "src/test/resources/upload/holdings_identifiers.csv";
   private static final String HOLDINGS_IDENTIFIERS_BAD_REFERENCE_IDS_CSV = "src/test/resources/upload/holdings_identifiers_for_bad_reference_ids.csv";
+  private static final String ITEM_BARCODE_FOR_HOLDINGS_IDENTIFIERS_CSV = "src/test/resources/upload/item_barcode_for_holdings_identifiers.csv";
   private static final String EXPECTED_HOLDINGS_OUTPUT_BAD_REFERENCE_CSV = "src/test/resources/output/bulk_edit_holdings_records_reference_not_found.csv";
   private static final String HOLDINGS_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV = "src/test/resources/upload/holdings_identifiers_empty_reference_ids.csv";
   private static final String EXPECTED_HOLDINGS_OUTPUT_EMPTY_REFERENCE_CSV = "src/test/resources/output/bulk_edit_holdings_records_empty_reference.csv";
@@ -98,19 +107,11 @@ class BulkEditTest extends BaseBatchTest {
   private static final String ITEM_HOLDINGS_CSV = "src/test/resources/upload/item_holdings.csv";
   private static final String USER_RECORD_CSV = "src/test/resources/upload/bulk_edit_user_record.csv";
   private static final String ITEM_RECORD_CSV = "src/test/resources/upload/bulk_edit_item_record.csv";
-  private static final String ITEM_RECORD_1100_CSV = "src/test/resources/upload/bulk_edit_1100_item_records.csv";
   private static final String USER_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_user_record_not_found.csv";
   private static final String ITEM_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_item_record_not_found.csv";
   private static final String USER_RECORD_CSV_BAD_CONTENT = "src/test/resources/upload/bulk_edit_user_record_bad_content.csv";
   private static final String USER_RECORD_CSV_BAD_CUSTOM_FIELD = "src/test/resources/upload/bulk_edit_user_record_bad_custom_field.csv";
   private static final String USER_RECORD_CSV_EMPTY_PATRON_GROUP = "src/test/resources/upload/bulk_edit_user_record_empty_patron_group.csv";
-  private static final String ITEM_RECORD_CSV_BAD_CALL_NUMBER_TYPE = "src/test/resources/upload/bulk_edit_item_record_bad_call_number_type.csv";
-  private static final String ITEM_RECORD_CSV_BAD_DAMAGED_STATUS = "src/test/resources/upload/bulk_edit_item_record_bad_damaged_status.csv";
-  private static final String ITEM_RECORD_CSV_BAD_LOAN_TYPE = "src/test/resources/upload/bulk_edit_item_record_bad_loan_type.csv";
-  private static final String ITEM_RECORD_CSV_BAD_LOCATION = "src/test/resources/upload/bulk_edit_item_record_bad_location.csv";
-  private static final String ITEM_RECORD_CSV_BAD_NOTE_TYPE = "src/test/resources/upload/bulk_edit_item_record_bad_note_type.csv";
-  private static final String ITEM_RECORD_CSV_BAD_RELATIONSHIP = "src/test/resources/upload/bulk_edit_item_record_bad_relationship.csv";
-  private static final String ITEM_RECORD_CSV_BAD_SERVICE_POINT = "src/test/resources/upload/bulk_edit_item_record_bad_service_point.csv";
   private static final String ITEM_RECORD_CSV_INVALID_NOTES = "src/test/resources/upload/bulk_edit_item_record_invalid_notes.csv";
   private static final String ITEM_RECORD_CSV_INVALID_CIRCULATION_NOTES = "src/test/resources/upload/bulk_edit_item_record_invalid_circulation_notes.csv";
   private static final String ITEM_RECORD_IN_APP_UPDATED = "src/test/resources/upload/bulk_edit_item_record_in_app_updated.csv";
@@ -125,6 +126,8 @@ class BulkEditTest extends BaseBatchTest {
   private static final String EXPECTED_BULK_EDIT_USER_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_output.csv";
   private static final String EXPECTED_BULK_EDIT_ITEM_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_output.csv";
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT = "src/test/resources/output/bulk_edit_holdings_records_output.csv";
+  private static final String EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT_INST_HRID = "src/test/resources/output/bulk_edit_holdings_records_output_instance_hrid.csv";
+  private static final String EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT_ITEM_BARCODE = "src/test/resources/output/bulk_edit_holdings_records_output_item_barcode.csv";
   private static final String EXPECTED_BULK_EDIT_ITEM_OUTPUT_ESCAPED = "src/test/resources/output/bulk_edit_item_identifiers_output_escaped.csv";
   private static final String EXPECTED_NO_GROUP_OUTPUT = "src/test/resources/output/bulk_edit_no_group_output.csv";
   private static final String EXPECTED_ITEMS_QUERY_OUTPUT = "src/test/resources/output/bulk_edit_item_query_output.csv";
@@ -139,6 +142,8 @@ class BulkEditTest extends BaseBatchTest {
   private final static String EXPECTED_BULK_EDIT_ITEM_IDENTIFIERS_HOLDINGS_ERRORS_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_holdings_errors_output.csv";
   private final static String ITEM_NO_VERSION = "src/test/resources/upload/bulk_edit_item_record_no_version.csv";
   private final static String HOLDINGS_RECORD_NO_VERSION = "src/test/resources/upload/bulk_edit_holdings_record_no_version.csv";
+  private final static String HOLDINGS_RECORD_BY_ITEM_BARCODE_IN_APP_UPDATED_NO_CHANGE = "src/test/resources/upload/bulk_edit_holdings_record_by_item_barcode_in_app_updated_no_change.csv";
+  private final static String ERROR_HOLDINGS_BY_ITEM_BARCODE_NO_CHANGE = "src/test/resources/output/expected_error_holdings_by_item_barcode_no_change.csv";
 
   @Autowired
   private Job bulkEditProcessUserIdentifiersJob;
@@ -163,6 +168,9 @@ class BulkEditTest extends BaseBatchTest {
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   @Autowired
   private LocalFilesStorage localFilesStorage;
+
+  @Autowired
+  private BulkEditHoldingsContentUpdateService bulkEditHoldingsContentUpdateService;
 
   @MockBean
   private KafkaService kafkaService;
@@ -297,13 +305,14 @@ class BulkEditTest extends BaseBatchTest {
     String expectedErrorsOutputFilePath;
     if (INSTANCE_HRID == identifierType) {
       expectedErrorsOutputFilePath = EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_INST_HRID;
+      verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT_INST_HRID, expectedErrorsOutputFilePath);
     } else if (ITEM_BARCODE == identifierType) {
       expectedErrorsOutputFilePath = EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_ITEM_BARCODE;
+      verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT_ITEM_BARCODE, expectedErrorsOutputFilePath);
     } else {
       expectedErrorsOutputFilePath = EXPECTED_BULK_EDIT_HOLDINGS_ERRORS;
+      verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT, expectedErrorsOutputFilePath);
     }
-
-    verifyFileOutput(jobExecution, EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT, expectedErrorsOutputFilePath);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
@@ -509,6 +518,61 @@ class BulkEditTest extends BaseBatchTest {
     assertThat(request.getUrl()).isEqualTo("/holdings-storage/holdings/0b1e3760-f689-493e-a98e-9cc9dadb7e83");
   }
 
+  @Test
+  @DisplayName("Run holdings records in-app update - errors file shows identifier")
+  @SneakyThrows
+  void shouldRunHoldingsInAppUpdateJobAndShowIdentifierWhenHoldingsFoundByItemBarcode() {
+
+    // Bulk edit identifiers part.
+    var testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
+
+    var jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, ITEM_BARCODE, ITEM_BARCODE_FOR_HOLDINGS_IDENTIFIERS_CSV);
+    var jobExecution = testLauncher.launchJob(jobParameters);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
+    var jobId = UUID.randomUUID().toString();
+    var fileName = jobId + PATH_SEPARATOR + FilenameUtils.getName(HOLDINGS_RECORD_BY_ITEM_BARCODE_IN_APP_UPDATED_NO_CHANGE);
+    remoteFilesStorage.upload(fileName, HOLDINGS_RECORD_BY_ITEM_BARCODE_IN_APP_UPDATED_NO_CHANGE);
+
+    // Bulk edit update part.
+    testLauncher = createTestLauncher(bulkEditUpdateHoldingsRecordsJob);
+    jobParameters = new JobParametersBuilder()
+      .addString(JOB_ID, jobId)
+      .addString(EXPORT_TYPE, BULK_EDIT_UPDATE.getValue())
+      .addString(ENTITY_TYPE, HOLDINGS_RECORD.getValue())
+      .addString(IDENTIFIER_TYPE, ITEM_BARCODE.getValue())
+      .addString(UPDATED_FILE_NAME, fileName)
+      .addString(FILE_NAME, ITEM_BARCODE_FOR_HOLDINGS_IDENTIFIERS_CSV)
+      .addString(TEMP_OUTPUT_FILE_PATH, fileName.replaceAll(".csv", ""))
+      .toJobParameters();
+
+    JobCommand jobCommand = new JobCommand();
+    jobCommand.setId(UUID.fromString(jobId));
+    jobCommand.setJobParameters(jobParameters);
+
+    // Holdings record has the Annex permanent location, so no change in value needed.
+    bulkEditHoldingsContentUpdateService.process(jobCommand, new HoldingsContentUpdateCollection()
+      .holdingsContentUpdates(List.of(new HoldingsContentUpdate().option(HoldingsContentUpdate.OptionEnum.PERMANENT_LOCATION)
+            .action(HoldingsContentUpdate.ActionEnum.REPLACE_WITH).value("Annex"))));
+
+    jobExecution = testLauncher.launchJob(jobParameters);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
+    var executionContext = jobExecution.getExecutionContext();
+    var fileInStorage = (String) executionContext.get("outputFilesInStorage");
+    String[] links = fileInStorage.split(";");
+
+    // Make sure there is a link to error file.
+    assertThat(links).hasSize(2);
+
+    var actualResult = actualFileOutput(links[1]);
+    var expectedResult = new FileSystemResource(ERROR_HOLDINGS_BY_ITEM_BARCODE_NO_CHANGE);
+
+    assertFileEquals(expectedResult, actualResult);
+  }
+
   @Disabled
   // TODO uncomment when resolved
   @Test
@@ -615,7 +679,7 @@ class BulkEditTest extends BaseBatchTest {
     Map<String, JobParameter> params = new HashMap<>();
     String jobId = UUID.randomUUID().toString();
     String workDir = getWorkingDirectory(springApplicationName, BULKEDIT_DIR_NAME);
-    params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
+    params.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
     try {
       localFilesStorage.write(workDir + "out", new byte[0]);
       localFilesStorage.write(workDir + "out.csv", new byte[0]);

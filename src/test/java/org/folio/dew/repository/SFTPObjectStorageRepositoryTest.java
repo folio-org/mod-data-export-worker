@@ -1,5 +1,11 @@
 package org.folio.dew.repository;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
 import lombok.extern.log4j.Log4j2;
 import org.apache.sshd.common.SshException;
 import org.apache.sshd.sftp.client.SftpClient;
@@ -7,20 +13,11 @@ import org.folio.dew.BaseBatchTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.io.File;
-import java.io.IOException;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @Log4j2
-@Testcontainers
-@SpringBootTest()
 class SFTPObjectStorageRepositoryTest extends BaseBatchTest {
 
   @Autowired

@@ -565,7 +565,7 @@ class BulkEditTest extends BaseBatchTest {
     String[] links = fileInStorage.split(";");
 
     // Make sure there is a link to error file.
-    assertThat(links.length).isEqualTo(2);
+    assertThat(links).hasSize(2);
 
     var actualResult = actualFileOutput(links[1]);
     var expectedResult = new FileSystemResource(ERROR_HOLDINGS_BY_ITEM_BARCODE_NO_CHANGE);

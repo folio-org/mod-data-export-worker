@@ -1,5 +1,6 @@
 package org.folio.dew.batch;
 
+import static java.util.Collections.singletonList;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
@@ -7,24 +8,28 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.domain.dto.ExportType.E_HOLDINGS;
+import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
-import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
-import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.CHANGED_RECORDS;
-import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
+import static org.folio.dew.utils.Constants.EXPORT_TYPE;
+import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
+import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
-import static org.folio.dew.utils.Constants.EXPORT_TYPE;
-import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,10 +51,6 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 import org.springframework.stereotype.Component;
-
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
 
 @Component
 @Log4j2
@@ -197,6 +198,13 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       OUTPUT_FILES_IN_STORAGE);
     if (StringUtils.isNotBlank(outputFilesInStorage)) {
       result.setFiles(Arrays.asList(outputFilesInStorage.split(PATHS_DELIMITER)));
+    }
+
+    if (jobExecution.getJobInstance().getJobName().contains(E_HOLDINGS.getValue())) {
+      String fileName = ExecutionContextUtils.getFromJobExecutionContext(jobExecution, E_HOLDINGS_FILE_NAME);
+      if (StringUtils.isNotBlank(fileName)) {
+        result.setFileNames(singletonList(fileName));
+      }
     }
 
     result.setStartTime(jobExecution.getStartTime());

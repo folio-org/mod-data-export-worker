@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.UUID;
 import lombok.SneakyThrows;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.client.HoldingClient;
@@ -12,12 +13,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-import java.util.UUID;
-
-@SpringBootTest
 class ItemReferenceServiceTest extends BaseBatchTest {
   @MockBean
   private HoldingClient holdingClient;

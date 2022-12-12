@@ -1,20 +1,17 @@
 package org.folio.dew.service.validation;
 
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Collections;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.domain.dto.UserContentUpdateCollection;
 import org.folio.dew.error.ContentUpdateValidationException;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.Collections;
-
-@SpringBootTest
 class UserContentUpdateValidatorServiceTest extends BaseBatchTest {
   @Autowired
   private UserContentUpdateValidatorService validatorService;

@@ -9,9 +9,9 @@ import java.util.stream.Collectors;
 public class CsvListWriter<T, R extends S3CompatibleStorage> extends AbstractStorageStreamWriter<List<T>, R> {
   private CsvWriter<T, R> delegate;
 
-  public CsvListWriter(String tempOutputFilePath, String columnHeaders, String[] extractedFieldNames, FieldProcessor fieldProcessor, R storage) {
-    super(tempOutputFilePath, columnHeaders, extractedFieldNames, fieldProcessor, storage);
-    delegate = new CsvWriter<>(tempOutputFilePath, columnHeaders, extractedFieldNames, fieldProcessor, storage);
+  public CsvListWriter(String tempOutputFilePath, String columnHeaders, String[] extractedFieldNames, FieldProcessor fieldProcessor, R storage, boolean isJsonNeedToBeGenerated) {
+    super(tempOutputFilePath, columnHeaders, extractedFieldNames, fieldProcessor, storage, isJsonNeedToBeGenerated);
+    delegate = new CsvWriter<>(tempOutputFilePath, columnHeaders, extractedFieldNames, fieldProcessor, storage, isJsonNeedToBeGenerated);
     setResource(new S3CompatibleResource<>(tempOutputFilePath, storage));
   }
 

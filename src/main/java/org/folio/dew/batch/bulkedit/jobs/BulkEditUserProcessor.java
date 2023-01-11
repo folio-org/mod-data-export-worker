@@ -78,7 +78,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       .updatedDate(dateToString(user.getUpdatedDate()))
       .tags(nonNull(user.getTags()) ? String.join(ARRAY_DELIMITER, escaper.escape(user.getTags().getTagList())) : EMPTY)
       .customFields(nonNull(user.getCustomFields()) ? customFieldsToString(user.getCustomFields()) : EMPTY)
-      .build();
+      .build().withOriginal(user);
   }
 
   private String fetchDepartments(User user, ErrorServiceArgs args) {

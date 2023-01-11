@@ -2,7 +2,7 @@ package org.folio.dew.batch.marc;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.folio.dew.batch.AbstractStorageStreamWriter;
+import org.folio.dew.batch.AbstractStorageStreamCsvWriter;
 import org.folio.dew.batch.CsvFileAssembler;
 import org.folio.dew.batch.CsvPartStepExecutionListener;
 import org.folio.dew.batch.JobCompletionNotificationListener;
@@ -65,7 +65,7 @@ public class DataExportJobConfig {
   @Bean
   public Step dataExportPartitionStep(
     DataExportCsvItemReader dataExportCsvItemReader,
-    AbstractStorageStreamWriter<Record, LocalFilesStorage> recordWriter,
+    AbstractStorageStreamCsvWriter<Record, LocalFilesStorage> recordWriter,
     ItemProcessor<ItemIdentifier, Record> processor,
     CsvPartStepExecutionListener csvPartStepExecutionListener
   ) {
@@ -103,7 +103,7 @@ public class DataExportJobConfig {
 
   @Bean
   @StepScope
-  public AbstractStorageStreamWriter<Record, LocalFilesStorage> recordWriter(
+  public AbstractStorageStreamCsvWriter<Record, LocalFilesStorage> recordWriter(
     @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath) {
     return new MarcWriter(tempOutputFilePath, localFilesStorage);
   }

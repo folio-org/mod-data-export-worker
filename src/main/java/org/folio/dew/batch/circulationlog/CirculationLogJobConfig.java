@@ -2,7 +2,7 @@ package org.folio.dew.batch.circulationlog;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.folio.dew.batch.AbstractStorageStreamWriter;
+import org.folio.dew.batch.AbstractStorageStreamCsvWriter;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.batch.CsvFileAssembler;
 import org.folio.dew.batch.CsvPartStepExecutionListener;
@@ -80,7 +80,7 @@ public class CirculationLogJobConfig {
   @Bean("getCirculationLogPartStep")
   public Step getCirculationLogPartStep(
       CirculationLogCsvItemReader circulationLogCsvItemReader,
-      @Qualifier("circulationLog") AbstractStorageStreamWriter<CirculationLogExportFormat, RemoteFilesStorage> flatFileItemWriter,
+      @Qualifier("circulationLog") AbstractStorageStreamCsvWriter<CirculationLogExportFormat, RemoteFilesStorage> flatFileItemWriter,
       CirculationLogItemProcessor circulationLogItemProcessor,
       CsvPartStepExecutionListener csvPartStepExecutionListener) {
     return stepBuilderFactory
@@ -107,12 +107,12 @@ public class CirculationLogJobConfig {
 
   @Bean("circulationLog")
   @StepScope
-  public AbstractStorageStreamWriter<CirculationLogExportFormat, RemoteFilesStorage> writer(
+  public AbstractStorageStreamCsvWriter<CirculationLogExportFormat, RemoteFilesStorage> writer(
       @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath) {
     return new CsvWriter<>(tempOutputFilePath,
       "User barcode,Item barcode,Object,Circ action,Date,Service point,Source,Description",
       new String[]{"userBarcode", "items", "objectField", "action", "date", "servicePointId", "source", "description"},
-      (field, i) -> field, remoteFilesStorage, false);
+      (field, i) -> field, remoteFilesStorage);
   }
 
 }

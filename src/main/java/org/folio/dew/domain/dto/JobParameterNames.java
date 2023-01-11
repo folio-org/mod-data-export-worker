@@ -11,6 +11,7 @@ public class JobParameterNames {
   public static final String JOB_DESCRIPTION = "jobDescription";
   public static final String TEMP_OUTPUT_FILE_PATH = "tempOutputFilePath";
   public static final String OUTPUT_FILES_IN_STORAGE = "outputFilesInStorage";
+  public static final String OUTPUT_JSON_FILES_IN_STORAGE = "outputJsonFileInStorage";
   public static final String TOTAL_RECORDS = "totalRecords";
   public static final String UPDATED_FILE_NAME = "updatedFileName";
   public static final String PREVIEW_FILE_NAME = "previewFileName";

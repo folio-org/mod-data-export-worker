@@ -11,6 +11,7 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.ExportType.E_HOLDINGS;
 import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_JSON_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
@@ -149,11 +150,13 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
   private void handleProcessingErrors(JobExecution jobExecution, String jobId) {
     String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
-    jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution) + (isNull(downloadErrorLink) ? EMPTY : PATHS_DELIMITER + downloadErrorLink));
+    jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution, false) + (isNull(downloadErrorLink) ? EMPTY : PATHS_DELIMITER + downloadErrorLink));
+    jobExecution.getExecutionContext().putString(OUTPUT_JSON_FILES_IN_STORAGE, saveJsonResult(jobExecution, !isBulkEditUpdateJob(jobExecution)));
+
   }
 
   private void handleProcessingChangedRecords(JobExecution jobExecution) {
-    jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution));
+    jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution, !isBulkEditUpdateJob(jobExecution)));
   }
 
   private void processJobAfter(String jobId, JobParameters jobParameters) {
@@ -247,7 +250,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     return nonNull(jobExecution.getJobParameters().getString(UPDATED_FILE_NAME));
   }
 
-  private String saveResult(JobExecution jobExecution) {
+  private String saveResult(JobExecution jobExecution, boolean isSourceShouldBeDeleted) {
     var path = preparePath(jobExecution);
     try {
       if (isEmpty(path) || noRecordsFound(path)) {
@@ -257,7 +260,23 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
         return remoteFilesStorage.objectToPresignedObjectUrl(path);
       }
       return remoteFilesStorage.objectToPresignedObjectUrl(
-        remoteFilesStorage.uploadObject(prepareObject(jobExecution, path), path, prepareDownloadFilename(jobExecution, path), "text/csv", !isBulkEditUpdateJob(jobExecution)));
+        remoteFilesStorage.uploadObject(prepareObject(jobExecution, path), path, prepareDownloadFilename(jobExecution, path), "text/csv", isSourceShouldBeDeleted));
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  private String saveJsonResult(JobExecution jobExecution, boolean isSourceToBeDeleted) {
+    var path = preparePath(jobExecution) +"_json";
+    try {
+      if (isEmpty(path) || noRecordsFound(path)) {
+        return EMPTY; // To prevent downloading empty file.
+      }
+      if (localFilesStorage.notExists(path) && remoteFilesStorage.containsFile(path)) {
+        return remoteFilesStorage.objectToPresignedObjectUrl(path);
+      }
+      return remoteFilesStorage.objectToPresignedObjectUrl(
+        remoteFilesStorage.uploadObject(prepareJsonObject(jobExecution, path), path, prepareDownloadJsonFilename(jobExecution, path), "text/csv", isSourceToBeDeleted));
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }
@@ -291,7 +310,21 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     return jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID) + PATH_SEPARATOR + FilenameUtils.getName(path) + (!isBulkEditUpdateJob(jobExecution) ? CSV_EXTENSION : EMPTY);
   }
 
+  private String prepareJsonObject(JobExecution jobExecution, String path) {
+    return jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID) + PATH_SEPARATOR + FilenameUtils.getName(path) + (!isBulkEditUpdateJob(jobExecution) ? ".json" : EMPTY);
+  }
+
   private String prepareDownloadFilename(JobExecution jobExecution, String path) {
+    if (isBulkEditIdentifiersJob(jobExecution)) {
+      return null;
+    }
+    return jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID) + PATH_SEPARATOR + FilenameUtils.getName(path)
+      .replace(MATCHED_RECORDS, CHANGED_RECORDS)
+      .replace(UPDATED_PREFIX, EMPTY)
+      .replace(INITIAL_PREFIX, EMPTY);
+  }
+
+  private String prepareDownloadJsonFilename(JobExecution jobExecution, String path) {
     if (isBulkEditIdentifiersJob(jobExecution)) {
       return null;
     }

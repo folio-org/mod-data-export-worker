@@ -6,8 +6,8 @@ import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
 import lombok.RequiredArgsConstructor;
 import org.folio.dew.batch.AbstractStorageStreamWriter;
-import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.CsvListWriter;
+import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.bulkedit.jobs.BulkEditItemListProcessor;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.ItemFormat;
@@ -44,7 +44,7 @@ public class BulkEditItemIdentifiersJobConfig {
   @StepScope
   public AbstractStorageStreamWriter<List<ItemFormat>, LocalFilesStorage> csvListWriter(
     @Value("#{jobParameters['tempOutputFilePath']}") String outputFileName) {
-    return new CsvListWriter<>(outputFileName, ItemFormat.getItemColumnHeaders(), ItemFormat.getItemFieldsArray(), (field, i) -> field, localFilesStorage);
+    return new CsvListWriter<>(outputFileName, ItemFormat.getItemColumnHeaders(), ItemFormat.getItemFieldsArray(), (field, i) -> field, localFilesStorage, true);
   }
 
   @Bean

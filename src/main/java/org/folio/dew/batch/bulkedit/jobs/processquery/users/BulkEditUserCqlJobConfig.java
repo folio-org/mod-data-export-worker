@@ -113,6 +113,6 @@ public class BulkEditUserCqlJobConfig {
   @StepScope
   public AbstractStorageStreamWriter<UserFormat, RemoteFilesStorage> userWriter(
     @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath) {
-    return new CsvWriter<>(tempOutputFilePath, getUserColumnHeaders(), getUserFieldsArray(), (field, i) -> field, remoteFilesStorage);
+    return new CsvWriter<>(tempOutputFilePath, getUserColumnHeaders(), getUserFieldsArray(), (field, i) -> field, remoteFilesStorage, true);
   }
 }

@@ -1,5 +1,6 @@
 package org.folio.dew.service.update;
 
+import static java.lang.String.format;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
@@ -98,7 +99,7 @@ public class BulkEditUserContentUpdateService {
     case EMAIL_ADDRESS:
       return emailUpdateStrategy;
     default:
-      throw new BulkEditException(String.format("Content updates for %s not implemented", update.getOption()));
+      throw new BulkEditException(format("Content updates for %s not implemented", update.getOption()));
     }
   }
 }

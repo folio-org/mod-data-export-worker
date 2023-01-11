@@ -112,7 +112,7 @@ public class CirculationLogJobConfig {
     return new CsvWriter<>(tempOutputFilePath,
       "User barcode,Item barcode,Object,Circ action,Date,Service point,Source,Description",
       new String[]{"userBarcode", "items", "objectField", "action", "date", "servicePointId", "source", "description"},
-      (field, i) -> field, remoteFilesStorage);
+      (field, i) -> field, remoteFilesStorage, false);
   }
 
 }

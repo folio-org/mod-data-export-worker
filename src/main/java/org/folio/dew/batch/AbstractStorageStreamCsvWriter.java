@@ -11,6 +11,7 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.item.file.transform.LineAggregator;
+import org.springframework.batch.item.json.JacksonJsonObjectMarshaller;
 import org.springframework.core.io.WritableResource;
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ import static org.folio.dew.utils.Constants.LINE_SEPARATOR_REPLACEMENT;
 public class AbstractStorageStreamCsvWriter<T, S extends S3CompatibleStorage> implements ItemWriter<T> {
 
   private WritableResource resource;
+  private WritableResource jsonResource;
   private S storage;
   private LineAggregator<T> lineAggregator;
 
@@ -37,6 +39,8 @@ public class AbstractStorageStreamCsvWriter<T, S extends S3CompatibleStorage> im
     }
 
     this.storage = storage;
+    this.jsonObjectMarshaller = new JacksonJsonObjectMarshaller<>();
+    this.isJsonNeedToBeGenerated = isJsonNeedToBeGenerated;
 
     BeanWrapperFieldExtractor<T> fieldExtractor = new BeanWrapperFieldExtractor<>() {
       @Override
@@ -94,6 +98,7 @@ public class AbstractStorageStreamCsvWriter<T, S extends S3CompatibleStorage> im
     }
 
     setResource(new S3CompatibleResource<>(tempOutputFilePath, storage));
+    setJsonResource(new S3CompatibleResource<>(tempOutputFilePath + "_json", storage));
 
     log.info("Creating file {}.", tempOutputFilePath);
   }
@@ -104,6 +109,10 @@ public class AbstractStorageStreamCsvWriter<T, S extends S3CompatibleStorage> im
 
   public void setResource(S3CompatibleResource<S> resource) {
     this.resource = resource;
+  }
+
+  public void setJsonResource(S3CompatibleResource<S> jsonResource) {
+    this.jsonResource = jsonResource;
   }
 
   public void setLineAggregator(LineAggregator<T> lineAggregator) {
@@ -123,6 +132,13 @@ public class AbstractStorageStreamCsvWriter<T, S extends S3CompatibleStorage> im
     var sb = new StringBuilder();
     for (T item : items) {
       sb.append(lineAggregator.aggregate(item)).append('\n');
+      if (isJsonNeedToBeGenerated) {
+        json.append(jsonObjectMarshaller.marshal(item));
+        if(iterator.hasNext()) {
+          json.append("," + '\n');
+        }
+      }
+
     }
     storage.append(resource.getFilename(), sb.toString().getBytes(StandardCharsets.UTF_8));
   }

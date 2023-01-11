@@ -1,12 +1,12 @@
 package org.folio.dew.batch.bulkedit.jobs.processquery.items;
 
-import org.folio.dew.batch.AbstractStorageStreamCsvWriter;
+import org.folio.dew.batch.AbstractStorageStreamWriter;
 import org.folio.dew.batch.CsvAndJsonWriter;
 import org.folio.dew.batch.CsvFileAssembler;
 import org.folio.dew.batch.CsvPartStepExecutionListener;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.bulkedit.jobs.BulkEditItemProcessor;
-import org.folio.dew.batch.AbstractStorageStreamCsvAndJsonWriter;
+import org.folio.dew.batch.AbstractStorageStreamAndJsonWriter;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
@@ -75,7 +75,7 @@ public class BulkEditItemCqlJobConfig {
   @Bean
   public Step bulkEditItemCqlPartitionStep(
     BulkEditCqlItemReader bulkEditCqlItemReader,
-    AbstractStorageStreamCsvWriter<ItemFormat, RemoteFilesStorage> itemWriter,
+    AbstractStorageStreamWriter<ItemFormat, RemoteFilesStorage> itemWriter,
     BulkEditItemProcessor processor,
     CsvPartStepExecutionListener csvPartStepExecutionListener
   ) {
@@ -113,7 +113,7 @@ public class BulkEditItemCqlJobConfig {
 
   @Bean
   @StepScope
-  public AbstractStorageStreamCsvAndJsonWriter<Item, ItemFormat, RemoteFilesStorage> itemWriter(
+  public AbstractStorageStreamAndJsonWriter<Item, ItemFormat, RemoteFilesStorage> itemWriter(
     @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath) {
     return new CsvAndJsonWriter<>(tempOutputFilePath, getItemColumnHeaders(), getItemFieldsArray(), (field, i) -> field, remoteFilesStorage);
   }

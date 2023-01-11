@@ -5,7 +5,7 @@ import static org.folio.dew.utils.Constants.CHUNKS;
 import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
 import lombok.RequiredArgsConstructor;
-import org.folio.dew.batch.AbstractStorageStreamCsvWriter;
+import org.folio.dew.batch.AbstractStorageStreamWriter;
 import org.folio.dew.batch.CsvAndJsonListWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.bulkedit.jobs.BulkEditHoldingsProcessor;
@@ -39,7 +39,7 @@ public class BulkEditHoldingsIdentifiersJobConfig {
 
   @Bean
   @StepScope
-  public AbstractStorageStreamCsvWriter<List<HoldingsFormat>, LocalFilesStorage> csvHoldingsListWriter(
+  public AbstractStorageStreamWriter<List<HoldingsFormat>, LocalFilesStorage> csvHoldingsListWriter(
     @Value("#{jobParameters['tempOutputFilePath']}") String outputFileName) {
     return new CsvAndJsonListWriter<>(outputFileName, HoldingsFormat.getHoldingsColumnHeaders(), HoldingsFormat.getHoldingsFieldsArray(), (field, i) -> field, localFilesStorage);
   }
@@ -57,7 +57,7 @@ public class BulkEditHoldingsIdentifiersJobConfig {
 
   @Bean
   public Step bulkEditHoldingsStep(FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader,
-    AbstractStorageStreamCsvWriter<List<HoldingsFormat>, LocalFilesStorage> csvHoldingsListWriter,
+    AbstractStorageStreamWriter<List<HoldingsFormat>, LocalFilesStorage> csvHoldingsListWriter,
     ListIdentifiersWriteListener<HoldingsFormat> listIdentifiersWriteListener) {
     return stepBuilderFactory.get("bulkEditHoldingsStep")
       .<ItemIdentifier, List<HoldingsFormat>> chunk(CHUNKS)

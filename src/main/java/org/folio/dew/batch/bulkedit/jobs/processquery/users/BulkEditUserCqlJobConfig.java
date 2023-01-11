@@ -6,9 +6,9 @@ import static org.folio.dew.domain.dto.UserFormat.getUserFieldsArray;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
-import org.folio.dew.batch.AbstractStorageStreamCsvWriter;
+import org.folio.dew.batch.AbstractStorageStreamWriter;
 import org.folio.dew.batch.CsvAndJsonWriter;
-import org.folio.dew.batch.AbstractStorageStreamCsvAndJsonWriter;
+import org.folio.dew.batch.AbstractStorageStreamAndJsonWriter;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.batch.CsvFileAssembler;
@@ -74,7 +74,7 @@ public class BulkEditUserCqlJobConfig {
   @Bean
   public Step bulkEditUserCqlPartitionStep(
     BulkEditCqlUserReader bulkEditCqlUserReader,
-    AbstractStorageStreamCsvWriter<UserFormat, RemoteFilesStorage> userWriter,
+    AbstractStorageStreamWriter<UserFormat, RemoteFilesStorage> userWriter,
     BulkEditUserProcessor processor,
     CsvPartStepExecutionListener csvPartStepExecutionListener
   ) {
@@ -112,7 +112,7 @@ public class BulkEditUserCqlJobConfig {
 
   @Bean
   @StepScope
-  public AbstractStorageStreamCsvAndJsonWriter<User, UserFormat, RemoteFilesStorage> userWriter(
+  public AbstractStorageStreamAndJsonWriter<User, UserFormat, RemoteFilesStorage> userWriter(
     @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath) {
     return new CsvAndJsonWriter<>(tempOutputFilePath, getUserColumnHeaders(), getUserFieldsArray(), (field, i) -> field, remoteFilesStorage);
   }

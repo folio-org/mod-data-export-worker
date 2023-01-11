@@ -8,7 +8,7 @@ import org.springframework.core.io.WritableResource;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CsvAndJsonListWriter<O, T extends Formatable<O>, R extends S3CompatibleStorage> extends AbstractStorageStreamCsvWriter<List<T>, R> {
+public class CsvAndJsonListWriter<O, T extends Formatable<O>, R extends S3CompatibleStorage> extends AbstractStorageStreamWriter<List<T>, R> {
   private final CsvAndJsonWriter<O, T, R> delegate;
   private WritableResource resource;
 

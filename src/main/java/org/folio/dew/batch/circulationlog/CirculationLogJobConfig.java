@@ -2,7 +2,7 @@ package org.folio.dew.batch.circulationlog;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.folio.dew.batch.AbstractStorageStreamCsvWriter;
+import org.folio.dew.batch.AbstractStorageStreamWriter;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.batch.CsvFileAssembler;
 import org.folio.dew.batch.CsvPartStepExecutionListener;
@@ -80,7 +80,7 @@ public class CirculationLogJobConfig {
   @Bean("getCirculationLogPartStep")
   public Step getCirculationLogPartStep(
       CirculationLogCsvItemReader circulationLogCsvItemReader,
-      @Qualifier("circulationLog") AbstractStorageStreamCsvWriter<CirculationLogExportFormat, RemoteFilesStorage> flatFileItemWriter,
+      @Qualifier("circulationLog") AbstractStorageStreamWriter<CirculationLogExportFormat, RemoteFilesStorage> flatFileItemWriter,
       CirculationLogItemProcessor circulationLogItemProcessor,
       CsvPartStepExecutionListener csvPartStepExecutionListener) {
     return stepBuilderFactory
@@ -107,7 +107,7 @@ public class CirculationLogJobConfig {
 
   @Bean("circulationLog")
   @StepScope
-  public AbstractStorageStreamCsvWriter<CirculationLogExportFormat, RemoteFilesStorage> writer(
+  public AbstractStorageStreamWriter<CirculationLogExportFormat, RemoteFilesStorage> writer(
       @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath) {
     return new CsvWriter<>(tempOutputFilePath,
       "User barcode,Item barcode,Object,Circ action,Date,Service point,Source,Description",

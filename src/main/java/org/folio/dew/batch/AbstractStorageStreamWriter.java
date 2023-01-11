@@ -21,17 +21,17 @@ import static org.folio.dew.utils.Constants.LINE_SEPARATOR;
 import static org.folio.dew.utils.Constants.LINE_SEPARATOR_REPLACEMENT;
 
 @Slf4j
-public class AbstractStorageStreamCsvWriter<T, S extends S3CompatibleStorage> implements ItemWriter<T> {
+public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> implements ItemWriter<T> {
 
   private WritableResource resource;
   private S storage;
   private LineAggregator<T> lineAggregator;
 
-  public AbstractStorageStreamCsvWriter(String tempOutputFilePath, LocalFilesStorage localFilesStorage) {
+  public AbstractStorageStreamWriter(String tempOutputFilePath, LocalFilesStorage localFilesStorage) {
     // TODO Should be implemented for MarcWriter
   }
 
-  public AbstractStorageStreamCsvWriter(String tempOutputFilePath, String columnHeaders, String[] extractedFieldNames, FieldProcessor fieldProcessor, S storage) {
+  public AbstractStorageStreamWriter(String tempOutputFilePath, String columnHeaders, String[] extractedFieldNames, FieldProcessor fieldProcessor, S storage) {
     if (StringUtils.isBlank(tempOutputFilePath)) {
       throw new IllegalArgumentException("tempOutputFilePath is blank");
     }

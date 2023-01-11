@@ -1,6 +1,5 @@
 package org.folio.dew.batch;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.folio.dew.domain.dto.Formatable;
 import org.folio.dew.repository.S3CompatibleResource;
@@ -12,13 +11,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Slf4j
-public class AbstractStorageStreamCsvAndJsonWriter<O, T extends Formatable<O>, S extends S3CompatibleStorage> extends AbstractStorageStreamCsvWriter<T, S> {
+public class AbstractStorageStreamAndJsonWriter<O, T extends Formatable<O>, S extends S3CompatibleStorage> extends AbstractStorageStreamWriter<T, S> {
 
-  private JacksonJsonObjectMarshaller<O> jacksonJsonObjectMarshaller;
+  private final JacksonJsonObjectMarshaller<O> jacksonJsonObjectMarshaller;
 
   private WritableResource jsonResource;
 
-  public AbstractStorageStreamCsvAndJsonWriter(String tempOutputFilePath, String columnHeaders, String[] extractedFieldNames, FieldProcessor fieldProcessor, S storage) {
+  public AbstractStorageStreamAndJsonWriter(String tempOutputFilePath, String columnHeaders, String[] extractedFieldNames, FieldProcessor fieldProcessor, S storage) {
     super(tempOutputFilePath, columnHeaders, extractedFieldNames, fieldProcessor, storage);
     setJsonResource(new S3CompatibleResource<>(tempOutputFilePath + "_json", storage));
     jacksonJsonObjectMarshaller = new JacksonJsonObjectMarshaller<>();

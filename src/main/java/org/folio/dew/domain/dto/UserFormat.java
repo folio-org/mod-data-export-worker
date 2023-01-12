@@ -1,8 +1,5 @@
 package org.folio.dew.domain.dto;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvBindByPosition;
 import lombok.AllArgsConstructor;
@@ -11,12 +8,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 @Data
 @Builder
 @With
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserFormat {
+public class UserFormat implements Formatable<org.folio.dew.domain.dto.User> {
+
+  private org.folio.dew.domain.dto.User original;
   private static final Map<String, String> map = new LinkedHashMap<>();
 
   static {
@@ -157,7 +159,7 @@ public class UserFormat {
 
   public String getIdentifier(String identifierType) {
     try {
-      switch (IdentifierType.fromValue(identifierType)) {
+      switch (org.folio.dew.domain.dto.IdentifierType.fromValue(identifierType)) {
       case BARCODE:
         return barcode;
       case EXTERNAL_SYSTEM_ID:

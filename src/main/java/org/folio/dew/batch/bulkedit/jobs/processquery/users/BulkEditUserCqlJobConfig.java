@@ -7,11 +7,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import org.folio.dew.batch.AbstractStorageStreamWriter;
+import org.folio.dew.batch.CsvAndJsonWriter;
+import org.folio.dew.batch.AbstractStorageStreamAndJsonWriter;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.batch.CsvFileAssembler;
 import org.folio.dew.batch.CsvPartStepExecutionListener;
-import org.folio.dew.batch.CsvWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.bulkedit.jobs.BulkEditUserProcessor;
 import org.folio.dew.client.UserClient;
@@ -111,8 +112,8 @@ public class BulkEditUserCqlJobConfig {
 
   @Bean
   @StepScope
-  public AbstractStorageStreamWriter<UserFormat, RemoteFilesStorage> userWriter(
+  public AbstractStorageStreamAndJsonWriter<User, UserFormat, RemoteFilesStorage> userWriter(
     @Value("#{stepExecutionContext['tempOutputFilePath']}") String tempOutputFilePath) {
-    return new CsvWriter<>(tempOutputFilePath, getUserColumnHeaders(), getUserFieldsArray(), (field, i) -> field, remoteFilesStorage, true);
+    return new CsvAndJsonWriter<>(tempOutputFilePath, getUserColumnHeaders(), getUserFieldsArray(), (field, i) -> field, remoteFilesStorage);
   }
 }

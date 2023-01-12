@@ -62,7 +62,7 @@ public class BulkEditHoldingsProcessor implements ItemProcessor<ItemIdentifier, 
     var itemBarcode = ITEM_BARCODE == IdentifierType.fromValue(identifierType) ? itemIdentifier.getItemId() : null;
 
     return holdings.getHoldingsRecords().stream()
-      .map(r -> holdingsMapper.mapToHoldingsFormat(r, itemIdentifier.getItemId(), jobId, FilenameUtils.getName(fileName)))
+      .map(r -> holdingsMapper.mapToHoldingsFormat(r, itemIdentifier.getItemId(), jobId, FilenameUtils.getName(fileName)).withOriginal(r))
       .map(holdingsFormat -> holdingsFormat.withInstanceHrid(instanceHrid))
       .map(holdingsFormat -> holdingsFormat.withItemBarcode(itemBarcode))
       .collect(Collectors.toList());

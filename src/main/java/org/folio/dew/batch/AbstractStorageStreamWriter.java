@@ -11,7 +11,6 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.item.file.transform.LineAggregator;
-import org.springframework.batch.item.json.JacksonJsonObjectMarshaller;
 import org.springframework.core.io.WritableResource;
 
 import java.io.IOException;
@@ -24,15 +23,7 @@ import static org.folio.dew.utils.Constants.LINE_SEPARATOR_REPLACEMENT;
 @Slf4j
 public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> implements ItemWriter<T> {
 
-  private JacksonJsonObjectMarshaller<T> jsonObjectMarshaller;
-  private boolean isJsonNeedToBeGenerated;
-
-  public interface FieldProcessor {
-    Object process(Object field, int i);
-  }
-
   private WritableResource resource;
-  private WritableResource jsonResource;
   private S storage;
   private LineAggregator<T> lineAggregator;
 
@@ -40,14 +31,12 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
     // TODO Should be implemented for MarcWriter
   }
 
-  public AbstractStorageStreamWriter(String tempOutputFilePath, String columnHeaders, String[] extractedFieldNames, FieldProcessor fieldProcessor, S storage, boolean isJsonNeedToBeGenerated) {
+  public AbstractStorageStreamWriter(String tempOutputFilePath, String columnHeaders, String[] extractedFieldNames, FieldProcessor fieldProcessor, S storage) {
     if (StringUtils.isBlank(tempOutputFilePath)) {
       throw new IllegalArgumentException("tempOutputFilePath is blank");
     }
 
     this.storage = storage;
-    this.jsonObjectMarshaller = new JacksonJsonObjectMarshaller<>();
-    this.isJsonNeedToBeGenerated = isJsonNeedToBeGenerated;
 
     BeanWrapperFieldExtractor<T> fieldExtractor = new BeanWrapperFieldExtractor<>() {
       @Override
@@ -105,7 +94,6 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
     }
 
     setResource(new S3CompatibleResource<>(tempOutputFilePath, storage));
-    setJsonResource(new S3CompatibleResource<>(tempOutputFilePath + "_json", storage));
 
     log.info("Creating file {}.", tempOutputFilePath);
   }
@@ -118,34 +106,24 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
     this.resource = resource;
   }
 
-  public void setJsonResource(S3CompatibleResource<S> jsonResource) {
-    this.jsonResource = jsonResource;
-  }
-
   public void setLineAggregator(LineAggregator<T> lineAggregator) {
     this.lineAggregator = lineAggregator;
+  }
+
+  public LineAggregator<T> getLineAggregator() {
+    return lineAggregator;
+  }
+
+  public S3CompatibleStorage getStorage() {
+    return storage;
   }
 
   @Override
   public void write(List<? extends T> items) throws Exception {
     var sb = new StringBuilder();
-    var json = new StringBuilder();
-
-    var iterator = items.iterator();
-    while (iterator.hasNext()) {
-      var item = iterator.next();
+    for (T item : items) {
       sb.append(lineAggregator.aggregate(item)).append('\n');
-      if (isJsonNeedToBeGenerated) {
-        json.append(jsonObjectMarshaller.marshal(item));
-        if(iterator.hasNext()) {
-          json.append("," + '\n');
-        }
-      }
-
     }
     storage.append(resource.getFilename(), sb.toString().getBytes(StandardCharsets.UTF_8));
-    if (isJsonNeedToBeGenerated) {
-      storage.append(jsonResource.getFilename(), json.toString().getBytes(StandardCharsets.UTF_8));
-    }
   }
 }

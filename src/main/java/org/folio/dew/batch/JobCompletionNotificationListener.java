@@ -11,7 +11,6 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.ExportType.E_HOLDINGS;
 import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
-import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_JSON_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
@@ -150,9 +149,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
   private void handleProcessingErrors(JobExecution jobExecution, String jobId) {
     String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
-    jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution, false) + (isNull(downloadErrorLink) ? EMPTY : PATHS_DELIMITER + downloadErrorLink));
-    jobExecution.getExecutionContext().putString(OUTPUT_JSON_FILES_IN_STORAGE, saveJsonResult(jobExecution, !isBulkEditUpdateJob(jobExecution)));
-
+    jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution, false) + PATHS_DELIMITER + (isNull(downloadErrorLink) ? EMPTY : downloadErrorLink) + PATHS_DELIMITER + saveJsonResult(jobExecution, !isBulkEditUpdateJob(jobExecution)));
   }
 
   private void handleProcessingChangedRecords(JobExecution jobExecution) {

@@ -19,7 +19,7 @@ public class AbstractStorageStreamAndJsonWriter<O, T extends Formatable<O>, S ex
 
   public AbstractStorageStreamAndJsonWriter(String tempOutputFilePath, String columnHeaders, String[] extractedFieldNames, FieldProcessor fieldProcessor, S storage) {
     super(tempOutputFilePath, columnHeaders, extractedFieldNames, fieldProcessor, storage);
-    setJsonResource(new S3CompatibleResource<>(tempOutputFilePath + "_json", storage));
+    setJsonResource(new S3CompatibleResource<>(tempOutputFilePath + ".json", storage));
     jacksonJsonObjectMarshaller = new JacksonJsonObjectMarshaller<>();
   }
 

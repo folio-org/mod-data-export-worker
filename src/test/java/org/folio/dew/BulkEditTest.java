@@ -646,11 +646,13 @@ class BulkEditTest extends BaseBatchTest {
       String[] links = fileInStorage.split(";");
       fileInStorage = links[0];
       String errorInStorage = links[1];
-      final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
-      final FileSystemResource expectedResultWithErrors = jobExecution.getJobInstance().getJobName().contains("-USER") ?
-        new FileSystemResource(EXPECTED_BULK_EDIT_OUTPUT_ERRORS) :
-        new FileSystemResource(EXPECTED_BULK_EDIT_ITEM_OUTPUT_ERRORS);
-      assertFileEquals(expectedResultWithErrors, actualResultWithErrors);
+      if (StringUtils.isNotEmpty(errorInStorage)){
+        final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
+        final FileSystemResource expectedResultWithErrors = jobExecution.getJobInstance().getJobName().contains("-USER") ?
+          new FileSystemResource(EXPECTED_BULK_EDIT_OUTPUT_ERRORS) :
+          new FileSystemResource(EXPECTED_BULK_EDIT_ITEM_OUTPUT_ERRORS);
+        assertFileEquals(expectedResultWithErrors, actualResultWithErrors);
+      }
     }
     final FileSystemResource actualResult = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(output);

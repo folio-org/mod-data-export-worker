@@ -264,7 +264,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
   }
 
   private String saveJsonResult(JobExecution jobExecution, boolean isSourceToBeDeleted) {
-    var path = preparePath(jobExecution) +"_json";
+    var path = preparePath(jobExecution) +".json";
     try {
       if (isEmpty(path) || noRecordsFound(path)) {
         return EMPTY; // To prevent downloading empty file.
@@ -298,7 +298,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     }
 
     try (var lines = localFilesStorage.lines(path)) {
-      return lines.count() <= 1;
+      return lines.count() <= (path.endsWith(".json") ? 0 : 1);
     }
 
   }

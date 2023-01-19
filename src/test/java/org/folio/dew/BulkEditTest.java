@@ -3,6 +3,7 @@ package org.folio.dew;
 import lombok.SneakyThrows;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
@@ -63,7 +64,6 @@ import static org.folio.dew.domain.dto.IdentifierType.INSTANCE_HRID;
 import static org.folio.dew.domain.dto.IdentifierType.ITEM_BARCODE;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
-import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_JSON_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
@@ -190,8 +190,7 @@ class BulkEditTest extends BaseBatchTest {
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, BARCODES_CSV);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
-    verifyFilesOutput(jobExecution, EXPECTED_BULK_EDIT_USER_OUTPUT);
-    verifyJsonFilesOutput(jobExecution, EXPECTED_BULK_EDIT_USER_JSON_OUTPUT);
+    verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_USER_OUTPUT, EXPECTED_BULK_EDIT_USER_JSON_OUTPUT);
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 
@@ -239,8 +238,7 @@ class BulkEditTest extends BaseBatchTest {
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, identifierType, ITEM_BARCODES_CSV);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
-    verifyFilesOutput(jobExecution, EXPECTED_BULK_EDIT_ITEM_OUTPUT);
-    verifyJsonFilesOutput(jobExecution, EXPECTED_BULK_EDIT_ITEM_JSON_OUTPUT);
+    verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_ITEM_OUTPUT, EXPECTED_BULK_EDIT_ITEM_JSON_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
@@ -319,7 +317,7 @@ class BulkEditTest extends BaseBatchTest {
     } else {
       expectedErrorsOutputFilePath = EXPECTED_BULK_EDIT_HOLDINGS_ERRORS;
       verifyFilesOutput(jobExecution, EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT, expectedErrorsOutputFilePath);
-      verifyJsonFilesOutput(jobExecution, EXPECTED_BULK_EDIT_HOLDINGS_JSON_OUTPUT);
+      verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT, EXPECTED_BULK_EDIT_HOLDINGS_JSON_OUTPUT);
     }
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
@@ -648,11 +646,13 @@ class BulkEditTest extends BaseBatchTest {
       String[] links = fileInStorage.split(";");
       fileInStorage = links[0];
       String errorInStorage = links[1];
-      final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
-      final FileSystemResource expectedResultWithErrors = jobExecution.getJobInstance().getJobName().contains("-USER") ?
-        new FileSystemResource(EXPECTED_BULK_EDIT_OUTPUT_ERRORS) :
-        new FileSystemResource(EXPECTED_BULK_EDIT_ITEM_OUTPUT_ERRORS);
-      assertFileEquals(expectedResultWithErrors, actualResultWithErrors);
+      if (StringUtils.isNotEmpty(errorInStorage)){
+        final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
+        final FileSystemResource expectedResultWithErrors = jobExecution.getJobInstance().getJobName().contains("-USER") ?
+          new FileSystemResource(EXPECTED_BULK_EDIT_OUTPUT_ERRORS) :
+          new FileSystemResource(EXPECTED_BULK_EDIT_ITEM_OUTPUT_ERRORS);
+        assertFileEquals(expectedResultWithErrors, actualResultWithErrors);
+      }
     }
     final FileSystemResource actualResult = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(output);
@@ -660,14 +660,19 @@ class BulkEditTest extends BaseBatchTest {
   }
 
   @SneakyThrows
-  private void verifyJsonFilesOutput(JobExecution jobExecution, String output) {
+  private void verifyCsvAndJsonOutput(JobExecution jobExecution, String output, String outputJsonPath) {
     final ExecutionContext executionContext = jobExecution.getExecutionContext();
+    String fileInStorage = (String) executionContext.get("outputFilesInStorage");
+    String[] links = fileInStorage.split(";");
+    fileInStorage = links[0];
 
-    String jsonFileInStorage = (String) executionContext.get(OUTPUT_JSON_FILES_IN_STORAGE);
+    FileSystemResource expectedJsonFile = new FileSystemResource(outputJsonPath);
+    final FileSystemResource actualJsonResult = actualFileOutput(links[2]);
+    assertFileEquals(expectedJsonFile, actualJsonResult);
+
+    final FileSystemResource actualResult = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(output);
-    final FileSystemResource actualJsonResult = actualFileOutput(jsonFileInStorage);
-
-    assertFileEquals(expectedCharges, actualJsonResult);
+    assertFileEquals(expectedCharges, actualResult);
   }
 
   @SneakyThrows
@@ -677,7 +682,7 @@ class BulkEditTest extends BaseBatchTest {
     String[] links = fileInStorage.split(";");
     fileInStorage = links[0];
     if (Objects.isNull(expectedErrorOutput)) {
-      assertEquals(1, links.length);
+      assertEquals(3, links.length);
     } else {
       String errorInStorage = links[1];
       final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);

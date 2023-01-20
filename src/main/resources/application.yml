@@ -71,12 +71,12 @@ application:
     topic-pattern: ${ENV:folio}.(.*\.)?data-export.job.command
     group-id: ${ENV:folio}-mod-data-export-worker-events-group
   minio-remote:
-    endpoint: ${AWS_URL:http://127.0.0.1:9000/}
-    region: ${AWS_REGION:}
-    bucket: ${AWS_BUCKET:}
-    accessKey: ${AWS_ACCESS_KEY_ID:}
-    secretKey: ${AWS_SECRET_ACCESS_KEY:}
-    composeWithAwsSdk: ${LOCAL_FS_COMPOSE_WITH_AWS_SDK:false}
+    endpoint: http://127.0.0.1:9000/
+    region: region
+    bucket: remote
+    accessKey: minioadmin
+    secretKey: minioadmin
+    composeWithAwsSdk: false
     url-expiration-time-in-seconds: ${URL_EXPIRATION_TIME:604800} # 7 days
   minio-local:
     endpoint: ${LOCAL_FS_URL:http://127.0.0.1:9000/}

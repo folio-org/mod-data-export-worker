@@ -51,11 +51,13 @@ management:
     web:
       base-path: /admin
       exposure:
-        include: health
+        include: health, loggers
   metrics:
     export:
       influx:
         enabled: false
+  loggers:
+    enabled: true
 feign:
   client:
     config:

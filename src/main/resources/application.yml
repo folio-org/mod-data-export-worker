@@ -52,12 +52,13 @@ management:
       base-path: /admin
       exposure:
         include: health, loggers
+  endpoint:
+    loggers:
+      enabled: true
   metrics:
     export:
       influx:
         enabled: false
-  loggers:
-    enabled: true
 feign:
   client:
     config:

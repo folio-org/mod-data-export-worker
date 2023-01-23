@@ -16,7 +16,6 @@ import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemFormat;
-import org.folio.dew.domain.dto.ItemNote;
 import org.folio.dew.domain.dto.Title;
 import org.folio.dew.service.ElectronicAccessService;
 import org.folio.dew.service.ItemReferenceService;
@@ -98,7 +97,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .lastCheckIn(lastCheckInToString(item, errorServiceArgs))
       .build();
     itemFormat.setElectronicAccess(electronicAccessService.getElectronicAccessesToString(item.getElectronicAccess(), itemFormat.getIdentifier(identifierType), jobId, FilenameUtils.getName(fileName)));
-    return itemFormat;
+    return itemFormat.withOriginal(item);
   }
 
   private String fetchContributorNames(Item item) {

@@ -1,7 +1,6 @@
 package org.folio.dew.batch;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.error.FileOperationException;
@@ -23,10 +22,6 @@ import static org.folio.dew.utils.Constants.LINE_SEPARATOR_REPLACEMENT;
 
 @Slf4j
 public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> implements ItemWriter<T> {
-
-  public interface FieldProcessor {
-    Object process(Object field, int i);
-  }
 
   private WritableResource resource;
   private S storage;
@@ -115,14 +110,20 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
     this.lineAggregator = lineAggregator;
   }
 
+  public LineAggregator<T> getLineAggregator() {
+    return lineAggregator;
+  }
+
+  public S3CompatibleStorage getStorage() {
+    return storage;
+  }
+
   @Override
   public void write(List<? extends T> items) throws Exception {
     var sb = new StringBuilder();
-
     for (T item : items) {
       sb.append(lineAggregator.aggregate(item)).append('\n');
     }
     storage.append(resource.getFilename(), sb.toString().getBytes(StandardCharsets.UTF_8));
-
   }
 }

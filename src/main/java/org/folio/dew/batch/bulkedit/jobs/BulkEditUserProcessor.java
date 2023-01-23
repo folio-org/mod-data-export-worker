@@ -16,7 +16,12 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
-import org.folio.dew.domain.dto.*;
+import org.folio.dew.domain.dto.Address;
+import org.folio.dew.domain.dto.CustomField;
+import org.folio.dew.domain.dto.ErrorServiceArgs;
+import org.folio.dew.domain.dto.IdentifierType;
+import org.folio.dew.domain.dto.User;
+import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.SpecialCharacterEscaper;
@@ -73,7 +78,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       .updatedDate(dateToString(user.getUpdatedDate()))
       .tags(nonNull(user.getTags()) ? String.join(ARRAY_DELIMITER, escaper.escape(user.getTags().getTagList())) : EMPTY)
       .customFields(nonNull(user.getCustomFields()) ? customFieldsToString(user.getCustomFields()) : EMPTY)
-      .build();
+      .build().withOriginal(user);
   }
 
   private String fetchDepartments(User user, ErrorServiceArgs args) {

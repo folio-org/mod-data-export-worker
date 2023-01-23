@@ -6,7 +6,7 @@ import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
 import lombok.RequiredArgsConstructor;
 import org.folio.dew.batch.AbstractStorageStreamWriter;
-import org.folio.dew.batch.CsvListWriter;
+import org.folio.dew.batch.CsvAndJsonListWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.bulkedit.jobs.BulkEditHoldingsProcessor;
 import org.folio.dew.domain.dto.ExportType;
@@ -41,7 +41,7 @@ public class BulkEditHoldingsIdentifiersJobConfig {
   @StepScope
   public AbstractStorageStreamWriter<List<HoldingsFormat>, LocalFilesStorage> csvHoldingsListWriter(
     @Value("#{jobParameters['tempOutputFilePath']}") String outputFileName) {
-    return new CsvListWriter<>(outputFileName, HoldingsFormat.getHoldingsColumnHeaders(), HoldingsFormat.getHoldingsFieldsArray(), (field, i) -> field, localFilesStorage);
+    return new CsvAndJsonListWriter<>(outputFileName, HoldingsFormat.getHoldingsColumnHeaders(), HoldingsFormat.getHoldingsFieldsArray(), (field, i) -> field, localFilesStorage);
   }
 
   @Bean

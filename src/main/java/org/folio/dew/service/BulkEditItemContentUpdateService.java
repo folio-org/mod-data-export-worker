@@ -115,9 +115,11 @@ public class BulkEditItemContentUpdateService {
     for (ItemFormat itemFormat: itemFormats) {
       var updatedItemFormat = itemFormat;
       var errorMessage = new ErrorMessage();
+
       for (ItemContentUpdate contentUpdate: contentUpdates.getItemContentUpdates()) {
         updatedItemFormat = applyContentUpdate(updatedItemFormat, contentUpdate, errorMessage);
       }
+
       if (!Objects.equals(itemFormat, updatedItemFormat)) {
         if (isLocationChange(contentUpdates)) {
           updateEffectiveLocation(updatedItemFormat);
@@ -131,6 +133,7 @@ public class BulkEditItemContentUpdateService {
           errorMessage.setValue(NO_CHANGE_MESSAGE);
         }
       }
+
       if (errorMessage.getValue() != null) {
         errorStringBuilder
           .append(itemFormat.getIdentifier(jobCommand.getJobParameters().getString(IDENTIFIER_TYPE)))

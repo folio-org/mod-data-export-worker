@@ -17,7 +17,8 @@ import java.util.stream.Collectors;
 @With
 @NoArgsConstructor
 @AllArgsConstructor
-public class HoldingsFormat {
+public class HoldingsFormat implements Formatable<org.folio.dew.domain.dto.HoldingsRecord> {
+  private org.folio.dew.domain.dto.HoldingsRecord original;
   @CsvBindByName(column = "Holdings record id")
   @CsvBindByPosition(position = 0)
   private String id;
@@ -172,7 +173,7 @@ public class HoldingsFormat {
 
   public String getIdentifier(String identifierType) {
     try {
-      switch (IdentifierType.fromValue(identifierType)) {
+      switch (org.folio.dew.domain.dto.IdentifierType.fromValue(identifierType)) {
       case HRID:
         return hrid;
       case INSTANCE_HRID:

@@ -17,7 +17,10 @@ import java.util.stream.Collectors;
 @With
 @NoArgsConstructor
 @AllArgsConstructor
-public class ItemFormat {
+public class ItemFormat implements Formatable<org.folio.dew.domain.dto.Item> {
+
+  private org.folio.dew.domain.dto.Item original;
+
   @CsvBindByName(column = "Item id")
   @CsvBindByPosition(position = 0)
   private String id;
@@ -224,7 +227,7 @@ public class ItemFormat {
 
   public String getIdentifier(String identifierType) {
     try {
-      switch (IdentifierType.fromValue(identifierType)) {
+      switch (org.folio.dew.domain.dto.IdentifierType.fromValue(identifierType)) {
       case BARCODE:
         return barcode;
       case HOLDINGS_RECORD_ID:

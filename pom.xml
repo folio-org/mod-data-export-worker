@@ -53,6 +53,7 @@
         <commons-collections4.version>4.4</commons-collections4.version>
         <hibernate-types-52.version>2.10.3</hibernate-types-52.version>
         <opencsv.version>5.6</opencsv.version>
+        <netty.version>4.1.86.Final</netty.version>
         <hibernate-validator.version>6.2.4.Final</hibernate-validator.version>
         <aws.sdk.version>2.19.0</aws.sdk.version>
         <netty.version>4.1.86.Final</netty.version>  <!-- Remove when aws.sdk ships with netty >= 4.1.86.Final -->

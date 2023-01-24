@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.isA;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -110,7 +111,6 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 
-import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -671,7 +671,7 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andExpect(status().isOk());
 
     verify(jobCommandsReceiverService, times(1)).getBulkEditJobCommandById(jobId.toString());
-    verify(exportJobManagerSync, times(1)).launchJob(isA(JobLaunchRequest.class));
+    verify(exportJobManagerSync, timeout(1000).times(1)).launchJob(isA(JobLaunchRequest.class));
   }
 
   @Test

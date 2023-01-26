@@ -51,7 +51,10 @@ management:
     web:
       base-path: /admin
       exposure:
-        include: health
+        include: health, loggers
+  endpoint:
+    loggers:
+      enabled: true
   metrics:
     export:
       influx:

@@ -45,7 +45,7 @@
         <refresh-presigned-url.yaml.file>
           ${project.basedir}/src/main/resources/swagger.api/refresh-presigned-url.yaml
         </refresh-presigned-url.yaml.file>
-        <folio-spring-base.version>5.0.1</folio-spring-base.version>
+        <folio-spring-base.version>5.0.3</folio-spring-base.version>
 
         <commons-io.version>2.11.0</commons-io.version>
         <minio.version>8.4.2</minio.version>

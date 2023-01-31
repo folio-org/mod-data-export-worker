@@ -34,7 +34,7 @@ public class CsvFileAssembler implements StepExecutionAggregator {
     try {
       var object = remoteFilesStorage.composeObject(destObject, csvFilePartObjectNames, null, "text/csv");
       if (stepExecution.getJobExecution().getJobInstance().getJobName().contains(CIRCULATION_LOG.getValue())) {
-        url = remoteFilesStorage.objectToS3Path(object);
+        url = object;
       } else {
         url = remoteFilesStorage.objectToPresignedObjectUrl(object);
       }

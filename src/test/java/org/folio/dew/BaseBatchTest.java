@@ -5,7 +5,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
@@ -184,11 +183,15 @@ public abstract class BaseBatchTest {
     return testLauncher;
   }
 
-  protected FileSystemResource actualFileOutput(String spec) throws IOException {
-    InputStream inputStream = new URL(spec).openStream();
-    final Path actualResult = Files.createTempFile("temp", ".tmp");
-    Files.copy(inputStream, actualResult, StandardCopyOption.REPLACE_EXISTING);
-    return new FileSystemResource(actualResult);
+  protected FileSystemResource actualFileOutput(String spec) throws Exception {
+    if (!spec.startsWith("http")) { // Case for CIRCULATION_LOG.
+      spec = remoteFilesStorage.objectToPresignedObjectUrl(spec);
+    }
+    try (InputStream inputStream = new URL(spec).openStream()) {
+      final Path actualResult = Files.createTempFile("temp", ".tmp");
+      Files.copy(inputStream, actualResult, StandardCopyOption.REPLACE_EXISTING);
+      return new FileSystemResource(actualResult);
+    }
   }
 
   @AfterAll

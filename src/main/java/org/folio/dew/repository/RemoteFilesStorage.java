@@ -132,6 +132,12 @@ public class RemoteFilesStorage extends BaseFilesStorage {
     return result;
   }
 
+  public String objectToS3Path(String object) {
+    var result = String.format("https://%s.s3.amazonaws.com/%s", bucket, object);
+    log.info("Created path to file {}.", result);
+    return result;
+  }
+
   private <T extends ObjectWriteArgs, B extends ObjectWriteArgs.Builder<B, T>> T createArgs(B builder, String object,
       String downloadFilename, String contentType) {
     Map<String, String> headers = prepareHeaders(downloadFilename, contentType);

@@ -13,6 +13,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
+
 @Component
 @Log4j2
 @RequiredArgsConstructor
@@ -30,8 +32,12 @@ public class CsvFileAssembler implements StepExecutionAggregator {
 
     String url;
     try {
-      url = remoteFilesStorage.objectToPresignedObjectUrl(
-          remoteFilesStorage.composeObject(destObject, csvFilePartObjectNames, null, "text/csv"));
+      var object = remoteFilesStorage.composeObject(destObject, csvFilePartObjectNames, null, "text/csv");
+      if (stepExecution.getJobExecution().getJobInstance().getJobName().contains(CIRCULATION_LOG.getValue())) {
+        url = remoteFilesStorage.objectToS3Path(object);
+      } else {
+        url = remoteFilesStorage.objectToPresignedObjectUrl(object);
+      }
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }

@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -20,6 +21,7 @@ import org.folio.de.entity.JobCommand;
 import org.folio.de.entity.JobCommandType;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.services.FTPStorageService;
+import org.folio.dew.domain.dto.AuthorityControlExportConfig;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
@@ -108,6 +110,23 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createStartEHoldingsJobRequest(id);
+
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
+
+    verify(exportJobManagerSync, times(1)).launchJob(any());
+
+    final Acknowledgment savedAcknowledgment = repository.getAcknowledgement(id.toString());
+
+    assertNotNull(savedAcknowledgment);
+  }
+
+  @Test
+  @DisplayName("Start Authority Control job by kafka request")
+  void startAuthorityControlJobTest() throws JobExecutionException {
+    doNothing().when(acknowledgment).acknowledge();
+
+    UUID id = UUID.randomUUID();
+    JobCommand jobCommand = createStartAuthorityControlJobRequest(id);
 
     jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
 
@@ -228,6 +247,23 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     eHoldingsExportConfig.setTitleFields(Collections.emptyList());
     Map<String, JobParameter> params = new HashMap<>();
     params.put("eHoldingsExportConfig", new JobParameter(asJsonString(eHoldingsExportConfig)));
+    jobCommand.setJobParameters(new JobParameters(params));
+    return jobCommand;
+  }
+
+  private JobCommand createStartAuthorityControlJobRequest(UUID id) {
+    JobCommand jobCommand = new JobCommand();
+    jobCommand.setType(JobCommandType.START);
+    jobCommand.setId(id);
+    jobCommand.setName(ExportType.AUTH_HEADINGS_UPDATES.toString());
+    jobCommand.setDescription("Start job test desc");
+    jobCommand.setExportType(ExportType.AUTH_HEADINGS_UPDATES);
+
+    AuthorityControlExportConfig authorityControlExportConfig = new AuthorityControlExportConfig();
+    authorityControlExportConfig.fromDate(new Date());
+    authorityControlExportConfig.toDate(new Date());
+    Map<String, JobParameter> params = new HashMap<>();
+    params.put("authorityControlExportConfig", new JobParameter(asJsonString(authorityControlExportConfig)));
     jobCommand.setJobParameters(new JobParameters(params));
     return jobCommand;
   }

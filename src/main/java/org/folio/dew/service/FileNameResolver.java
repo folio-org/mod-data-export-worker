@@ -56,7 +56,8 @@ public class FileNameResolver {
   }
 
   private BiFunction<JobCommand, String, String> authHeadingsUpdatesResolver() {
-    return (jobCommand, workDir) -> String.format("%s%s_%s", workDir, dateFormat.format(new Date()), "auth-headings-updates");
+    return (jobCommand, workDir) ->
+      String.format("%s%s_%s", workDir, dateFormat.format(new Date()), "auth_headings_updates.csv");
   }
 
   private BiFunction<JobCommand, String, String> bulkEditResolver() {

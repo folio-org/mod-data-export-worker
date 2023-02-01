@@ -1,5 +1,6 @@
 package org.folio.dew.service;
 
+import static org.folio.dew.domain.dto.ExportType.AUTH_HEADINGS_UPDATES;
 import static org.folio.dew.domain.dto.ExportType.E_HOLDINGS;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -12,6 +13,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.folio.de.entity.JobCommand;
+import org.folio.dew.domain.dto.AuthorityControlExportConfig;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,19 +37,38 @@ class FileNameResolverTest {
   @MethodSource("recordTypes")
   @ParameterizedTest
   void resolve_success_eHoldings_recordTypes(EHoldingsExportConfig.RecordTypeEnum recordType, String endFileName) {
+    var jobCommand = new JobCommand();
+    var jobParameters = new JobParameters(Map.of("eHoldingsExportConfig", new JobParameter("any")));
     var config = new EHoldingsExportConfig()
       .recordId("test_id")
       .recordType(recordType);
-    var jobCommand = new JobCommand();
+
     jobCommand.setExportType(E_HOLDINGS);
-    var jobParameters = new JobParameters(Map.of("eHoldingsExportConfig", new JobParameter("any")));
     jobCommand.setJobParameters(jobParameters);
+
     when(objectMapper.readValue(anyString(), eq(EHoldingsExportConfig.class)))
       .thenReturn(config);
 
     var result = service.resolve(jobCommand, "", "any_job_id");
 
     assertTrue(result.endsWith("test_id_" + endFileName));
+  }
+
+  @Test
+  @SneakyThrows
+  void resolve_success_authority_control_recordTypes() {
+    var config = new AuthorityControlExportConfig();
+    var jobParameters = new JobParameters(Map.of("eHoldingsExportConfig", new JobParameter("any")));
+    var jobCommand = new JobCommand();
+    jobCommand.setExportType(AUTH_HEADINGS_UPDATES);
+    jobCommand.setJobParameters(jobParameters);
+
+    when(objectMapper.readValue(anyString(), eq(AuthorityControlExportConfig.class)))
+      .thenReturn(config);
+
+    var result = service.resolve(jobCommand, "", "any_job_id");
+
+    assertTrue(result.endsWith("auth_headings_updates.csv"));
   }
 
   public static Stream<Arguments> recordTypes() {

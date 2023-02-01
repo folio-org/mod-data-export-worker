@@ -6,9 +6,11 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.folio.dew.domain.dto.ExportType.AUTH_HEADINGS_UPDATES;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.ExportType.E_HOLDINGS;
+import static org.folio.dew.domain.dto.JobParameterNames.AUTHORITY_CONTROL_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
@@ -202,6 +204,13 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
     if (jobExecution.getJobInstance().getJobName().contains(E_HOLDINGS.getValue())) {
       String fileName = ExecutionContextUtils.getFromJobExecutionContext(jobExecution, E_HOLDINGS_FILE_NAME);
+      if (StringUtils.isNotBlank(fileName)) {
+        result.setFileNames(singletonList(fileName));
+      }
+    }
+
+    if (jobExecution.getJobInstance().getJobName().contains(AUTH_HEADINGS_UPDATES.getValue())) {
+      String fileName = ExecutionContextUtils.getFromJobExecutionContext(jobExecution, AUTHORITY_CONTROL_FILE_NAME);
       if (StringUtils.isNotBlank(fileName)) {
         result.setFileNames(singletonList(fileName));
       }

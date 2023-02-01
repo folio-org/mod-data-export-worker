@@ -372,7 +372,7 @@
                             <generateApiDocumentation>false</generateApiDocumentation>
                             <generateModels>true</generateModels>
                             <modelsToGenerate>
-                              JobStatus,ExportTypeSpecificParameters,EHoldingsExportConfig,IdentifierType,EntityType,Progress,ExportType,Job,Configuration,ConfigurationCollection,LoggedObjectType,ActionType,LogRecord,logRecord_items,logRecord_linkToIds,LogRecordCollection
+                              JobStatus,ExportTypeSpecificParameters,IdentifierType,EntityType,Progress,ExportType,Job,Configuration,ConfigurationCollection,LoggedObjectType,ActionType,LogRecord,logRecord_items,logRecord_linkToIds,LogRecordCollection
                             </modelsToGenerate>
                             <generateModelTests>false</generateModelTests>
                             <generateSupportingFiles>false</generateSupportingFiles>
@@ -426,7 +426,7 @@
                         <generateApiDocumentation>false</generateApiDocumentation>
                         <generateModels>true</generateModels>
                         <modelsToGenerate>
-                          Metadata,AuthorityDataStatDto,AuthorityDataStatDtoCollection,AuthorityControlExportConfig
+                          Metadata,AuthorityDataStatDto,AuthorityDataStatDtoCollection
                         </modelsToGenerate>
                         <generateModelTests>false</generateModelTests>
                         <generateSupportingFiles>false</generateSupportingFiles>
@@ -453,7 +453,7 @@
                             <generateApiDocumentation>false</generateApiDocumentation>
                             <generateModels>true</generateModels>
                             <modelsToGenerate>
-                              Edi,EdiConfig,EdiEmail,EdiFtp,EdiSchedule,VendorEdiOrdersExportConfig,EHoldingsExportConfig,BursarFeeFinesTypeMapping,BursarFeeFines,Metadata,Tags,User,UserCollection,ResultInfo,Personal,Diagnostic,Facet,Address,FacetValue,Account,AccountdataCollection,ItemStatus,Status,PaymentStatus,Feefineaction,FeefineactionCollection,Transfer,TransferdataCollection,TimePeriod,StaffSlip,ServicePoint,ServicePoints
+                              Edi,EdiConfig,EdiEmail,EdiFtp,EdiSchedule,AuthorityControlExportConfig,VendorEdiOrdersExportConfig,EHoldingsExportConfig,BursarFeeFinesTypeMapping,BursarFeeFines,Metadata,Tags,User,UserCollection,ResultInfo,Personal,Diagnostic,Facet,Address,FacetValue,Account,AccountdataCollection,ItemStatus,Status,PaymentStatus,Feefineaction,FeefineactionCollection,Transfer,TransferdataCollection,TimePeriod,StaffSlip,ServicePoint,ServicePoints
                             </modelsToGenerate>
                             <generateModelTests>false</generateModelTests>
                             <generateSupportingFiles>false</generateSupportingFiles>
@@ -579,30 +579,6 @@
             <configuration>
               <forceJavacCompilerUse>true</forceJavacCompilerUse>
             </configuration>
-          </plugin>
-
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>3.0.0</version>
-            <executions>
-              <execution>
-                <id>git submodule update</id>
-                <phase>initialize</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>git</executable>
-                  <arguments>
-                    <argument>submodule</argument>
-                    <argument>update</argument>
-                    <argument>--init</argument>
-                    <argument>--recursive</argument>
-                  </arguments>
-                </configuration>
-              </execution>
-            </executions>
           </plugin>
 
             <plugin>

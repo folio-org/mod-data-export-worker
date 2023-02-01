@@ -25,7 +25,8 @@ public class FileNameResolver {
 
   private final Map<ExportType, BiFunction<JobCommand, String, String>> resolvers = Map.of(
     ExportType.BULK_EDIT_QUERY, bulkEditResolver(),
-    ExportType.E_HOLDINGS, eHoldingsResolver()
+    ExportType.E_HOLDINGS, eHoldingsResolver(),
+    ExportType.AUTH_HEADINGS_UPDATES, authHeadingsUpdatesResolver()
   );
 
   public String resolve(JobCommand jobCommand, String workDir, String jobId) {
@@ -52,6 +53,10 @@ public class FileNameResolver {
         throw new IllegalArgumentException(e);
       }
     };
+  }
+
+  private BiFunction<JobCommand, String, String> authHeadingsUpdatesResolver() {
+    return (jobCommand, workDir) -> String.format("%s%s_%s", workDir, dateFormat.format(new Date()), "auth-headings-updates");
   }
 
   private BiFunction<JobCommand, String, String> bulkEditResolver() {

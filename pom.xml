@@ -42,6 +42,9 @@
         <e-holdings.yaml.file>
           ${project.basedir}/src/main/resources/swagger.api/e-holdings.yaml
         </e-holdings.yaml.file>
+        <authority-control.yaml.file>
+          ${project.basedir}/src/main/resources/swagger.api/authority-control.yaml
+        </authority-control.yaml.file>
         <refresh-presigned-url.yaml.file>
           ${project.basedir}/src/main/resources/swagger.api/refresh-presigned-url.yaml
         </refresh-presigned-url.yaml.file>
@@ -397,6 +400,33 @@
                         <generateModels>true</generateModels>
                         <modelsToGenerate>
                           EPackage,PackageData,PackageAttributes,EProvider,ProviderData,ProviderAttributes,EResources,EResource,ResourcesData,ResourcesAttributes,AlternateTitle,Contributor,Identifier,PublicationType,Subject,Tags,ContentTypeEnum,Note,Metadata,Coverage,Proxy,Token,VisibilityData,EmbargoPeriod,AccessTypeData,AccessTypeAttributes,MetaTotalResults
+                        </modelsToGenerate>
+                        <generateModelTests>false</generateModelTests>
+                        <generateSupportingFiles>false</generateSupportingFiles>
+                        <generateModelDocumentation>true</generateModelDocumentation>
+                        <configOptions>
+                          <java8>true</java8>
+                          <dateLibrary>java</dateLibrary>
+                          <interfaceOnly>true</interfaceOnly>
+                        </configOptions>
+                      </configuration>
+                    </execution>
+                    <execution>
+                      <id>authority-control-worker</id>
+                      <goals>
+                        <goal>generate</goal>
+                      </goals>
+                      <configuration>
+                        <inputSpec>${authority-control.yaml.file}</inputSpec>
+                        <output>${project.build.directory}/generated-sources</output>
+                        <generatorName>spring</generatorName>
+                        <modelPackage>${project.groupId}.dew.domain.dto.authority.control</modelPackage>
+                        <generateApis>false</generateApis>
+                        <generateApiTests>false</generateApiTests>
+                        <generateApiDocumentation>false</generateApiDocumentation>
+                        <generateModels>true</generateModels>
+                        <modelsToGenerate>
+                          Metadata,AuthorityDataStatDto,AuthorityDataStatDtoCollection,AuthorityControlExportConfig
                         </modelsToGenerate>
                         <generateModelTests>false</generateModelTests>
                         <generateSupportingFiles>false</generateSupportingFiles>

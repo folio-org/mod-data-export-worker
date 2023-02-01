@@ -42,6 +42,7 @@ public class CsvFileAssembler implements StepExecutionAggregator {
       throw new IllegalStateException(e);
     }
 
+    ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.CIRCULATION_LOG_FILE_NAME, destObject, ";");
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, url, ";");
   }
 

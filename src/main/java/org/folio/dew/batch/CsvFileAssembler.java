@@ -30,8 +30,8 @@ public class CsvFileAssembler implements StepExecutionAggregator {
 
     try {
       if ("CIRCULATION_LOG".equals(stepExecution.getJobExecution().getJobInstance().getJobName())) {
-        var csvUrl = remoteFilesStorage.objectToPresignedObjectUrl(
-          remoteFilesStorage.composeObject(destCsvObject, csvFilePartObjectNames, null, TEXT_CSV));
+        var csvUrl = remoteFilesStorage.composeObject(destCsvObject, csvFilePartObjectNames, null, TEXT_CSV);
+        ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.CIRCULATION_LOG_FILE_NAME, destCsvObject, ";");
         ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, csvUrl, ";");
       } else {
         var prefix = stepExecution.getJobExecution().getJobParameters().getString(JobParameterNames.JOB_ID) + "/";

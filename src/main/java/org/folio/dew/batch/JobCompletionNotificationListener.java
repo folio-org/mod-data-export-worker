@@ -8,7 +8,9 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
 import static org.folio.dew.domain.dto.ExportType.E_HOLDINGS;
+import static org.folio.dew.domain.dto.JobParameterNames.CIRCULATION_LOG_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
@@ -202,6 +204,13 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
     if (jobExecution.getJobInstance().getJobName().contains(E_HOLDINGS.getValue())) {
       String fileName = ExecutionContextUtils.getFromJobExecutionContext(jobExecution, E_HOLDINGS_FILE_NAME);
+      if (StringUtils.isNotBlank(fileName)) {
+        result.setFileNames(singletonList(fileName));
+      }
+    }
+
+    if (jobExecution.getJobInstance().getJobName().contains(CIRCULATION_LOG.getValue())) {
+      String fileName = ExecutionContextUtils.getFromJobExecutionContext(jobExecution, CIRCULATION_LOG_FILE_NAME);
       if (StringUtils.isNotBlank(fileName)) {
         result.setFileNames(singletonList(fileName));
       }

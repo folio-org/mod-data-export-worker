@@ -27,6 +27,8 @@ import java.util.UUID;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.domain.dto.JobParameterNames.CIRCULATION_LOG_FILE_NAME;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 class CirculationLogTest extends BaseBatchTest {
@@ -73,10 +75,12 @@ class CirculationLogTest extends BaseBatchTest {
   private void verifyFileOutput(JobExecution jobExecution) throws Exception {
     final ExecutionContext executionContext = jobExecution.getExecutionContext();
     final String fileInStorage = (String) executionContext.get("outputFilesInStorage");
+    final String fileName = executionContext.getString(CIRCULATION_LOG_FILE_NAME);
 
     final FileSystemResource actualChargeFeesFinesOutput = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(EXPECTED_CIRCULATION_OUTPUT);
     assertFileEquals(expectedCharges, actualChargeFeesFinesOutput);
+    assertEquals(fileName, fileInStorage);
   }
 
   private JobParameters prepareJobParameters() {

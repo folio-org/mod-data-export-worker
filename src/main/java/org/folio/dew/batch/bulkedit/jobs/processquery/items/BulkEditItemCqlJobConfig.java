@@ -1,6 +1,5 @@
 package org.folio.dew.batch.bulkedit.jobs.processquery.items;
 
-import org.folio.dew.batch.AbstractStorageStreamWriter;
 import org.folio.dew.batch.CsvAndJsonWriter;
 import org.folio.dew.batch.CsvFileAssembler;
 import org.folio.dew.batch.CsvPartStepExecutionListener;
@@ -75,7 +74,7 @@ public class BulkEditItemCqlJobConfig {
   @Bean
   public Step bulkEditItemCqlPartitionStep(
     BulkEditCqlItemReader bulkEditCqlItemReader,
-    AbstractStorageStreamWriter<ItemFormat, RemoteFilesStorage> itemWriter,
+    AbstractStorageStreamAndJsonWriter<Item, ItemFormat, RemoteFilesStorage> itemWriter,
     BulkEditItemProcessor processor,
     CsvPartStepExecutionListener csvPartStepExecutionListener
   ) {

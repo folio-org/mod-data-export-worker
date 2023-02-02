@@ -55,6 +55,6 @@ public class FileNameResolver {
   }
 
   private BiFunction<JobCommand, String, String> bulkEditResolver() {
-    return (jobCommand, workDir) -> workDir + LocalDate.now() + MATCHED_RECORDS + "query";
+    return (jobCommand, workDir) -> workDir + jobCommand.getId() + "/" + LocalDate.now() + MATCHED_RECORDS + "query";
   }
 }

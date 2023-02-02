@@ -10,40 +10,48 @@ import org.springframework.batch.core.partition.support.StepExecutionAggregator;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
 
 @Component
 @Log4j2
 @RequiredArgsConstructor
 public class CsvFileAssembler implements StepExecutionAggregator {
+  private static final String TEXT_CSV = "text/csv";
 
   private final RemoteFilesStorage remoteFilesStorage;
 
   @Override
   public void aggregate(StepExecution stepExecution, Collection<StepExecution> finishedStepExecutions) {
-    List<String> csvFilePartObjectNames = finishedStepExecutions.stream()
+    var csvFilePartObjectNames = finishedStepExecutions.stream()
         .map(e -> e.getExecutionContext().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH))
         .collect(Collectors.toList());
-    String destObject = FilenameUtils.getName(
+    var destCsvObject = FilenameUtils.getName(
         stepExecution.getJobExecution().getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + ".csv");
 
-    String url;
     try {
-      var object = remoteFilesStorage.composeObject(destObject, csvFilePartObjectNames, null, "text/csv");
-      if (stepExecution.getJobExecution().getJobInstance().getJobName().contains(CIRCULATION_LOG.getValue())) {
-        url = object;
+      if ("CIRCULATION_LOG".equals(stepExecution.getJobExecution().getJobInstance().getJobName())) {
+        var csvUrl = remoteFilesStorage.composeObject(destCsvObject, csvFilePartObjectNames, null, TEXT_CSV);
+        ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.CIRCULATION_LOG_FILE_NAME, destCsvObject, ";");
+        ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, csvUrl, ";");
       } else {
-        url = remoteFilesStorage.objectToPresignedObjectUrl(object);
+        var prefix = stepExecution.getJobExecution().getJobParameters().getString(JobParameterNames.JOB_ID) + "/";
+
+        destCsvObject = prefix + destCsvObject;
+        var csvUrl = remoteFilesStorage.objectToPresignedObjectUrl(
+          remoteFilesStorage.composeObject(destCsvObject, csvFilePartObjectNames, null, TEXT_CSV));
+
+        var jsonFilePartObjectNames = finishedStepExecutions.stream()
+          .map(e -> e.getExecutionContext().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + ".json")
+          .collect(Collectors.toList());
+        var destJsonObject = prefix + FilenameUtils.getName(
+          stepExecution.getJobExecution().getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + ".json");
+        var jsonUrl = remoteFilesStorage.objectToPresignedObjectUrl(
+          remoteFilesStorage.composeObject(destJsonObject, jsonFilePartObjectNames, null, TEXT_CSV));
+
+        ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, csvUrl + ";;" + jsonUrl, ";");
       }
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }
-
-    ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.CIRCULATION_LOG_FILE_NAME, destObject, ";");
-    ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, url, ";");
   }
-
 }

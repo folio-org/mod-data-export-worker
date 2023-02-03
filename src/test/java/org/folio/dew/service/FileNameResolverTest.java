@@ -2,6 +2,7 @@ package org.folio.dew.service;
 
 import static org.folio.dew.domain.dto.ExportType.AUTH_HEADINGS_UPDATES;
 import static org.folio.dew.domain.dto.ExportType.E_HOLDINGS;
+import static org.folio.dew.domain.dto.ExportType.FAILED_LINKED_BIB_UPDATES;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -56,9 +57,9 @@ class FileNameResolverTest {
 
   @Test
   @SneakyThrows
-  void resolve_success_authority_control_recordTypes() {
+  void resolve_success_authority_control_authority_recordTypes() {
     var config = new AuthorityControlExportConfig();
-    var jobParameters = new JobParameters(Map.of("eHoldingsExportConfig", new JobParameter("any")));
+    var jobParameters = new JobParameters(Map.of("authorityControlExportConfig", new JobParameter("any")));
     var jobCommand = new JobCommand();
     jobCommand.setExportType(AUTH_HEADINGS_UPDATES);
     jobCommand.setJobParameters(jobParameters);
@@ -69,6 +70,23 @@ class FileNameResolverTest {
     var result = service.resolve(jobCommand, "", "any_job_id");
 
     assertTrue(result.endsWith("auth_headings_updates.csv"));
+  }
+
+  @Test
+  @SneakyThrows
+  void resolve_success_authority_control_instance_recordTypes() {
+    var config = new AuthorityControlExportConfig();
+    var jobParameters = new JobParameters(Map.of("authorityControlExportConfig", new JobParameter("any")));
+    var jobCommand = new JobCommand();
+    jobCommand.setExportType(FAILED_LINKED_BIB_UPDATES);
+    jobCommand.setJobParameters(jobParameters);
+
+    when(objectMapper.readValue(anyString(), eq(AuthorityControlExportConfig.class)))
+      .thenReturn(config);
+
+    var result = service.resolve(jobCommand, "", "any_job_id");
+
+    assertTrue(result.endsWith("failed_linked_bib_updates.csv"));
   }
 
   public static Stream<Arguments> recordTypes() {

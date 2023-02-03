@@ -122,11 +122,28 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
   @Test
   @DisplayName("Start Authority Control job by kafka request")
-  void startAuthorityControlJobTest() throws JobExecutionException {
+  void startAuthorityControlForAuthorityJobTest() throws JobExecutionException {
     doNothing().when(acknowledgment).acknowledge();
 
     UUID id = UUID.randomUUID();
-    JobCommand jobCommand = createStartAuthorityControlJobRequest(id);
+    JobCommand jobCommand = createStartAuthorityControlAuthorityJobRequest(id);
+
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
+
+    verify(exportJobManagerSync, times(1)).launchJob(any());
+
+    final Acknowledgment savedAcknowledgment = repository.getAcknowledgement(id.toString());
+
+    assertNotNull(savedAcknowledgment);
+  }
+
+  @Test
+  @DisplayName("Start Authority Control job by kafka request")
+  void startAuthorityControlForInstanceJobTest() throws JobExecutionException {
+    doNothing().when(acknowledgment).acknowledge();
+
+    UUID id = UUID.randomUUID();
+    JobCommand jobCommand = createStartAuthorityControlInstanceJobRequest(id);
 
     jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
 
@@ -251,11 +268,28 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     return jobCommand;
   }
 
-  private JobCommand createStartAuthorityControlJobRequest(UUID id) {
+  private JobCommand createStartAuthorityControlAuthorityJobRequest(UUID id) {
     JobCommand jobCommand = new JobCommand();
     jobCommand.setType(JobCommandType.START);
     jobCommand.setId(id);
     jobCommand.setName(ExportType.AUTH_HEADINGS_UPDATES.toString());
+    jobCommand.setDescription("Start job test desc");
+    jobCommand.setExportType(ExportType.AUTH_HEADINGS_UPDATES);
+
+    AuthorityControlExportConfig authorityControlExportConfig = new AuthorityControlExportConfig();
+    authorityControlExportConfig.fromDate(new Date());
+    authorityControlExportConfig.toDate(new Date());
+    Map<String, JobParameter> params = new HashMap<>();
+    params.put("authorityControlExportConfig", new JobParameter(asJsonString(authorityControlExportConfig)));
+    jobCommand.setJobParameters(new JobParameters(params));
+    return jobCommand;
+  }
+
+  private JobCommand createStartAuthorityControlInstanceJobRequest(UUID id) {
+    JobCommand jobCommand = new JobCommand();
+    jobCommand.setType(JobCommandType.START);
+    jobCommand.setId(id);
+    jobCommand.setName(ExportType.FAILED_LINKED_BIB_UPDATES.toString());
     jobCommand.setDescription("Start job test desc");
     jobCommand.setExportType(ExportType.AUTH_HEADINGS_UPDATES);
 

@@ -26,7 +26,8 @@ public class FileNameResolver {
   private final Map<ExportType, BiFunction<JobCommand, String, String>> resolvers = Map.of(
     ExportType.BULK_EDIT_QUERY, bulkEditResolver(),
     ExportType.E_HOLDINGS, eHoldingsResolver(),
-    ExportType.AUTH_HEADINGS_UPDATES, authHeadingsUpdatesResolver()
+    ExportType.AUTH_HEADINGS_UPDATES, authHeadingsUpdatesResolver(),
+    ExportType.FAILED_LINKED_BIB_UPDATES, failedLinkedBibUpdatesResolver()
   );
 
   public String resolve(JobCommand jobCommand, String workDir, String jobId) {
@@ -58,6 +59,11 @@ public class FileNameResolver {
   private BiFunction<JobCommand, String, String> authHeadingsUpdatesResolver() {
     return (jobCommand, workDir) ->
       String.format("%s%s_%s", workDir, dateFormat.format(new Date()), "auth_headings_updates.csv");
+  }
+
+  private BiFunction<JobCommand, String, String> failedLinkedBibUpdatesResolver() {
+    return (jobCommand, workDir) ->
+      String.format("%s%s_%s", workDir, dateFormat.format(new Date()), "failed_linked_bib_updates.csv");
   }
 
   private BiFunction<JobCommand, String, String> bulkEditResolver() {

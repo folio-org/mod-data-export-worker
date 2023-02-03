@@ -10,6 +10,7 @@ import static org.folio.dew.domain.dto.ExportType.AUTH_HEADINGS_UPDATES;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.ExportType.E_HOLDINGS;
+import static org.folio.dew.domain.dto.ExportType.FAILED_LINKED_BIB_UPDATES;
 import static org.folio.dew.domain.dto.JobParameterNames.AUTHORITY_CONTROL_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
@@ -210,6 +211,13 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     }
 
     if (jobExecution.getJobInstance().getJobName().contains(AUTH_HEADINGS_UPDATES.getValue())) {
+      String fileName = ExecutionContextUtils.getFromJobExecutionContext(jobExecution, AUTHORITY_CONTROL_FILE_NAME);
+      if (StringUtils.isNotBlank(fileName)) {
+        result.setFileNames(singletonList(fileName));
+      }
+    }
+
+    if (jobExecution.getJobInstance().getJobName().contains(FAILED_LINKED_BIB_UPDATES.getValue())) {
       String fileName = ExecutionContextUtils.getFromJobExecutionContext(jobExecution, AUTHORITY_CONTROL_FILE_NAME);
       if (StringUtils.isNotBlank(fileName)) {
         result.setFileNames(singletonList(fileName));

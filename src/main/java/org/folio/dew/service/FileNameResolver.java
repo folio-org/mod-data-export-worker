@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 public class FileNameResolver {
 
   private static final String NAME_FORMAT = "%s%s_%s";
-  private final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSSS");
+  private final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSSS");
   @Autowired
   private ObjectMapper objectMapper;
 
@@ -51,7 +51,7 @@ public class FileNameResolver {
         } else {
           fileSuffix = String.format("%s_package.csv", recordId);
         }
-        return String.format(NAME_FORMAT, workDir, DATE_FORMAT.format(LocalDateTime.now()), fileSuffix);
+        return String.format(NAME_FORMAT, workDir, dateFormat.format(LocalDateTime.now()), fileSuffix);
       } catch (JsonProcessingException e) {
         throw new IllegalArgumentException(e);
       }
@@ -60,12 +60,12 @@ public class FileNameResolver {
 
   private BiFunction<JobCommand, String, String> authHeadingsUpdatesResolver() {
     return (jobCommand, workDir) ->
-      String.format(NAME_FORMAT, workDir, DATE_FORMAT.format(LocalDateTime.now()), "auth_headings_updates.csv");
+      String.format(NAME_FORMAT, workDir, dateFormat.format(LocalDateTime.now()), "auth_headings_updates.csv");
   }
 
   private BiFunction<JobCommand, String, String> failedLinkedBibUpdatesResolver() {
     return (jobCommand, workDir) ->
-      String.format(NAME_FORMAT, workDir, DATE_FORMAT.format(LocalDateTime.now()), "failed_linked_bib_updates.csv");
+      String.format(NAME_FORMAT, workDir, dateFormat.format(LocalDateTime.now()), "failed_linked_bib_updates.csv");
   }
 
   private BiFunction<JobCommand, String, String> bulkEditResolver() {

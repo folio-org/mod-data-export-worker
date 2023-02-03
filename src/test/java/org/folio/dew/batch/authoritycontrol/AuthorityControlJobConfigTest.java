@@ -9,13 +9,13 @@ import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class AuthorityControlJobConfigTest {
+class AuthorityControlJobConfigTest {
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final AuthorityControlJobConfig jobConfig = new AuthorityControlJobConfig(objectMapper);
 
   @Test
   @SneakyThrows
-  public void shouldConvertExportConfig() {
+  void shouldConvertExportConfig() {
     Date expectedFrom = new Date(2000);
     Date expectedTo = new Date();
 

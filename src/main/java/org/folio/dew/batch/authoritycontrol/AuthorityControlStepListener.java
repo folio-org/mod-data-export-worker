@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.batch.BaseStepListener;
 import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.error.NotFoundException;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.spring.FolioExecutionContext;
@@ -53,10 +54,10 @@ public class AuthorityControlStepListener extends BaseStepListener {
     }
   }
 
-  private String getTempFile(StepExecution stepExecution) throws Exception {
+  private String getTempFile(StepExecution stepExecution) throws NotFoundException {
     var tempFilePath = stepExecution.getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH);
     if (super.getLocalFilesStorage().notExists(tempFilePath)) {
-      throw new Exception("Can't find " + tempFilePath);
+      throw new NotFoundException("Can't find " + tempFilePath);
     }
     return tempFilePath;
   }

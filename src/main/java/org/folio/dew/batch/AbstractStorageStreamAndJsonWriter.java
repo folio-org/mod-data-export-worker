@@ -39,7 +39,7 @@ public class AbstractStorageStreamAndJsonWriter<O, T extends Formatable<O>, S ex
 
         json.append(jacksonJsonObjectMarshaller.marshal(item.getOriginal()));
         if(iterator.hasNext()) {
-          json.append("," + '\n');
+          json.append('\n');
         }
     }
     getStorage().append(getResource().getFilename(), sb.toString().getBytes(StandardCharsets.UTF_8));

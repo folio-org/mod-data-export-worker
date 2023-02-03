@@ -128,6 +128,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String EXPECTED_BULK_EDIT_USER_JSON_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_json_output.json";
   private static final String EXPECTED_BULK_EDIT_ITEM_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_output.csv";
   private static final String EXPECTED_BULK_EDIT_ITEM_JSON_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_json_output.json";
+  private static final String EXPECTED_BULK_EDIT_ITEM_QUERY_JSON_OUTPUT = "src/test/resources/output/bulk_edit_item_query_json_output.json";
 
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT = "src/test/resources/output/bulk_edit_holdings_records_output.csv";
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_JSON_OUTPUT = "src/test/resources/output/bulk_edit_holdings_records_json_output.json";
@@ -400,7 +401,7 @@ class BulkEditTest extends BaseBatchTest {
     final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, USER, BARCODE, USERS_QUERY_FILE_PATH);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
-    verifyFilesOutput(jobExecution, EXPECTED_BULK_EDIT_USER_OUTPUT);
+    verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_USER_OUTPUT, EXPECTED_BULK_EDIT_USER_JSON_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
@@ -426,7 +427,7 @@ class BulkEditTest extends BaseBatchTest {
     final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, ITEM, BARCODE, ITEMS_QUERY_FILE_PATH);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
-    verifyFilesOutput(jobExecution, EXPECTED_ITEMS_QUERY_OUTPUT);
+    verifyCsvAndJsonOutput(jobExecution, EXPECTED_ITEMS_QUERY_OUTPUT, EXPECTED_BULK_EDIT_ITEM_QUERY_JSON_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
@@ -703,7 +704,7 @@ class BulkEditTest extends BaseBatchTest {
     Map<String, JobParameter> params = new HashMap<>();
     String jobId = UUID.randomUUID().toString();
     String workDir = getWorkingDirectory(springApplicationName, BULKEDIT_DIR_NAME);
-    params.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + "out"));
+    params.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + jobId + "/" + "out"));
     try {
       localFilesStorage.write(workDir + "out", new byte[0]);
       localFilesStorage.write(workDir + "out.csv", new byte[0]);

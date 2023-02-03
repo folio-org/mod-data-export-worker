@@ -426,7 +426,7 @@
                         <generateApiDocumentation>false</generateApiDocumentation>
                         <generateModels>true</generateModels>
                         <modelsToGenerate>
-                          Metadata,AuthorityDataStatDto,AuthorityDataStatDtoCollection
+                          Metadata,AuthorityDataStatDto,AuthorityDataStatDtoCollection,InstanceDataLinkDtoCollection,InstanceDataLinkDto
                         </modelsToGenerate>
                         <generateModelTests>false</generateModelTests>
                         <generateSupportingFiles>false</generateSupportingFiles>
@@ -579,30 +579,6 @@
               <configuration>
                 <forceJavacCompilerUse>true</forceJavacCompilerUse>
               </configuration>
-            </plugin>
-
-            <plugin>
-              <groupId>org.codehaus.mojo</groupId>
-              <artifactId>exec-maven-plugin</artifactId>
-              <version>3.0.0</version>
-              <executions>
-                <execution>
-                  <id>git submodule update</id>
-                  <phase>initialize</phase>
-                  <goals>
-                    <goal>exec</goal>
-                  </goals>
-                  <configuration>
-                    <executable>git</executable>
-                    <arguments>
-                      <argument>submodule</argument>
-                      <argument>update</argument>
-                      <argument>--init</argument>
-                      <argument>--recursive</argument>
-                    </arguments>
-                  </configuration>
-                </execution>
-              </executions>
             </plugin>
 
             <plugin>

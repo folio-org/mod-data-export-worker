@@ -14,3 +14,5 @@ components:
   schemas:
     authorityDataStatDtoCollection:
       $ref: '../../../../folio-export-common/schemas/authority-control/authorityDataStatDtoCollection.json#/AuthorityDataStatDtoCollection'
+    instanceDataLinkDtoCollection:
+      $ref: '../../../../folio-export-common/schemas/authority-control/instanceDataLinkDtoCollection.json#/InstanceDataLinkDtoCollection'

@@ -6,10 +6,14 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.folio.dew.batch.ExecutionContextUtils.getFromJobExecutionContext;
+import static org.folio.dew.domain.dto.ExportType.AUTH_HEADINGS_UPDATES;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
 import static org.folio.dew.domain.dto.ExportType.E_HOLDINGS;
+import static org.folio.dew.domain.dto.ExportType.FAILED_LINKED_BIB_UPDATES;
+import static org.folio.dew.domain.dto.JobParameterNames.AUTHORITY_CONTROL_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.CIRCULATION_LOG_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
@@ -191,26 +195,33 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
     result.setId(UUID.fromString(jobId));
 
-    String jobDescription = ExecutionContextUtils.getFromJobExecutionContext(jobExecution, JobParameterNames.JOB_DESCRIPTION);
+    var jobDescription = getFromJobExecutionContext(jobExecution, JobParameterNames.JOB_DESCRIPTION);
     if (StringUtils.isNotBlank(jobDescription)) {
       result.setDescription(jobDescription);
     }
 
-    String outputFilesInStorage = ExecutionContextUtils.getFromJobExecutionContext(jobExecution,
-      OUTPUT_FILES_IN_STORAGE);
+    var outputFilesInStorage = getFromJobExecutionContext(jobExecution, OUTPUT_FILES_IN_STORAGE);
     if (StringUtils.isNotBlank(outputFilesInStorage)) {
       result.setFiles(Arrays.asList(outputFilesInStorage.split(PATHS_DELIMITER)));
     }
 
-    if (jobExecution.getJobInstance().getJobName().contains(E_HOLDINGS.getValue())) {
-      String fileName = ExecutionContextUtils.getFromJobExecutionContext(jobExecution, E_HOLDINGS_FILE_NAME);
+    var jobName = jobExecution.getJobInstance().getJobName();
+    if (jobName.contains(E_HOLDINGS.getValue())) {
+      String fileName = getFromJobExecutionContext(jobExecution, E_HOLDINGS_FILE_NAME);
       if (StringUtils.isNotBlank(fileName)) {
         result.setFileNames(singletonList(fileName));
       }
     }
 
-    if (jobExecution.getJobInstance().getJobName().contains(CIRCULATION_LOG.getValue())) {
-      String fileName = ExecutionContextUtils.getFromJobExecutionContext(jobExecution, CIRCULATION_LOG_FILE_NAME);
+    if (jobName.contains(CIRCULATION_LOG.getValue())) {
+      String fileName = getFromJobExecutionContext(jobExecution, CIRCULATION_LOG_FILE_NAME);
+      if (StringUtils.isNotBlank(fileName)) {
+        result.setFileNames(singletonList(fileName));
+      }
+    }
+
+    if (jobName.contains(AUTH_HEADINGS_UPDATES.getValue()) || jobName.contains(FAILED_LINKED_BIB_UPDATES.getValue())) {
+      String fileName = getFromJobExecutionContext(jobExecution, AUTHORITY_CONTROL_FILE_NAME);
       if (StringUtils.isNotBlank(fileName)) {
         result.setFileNames(singletonList(fileName));
       }

@@ -51,6 +51,7 @@ public class Constants {
   public static final String BULKEDIT_DIR_NAME = "bulk_edit";
   public static final String EDIFACT_EXPORT_DIR_NAME = "edifact_export";
   public static final String E_HOLDINGS_EXPORT_DIR_NAME = "e_holdings_export";
+  public static final String AUTHORITY_CONTROL_EXPORT_DIR_NAME = "authority_control_export";
   public static final String STATUSES_CONFIG_NAME = "statuses";
   public static final String BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE = "module==%s and configName==%s";
   public static final String FILE_UPLOAD_ERROR = "Cannot upload a file. Reason: %s.";

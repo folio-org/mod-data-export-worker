@@ -129,15 +129,15 @@ public class EHoldingsJobConfig {
     return listener;
   }
 
-  @Bean
   @JobScope
+  @Bean("eHoldingsExportConfig")
   public EHoldingsExportConfig exportConfig(
     @Value("#{jobParameters['eHoldingsExportConfig']}") String exportConfigStr) throws JsonProcessingException {
     return objectMapper.readValue(exportConfigStr, EHoldingsExportConfig.class);
   }
 
-  @Bean("eHoldingsItemProcessor")
   @StepScope
+  @Bean("eHoldingsItemProcessor")
   public ItemProcessor<EHoldingsResourceDTO, EHoldingsResourceDTO> itemProcessor(
     EHoldingsAgreementItemProcessor eHoldingsAgreementItemProcessor,
     EHoldingsNoteItemProcessor eHoldingsNoteItemProcessor) {

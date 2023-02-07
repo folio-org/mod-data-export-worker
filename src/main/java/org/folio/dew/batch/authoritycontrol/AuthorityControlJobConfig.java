@@ -65,10 +65,10 @@ public class AuthorityControlJobConfig {
     return mapper::convertToExportFormat;
   }
 
-  @Bean
   @JobScope
+  @Bean("authorityControlExportConfig")
   public AuthorityControlExportConfig exportConfig(
-    @Value("#{jobParameters['AuthorityControlExportConfig']}") String exportConfigStr) throws JsonProcessingException {
+    @Value("#{jobParameters['authorityControlExportConfig']}") String exportConfigStr) throws JsonProcessingException {
     return objectMapper.readValue(exportConfigStr, AuthorityControlExportConfig.class);
   }
 }

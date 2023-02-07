@@ -16,10 +16,10 @@ import org.springframework.context.annotation.Configuration;
 public class AuthorityControlJobConfig {
   private final ObjectMapper objectMapper;
 
-  @Bean
   @JobScope
+  @Bean("authorityControlExportConfig")
   public AuthorityControlExportConfig exportConfig(
-    @Value("#{jobParameters['AuthorityControlExportConfig']}") String exportConfigStr) throws JsonProcessingException {
+    @Value("#{jobParameters['authorityControlExportConfig']}") String exportConfigStr) throws JsonProcessingException {
     return objectMapper.readValue(exportConfigStr, AuthorityControlExportConfig.class);
   }
 }

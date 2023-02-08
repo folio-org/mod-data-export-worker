@@ -75,9 +75,9 @@ class AuthorityControlTest extends BaseBatchTest {
     wireMockServer.verify(getRequestedFor(urlEqualTo(
       "/links/authority/stats?limit=1&fromDate=2023-01-01T12%3A00%3A00Z&toDate=2023-12-01T12%3A00%3A00Z")));
     wireMockServer.verify(getRequestedFor(urlEqualTo(
-      "/links/authority/stats?limit=1&fromDate=2023-04-01T15%3A00%3A00Z&toDate=2023-12-01T12%3A00%3A00Z")));
+      "/links/authority/stats?limit=1&fromDate=2023-04-01T12%3A00%3A00Z&toDate=2023-12-01T12%3A00%3A00Z")));
     wireMockServer.verify(getRequestedFor(urlEqualTo(
-      "/links/authority/stats?limit=1&fromDate=2023-08-01T15%3A00%3A00Z&toDate=2023-12-01T12%3A00%3A00Z")));
+      "/links/authority/stats?limit=1&fromDate=2023-08-01T12%3A00%3A00Z&toDate=2023-12-01T12%3A00%3A00Z")));
 
     verifyJobEvent();
   }

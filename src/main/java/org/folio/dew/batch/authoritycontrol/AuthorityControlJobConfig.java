@@ -49,6 +49,7 @@ public class AuthorityControlJobConfig {
   @Bean("getAuthHeadingStep")
   public Step getAuthHeadingStep(AuthorityControlItemReader authorityControlItemReader,
                                  AuthorityControlCsvFileWriter authorityControlCsvFileWriter,
+                                 AuthorityControlStepListener authorityControlStepListener,
                                  ItemProcessor<AuthorityDataStatDto, AuthorityControlExportFormat> authorityControlProcessor) {
     return stepBuilderFactory
       .get("getAuthHeadingStep")
@@ -56,6 +57,7 @@ public class AuthorityControlJobConfig {
       .reader(authorityControlItemReader)
       .processor(authorityControlProcessor)
       .writer(authorityControlCsvFileWriter)
+      .listener(authorityControlStepListener)
       .build();
   }
 

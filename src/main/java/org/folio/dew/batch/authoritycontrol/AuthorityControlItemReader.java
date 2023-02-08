@@ -4,10 +4,12 @@ import org.folio.dew.client.EntitiesLinksStatsClient;
 import org.folio.dew.config.properties.AuthorityControlJobProperties;
 import org.folio.dew.domain.dto.AuthorityControlExportConfig;
 import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDto;
+import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDtoCollection;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,17 +20,17 @@ public class AuthorityControlItemReader extends AbstractItemCountingItemStreamIt
   private int currentChunkOffset;
   private List<AuthorityDataStatDto> currentChunk;
   private final EntitiesLinksStatsClient entitiesLinksStatsClient;
-  private final String fromDate;
-  private final String toDate;
   private final int limit;
+  private final Date toDate;
+  private Date fromDate;
 
   protected AuthorityControlItemReader(EntitiesLinksStatsClient entitiesLinksStatsClient,
                                        AuthorityControlExportConfig exportConfig,
                                        AuthorityControlJobProperties jobProperties) {
     this.limit = jobProperties.getEntitiesLinksChunkSize();
     this.entitiesLinksStatsClient = entitiesLinksStatsClient;
-    this.fromDate = exportConfig.getFromDate().toString();
-    this.toDate = exportConfig.getToDate().toString();
+    this.fromDate = exportConfig.getFromDate();
+    this.toDate = exportConfig.getToDate();
 
     setSaveState(false);
     setCurrentItemCount(0);
@@ -38,7 +40,9 @@ public class AuthorityControlItemReader extends AbstractItemCountingItemStreamIt
   @Override
   protected AuthorityDataStatDto doRead() {
     if (currentChunk == null || currentChunkOffset >= currentChunk.size()) {
-      currentChunk = getItems(limit);
+      var collection = getItems(limit);
+      currentChunk = collection.getStats();
+      fromDate = collection.getNext();
       currentChunkOffset = 0;
     }
 
@@ -46,14 +50,12 @@ public class AuthorityControlItemReader extends AbstractItemCountingItemStreamIt
       return null;
     }
 
-    currentChunkOffset++;
-    return currentChunk.get(currentChunkOffset);
+    return currentChunk.get(currentChunkOffset++);
   }
 
-  protected List<AuthorityDataStatDto> getItems(int limit) {
+  protected AuthorityDataStatDtoCollection getItems(int limit) {
     return entitiesLinksStatsClient
-      .getAuthorityStats(limit, fromDate, toDate)
-      .getStats();
+      .getAuthorityStats(limit, fromDate, toDate);
   }
 
   @Override

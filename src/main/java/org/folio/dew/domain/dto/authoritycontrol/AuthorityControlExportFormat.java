@@ -7,10 +7,14 @@ public class AuthorityControlExportFormat {
   private String lastUpdated;
   private String originalHeading;
   private String newHeading;
-  private String identifier;
+  private String originalIdentifier;
+  private String newIdentifier;
   private String original1XX;
   private String new1XXX;
-  private String authoritySourceFileName;
+  private String originalAuthoritySourceFileName;
+  private String newAuthoritySourceFileName;
+  private String totalNumberOfBibliographicRecords;
   private String numberOfBibliographicRecordsLinked;
+  private String numberOfBibliographicRecordsNotLinked;
   private String updater;
 }

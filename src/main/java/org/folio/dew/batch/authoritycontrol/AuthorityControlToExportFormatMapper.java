@@ -22,19 +22,21 @@ public class AuthorityControlToExportFormatMapper {
     var exportFormat = new AuthorityControlExportFormat();
     var metadata = dto.getMetadata();
 
-    exportFormat.setLastUpdated(dateToString(metadata.getCompletedAt()));
     exportFormat.setUpdater(convertUserName(metadata));
-    exportFormat.setOriginalHeading(dto.getHeadingOld());
+    exportFormat.setLastUpdated(dateToString(metadata.getCompletedAt()));
     exportFormat.setNewHeading(dto.getHeadingNew());
-    exportFormat.setOriginal1XX(dto.getHeadingTypeOld());
+    exportFormat.setOriginalHeading(dto.getHeadingOld());
     exportFormat.setNew1XXX(dto.getHeadingTypeNew());
-    exportFormat.setNumberOfBibliographicRecordsLinked(dto.getLbTotal().toString());
+    exportFormat.setOriginal1XX(dto.getHeadingTypeOld());
 
-/*
-TODO: Here should be integration with mod-inventory-storage to receive source file data by id
-    exportFormat.setIdentifier("");
-    exportFormat.setAuthoritySourceFileName("");
-*/
+    exportFormat.setTotalNumberOfBibliographicRecords(dto.getLbTotal().toString());
+    exportFormat.setNumberOfBibliographicRecordsLinked(dto.getLbUpdated().toString());
+    exportFormat.setNumberOfBibliographicRecordsNotLinked(dto.getLbFailed().toString());
+
+    exportFormat.setNewIdentifier(dto.getNaturalIdNew());
+    exportFormat.setOriginalIdentifier(dto.getNaturalIdOld());
+    exportFormat.setNewAuthoritySourceFileName(dto.getSourceFileNew());
+    exportFormat.setOriginalAuthoritySourceFileName(dto.getSourceFileOld());
 
     return exportFormat;
   }

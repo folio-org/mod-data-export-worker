@@ -54,8 +54,7 @@ public class AuthorityControlItemReader extends AbstractItemCountingItemStreamIt
   }
 
   protected AuthorityDataStatDtoCollection getItems(int limit) {
-    return entitiesLinksStatsClient
-      .getAuthorityStats(limit, fromDate, toDate);
+    return entitiesLinksStatsClient.getAuthorityStats(limit, fromDate, toDate);
   }
 
   @Override

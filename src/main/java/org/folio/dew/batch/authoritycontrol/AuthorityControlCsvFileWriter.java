@@ -4,6 +4,7 @@ import org.folio.dew.domain.dto.authoritycontrol.AuthorityControlExportFormat;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.S3CompatibleResource;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.support.AbstractFileItemWriter;
 import org.springframework.beans.BeanWrapperImpl;
@@ -55,19 +56,23 @@ public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<Author
     }
   }
 
+  @BeforeStep
+  public void beforeStep() throws IOException {
+    var headersLine = getHeader(headers) + lineSeparator;
+    writeString(headersLine);
+  }
+
+  @Override
+  public void write(@NotNull List<? extends AuthorityControlExportFormat> items) throws Exception {
+    writeString(doWrite(items));
+  }
+
   @NotNull
   @Override
   protected String doWrite(List<? extends AuthorityControlExportFormat> items) {
     return items.stream()
       .map(item -> getItemRow(item, headers))
       .collect(Collectors.joining(lineSeparator, EMPTY, lineSeparator));
-  }
-
-  @Override
-  public void write(@NotNull List<? extends AuthorityControlExportFormat> items) throws Exception {
-    var headersLine = getHeader(headers) + lineSeparator;
-    writeString(headersLine);
-    writeString(doWrite(items));
   }
 
   private void writeString(String str) throws IOException {

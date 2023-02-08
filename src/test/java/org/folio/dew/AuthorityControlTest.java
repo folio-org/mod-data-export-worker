@@ -54,9 +54,9 @@ class AuthorityControlTest extends BaseBatchTest {
   @SpyBean
   private KafkaService kafkaService;
 
-  private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
   private static final String EXPECTED_AUTHORITY_STAT_OUTPUT = "src/test/resources/output/auth_heading_update.csv";
   private static final String FILE_PATH = "mod-data-export-worker/authority_control_export/diku/";
+  private final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
   @Test
   @DisplayName("Run AuthorityControlJob export successfully")

@@ -19,7 +19,7 @@ import java.util.UUID;
 @StepScope
 public class AuthorityControlItemReader extends AbstractItemCountingItemStreamItemReader<AuthorityDataStatDto> {
 
-  private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+  private final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
   private final EntitiesLinksStatsClient entitiesLinksStatsClient;
   private final int limit;
   private final Date toDate;

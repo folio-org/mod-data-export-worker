@@ -54,16 +54,16 @@ class AuthorityControlTest extends BaseBatchTest {
   @SpyBean
   private KafkaService kafkaService;
 
-  private static final DateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-  private final static String EXPECTED_AUTHORITY_STAT_OUTPUT = "src/test/resources/output/auth_heading_update.csv";
+  private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+  private static final String EXPECTED_AUTHORITY_STAT_OUTPUT = "src/test/resources/output/auth_heading_update.csv";
   private static final String FILE_PATH = "mod-data-export-worker/authority_control_export/diku/";
 
   @Test
   @DisplayName("Run AuthorityControlJob export successfully")
   void authorityControlJobTest() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(getAuthHeadingJob);
-    var exportConfig = buildExportConfig("2023-01-01 12:00:00", "2023-12-01 12:00:00");
+    var exportConfig = buildExportConfig("2023-01-01T12:00:00Z", "2023-12-01T12:00:00Z");
 
+    final JobLauncherTestUtils testLauncher = createTestLauncher(getAuthHeadingJob);
     final JobParameters jobParameters = prepareJobParameters(exportConfig);
 
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
@@ -73,11 +73,11 @@ class AuthorityControlTest extends BaseBatchTest {
     verifyFile(jobExecution, EXPECTED_AUTHORITY_STAT_OUTPUT);
 
     wireMockServer.verify(getRequestedFor(urlEqualTo(
-      "/links/authority/stats?limit=1&fromDate=Fri%20Jul%2016%2012%3A00%3A00%20EET%206&toDate=Wed%20Jun%2015%2012%3A00%3A00%20EET%207")));
+      "/links/authority/stats?limit=1&fromDate=2023-01-01T12%3A00%3A00Z&toDate=2023-12-01T12%3A00%3A00Z")));
     wireMockServer.verify(getRequestedFor(urlEqualTo(
-      "/links/authority/stats?limit=1&fromDate=Sat%20Aug%2024%2017%3A15%3A22%20EEST%202019&toDate=Wed%20Jun%2015%2012%3A00%3A00%20EET%207")));
+      "/links/authority/stats?limit=1&fromDate=2023-04-01T15%3A00%3A00Z&toDate=2023-12-01T12%3A00%3A00Z")));
     wireMockServer.verify(getRequestedFor(urlEqualTo(
-      "/links/authority/stats?limit=1&fromDate=Mon%20Aug%2024%2017%3A15%3A22%20EEST%202020&toDate=Wed%20Jun%2015%2012%3A00%3A00%20EET%207")));
+      "/links/authority/stats?limit=1&fromDate=2023-08-01T15%3A00%3A00Z&toDate=2023-12-01T12%3A00%3A00Z")));
 
     verifyJobEvent();
   }

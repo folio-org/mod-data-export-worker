@@ -9,6 +9,8 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
 import org.springframework.stereotype.Component;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -17,12 +19,13 @@ import java.util.UUID;
 @StepScope
 public class AuthorityControlItemReader extends AbstractItemCountingItemStreamItemReader<AuthorityDataStatDto> {
 
-  private int currentChunkOffset;
-  private List<AuthorityDataStatDto> currentChunk;
+  private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
   private final EntitiesLinksStatsClient entitiesLinksStatsClient;
   private final int limit;
   private final Date toDate;
   private Date fromDate;
+  private int currentChunkOffset;
+  private List<AuthorityDataStatDto> currentChunk;
 
   protected AuthorityControlItemReader(EntitiesLinksStatsClient entitiesLinksStatsClient,
                                        AuthorityControlExportConfig exportConfig,
@@ -54,7 +57,8 @@ public class AuthorityControlItemReader extends AbstractItemCountingItemStreamIt
   }
 
   protected AuthorityDataStatDtoCollection getItems(int limit) {
-    return entitiesLinksStatsClient.getAuthorityStats(limit, fromDate, toDate);
+    return entitiesLinksStatsClient
+      .getAuthorityStats(limit, DATE_FORMAT.format(fromDate), DATE_FORMAT.format(toDate));
   }
 
   @Override

@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/links/authority/stats?limit=2&fromDate=Thu%20Jan%2001%2002%3A00%3A00%20EET%201970&toDate=Thu%20Jan%2001%2002%3A00%3A00%20EET%201970"
+        "url": "/links/authority/stats?limit=1&fromDate=Fri%20Jul%2016%2012%3A00%3A00%20EET%206&toDate=Wed%20Jun%2015%2012%3A00%3A00%20EET%207"
       },
       "response": {
         "status": 200,
@@ -16,11 +16,24 @@
     {
       "request": {
         "method": "GET",
-        "url": "/links/authority/stats?limit=2&fromDate=Sat%20Aug%2024%2017%3A15%3A22%20EEST%202019&toDate=Thu%20Jan%2001%2002%3A00%3A00%20EET%201970"
+        "url": "/links/authority/stats?limit=1&fromDate=Sat%20Aug%2024%2017%3A15%3A22%20EEST%202019&toDate=Wed%20Jun%2015%2012%3A00%3A00%20EET%207"
       },
       "response": {
         "status": 200,
-        "body": "{\n \"stats\": [],\n\"next\": \"2019-08-24T14:15:22Z\"}",
+        "body": "{\n\"stats\": [\n{\n\"id\": \"0b1e3760-f689-493e-a98e-9cc9dadb7e83\",\n\"authorityId\": \"c8f721bd-38ac-411d-82c8-a5902fb20deb\",\n\"action\": \"UPDATE_HEADING\",\n\"naturalIdOld\": \"mo34056\",\n\"naturalIdNew\": \"mo34056\",\n\"headingOld\": \"Charles III, King\",\n\"headingNew\": \"King Charles III\",\n\"headingTypeOld\": \"100\",\n\"headingTypeNew\": \"100\",\n\"sourceFileOld\": \"Not specified\",\n\"sourceFileNew\": \"Not specified\",\n\"lbTotal\": 10,\n\"lbUpdated\": 10,\n\"lbFailed\": 0,\n\"metadata\": {\n\"startedAt\": \"2019-08-24T14:15:22Z\",\n\"completedAt\": \"2020-08-24T14:15:22Z\",\n\"startedByUserId\": \"f4d72275-fbca-44d0-9214-72647a812333\",\n\"startedByUserFirstName\": \"Folio\",\n\"startedByUserLastName\": \"Test\"\n}\n}\n],\n\"next\": \"2020-08-24T14:15:22Z\"\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/links/authority/stats?limit=1&fromDate=Mon%20Aug%2024%2017%3A15%3A22%20EEST%202020&toDate=Wed%20Jun%2015%2012%3A00%3A00%20EET%207"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n \"stats\": []}",
         "headers": {
           "Content-Type": "application/json"
         }

@@ -44,7 +44,7 @@ application:
     kb-ebsco-chunk-size: 2
   authority-control-batch:
     job-chunk-size: 2
-    entities-links-chunk-size: 2
+    entities-links-chunk-size: 1
 folio:
   tenant:
     validation:

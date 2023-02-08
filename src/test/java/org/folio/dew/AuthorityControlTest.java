@@ -56,7 +56,7 @@ class AuthorityControlTest extends BaseBatchTest {
 
   private static final String EXPECTED_AUTHORITY_STAT_OUTPUT = "src/test/resources/output/auth_heading_update.csv";
   private static final String FILE_PATH = "mod-data-export-worker/authority_control_export/diku/";
-  private final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+  private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
   @Test
   @DisplayName("Run AuthorityControlJob export successfully")
@@ -112,8 +112,8 @@ class AuthorityControlTest extends BaseBatchTest {
   @SneakyThrows
   private AuthorityControlExportConfig buildExportConfig(String from, String to) {
     var exportConfig = new AuthorityControlExportConfig();
-    exportConfig.setFromDate(DATE_FORMAT.parse(from));
-    exportConfig.setToDate(DATE_FORMAT.parse(to));
+    exportConfig.setFromDate(dateFormat.parse(from));
+    exportConfig.setToDate(dateFormat.parse(to));
     return exportConfig;
   }
 

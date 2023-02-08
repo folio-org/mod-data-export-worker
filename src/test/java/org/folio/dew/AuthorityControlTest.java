@@ -1,6 +1,7 @@
 package org.folio.dew;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.config.kafka.KafkaService;
@@ -25,7 +26,8 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.io.FileSystemResource;
 
 import java.io.File;
-import java.util.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -52,28 +54,27 @@ class AuthorityControlTest extends BaseBatchTest {
   @SpyBean
   private KafkaService kafkaService;
 
+  private static final DateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
   private final static String EXPECTED_AUTHORITY_STAT_OUTPUT = "src/test/resources/output/auth_heading_update.csv";
-
   private static final String FILE_PATH = "mod-data-export-worker/authority_control_export/diku/";
-
   @Test
   @DisplayName("Run AuthorityControlJob export successfully")
   void authorityControlJobTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(getAuthHeadingJob);
-    var exportConfig = buildExportConfig(new Date(0), new Date(1));
+    var exportConfig = buildExportConfig("2023-01-01 12:00:00", "2023-12-01 12:00:00");
 
     final JobParameters jobParameters = prepareJobParameters(exportConfig);
 
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
-    verifyFile(jobExecution, EXPECTED_AUTHORITY_STAT_OUTPUT);
-
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
+    verifyFile(jobExecution, EXPECTED_AUTHORITY_STAT_OUTPUT);
 
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(
-          "/links/authority/stats?limit=2&fromDate=Thu%20Jan%2001%2002%3A00%3A00%20EET%201970&toDate=Thu%20Jan%2001%2002%3A00%3A00%20EET%201970")));
+          "/links/authority/stats?limit=2&fromDate=Fri%20Jul%2016%2012%3A00%3A00%20EET%206&toDate=Wed%20Jun%2015%2012%3A00%3A00%20EET%207")));
 
     verifyJobEvent();
   }
@@ -105,10 +106,11 @@ class AuthorityControlTest extends BaseBatchTest {
     assertEquals(FILE_PATH + fileName, filePath);
   }
 
-  private AuthorityControlExportConfig buildExportConfig(Date from, Date to) {
+  @SneakyThrows
+  private AuthorityControlExportConfig buildExportConfig(String from, String to) {
     var exportConfig = new AuthorityControlExportConfig();
-    exportConfig.setFromDate(from);
-    exportConfig.setToDate(to);
+    exportConfig.setFromDate(DATE_FORMAT.parse(from));
+    exportConfig.setToDate(DATE_FORMAT.parse(to));
     return exportConfig;
   }
 

@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/links/authority/stats?limit=2&fromDate=Thu%20Jan%2001%2002%3A00%3A00%20EET%201970&toDate=Thu%20Jan%2001%2002%3A00%3A00%20EET%201970"
+        "url": "/links/authority/stats?limit=2&fromDate=Fri%20Jul%2016%2012%3A00%3A00%20EET%206&toDate=Wed%20Jun%2015%2012%3A00%3A00%20EET%207"
       },
       "response": {
         "status": 200,
@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/links/authority/stats?limit=2&fromDate=Sat%20Aug%2024%2017%3A15%3A22%20EEST%202019&toDate=Thu%20Jan%2001%2002%3A00%3A00%20EET%201970"
+        "url": "/links/authority/stats?limit=2&fromDate=Sat%20Aug%2024%2017%3A15%3A22%20EEST%202019&toDate=Wed%20Jun%2015%2012%3A00%3A00%20EET%207"
       },
       "response": {
         "status": 200,

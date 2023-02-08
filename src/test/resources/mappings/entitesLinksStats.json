@@ -1,0 +1,30 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/links/authority/stats?limit=2&fromDate=Thu%20Jan%2001%2002%3A00%3A00%20EET%201970&toDate=Thu%20Jan%2001%2002%3A00%3A00%20EET%201970"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n\"stats\": [\n{\n\"id\": \"497f6eca-6276-4993-bfeb-53cbbbba6f08\",\n\"authorityId\": \"f4d72275-fbca-44d0-9214-72647a812332\",\n\"action\": \"DELETE\",\n\"naturalIdOld\": \"n1234567\",\n\"naturalIdNew\": \"n1234567\",\n\"headingOld\": \"Charles, Prince of Wales\",\n\"headingNew\": \"Charles III, King\",\n\"headingTypeOld\": \"150\",\n\"headingTypeNew\": \"110\",\n\"sourceFileOld\": \"Not specified\",\n\"sourceFileNew\": \"LC Name Authority file (LCNAF)\",\n\"lbTotal\": 105,\n\"lbUpdated\": 55,\n\"lbFailed\": 50,\n\"metadata\": {\n\"startedAt\": \"2019-08-24T14:15:22Z\",\n\"completedAt\": \"2019-08-24T14:15:22Z\",\n\"startedByUserId\": \"c8f721bd-38ac-411d-82c8-a5902fb19deb\",\n\"startedByUserFirstName\": \"Diku\",\n\"startedByUserLastName\": \"Admin\"\n}\n}\n],\n\"next\": \"2019-08-24T14:15:22Z\"}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/links/authority/stats?limit=2&fromDate=Sat%20Aug%2024%2017%3A15%3A22%20EEST%202019&toDate=Thu%20Jan%2001%2002%3A00%3A00%20EET%201970"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n \"stats\": [],\n\"next\": \"2019-08-24T14:15:22Z\"}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

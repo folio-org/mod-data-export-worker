@@ -18,6 +18,7 @@ public class JobParameterNames {
   public static final String EDIFACT_FILE_NAME = "edifactFileName";
   public static final String E_HOLDINGS_FILE_NAME = "eHoldingsFileName";
   public static final String CIRCULATION_LOG_FILE_NAME = "circulationLogFileName";
+  public static final String AUTHORITY_CONTROL_FILE_NAME = "authorityControlFileName";
   public static final String QUERY = "query";
   public static final String EDIFACT_ORDERS_EXPORT = "edifactOrdersExport";
 

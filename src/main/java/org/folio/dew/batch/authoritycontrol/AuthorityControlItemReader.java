@@ -22,8 +22,8 @@ public class AuthorityControlItemReader extends AbstractItemCountingItemStreamIt
   private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
   private final EntitiesLinksStatsClient entitiesLinksStatsClient;
   private final int limit;
-  private final Date toDate;
-  private Date fromDate;
+  private final Date fromDate;
+  private Date toDate;
   private int currentChunkOffset;
   private List<AuthorityDataStatDto> currentChunk;
 
@@ -42,14 +42,14 @@ public class AuthorityControlItemReader extends AbstractItemCountingItemStreamIt
 
   @Override
   protected AuthorityDataStatDto doRead() {
-    if (currentChunk == null || currentChunkOffset >= currentChunk.size()) {
+    if (currentChunk == null || currentChunkOffset >= currentChunk.size() && toDate != null) {
       var collection = getItems(limit);
       currentChunk = collection.getStats();
-      fromDate = collection.getNext();
+      toDate = collection.getNext();
       currentChunkOffset = 0;
     }
 
-    if (currentChunk.isEmpty()) {
+    if (currentChunk.isEmpty() || toDate == null) {
       return null;
     }
 

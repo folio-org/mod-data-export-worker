@@ -42,14 +42,17 @@ public class AuthorityControlItemReader extends AbstractItemCountingItemStreamIt
 
   @Override
   protected AuthorityDataStatDto doRead() {
-    if (currentChunk == null || currentChunkOffset >= currentChunk.size() && toDate != null) {
+    if (currentChunk == null || currentChunkOffset >= currentChunk.size()) {
+      if (toDate == null) {
+        return null;
+      }
       var collection = getItems(limit);
       currentChunk = collection.getStats();
       toDate = collection.getNext();
       currentChunkOffset = 0;
     }
 
-    if (currentChunk.isEmpty() || toDate == null) {
+    if (currentChunk.isEmpty()) {
       return null;
     }
 

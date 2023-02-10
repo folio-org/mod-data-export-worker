@@ -13,6 +13,7 @@ import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.item.ExecutionContext;
 
@@ -52,11 +53,11 @@ class AuthorityControlStepListenerTest {
     var jobExecution = mock(JobExecution.class);
     var stepExecution = mock(StepExecution.class);
     var executionContext = mock(ExecutionContext.class);
-    var parameters = new HashMap<String, JobParameter>();
-    parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(TEMP_FILE));
+    var parametersBuilder = new JobParametersBuilder();
+    parametersBuilder.addString(TEMP_OUTPUT_FILE_PATH, TEMP_FILE);
 
     when(stepExecution.getExitStatus()).thenReturn(ExitStatus.COMPLETED);
-    when(stepExecution.getJobParameters()).thenReturn(new JobParameters(parameters));
+    when(stepExecution.getJobParameters()).thenReturn(parametersBuilder.toJobParameters());
     when(stepExecution.getJobExecution()).thenReturn(jobExecution);
     when(jobExecution.getExecutionContext()).thenReturn(executionContext);
     when(localFilesStorage.notExists(any())).thenReturn(false);
@@ -76,11 +77,11 @@ class AuthorityControlStepListenerTest {
   void shouldFailedAfterStepExecution_ifUploadWasFailed() {
     var jobExecution = mock(JobExecution.class);
     var stepExecution = mock(StepExecution.class);
-    var parameters = new HashMap<String, JobParameter>();
-    parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(TEMP_FILE));
+    var parametersBuilder = new JobParametersBuilder();
+    parametersBuilder.addString(TEMP_OUTPUT_FILE_PATH, TEMP_FILE);
 
     when(stepExecution.getJobExecution()).thenReturn(jobExecution);
-    when(stepExecution.getJobParameters()).thenReturn(new JobParameters(parameters));
+    when(stepExecution.getJobParameters()).thenReturn(parametersBuilder.toJobParameters());
     when(localFilesStorage.notExists(any())).thenReturn(false);
     when(folioExecutionContext.getTenantId()).thenReturn(TEST_TENANT);
     doThrow(new IOException()).when(remoteFilesStorage)
@@ -96,11 +97,11 @@ class AuthorityControlStepListenerTest {
   void shouldFailedAfterStepExecution_ifTempFileNotExist() {
     var jobExecution = mock(JobExecution.class);
     var stepExecution = mock(StepExecution.class);
-    var parameters = new HashMap<String, JobParameter>();
-    parameters.put(TEMP_OUTPUT_FILE_PATH, new JobParameter("tempFile"));
+    var parametersBuilder = new JobParametersBuilder();
+    parametersBuilder.addString(TEMP_OUTPUT_FILE_PATH, "tempFile");
 
     when(stepExecution.getJobExecution()).thenReturn(jobExecution);
-    when(stepExecution.getJobParameters()).thenReturn(new JobParameters(parameters));
+    when(stepExecution.getJobParameters()).thenReturn(parametersBuilder.toJobParameters());
     when(localFilesStorage.notExists(any())).thenReturn(true);
 
     var result = stepListener.afterStepExecution(stepExecution);

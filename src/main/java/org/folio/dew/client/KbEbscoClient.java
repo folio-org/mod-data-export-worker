@@ -1,18 +1,19 @@
 package org.folio.dew.client;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import feign.QueryMap;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.eholdings.EPackage;
 import org.folio.dew.domain.dto.eholdings.EProvider;
 import org.folio.dew.domain.dto.eholdings.EResource;
 import org.folio.dew.domain.dto.eholdings.EResources;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @FeignClient(name = "eholdings")
 public interface KbEbscoClient {
@@ -34,7 +35,7 @@ public interface KbEbscoClient {
 
   @GetMapping(value = "/packages/{packageId}/resources", produces = APPLICATION_VND_JSON_VALUE)
   EResources getResourcesByPackageId(@PathVariable String packageId,
-                                     @SpringQueryMap(encoded = true) Map<String, String> parameters);
+                                     @QueryMap(encoded = true) Map<String, String> parameters);
 
   default Map<String, String> constructParams(int page, int count, String filters, String... include) {
     Map<String, String> params = new LinkedHashMap<>();

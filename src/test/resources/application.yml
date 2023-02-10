@@ -7,8 +7,8 @@ spring:
   batch:
     job:
       enabled: false
-    initializer:
-      enabled: false
+    jdbc:
+      initialize-schema: never
   kafka:
     listener:
       concurrency: ${KAFKA_CONCURRENCY_LEVEL:30}

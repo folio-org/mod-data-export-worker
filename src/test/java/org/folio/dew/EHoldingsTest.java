@@ -47,6 +47,7 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -298,24 +299,24 @@ class EHoldingsTest extends BaseBatchTest {
   private JobParameters prepareJobParameters(EHoldingsExportConfig eHoldingsExportConfig)
     throws JsonProcessingException {
     String jobId = UUID.randomUUID().toString();
-    Map<String, JobParameter> params = new HashMap<>();
+    var paramsBuilder = new JobParametersBuilder();
 
-    params.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
-    params.put("eHoldingsExportConfig", new JobParameter(objectMapper.writeValueAsString(eHoldingsExportConfig)));
+    paramsBuilder.addString(JobParameterNames.JOB_ID, jobId);
+    paramsBuilder.addString("eHoldingsExportConfig", objectMapper.writeValueAsString(eHoldingsExportConfig));
 
     String workDir =
       System.getProperty("java.io.tmpdir")
         + File.separator
         + springApplicationName
         + File.separator;
-    var jobParameters = new JobParameters(params);
+    var jobParameters = paramsBuilder.toJobParameters();
     var jobCommand = new JobCommand();
     jobCommand.setJobParameters(jobParameters);
     jobCommand.setExportType(ExportType.E_HOLDINGS);
     final String outputFile = fileNameResolver.resolve(jobCommand, workDir, jobId);
-    params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(outputFile));
+    paramsBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFile);
 
-    return new JobParameters(params);
+    return paramsBuilder.toJobParameters();
   }
 
   private List<String> getTitleFields() {

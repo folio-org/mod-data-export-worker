@@ -11,7 +11,7 @@ import org.folio.dew.client.ServicePointClient;
 import org.folio.dew.domain.dto.CirculationLogExportFormat;
 import org.folio.dew.domain.dto.ConfigurationCollection;
 import org.folio.dew.domain.dto.LogRecord;
-import org.folio.dew.domain.dto.LogRecordItems;
+import org.folio.dew.domain.dto.LogRecordItemsInner;
 import org.folio.dew.domain.dto.ServicePoint;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
@@ -52,7 +52,7 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
 
     final String items = item.getItems().stream()
       .filter(lri -> lri != null && StringUtils.isNotBlank(lri.getItemBarcode()))
-      .map(LogRecordItems::getItemBarcode)
+      .map(LogRecordItemsInner::getItemBarcode)
       .collect(Collectors.joining(","));
     logExportFormat.setItems(items);
     return logExportFormat;

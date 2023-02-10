@@ -11,6 +11,7 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,11 +85,11 @@ class CirculationLogTest extends BaseBatchTest {
   }
 
   private JobParameters prepareJobParameters() {
-    Map<String, JobParameter> params = new HashMap<>();
-    params.put("query", new JobParameter(""));
+    var parametersBuilder = new JobParametersBuilder();
+    parametersBuilder.addString("query", "");
 
     String jobId = UUID.randomUUID().toString();
-    params.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
+    parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
 
     Date now = new Date();
     String workDir =
@@ -96,14 +97,13 @@ class CirculationLogTest extends BaseBatchTest {
             + File.separator
             + springApplicationName
             + File.separator;
-    params.put(
-        JobParameterNames.TEMP_OUTPUT_FILE_PATH,
-        new JobParameter(
-            String.format(
-                "%s%s_%tF_%tH%tM%tS_%s",
-                workDir, ExportType.CIRCULATION_LOG, now, now, now, now, jobId)));
+    parametersBuilder.addString(
+      JobParameterNames.TEMP_OUTPUT_FILE_PATH,
+      String.format(
+        "%s%s_%tF_%tH%tM%tS_%s",
+        workDir, ExportType.CIRCULATION_LOG, now, now, now, now, jobId));
 
-    return new JobParameters(params);
+    return parametersBuilder.toJobParameters();
   }
 
 }

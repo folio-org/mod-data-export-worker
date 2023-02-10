@@ -20,6 +20,7 @@ import org.folio.dew.domain.dto.IdentifierType;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.EnumMap;
@@ -56,6 +57,10 @@ public class BulkEditProcessorHelper {
       return Date.from(localDateTime.atZone(UTC).toInstant());
     }
     return null;
+  }
+
+  public static Date convertToDate(LocalDateTime dateTime) {
+    return Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
   }
 
   public static String resolveIdentifier(String identifier) {

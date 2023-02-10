@@ -657,7 +657,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var jobCommand = new JobCommand();
     jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
     jobCommand.setEntityType(USER);
-    jobCommand.setJobParameters(new JobParameters(new HashMap<String, JobParameter>()));
+    jobCommand.setJobParameters(new JobParametersBuilder().toJobParameters());
     var executionId = 0l;
     var jobExecution = new JobExecution(executionId);
 
@@ -696,7 +696,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var jobCommand = new JobCommand();
     jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
     jobCommand.setEntityType(USER);
-    jobCommand.setJobParameters(new JobParameters(new HashMap<String, JobParameter>()));
+    jobCommand.setJobParameters(new JobParametersBuilder().toJobParameters());
 
     var headers = defaultHeaders();
 
@@ -1147,17 +1147,17 @@ class BulkEditControllerTest extends BaseBatchTest {
   void shouldReturnNumberOfRowsInCSVFile() {
     when(userClient.getUserById("88a087b4-c3a1-485b-8a22-2fa8f7b661c4"))
       .thenReturn(new User().id("88a087b4-c3a1-485b-8a22-2fa8f7b661c4").username("User name").active(true).barcode("456")
-        .departments(List.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
+        .departments(Set.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
           .preferredFirstName("").email("").phone("").mobilePhone("").addresses(List.of()).preferredContactTypeId("")).type("")
         .customFields(Map.of()).metadata(new Metadata().createdByUsername("abcd")));
     when(userClient.getUserById("88a087b4-c3a1-485b-8a22-2fa8f7b661c5"))
       .thenReturn(new User().id("88a087b4-c3a1-485b-8a22-2fa8f7b661c5").username("User name2").active(true).barcode("4567")
-        .departments(List.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
+        .departments(Set.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
           .preferredFirstName("").email("").phone("").mobilePhone("").addresses(List.of()).preferredContactTypeId("")).type("")
         .customFields(Map.of()).metadata(new Metadata().createdByUsername("abcde")));
     when(userClient.getUserById("88a087b4-c3a1-485b-8a22-2fa8f7b661c6"))
       .thenReturn(new User().id("88a087b4-c3a1-485b-8a22-2fa8f7b661c6").username("User name3").active(true).barcode("45678")
-        .departments(List.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
+        .departments(Set.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
           .preferredFirstName("").email("").phone("").mobilePhone("").addresses(List.of()).preferredContactTypeId("")).type("")
         .customFields(Map.of()).metadata(new Metadata().createdByUsername("abcdef")));
 
@@ -1457,8 +1457,9 @@ class BulkEditControllerTest extends BaseBatchTest {
     jobCommand.setIdentifierType(identifierType);
     jobCommand.setEntityType(entityType);
 
-    Map<String, JobParameter> params = new HashMap<>();
-    params.put("query", new JobParameter("(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName"));
+    var paramBuilder = new JobParametersBuilder();
+
+    paramBuilder.addString("query", "(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName");
     String fileName;
     if (BULK_EDIT_IDENTIFIERS == exportType) {
       fileName = "src/test/resources/upload/barcodes.csv";
@@ -1481,10 +1482,10 @@ class BulkEditControllerTest extends BaseBatchTest {
         }
       }
     }
-    params.put(FILE_NAME, new JobParameter(fileName));
-    params.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(fileName));
-    params.put(UPDATED_FILE_NAME, new JobParameter(fileName));
-    jobCommand.setJobParameters(new JobParameters(params));
+    paramBuilder.addString(FILE_NAME, fileName);
+    paramBuilder.addString(TEMP_OUTPUT_FILE_PATH, fileName);
+    paramBuilder.addString(UPDATED_FILE_NAME, fileName);
+    jobCommand.setJobParameters(paramBuilder.toJobParameters());
     return jobCommand;
   }
 

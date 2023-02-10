@@ -1,5 +1,6 @@
 package org.folio.dew.service;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -10,17 +11,14 @@ import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.utils.Constants;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import org.springframework.batch.core.launch.JobOperator;
-
-import javax.annotation.PostConstruct;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -131,10 +129,10 @@ public class BulkEditRollBackService {
   }
 
   private JobParameters getRollBackParameters(String jobId, String fileToRollBack) {
-    var parameters = new HashMap<String, JobParameter>();
-    parameters.put(Constants.JOB_ID, new JobParameter(jobId));
-    parameters.put(Constants.FILE_NAME, new JobParameter(fileToRollBack));
-    return new JobParameters(parameters);
+    var jobParametersBuilder = new JobParametersBuilder();
+    jobParametersBuilder.addString(Constants.JOB_ID, jobId);
+    jobParametersBuilder.addString(Constants.FILE_NAME, fileToRollBack);
+    return jobParametersBuilder.toJobParameters();
   }
 
   private String getObjectName(String path) {

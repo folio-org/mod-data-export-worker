@@ -28,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ExecutionContext;
 
 @ExtendWith(MockitoExtension.class)
@@ -98,7 +99,7 @@ class EHoldingsCsvFileCsvWriterTest {
     lenient().when(exportConfig.getTitleFields()).thenReturn(titleFields);
 
     //When
-    eHoldingsCsvFileWriter.write(items);
+    eHoldingsCsvFileWriter.write(new Chunk<>(items));
 
     //Then
     verify(localFilesStorage, times(localFileStorageInvocations)).append(anyString(), any());

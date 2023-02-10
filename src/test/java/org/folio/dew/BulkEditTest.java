@@ -587,10 +587,10 @@ class BulkEditTest extends BaseBatchTest {
   void rollBackUserRecordsJobTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditRollBackJob);
     localFilesStorage.write(USER_RECORD_ROLLBACK_CSV, Files.readAllBytes(new File(USER_RECORD_CSV).toPath()));
-    var parameters = new HashMap<String, JobParameter>();
-    parameters.put(Constants.JOB_ID, new JobParameter("74914e57-3406-4757-938b-9a3f718d0ee6"));
-    parameters.put(Constants.FILE_NAME, new JobParameter(USER_RECORD_ROLLBACK_CSV));
-    JobExecution jobExecution = testLauncher.launchJob(new JobParameters(parameters));
+    var parametersBuilder = new JobParametersBuilder();
+    parametersBuilder.addString(Constants.JOB_ID, "74914e57-3406-4757-938b-9a3f718d0ee6");
+    parametersBuilder.addString(FILE_NAME, USER_RECORD_ROLLBACK_CSV);
+    JobExecution jobExecution = testLauncher.launchJob(parametersBuilder.toJobParameters());
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 
@@ -701,10 +701,10 @@ class BulkEditTest extends BaseBatchTest {
 
   @SneakyThrows
   private JobParameters prepareJobParameters(ExportType exportType, EntityType entityType, IdentifierType identifierType, String path) {
-    Map<String, JobParameter> params = new HashMap<>();
+    var parametersBuilder = new JobParametersBuilder();
     String jobId = UUID.randomUUID().toString();
     String workDir = getWorkingDirectory(springApplicationName, BULKEDIT_DIR_NAME);
-    params.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(workDir + jobId + "/" + "out"));
+    parametersBuilder.addString(TEMP_OUTPUT_FILE_PATH, workDir + jobId + "/" + "out");
     try {
       localFilesStorage.write(workDir + "out", new byte[0]);
       localFilesStorage.write(workDir + "out.csv", new byte[0]);
@@ -713,27 +713,27 @@ class BulkEditTest extends BaseBatchTest {
     }
     Path of = Path.of(path);
     if (BULK_EDIT_UPDATE == exportType) {
-      params.put(ROLLBACK_FILE, new JobParameter("rollback/file/path"));
+      parametersBuilder.addString(ROLLBACK_FILE, "rollback/file/path");
       // Put file on MinIO FS
       var fsPath = getWorkingDirectory(springApplicationName, BULKEDIT_DIR_NAME) + FileNameUtils.getBaseName(path) + "E" + FileNameUtils.getExtension(path);
       localFilesStorage.write(fsPath, Files.readAllBytes(of));
-      params.put(FILE_NAME, new JobParameter(fsPath));
+      parametersBuilder.addString(FILE_NAME, fsPath);
     } else if (ExportType.BULK_EDIT_QUERY == exportType) {
-      params.put("query", new JobParameter(readQueryString(path)));
+      parametersBuilder.addString("query", readQueryString(path));
     } else if (BULK_EDIT_IDENTIFIERS == exportType) {
       var file = getWorkingDirectory("mod-data-export-worker", BULKEDIT_DIR_NAME)  +  FileNameUtils.getBaseName(path) + "E" + FileNameUtils.getExtension(path);
-      params.put(FILE_NAME, new JobParameter(file));
+      parametersBuilder.addString(FILE_NAME, "file");
       localFilesStorage.write(file, Files.readAllBytes(of));
-      params.put(TOTAL_CSV_LINES, new JobParameter(countLines(localFilesStorage, file, false), false));
+      parametersBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, file, false), false);
     }
 
 
-    params.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
-    params.put(EXPORT_TYPE, new JobParameter(exportType.getValue()));
-    params.put(ENTITY_TYPE, new JobParameter(entityType.getValue()));
-    params.put(IDENTIFIER_TYPE, new JobParameter(identifierType.getValue()));
+    parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
+    parametersBuilder.addString(EXPORT_TYPE, exportType.getValue());
+    parametersBuilder.addString(ENTITY_TYPE, entityType.getValue());
+    parametersBuilder.addString(IDENTIFIER_TYPE, identifierType.getValue());
 
-    return new JobParameters(params);
+    return parametersBuilder.toJobParameters();
   }
 
   @SneakyThrows

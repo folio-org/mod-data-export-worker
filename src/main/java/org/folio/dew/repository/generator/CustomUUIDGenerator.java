@@ -12,7 +12,7 @@ public class CustomUUIDGenerator extends UUIDGenerator {
   @Override
   public Serializable generate(SharedSessionContractImplementor session, Object object) {
     Serializable id =
-        session.getEntityPersister(null, object).getClassMetadata().getIdentifier(object, session);
-    return id != null ? id : super.generate(session, object);
+      (Serializable) session.getEntityPersister(null, object).getClassMetadata().getIdentifier(object, session);
+    return id != null ? id : (Serializable) super.generate(session, object);
   }
 }

@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.WritableResource;
 
 @Configuration
 @Log4j2
@@ -103,7 +104,7 @@ public class BursarExportJobConfig {
       @Value("#{stepExecution.stepName}") String stepName,
       LocalFilesStorage localFilesStorage) {
     String fileName = tempOutputFilePath + '_' + BursarFeesFinesUtils.getFilename(stepName);
-    Resource exportFileResource = new S3CompatibleResource<>(fileName, localFilesStorage);
+    WritableResource exportFileResource = new S3CompatibleResource<>(fileName, localFilesStorage);
 
     var fieldNames =
         new String[] {

@@ -90,7 +90,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
   HoldingsSourceClient.class,
   HoldingsNoteTypeClient.class
 })
-@EnableBatchProcessing
+@EnableBatchProcessing(isolationLevelForCreate = "ISOLATION_READ_COMMITTED")
 @EntityScan("org.folio.de.entity")
 public class ModDataExportWorkerApplication {
 

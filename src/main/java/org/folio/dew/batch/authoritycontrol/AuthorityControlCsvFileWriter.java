@@ -1,6 +1,6 @@
 package org.folio.dew.batch.authoritycontrol;
 
-import org.folio.dew.domain.dto.authoritycontrol.AuthorityControlExportFormat;
+import org.folio.dew.domain.dto.authoritycontrol.AuthorityUpdateHeadingExportFormat;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.S3CompatibleResource;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +34,7 @@ import static org.folio.dew.utils.Constants.QUOTE_REPLACEMENT;
 
 @Component
 @StepScope
-public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<AuthorityControlExportFormat> {
+public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<AuthorityUpdateHeadingExportFormat> {
   private final List<String> headers;
   private final String tempOutputFilePath;
   private final LocalFilesStorage localFilesStorage;
@@ -44,7 +44,7 @@ public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<Author
     setResource(tempOutputFilePath);
 
     this.setExecutionContextName(ClassUtils.getShortName(AuthorityControlCsvFileWriter.class));
-    this.headers = convertFields(AuthorityControlExportFormat.class.getDeclaredFields());
+    this.headers = convertFields(AuthorityUpdateHeadingExportFormat.class.getDeclaredFields());
     this.tempOutputFilePath = tempOutputFilePath;
     this.localFilesStorage = localFilesStorage;
   }
@@ -63,13 +63,13 @@ public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<Author
   }
 
   @Override
-  public void write(@NotNull List<? extends AuthorityControlExportFormat> items) throws Exception {
+  public void write(@NotNull List<? extends AuthorityUpdateHeadingExportFormat> items) throws Exception {
     writeString(doWrite(items));
   }
 
   @NotNull
   @Override
-  protected String doWrite(List<? extends AuthorityControlExportFormat> items) {
+  protected String doWrite(List<? extends AuthorityUpdateHeadingExportFormat> items) {
     return items.stream()
       .map(item -> getItemRow(item, headers))
       .collect(Collectors.joining(lineSeparator, EMPTY, lineSeparator));

@@ -15,6 +15,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import static org.folio.dew.domain.dto.authority.control.AuthorityDataStatDto.ActionEnum.UPDATE_HEADING;
+
 @Component
 @StepScope
 public class AuthorityControlItemReader extends AbstractItemCountingItemStreamItemReader<AuthorityDataStatDto> {
@@ -61,7 +63,7 @@ public class AuthorityControlItemReader extends AbstractItemCountingItemStreamIt
 
   protected AuthorityDataStatDtoCollection getItems(int limit) {
     return entitiesLinksStatsClient
-      .getAuthorityStats(limit, dateFormat.format(fromDate), dateFormat.format(toDate));
+      .getAuthorityStats(limit, UPDATE_HEADING, dateFormat.format(fromDate), dateFormat.format(toDate));
   }
 
   @Override

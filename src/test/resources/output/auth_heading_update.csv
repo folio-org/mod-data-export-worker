@@ -1,5 +1,5 @@
-Last Updated,Original Heading,New Heading,Original Identifier,New Identifier,Original 1 XX,New 1 XXX,Original Authority Source File Name,New Authority Source File Name,Total Number Of Bibliographic Records,Number Of Bibliographic Records Linked,Number Of Bibliographic Records Not Linked,Updater
-2023-10-01 15:00:00.000Z,"Charles, Prince of Wales","Charles III, King",n1234567,n1234567,150,110,Not specified,LC Name Authority file (LCNAF),105,55,50,"Admin, Diku"
-2023-09-01 15:00:00.000Z,"Charles, Prince of Wales","Charles III, King",n1234567,n1234567,150,110,Not specified,LC Name Authority file (LCNAF),105,55,50,"Admin, Diku"
-2023-08-01 15:00:00.000Z,"Charles III, King",King Charles III,mo34056,mo34056,100,100,Not specified,Not specified,10,10,0,"Test, Folio"
-2023-07-01 15:00:00.000Z,"Charles III, King",King Charles III,mo34056,mo34056,100,100,Not specified,Not specified,10,10,0,"Test, Folio"
+Last Updated,Original Heading,New Heading,Identifier,Original Hundredth Field,New Hundredth Field,Authority Source File Name,Number Of Bibliographic Records Linked,Updater
+2023-10-01 15:00:00.000Z,"Charles, Prince of Wales","Charles III, King",n1234567,150,110,LC Name Authority file (LCNAF),105,"Admin, Diku"
+2023-10-01 15:00:00.000Z,"Charles, Prince of Wales","Charles III, King",n1234567,150,110,LC Name Authority file (LCNAF),105,"Admin, Diku"
+2023-08-01 15:00:00.000Z,"Charles III, King",King Charles III,mo34056,100,100,Not specified,10,"Test, Folio"
+2023-07-01 15:00:00.000Z,"Charles III, King",King Charles III,mo34056,100,100,Not specified,10,"Test, Folio"

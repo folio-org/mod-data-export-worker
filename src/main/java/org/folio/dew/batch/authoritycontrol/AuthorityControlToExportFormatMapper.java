@@ -2,7 +2,7 @@ package org.folio.dew.batch.authoritycontrol;
 
 import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDto;
 import org.folio.dew.domain.dto.authority.control.Metadata;
-import org.folio.dew.domain.dto.authoritycontrol.AuthorityControlExportFormat;
+import org.folio.dew.domain.dto.authoritycontrol.AuthorityUpdateHeadingExportFormat;
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
@@ -18,25 +18,19 @@ import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 public class AuthorityControlToExportFormatMapper {
   private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
 
-  public AuthorityControlExportFormat convertToExportFormat(AuthorityDataStatDto dto) {
-    var exportFormat = new AuthorityControlExportFormat();
+  public AuthorityUpdateHeadingExportFormat convertToExportFormat(AuthorityDataStatDto dto) {
+    var exportFormat = new AuthorityUpdateHeadingExportFormat();
     var metadata = dto.getMetadata();
 
     exportFormat.setUpdater(convertUserName(metadata));
     exportFormat.setLastUpdated(dateToString(metadata.getCompletedAt()));
     exportFormat.setNewHeading(dto.getHeadingNew());
     exportFormat.setOriginalHeading(dto.getHeadingOld());
-    exportFormat.setNew1XXX(dto.getHeadingTypeNew());
-    exportFormat.setOriginal1XX(dto.getHeadingTypeOld());
-
-    exportFormat.setTotalNumberOfBibliographicRecords(dto.getLbTotal().toString());
-    exportFormat.setNumberOfBibliographicRecordsLinked(dto.getLbUpdated().toString());
-    exportFormat.setNumberOfBibliographicRecordsNotLinked(dto.getLbFailed().toString());
-
-    exportFormat.setNewIdentifier(dto.getNaturalIdNew());
-    exportFormat.setOriginalIdentifier(dto.getNaturalIdOld());
-    exportFormat.setNewAuthoritySourceFileName(dto.getSourceFileNew());
-    exportFormat.setOriginalAuthoritySourceFileName(dto.getSourceFileOld());
+    exportFormat.setNewHundredthField(dto.getHeadingTypeNew());
+    exportFormat.setOriginalHundredthField(dto.getHeadingTypeOld());
+    exportFormat.setIdentifier(dto.getNaturalIdNew());
+    exportFormat.setAuthoritySourceFileName(dto.getSourceFileNew());
+    exportFormat.setNumberOfBibliographicRecordsLinked(dto.getLbTotal().toString());
 
     return exportFormat;
   }

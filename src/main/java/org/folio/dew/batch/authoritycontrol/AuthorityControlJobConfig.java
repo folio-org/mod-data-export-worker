@@ -9,7 +9,7 @@ import org.folio.dew.config.properties.AuthorityControlJobProperties;
 import org.folio.dew.domain.dto.AuthorityControlExportConfig;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDto;
-import org.folio.dew.domain.dto.authoritycontrol.AuthorityControlExportFormat;
+import org.folio.dew.domain.dto.authoritycontrol.AuthorityUpdateHeadingExportFormat;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -50,10 +50,10 @@ public class AuthorityControlJobConfig {
   public Step getAuthHeadingStep(AuthorityControlItemReader authorityControlItemReader,
                                  AuthorityControlCsvFileWriter authorityControlCsvFileWriter,
                                  AuthorityControlStepListener authorityControlStepListener,
-                                 ItemProcessor<AuthorityDataStatDto, AuthorityControlExportFormat> authorityControlProcessor) {
+                                 ItemProcessor<AuthorityDataStatDto, AuthorityUpdateHeadingExportFormat> authorityControlProcessor) {
     return stepBuilderFactory
       .get("getAuthHeadingStep")
-      .<AuthorityDataStatDto, AuthorityControlExportFormat>chunk(jobProperties.getJobChunkSize())
+      .<AuthorityDataStatDto, AuthorityUpdateHeadingExportFormat>chunk(jobProperties.getJobChunkSize())
       .reader(authorityControlItemReader)
       .processor(authorityControlProcessor)
       .writer(authorityControlCsvFileWriter)
@@ -62,7 +62,7 @@ public class AuthorityControlJobConfig {
   }
 
   @Bean("authorityControlProcessor")
-  public ItemProcessor<AuthorityDataStatDto, AuthorityControlExportFormat> authorityControlProcessor(
+  public ItemProcessor<AuthorityDataStatDto, AuthorityUpdateHeadingExportFormat> authorityControlProcessor(
     AuthorityControlToExportFormatMapper mapper) {
     return mapper::convertToExportFormat;
   }

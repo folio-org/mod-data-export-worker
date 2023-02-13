@@ -1,5 +1,6 @@
 package org.folio.dew.client;
 
+import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDto;
 import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDtoCollection;
 import org.folio.dew.domain.dto.authority.control.InstanceDataLinkDtoCollection;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -12,6 +13,7 @@ public interface EntitiesLinksStatsClient {
 
   @GetMapping(value = "/authority/stats", produces = MediaType.APPLICATION_JSON_VALUE)
   AuthorityDataStatDtoCollection getAuthorityStats(@RequestParam int limit,
+                                                   @RequestParam AuthorityDataStatDto.ActionEnum action,
                                                    @RequestParam String fromDate,
                                                    @RequestParam String toDate);
 

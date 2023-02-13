@@ -1,7 +1,7 @@
 package org.folio.dew.batch.authoritycontrol;
 
 import lombok.SneakyThrows;
-import org.folio.dew.domain.dto.authoritycontrol.AuthorityControlExportFormat;
+import org.folio.dew.domain.dto.authoritycontrol.AuthorityUpdateHeadingExportFormat;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,8 +47,8 @@ class AuthorityControlCsvFileWriterTest {
   @SneakyThrows
   void testWriteItemsMethod(){
     //Given
-    List<AuthorityControlExportFormat> items = new ArrayList<>();
-    AuthorityControlExportFormat exportFormat = new AuthorityControlExportFormat();
+    List<AuthorityUpdateHeadingExportFormat> items = new ArrayList<>();
+    AuthorityUpdateHeadingExportFormat exportFormat = new AuthorityUpdateHeadingExportFormat();
     exportFormat.setUpdater("Test User");
     items.add(exportFormat);
 

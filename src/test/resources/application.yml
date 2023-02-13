@@ -12,6 +12,10 @@ spring:
   kafka:
     listener:
       concurrency: ${KAFKA_CONCURRENCY_LEVEL:30}
+  cloud:
+    openfeign:
+      okhttp:
+        enabled: true
 application:
   kafka:
     topic-configuration:

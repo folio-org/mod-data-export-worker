@@ -57,6 +57,7 @@
         <hypersistence-utils-hibernate-60.version>3.0.1</hypersistence-utils-hibernate-60.version>
         <opencsv.version>5.7.1</opencsv.version>
         <netty.version>4.1.86.Final</netty.version>
+        <feign-jackson.version>12.1</feign-jackson.version>
 
         <!-- Test properties-->
         <junit-extensions.version>2.4.0</junit-extensions.version>
@@ -139,7 +140,7 @@
       <dependency>
         <groupId>io.github.openfeign</groupId>
         <artifactId>feign-jackson</artifactId>
-        <version>11.8</version>
+        <version>${feign-jackson.version}</version>
       </dependency>
       <dependency>
           <groupId>io.minio</groupId>

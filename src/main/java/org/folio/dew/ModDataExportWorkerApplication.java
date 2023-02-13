@@ -47,49 +47,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
-@EnableFeignClients(clients = {
-  ConfigurationClient.class,
-  AccountBulkClient.class,
-  AccountClient.class,
-  AddressTypeClient.class,
-  AuditClient.class,
-  DepartmentClient.class,
-  FeefineactionsClient.class,
-  GroupClient.class,
-  ProxiesForClient.class,
-  ServicePointClient.class,
-  TransferClient.class,
-  UserClient.class,
-  DataExportSpringClient.class,
-  MaterialTypeClient.class,
-  OrdersClient.class,
-  OrdersStorageClient.class,
-  PurchaseOrderLineClient.class,
-  IdentifierTypeClient.class,
-  LocationClient.class,
-  HoldingClient.class,
-  ExpenseClassClient.class,
-  OrganizationsClient.class,
-  InventoryClient.class,
-  CallNumberTypeClient.class,
-  DamagedStatusClient.class,
-  ItemNoteTypeClient.class,
-  ElectronicAccessRelationshipClient.class,
-  InventoryClient.class,
-  StatisticalCodeClient.class,
-  InstanceClient.class,
-  LoanTypeClient.class,
-  CustomFieldsClient.class,
-  OkapiClient.class,
-  KbEbscoClient.class,
-  SearchClient.class,
-  NotesClient.class,
-  AgreementClient.class,
-  HoldingsTypeClient.class,
-  IllPolicyClient.class,
-  HoldingsSourceClient.class,
-  HoldingsNoteTypeClient.class
-})
+@EnableFeignClients(basePackages = "org.folio.dew.client")
 @EnableBatchProcessing(isolationLevelForCreate = "ISOLATION_READ_COMMITTED")
 @EntityScan("org.folio.de.entity")
 public class ModDataExportWorkerApplication {

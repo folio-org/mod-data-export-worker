@@ -9,4 +9,6 @@
   <include file="changes/create_eholdings_export_tables.xml" relativeToChangelogFile="true"/>
   <include file="changes/alter_eholdings_resource_table.xml" relativeToChangelogFile="true"/>
   <include file="changes/alter_eholdings_resource_table_name_column.xml" relativeToChangelogFile="true"/>
+  <include file="changes/alter_batch_job_execution_params_table.xml" relativeToChangelogFile="true"/>
+  <include file="changes/alter_batch_step_execution_table.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

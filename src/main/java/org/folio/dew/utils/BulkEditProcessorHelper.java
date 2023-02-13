@@ -60,7 +60,7 @@ public class BulkEditProcessorHelper {
   }
 
   public static Date convertToDate(LocalDateTime dateTime) {
-    return Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
+    return dateTime == null ? null : Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
   }
 
   public static String resolveIdentifier(String identifier) {

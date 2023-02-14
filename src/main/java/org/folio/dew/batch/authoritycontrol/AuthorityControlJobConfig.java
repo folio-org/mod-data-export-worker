@@ -12,24 +12,23 @@ import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDto;
 import org.folio.dew.domain.dto.authoritycontrol.AuthorityUpdateHeadingExportFormat;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.JobScope;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.PlatformTransactionManager;
 
 @Log4j2
 @Configuration
 @RequiredArgsConstructor
 public class AuthorityControlJobConfig {
   private final AuthorityControlJobProperties jobProperties;
-  private final StepBuilderFactory stepBuilderFactory;
-  private final JobBuilderFactory jobBuilderFactory;
   private final ObjectMapper objectMapper;
 
   @Bean
@@ -37,9 +36,7 @@ public class AuthorityControlJobConfig {
     JobRepository jobRepository,
     JobCompletionNotificationListener jobCompletionNotificationListener,
     @Qualifier("getAuthHeadingStep") Step getAuthHeadingStep) {
-    return jobBuilderFactory
-      .get(ExportType.AUTH_HEADINGS_UPDATES.toString())
-      .repository(jobRepository)
+    return new JobBuilder(ExportType.AUTH_HEADINGS_UPDATES.toString(), jobRepository)
       .incrementer(new RunIdIncrementer())
       .listener(jobCompletionNotificationListener)
       .start(getAuthHeadingStep)
@@ -50,10 +47,11 @@ public class AuthorityControlJobConfig {
   public Step getAuthHeadingStep(AuthorityControlItemReader authorityControlItemReader,
                                  AuthorityControlCsvFileWriter authorityControlCsvFileWriter,
                                  AuthorityControlStepListener authorityControlStepListener,
-                                 ItemProcessor<AuthorityDataStatDto, AuthorityUpdateHeadingExportFormat> authorityControlProcessor) {
-    return stepBuilderFactory
-      .get("getAuthHeadingStep")
-      .<AuthorityDataStatDto, AuthorityUpdateHeadingExportFormat>chunk(jobProperties.getJobChunkSize())
+                                 ItemProcessor<AuthorityDataStatDto, AuthorityUpdateHeadingExportFormat> authorityControlProcessor,
+                                 JobRepository jobRepository,
+                                 PlatformTransactionManager transactionManager) {
+    return new StepBuilder("getAuthHeadingStep", jobRepository)
+      .<AuthorityDataStatDto, AuthorityUpdateHeadingExportFormat>chunk(jobProperties.getJobChunkSize(), transactionManager)
       .reader(authorityControlItemReader)
       .processor(authorityControlProcessor)
       .writer(authorityControlCsvFileWriter)

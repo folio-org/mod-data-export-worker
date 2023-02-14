@@ -1,11 +1,15 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.LINE_BREAK;
 
+import feign.codec.DecodeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.ItemCollection;
@@ -40,6 +44,10 @@ public class ItemFetcher implements ItemProcessor<ItemIdentifier, ItemCollection
     var limit = HOLDINGS_RECORD_ID == IdentifierType.fromValue(identifierType) ? Integer.MAX_VALUE : 1;
     var idType = resolveIdentifier(identifierType);
     var identifier = "barcode".equals(idType) ? String.format("\"%s\"", itemIdentifier.getItemId()) : itemIdentifier.getItemId();
-    return inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), idType, identifier), limit);
+    try {
+      return inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), idType, identifier), limit);
+    } catch (DecodeException e) {
+      throw new BulkEditException(ExceptionUtils.getRootCause(e).getMessage().replace(LINE_BREAK, SPACE));
+    }
   }
 }

@@ -13,24 +13,20 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.join;
-import static org.apache.commons.lang3.StringUtils.splitByCharacterTypeCamelCase;
 import static org.folio.dew.utils.Constants.COMMA;
 import static org.folio.dew.utils.Constants.LINE_BREAK;
 import static org.folio.dew.utils.Constants.LINE_BREAK_REPLACEMENT;
 import static org.folio.dew.utils.Constants.QUOTE;
 import static org.folio.dew.utils.Constants.QUOTE_REPLACEMENT;
+import static org.folio.dew.utils.ExportFormatHelper.getExportFormatHeaders;
+import static org.folio.dew.utils.ExportFormatHelper.getHeaderLine;
 
 @Component
 @StepScope
@@ -44,7 +40,7 @@ public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<Author
     setResource(tempOutputFilePath);
 
     this.setExecutionContextName(ClassUtils.getShortName(AuthorityControlCsvFileWriter.class));
-    this.headers = convertFields(AuthorityUpdateHeadingExportFormat.class.getDeclaredFields());
+    this.headers = getExportFormatHeaders(AuthorityUpdateHeadingExportFormat.class);
     this.tempOutputFilePath = tempOutputFilePath;
     this.localFilesStorage = localFilesStorage;
   }
@@ -58,7 +54,7 @@ public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<Author
 
   @BeforeStep
   public void beforeStep() throws IOException {
-    var headersLine = getHeader(headers) + lineSeparator;
+    var headersLine = getHeaderLine(headers, lineSeparator) ;
     writeString(headersLine);
   }
 
@@ -77,17 +73,6 @@ public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<Author
 
   private void writeString(String str) throws IOException {
     localFilesStorage.append(tempOutputFilePath, str.getBytes(StandardCharsets.UTF_8));
-  }
-
-  private String getHeader(List<String> fieldNames) {
-    return fieldNames.stream()
-      .map(this::headerColumns)
-      .flatMap(List::stream)
-      .collect(Collectors.joining(","));
-  }
-
-  private List<String> headerColumns(String fieldName) {
-    return List.of(capitalize(join(splitByCharacterTypeCamelCase(fieldName), SPACE)));
   }
 
   private String getItemRow(Object item, List<String> exportFieldNames) {
@@ -110,12 +95,6 @@ public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<Author
       s = QUOTE + s.replace(QUOTE, QUOTE_REPLACEMENT).replace(LINE_BREAK, LINE_BREAK_REPLACEMENT) + QUOTE;
     }
     return s;
-  }
-
-  private List<String> convertFields(Field[] fields) {
-    return Arrays.stream(fields)
-      .map(Field::getName)
-      .collect(Collectors.toList());
   }
 
   private void setResource(String tempOutputFilePath) {

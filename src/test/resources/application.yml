@@ -46,6 +46,9 @@ application:
   e-holdings-batch:
     job-chunk-size: 2
     kb-ebsco-chunk-size: 2
+  authority-control-batch:
+    job-chunk-size: 2
+    entities-links-chunk-size: 2
 folio:
   tenant:
     validation:

@@ -106,6 +106,9 @@ application:
   e-holdings-batch:
     job-chunk-size: ${E_HOLDINGS_BATCH_JOB_CHUNK_SIZE:100}
     kb-ebsco-chunk-size: ${E_HOLDINGS_BATCH_KB_EBSCO_CHUNK_SIZE:100}
+  authority-control-batch:
+    job-chunk-size: ${AUTHORITY_CONTROL_BATCH_JOB_CHUNK_SIZE:100}
+    entities-links-chunk-size: ${AUTHORITY_CONTROL_BATCH_ENTITIES_LINKS_CHUNK_SIZE:100}
 
 folio:
   tenant:

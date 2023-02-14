@@ -66,7 +66,7 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
       processed = totalCsvLines;
     }
     var progress = new Progress();
-    progress.setTotal(processedRecords.addAndGet(list.size()));
+    progress.setTotal(isNull(totalCsvLines) ? 0 : totalCsvLines.intValue());
     progress.setProcessed((int) processed);
     progress.setProgress(isNull(totalCsvLines) ? 0 : calculateProgress(processed, totalCsvLines));
     progress.setSuccess(bulkEditStatisticService.getStatistic().getSuccess());

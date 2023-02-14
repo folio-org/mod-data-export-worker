@@ -1,14 +1,11 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
-import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
-import static org.folio.dew.utils.Constants.LINE_BREAK;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 
 import feign.codec.DecodeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.User;

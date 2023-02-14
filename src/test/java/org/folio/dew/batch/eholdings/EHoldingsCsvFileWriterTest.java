@@ -31,7 +31,7 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.item.ExecutionContext;
 
 @ExtendWith(MockitoExtension.class)
-class EHoldingsCsvFileCsvWriterTest {
+class EHoldingsCsvFileWriterTest {
   @Mock
   private LocalFilesStorage localFilesStorage;
   @Mock

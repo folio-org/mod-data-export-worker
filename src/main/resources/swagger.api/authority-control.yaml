@@ -1,0 +1,18 @@
+openapi: 3.0.0
+info:
+  title: Entities-links export schemas
+  version: v1
+servers:
+  - url: https://stub.com/
+paths:
+  /stub:
+    get:
+      responses:
+        "200":
+          description: stub
+components:
+  schemas:
+    authorityDataStatDtoCollection:
+      $ref: '../../../../folio-export-common/schemas/authority-control/authorityDataStatDtoCollection.json#/AuthorityDataStatDtoCollection'
+    instanceDataLinkDtoCollection:
+      $ref: '../../../../folio-export-common/schemas/authority-control/instanceDataLinkDtoCollection.json#/InstanceDataLinkDtoCollection'

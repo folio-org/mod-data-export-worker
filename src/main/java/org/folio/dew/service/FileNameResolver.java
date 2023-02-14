@@ -4,8 +4,9 @@ import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
@@ -19,13 +20,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class FileNameResolver {
 
-  private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss_SSSS");
+  private static final String NAME_FORMAT = "%s%s_%s";
+  private final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSSS");
   @Autowired
   private ObjectMapper objectMapper;
 
   private final Map<ExportType, BiFunction<JobCommand, String, String>> resolvers = Map.of(
     ExportType.BULK_EDIT_QUERY, bulkEditResolver(),
-    ExportType.E_HOLDINGS, eHoldingsResolver()
+    ExportType.E_HOLDINGS, eHoldingsResolver(),
+    ExportType.AUTH_HEADINGS_UPDATES, authHeadingsUpdatesResolver(),
+    ExportType.FAILED_LINKED_BIB_UPDATES, failedLinkedBibUpdatesResolver()
   );
 
   public String resolve(JobCommand jobCommand, String workDir, String jobId) {
@@ -47,11 +51,21 @@ public class FileNameResolver {
         } else {
           fileSuffix = String.format("%s_package.csv", recordId);
         }
-        return String.format("%s%s_%s", workDir, dateFormat.format(new Date()), fileSuffix);
+        return String.format(NAME_FORMAT, workDir, dateFormat.format(LocalDateTime.now()), fileSuffix);
       } catch (JsonProcessingException e) {
         throw new IllegalArgumentException(e);
       }
     };
+  }
+
+  private BiFunction<JobCommand, String, String> authHeadingsUpdatesResolver() {
+    return (jobCommand, workDir) ->
+      String.format(NAME_FORMAT, workDir, dateFormat.format(LocalDateTime.now()), "auth_headings_updates.csv");
+  }
+
+  private BiFunction<JobCommand, String, String> failedLinkedBibUpdatesResolver() {
+    return (jobCommand, workDir) ->
+      String.format(NAME_FORMAT, workDir, dateFormat.format(LocalDateTime.now()), "failed_linked_bib_updates.csv");
   }
 
   private BiFunction<JobCommand, String, String> bulkEditResolver() {

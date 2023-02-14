@@ -5,7 +5,7 @@ import org.folio.dew.domain.dto.annotation.ExportFormat;
 import org.folio.dew.domain.dto.annotation.ExportHeader;
 
 @Data
-@ExportFormat
+@ExportFormat(sentenceCaseHeaders = true)
 public class AuthorityUpdateHeadingExportFormat {
   private String lastUpdated;
   private String originalHeading;

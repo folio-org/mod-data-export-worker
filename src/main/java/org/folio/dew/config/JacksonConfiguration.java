@@ -31,7 +31,7 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
             .registerModule(
                 new SimpleModule()
                     .addDeserializer(ExitStatus.class, new ExitStatusDeserializer())
-                  .addDeserializer(JobParameter.class, new JobParameterDeserializer()))
+                    .addDeserializer(JobParameter.class, new JobParameterDeserializer()))
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     EDI_OBJECT_MAPPER =
         new ObjectMapper().findAndRegisterModules();
@@ -81,18 +81,13 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
     public JobParameter<?> deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
       JsonNode jsonNode = jp.getCodec().readTree(jp);
       var identifying = jsonNode.get("identifying").asBoolean();
-      var type = jsonNode.get("type").asText().split("\\.");
-      switch (Strings.toUpperCase(type[type.length - 1])) {
-        case "STRING":
-          return new JobParameter<>(jsonNode.get(VALUE_PARAMETER_PROPERTY).asText(), String.class, identifying);
-        case "DATE":
-          return new JobParameter<>(Date.valueOf(jsonNode.get(VALUE_PARAMETER_PROPERTY).asText()), Date.class, identifying);
-        case "LONG":
-          return new JobParameter<>(jsonNode.get(VALUE_PARAMETER_PROPERTY).asLong(), Long.class, identifying);
-        case "DOUBLE":
-          return new JobParameter<>(jsonNode.get(VALUE_PARAMETER_PROPERTY).asDouble(), Double.class, identifying);
-        default:
-          return null;
+      var type = jsonNode.get("type").asText();
+
+      try {
+        Class<Object> clazz = (Class<Object>) Class.forName(type);
+        return new JobParameter<>(jsonNode.get(VALUE_PARAMETER_PROPERTY).asText(), clazz, identifying);
+      } catch (ClassNotFoundException e) {
+        throw new RuntimeException("Cannot create Job parameter with the class " + type, e);
       }
     }
   }

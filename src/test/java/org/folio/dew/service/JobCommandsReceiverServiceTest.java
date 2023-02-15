@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.JobExecutionException;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.support.Acknowledgment;
 
@@ -223,9 +224,9 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     jobCommand.setDescription("Start job test desc");
     jobCommand.setExportType(ExportType.CIRCULATION_LOG);
 
-    Map<String, JobParameter> params = new HashMap<>();
-    params.put("query", new JobParameter(""));
-    jobCommand.setJobParameters(new JobParameters(params));
+    var paramBuilder = new JobParametersBuilder();
+    paramBuilder.addString("query", "");
+    jobCommand.setJobParameters(paramBuilder.toJobParameters());
     return jobCommand;
   }
 
@@ -240,11 +241,11 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     VendorEdiOrdersExportConfig config = new VendorEdiOrdersExportConfig();
     config.setVendorId(UUID.randomUUID());
 
-    Map<String, JobParameter> params = new HashMap<>();
-    params.put("FILE_NAME", new JobParameter("TestFile.csv"));
-    params.put("EDIFACT_ORDERS_EXPORT", new JobParameter(asJsonString(config)));
+    var paramsBuilder = new JobParametersBuilder();
+    paramsBuilder.addString("FILE_NAME", "TestFile.csv");
+    paramsBuilder.addString("EDIFACT_ORDERS_EXPORT", asJsonString(config));
 
-    jobCommand.setJobParameters(new JobParameters(params));
+    jobCommand.setJobParameters(paramsBuilder.toJobParameters());
     return jobCommand;
   }
 
@@ -262,9 +263,9 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     eHoldingsExportConfig.setPackageFields(Collections.emptyList());
     eHoldingsExportConfig.setTitleSearchFilters("");
     eHoldingsExportConfig.setTitleFields(Collections.emptyList());
-    Map<String, JobParameter> params = new HashMap<>();
-    params.put("eHoldingsExportConfig", new JobParameter(asJsonString(eHoldingsExportConfig)));
-    jobCommand.setJobParameters(new JobParameters(params));
+    var paramsBuilder = new JobParametersBuilder();
+    paramsBuilder.addString("eHoldingsExportConfig", asJsonString(eHoldingsExportConfig));
+    jobCommand.setJobParameters(paramsBuilder.toJobParameters());
     return jobCommand;
   }
 
@@ -279,9 +280,9 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     AuthorityControlExportConfig authorityControlExportConfig = new AuthorityControlExportConfig();
     authorityControlExportConfig.fromDate(new Date());
     authorityControlExportConfig.toDate(new Date());
-    Map<String, JobParameter> params = new HashMap<>();
-    params.put("authorityControlExportConfig", new JobParameter(asJsonString(authorityControlExportConfig)));
-    jobCommand.setJobParameters(new JobParameters(params));
+    var paramsBuilder = new JobParametersBuilder();
+    paramsBuilder.addString("authorityControlExportConfig", asJsonString(authorityControlExportConfig));
+    jobCommand.setJobParameters(paramsBuilder.toJobParameters());
     return jobCommand;
   }
 
@@ -296,9 +297,9 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     AuthorityControlExportConfig authorityControlExportConfig = new AuthorityControlExportConfig();
     authorityControlExportConfig.fromDate(new Date());
     authorityControlExportConfig.toDate(new Date());
-    Map<String, JobParameter> params = new HashMap<>();
-    params.put("authorityControlExportConfig", new JobParameter(asJsonString(authorityControlExportConfig)));
-    jobCommand.setJobParameters(new JobParameters(params));
+    var paramsBuilder = new JobParametersBuilder();
+    paramsBuilder.addString("authorityControlExportConfig", asJsonString(authorityControlExportConfig));
+    jobCommand.setJobParameters(paramsBuilder.toJobParameters());
     return jobCommand;
   }
 
@@ -307,7 +308,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     jobCommand.setType(JobCommandType.DELETE);
     jobCommand.setId(id);
     jobCommand.setJobParameters(
-        new JobParameters(Collections.singletonMap(JobParameterNames.OUTPUT_FILES_IN_STORAGE, new JobParameter("https://x-host.com/560b33d8-7220-4c97-bfd1-dbc5b9c49537_duplicate.csv"))));
+        new JobParameters(Collections.singletonMap(JobParameterNames.OUTPUT_FILES_IN_STORAGE, new JobParameter("https://x-host.com/560b33d8-7220-4c97-bfd1-dbc5b9c49537_duplicate.csv", String.class))));
     return jobCommand;
   }
 

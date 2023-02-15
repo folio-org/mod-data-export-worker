@@ -45,7 +45,7 @@ import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;

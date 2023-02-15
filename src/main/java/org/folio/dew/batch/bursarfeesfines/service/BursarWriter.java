@@ -4,12 +4,14 @@ package org.folio.dew.batch.bursarfeesfines.service;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.LocalFilesStorage;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemStreamException;
 import org.springframework.batch.item.file.ResourceAwareItemWriterItemStream;
 import org.springframework.batch.item.file.transform.LineAggregator;
 import org.springframework.batch.item.support.AbstractItemStreamItemWriter;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.WritableResource;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -22,7 +24,7 @@ public class BursarWriter<T> extends AbstractItemStreamItemWriter<T>
 
   private LocalFilesStorage localFilesStorage;
 
-  private Resource resource;
+  private WritableResource resource;
 
   private String header;
 
@@ -42,7 +44,7 @@ public class BursarWriter<T> extends AbstractItemStreamItemWriter<T>
   }
 
   @Override
-  public void setResource(Resource resource) {
+  public void setResource(WritableResource resource) {
     this.resource = resource;
   }
 
@@ -52,7 +54,7 @@ public class BursarWriter<T> extends AbstractItemStreamItemWriter<T>
 
 
   @Override
-  public void write(List<? extends T> items) throws Exception {
+  public void write(Chunk<? extends T> items) throws Exception {
     StringBuilder lines = new StringBuilder();
     for (T item : items) {
       lines.append(this.lineAggregator.aggregate(item)).append(this.lineSeparator);

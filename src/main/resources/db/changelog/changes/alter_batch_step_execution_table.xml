@@ -6,8 +6,8 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
 
-  <changeSet id="create_job_command_table" author="firebird">
-    <sqlFile path="changes/create_job_command_table.sql" relativeToChangelogFile="true" />
+  <changeSet id="alter_batch_step_execution_table" author="spitfire" runOnChange="true">
+    <sqlFile path="changes/alter_batch_step_execution_table.sql" relativeToChangelogFile="true" />
   </changeSet>
 
 </databaseChangeLog>

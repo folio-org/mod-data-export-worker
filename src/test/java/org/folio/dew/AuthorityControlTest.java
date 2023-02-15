@@ -19,6 +19,7 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,23 +119,23 @@ class AuthorityControlTest extends BaseBatchTest {
   private JobParameters prepareJobParameters(AuthorityControlExportConfig exportConfig)
     throws JsonProcessingException {
     String jobId = UUID.randomUUID().toString();
-    Map<String, JobParameter> params = new HashMap<>();
+    var paramBuilder = new JobParametersBuilder();
 
-    params.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
-    params.put("authorityControlExportConfig", new JobParameter(objectMapper.writeValueAsString(exportConfig)));
+    paramBuilder.addString(JobParameterNames.JOB_ID, jobId);
+    paramBuilder.addString("authorityControlExportConfig", objectMapper.writeValueAsString(exportConfig));
 
     String workDir =
       System.getProperty("java.io.tmpdir")
         + File.separator
         + springApplicationName
         + File.separator;
-    var jobParameters = new JobParameters(params);
+    var jobParameters = paramBuilder.toJobParameters();
     var jobCommand = new JobCommand();
     jobCommand.setJobParameters(jobParameters);
     jobCommand.setExportType(ExportType.AUTH_HEADINGS_UPDATES);
     final String outputFile = fileNameResolver.resolve(jobCommand, workDir, jobId);
-    params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(outputFile));
+    paramBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFile);
 
-    return new JobParameters(params);
+    return paramBuilder.toJobParameters();
   }
 }

@@ -20,6 +20,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
+import static org.folio.dew.utils.BulkEditProcessorHelper.convertToDate;
 import static org.folio.dew.utils.Constants.CHANGED_RECORDS;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
@@ -29,7 +30,10 @@ import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -54,6 +58,7 @@ import org.folio.dew.service.BulkEditStatisticService;
 import org.folio.dew.utils.CsvHelper;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 import org.springframework.stereotype.Component;
@@ -61,7 +66,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Log4j2
 @RequiredArgsConstructor
-public class JobCompletionNotificationListener extends JobExecutionListenerSupport {
+public class JobCompletionNotificationListener implements JobExecutionListener {
   private static final String PATHS_DELIMITER = ";";
   private static final int COMPLETE_PROGRESS_VALUE = 100;
 
@@ -227,10 +232,10 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       }
     }
 
-    result.setStartTime(jobExecution.getStartTime());
-    result.setCreatedDate(jobExecution.getCreateTime());
-    result.setEndTime(jobExecution.getEndTime());
-    result.setUpdatedDate(jobExecution.getLastUpdated());
+    result.setStartTime(convertToDate(jobExecution.getStartTime()));
+    result.setCreatedDate(convertToDate(jobExecution.getCreateTime()));
+    result.setEndTime(convertToDate(jobExecution.getEndTime()));
+    result.setUpdatedDate(convertToDate(jobExecution.getLastUpdated()));
 
     List<Throwable> errors = jobExecution.getAllFailureExceptions();
     if (CollectionUtils.isNotEmpty(errors)) {

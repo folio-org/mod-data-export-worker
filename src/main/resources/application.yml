@@ -16,36 +16,42 @@ spring:
     consumer:
       auto-offset-reset: latest
       enable-auto-commit: false
-      properties.max.poll.interval.ms: ${KAFKA_CONSUMER_POLL_INTERVAL:3600000}
+      fetch-max-wait: ${KAFKA_CONSUMER_POLL_INTERVAL:3600000}
   datasource:
-    continue-on-error: true
     username: ${DB_USERNAME:folio_admin}
     password: ${DB_PASSWORD:folio_admin}
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_DATABASE:okapi_modules}
+  sql:
+    init:
+      continue-on-error: true
   jpa:
     open-in-view: false
-    database-platform: org.hibernate.dialect.PostgreSQL10Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: none
       naming:
-        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
         implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQL10Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     show-sql: false
   batch:
     job:
       enabled: false
-    initializer:
-      enabled: false
+    jdbc:
+      initialize-schema: never
   liquibase:
     changeLog: classpath:db/changelog/data-export-worker-changelog-master.xml
     enabled: true
   servlet:
     multipart:
       max-file-size: 15MB
+  cloud:
+    openfeign:
+      okhttp:
+        enabled: true
 management:
   endpoints:
     web:
@@ -55,9 +61,9 @@ management:
   endpoint:
     loggers:
       enabled: true
-  metrics:
-    export:
-      influx:
+  influx:
+    metrics:
+      export:
         enabled: false
 feign:
   client:

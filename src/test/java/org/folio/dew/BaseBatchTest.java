@@ -37,6 +37,7 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -50,8 +51,8 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.support.TestPropertySourceUtils;
+import org.springframework.test.util.TestSocketUtils;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.util.SocketUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -70,11 +71,12 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @AutoConfigureMockMvc
 @EmbeddedKafka(topics = { "diku.data-export.job.command" })
 @EnableBatchProcessing
+@EnableAutoConfiguration
 public abstract class BaseBatchTest {
   protected static final String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjFkM2I1OGNiLTA3YjUtNWZjZC04YTJhLTNjZTA2YTBlYjkwZiIsImlhdCI6MTYxNjQyMDM5MywidGVuYW50IjoiZGlrdSJ9.2nvEYQBbJP1PewEgxixBWLHSX_eELiBEBpjufWiJZRs";
   protected static final String TENANT = "diku";
 
-  public static final int WIRE_MOCK_PORT = SocketUtils.findAvailableTcpPort();
+  public static final int WIRE_MOCK_PORT = TestSocketUtils.findAvailableTcpPort();
   public static WireMockServer wireMockServer;
   public static PostgreSQLContainer<?> postgreDBContainer = new PostgreSQLContainer<>("postgres:13");
 

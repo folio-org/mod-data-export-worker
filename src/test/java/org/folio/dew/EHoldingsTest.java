@@ -1,29 +1,6 @@
 package org.folio.dew;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACKAGE;
-import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESOURCE;
-import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
-import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.springframework.batch.test.AssertFile.assertFileEquals;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.File;
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.folio.de.entity.EHoldingsPackage;
 import org.folio.de.entity.EHoldingsResource;
@@ -45,13 +22,35 @@ import org.mockito.Mockito;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.io.FileSystemResource;
+
+import java.io.File;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACKAGE;
+import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESOURCE;
+import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 @Log4j2
 class EHoldingsTest extends BaseBatchTest {
@@ -126,7 +125,7 @@ class EHoldingsTest extends BaseBatchTest {
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(
-          "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&sort=name&page=1&count=1")));
+          "/eholdings/packages/1-22/resources?filter%5Bname%5D=%2A&sort=name&page=1&count=1")));
 
     var packages = packageRepository.findAll();
     var resources = resourceRepository.findAll();
@@ -151,7 +150,7 @@ class EHoldingsTest extends BaseBatchTest {
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(
-          "/eholdings/packages/1-21/resources?filter%5Bname%5D=*&sort=name&page=1&count=1")));
+          "/eholdings/packages/1-21/resources?filter%5Bname%5D=%2A&sort=name&page=1&count=1")));
 
     var packages = packageRepository.findAll();
     var resources = resourceRepository.findAll();
@@ -176,7 +175,7 @@ class EHoldingsTest extends BaseBatchTest {
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(
-          "/eholdings/packages/1-23/resources?filter%5Bname%5D=*&sort=name&page=1&count=1")));
+          "/eholdings/packages/1-23/resources?filter%5Bname%5D=%2A&sort=name&page=1&count=1")));
 
     var packages = packageRepository.findAll();
     var resources = resourceRepository.findAll();
@@ -202,7 +201,7 @@ class EHoldingsTest extends BaseBatchTest {
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(
-          "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&sort=name&page=1&count=1")));
+          "/eholdings/packages/1-22/resources?filter%5Bname%5D=%2A&sort=name&page=1&count=1")));
 
     var packages = packageRepository.findAll();
     var resources = resourceRepository.findAll();
@@ -231,7 +230,7 @@ class EHoldingsTest extends BaseBatchTest {
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(
-          "/eholdings/packages/1-24/resources?filter%5Bname%5D=*&sort=name&page=1&count=1")));
+          "/eholdings/packages/1-24/resources?filter%5Bname%5D=%2A&sort=name&page=1&count=1")));
 
     var packages = packageRepository.findAll();
     var resources = resourceRepository.findAll();
@@ -298,24 +297,24 @@ class EHoldingsTest extends BaseBatchTest {
   private JobParameters prepareJobParameters(EHoldingsExportConfig eHoldingsExportConfig)
     throws JsonProcessingException {
     String jobId = UUID.randomUUID().toString();
-    Map<String, JobParameter> params = new HashMap<>();
+    var paramsBuilder = new JobParametersBuilder();
 
-    params.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
-    params.put("eHoldingsExportConfig", new JobParameter(objectMapper.writeValueAsString(eHoldingsExportConfig)));
+    paramsBuilder.addString(JobParameterNames.JOB_ID, jobId);
+    paramsBuilder.addString("eHoldingsExportConfig", objectMapper.writeValueAsString(eHoldingsExportConfig));
 
     String workDir =
       System.getProperty("java.io.tmpdir")
         + File.separator
         + springApplicationName
         + File.separator;
-    var jobParameters = new JobParameters(params);
+    var jobParameters = paramsBuilder.toJobParameters();
     var jobCommand = new JobCommand();
     jobCommand.setJobParameters(jobParameters);
     jobCommand.setExportType(ExportType.E_HOLDINGS);
     final String outputFile = fileNameResolver.resolve(jobCommand, workDir, jobId);
-    params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(outputFile));
+    paramsBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFile);
 
-    return new JobParameters(params);
+    return paramsBuilder.toJobParameters();
   }
 
   private List<String> getTitleFields() {

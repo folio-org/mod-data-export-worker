@@ -26,7 +26,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,7 +37,7 @@ import org.folio.dew.batch.acquisitions.edifact.services.ResendService;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.config.kafka.KafkaService;
-import org.folio.dew.domain.dto.BursarFeeFines;
+import org.folio.dew.domain.dto.bursarfeesfines.BursarFeeFinesDto;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.folio.dew.error.FileOperationException;
@@ -216,10 +216,11 @@ public class JobCommandsReceiverService {
     BursarJobPrameterDto dto = replaceTypeMappingsCollectionWithHash(bff);
     paramsBuilder.addString("bursarFeeFines", objectMapper.writeValueAsString(dto));
 
+
     bursarExportService.addMapping(jobId, bff.getTypeMappings());
   }
 
-  private BursarJobPrameterDto replaceTypeMappingsCollectionWithHash(BursarFeeFines bursarFeeFines) {
+  private BursarJobPrameterDto replaceTypeMappingsCollectionWithHash(BursarFeeFinesDto bursarFeeFines) {
     var dto = new BursarJobPrameterDto();
     BeanUtils.copyProperties(bursarFeeFines, dto, "typeMappings");
 
@@ -227,10 +228,10 @@ public class JobCommandsReceiverService {
     return dto;
   }
 
-  private BursarFeeFines extractBursarFeeFines(JobParameter bursarFeeFines)
+  private BursarFeeFinesDto extractBursarFeeFines(JobParameter bursarFeeFines)
     throws com.fasterxml.jackson.core.JsonProcessingException {
     final String value = (String) bursarFeeFines.getValue();
-    return objectMapper.readValue(value, BursarFeeFines.class);
+    return objectMapper.readValue(value, BursarFeeFinesDto.class);
   }
 
   private boolean deleteOldFiles(JobCommand jobCommand, Acknowledgment acknowledgment) {

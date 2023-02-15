@@ -7,6 +7,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,6 +30,7 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,11 +134,11 @@ class BursarFeesFinesTest extends BaseBatchTest {
 
     feeFines.setTypeMappings(String.valueOf(mapping.hashCode()));
 
-    Map<String, JobParameter> params = new HashMap<>();
-    params.put("bursarFeeFines", new JobParameter(objectMapper.writeValueAsString(feeFines)));
+    var parametersBuilder = new JobParametersBuilder();
+    parametersBuilder.addString("bursarFeeFines", objectMapper.writeValueAsString(feeFines));
 
     String jobId = UUID.randomUUID().toString();
-    params.put(JobParameterNames.JOB_ID, new JobParameter(jobId));
+    parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
 
     bursarExportService.addMapping(jobId, mapping);
 
@@ -150,8 +152,8 @@ class BursarFeesFinesTest extends BaseBatchTest {
         String.format(
             "%s%s_%tF_%tH%tM%tS_%s",
             workDir, ExportType.BURSAR_FEES_FINES, now, now, now, now, jobId);
-    params.put(JobParameterNames.TEMP_OUTPUT_FILE_PATH, new JobParameter(outputFile));
+    parametersBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFile);
 
-    return new JobParameters(params);
+    return parametersBuilder.toJobParameters();
   }
 }

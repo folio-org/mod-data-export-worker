@@ -12,6 +12,7 @@ import static org.folio.dew.utils.Constants.LINE_BREAK_REPLACEMENT;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -104,7 +105,7 @@ public class BulkEditParseService {
     user.setActive(getIsActive(userFormat));
     user.setType(userFormat.getType());
     user.setPatronGroup(userReferenceService.getPatronGroupIdByName(userFormat.getPatronGroup()));
-    user.setDepartments(getUserDepartments(userFormat));
+    user.setDepartments(new HashSet<>(getUserDepartments(userFormat)));
     user.setProxyFor(isEmpty(userFormat.getProxyFor()) ? Collections.emptyList() : Arrays.asList(userFormat.getProxyFor().split(ARRAY_DELIMITER)));
     user.setPersonal(getUserPersonalInfo(userFormat));
     user.setEnrollmentDate(dateFromString(userFormat.getEnrollmentDate()));

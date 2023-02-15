@@ -1,5 +1,89 @@
 package org.folio.dew.controller;
 
+import lombok.SneakyThrows;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.folio.de.entity.JobCommand;
+import org.folio.de.entity.JobCommandType;
+import org.folio.dew.BaseBatchTest;
+import org.folio.dew.client.ConfigurationClient;
+import org.folio.dew.client.GroupClient;
+import org.folio.dew.client.InventoryClient;
+import org.folio.dew.client.UserClient;
+import org.folio.dew.domain.dto.ConfigurationCollection;
+import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.HoldingsContentUpdate;
+import org.folio.dew.domain.dto.HoldingsContentUpdateCollection;
+import org.folio.dew.domain.dto.HoldingsRecordCollection;
+import org.folio.dew.domain.dto.IdentifierType;
+import org.folio.dew.domain.dto.InventoryItemStatus;
+import org.folio.dew.domain.dto.Item;
+import org.folio.dew.domain.dto.ItemCollection;
+import org.folio.dew.domain.dto.ItemContentUpdate;
+import org.folio.dew.domain.dto.ItemContentUpdateCollection;
+import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.Metadata;
+import org.folio.dew.domain.dto.ModelConfiguration;
+import org.folio.dew.domain.dto.Personal;
+import org.folio.dew.domain.dto.User;
+import org.folio.dew.domain.dto.UserCollection;
+import org.folio.dew.domain.dto.UserContentUpdate;
+import org.folio.dew.domain.dto.UserContentUpdateAction;
+import org.folio.dew.domain.dto.UserContentUpdateCollection;
+import org.folio.dew.domain.dto.UserGroup;
+import org.folio.dew.domain.dto.UserGroupCollection;
+import org.folio.dew.error.BulkEditException;
+import org.folio.dew.error.FileOperationException;
+import org.folio.dew.repository.JobCommandRepository;
+import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.repository.RemoteFilesStorage;
+import org.folio.dew.repository.S3CompatibleResource;
+import org.folio.dew.service.BulkEditProcessingErrorsService;
+import org.folio.dew.service.BulkEditRollBackService;
+import org.folio.dew.service.JobCommandsReceiverService;
+import org.folio.spring.DefaultFolioExecutionContext;
+import org.folio.spring.FolioModuleMetadata;
+import org.folio.spring.integration.XOkapiHeaders;
+import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
+import org.folio.tenant.domain.dto.Errors;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobExecutionException;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.integration.launch.JobLaunchRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.controller.ItemsContentUpdateTestData.CLEAR_FIELD_PERMANENT_LOAN_TYPE;
@@ -44,91 +128,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import lombok.SneakyThrows;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.folio.de.entity.JobCommand;
-import org.folio.de.entity.JobCommandType;
-import org.folio.dew.BaseBatchTest;
-import org.folio.dew.client.ConfigurationClient;
-import org.folio.dew.client.GroupClient;
-import org.folio.dew.client.InventoryClient;
-import org.folio.dew.client.UserClient;
-import org.folio.dew.domain.dto.EntityType;
-import org.folio.dew.domain.dto.ExportType;
-import org.folio.dew.domain.dto.HoldingsContentUpdate;
-import org.folio.dew.domain.dto.HoldingsContentUpdateCollection;
-import org.folio.dew.domain.dto.HoldingsRecordCollection;
-import org.folio.dew.domain.dto.IdentifierType;
-import org.folio.dew.domain.dto.InventoryItemStatus;
-import org.folio.dew.domain.dto.Item;
-import org.folio.dew.domain.dto.ItemCollection;
-import org.folio.dew.domain.dto.ItemContentUpdate;
-import org.folio.dew.domain.dto.ItemContentUpdateCollection;
-import org.folio.dew.domain.dto.JobParameterNames;
-import org.folio.dew.domain.dto.Metadata;
-import org.folio.dew.domain.dto.Personal;
-import org.folio.dew.domain.dto.User;
-import org.folio.dew.domain.dto.UserCollection;
-import org.folio.dew.domain.dto.UserContentUpdate;
-import org.folio.dew.domain.dto.UserContentUpdateAction;
-import org.folio.dew.domain.dto.UserContentUpdateCollection;
-import org.folio.dew.domain.dto.UserGroup;
-import org.folio.dew.domain.dto.UserGroupCollection;
-import org.folio.dew.domain.dto.ModelConfiguration;
-import org.folio.dew.domain.dto.ConfigurationCollection;
-import org.folio.dew.error.BulkEditException;
-import org.folio.dew.error.FileOperationException;
-import org.folio.dew.repository.JobCommandRepository;
-import org.folio.dew.repository.LocalFilesStorage;
-import org.folio.dew.repository.RemoteFilesStorage;
-import org.folio.dew.repository.S3CompatibleResource;
-import org.folio.dew.service.BulkEditProcessingErrorsService;
-import org.folio.dew.service.BulkEditRollBackService;
-import org.folio.dew.service.JobCommandsReceiverService;
-import org.folio.spring.DefaultFolioExecutionContext;
-import org.folio.spring.FolioModuleMetadata;
-import org.folio.spring.integration.XOkapiHeaders;
-import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
-import org.folio.tenant.domain.dto.Errors;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.ArgumentCaptor;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobExecutionException;
-import org.springframework.batch.core.JobParameter;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.integration.launch.JobLaunchRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 
 class BulkEditControllerTest extends BaseBatchTest {
   private static final String UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/upload";
@@ -657,7 +656,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var jobCommand = new JobCommand();
     jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
     jobCommand.setEntityType(USER);
-    jobCommand.setJobParameters(new JobParameters(new HashMap<String, JobParameter>()));
+    jobCommand.setJobParameters(new JobParametersBuilder().toJobParameters());
     var executionId = 0l;
     var jobExecution = new JobExecution(executionId);
 
@@ -696,7 +695,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var jobCommand = new JobCommand();
     jobCommand.setExportType(ExportType.BULK_EDIT_UPDATE);
     jobCommand.setEntityType(USER);
-    jobCommand.setJobParameters(new JobParameters(new HashMap<String, JobParameter>()));
+    jobCommand.setJobParameters(new JobParametersBuilder().toJobParameters());
 
     var headers = defaultHeaders();
 
@@ -1147,17 +1146,17 @@ class BulkEditControllerTest extends BaseBatchTest {
   void shouldReturnNumberOfRowsInCSVFile() {
     when(userClient.getUserById("88a087b4-c3a1-485b-8a22-2fa8f7b661c4"))
       .thenReturn(new User().id("88a087b4-c3a1-485b-8a22-2fa8f7b661c4").username("User name").active(true).barcode("456")
-        .departments(List.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
+        .departments(Set.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
           .preferredFirstName("").email("").phone("").mobilePhone("").addresses(List.of()).preferredContactTypeId("")).type("")
         .customFields(Map.of()).metadata(new Metadata().createdByUsername("abcd")));
     when(userClient.getUserById("88a087b4-c3a1-485b-8a22-2fa8f7b661c5"))
       .thenReturn(new User().id("88a087b4-c3a1-485b-8a22-2fa8f7b661c5").username("User name2").active(true).barcode("4567")
-        .departments(List.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
+        .departments(Set.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
           .preferredFirstName("").email("").phone("").mobilePhone("").addresses(List.of()).preferredContactTypeId("")).type("")
         .customFields(Map.of()).metadata(new Metadata().createdByUsername("abcde")));
     when(userClient.getUserById("88a087b4-c3a1-485b-8a22-2fa8f7b661c6"))
       .thenReturn(new User().id("88a087b4-c3a1-485b-8a22-2fa8f7b661c6").username("User name3").active(true).barcode("45678")
-        .departments(List.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
+        .departments(Set.of()).proxyFor(List.of()).personal(new Personal().lastName("").firstName("").middleName("")
           .preferredFirstName("").email("").phone("").mobilePhone("").addresses(List.of()).preferredContactTypeId("")).type("")
         .customFields(Map.of()).metadata(new Metadata().createdByUsername("abcdef")));
 
@@ -1457,8 +1456,9 @@ class BulkEditControllerTest extends BaseBatchTest {
     jobCommand.setIdentifierType(identifierType);
     jobCommand.setEntityType(entityType);
 
-    Map<String, JobParameter> params = new HashMap<>();
-    params.put("query", new JobParameter("(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName"));
+    var paramBuilder = new JobParametersBuilder();
+
+    paramBuilder.addString("query", "(patronGroup==\"3684a786-6671-4268-8ed0-9db82ebca60b\") sortby personal.lastName");
     String fileName;
     if (BULK_EDIT_IDENTIFIERS == exportType) {
       fileName = "src/test/resources/upload/barcodes.csv";
@@ -1481,10 +1481,10 @@ class BulkEditControllerTest extends BaseBatchTest {
         }
       }
     }
-    params.put(FILE_NAME, new JobParameter(fileName));
-    params.put(TEMP_OUTPUT_FILE_PATH, new JobParameter(fileName));
-    params.put(UPDATED_FILE_NAME, new JobParameter(fileName));
-    jobCommand.setJobParameters(new JobParameters(params));
+    paramBuilder.addString(FILE_NAME, fileName);
+    paramBuilder.addString(TEMP_OUTPUT_FILE_PATH, fileName);
+    paramBuilder.addString(UPDATED_FILE_NAME, fileName);
+    jobCommand.setJobParameters(paramBuilder.toJobParameters());
     return jobCommand;
   }
 

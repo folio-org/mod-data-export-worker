@@ -7,11 +7,15 @@ spring:
   batch:
     job:
       enabled: false
-    initializer:
-      enabled: false
+    jdbc:
+      initialize-schema: never
   kafka:
     listener:
       concurrency: ${KAFKA_CONCURRENCY_LEVEL:30}
+  cloud:
+    openfeign:
+      okhttp:
+        enabled: true
 application:
   kafka:
     topic-configuration:

@@ -4,11 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.folio.dew.domain.dto.Formatable;
 import org.folio.dew.repository.S3CompatibleResource;
 import org.folio.dew.repository.S3CompatibleStorage;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.json.JacksonJsonObjectMarshaller;
 import org.springframework.core.io.WritableResource;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 @Slf4j
 public class AbstractStorageStreamAndJsonWriter<O, T extends Formatable<O>, S extends S3CompatibleStorage> extends AbstractStorageStreamWriter<T, S> {
@@ -28,7 +28,7 @@ public class AbstractStorageStreamAndJsonWriter<O, T extends Formatable<O>, S ex
   }
 
   @Override
-  public void write(List<? extends T> items) throws Exception {
+  public void write(Chunk<? extends T> items) throws Exception {
     var sb = new StringBuilder();
     var json = new StringBuilder();
 

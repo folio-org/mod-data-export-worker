@@ -17,6 +17,7 @@ import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.configuration.annotation.JobScope;
+import org.springframework.batch.item.Chunk;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -38,19 +39,9 @@ public class UpdateRecordWriteListener<T> implements ItemWriteListener<T> {
   private final BulkEditStatisticService bulkEditUpdateStatisticService;
 
   @Override
-  public void beforeWrite(List<? extends T> items) {
-    // do nothing
-  }
-
-  @Override
-  public void afterWrite(List<? extends T> items) {
+  public void afterWrite(Chunk<? extends T> items) {
     var job = prepareJobWithProgress();
     kafka.send(KafkaService.Topic.JOB_UPDATE, job.getId().toString(), job);
-  }
-
-  @Override
-  public void onWriteError(Exception exception, List<? extends T> items) {
-    // do nothing
   }
 
   private Job prepareJobWithProgress() {

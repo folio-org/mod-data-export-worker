@@ -18,6 +18,7 @@ import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.configuration.annotation.JobScope;
+import org.springframework.batch.item.Chunk;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -42,12 +43,12 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
   private final BulkEditStatisticService bulkEditStatisticService;
 
   @Override
-  public void beforeWrite(List<? extends T> list) {
+  public void beforeWrite(Chunk<? extends T> list) {
     // do nothing
   }
 
   @Override
-  public void afterWrite(List<? extends T> list) {
+  public void afterWrite(Chunk<? extends T> list) {
     bulkEditStatisticService.incrementSuccess(list.size());
     var job = new Job();
     job.setId(UUID.fromString(jobExecution.getJobParameters().getString(JOB_ID)));
@@ -82,10 +83,5 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
     }
     var res = (double) processed / total * 100;
     return (int) res - 10;
-  }
-
-  @Override
-  public void onWriteError(Exception e, List<? extends T> list) {
-    // do noting
   }
 }

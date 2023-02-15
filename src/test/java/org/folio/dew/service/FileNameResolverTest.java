@@ -38,7 +38,7 @@ class FileNameResolverTest {
   @ParameterizedTest
   void resolve_success_eHoldings_recordTypes(EHoldingsExportConfig.RecordTypeEnum recordType, String endFileName) {
     var jobCommand = new JobCommand();
-    var jobParameters = new JobParameters(Map.of("eHoldingsExportConfig", new JobParameter("any")));
+    var jobParameters = new JobParameters(Map.of("eHoldingsExportConfig", new JobParameter("any", String.class)));
     var config = new EHoldingsExportConfig()
       .recordId("test_id")
       .recordType(recordType);
@@ -57,7 +57,7 @@ class FileNameResolverTest {
   @Test
   @SneakyThrows
   void resolve_success_authority_control_authority_recordTypes() {
-    var jobParameters = new JobParameters(Map.of("authorityControlExportConfig", new JobParameter("any")));
+    var jobParameters = new JobParameters(Map.of("authorityControlExportConfig", new JobParameter("any", String.class)));
     var jobCommand = new JobCommand();
     jobCommand.setExportType(AUTH_HEADINGS_UPDATES);
     jobCommand.setJobParameters(jobParameters);
@@ -70,7 +70,7 @@ class FileNameResolverTest {
   @Test
   @SneakyThrows
   void resolve_success_authority_control_instance_recordTypes() {
-    var jobParameters = new JobParameters(Map.of("authorityControlExportConfig", new JobParameter("any")));
+    var jobParameters = new JobParameters(Map.of("authorityControlExportConfig", new JobParameter("any", String.class)));
     var jobCommand = new JobCommand();
     jobCommand.setExportType(FAILED_LINKED_BIB_UPDATES);
     jobCommand.setJobParameters(jobParameters);

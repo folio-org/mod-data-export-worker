@@ -44,9 +44,9 @@ import java.util.stream.Collectors;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.PostConstruct;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 import com.opencsv.CSVReader;
 import org.apache.commons.io.FilenameUtils;

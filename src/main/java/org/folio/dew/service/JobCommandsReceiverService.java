@@ -26,7 +26,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -216,7 +216,10 @@ public class JobCommandsReceiverService {
     BursarJobPrameterDto dto = replaceTypeMappingsCollectionWithHash(bff);
     paramsBuilder.addString("bursarFeeFines", objectMapper.writeValueAsString(dto));
 
-    bursarExportService.addMapping(jobId, bff.getTypeMappings());
+    var a = bff.getTypeMappings();
+
+    //toDo correct openapi-generator to generate correct class
+//    bursarExportService.addMapping(jobId, bff.getTypeMappings());
   }
 
   private BursarJobPrameterDto replaceTypeMappingsCollectionWithHash(BursarFeeFines bursarFeeFines) {

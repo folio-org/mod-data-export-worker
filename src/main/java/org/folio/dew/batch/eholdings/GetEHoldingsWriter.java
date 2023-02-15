@@ -13,6 +13,7 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
@@ -38,14 +39,14 @@ public class GetEHoldingsWriter implements ItemWriter<EHoldingsResourceDTO> {
   }
 
   @Override
-  public void write(List<? extends EHoldingsResourceDTO> list) throws Exception {
-    var resources = list.stream().map(EHoldingsResourceMapper::convertToEntity).collect(Collectors.toList());
+  public void write(Chunk<? extends EHoldingsResourceDTO> list) throws Exception {
+    var resources = list.getItems().stream().map(EHoldingsResourceMapper::convertToEntity).collect(Collectors.toList());
     resources.forEach(r -> r.setJobExecutionId(jobId));
     repository.saveAll(resources);
     jobExecution.getExecutionContext().putInt(CONTEXT_TOTAL_RESOURCES,
       jobExecution.getExecutionContext().getInt(CONTEXT_TOTAL_RESOURCES, 0) + resources.size());
 
-    var resourceWithMaxNotes = list.stream()
+    var resourceWithMaxNotes = list.getItems().stream()
       .max(Comparator.comparing(p -> p.getNotes().size()))
       .orElse(null);
     var noteCollectionSize = resourceWithMaxNotes == null ? 0 : resourceWithMaxNotes.getNotes().size();

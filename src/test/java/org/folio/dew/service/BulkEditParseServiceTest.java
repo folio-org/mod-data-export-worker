@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -82,7 +83,7 @@ class BulkEditParseServiceTest extends BaseBatchTest {
     var expectedUser = new User()
       .personal(new Personal().addresses(Collections.singletonList(new Address().addressTypeId("db541cda-fcc7-403b-8077-3613f3244901"))))
       .patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")
-      .departments(Collections.singletonList(UUID.fromString("103aee0f-c5f6-44de-94aa-74093f0e45d9")));
+      .departments(Set.of(UUID.fromString("103aee0f-c5f6-44de-94aa-74093f0e45d9")));
 
     var actualUser = bulkEditParseService.mapUserFormatToUser(userFormat);
 

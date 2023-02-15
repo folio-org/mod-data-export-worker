@@ -7,6 +7,7 @@ import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.S3CompatibleResource;
 import org.folio.dew.repository.S3CompatibleStorage;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
@@ -119,7 +120,7 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
   }
 
   @Override
-  public void write(List<? extends T> items) throws Exception {
+  public void write(Chunk<? extends T> items) throws Exception {
     var sb = new StringBuilder();
     for (T item : items) {
       sb.append(lineAggregator.aggregate(item)).append('\n');

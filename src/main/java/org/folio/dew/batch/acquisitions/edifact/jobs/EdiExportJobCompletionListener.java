@@ -2,6 +2,7 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+import static org.folio.dew.utils.BulkEditProcessorHelper.convertToDate;
 
 import java.util.Arrays;
 import java.util.List;
@@ -87,10 +88,10 @@ public class EdiExportJobCompletionListener extends JobExecutionListenerSupport 
       result.setFileNames(List.of(ftpUploadedFile));
     }
 
-    result.setStartTime(jobExecution.getStartTime());
-    result.setCreatedDate(jobExecution.getCreateTime());
-    result.setEndTime(jobExecution.getEndTime());
-    result.setUpdatedDate(jobExecution.getLastUpdated());
+    result.setStartTime(convertToDate(jobExecution.getStartTime()));
+    result.setCreatedDate(convertToDate(jobExecution.getCreateTime()));
+    result.setEndTime(convertToDate(jobExecution.getEndTime()));
+    result.setUpdatedDate(convertToDate(jobExecution.getLastUpdated()));
 
     List<Throwable> errors = jobExecution.getAllFailureExceptions();
     if (CollectionUtils.isNotEmpty(errors)) {

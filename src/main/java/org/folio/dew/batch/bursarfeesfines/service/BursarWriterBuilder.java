@@ -7,6 +7,7 @@ import org.springframework.batch.item.file.transform.FieldExtractor;
 import org.springframework.batch.item.file.transform.FormatterLineAggregator;
 import org.springframework.batch.item.file.transform.LineAggregator;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.WritableResource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,7 +16,7 @@ import java.util.Locale;
 
 public class BursarWriterBuilder<T> {
 
-	private Resource resource;
+	private WritableResource resource;
 
 	private String lineSeparator = System.getProperty("line.separator");
 
@@ -44,7 +45,7 @@ public class BursarWriterBuilder<T> {
 		return this;
 	}
 
-	public BursarWriterBuilder<T> resource(Resource resource) {
+	public BursarWriterBuilder<T> resource(WritableResource resource) {
 		this.resource = resource;
 
 		return this;

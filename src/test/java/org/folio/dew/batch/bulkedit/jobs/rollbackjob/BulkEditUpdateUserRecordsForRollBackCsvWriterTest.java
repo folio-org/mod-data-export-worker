@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.batch.item.Chunk;
 
 import java.util.List;
 
@@ -32,7 +33,7 @@ class BulkEditUpdateUserRecordsForRollBackCsvWriterTest {
     var users = List.of(user1, user2);
 
     doNothing().when(userClient).updateUser(isA(User.class), isA(String.class));
-    writer.write(users);
+    writer.write(new Chunk<>(users));
     verify(userClient, times(2)).updateUser(isA(User.class), isA(String.class));
   }
 }

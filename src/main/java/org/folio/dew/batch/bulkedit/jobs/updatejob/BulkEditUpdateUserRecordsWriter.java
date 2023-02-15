@@ -18,6 +18,7 @@ import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.BulkEditStatisticService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.configuration.annotation.JobScope;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,7 +43,7 @@ public class BulkEditUpdateUserRecordsWriter implements ItemWriter<User> {
   private final BulkEditChangedRecordsService changedRecordsService;
 
   @Override
-  public void write(List<? extends User> users) throws Exception {
+  public void write(Chunk<? extends User> users) throws Exception {
     users.forEach(user -> {
       try {
         var initialUser = userClient.getUserById(user.getId());

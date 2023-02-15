@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.support.AbstractFileItemWriter;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Value;
@@ -96,14 +97,14 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
 
   @NotNull
   @Override
-  protected String doWrite(List<? extends EHoldingsResourceExportFormat> items) {
-    return items.stream()
+  protected String doWrite(Chunk<? extends EHoldingsResourceExportFormat> items) {
+    return items.getItems().stream()
       .map(item -> getItemRow(maxTitleNotesLength, item, exportConfig.getTitleFields()))
       .collect(Collectors.joining(lineSeparator, EMPTY, lineSeparator));
   }
 
   @Override
-  public void write(List<? extends EHoldingsResourceExportFormat> items) throws Exception {
+  public void write(Chunk<? extends EHoldingsResourceExportFormat> items) throws Exception {
     if (CollectionUtils.isNotEmpty(exportConfig.getTitleFields())) {
       writeString(doWrite(items));
     }

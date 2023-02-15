@@ -69,7 +69,7 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
     JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParametersWithoutRequiredFields());
     String expectedMessage = "Export configuration is incomplete, missing library EDI code/Vendor EDI code";
-    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0).getStatus().getBatchStatus().name();
+    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0).getStatus().name();
 
     assertTrue(jobExecution.getExitStatus().getExitDescription().contains(expectedMessage));
     assertEquals("FAILED", status);
@@ -80,7 +80,7 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
     JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParametersWithoutPort());
     String expectedMessage = "Export configuration is incomplete, missing FTP/SFTP Port";
-    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0).getStatus().getBatchStatus().name();
+    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0).getStatus().name();
 
     assertTrue(jobExecution.getExitStatus().getExitDescription().contains(expectedMessage));
     assertEquals("FAILED", status);

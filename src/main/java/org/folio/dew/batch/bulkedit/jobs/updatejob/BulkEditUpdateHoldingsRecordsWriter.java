@@ -1,7 +1,5 @@
 package org.folio.dew.batch.bulkedit.jobs.updatejob;
 
-import static org.folio.dew.utils.Constants.FILE_NAME;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
@@ -12,12 +10,13 @@ import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditStatisticService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.configuration.annotation.JobScope;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import static org.folio.dew.utils.Constants.FILE_NAME;
 
 @Log4j2
 @Component
@@ -36,7 +35,7 @@ public class BulkEditUpdateHoldingsRecordsWriter implements ItemWriter<HoldingsR
   private final BulkEditStatisticService bulkEditStatisticService;
 
   @Override
-  public void write(List<? extends HoldingsRecord> holdingsRecords) throws Exception {
+  public void write(Chunk<? extends HoldingsRecord> holdingsRecords) throws Exception {
     holdingsRecords.forEach(holdingsRecord -> {
       try {
         holdingClient.updateHoldingsRecord(holdingsRecord, holdingsRecord.getId());

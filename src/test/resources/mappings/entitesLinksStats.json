@@ -3,11 +3,11 @@
     {
       "request": {
         "method": "GET",
-        "url": "/links/authority/stats?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T12%3A00%3A00Z&toDate=2023-12-01T12%3A00%3A00Z"
+        "url": "/links/authority/stats?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T00%3A00%3A00Z&toDate=2023-12-01T00%3A00%3A00Z"
       },
       "response": {
         "status": 200,
-        "body": "{\"stats\": [\n{\n\"id\": \"497f6eca-6276-4993-bfeb-53cbbbba6f08\",\n\"authorityId\": \"f4d72275-fbca-44d0-9214-72647a812332\",\n\"action\": \"UPDATE_HEADING\",\n\"naturalIdOld\": \"n1234567\",\n\"naturalIdNew\": \"n1234567\",\n\"headingOld\": \"Charles, Prince of Wales\",\n\"headingNew\": \"Charles III, King\",\n\"headingTypeOld\": \"150\",\n\"headingTypeNew\": \"110\",\n\"sourceFileOld\": \"Not specified\",\n\"sourceFileNew\": \"LC Name Authority file (LCNAF)\",\n\"lbTotal\": 105,\n\"lbUpdated\": 55,\n\"lbFailed\": 50,\n\"metadata\": {\n\"startedAt\": \"2023-10-01T12:00:00Z\",\n\"completedAt\": \"2023-10-01T15:00:00Z\",\n\"startedByUserId\": \"c8f721bd-38ac-411d-82c8-a5902fb19deb\",\n\"startedByUserFirstName\": \"Diku\",\n\"startedByUserLastName\": \"Admin\"\n}\n},\n{\n\"id\": \"500f6eca-6276-4993-bfeb-53cbbbba6f08\",\n\"authorityId\": \"f4d72275-fbca-44d0-9214-72647a812332\",\n\"action\": \"DELETE\",\n\"naturalIdOld\": \"n1234567\",\n\"naturalIdNew\": \"n1234567\",\n\"headingOld\": \"Charles, Prince of Wales\",\n\"headingNew\": \"Charles III, King\",\n\"headingTypeOld\": \"150\",\n\"headingTypeNew\": \"110\",\n\"sourceFileOld\": \"Not specified\",\n\"sourceFileNew\": \"LC Name Authority file (LCNAF)\",\n\"lbTotal\": 105,\n\"lbUpdated\": 55,\n\"lbFailed\": 50,\n\"metadata\": {\n\"startedAt\": \"2023-10-01T12:00:00Z\",\n\"completedAt\": \"2023-09-01T15:00:00Z\",\n\"startedByUserId\": \"c8f721bd-38ac-411d-82c8-a5902fb19deb\",\n\"startedByUserFirstName\": \"Diku\",\n\"startedByUserLastName\": \"Admin\"\n}\n}\n],\n\"next\": \"2023-08-01T12:00:00Z\"}",
+        "body": "{\"stats\": [\n{\n\"id\": \"497f6eca-6276-4993-bfeb-53cbbbba6f08\",\n\"authorityId\": \"f4d72275-fbca-44d0-9214-72647a812332\",\n\"action\": \"UPDATE_HEADING\",\n\"naturalIdOld\": \"n1234567\",\n\"naturalIdNew\": \"n1234567\",\n\"headingOld\": \"Charles, Prince of Wales\",\n\"headingNew\": \"Charles III, King\",\n\"headingTypeOld\": \"150\",\n\"headingTypeNew\": \"110\",\n\"sourceFileOld\": \"Not specified\",\n\"sourceFileNew\": \"LC Name Authority file (LCNAF)\",\n\"lbTotal\": 105,\n\"lbUpdated\": 55,\n\"lbFailed\": 50,\n\"metadata\": {\n\"startedAt\": \"2023-10-01T12:00:00Z\",\n\"completedAt\": \"2023-10-01T15:00:00Z\",\n\"startedByUserId\": \"c8f721bd-38ac-411d-82c8-a5902fb19deb\",\n\"startedByUserFirstName\": \"Diku\",\n\"startedByUserLastName\": \"Admin\"\n}\n},\n{\n\"id\": \"500f6eca-6276-4993-bfeb-53cbbbba6f08\",\n\"authorityId\": \"f4d72275-fbca-44d0-9214-72647a812332\",\n\"action\": \"DELETE\",\n\"naturalIdOld\": \"n1234567\",\n\"naturalIdNew\": \"n1234567\",\n\"headingOld\": \"Charles, Prince of Wales\",\n\"headingNew\": \"Charles III, King\",\n\"headingTypeOld\": \"150\",\n\"headingTypeNew\": \"110\",\n\"sourceFileOld\": \"Not specified\",\n\"sourceFileNew\": \"LC Name Authority file (LCNAF)\",\n\"lbTotal\": 105,\n\"lbUpdated\": 55,\n\"lbFailed\": 50,\n\"metadata\": {\n\"startedAt\": \"2023-10-01T12:00:00Z\",\n\"completedAt\": \"2023-09-01T15:00:00Z\",\n\"startedByUserId\": \"c8f721bd-38ac-411d-82c8-a5902fb19deb\",\n\"startedByUserFirstName\": \"Diku\",\n\"startedByUserLastName\": \"Admin\"\n}\n}\n],\n\"next\": \"2023-08-01T00:00:00.000000Z\"}",
         "headers": {
           "Content-Type": "application/json"
         }
@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/links/authority/stats?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T12%3A00%3A00Z&toDate=2023-08-01T12%3A00%3A00Z"
+        "url": "/links/authority/stats?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T00%3A00%3A00Z&toDate=2023-08-01T00%3A00%3A00Z"
       },
       "response": {
         "status": 200,

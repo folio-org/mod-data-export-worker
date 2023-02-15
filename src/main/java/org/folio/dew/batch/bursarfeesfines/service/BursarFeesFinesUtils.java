@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.dew.domain.dto.BursarFeeFines;
+import org.folio.dew.domain.dto.bursarfeesfines.BursarFeeFinesDto;
 import org.folio.dew.domain.dto.BursarFeeFinesTypeMapping;
 import org.folio.dew.domain.dto.Account;
 
@@ -80,7 +80,7 @@ public class BursarFeesFinesUtils {
     return StringUtils.rightPad(externalId, 11);
   }
 
-  public static BursarFeeFinesTypeMapping getMapping(BursarFeeFines bursarFeeFines, Account account) {
+  public static BursarFeeFinesTypeMapping getMapping(BursarFeeFinesDto bursarFeeFines, Account account) {
     if (bursarFeeFines.getTypeMappings() == null) {
       return null;
     }

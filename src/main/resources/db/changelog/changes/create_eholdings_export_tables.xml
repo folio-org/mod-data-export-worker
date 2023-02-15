@@ -7,8 +7,8 @@
 
 
   <changeSet id="create_eholdings_export_tables" author="spitfire" runOnChange="true">
-    <sqlFile path="create_eholdings_package_table.sql" relativeToChangelogFile="true" />
-    <sqlFile path="create_eholdings_resource_table.sql" relativeToChangelogFile="true" />
+    <sqlFile path="changes/create_eholdings_package_table.sql" relativeToChangelogFile="true" />
+    <sqlFile path="changes/create_eholdings_resource_table.sql" relativeToChangelogFile="true" />
   </changeSet>
 
 </databaseChangeLog>

@@ -7,6 +7,7 @@ import org.folio.dew.utils.ExportFormatHelper;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.support.AbstractFileItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -51,14 +52,14 @@ public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<Author
   }
 
   @Override
-  public void write(@NotNull List<? extends AuthorityUpdateHeadingExportFormat> items) throws Exception {
+  public void write(@NotNull Chunk<? extends AuthorityUpdateHeadingExportFormat> items) throws Exception {
     writeString(doWrite(items));
   }
 
   @NotNull
   @Override
-  protected String doWrite(List<? extends AuthorityUpdateHeadingExportFormat> items) {
-    return items.stream()
+  protected String doWrite(Chunk<? extends AuthorityUpdateHeadingExportFormat> items) {
+    return items.getItems().stream()
       .map(ExportFormatHelper::getItemRow)
       .collect(Collectors.joining(lineSeparator, EMPTY, lineSeparator));
   }

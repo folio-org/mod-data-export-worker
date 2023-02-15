@@ -722,7 +722,7 @@ class BulkEditTest extends BaseBatchTest {
       parametersBuilder.addString("query", readQueryString(path));
     } else if (BULK_EDIT_IDENTIFIERS == exportType) {
       var file = getWorkingDirectory("mod-data-export-worker", BULKEDIT_DIR_NAME)  +  FileNameUtils.getBaseName(path) + "E" + FileNameUtils.getExtension(path);
-      parametersBuilder.addString(FILE_NAME, "file");
+      parametersBuilder.addString(FILE_NAME, file);
       localFilesStorage.write(file, Files.readAllBytes(of));
       parametersBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, file, false), false);
     }

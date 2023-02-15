@@ -7,10 +7,11 @@ import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.S3CompatibleResource;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
 public class BulkEditUpdateUserRecordsAfterRollBackJobConfig {
@@ -28,9 +30,8 @@ public class BulkEditUpdateUserRecordsAfterRollBackJobConfig {
   public Job bulkEditRollBackJob(
     BulkEditUpdateUserRecordsAfterRollBackListener listener,
     Step bulkEditRollBackRecordsStep,
-    JobBuilderFactory jobBuilderFactory) {
-    return jobBuilderFactory
-      .get("BULK_EDIT_ROLL_BACK")
+    JobRepository jobRepository) {
+    return new JobBuilder("BULK_EDIT_ROLL_BACK", jobRepository)
       .incrementer(new RunIdIncrementer())
       .listener(listener)
       .flow(bulkEditRollBackRecordsStep)
@@ -46,10 +47,10 @@ public class BulkEditUpdateUserRecordsAfterRollBackJobConfig {
     ItemProcessor<UserFormat, User> processor,
     @Qualifier("bulkEditUpdateUserRecordsForRollBackWriter")
     ItemWriter<User> writer,
-    StepBuilderFactory stepBuilderFactory) {
-    return stepBuilderFactory
-      .get("bulkEditRollBackRecordsStep")
-      .<UserFormat, User>chunk(1)
+    JobRepository jobRepository,
+    PlatformTransactionManager transactionManager) {
+    return new StepBuilder("bulkEditRollBackRecordsStep", jobRepository)
+      .<UserFormat, User>chunk(1, transactionManager)
       .reader(reader)
       .processor(processor)
       .writer(writer)

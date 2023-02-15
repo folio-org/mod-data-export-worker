@@ -443,7 +443,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
 
       @Override
       public void flush() {
-        throw new NotImplementedException("Method isn't implemented yet");
+//        throw new NotImplementedException("Method isn't implemented yet");
       }
 
       @Override

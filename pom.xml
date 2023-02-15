@@ -48,15 +48,16 @@
         <refresh-presigned-url.yaml.file>
           ${project.basedir}/src/main/resources/swagger.api/refresh-presigned-url.yaml
         </refresh-presigned-url.yaml.file>
-        <folio-spring-base.version>6.0.0</folio-spring-base.version>
+        <folio-spring-base.version>6.0.1</folio-spring-base.version>
 
         <commons-io.version>2.11.0</commons-io.version>
-        <minio.version>8.4.2</minio.version>
+        <minio.version>8.5.1</minio.version>
         <openapi-generator.version>6.2.1</openapi-generator.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <hypersistence-utils-hibernate-60.version>3.0.1</hypersistence-utils-hibernate-60.version>
         <opencsv.version>5.7.1</opencsv.version>
         <netty.version>4.1.86.Final</netty.version>
+        <feign-jackson.version>12.1</feign-jackson.version>
 
         <!-- Test properties-->
         <junit-extensions.version>2.4.0</junit-extensions.version>
@@ -139,7 +140,7 @@
       <dependency>
         <groupId>io.github.openfeign</groupId>
         <artifactId>feign-jackson</artifactId>
-        <version>11.8</version>
+        <version>${feign-jackson.version}</version>
       </dependency>
       <dependency>
           <groupId>io.minio</groupId>
@@ -462,6 +463,7 @@
                                 <interfaceOnly>true</interfaceOnly>
                                 <useSpringBoot3>true</useSpringBoot3>
                                 <inlineSchemaNameDefaults>arrayItemSuffix=</inlineSchemaNameDefaults>
+                                <serializableModel>true</serializableModel>
                             </configOptions>
                         </configuration>
                     </execution>
@@ -565,6 +567,7 @@
                         <dateLibrary>java</dateLibrary>
                         <interfaceOnly>true</interfaceOnly>
                         <useSpringBoot3>true</useSpringBoot3>
+                        <serializableModel>true</serializableModel>
                       </configOptions>
                     </configuration>
                   </execution>

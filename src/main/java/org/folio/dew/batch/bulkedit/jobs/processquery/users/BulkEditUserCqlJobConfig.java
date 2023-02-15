@@ -1,34 +1,34 @@
 package org.folio.dew.batch.bulkedit.jobs.processquery.users;
 
-import static org.folio.dew.domain.dto.UserFormat.getUserColumnHeaders;
-import static org.folio.dew.domain.dto.UserFormat.getUserFieldsArray;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-
-import org.folio.dew.batch.CsvAndJsonWriter;
 import org.folio.dew.batch.AbstractStorageStreamAndJsonWriter;
-import org.folio.dew.domain.dto.EntityType;
-import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.batch.CsvAndJsonWriter;
 import org.folio.dew.batch.CsvFileAssembler;
 import org.folio.dew.batch.CsvPartStepExecutionListener;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.bulkedit.jobs.BulkEditUserProcessor;
 import org.folio.dew.client.UserClient;
+import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.transaction.PlatformTransactionManager;
+
+import static org.folio.dew.domain.dto.UserFormat.getUserColumnHeaders;
+import static org.folio.dew.domain.dto.UserFormat.getUserFieldsArray;
 
 @Configuration
 @Log4j2
@@ -36,8 +36,6 @@ import org.springframework.core.task.TaskExecutor;
 public class BulkEditUserCqlJobConfig {
   private static final int POOL_SIZE = 10;
 
-  private final JobBuilderFactory jobBuilderFactory;
-  private final StepBuilderFactory stepBuilderFactory;
   private final UserClient userClient;
   private final RemoteFilesStorage remoteFilesStorage;
   @Bean
@@ -45,9 +43,7 @@ public class BulkEditUserCqlJobConfig {
       JobCompletionNotificationListener jobCompletionNotificationListener,
       Step bulkEditUserCqlStep,
       JobRepository jobRepository) {
-    return jobBuilderFactory
-        .get(ExportType.BULK_EDIT_QUERY + "-" + EntityType.USER)
-        .repository(jobRepository)
+    return new JobBuilder(ExportType.BULK_EDIT_QUERY + "-" + EntityType.USER, jobRepository)
         .incrementer(new RunIdIncrementer())
         .listener(jobCompletionNotificationListener)
         .flow(bulkEditUserCqlStep)
@@ -60,9 +56,9 @@ public class BulkEditUserCqlJobConfig {
       Step bulkEditUserCqlPartitionStep,
       BulkEditUserCqlPartitioner partitioner,
       TaskExecutor asyncTaskExecutor,
-      CsvFileAssembler csvFileAssembler) {
-    return stepBuilderFactory
-        .get("bulkEditCqlChunkStep")
+      CsvFileAssembler csvFileAssembler,
+      JobRepository jobRepository) {
+    return new StepBuilder("bulkEditCqlChunkStep", jobRepository)
         .partitioner("bulkEditUserCqlPartitionStep", partitioner)
         .taskExecutor(asyncTaskExecutor)
         .step(bulkEditUserCqlPartitionStep)
@@ -75,11 +71,12 @@ public class BulkEditUserCqlJobConfig {
     BulkEditCqlUserReader bulkEditCqlUserReader,
     AbstractStorageStreamAndJsonWriter<User, UserFormat, RemoteFilesStorage> userWriter,
     BulkEditUserProcessor processor,
-    CsvPartStepExecutionListener csvPartStepExecutionListener
+    CsvPartStepExecutionListener csvPartStepExecutionListener,
+    JobRepository jobRepository,
+    PlatformTransactionManager transactionManager
   ) {
-    return stepBuilderFactory
-      .get("bulkEditUserCqlPartitionStep")
-      .<User, UserFormat>chunk(100)
+    return new StepBuilder("bulkEditUserCqlPartitionStep", jobRepository)
+      .<User, UserFormat>chunk(100, transactionManager)
       .reader(bulkEditCqlUserReader)
       .processor(processor)
       .writer(userWriter)

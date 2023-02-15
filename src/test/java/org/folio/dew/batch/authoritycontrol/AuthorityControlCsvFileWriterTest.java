@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.batch.item.Chunk;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +54,7 @@ class AuthorityControlCsvFileWriterTest {
     items.add(exportFormat);
 
     //When
-    authorityControlCsvFileWriter.write(items);
+    authorityControlCsvFileWriter.write(new Chunk<>(items));
 
     //Then
     verify(localFilesStorage).append(eq(TEMP_FILE), any());

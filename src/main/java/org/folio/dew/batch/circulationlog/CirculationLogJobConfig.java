@@ -3,27 +3,28 @@ package org.folio.dew.batch.circulationlog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.AbstractStorageStreamWriter;
-import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.batch.CsvFileAssembler;
 import org.folio.dew.batch.CsvPartStepExecutionListener;
 import org.folio.dew.batch.CsvWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.client.AuditClient;
 import org.folio.dew.domain.dto.CirculationLogExportFormat;
+import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.LogRecord;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
 @Log4j2
@@ -32,8 +33,6 @@ public class CirculationLogJobConfig {
 
   private static final int NUMBER_OF_CONCURRENT_TASK_EXECUTIONS = 10;
 
-  private final JobBuilderFactory jobBuilderFactory;
-  private final StepBuilderFactory stepBuilderFactory;
   private final AuditClient auditClient;
   private final RemoteFilesStorage remoteFilesStorage;
 
@@ -42,8 +41,7 @@ public class CirculationLogJobConfig {
       JobCompletionNotificationListener jobCompletionNotificationListener,
       @Qualifier("getCirculationLogStep") Step getCirculationLogStep,
       JobRepository jobRepository) {
-    return jobBuilderFactory
-        .get(ExportType.CIRCULATION_LOG.toString())
+    return new JobBuilder(ExportType.CIRCULATION_LOG.toString(), jobRepository)
         .repository(jobRepository)
         .incrementer(new RunIdIncrementer())
         .listener(jobCompletionNotificationListener)
@@ -57,9 +55,9 @@ public class CirculationLogJobConfig {
       @Qualifier("getCirculationLogPartStep") Step getCirculationLogPartStep,
       CirculationLogCsvPartitioner partitioner,
       @Qualifier("asyncTaskExecutor") TaskExecutor taskExecutor,
-      CsvFileAssembler csvFileAssembler) {
-    return stepBuilderFactory
-        .get("getCirculationLogChunkStep")
+      CsvFileAssembler csvFileAssembler,
+      JobRepository jobRepository) {
+    return new StepBuilder("getCirculationLogChunkStep", jobRepository)
         .partitioner("getCirculationLogPartStep", partitioner)
 //        .taskExecutor(taskExecutor) // At the moment, async mode does not work correctly.
         .step(getCirculationLogPartStep)
@@ -82,10 +80,11 @@ public class CirculationLogJobConfig {
       CirculationLogCsvItemReader circulationLogCsvItemReader,
       @Qualifier("circulationLog") AbstractStorageStreamWriter<CirculationLogExportFormat, RemoteFilesStorage> flatFileItemWriter,
       CirculationLogItemProcessor circulationLogItemProcessor,
-      CsvPartStepExecutionListener csvPartStepExecutionListener) {
-    return stepBuilderFactory
-        .get("getCirculationLogPartStep")
-        .<LogRecord, CirculationLogExportFormat>chunk(100)
+      CsvPartStepExecutionListener csvPartStepExecutionListener,
+      JobRepository jobRepository,
+      PlatformTransactionManager transactionManager) {
+    return new StepBuilder("getCirculationLogPartStep", jobRepository)
+        .<LogRecord, CirculationLogExportFormat>chunk(100, transactionManager)
         .reader(circulationLogCsvItemReader)
         .processor(circulationLogItemProcessor)
         .writer(flatFileItemWriter)

@@ -81,7 +81,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&sort=name&page=1&count=2&include=accessType"
+        "url": "/eholdings/packages/1-22/resources?filter%5Bname%5D=%2A&sort=name&page=1&count=2&include=accessType"
       },
       "response": {
         "status": 200,
@@ -94,7 +94,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/eholdings/packages/1-21/resources?filter%5Bname%5D=*&sort=name&page=1&count=2&include=accessType"
+        "url": "/eholdings/packages/1-21/resources?filter%5Bname%5D=%2A&sort=name&page=1&count=2&include=accessType"
       },
       "response": {
         "status": 200,
@@ -107,7 +107,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/eholdings/packages/1-22/resources?filter%5Bname%5D=*&sort=name&page=1&count=1"
+        "url": "/eholdings/packages/1-22/resources?filter%5Bname%5D=%2A&sort=name&page=1&count=1"
       },
       "response": {
         "status": 200,
@@ -120,7 +120,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/eholdings/packages/1-21/resources?filter%5Bname%5D=*&sort=name&page=1&count=1"
+        "url": "/eholdings/packages/1-21/resources?filter%5Bname%5D=%2A&sort=name&page=1&count=1"
       },
       "response": {
         "status": 200,
@@ -133,7 +133,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/eholdings/packages/1-23/resources?filter%5Bname%5D=*&sort=name&page=1&count=2&include=accessType"
+        "url": "/eholdings/packages/1-23/resources?filter%5Bname%5D=%2A&sort=name&page=1&count=2&include=accessType"
       },
       "response": {
         "status": 200,
@@ -146,7 +146,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/eholdings/packages/1-23/resources?filter%5Bname%5D=*&sort=name&page=1&count=1"
+        "url": "/eholdings/packages/1-23/resources?filter%5Bname%5D=%2A&sort=name&page=1&count=1"
       },
       "response": {
         "status": 200,
@@ -159,7 +159,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/eholdings/packages/1-24/resources?filter%5Bname%5D=*&sort=name&page=1&count=2&include=accessType"
+        "url": "/eholdings/packages/1-24/resources?filter%5Bname%5D=%2A&sort=name&page=1&count=2&include=accessType"
       },
       "response": {
         "status": 200,
@@ -172,7 +172,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/eholdings/packages/1-24/resources?filter%5Bname%5D=*&sort=name&page=1&count=1"
+        "url": "/eholdings/packages/1-24/resources?filter%5Bname%5D=%2A&sort=name&page=1&count=1"
       },
       "response": {
         "status": 200,

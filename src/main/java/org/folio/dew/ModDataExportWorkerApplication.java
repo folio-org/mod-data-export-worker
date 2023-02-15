@@ -8,7 +8,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableFeignClients(basePackages = "org.folio.dew.client")
-@EnableBatchProcessing
+@EnableBatchProcessing(isolationLevelForCreate = "ISOLATION_READ_COMMITTED")
 @EntityScan("org.folio.de.entity")
 public class ModDataExportWorkerApplication {
 

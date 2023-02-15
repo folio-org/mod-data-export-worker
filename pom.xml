@@ -463,6 +463,7 @@
                                 <interfaceOnly>true</interfaceOnly>
                                 <useSpringBoot3>true</useSpringBoot3>
                                 <inlineSchemaNameDefaults>arrayItemSuffix=</inlineSchemaNameDefaults>
+                                <serializableModel>true</serializableModel>
                             </configOptions>
                         </configuration>
                     </execution>
@@ -566,6 +567,7 @@
                         <dateLibrary>java</dateLibrary>
                         <interfaceOnly>true</interfaceOnly>
                         <useSpringBoot3>true</useSpringBoot3>
+                        <serializableModel>true</serializableModel>
                       </configOptions>
                     </configuration>
                   </execution>

@@ -12,24 +12,23 @@ import org.folio.dew.repository.LocalFilesStorage;
 import org.marc4j.marc.Record;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
 @Log4j2
 @RequiredArgsConstructor
 public class DataExportJobConfig {
   private static final int POOL_SIZE = 10;
-  private final JobBuilderFactory jobBuilderFactory;
-  private final StepBuilderFactory stepBuilderFactory;
   private final LocalFilesStorage localFilesStorage;
 
   @Bean
@@ -37,8 +36,7 @@ public class DataExportJobConfig {
       JobCompletionNotificationListener jobCompletionNotificationListener,
       Step dataExportStep,
       JobRepository jobRepository) {
-    return jobBuilderFactory
-        .get("MARC_EXPORT") // TODO change to ExportType.MARC_EXPORT.toString() after schema update
+    return new JobBuilder("MARC_EXPORT", jobRepository) // TODO change to ExportType.MARC_EXPORT.toString() after schema update
         .repository(jobRepository)
         .incrementer(new RunIdIncrementer())
         .listener(jobCompletionNotificationListener)
@@ -52,9 +50,9 @@ public class DataExportJobConfig {
       Step dataExportPartitionStep,
       DataExportCsvPartitioner partitioner,
       TaskExecutor asyncTaskExecutor,
-      CsvFileAssembler csvFileAssembler) {
-    return stepBuilderFactory
-        .get("dataExportChunkStep")
+      CsvFileAssembler csvFileAssembler,
+      JobRepository jobRepository) {
+    return new StepBuilder("dataExportChunkStep", jobRepository)
         .partitioner("dataExportPartitionStep", partitioner)
         .taskExecutor(asyncTaskExecutor)
         .step(dataExportPartitionStep)
@@ -67,11 +65,12 @@ public class DataExportJobConfig {
     DataExportCsvItemReader dataExportCsvItemReader,
     AbstractStorageStreamWriter<Record, LocalFilesStorage> recordWriter,
     ItemProcessor<ItemIdentifier, Record> processor,
-    CsvPartStepExecutionListener csvPartStepExecutionListener
+    CsvPartStepExecutionListener csvPartStepExecutionListener,
+    JobRepository jobRepository,
+    PlatformTransactionManager transactionManager
   ) {
-    return stepBuilderFactory
-      .get("dataExportPartitionStep")
-      .<ItemIdentifier, Record>chunk(100)
+    return new StepBuilder("dataExportPartitionStep", jobRepository)
+      .<ItemIdentifier, Record>chunk(100, transactionManager)
       .reader(dataExportCsvItemReader)
       .processor(processor)
       .writer(recordWriter)

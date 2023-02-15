@@ -11,10 +11,11 @@ import org.folio.dew.repository.S3CompatibleResource;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.io.IOException;
 
@@ -41,11 +43,10 @@ public class BulkEditUpdateUserRecordsJobConfig {
   @Bean
   public Job bulkEditUpdateUserRecordsJob(
     Step bulkEditUpdateUserRecordsStep,
-    JobBuilderFactory jobBuilderFactory,
+    JobRepository jobRepository,
     BulkEditUpdateUserRecordsListener updateUserRecordsListener,
     JobCompletionNotificationListener completionListener) {
-    return jobBuilderFactory
-      .get(BULK_EDIT_UPDATE.getValue() + JOB_NAME_POSTFIX_SEPARATOR + USER.getValue())
+    return new JobBuilder(BULK_EDIT_UPDATE.getValue() + JOB_NAME_POSTFIX_SEPARATOR + USER.getValue(), jobRepository)
       .incrementer(new RunIdIncrementer())
       .listener(updateUserRecordsListener)
       .listener(completionListener)
@@ -61,10 +62,9 @@ public class BulkEditUpdateUserRecordsJobConfig {
     ItemProcessor<UserFormat, User> processor,
     @Qualifier("updateUserRecordsWriter") ItemWriter<User> writer,
     @Qualifier("updateRecordWriteListener") ItemWriteListener<User> updateRecordWriteListener,
-    StepBuilderFactory stepBuilderFactory) {
-    return stepBuilderFactory
-      .get("bulkEditUpdateRecordsStep")
-      .<UserFormat, User>chunk(10)
+    JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+    return new StepBuilder("bulkEditUpdateRecordsStep", jobRepository)
+      .<UserFormat, User>chunk(10, transactionManager)
       .reader(csvUserRecordsReader)
       .processor(processor)
       .writer(writer)

@@ -1,11 +1,13 @@
 package org.folio.dew.batch.bulkedit.jobs.processquery.items;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.folio.dew.batch.AbstractStorageStreamAndJsonWriter;
 import org.folio.dew.batch.CsvAndJsonWriter;
 import org.folio.dew.batch.CsvFileAssembler;
 import org.folio.dew.batch.CsvPartStepExecutionListener;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.bulkedit.jobs.BulkEditItemProcessor;
-import org.folio.dew.batch.AbstractStorageStreamAndJsonWriter;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
@@ -14,18 +16,16 @@ import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import static org.folio.dew.domain.dto.ItemFormat.getItemColumnHeaders;
 import static org.folio.dew.domain.dto.ItemFormat.getItemFieldsArray;
@@ -36,8 +36,6 @@ import static org.folio.dew.domain.dto.ItemFormat.getItemFieldsArray;
 public class BulkEditItemCqlJobConfig {
   private static final int POOL_SIZE = 10;
 
-  private final JobBuilderFactory jobBuilderFactory;
-  private final StepBuilderFactory stepBuilderFactory;
   private final InventoryClient inventoryClient;
   private final RemoteFilesStorage remoteFilesStorage;
 
@@ -46,9 +44,7 @@ public class BulkEditItemCqlJobConfig {
       JobCompletionNotificationListener jobCompletionNotificationListener,
       Step bulkEditItemCqlStep,
       JobRepository jobRepository) {
-    return jobBuilderFactory
-        .get(ExportType.BULK_EDIT_QUERY + "-" + EntityType.ITEM)
-        .repository(jobRepository)
+    return new JobBuilder(ExportType.BULK_EDIT_QUERY + "-" + EntityType.ITEM, jobRepository)
         .incrementer(new RunIdIncrementer())
         .listener(jobCompletionNotificationListener)
         .flow(bulkEditItemCqlStep)
@@ -61,9 +57,9 @@ public class BulkEditItemCqlJobConfig {
       Step bulkEditItemCqlPartitionStep,
       BulkEditCqlItemPartitioner partitioner,
       TaskExecutor asyncTaskExecutor,
-      CsvFileAssembler csvFileAssembler) {
-    return stepBuilderFactory
-        .get("bulkEditCqlChunkStep")
+      CsvFileAssembler csvFileAssembler,
+      JobRepository jobRepository) {
+    return new StepBuilder("bulkEditCqlChunkStep", jobRepository)
         .partitioner("bulkEditItemCqlPartitionStep", partitioner)
         .taskExecutor(asyncTaskExecutor)
         .step(bulkEditItemCqlPartitionStep)
@@ -76,11 +72,12 @@ public class BulkEditItemCqlJobConfig {
     BulkEditCqlItemReader bulkEditCqlItemReader,
     AbstractStorageStreamAndJsonWriter<Item, ItemFormat, RemoteFilesStorage> itemWriter,
     BulkEditItemProcessor processor,
-    CsvPartStepExecutionListener csvPartStepExecutionListener
+    CsvPartStepExecutionListener csvPartStepExecutionListener,
+    JobRepository jobRepository,
+    PlatformTransactionManager transactionManager
   ) {
-    return stepBuilderFactory
-      .get("bulkEditItemCqlPartitionStep")
-      .<Item, ItemFormat>chunk(100)
+    return new StepBuilder("bulkEditItemCqlPartitionStep", jobRepository)
+      .<Item, ItemFormat>chunk(100, transactionManager)
       .reader(bulkEditCqlItemReader)
       .processor(processor)
       .writer(itemWriter)

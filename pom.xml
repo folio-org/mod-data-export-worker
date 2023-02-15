@@ -51,7 +51,7 @@
         <folio-spring-base.version>6.0.1</folio-spring-base.version>
 
         <commons-io.version>2.11.0</commons-io.version>
-        <minio.version>8.4.2</minio.version>
+        <minio.version>8.5.1</minio.version>
         <openapi-generator.version>6.2.1</openapi-generator.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <hypersistence-utils-hibernate-60.version>3.0.1</hypersistence-utils-hibernate-60.version>

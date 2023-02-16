@@ -9,6 +9,9 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.hypersistence.utils.hibernate.type.util.ObjectMapperSupplier;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.context.annotation.Bean;
@@ -82,12 +85,27 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
       JsonNode jsonNode = jp.getCodec().readTree(jp);
       var identifying = jsonNode.get("identifying").asBoolean();
       var type = jsonNode.get("type").asText();
+      var node = jsonNode.get(VALUE_PARAMETER_PROPERTY);
 
       try {
         Class<Object> clazz = (Class<Object>) Class.forName(type);
-        return new JobParameter<>(jsonNode.get(VALUE_PARAMETER_PROPERTY).asText(), clazz, identifying);
+        var clazzSimpleName = clazz.getSimpleName();
+        var value = switch (clazzSimpleName) {
+          case "Double" -> node.asDouble();
+          case "Long" -> node.asLong();
+          case "Integer" -> node.asInt();
+          case "Boolean" -> node.asBoolean();
+          // We still do not have Date parameters for jobs, so this could be changed
+          // See org.folio.des.builder.job.JobCommandBuilder implementations in mod-data-export-spring
+          case "Date" -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").parse(node.asText());
+          default -> node.asText();
+        };
+
+        return new JobParameter<>(value, clazz, identifying);
       } catch (ClassNotFoundException e) {
         throw new RuntimeException("Cannot create Job parameter with the class " + type, e);
+      } catch (ParseException e) {
+        throw new RuntimeException("Invalid Date format: " + node.asText(),  e);
       }
     }
   }

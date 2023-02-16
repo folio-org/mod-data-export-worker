@@ -117,7 +117,7 @@ class AuthorityControlTest extends BaseBatchTest {
     var paramBuilder = new JobParametersBuilder();
 
     paramBuilder.addString(JobParameterNames.JOB_ID, jobId);
-    paramBuilder.addString("authorityControlExportConfig", OBJECT_MAPPER.writeValueAsString(exportConfig));
+    paramBuilder.addString("authorityControlExportConfig", objectMapper.writeValueAsString(exportConfig));
 
     String workDir =
       System.getProperty("java.io.tmpdir")

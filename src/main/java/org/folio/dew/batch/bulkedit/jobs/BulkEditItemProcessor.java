@@ -1,9 +1,12 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
+import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
+import static org.folio.dew.utils.BulkEditProcessorHelper.ofEmptyString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
+import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 
 import lombok.RequiredArgsConstructor;
@@ -20,12 +23,16 @@ import org.folio.dew.domain.dto.Title;
 import org.folio.dew.service.ElectronicAccessService;
 import org.folio.dew.service.ItemReferenceService;
 import org.folio.dew.service.SpecialCharacterEscaper;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -81,7 +88,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .administrativeNotes(isEmpty(item.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getAdministrativeNotes())))
       .notes(fetchNotes(item, errorServiceArgs))
       .circulationNotes(fetchCirculationNotes(item))
-      .status(String.join(ARRAY_DELIMITER, item.getStatus().getName().getValue(), dateToString(item.getStatus().getDate())))
+      .status(statusToString(item))
       .materialType(item.getMaterialType().getName())
       .isBoundWith(item.getIsBoundWith().toString())
       .boundWithTitles(fetchBoundWithTitles(item))
@@ -100,6 +107,14 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
     return itemFormat.withOriginal(item);
   }
 
+
+  private String statusToString(Item item) {
+    List<String> entries = new ArrayList<>();
+    ofEmptyString(item.getStatus().getName().getValue()).ifPresent(entries::add);
+    ofNullable(item.getStatus().getDate()).ifPresent(d -> entries.add(new SimpleDateFormat(DATE_TIME_PATTERN).format(d)));
+    return String.join(ARRAY_DELIMITER, entries);
+  }
+
   private String fetchContributorNames(Item item) {
     return isEmpty(item.getContributorNames()) ?
       EMPTY :
@@ -113,11 +128,12 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
     if (isEmpty(components)) {
       return EMPTY;
     }
-    return String.join(ARRAY_DELIMITER,
-      isEmpty(components.getCallNumber()) ? EMPTY : escaper.escape(components.getCallNumber()),
-      isEmpty(components.getPrefix()) ? EMPTY : escaper.escape(components.getPrefix()),
-      isEmpty(components.getSuffix()) ? EMPTY : escaper.escape(components.getSuffix()),
-      escaper.escape(itemReferenceService.getCallNumberTypeNameById(components.getTypeId(), args)));
+    List<String> entries = new ArrayList<>();
+    ofEmptyString(components.getCallNumber()).ifPresent(e -> entries.add(escaper.escape(e)));
+    ofEmptyString(components.getPrefix()).ifPresent(e -> entries.add(escaper.escape(e)));
+    ofEmptyString(components.getSuffix()).ifPresent(e -> entries.add(escaper.escape(e)));
+    entries.add(escaper.escape(itemReferenceService.getCallNumberTypeNameById(components.getTypeId(), args)));
+    return String.join(ARRAY_DELIMITER, entries);
   }
 
   private String fetchNotes(Item item, ErrorServiceArgs args) {

@@ -15,6 +15,7 @@ import static org.folio.dew.domain.dto.IdentifierType.USER_NAME;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 
 import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.IdentifierType;
 
 import java.text.DateFormat;
@@ -24,6 +25,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.EnumMap;
+import java.util.Optional;
 import java.util.TimeZone;
 
 @UtilityClass
@@ -70,4 +72,9 @@ public class BulkEditProcessorHelper {
   public static String getMatchPattern(String identifierType) {
     return FORMER_IDS == IdentifierType.fromValue(identifierType) ? MATCH_PATTERN : EXACT_MATCH_PATTERN;
   }
+
+  public static Optional<String> ofEmptyString(String string) {
+    return StringUtils.isNotEmpty(string) ? Optional.of(string) : Optional.empty();
+  }
+
 }

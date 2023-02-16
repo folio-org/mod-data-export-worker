@@ -16,6 +16,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.Address;
 import org.folio.dew.domain.dto.CustomField;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
@@ -138,6 +140,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       var values = (ArrayList) entry.getValue();
       return escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + values.stream()
         .map(v -> escaper.escape(extractValueById(customField, v.toString())))
+        .filter(ObjectUtils::isNotEmpty)
         .collect(Collectors.joining(ARRAY_DELIMITER));
     default:
       throw new BulkEditException("Invalid custom field: " + entry);

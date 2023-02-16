@@ -14,7 +14,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.UUID;
 
 import org.folio.dew.batch.ExportJobManager;
@@ -126,7 +125,6 @@ public abstract class BaseBatchTest {
 
   @BeforeAll
   static void beforeAll(@Autowired MockMvc mockMvc) {
-    TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     wireMockServer = new WireMockServer(WIRE_MOCK_PORT);
     wireMockServer.start();
 

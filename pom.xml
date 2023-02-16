@@ -434,7 +434,7 @@
                         <supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>
                         <configOptions>
                           <java8>true</java8>
-                          <dateLibrary>java</dateLibrary>
+                          <dateLibrary>java8</dateLibrary>
                           <interfaceOnly>true</interfaceOnly>
                           <useSpringBoot3>true</useSpringBoot3>
                         </configOptions>

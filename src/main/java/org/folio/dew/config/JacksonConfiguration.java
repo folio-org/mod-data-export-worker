@@ -7,15 +7,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.hypersistence.utils.hibernate.type.util.ObjectMapperSupplier;
-import org.bouncycastle.util.Strings;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
-import java.sql.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +27,7 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
   static {
     OBJECT_MAPPER =
         new ObjectMapper()
+            .registerModule(new JavaTimeModule())
             .registerModule(
                 new SimpleModule()
                     .addDeserializer(ExitStatus.class, new ExitStatusDeserializer())

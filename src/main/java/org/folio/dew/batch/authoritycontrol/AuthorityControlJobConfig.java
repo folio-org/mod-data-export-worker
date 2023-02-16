@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.config.properties.AuthorityControlJobProperties;
-import org.folio.dew.domain.dto.AuthorityControlExportConfig;
+import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDto;
 import org.folio.dew.domain.dto.authoritycontrol.AuthorityUpdateHeadingExportFormat;

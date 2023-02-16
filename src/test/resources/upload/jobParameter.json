@@ -1,0 +1,20 @@
+{
+  "type": "START",
+  "id": "2963be17-acdb-4554-a7ae-1bc04ede20b5",
+  "name": "000045",
+  "description": null,
+  "exportType": "CIRCULATION_LOG",
+  "jobParameters": {
+    "parameters": {
+      "query": {
+        "value": "((date>=\"2023-02-15T00:00:00.000\" and date<=\"2023-02-15T23:59:59.999\")) sortby date/sort.descending",
+        "type": "java.lang.String",
+        "identifying": true
+      }
+    },
+    "empty": false
+  },
+  "identifierType": null,
+  "entityType": null,
+  "progress": null
+}

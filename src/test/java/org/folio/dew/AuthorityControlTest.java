@@ -1,8 +1,6 @@
 package org.folio.dew;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.folio.de.entity.JobCommand;
@@ -53,7 +51,6 @@ class AuthorityControlTest extends BaseBatchTest {
   @SpyBean
   private KafkaService kafkaService;
 
-  private static final ObjectMapper MAPPER = new ObjectMapper().registerModule(new JavaTimeModule());
   private static final String EXPECTED_AUTHORITY_STAT_OUTPUT = "src/test/resources/output/auth_heading_update.csv";
   private static final String FILE_PATH = "mod-data-export-worker/authority_control_export/diku/";
 
@@ -107,10 +104,10 @@ class AuthorityControlTest extends BaseBatchTest {
   }
 
   @SneakyThrows
-  private AuthorityControlExportConfig buildExportConfig(String from, String to) {
+  private AuthorityControlExportConfig buildExportConfig(String fromDate, String toDate) {
     var exportConfig = new AuthorityControlExportConfig();
-    exportConfig.setFromDate(LocalDate.parse(from));
-    exportConfig.setToDate(LocalDate.parse(to));
+    exportConfig.setFromDate(LocalDate.parse(fromDate));
+    exportConfig.setToDate(LocalDate.parse(toDate));
     return exportConfig;
   }
 
@@ -120,7 +117,7 @@ class AuthorityControlTest extends BaseBatchTest {
     var paramBuilder = new JobParametersBuilder();
 
     paramBuilder.addString(JobParameterNames.JOB_ID, jobId);
-    paramBuilder.addString("authorityControlExportConfig", MAPPER.writeValueAsString(exportConfig));
+    paramBuilder.addString("authorityControlExportConfig", OBJECT_MAPPER.writeValueAsString(exportConfig));
 
     String workDir =
       System.getProperty("java.io.tmpdir")

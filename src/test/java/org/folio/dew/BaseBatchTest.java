@@ -1,5 +1,6 @@
 package org.folio.dew;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.folio.dew.batch.ExportJobManagerSync;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -140,7 +141,8 @@ public abstract class BaseBatchTest {
 
   public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-      .configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+      .configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
+      .registerModule(new JavaTimeModule());
 
   @SneakyThrows
   public static String asJsonString(Object value) {

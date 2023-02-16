@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.hypersistence.utils.hibernate.type.util.ObjectMapperSupplier;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobParameter;
@@ -26,7 +27,7 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
   static {
     OBJECT_MAPPER =
         new ObjectMapper()
-            .findAndRegisterModules()
+            .registerModule(new JavaTimeModule())
             .registerModule(
                 new SimpleModule()
                     .addDeserializer(ExitStatus.class, new ExitStatusDeserializer())

@@ -6,9 +6,34 @@
   "exportType": "CIRCULATION_LOG",
   "jobParameters": {
     "parameters": {
-      "query": {
+      "stringParam": {
         "value": "((date>=\"2023-02-15T00:00:00.000\" and date<=\"2023-02-15T23:59:59.999\")) sortby date/sort.descending",
         "type": "java.lang.String",
+        "identifying": true
+      },
+      "doubleParam": {
+        "value": "10.111",
+        "type": "java.lang.Double",
+        "identifying": true
+      },
+      "longParam": {
+        "value": "10",
+        "type": "java.lang.Long",
+        "identifying": true
+      },
+      "intParam": {
+        "value": "10",
+        "type": "java.lang.Integer",
+        "identifying": true
+      },
+      "dateParam": {
+        "value": "2023-02-15T00:00:00.000",
+        "type": "java.util.Date",
+        "identifying": true
+      },
+      "booleanParam": {
+        "value": "true",
+        "type": "java.lang.Boolean",
         "identifying": true
       }
     },

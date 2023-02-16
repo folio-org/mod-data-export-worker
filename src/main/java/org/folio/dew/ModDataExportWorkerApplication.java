@@ -1,6 +1,8 @@
 package org.folio.dew;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.SpringApplication;
@@ -23,6 +25,8 @@ public class ModDataExportWorkerApplication {
   @Bean
   @Primary
   public ObjectMapper primaryObjectMapper() {
-    return new ObjectMapper().registerModule(new JavaTimeModule());
+    return JsonMapper.builder()
+      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+      .addModule(new JavaTimeModule()).build();
   }
 }

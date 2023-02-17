@@ -21,6 +21,8 @@ public class AuthorityControlToExportFormatMapper {
     var exportFormat = new AuthorityUpdateHeadingExportFormat();
     var metadata = dto.getMetadata();
 
+    exportFormat.setUpdater(convertUserName(metadata));
+    exportFormat.setLastUpdated(dateToString(metadata.getCompletedAt()));
     exportFormat.setNewHeading(dto.getHeadingNew());
     exportFormat.setOriginalHeading(dto.getHeadingOld());
     exportFormat.setNewHeadingType(dto.getHeadingTypeNew());
@@ -29,10 +31,6 @@ public class AuthorityControlToExportFormatMapper {
     exportFormat.setAuthoritySourceFileName(dto.getSourceFileNew());
     exportFormat.setNumberOfBibliographicRecordsLinked(dto.getLbTotal().toString());
 
-    if (metadata != null) {
-      exportFormat.setUpdater(convertUserName(metadata));
-      exportFormat.setLastUpdated(dateToString(metadata.getCompletedAt()));
-    }
     return exportFormat;
   }
 

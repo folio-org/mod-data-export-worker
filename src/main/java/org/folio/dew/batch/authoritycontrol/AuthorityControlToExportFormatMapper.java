@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter;
 
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 
 @Component
@@ -20,8 +21,6 @@ public class AuthorityControlToExportFormatMapper {
     var exportFormat = new AuthorityUpdateHeadingExportFormat();
     var metadata = dto.getMetadata();
 
-    exportFormat.setUpdater(convertUserName(metadata));
-    exportFormat.setLastUpdated(dateToString(metadata.getCompletedAt()));
     exportFormat.setNewHeading(dto.getHeadingNew());
     exportFormat.setOriginalHeading(dto.getHeadingOld());
     exportFormat.setNewHeadingType(dto.getHeadingTypeNew());
@@ -30,10 +29,17 @@ public class AuthorityControlToExportFormatMapper {
     exportFormat.setAuthoritySourceFileName(dto.getSourceFileNew());
     exportFormat.setNumberOfBibliographicRecordsLinked(dto.getLbTotal().toString());
 
+    if (metadata != null) {
+      exportFormat.setUpdater(convertUserName(metadata));
+      exportFormat.setLastUpdated(dateToString(metadata.getCompletedAt()));
+    }
     return exportFormat;
   }
 
   private String convertUserName(Metadata metadata) {
+    if (isBlank(metadata.getStartedByUserFirstName())) {
+      return metadata.getStartedByUserLastName();
+    }
     return metadata.getStartedByUserLastName() + ", " + metadata.getStartedByUserFirstName();
   }
 

@@ -349,7 +349,7 @@
                         </goals>
                         <configuration>
                             <sources>
-                                <source>${project.build.directory}/generated-sources</source>
+                                <source>${project.build.directory}/generated-sources/src/main/java</source>
                             </sources>
                         </configuration>
                     </execution>
@@ -449,7 +449,7 @@
                             <inputSpec>${bursar-export.yaml.file}</inputSpec>
                             <output>${project.build.directory}/generated-sources</output>
                             <generatorName>spring</generatorName>
-                            <modelPackage>${project.groupId}.dew.domain.dto</modelPackage>
+                            <modelPackage>${project.groupId}.dew.domain.dto.bursar</modelPackage>
                             <generateApis>false</generateApis>
                             <generateApiTests>false</generateApiTests>
                             <generateApiDocumentation>false</generateApiDocumentation>

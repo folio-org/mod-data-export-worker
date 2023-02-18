@@ -8,7 +8,7 @@ paths:
   /stub:
     get:
       responses:
-        "200":
+        '200':
           description: stub
 components:
   schemas:
@@ -23,9 +23,7 @@ components:
     servicepoints:
       $ref: '../../../../folio-export-common/schemas/feesfines/servicepoints.json#/ServicePoints'
     bursarFeeFines:
-      $ref: '../../../../folio-export-common/schemas/bursarFeeFines.json#/BursarFeeFines'
-    bursarFeeFinesTypeMapping:
-      $ref: '../../../../folio-export-common/schemas/bursarFeeFinesTypeMapping.json#/BursarFeeFinesTypeMapping'
+      $ref: '../../../../folio-export-common/schemas/bursar-export/bursarExportJob.json'
     ediConfig:
       $ref: '../../../../folio-export-common/schemas/acquisitions/ediConfig.json#/EdiConfig'
     ediEmail:

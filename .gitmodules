@@ -1,3 +1,4 @@
 [submodule "folio-export-common"]
 	path = folio-export-common
-	url = https://github.com/folio-org/folio-export-common.git
+	url = https://github.com/ualibweb/folio-export-common.git
+	branch = master

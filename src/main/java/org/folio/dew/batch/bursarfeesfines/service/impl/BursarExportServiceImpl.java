@@ -17,7 +17,6 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.dew.domain.dto.BursarFeeFinesTypeMapping;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.client.AccountBulkClient;
 import org.folio.dew.client.AccountClient;
@@ -58,35 +57,35 @@ public class BursarExportServiceImpl implements BursarExportService {
   private final FeefineactionsClient feefineClient;
   private final TransferClient transferClient;
   private final ServicePointClient servicePointClient;
-  private final Map<String, Map<String, List<BursarFeeFinesTypeMapping>>> mapping = new ConcurrentHashMap<>();
+  // private final Map<String, Map<String, List<BursarFeeFinesTypeMapping>>> mapping = new ConcurrentHashMap<>();
 
 
-  @Override
-  public void addMapping(String jobId, Map<String, List<BursarFeeFinesTypeMapping>> mapping) {
-    this.mapping.put(jobId, mapping);
-  }
+  // @Override
+  // public void addMapping(String jobId, Map<String, List<BursarFeeFinesTypeMapping>> mapping) {
+  //   this.mapping.put(jobId, mapping);
+  // }
 
-  @Override
-  public BursarFeeFinesTypeMapping getMapping(String jobId, Account account) {
+  // @Override
+  // public BursarFeeFinesTypeMapping getMapping(String jobId, Account account) {
 
-    if (!mapping.containsKey(jobId)) {
-      return null;
-    }
+  //   if (!mapping.containsKey(jobId)) {
+  //     return null;
+  //   }
 
-    final List<BursarFeeFinesTypeMapping> feeFinesTypeMappingList = mapping
-      .get(jobId)
-      .get(account.getOwnerId());
+  //   final List<BursarFeeFinesTypeMapping> feeFinesTypeMappingList = mapping
+  //     .get(jobId)
+  //     .get(account.getOwnerId());
 
-    if (feeFinesTypeMappingList == null) {
-      return null;
-    }
+  //   if (feeFinesTypeMappingList == null) {
+  //     return null;
+  //   }
 
-    return feeFinesTypeMappingList
-      .stream()
-      .filter(m -> m.getFeefineTypeId().toString().equals(account.getFeeFineId()))
-      .findFirst()
-      .orElse(null);
-  }
+  //   return feeFinesTypeMappingList
+  //     .stream()
+  //     .filter(m -> m.getFeefineTypeId().toString().equals(account.getFeeFineId()))
+  //     .findFirst()
+  //     .orElse(null);
+  // }
 
   @Override
   public void transferAccounts(List<Account> accounts, BursarJobPrameterDto bursarFeeFines) {

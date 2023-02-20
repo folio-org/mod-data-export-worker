@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 import lombok.NonNull;
-import org.folio.dew.domain.dto.BursarFeeFinesTypeMapping;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -14,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+// NCO: I think this could (should?) be replaced by BursarExportJob from openapi-generator
 @Data
 public class BursarFeeFinesDto {
 
@@ -36,7 +36,8 @@ public class BursarFeeFinesDto {
   @JsonProperty("transferAccountId")
   private UUID transferAccountId;
 
-  @JsonProperty("typeMappings")
-  @Valid
-  private Map<String, List<BursarFeeFinesTypeMapping>> typeMappings = null;
+  // NCO: what does this do??
+  // @JsonProperty("typeMappings")
+  // @Valid
+  // private Map<String, List<BursarFeeFinesTypeMapping>> typeMappings = null;
 }

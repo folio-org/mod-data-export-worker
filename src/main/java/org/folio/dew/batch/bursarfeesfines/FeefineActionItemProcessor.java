@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.folio.dew.domain.dto.BursarFeeFinesTypeMapping;
+// import org.folio.dew.domain.dto.BursarFeeFinesTypeMapping;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.batch.bursarfeesfines.service.BursarFeesFinesUtils;
@@ -34,15 +34,15 @@ public class FeefineActionItemProcessor implements ItemProcessor<Feefineaction, 
     var format = new BursarFormat();
     format.setEmployeeId(BursarFeesFinesUtils.getEmployeeId(item.getUserId(), userIdMap));
     format.setAmount(BursarFeesFinesUtils.normalizeAmount(item.getAmountAction()));
-    format.setTransactionDate(BursarFeesFinesUtils.getTransactionDate(item.getDateAction()));
+    // format.setTransactionDate(BursarFeesFinesUtils.getTransactionDate(item.getDateAction()));
     format.setSfs("SFS");
     format.setTermValue("    ");
 
     var account = getAccount(item);
-    BursarFeeFinesTypeMapping mapping = account == null ? null : exportService.getMapping(jobId, account);
-    format.setItemType(BursarFeesFinesUtils.formatItemType(mapping == null ? null : mapping.getItemType()));
-    format.setDescription(
-        BursarFeesFinesUtils.formatItemTypeDescription(mapping == null ? item.getTypeAction() : mapping.getItemDescription()));
+    // BursarFeeFinesTypeMapping mapping = account == null ? null : exportService.getMapping(jobId, account);
+    // format.setItemType(BursarFeesFinesUtils.formatItemType(mapping == null ? null : mapping.getItemType()));
+    // format.setDescription(
+    //     BursarFeesFinesUtils.formatItemTypeDescription(mapping == null ? item.getTypeAction() : mapping.getItemDescription()));
 
     return format;
   }

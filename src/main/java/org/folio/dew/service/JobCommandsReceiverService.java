@@ -217,14 +217,14 @@ public class JobCommandsReceiverService {
     paramsBuilder.addString("bursarFeeFines", objectMapper.writeValueAsString(dto));
 
 
-    bursarExportService.addMapping(jobId, bff.getTypeMappings());
+    // bursarExportService.addMapping(jobId, bff.getTypeMappings());
   }
 
   private BursarJobPrameterDto replaceTypeMappingsCollectionWithHash(BursarFeeFinesDto bursarFeeFines) {
     var dto = new BursarJobPrameterDto();
     BeanUtils.copyProperties(bursarFeeFines, dto, "typeMappings");
 
-    dto.setTypeMappings(String.valueOf(bursarFeeFines.getTypeMappings().hashCode()));
+    // dto.setTypeMappings(String.valueOf(bursarFeeFines.getTypeMappings().hashCode()));
     return dto;
   }
 

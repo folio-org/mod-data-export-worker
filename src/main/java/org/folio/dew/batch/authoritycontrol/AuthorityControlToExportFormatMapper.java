@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter;
 
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 
 @Component
@@ -34,6 +35,9 @@ public class AuthorityControlToExportFormatMapper {
   }
 
   private String convertUserName(Metadata metadata) {
+    if (isBlank(metadata.getStartedByUserFirstName())) {
+      return metadata.getStartedByUserLastName();
+    }
     return metadata.getStartedByUserLastName() + ", " + metadata.getStartedByUserFirstName();
   }
 

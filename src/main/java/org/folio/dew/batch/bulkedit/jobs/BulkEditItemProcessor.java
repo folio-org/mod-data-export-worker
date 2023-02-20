@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
+import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -23,7 +24,6 @@ import org.folio.dew.domain.dto.Title;
 import org.folio.dew.service.ElectronicAccessService;
 import org.folio.dew.service.ItemReferenceService;
 import org.folio.dew.service.SpecialCharacterEscaper;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
@@ -109,10 +109,11 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
 
 
   private String statusToString(Item item) {
-    List<String> entries = new ArrayList<>();
-    ofEmptyString(item.getStatus().getName().getValue()).ifPresent(entries::add);
-    ofNullable(item.getStatus().getDate()).ifPresent(d -> entries.add(new SimpleDateFormat(DATE_TIME_PATTERN).format(d)));
-    return String.join(ARRAY_DELIMITER, entries);
+    var status = item.getStatus();
+    if (nonNull(status)) {
+      return status.getName().getValue();
+    }
+    return EMPTY;
   }
 
   private String fetchContributorNames(Item item) {

@@ -11,17 +11,15 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import org.folio.de.entity.JobCommand;
 import org.folio.de.entity.JobCommandType;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.services.FTPStorageService;
-import org.folio.dew.domain.dto.AuthorityControlExportConfig;
+import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
@@ -278,8 +276,8 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     jobCommand.setExportType(ExportType.AUTH_HEADINGS_UPDATES);
 
     AuthorityControlExportConfig authorityControlExportConfig = new AuthorityControlExportConfig();
-    authorityControlExportConfig.fromDate(new Date());
-    authorityControlExportConfig.toDate(new Date());
+    authorityControlExportConfig.fromDate(LocalDate.now());
+    authorityControlExportConfig.toDate(LocalDate.now());
     var paramsBuilder = new JobParametersBuilder();
     paramsBuilder.addString("authorityControlExportConfig", asJsonString(authorityControlExportConfig));
     jobCommand.setJobParameters(paramsBuilder.toJobParameters());
@@ -295,8 +293,8 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     jobCommand.setExportType(ExportType.AUTH_HEADINGS_UPDATES);
 
     AuthorityControlExportConfig authorityControlExportConfig = new AuthorityControlExportConfig();
-    authorityControlExportConfig.fromDate(new Date());
-    authorityControlExportConfig.toDate(new Date());
+    authorityControlExportConfig.fromDate(LocalDate.now());
+    authorityControlExportConfig.toDate(LocalDate.now());
     var paramsBuilder = new JobParametersBuilder();
     paramsBuilder.addString("authorityControlExportConfig", asJsonString(authorityControlExportConfig));
     jobCommand.setJobParameters(paramsBuilder.toJobParameters());

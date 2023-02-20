@@ -6,12 +6,11 @@ import org.folio.dew.domain.dto.authoritycontrol.AuthorityUpdateHeadingExportFor
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 
 @Component
@@ -36,10 +35,13 @@ public class AuthorityControlToExportFormatMapper {
   }
 
   private String convertUserName(Metadata metadata) {
+    if (isBlank(metadata.getStartedByUserFirstName())) {
+      return metadata.getStartedByUserLastName();
+    }
     return metadata.getStartedByUserLastName() + ", " + metadata.getStartedByUserFirstName();
   }
 
-  private String dateToString(Date date) {
-    return nonNull(date) ? OffsetDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC).format(DATE_FORMAT) : EMPTY;
+  private String dateToString(OffsetDateTime date) {
+    return nonNull(date) ? date.format(DATE_FORMAT) : EMPTY;
   }
 }

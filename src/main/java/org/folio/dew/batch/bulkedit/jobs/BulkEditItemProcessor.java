@@ -1,14 +1,12 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
 import static java.util.Objects.nonNull;
-import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
 import static org.folio.dew.utils.BulkEditProcessorHelper.ofEmptyString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
-import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 
 import lombok.RequiredArgsConstructor;
@@ -31,7 +29,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -23,6 +23,7 @@ import org.folio.dew.domain.dto.Address;
 import org.folio.dew.domain.dto.CustomField;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.IdentifierType;
+import org.folio.dew.domain.dto.Personal;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
@@ -75,7 +76,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       .mobilePhone(nonNull(personal) ? personal.getMobilePhone() : EMPTY)
       .dateOfBirth(nonNull(personal) ? dateToString(personal.getDateOfBirth()) : EMPTY)
       .addresses(nonNull(personal)? addressesToString(personal.getAddresses(), errorServiceArgs) : EMPTY)
-      .preferredContactTypeId(nonNull(personal) ? (isNull(personal.getPreferredContactTypeId()) ? EMPTY : personal.getPreferredContactTypeId()) : EMPTY)
+      .preferredContactTypeId(nonNull(personal) ? getPreferredContactTypeId(personal) : EMPTY)
       .enrollmentDate(dateToString(user.getEnrollmentDate()))
       .expirationDate(dateToString(user.getExpirationDate()))
       .createdDate(dateToString(user.getCreatedDate()))
@@ -83,6 +84,10 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       .tags(nonNull(user.getTags()) ? String.join(ARRAY_DELIMITER, escaper.escape(user.getTags().getTagList())) : EMPTY)
       .customFields(nonNull(user.getCustomFields()) ? customFieldsToString(user.getCustomFields()) : EMPTY)
       .build().withOriginal(user);
+  }
+
+  private String getPreferredContactTypeId(Personal personal) {
+    return isNull(personal.getPreferredContactTypeId()) ? EMPTY : personal.getPreferredContactTypeId();
   }
 
   private String fetchDepartments(User user, ErrorServiceArgs args) {

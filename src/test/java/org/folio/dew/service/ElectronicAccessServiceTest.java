@@ -52,7 +52,7 @@ class ElectronicAccessServiceTest {
 
     when(relationshipClient.getById(relationshipId)).thenReturn(electronicAccessRelationship);
 
-    var expected = "uri;;;;name;relationshipId";
+    var expected = "uri;name;relationshipId";
     var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), "formatIdentifier", "jobId", "fileName");
 
     assertEquals(expected, actual);
@@ -77,7 +77,7 @@ class ElectronicAccessServiceTest {
     when(relationshipClient.getById(relationshipId1)).thenThrow(new NotFoundException("error message"));
     when(relationshipClient.getById(relationshipId2)).thenThrow(new NotFoundException("error message"));
 
-    var expected = "uri1;;;;;relationshipId1|uri2;;;;;relationshipId2|uri3;;;;;relationshipId1";
+    var expected = "uri1;;relationshipId1|uri2;;relationshipId2|uri3;;relationshipId1";
     var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess1, electronicAccess2, electronicAccess3),
       "formatIdentifier", "jobId", "fileName");
 
@@ -90,7 +90,7 @@ class ElectronicAccessServiceTest {
     var electronicAccess = new ElectronicAccess();
     electronicAccess.setUri("uri");
 
-    var expected = "uri;;;;;";
+    var expected = "uri";
     var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess),
       "formatIdentifier", "jobId", "fileName");
 

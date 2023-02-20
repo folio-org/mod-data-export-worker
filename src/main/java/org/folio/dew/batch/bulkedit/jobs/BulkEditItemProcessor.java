@@ -4,6 +4,7 @@ import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
 import static org.folio.dew.utils.BulkEditProcessorHelper.ofEmptyString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
@@ -134,7 +135,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
     ofEmptyString(components.getPrefix()).ifPresent(e -> entries.add(escaper.escape(e)));
     ofEmptyString(components.getSuffix()).ifPresent(e -> entries.add(escaper.escape(e)));
     entries.add(escaper.escape(itemReferenceService.getCallNumberTypeNameById(components.getTypeId(), args)));
-    return String.join(ARRAY_DELIMITER, entries);
+    return String.join(SPACE, entries);
   }
 
   private String fetchNotes(Item item, ErrorServiceArgs args) {

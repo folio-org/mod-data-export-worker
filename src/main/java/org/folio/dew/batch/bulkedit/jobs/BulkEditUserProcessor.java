@@ -122,6 +122,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
   private String customFieldsToString(Map<String, Object> map) {
     return map.entrySet().stream()
       .map(this::customFieldToString)
+      .filter(StringUtils::isNotEmpty)
       .collect(Collectors.joining(ITEM_DELIMITER));
   }
 

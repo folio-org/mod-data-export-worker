@@ -481,7 +481,7 @@
                       <generateApiTests>false</generateApiTests>
                       <generateApiDocumentation>false</generateApiDocumentation>
                       <generateModels>true</generateModels>
-                      <modelsToGenerate>ScheduleParameters</modelsToGenerate>
+                      <!-- <modelsToGenerate>ScheduleParameters</modelsToGenerate> -->
                       <generateModelTests>false</generateModelTests>
                       <generateSupportingFiles>false</generateSupportingFiles>
                       <generateModelDocumentation>true</generateModelDocumentation>

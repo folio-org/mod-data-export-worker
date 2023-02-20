@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.folio.dew.domain.dto.JobParameterNames;
-import org.folio.dew.domain.dto.BursarFeeFinesTypeMapping;
-import org.folio.dew.domain.dto.BursarFeeFinesTypeMapping.ItemCodeEnum;
+// import org.folio.dew.domain.dto.BursarFeeFinesTypeMapping;
+// import org.folio.dew.domain.dto.BursarFeeFinesTypeMapping.ItemCodeEnum;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
@@ -122,17 +122,17 @@ class BursarFeesFinesTest extends BaseBatchTest {
     feeFines.setDaysOutstanding(2);
     feeFines.setTransferAccountId(UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b"));
 
-    BursarFeeFinesTypeMapping typeMapping = new BursarFeeFinesTypeMapping();
-    typeMapping.setFeefineTypeId(UUID.fromString("933336fd-0290-468a-b69f-35815b713265"));
-    typeMapping.setItemType("Bursar Type");
-    typeMapping.setItemCode(ItemCodeEnum.CHARGE);
-    typeMapping.setItemDescription("Desc bursar                  1");
+    // BursarFeeFinesTypeMapping typeMapping = new BursarFeeFinesTypeMapping();
+    // typeMapping.setFeefineTypeId(UUID.fromString("933336fd-0290-468a-b69f-35815b713265"));
+    // typeMapping.setItemType("Bursar Type");
+    // typeMapping.setItemCode(ItemCodeEnum.CHARGE);
+    // typeMapping.setItemDescription("Desc bursar                  1");
 
-    final Map<String, List<BursarFeeFinesTypeMapping>> mapping = new HashMap<>();
-    mapping.put("782c9784-cba0-480a-b8c0-1ffba088c9a5", null);
-    mapping.put("782c9784-cba0-480a-b8c0-1ffba088c9a4", List.of(typeMapping));
+    // final Map<String, List<BursarFeeFinesTypeMapping>> mapping = new HashMap<>();
+    // mapping.put("782c9784-cba0-480a-b8c0-1ffba088c9a5", null);
+    // mapping.put("782c9784-cba0-480a-b8c0-1ffba088c9a4", List.of(typeMapping));
 
-    feeFines.setTypeMappings(String.valueOf(mapping.hashCode()));
+    // feeFines.setTypeMappings(String.valueOf(mapping.hashCode()));
 
     var parametersBuilder = new JobParametersBuilder();
     parametersBuilder.addString("bursarFeeFines", objectMapper.writeValueAsString(feeFines));
@@ -140,7 +140,7 @@ class BursarFeesFinesTest extends BaseBatchTest {
     String jobId = UUID.randomUUID().toString();
     parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
 
-    bursarExportService.addMapping(jobId, mapping);
+    // bursarExportService.addMapping(jobId, mapping);
 
     Date now = new Date();
     String workDir =

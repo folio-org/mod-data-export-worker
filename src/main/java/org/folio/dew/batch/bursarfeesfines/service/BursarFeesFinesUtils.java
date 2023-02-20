@@ -12,7 +12,6 @@ import java.util.Map;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarFeeFinesDto;
-import org.folio.dew.domain.dto.BursarFeeFinesTypeMapping;
 import org.folio.dew.domain.dto.Account;
 
 @UtilityClass
@@ -80,23 +79,24 @@ public class BursarFeesFinesUtils {
     return StringUtils.rightPad(externalId, 11);
   }
 
-  public static BursarFeeFinesTypeMapping getMapping(BursarFeeFinesDto bursarFeeFines, Account account) {
-    if (bursarFeeFines.getTypeMappings() == null) {
-      return null;
-    }
+  // NCO: This could/should be replaced by bursarExportTransferCriteria?
+  // public static BursarFeeFinesTypeMapping getMapping(BursarFeeFinesDto bursarFeeFines, Account account) {
+  //   if (bursarFeeFines.getTypeMappings() == null) {
+  //     return null;
+  //   }
 
-    final List<BursarFeeFinesTypeMapping> feeFinesTypeMappingList = bursarFeeFines
-      .getTypeMappings()
-      .get(account.getOwnerId());
+  //   final List<BursarFeeFinesTypeMapping> feeFinesTypeMappingList = bursarFeeFines
+  //     .getTypeMappings()
+  //     .get(account.getOwnerId());
 
-    if (feeFinesTypeMappingList == null) {
-      return null;
-    }
+  //   if (feeFinesTypeMappingList == null) {
+  //     return null;
+  //   }
 
-    return feeFinesTypeMappingList
-        .stream()
-        .filter(m -> m.getFeefineTypeId().toString().equals(account.getFeeFineId()))
-        .findFirst()
-        .orElse(null);
-  }
+  //   return feeFinesTypeMappingList
+  //       .stream()
+  //       .filter(m -> m.getFeefineTypeId().toString().equals(account.getFeeFineId()))
+  //       .findFirst()
+  //       .orElse(null);
+  // }
 }

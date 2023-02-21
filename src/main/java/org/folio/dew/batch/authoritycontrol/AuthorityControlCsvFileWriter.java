@@ -1,10 +1,18 @@
 package org.folio.dew.batch.authoritycontrol;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.folio.dew.utils.ExportFormatHelper.getHeaderLine;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 import org.folio.dew.domain.dto.authoritycontrol.AuthorityUpdateHeadingExportFormat;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.S3CompatibleResource;
 import org.folio.dew.utils.ExportFormatHelper;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.batch.core.annotation.AfterStep;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.Chunk;
@@ -12,15 +20,6 @@ import org.springframework.batch.item.support.AbstractFileItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.folio.dew.utils.ExportFormatHelper.getHeaderLine;
 
 @Component
 @StepScope
@@ -51,6 +50,14 @@ public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<Author
     writeString(headersLine);
   }
 
+  @AfterStep
+  public void afterStep() throws IOException {
+    var lines = localFilesStorage.linesNumber(tempOutputFilePath, 2);
+    if (lines.size() == 1) {
+      writeString("No records found");
+    }
+  }
+
   @Override
   public void write(@NotNull Chunk<? extends AuthorityUpdateHeadingExportFormat> items) throws Exception {
     writeString(doWrite(items));
@@ -58,8 +65,8 @@ public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<Author
 
   @NotNull
   @Override
-  protected String doWrite(Chunk<? extends AuthorityUpdateHeadingExportFormat> items) {
-    return items.getItems().stream()
+  protected String doWrite(Chunk<? extends AuthorityUpdateHeadingExportFormat> chunk) {
+    return chunk.getItems().stream()
       .map(ExportFormatHelper::getItemRow)
       .collect(Collectors.joining(lineSeparator, EMPTY, lineSeparator));
   }

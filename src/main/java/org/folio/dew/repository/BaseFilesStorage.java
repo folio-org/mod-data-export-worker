@@ -14,6 +14,7 @@ import io.minio.UploadObjectArgs;
 import io.minio.credentials.IamAwsProvider;
 import io.minio.credentials.Provider;
 import io.minio.credentials.StaticProvider;
+import java.util.ArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.NotImplementedException;
@@ -411,6 +412,27 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    */
   public Stream<String> lines(String path) throws IOException {
     return new BufferedReader(new InputStreamReader(newInputStream(path))).lines();
+  }
+
+  /**
+   * Read number lines from a file as a {@code Stream}
+   *
+   * @param path - the path to the file on S3-compatible storage
+   * @param num - the num of lines to read from start of file
+   * @return the lines from the file as a {@code Stream}
+   * @throws IOException - if an I/O error occurs reading from the file
+   */
+  public List<String> linesNumber(String path, int num) throws IOException {
+    try (var reader = new BufferedReader(new InputStreamReader(newInputStream(path)))) {
+      List<String> list = new ArrayList<>();
+      for (int i = 0; i < num; i++) {
+        var line = reader.readLine();
+        if (StringUtils.isNotBlank(line)) {
+          list.add(line);
+        }
+      }
+      return list;
+    }
   }
 
   /**

@@ -69,7 +69,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .itemLevelCallNumberPrefix(item.getItemLevelCallNumberPrefix())
       .itemLevelCallNumberSuffix(item.getItemLevelCallNumberSuffix())
       .itemLevelCallNumberType(itemReferenceService.getCallNumberTypeNameById(item.getItemLevelCallNumberTypeId(), errorServiceArgs))
-      .effectiveCallNumberComponents(effectiveCallNumberComponentsToString(item.getEffectiveCallNumberComponents(), errorServiceArgs))
+      .effectiveCallNumberComponents(effectiveCallNumberComponentsToString(item.getEffectiveCallNumberComponents()))
       .volume(item.getVolume())
       .enumeration(item.getEnumeration())
       .chronology(item.getChronology())
@@ -123,7 +123,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
         .collect(Collectors.joining(ARRAY_DELIMITER));
   }
 
-  private String effectiveCallNumberComponentsToString(EffectiveCallNumberComponents components, ErrorServiceArgs args) {
+  private String effectiveCallNumberComponentsToString(EffectiveCallNumberComponents components) {
     if (isEmpty(components)) {
       return EMPTY;
     }

@@ -415,9 +415,10 @@ public class BaseFilesStorage implements S3CompatibleStorage {
   }
 
   /**
-   * Read all lines from a file as a {@code Stream}
+   * Read number lines from a file as a {@code Stream}
    *
    * @param path - the path to the file on S3-compatible storage
+   * @param num - the num of lines to read from start of file
    * @return the lines from the file as a {@code Stream}
    * @throws IOException - if an I/O error occurs reading from the file
    */

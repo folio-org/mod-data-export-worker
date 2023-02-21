@@ -131,7 +131,6 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
     ofEmptyString(components.getPrefix()).ifPresent(e -> entries.add(escaper.escape(e)));
     ofEmptyString(components.getCallNumber()).ifPresent(e -> entries.add(escaper.escape(e)));
     ofEmptyString(components.getSuffix()).ifPresent(e -> entries.add(escaper.escape(e)));
-    entries.add(escaper.escape(itemReferenceService.getCallNumberTypeNameById(components.getTypeId(), args)));
     return String.join(SPACE, entries);
   }
 

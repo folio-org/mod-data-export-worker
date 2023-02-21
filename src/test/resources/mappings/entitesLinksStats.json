@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/links/authority/stats?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T00%3A00Z&toDate=2023-12-01T00%3A00Z"
+        "url": "/links/authority/stats?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T00%3A00Z&toDate=2023-12-01T23%3A59%3A59.999999999Z"
       },
       "response": {
         "status": 200,
@@ -21,6 +21,19 @@
       "response": {
         "status": 200,
         "body": "{\"stats\": [\n{\n\"id\": \"0b1e3760-f689-493e-a98e-9cc9dadb7e83\",\n\"authorityId\": \"c8f721bd-38ac-411d-82c8-a5902fb20deb\",\n\"action\": \"UPDATE_HEADING\",\n\"naturalIdOld\": \"mo34056\",\n\"naturalIdNew\": \"mo34056\",\n\"headingOld\": \"Charles III, King\",\n\"headingNew\": \"King Charles III\",\n\"headingTypeOld\": \"100\",\n\"headingTypeNew\": \"100\",\n\"sourceFileOld\": \"Not specified\",\n\"sourceFileNew\": \"Not specified\",\n\"lbTotal\": 10,\n\"lbUpdated\": 10,\n\"lbFailed\": 0,\n\"metadata\": {\n\"startedAt\": \"2023-08-01T12:00:00Z\",\n\"completedAt\": \"2023-08-01T15:00:00Z\",\n\"startedByUserId\": \"f4d72275-fbca-44d0-9214-72647a812333\",\n\"startedByUserFirstName\": \"Folio\",\n\"startedByUserLastName\": \"Test\"}},\n{\n\"id\": \"1b1e3760-f689-493e-a98e-9cc9dadb7e83\",\n\"authorityId\": \"c8f721bd-38ac-411d-82c8-a5902fb20deb\",\n\"action\": \"UPDATE_HEADING\",\n\"naturalIdOld\": \"mo34056\",\n\"naturalIdNew\": \"mo34056\",\n\"headingOld\": \"Charles III, King\",\n\"headingNew\": \"King Charles III\",\n\"headingTypeOld\": \"100\",\n\"headingTypeNew\": \"100\",\n\"sourceFileOld\": \"Not specified\",\n\"sourceFileNew\": \"Not specified\",\n\"lbTotal\": 10,\n\"lbUpdated\": 10,\n\"lbFailed\": 0,\n\"metadata\": {\n\"startedAt\": \"2023-08-01T12:00:00Z\",\n\"completedAt\": \"2023-07-01T15:00:00Z\",\n\"startedByUserId\": \"f4d72275-fbca-44d0-9214-72647a812333\",\n\"startedByUserLastName\": \"Test\"}}]}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/links/authority/stats?limit=2&action=UPDATE_HEADING&fromDate=2022-01-01T00%3A00Z&toDate=2022-12-01T23%3A59%3A59.999999999Z"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"stats\":[]}",
         "headers": {
           "Content-Type": "application/json"
         }

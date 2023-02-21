@@ -34,7 +34,7 @@ public class AuthorityControlItemReader extends AbstractItemCountingItemStreamIt
     this.limit = jobProperties.getEntitiesLinksChunkSize();
     this.entitiesLinksStatsClient = entitiesLinksStatsClient;
     this.fromDate = OffsetDateTime.of(exportConfig.getFromDate(), LocalTime.MIN, ZoneOffset.UTC);
-    this.toDate = OffsetDateTime.of(exportConfig.getToDate(), LocalTime.MIN, ZoneOffset.UTC);
+    this.toDate = OffsetDateTime.of(exportConfig.getToDate(), LocalTime.MAX, ZoneOffset.UTC);
 
     setSaveState(false);
     setCurrentItemCount(0);

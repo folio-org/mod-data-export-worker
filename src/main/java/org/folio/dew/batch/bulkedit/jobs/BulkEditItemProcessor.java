@@ -1,8 +1,11 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
+import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
+import static org.folio.dew.utils.BulkEditProcessorHelper.ofEmptyString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 
@@ -26,6 +29,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -64,7 +69,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .itemLevelCallNumberPrefix(item.getItemLevelCallNumberPrefix())
       .itemLevelCallNumberSuffix(item.getItemLevelCallNumberSuffix())
       .itemLevelCallNumberType(itemReferenceService.getCallNumberTypeNameById(item.getItemLevelCallNumberTypeId(), errorServiceArgs))
-      .effectiveCallNumberComponents(effectiveCallNumberComponentsToString(item.getEffectiveCallNumberComponents(), errorServiceArgs))
+      .effectiveCallNumberComponents(effectiveCallNumberComponentsToString(item.getEffectiveCallNumberComponents()))
       .volume(item.getVolume())
       .enumeration(item.getEnumeration())
       .chronology(item.getChronology())
@@ -81,7 +86,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .administrativeNotes(isEmpty(item.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getAdministrativeNotes())))
       .notes(fetchNotes(item, errorServiceArgs))
       .circulationNotes(fetchCirculationNotes(item))
-      .status(String.join(ARRAY_DELIMITER, item.getStatus().getName().getValue(), dateToString(item.getStatus().getDate())))
+      .status(statusToString(item))
       .materialType(item.getMaterialType().getName())
       .isBoundWith(item.getIsBoundWith().toString())
       .boundWithTitles(fetchBoundWithTitles(item))
@@ -100,6 +105,15 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
     return itemFormat.withOriginal(item);
   }
 
+
+  private String statusToString(Item item) {
+    var status = item.getStatus();
+    if (nonNull(status)) {
+      return status.getName().getValue();
+    }
+    return EMPTY;
+  }
+
   private String fetchContributorNames(Item item) {
     return isEmpty(item.getContributorNames()) ?
       EMPTY :
@@ -109,15 +123,15 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
         .collect(Collectors.joining(ARRAY_DELIMITER));
   }
 
-  private String effectiveCallNumberComponentsToString(EffectiveCallNumberComponents components, ErrorServiceArgs args) {
+  private String effectiveCallNumberComponentsToString(EffectiveCallNumberComponents components) {
     if (isEmpty(components)) {
       return EMPTY;
     }
-    return String.join(ARRAY_DELIMITER,
-      isEmpty(components.getCallNumber()) ? EMPTY : escaper.escape(components.getCallNumber()),
-      isEmpty(components.getPrefix()) ? EMPTY : escaper.escape(components.getPrefix()),
-      isEmpty(components.getSuffix()) ? EMPTY : escaper.escape(components.getSuffix()),
-      escaper.escape(itemReferenceService.getCallNumberTypeNameById(components.getTypeId(), args)));
+    List<String> entries = new ArrayList<>();
+    ofEmptyString(components.getPrefix()).ifPresent(e -> entries.add(escaper.escape(e)));
+    ofEmptyString(components.getCallNumber()).ifPresent(e -> entries.add(escaper.escape(e)));
+    ofEmptyString(components.getSuffix()).ifPresent(e -> entries.add(escaper.escape(e)));
+    return String.join(SPACE, entries);
   }
 
   private String fetchNotes(Item item, ErrorServiceArgs args) {

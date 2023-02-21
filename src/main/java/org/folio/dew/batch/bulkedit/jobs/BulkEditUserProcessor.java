@@ -5,6 +5,7 @@ import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
+import static org.folio.dew.utils.BulkEditProcessorHelper.ofEmptyString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
@@ -16,10 +17,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.Address;
 import org.folio.dew.domain.dto.CustomField;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.IdentifierType;
+import org.folio.dew.domain.dto.Personal;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
@@ -53,6 +57,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
   @Override
   public UserFormat process(User user) {
     var errorServiceArgs = new ErrorServiceArgs(jobId, getIdentifier(user, identifierType), FilenameUtils.getName(fileName));
+    var personal = user.getPersonal();
     return UserFormat.builder()
       .username(user.getUsername())
       .id(user.getId())
@@ -62,16 +67,16 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       .type(user.getType())
       .patronGroup(userReferenceService.getPatronGroupNameById(user.getPatronGroup(), errorServiceArgs))
       .departments(fetchDepartments(user, errorServiceArgs))
-      .lastName(user.getPersonal().getLastName())
-      .firstName(user.getPersonal().getFirstName())
-      .middleName(user.getPersonal().getMiddleName())
-      .preferredFirstName(user.getPersonal().getPreferredFirstName())
-      .email(user.getPersonal().getEmail())
-      .phone(user.getPersonal().getPhone())
-      .mobilePhone(user.getPersonal().getMobilePhone())
-      .dateOfBirth(dateToString(user.getPersonal().getDateOfBirth()))
-      .addresses(addressesToString(user.getPersonal().getAddresses(), errorServiceArgs))
-      .preferredContactTypeId(isNull(user.getPersonal().getPreferredContactTypeId()) ? EMPTY : user.getPersonal().getPreferredContactTypeId())
+      .lastName(nonNull(personal) ? personal.getLastName() : EMPTY)
+      .firstName(nonNull(personal) ? personal.getFirstName() : EMPTY)
+      .middleName(nonNull(personal) ? personal.getMiddleName() : EMPTY)
+      .preferredFirstName(nonNull(personal)? personal.getPreferredFirstName() : EMPTY)
+      .email(nonNull(personal) ? personal.getEmail() : EMPTY)
+      .phone(nonNull(personal) ? personal.getPhone() : EMPTY)
+      .mobilePhone(nonNull(personal) ? personal.getMobilePhone() : EMPTY)
+      .dateOfBirth(nonNull(personal) ? dateToString(personal.getDateOfBirth()) : EMPTY)
+      .addresses(nonNull(personal)? addressesToString(personal.getAddresses(), errorServiceArgs) : EMPTY)
+      .preferredContactTypeId(nonNull(personal) ? getPreferredContactTypeId(personal) : EMPTY)
       .enrollmentDate(dateToString(user.getEnrollmentDate()))
       .expirationDate(dateToString(user.getExpirationDate()))
       .createdDate(dateToString(user.getCreatedDate()))
@@ -81,10 +86,15 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       .build().withOriginal(user);
   }
 
+  private String getPreferredContactTypeId(Personal personal) {
+    return isNull(personal.getPreferredContactTypeId()) ? EMPTY : personal.getPreferredContactTypeId();
+  }
+
   private String fetchDepartments(User user, ErrorServiceArgs args) {
     if (nonNull(user.getDepartments())) {
       return user.getDepartments().stream()
         .map(id -> userReferenceService.getDepartmentNameById(id.toString(), args))
+        .filter(StringUtils::isNotEmpty)
         .map(escaper::escape)
         .collect(Collectors.joining(ARRAY_DELIMITER));
     }
@@ -101,22 +111,23 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
   }
 
   private String addressToString(Address address, ErrorServiceArgs args) {
-    List<String> addressData = new ArrayList<>();
-    addressData.add(ofNullable(address.getId()).orElse(EMPTY));
-    addressData.add(ofNullable(address.getCountryId()).orElse(EMPTY));
-    addressData.add(ofNullable(address.getAddressLine1()).orElse(EMPTY));
-    addressData.add(ofNullable(address.getAddressLine2()).orElse(EMPTY));
-    addressData.add(ofNullable(address.getCity()).orElse(EMPTY));
-    addressData.add(ofNullable(address.getRegion()).orElse(EMPTY));
-    addressData.add(ofNullable(address.getPostalCode()).orElse(EMPTY));
-    addressData.add(nonNull(address.getPrimaryAddress()) ? address.getPrimaryAddress().toString() : EMPTY);
-    addressData.add(userReferenceService.getAddressTypeDescById(address.getAddressTypeId(), args));
-    return String.join(ARRAY_DELIMITER, escaper.escape(addressData));
+    List<String> data = new ArrayList<>();
+    ofEmptyString(address.getId()).ifPresent(data::add);
+    ofEmptyString(address.getCountryId()).ifPresent(data::add);
+    ofEmptyString(address.getAddressLine1()).ifPresent(data::add);
+    ofEmptyString(address.getAddressLine2()).ifPresent(data::add);
+    ofEmptyString(address.getCity()).ifPresent(data::add);
+    ofEmptyString(address.getRegion()).ifPresent(data::add);
+    ofEmptyString(address.getPostalCode()).ifPresent(data::add);
+    ofNullable(address.getPrimaryAddress()).ifPresent(primary -> data.add(primary.toString()));
+    ofEmptyString(userReferenceService.getAddressTypeDescById(address.getAddressTypeId(), args)).ifPresent(data::add);
+    return String.join(ARRAY_DELIMITER, escaper.escape(data));
   }
 
   private String customFieldsToString(Map<String, Object> map) {
     return map.entrySet().stream()
       .map(this::customFieldToString)
+      .filter(StringUtils::isNotEmpty)
       .collect(Collectors.joining(ITEM_DELIMITER));
   }
 
@@ -138,6 +149,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       var values = (ArrayList) entry.getValue();
       return escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + values.stream()
         .map(v -> escaper.escape(extractValueById(customField, v.toString())))
+        .filter(ObjectUtils::isNotEmpty)
         .collect(Collectors.joining(ARRAY_DELIMITER));
     default:
       throw new BulkEditException("Invalid custom field: " + entry);

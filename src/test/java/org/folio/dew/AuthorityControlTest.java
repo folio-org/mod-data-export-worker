@@ -1,9 +1,20 @@
 package org.folio.dew;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.domain.dto.JobParameterNames.AUTHORITY_CONTROL_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.springframework.batch.test.AssertFile.assertFileEquals;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.util.stream.Stream;
+import java.io.File;
+import java.time.LocalDate;
+import java.util.UUID;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.folio.de.entity.JobCommand;
@@ -28,23 +39,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.io.FileSystemResource;
 
-import java.io.File;
-import java.time.LocalDate;
-import java.util.UUID;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.folio.dew.domain.dto.JobParameterNames.AUTHORITY_CONTROL_FILE_NAME;
-import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.springframework.batch.test.AssertFile.assertFileEquals;
-
 @Log4j2
 class AuthorityControlTest extends BaseBatchTest {
+  private static final String EXPECTED_AUTHORITY_STAT_OUTPUT = "src/test/resources/output/auth_heading_update.csv";
+  private static final String EXPECTED_AUTHORITY_STAT_EMPTY_OUTPUT =
+    "src/test/resources/output/auth_heading_update_empty.csv";
+  private static final String FILE_PATH = "mod-data-export-worker/authority_control_export/diku/";
   @Autowired
   private Job getAuthHeadingJob;
   @Autowired
@@ -53,10 +53,6 @@ class AuthorityControlTest extends BaseBatchTest {
   private RemoteFilesStorage remoteFilesStorage;
   @SpyBean
   private KafkaService kafkaService;
-
-  private static final String EXPECTED_AUTHORITY_STAT_OUTPUT = "src/test/resources/output/auth_heading_update.csv";
-  private static final String EXPECTED_AUTHORITY_STAT_EMPTY_OUTPUT = "src/test/resources/output/auth_heading_update_empty.csv";
-  private static final String FILE_PATH = "mod-data-export-worker/authority_control_export/diku/";
 
   @Test
   @DisplayName("Run AuthorityControlJob export successfully")
@@ -113,11 +109,6 @@ class AuthorityControlTest extends BaseBatchTest {
     final String presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(fileInStorage);
     final FileSystemResource actualOutput = actualFileOutput(presignedUrl);
     FileSystemResource expectedOutput = new FileSystemResource(expectedFile);
-    var bufferedReader = new BufferedReader(new FileReader(actualOutput.getFile()));
-    var lines = bufferedReader.lines();
-    System.out.println(lines);
-    bufferedReader.close();
-
     assertFileEquals(expectedOutput, actualOutput);
   }
 

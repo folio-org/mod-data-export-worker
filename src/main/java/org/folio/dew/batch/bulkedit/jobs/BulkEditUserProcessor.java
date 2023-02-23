@@ -5,7 +5,6 @@ import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
-import static org.folio.dew.utils.BulkEditProcessorHelper.ofEmptyString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
@@ -111,17 +110,17 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
   }
 
   private String addressToString(Address address, ErrorServiceArgs args) {
-    List<String> data = new ArrayList<>();
-    ofEmptyString(address.getId()).ifPresent(data::add);
-    ofEmptyString(address.getCountryId()).ifPresent(data::add);
-    ofEmptyString(address.getAddressLine1()).ifPresent(data::add);
-    ofEmptyString(address.getAddressLine2()).ifPresent(data::add);
-    ofEmptyString(address.getCity()).ifPresent(data::add);
-    ofEmptyString(address.getRegion()).ifPresent(data::add);
-    ofEmptyString(address.getPostalCode()).ifPresent(data::add);
-    ofNullable(address.getPrimaryAddress()).ifPresent(primary -> data.add(primary.toString()));
-    ofEmptyString(userReferenceService.getAddressTypeDescById(address.getAddressTypeId(), args)).ifPresent(data::add);
-    return String.join(ARRAY_DELIMITER, escaper.escape(data));
+    List<String> addressData = new ArrayList<>();
+    addressData.add(ofNullable(address.getId()).orElse(EMPTY));
+    addressData.add(ofNullable(address.getCountryId()).orElse(EMPTY));
+    addressData.add(ofNullable(address.getAddressLine1()).orElse(EMPTY));
+    addressData.add(ofNullable(address.getAddressLine2()).orElse(EMPTY));
+    addressData.add(ofNullable(address.getCity()).orElse(EMPTY));
+    addressData.add(ofNullable(address.getRegion()).orElse(EMPTY));
+    addressData.add(ofNullable(address.getPostalCode()).orElse(EMPTY));
+    addressData.add(nonNull(address.getPrimaryAddress()) ? address.getPrimaryAddress().toString() : EMPTY);
+    addressData.add(userReferenceService.getAddressTypeDescById(address.getAddressTypeId(), args));
+    return String.join(ARRAY_DELIMITER, escaper.escape(addressData));
   }
 
   private String customFieldsToString(Map<String, Object> map) {

@@ -5,7 +5,6 @@ import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
-import static org.folio.dew.utils.BulkEditProcessorHelper.ofEmptyString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;

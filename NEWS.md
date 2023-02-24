@@ -1,3 +1,25 @@
+## 2023-02-24 v3.0.0
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v2.0.7...v3.0.0)
+
+### Technical tasks
+* [MODEXPW-347](https://issues.folio.org/browse/MODEXPW-347) Bulk Operations: save entities in json together with csv
+* [MODEXPW-342](https://issues.folio.org/browse/MODEXPW-342) Refreshing mechanism for presigned url (Circulation log)
+* [MODEXPW-333](https://issues.folio.org/browse/MODEXPW-333) Update the module to Spring boot v3.0.0 and identify issues
+* [MODEXPW-332](https://issues.folio.org/browse/MODEXPW-332) Update to Java 17
+* [MODEXPW-292](https://issues.folio.org/browse/MODEXPW-292) Logging improvement - Configuration
+
+### Stories
+* [MODEXPW-362](https://issues.folio.org/browse/MODEXPW-362) Bulk Edit Query job should contain link to json with results
+
+### Bug fixes
+* [MODEXPW-369](https://issues.folio.org/browse/MODEXPW-369) "Authority control" job failed because of a permission error.
+* [MODEXPW-368](https://issues.folio.org/browse/MODEXPW-368) Align csv-file format with bulk-operations
+* [MODEXPW-367](https://issues.folio.org/browse/MODEXPW-367) Authority control: Invalid fromDate/toDate format
+* [MODEXPW-364](https://issues.folio.org/browse/MODEXPW-364) Broken user birthday field fails bulk edit job
+* [MODEXPW-344](https://issues.folio.org/browse/MODEXPW-344) Upgrades: Spring Boot 2.7.6, ssh-sftp 2.9.2, netty 4.1.86, commons-net 3.9.0
+* [MODEXPW-321](https://issues.folio.org/browse/MODEXPW-321) null instead of Record Identifier
+
 ## 2022-10-26 v2.0.0
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v1.4.6...v2.0.0)

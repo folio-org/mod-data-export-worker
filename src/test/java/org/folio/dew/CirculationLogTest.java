@@ -54,7 +54,7 @@ class CirculationLogTest extends BaseBatchTest {
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(
-          "/audit-data/circulation/logs?query&offset=0&limit=100000")));
+          "/audit-data/circulation/logs?query&offset=0&limit=100")));
   }
 
   @Test

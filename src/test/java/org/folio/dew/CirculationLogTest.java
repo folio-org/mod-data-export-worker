@@ -32,6 +32,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.CIRCULATION_LOG_FILE_NA
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
+
 class CirculationLogTest extends BaseBatchTest {
 
   @Autowired private Job getCirculationLogJob;
@@ -53,7 +54,7 @@ class CirculationLogTest extends BaseBatchTest {
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(
-          "/audit-data/circulation/logs?query&offset=0&limit=100000")));
+          "/audit-data/circulation/logs?query&offset=0&limit=100")));
   }
 
   @Test

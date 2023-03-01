@@ -18,8 +18,6 @@ public abstract class CsvItemReader<T> extends AbstractItemCountingItemStreamIte
     quantityToRetrievePerHttpRequest = Integer.max(perRequest,limit.intValue());
     offsetStep = quantityToRetrievePerHttpRequest;
 
-    System.out.println("quantityToRetrievePerHttpRequest " + perRequest);
-    System.out.println("The limit is " + limit.toString());
     setCurrentItemCount(0);
     setMaxItemCount(limit.intValue());
     setSaveState(false);

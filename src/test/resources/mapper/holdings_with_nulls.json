@@ -1,0 +1,42 @@
+{
+  "notes": [
+    {
+      "note": "action note",
+      "staffOnly": false,
+      "holdingsNoteTypeId": "d6510242-5ec3-42ed-b593-3585d2e48fd6"
+    },
+    null,
+    {
+      "note": "action note",
+      "staffOnly": null,
+      "holdingsNoteTypeId": "d6510242-5ec3-42ed-b593-3585d2e48fd6"
+    }
+  ],
+  "holdingsStatements": [
+    {
+      "statement": "statement",
+      "note": "statement note",
+      "staffNote": "statements staff note"
+    },
+    null,
+    {
+      "statement": "statement2",
+      "note": "statement note2",
+      "staffNote": "statements staff note2"
+    }
+  ],
+  "receivingHistory": {
+    "entries": [
+      {
+        "publicDisplay": true,
+        "enumeration": "enum",
+        "chronology": "chronology"
+      },
+      null,
+      {
+        "enumeration": "enum2",
+        "chronology": "chronology2"
+      }
+    ]
+  }
+}

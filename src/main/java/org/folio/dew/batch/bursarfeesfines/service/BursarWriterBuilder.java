@@ -1,183 +1,186 @@
 package org.folio.dew.batch.bursarfeesfines.service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.item.file.transform.FieldExtractor;
 import org.springframework.batch.item.file.transform.FormatterLineAggregator;
 import org.springframework.batch.item.file.transform.LineAggregator;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.WritableResource;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+public class BursarWriterBuilder {
 
-public class BursarWriterBuilder<T> {
+  private WritableResource resource;
 
-	private WritableResource resource;
-
-	private String lineSeparator = System.getProperty("line.separator");
-
-	private LineAggregator<T> lineAggregator;
+  private LineAggregator<String> lineAggregator;
 
   private String header;
+  private String footer;
 
-	private String name;
+  private String name;
 
-	private DelimitedBuilder<T> delimitedBuilder;
+  private DelimitedBuilder delimitedBuilder;
 
-	private FormattedBuilder<T> formattedBuilder;
+  private FormattedBuilder formattedBuilder;
 
   private LocalFilesStorage localFilesStorage;
 
-
-  public BursarWriterBuilder<T> localFilesStorage(LocalFilesStorage localFilesStorage) {
+  public BursarWriterBuilder localFilesStorage(
+    LocalFilesStorage localFilesStorage
+  ) {
     this.localFilesStorage = localFilesStorage;
 
     return this;
   }
 
-	public BursarWriterBuilder<T> name(String name) {
-		this.name = name;
+  public BursarWriterBuilder name(String name) {
+    this.name = name;
 
-		return this;
-	}
+    return this;
+  }
 
-	public BursarWriterBuilder<T> resource(WritableResource resource) {
-		this.resource = resource;
+  public BursarWriterBuilder resource(WritableResource resource) {
+    this.resource = resource;
 
-		return this;
-	}
+    return this;
+  }
 
-	public BursarWriterBuilder<T> header(String header) {
-		this.header = header;
+  public BursarWriterBuilder header(String header) {
+    this.header = header;
 
-		return this;
-	}
+    return this;
+  }
 
-	public FormattedBuilder<T> formatted() {
-		this.formattedBuilder = new FormattedBuilder<>(this);
-		return this.formattedBuilder;
-	}
+  public BursarWriterBuilder footer(String footer) {
+    this.footer = footer;
 
-	public static class FormattedBuilder<T> {
+    return this;
+  }
 
-		private final BursarWriterBuilder<T> parent;
+  public FormattedBuilder formatted() {
+    this.formattedBuilder = new FormattedBuilder(this);
+    return this.formattedBuilder;
+  }
 
-		private String format;
+  public static class FormattedBuilder {
 
-		private final Locale locale = Locale.getDefault();
+    private final BursarWriterBuilder parent;
 
-    private FieldExtractor<T> fieldExtractor;
+    private String format;
 
-		private final List<String> names = new ArrayList<>();
+    private final Locale locale = Locale.getDefault();
 
-		protected FormattedBuilder(BursarWriterBuilder<T> parent) {
-			this.parent = parent;
-		}
+    private FieldExtractor<String> fieldExtractor;
 
-		public FormattedBuilder<T> format(String format) {
-			this.format = format;
-			return this;
-		}
+    private final List<String> names = new ArrayList<>();
 
-		public BursarWriterBuilder<T> names(String... names) {
-			this.names.addAll(Arrays.asList(names));
-			return this.parent;
-		}
+    protected FormattedBuilder(BursarWriterBuilder parent) {
+      this.parent = parent;
+    }
 
-		public FormatterLineAggregator<T> build() {
+    public FormattedBuilder format(String format) {
+      this.format = format;
+      return this;
+    }
 
-			FormatterLineAggregator<T> formatterLineAggregator = new FormatterLineAggregator<>();
-			formatterLineAggregator.setFormat(this.format);
-			formatterLineAggregator.setLocale(this.locale);
+    public BursarWriterBuilder names(String... names) {
+      this.names.addAll(Arrays.asList(names));
+      return this.parent;
+    }
+
+    public FormatterLineAggregator<String> build() {
+      FormatterLineAggregator<String> formatterLineAggregator = new FormatterLineAggregator<>();
+      formatterLineAggregator.setFormat(this.format);
+      formatterLineAggregator.setLocale(this.locale);
       int minimumLength = 0;
       formatterLineAggregator.setMinimumLength(minimumLength);
       int maximumLength = 0;
       formatterLineAggregator.setMaximumLength(maximumLength);
 
-			if (this.fieldExtractor == null) {
-				BeanWrapperFieldExtractor<T> beanWrapperFieldExtractor = new BeanWrapperFieldExtractor<>();
-				beanWrapperFieldExtractor.setNames(this.names.toArray(new String[0]));
-				try {
-					beanWrapperFieldExtractor.afterPropertiesSet();
-				}
-				catch (Exception e) {
-					throw new IllegalStateException("Unable to initialize FormatterLineAggregator", e);
-				}
-				this.fieldExtractor = beanWrapperFieldExtractor;
-			}
+      if (this.fieldExtractor == null) {
+        BeanWrapperFieldExtractor<String> beanWrapperFieldExtractor = new BeanWrapperFieldExtractor<>();
+        beanWrapperFieldExtractor.setNames(this.names.toArray(new String[0]));
+        try {
+          beanWrapperFieldExtractor.afterPropertiesSet();
+        } catch (Exception e) {
+          throw new IllegalStateException(
+            "Unable to initialize FormatterLineAggregator",
+            e
+          );
+        }
+        this.fieldExtractor = beanWrapperFieldExtractor;
+      }
 
-			formatterLineAggregator.setFieldExtractor(this.fieldExtractor);
-			return formatterLineAggregator;
-		}
-	}
+      formatterLineAggregator.setFieldExtractor(this.fieldExtractor);
+      return formatterLineAggregator;
+    }
+  }
 
-	public static class DelimitedBuilder<T> {
+  public static class DelimitedBuilder {
 
-		private BursarWriterBuilder<T> parent;
+    private BursarWriterBuilder parent;
 
-		private List<String> names = new ArrayList<>();
+    private List<String> names = new ArrayList<>();
 
-		private String delimiter = ",";
+    private String delimiter = ",";
 
-		private FieldExtractor<T> fieldExtractor;
+    private FieldExtractor<String> fieldExtractor;
 
-		protected DelimitedBuilder(BursarWriterBuilder<T> parent) {
-			this.parent = parent;
-		}
+    protected DelimitedBuilder(BursarWriterBuilder parent) {
+      this.parent = parent;
+    }
 
+    public BursarWriterBuilder names(String... names) {
+      this.names.addAll(Arrays.asList(names));
+      return this.parent;
+    }
 
-		public BursarWriterBuilder<T> names(String... names) {
-			this.names.addAll(Arrays.asList(names));
-			return this.parent;
-		}
+    public DelimitedLineAggregator<String> build() {
+      DelimitedLineAggregator<String> delimitedLineAggregator = new DelimitedLineAggregator<>();
+      if (this.delimiter != null) {
+        delimitedLineAggregator.setDelimiter(this.delimiter);
+      }
 
-		public DelimitedLineAggregator<T> build() {
+      if (this.fieldExtractor == null) {
+        BeanWrapperFieldExtractor<String> beanWrapperFieldExtractor = new BeanWrapperFieldExtractor<>();
+        beanWrapperFieldExtractor.setNames(this.names.toArray(new String[0]));
+        try {
+          beanWrapperFieldExtractor.afterPropertiesSet();
+        } catch (Exception e) {
+          throw new IllegalStateException(
+            "Unable to initialize DelimitedLineAggregator",
+            e
+          );
+        }
+        this.fieldExtractor = beanWrapperFieldExtractor;
+      }
 
-			DelimitedLineAggregator<T> delimitedLineAggregator = new DelimitedLineAggregator<>();
-			if (this.delimiter != null) {
-				delimitedLineAggregator.setDelimiter(this.delimiter);
-			}
+      delimitedLineAggregator.setFieldExtractor(this.fieldExtractor);
+      return delimitedLineAggregator;
+    }
+  }
 
-			if (this.fieldExtractor == null) {
-				BeanWrapperFieldExtractor<T> beanWrapperFieldExtractor = new BeanWrapperFieldExtractor<>();
-				beanWrapperFieldExtractor.setNames(this.names.toArray(new String[0]));
-				try {
-					beanWrapperFieldExtractor.afterPropertiesSet();
-				}
-				catch (Exception e) {
-					throw new IllegalStateException("Unable to initialize DelimitedLineAggregator", e);
-				}
-				this.fieldExtractor = beanWrapperFieldExtractor;
-			}
+  public BursarWriter build() {
+    BursarWriter writer = new BursarWriter();
 
-			delimitedLineAggregator.setFieldExtractor(this.fieldExtractor);
-			return delimitedLineAggregator;
-		}
-	}
-
-	public BursarWriter<T> build() {
-
-		BursarWriter<T> writer = new BursarWriter<>();
-
-		writer.setName(this.name);
-		writer.setHeader(this.header);
-		if (this.lineAggregator == null) {
-					if (this.delimitedBuilder != null) {
-				this.lineAggregator = this.delimitedBuilder.build();
-			}
-			else {
-				this.lineAggregator = this.formattedBuilder.build();
-			}
-		}
-		writer.setLineAggregator(this.lineAggregator);
-		writer.setLineSeparator(this.lineSeparator);
-		writer.setResource(this.resource);
+    writer.setName(this.name);
+    writer.setHeader(this.header);
+    writer.setFooter(this.footer);
+    if (this.lineAggregator == null) {
+      if (this.delimitedBuilder != null) {
+        this.lineAggregator = this.delimitedBuilder.build();
+      } else {
+        this.lineAggregator = this.formattedBuilder.build();
+      }
+    }
+    writer.setLineAggregator(this.lineAggregator);
+    writer.setResource(this.resource);
     writer.setLocalFilesStorage(this.localFilesStorage);
 
-		return writer;
-	}
+    return writer;
+  }
 }

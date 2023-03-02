@@ -37,9 +37,7 @@ import org.folio.dew.batch.acquisitions.edifact.services.ResendService;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.config.kafka.KafkaService;
-import org.folio.dew.domain.dto.bursarfeesfines.BursarFeeFinesDto;
 import org.folio.dew.domain.dto.JobParameterNames;
-import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.JobCommandRepository;
@@ -48,10 +46,8 @@ import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -70,10 +66,7 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class JobCommandsReceiverService {
 
-  private final ObjectMapper objectMapper;
-  private final ExportJobManager exportJobManager;
   private final ExportJobManagerSync exportJobManagerSync;
-  private final BursarExportService bursarExportService;
   private final IAcknowledgementRepository acknowledgementRepository;
   private final RemoteFilesStorage remoteFilesStorage;
   private final LocalFilesStorage localFilesStorage;
@@ -193,8 +186,6 @@ public class JobCommandsReceiverService {
 
     addOrderExportSpecificParameters(jobCommand, paramsBuilder);
 
-    normalizeParametersForBursarExport(paramsBuilder, jobId);
-
     jobCommand.setJobParameters(paramsBuilder.toJobParameters());
   }
 
@@ -202,36 +193,6 @@ public class JobCommandsReceiverService {
     if (jobCommand.getExportType().equals(EDIFACT_ORDERS_EXPORT)) {
       paramsBuilder.addString(JobParameterNames.JOB_NAME, jobCommand.getName());
     }
-  }
-
-  @SneakyThrows
-  private void normalizeParametersForBursarExport(JobParametersBuilder paramsBuilder, String jobId) {
-    final JobParameter bursarFeeFines = paramsBuilder.toJobParameters().getParameters().get("bursarFeeFines");
-    if (bursarFeeFines == null) {
-      return;
-    }
-
-    var bff = extractBursarFeeFines(bursarFeeFines);
-
-    BursarJobPrameterDto dto = replaceTypeMappingsCollectionWithHash(bff);
-    paramsBuilder.addString("bursarFeeFines", objectMapper.writeValueAsString(dto));
-
-
-    // bursarExportService.addMapping(jobId, bff.getTypeMappings());
-  }
-
-  private BursarJobPrameterDto replaceTypeMappingsCollectionWithHash(BursarFeeFinesDto bursarFeeFines) {
-    var dto = new BursarJobPrameterDto();
-    BeanUtils.copyProperties(bursarFeeFines, dto, "typeMappings");
-
-    // dto.setTypeMappings(String.valueOf(bursarFeeFines.getTypeMappings().hashCode()));
-    return dto;
-  }
-
-  private BursarFeeFinesDto extractBursarFeeFines(JobParameter bursarFeeFines)
-    throws com.fasterxml.jackson.core.JsonProcessingException {
-    final String value = (String) bursarFeeFines.getValue();
-    return objectMapper.readValue(value, BursarFeeFinesDto.class);
   }
 
   private boolean deleteOldFiles(JobCommand jobCommand, Acknowledgment acknowledgment) {

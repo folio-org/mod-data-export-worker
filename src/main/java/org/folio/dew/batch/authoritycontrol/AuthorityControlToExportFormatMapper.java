@@ -16,7 +16,7 @@ import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 @Component
 public class AuthorityControlToExportFormatMapper {
   private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
-  private static final String UNKNOWN_USER = "Unknown user";
+  private static final String UNKNOWN_USER = "Unknown User";
 
   public AuthorityUpdateHeadingExportFormat convertToExportFormat(AuthorityDataStatDto dto) {
     var exportFormat = new AuthorityUpdateHeadingExportFormat();

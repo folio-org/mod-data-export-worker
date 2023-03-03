@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/note-links/domain/eholdings/type/resource/id/1-22-333?status=assigned"
+        "url": "/note-links/domain/eholdings/type/resource/id/1-22-333?status=assigned&orderBy=updatedDate"
       },
       "response": {
         "status": 200,
@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/note-links/domain/eholdings/type/resource/id/1-21-3301?status=assigned"
+        "url": "/note-links/domain/eholdings/type/resource/id/1-21-3301?status=assigned&orderBy=updatedDate"
       },
       "response": {
         "status": 200,
@@ -29,7 +29,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/note-links/domain/eholdings/type/resource/id/1-21-3302?status=assigned"
+        "url": "/note-links/domain/eholdings/type/resource/id/1-21-3302?status=assigned&orderBy=updatedDate"
       },
       "response": {
         "status": 200,
@@ -42,7 +42,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/note-links/domain/eholdings/type/resource/id/1-21-3303?status=assigned"
+        "url": "/note-links/domain/eholdings/type/resource/id/1-21-3303?status=assigned&orderBy=updatedDate"
       },
       "response": {
         "status": 200,
@@ -55,7 +55,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/note-links/domain/eholdings/type/resource/id/1-22-3334?status=assigned"
+        "url": "/note-links/domain/eholdings/type/resource/id/1-22-3334?status=assigned&orderBy=updatedDate"
       },
       "response": {
         "status": 200,
@@ -68,7 +68,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/note-links/domain/eholdings/type/package/id/1-22?status=assigned"
+        "url": "/note-links/domain/eholdings/type/package/id/1-22?status=assigned&orderBy=updatedDate"
       },
       "response": {
         "status": 200,
@@ -81,7 +81,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/note-links/domain/eholdings/type/package/id/1-21?status=assigned"
+        "url": "/note-links/domain/eholdings/type/package/id/1-21?status=assigned&orderBy=updatedDate"
       },
       "response": {
         "status": 200,
@@ -94,7 +94,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/note-links/domain/eholdings/type/package/id/1-23?status=assigned"
+        "url": "/note-links/domain/eholdings/type/package/id/1-23?status=assigned&orderBy=updatedDate"
       },
       "response": {
         "status": 200,

@@ -112,7 +112,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
   private String statusToString(Item item) {
     var status = item.getStatus();
     if (nonNull(status)) {
-      return status.getName().getValue();
+      return isEmpty(status.getName()) ? EMPTY : status.getName().getValue();
     }
     return EMPTY;
   }

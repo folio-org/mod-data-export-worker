@@ -45,6 +45,7 @@ public class ElectronicAccessService {
     var stringOutput = isEmpty(electronicAccesses) ?
       EMPTY :
       electronicAccesses.stream()
+        .filter(Objects::nonNull)
         .map(electronicAccess -> this.electronicAccessToString(electronicAccess, errors))
         .collect(Collectors.joining(ITEM_DELIMITER));
     errors.forEach(e -> bulkEditProcessingErrorsService.saveErrorInCSV(jobId, formatIdentifier, new BulkEditException(e), fileName));

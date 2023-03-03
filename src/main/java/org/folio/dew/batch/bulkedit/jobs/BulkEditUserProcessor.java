@@ -62,10 +62,11 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       .id(user.getId())
       .externalSystemId(user.getExternalSystemId())
       .barcode(user.getBarcode())
-      .active((isNull(user.getActive()) ? Boolean.FALSE : user.getActive()).toString())
+      .active(booleanToStringNullSafe(user.getActive()))
       .type(user.getType())
       .patronGroup(userReferenceService.getPatronGroupNameById(user.getPatronGroup(), errorServiceArgs))
       .departments(fetchDepartments(user, errorServiceArgs))
+      .proxyFor(proxyForToString(user.getProxyFor()))
       .lastName(ofNullable(personal.getLastName()).orElse(EMPTY))
       .firstName(ofNullable(personal.getFirstName()).orElse(EMPTY))
       .middleName(ofNullable(personal.getMiddleName()).orElse(EMPTY))
@@ -91,7 +92,16 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       user.getDepartments().stream()
         .filter(Objects::nonNull)
         .map(id -> userReferenceService.getDepartmentNameById(id.toString(), args))
+        .filter(StringUtils::isNotEmpty)
         .map(escaper::escape)
+        .collect(Collectors.joining(ARRAY_DELIMITER));
+  }
+
+  private String proxyForToString(List<String> values) {
+    return ObjectUtils.isEmpty(values) ?
+      EMPTY :
+      values.stream()
+        .filter(Objects::nonNull)
         .collect(Collectors.joining(ARRAY_DELIMITER));
   }
 

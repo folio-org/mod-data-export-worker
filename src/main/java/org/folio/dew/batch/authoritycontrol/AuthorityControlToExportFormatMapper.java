@@ -35,8 +35,7 @@ public class AuthorityControlToExportFormatMapper {
   }
 
   private String convertUserName(Metadata metadata) {
-    if ((metadata.getStartedByUserFirstName() == null && metadata.getStartedByUserLastName()==null)
-        ||(metadata.getStartedByUserFirstName().isBlank() && metadata.getStartedByUserLastName().isBlank())) {
+    if (isBlank(metadata.getStartedByUserFirstName()) && isBlank(metadata.getStartedByUserLastName())) {
       return "Unknown User";
     }
 

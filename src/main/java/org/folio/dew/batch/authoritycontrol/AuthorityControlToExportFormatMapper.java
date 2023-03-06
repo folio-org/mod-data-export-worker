@@ -16,13 +16,14 @@ import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 @Component
 public class AuthorityControlToExportFormatMapper {
   private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
+  private static final String UNKNOWN_USER = "Unknown User";
 
   public AuthorityUpdateHeadingExportFormat convertToExportFormat(AuthorityDataStatDto dto) {
     var exportFormat = new AuthorityUpdateHeadingExportFormat();
     var metadata = dto.getMetadata();
 
     exportFormat.setUpdater(convertUserName(metadata));
-    exportFormat.setLastUpdated(dateToString(metadata.getCompletedAt()));
+    exportFormat.setLastUpdated(dateToString(metadata.getStartedAt()));
     exportFormat.setNewHeading(dto.getHeadingNew());
     exportFormat.setOriginalHeading(dto.getHeadingOld());
     exportFormat.setNewHeadingType(dto.getHeadingTypeNew());
@@ -35,6 +36,10 @@ public class AuthorityControlToExportFormatMapper {
   }
 
   private String convertUserName(Metadata metadata) {
+    if (isBlank(metadata.getStartedByUserLastName())) {
+      return UNKNOWN_USER;
+    }
+
     if (isBlank(metadata.getStartedByUserFirstName())) {
       return metadata.getStartedByUserLastName();
     }

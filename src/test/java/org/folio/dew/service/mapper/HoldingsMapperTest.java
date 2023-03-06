@@ -83,6 +83,16 @@ class HoldingsMapperTest extends BaseBatchTest {
     assertEquals(actualHoldingsRecord.getStatisticalCodeIds().get(0), expectedHoldingsRecord.getStatisticalCodeIds().get(0));
   }
 
+  @Test
+  @SneakyThrows
+  void shouldIgnoreListsWithNullsAndNullObjects() {
+    var holdingsRecord = objectMapper.readValue(Path.of("src/test/resources/mapper/holdings_with_nulls.json").toFile(), HoldingsRecord.class);
+    var holdingsFormat = holdingsMapper.mapToHoldingsFormat(holdingsRecord, null, null, null);
+    assertEquals("d6510242-5ec3-42ed-b593-3585d2e48fd6;action note;false|d6510242-5ec3-42ed-b593-3585d2e48fd6;action note;", holdingsFormat.getNotes());
+    assertEquals("statement;statement note;statements staff note|statement2;statement note2;statements staff note2", holdingsFormat.getHoldingsStatements());
+    assertEquals("|true;enum;chronology|;enum2;chronology2", holdingsFormat.getReceivingHistory());
+  }
+
   @AllArgsConstructor
   @Getter
   enum HoldingsMapperTestData {

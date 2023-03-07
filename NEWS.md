@@ -1,3 +1,12 @@
+## 2023-03-07 v3.0.1
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.0...v3.0.1)
+
+### Bug fixes
+* [MODEXPW-381](https://issues.folio.org/browse/MODEXPW-381) "Last Updated" field made available for "MARC authority headings updates (CSV)"
+* [MODEXPW-314](https://issues.folio.org/browse/MODEXPW-314) Retrieve eholdings notes sorted by updated date
+* [MODEXPW-380](https://issues.folio.org/browse/MODEXPW-380) Updater field made available even when user is deleted
+
 ## 2023-02-24 v3.0.0
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v2.0.7...v3.0.0)

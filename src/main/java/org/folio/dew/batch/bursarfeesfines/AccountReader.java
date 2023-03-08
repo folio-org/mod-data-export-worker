@@ -36,6 +36,9 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
   private Map<String, String> userIdMap = new HashMap<>();
   private int nextIndex = 0;
 
+  // just to test temporarily
+  private boolean createEvenIfEmpty = true;
+
   @Override
   public AccountWithAncillaryData read() {
     var stepContext = stepExecution.getExecutionContext();
@@ -48,6 +51,10 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
       return AccountWithAncillaryData.builder().account(next).build();
     } else {
       nextIndex = 0;
+      if (createEvenIfEmpty) {
+        createEvenIfEmpty = false;
+        return AccountWithAncillaryData.builder().build();
+      }
       return null;
     }
   }

@@ -34,6 +34,7 @@ public class BursarExportJobConfig {
 
   @Bean
   public Job bursarExportJob(
+    Step getFilename,
     Step exportStep,
     Step transferStep,
     JobRepository jobRepository,
@@ -45,9 +46,24 @@ public class BursarExportJobConfig {
     )
       .incrementer(new RunIdIncrementer())
       .listener(jobCompletionNotificationListener)
-      .flow(exportStep)
+      .flow(getFilename)
+      .next(exportStep)
       .next(transferStep)
       .end()
+      .build();
+  }
+
+  @Bean
+  public Step getFilename(
+    JobRepository jobRepository,
+    FilenameTasklet filenameStep,
+    PlatformTransactionManager transactionManager
+  ) {
+    return new StepBuilder(
+      BursarFeesFinesUtils.GET_FILENAME_STEP,
+      jobRepository
+    )
+      .tasklet(filenameStep, transactionManager)
       .build();
   }
 
@@ -55,7 +71,7 @@ public class BursarExportJobConfig {
   public Step exportStep(
     ItemReader<AccountWithAncillaryData> reader,
     ItemProcessor<AccountWithAncillaryData, String> processor,
-    @Qualifier("bursarFeesFines") ItemWriter<String> writer,
+    @Qualifier("bursarWriter") ItemWriter<String> writer,
     BursarExportStepListener listener,
     JobRepository jobRepository,
     PlatformTransactionManager transactionManager
@@ -88,22 +104,22 @@ public class BursarExportJobConfig {
     return listener;
   }
 
-  @Bean("bursarFeesFines")
+  @Bean("bursarWriter")
   @StepScope
   public BursarWriter writer(
     @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
-    @Value("#{stepExecution.stepName}") String stepName,
+    @Value("#{jobExecutionContext['filename']}") String finalFilename,
     LocalFilesStorage localFilesStorage
   ) {
     log.error("BursarExportJobConfig.writer needs updating!!");
-    String fileName =
-      tempOutputFilePath + '_' + BursarFeesFinesUtils.getFilename();
+
+    String filename = tempOutputFilePath + '_' + finalFilename;
     WritableResource exportFileResource = new S3CompatibleResource<>(
-      fileName,
+      filename,
       localFilesStorage
     );
 
-    log.info("Creating file {}.", fileName);
+    log.info("Creating file {}.", filename);
 
     BursarWriter writer = BursarWriter
       .builder()

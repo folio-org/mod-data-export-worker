@@ -6,6 +6,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class BursarFeesFinesUtils {
 
+  public static final String GET_FILENAME_STEP = "GET_FILENAME";
   public static final String EXPORT_STEP = "EXPORT_STEP";
 
   private static final String FILE_PATTERN = "lib_%s.dat";

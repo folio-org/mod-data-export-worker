@@ -47,7 +47,7 @@ public class BursarWriter
       lines.toString().getBytes(StandardCharsets.UTF_8)
     );
 
-    localFilesStorage.write(
+    localFilesStorage.append(
       resource.getFilename(),
       footer.getBytes(StandardCharsets.UTF_8)
     );

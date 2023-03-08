@@ -26,12 +26,21 @@ public class BursarExportStepListener extends BaseStepListener {
 
   @Override
   public ExitStatus afterStepExecution(StepExecution stepExecution) {
+    // this method should only apply for the main export step
+    if (
+      stepExecution.getStepName().equals(BursarFeesFinesUtils.GET_FILENAME_STEP)
+    ) {
+      return stepExecution.getExitStatus();
+    }
+
     var exitStatus = stepExecution.getExitStatus();
     var localFilesStorage = super.getLocalFilesStorage();
     var remoteFilesStorage = super.getRemoteFilesStorage();
 
-    String downloadFilename = BursarFeesFinesUtils.getFilename();
     var jobExecution = stepExecution.getJobExecution();
+    String downloadFilename = jobExecution
+      .getExecutionContext()
+      .getString("filename");
     String filename =
       jobExecution
         .getJobParameters()

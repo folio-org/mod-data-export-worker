@@ -449,7 +449,7 @@
                             <inputSpec>${bursar-export.yaml.file}</inputSpec>
                             <output>${project.build.directory}/generated-sources</output>
                             <generatorName>spring</generatorName>
-                            <modelPackage>${project.groupId}.dew.domain.dto.bursar</modelPackage>
+                            <modelPackage>${project.groupId}.dew.domain.dto</modelPackage>
                             <generateApis>false</generateApis>
                             <generateApiTests>false</generateApiTests>
                             <generateApiDocumentation>false</generateApiDocumentation>
@@ -481,7 +481,7 @@
                       <generateApiTests>false</generateApiTests>
                       <generateApiDocumentation>false</generateApiDocumentation>
                       <generateModels>true</generateModels>
-                      <!-- <modelsToGenerate>ScheduleParameters</modelsToGenerate> -->
+                      <modelsToGenerate>ScheduleParameters</modelsToGenerate>
                       <generateModelTests>false</generateModelTests>
                       <generateSupportingFiles>false</generateSupportingFiles>
                       <generateModelDocumentation>true</generateModelDocumentation>

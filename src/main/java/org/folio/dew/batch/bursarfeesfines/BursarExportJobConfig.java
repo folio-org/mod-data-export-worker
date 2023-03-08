@@ -19,6 +19,7 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -70,6 +71,7 @@ public class BursarExportJobConfig {
   @Bean
   public Step exportStep(
     ItemReader<AccountWithAncillaryData> reader,
+    ItemProcessor<AccountWithAncillaryData, AccountWithAncillaryData> filterer,
     ItemProcessor<AccountWithAncillaryData, String> processor,
     @Qualifier("bursarWriter") ItemWriter<String> writer,
     BursarExportStepListener listener,
@@ -79,7 +81,7 @@ public class BursarExportJobConfig {
     return new StepBuilder(BursarFeesFinesUtils.EXPORT_STEP, jobRepository)
       .<AccountWithAncillaryData, String>chunk(CHUNK_SIZE, transactionManager)
       .reader(reader)
-      .processor(processor)
+      .processor(new CompositeItemProcessor<>(filterer, processor))
       .writer(writer)
       .listener(promotionListener())
       .listener(listener)
@@ -123,8 +125,8 @@ public class BursarExportJobConfig {
 
     BursarWriter writer = BursarWriter
       .builder()
-      .header("HEADER GOES HERE")
-      .footer("FOOTER GOES HERE")
+      .header("HEADER GOES HERE\n")
+      .footer("FOOTER GOES HERE\n")
       .resource(exportFileResource)
       .localFilesStorage(localFilesStorage)
       .build();

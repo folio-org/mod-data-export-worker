@@ -17,30 +17,24 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @RequiredArgsConstructor
-public class AccountProcessor
-  implements ItemProcessor<AccountWithAncillaryData, String> {
+public class AccountFilterer
+  implements ItemProcessor<AccountWithAncillaryData, AccountWithAncillaryData> {
 
   private final BursarExportService exportService;
 
-  private Map<String, String> userIdMap;
-
-  @Value("#{jobParameters['jobId']}")
-  private String jobId;
-
   @Override
-  public String process(AccountWithAncillaryData item) {
-    log.error("In AccountProcessor::process (implementation TBD)");
+  public AccountWithAncillaryData process(AccountWithAncillaryData item) {
+    log.error(
+      "In AccountFilterer::process (implementation TBD), item={}",
+      item
+    );
 
-    return "--- TBD ---";
+    // if the item should not be included, return null
+    return item;
   }
 
   @BeforeStep
   public void initStep(StepExecution stepExecution) {
-    log.error("In AccountProcessor::initStep (implementation TBD)");
-
-    Map<String, String> externalIdMap = (Map<String, String>) stepExecution
-      .getExecutionContext()
-      .get("userIdMap");
-    userIdMap = externalIdMap == null ? Collections.emptyMap() : externalIdMap;
+    log.error("In AccountFilterer::initStep (implementation TBD)");
   }
 }

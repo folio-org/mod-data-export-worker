@@ -71,9 +71,17 @@ public class BursarExportServiceImpl implements BursarExportService {
     List<Account> accounts,
     BursarExportJob bursarFeeFines
   ) {
-    var transferRequest = toTransferRequest(accounts, bursarFeeFines);
-    log.info("Creating {}.", transferRequest);
-    bulkClient.transferAccount(transferRequest);
+    log.error("I don't know how to create transfer requests yet...");
+    // var transferRequest = toTransferRequest(accounts, bursarFeeFines);
+    // log.info("Creating {}.", transferRequest);
+    // bulkClient.transferAccount(transferRequest);
+  }
+
+  @Override
+  public List<Account> getAllAccounts() {
+    return accountClient
+      .getAccounts("remaining > 0.0", DEFAULT_LIMIT)
+      .getAccounts();
   }
 
   // NCO: Some sample queries that were done to get all users and patron groups;

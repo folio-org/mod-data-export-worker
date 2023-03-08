@@ -6,4 +6,7 @@ import org.folio.dew.domain.dto.BursarExportJob;
 
 public interface BursarExportService {
   void transferAccounts(List<Account> accounts, BursarExportJob bursarFeeFines);
+
+  /** for testing only */
+  List<Account> getAllAccounts();
 }

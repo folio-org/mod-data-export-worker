@@ -9,6 +9,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
+import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
@@ -76,26 +77,8 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
     log.error("--- Called AccountReader::initStep ---");
     log.error("--- The implementation here is TBD ---");
 
-    // List<User> users = exportService.findUsers();
-    // if (CollectionUtils.isEmpty(users)) {
-    //   throw new IllegalArgumentException(
-    //     String.format(
-    //       "Users not found for patron group(s) %s",
-    //       StringUtils.join(bursarFeeFines.getPatronGroups(), ",")
-    //     )
-    //   );
-    // }
-
-    // userIdMap =
-    //   users
-    //     .stream()
-    //     .collect(
-    //       Collectors.toMap(
-    //         User::getId,
-    //         user -> Optional.ofNullable(user.getExternalSystemId()).orElse("")
-    //       )
-    //     );
-    // accounts = exportService.findAccounts();
+    // should do some filtering magic here
+    accounts = exportService.getAllAccounts();
 
     stepExecution.getExecutionContext().put("userIdMap", userIdMap);
   }

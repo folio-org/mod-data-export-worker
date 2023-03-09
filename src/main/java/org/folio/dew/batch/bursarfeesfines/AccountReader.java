@@ -3,13 +3,10 @@ package org.folio.dew.batch.bursarfeesfines;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
-import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
@@ -34,7 +31,6 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
 
   private StepExecution stepExecution;
   private List<Account> accounts = new ArrayList<>();
-  private Map<String, String> userIdMap = new HashMap<>();
   private int nextIndex = 0;
 
   // just to test temporarily
@@ -42,10 +38,6 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
 
   @Override
   public AccountWithAncillaryData read() {
-    var stepContext = stepExecution.getExecutionContext();
-    stepContext.put("accounts", accounts);
-    stepContext.put("userIdMap", userIdMap);
-
     if (nextIndex < accounts.size()) {
       Account next = accounts.get(nextIndex);
       nextIndex++;
@@ -72,7 +64,7 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
     stepExecution
       .getJobExecution()
       .getExecutionContext()
-      .put("bursarFeeFines", bursarFeeFines);
+      .put("jobConfig", bursarFeeFines);
 
     log.error("--- Called AccountReader::initStep ---");
     log.error("--- The implementation here is TBD ---");
@@ -80,6 +72,6 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
     // should do some filtering magic here
     accounts = exportService.getAllAccounts();
 
-    stepExecution.getExecutionContext().put("userIdMap", userIdMap);
+    stepExecution.getExecutionContext().put("accounts", accounts);
   }
 }

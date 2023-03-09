@@ -1,7 +1,7 @@
 package org.folio.dew.batch.bursarfeesfines;
 
 import lombok.extern.log4j.Log4j2;
-import org.folio.dew.batch.bursarfeesfines.service.BursarFeesFinesUtils;
+import org.folio.dew.batch.bursarfeesfines.service.BursarExportUtils;
 import org.folio.dew.batch.bursarfeesfines.service.BursarWriter;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
@@ -60,10 +60,7 @@ public class BursarExportJobConfig {
     FilenameTasklet filenameStep,
     PlatformTransactionManager transactionManager
   ) {
-    return new StepBuilder(
-      BursarFeesFinesUtils.GET_FILENAME_STEP,
-      jobRepository
-    )
+    return new StepBuilder(BursarExportUtils.GET_FILENAME_STEP, jobRepository)
       .tasklet(filenameStep, transactionManager)
       .build();
   }
@@ -72,16 +69,16 @@ public class BursarExportJobConfig {
   public Step exportStep(
     ItemReader<AccountWithAncillaryData> reader,
     ItemProcessor<AccountWithAncillaryData, AccountWithAncillaryData> filterer,
-    ItemProcessor<AccountWithAncillaryData, String> processor,
+    ItemProcessor<AccountWithAncillaryData, String> formatter,
     @Qualifier("bursarWriter") ItemWriter<String> writer,
     BursarExportStepListener listener,
     JobRepository jobRepository,
     PlatformTransactionManager transactionManager
   ) {
-    return new StepBuilder(BursarFeesFinesUtils.EXPORT_STEP, jobRepository)
+    return new StepBuilder(BursarExportUtils.EXPORT_STEP, jobRepository)
       .<AccountWithAncillaryData, String>chunk(CHUNK_SIZE, transactionManager)
       .reader(reader)
-      .processor(new CompositeItemProcessor<>(filterer, processor))
+      .processor(new CompositeItemProcessor<>(filterer, formatter))
       .writer(writer)
       .listener(promotionListener())
       .listener(listener)
@@ -102,7 +99,7 @@ public class BursarExportJobConfig {
   @Bean
   public ExecutionContextPromotionListener promotionListener() {
     var listener = new ExecutionContextPromotionListener();
-    listener.setKeys(new String[] { "accounts", "userIdMap" });
+    listener.setKeys(new String[] { "accounts" });
     return listener;
   }
 

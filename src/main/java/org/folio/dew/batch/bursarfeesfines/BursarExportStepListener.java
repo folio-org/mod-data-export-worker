@@ -4,7 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.batch.BaseStepListener;
 import org.folio.dew.batch.ExecutionContextUtils;
-import org.folio.dew.batch.bursarfeesfines.service.BursarFeesFinesUtils;
+import org.folio.dew.batch.bursarfeesfines.service.BursarExportUtils;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
@@ -28,7 +28,7 @@ public class BursarExportStepListener extends BaseStepListener {
   public ExitStatus afterStepExecution(StepExecution stepExecution) {
     // this method should only apply for the main export step
     if (
-      stepExecution.getStepName().equals(BursarFeesFinesUtils.GET_FILENAME_STEP)
+      stepExecution.getStepName().equals(BursarExportUtils.GET_FILENAME_STEP)
     ) {
       return stepExecution.getExitStatus();
     }
@@ -81,7 +81,7 @@ public class BursarExportStepListener extends BaseStepListener {
       stepExecution,
       JobParameterNames.JOB_DESCRIPTION,
       String.format(
-        BursarFeesFinesUtils.getJobDescriptionPart(),
+        BursarExportUtils.getJobDescriptionPart(),
         stepExecution.getWriteCount()
       ),
       "\n"

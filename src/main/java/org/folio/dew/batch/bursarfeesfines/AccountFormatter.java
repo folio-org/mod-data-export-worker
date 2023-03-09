@@ -2,9 +2,13 @@ package org.folio.dew.batch.bursarfeesfines;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
+import org.folio.dew.batch.bursarfeesfines.service.BursarTokenFormatter;
+import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
@@ -22,33 +26,27 @@ public class AccountFormatter
 
   private final BursarExportService exportService;
 
-  private Map<String, String> userIdMap;
-
   @Value("#{jobParameters['jobId']}")
   private String jobId;
 
-  @Override
-  public String process(AccountWithAncillaryData item) {
-    log.error(
-      "In AccountFilterer::process (implementation TBD), item={}",
-      item
-    );
+  @Value("#{jobExecutionContext['jobConfig']}")
+  private BursarExportJob jobConfig;
 
-    if (item != null) {
-      return item.toString() + "\n";
-    } else {
+  @Override
+  public String process(@CheckForNull AccountWithAncillaryData item) {
+    if (item == null) {
       return null;
     }
+
+    return jobConfig
+      .getData()
+      .stream()
+      .map(token -> BursarTokenFormatter.formatDataToken(token, item))
+      .collect(Collectors.joining());
   }
 
   @BeforeStep
   public void initStep(StepExecution stepExecution) {
-    log.error("In AccountFilterer::initStep (implementation TBD)");
-
-    // there was some stuff here to grab user external IDs -- will need updating.
-    Map<String, String> externalIdMap = (Map<String, String>) stepExecution
-      .getExecutionContext()
-      .get("userIdMap");
-    userIdMap = externalIdMap == null ? Collections.emptyMap() : externalIdMap;
+    log.error("In AccountFormatter::initStep (implementation TBD, if any)");
   }
 }

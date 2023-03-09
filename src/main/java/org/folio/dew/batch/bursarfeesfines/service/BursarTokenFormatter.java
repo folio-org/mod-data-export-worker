@@ -3,23 +3,27 @@ package org.folio.dew.batch.bursarfeesfines.service;
 import java.time.Instant;
 import javax.annotation.CheckForNull;
 import lombok.experimental.UtilityClass;
+import lombok.extern.log4j.Log4j2;
+import org.folio.dew.domain.dto.BursarExportDataToken;
+import org.folio.dew.domain.dto.BursarExportTokenConstant;
 import org.folio.dew.domain.dto.BursarExportTokenLengthControl;
+import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 
+@Log4j2
 @UtilityClass
-public class BursarFeesFinesUtils {
+public class BursarTokenFormatter {
 
-  public static final String GET_FILENAME_STEP = "GET_FILENAME";
-  public static final String EXPORT_STEP = "EXPORT_STEP";
-
-  private static final String FILE_PATTERN = "lib_%s.dat";
-  private static final String DESCRIPTION_PATTERN = "# of accounts: %d";
-
-  public static String getFilename() {
-    return String.format(FILE_PATTERN, Instant.now().toString());
-  }
-
-  public static String getJobDescriptionPart() {
-    return DESCRIPTION_PATTERN;
+  public static String formatDataToken(
+    BursarExportDataToken token,
+    AccountWithAncillaryData account
+  ) {
+    if (token instanceof BursarExportTokenConstant) {
+      BursarExportTokenConstant tokenConstant = (BursarExportTokenConstant) token;
+      return tokenConstant.getValue();
+    } else {
+      log.error("Unexpected token: ", token);
+      return String.format("[placeholder %s]", token.getType());
+    }
   }
 
   public static String applyLengthControl(

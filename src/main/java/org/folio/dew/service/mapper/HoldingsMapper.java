@@ -3,6 +3,7 @@ package org.folio.dew.service.mapper;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.service.mapper.MapperHelper.restoreStringValue;
+import static org.folio.dew.utils.BulkEditProcessorHelper.booleanToStringNullSafe;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_PATTERN;
@@ -87,7 +88,7 @@ public class HoldingsMapper {
       .copyNumber(isEmpty(holdingsRecord.getCopyNumber()) ? EMPTY : holdingsRecord.getCopyNumber())
       .numberOfItems(isEmpty(holdingsRecord.getNumberOfItems()) ? EMPTY : holdingsRecord.getNumberOfItems())
       .receivingHistory(receivingHistoryToString(holdingsRecord.getReceivingHistory()))
-      .discoverySuppress(isEmpty(holdingsRecord.getDiscoverySuppress()) ? EMPTY : Boolean.toString(holdingsRecord.getDiscoverySuppress()))
+      .discoverySuppress(booleanToStringNullSafe(holdingsRecord.getDiscoverySuppress()))
       .statisticalCodes(getStatisticalCodeNames(holdingsRecord.getStatisticalCodeIds(), errorServiceArgs))
       .tags(tagsToString(holdingsRecord.getTags()))
       .source(holdingsReferenceService.getSourceNameById(holdingsRecord.getSourceId(), errorServiceArgs))
@@ -96,15 +97,17 @@ public class HoldingsMapper {
 
   private String notesToString(List<HoldingsNote> notes, ErrorServiceArgs args) {
     return isEmpty(notes) ? EMPTY : notes.stream()
+      .filter(Objects::nonNull)
       .map(note -> String.join(ARRAY_DELIMITER,
         escaper.escape(holdingsReferenceService.getNoteTypeNameById(note.getHoldingsNoteTypeId(), args)),
         escaper.escape(note.getNote()),
-        Boolean.toString(note.getStaffOnly())))
+        booleanToStringNullSafe(note.getStaffOnly())))
       .collect(Collectors.joining(ITEM_DELIMITER));
   }
 
   private String holdingsStatementsToString(List<HoldingsStatement> statements) {
     return isEmpty(statements) ? EMPTY : statements.stream()
+      .filter(Objects::nonNull)
       .map(statement -> String.join(ARRAY_DELIMITER, escaper.escape(statement.getStatement()),
         escaper.escape(statement.getNote()), escaper.escape(statement.getStaffNote())))
       .collect(Collectors.joining(ITEM_DELIMITER));
@@ -116,6 +119,7 @@ public class HoldingsMapper {
     }
     var displayType = isEmpty(receivingHistoryEntries.getDisplayType()) ? EMPTY : receivingHistoryEntries.getDisplayType();
     var entriesString = isEmpty(receivingHistoryEntries.getEntries()) ? EMPTY : receivingHistoryEntries.getEntries().stream()
+      .filter(Objects::nonNull)
       .map(this::receivingHistoryEntryToString)
       .collect(Collectors.joining(ITEM_DELIMITER));
     return String.join(ITEM_DELIMITER, displayType, entriesString);
@@ -123,13 +127,14 @@ public class HoldingsMapper {
 
   private String receivingHistoryEntryToString(ReceivingHistoryEntry entry) {
     return String.join(ARRAY_DELIMITER,
-      isEmpty(entry.getPublicDisplay()) ? EMPTY : Boolean.toString(entry.getPublicDisplay()),
+      booleanToStringNullSafe(entry.getPublicDisplay()),
       isEmpty(entry.getEnumeration()) ? EMPTY : escaper.escape(entry.getEnumeration()),
       isEmpty(entry.getChronology()) ? EMPTY : escaper.escape(entry.getChronology()));
   }
 
   private String getStatisticalCodeNames(List<String> codeIds, ErrorServiceArgs args) {
     return isEmpty(codeIds) ? EMPTY : codeIds.stream()
+      .filter(Objects::nonNull)
       .map(id -> holdingsReferenceService.getStatisticalCodeNameById(id, args))
       .map(escaper::escape)
       .collect(Collectors.joining(ARRAY_DELIMITER));

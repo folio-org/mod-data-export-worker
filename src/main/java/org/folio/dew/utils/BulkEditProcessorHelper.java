@@ -2,6 +2,7 @@ package org.folio.dew.utils;
 
 import static java.time.ZoneOffset.UTC;
 import static java.util.Objects.nonNull;
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.folio.dew.domain.dto.IdentifierType.ACCESSION_NUMBER;
@@ -77,4 +78,7 @@ public class BulkEditProcessorHelper {
     return StringUtils.isNotEmpty(string) ? Optional.of(string) : Optional.empty();
   }
 
+  public static String booleanToStringNullSafe(Boolean b) {
+    return isEmpty(b) ? EMPTY : b.toString();
+  }
 }

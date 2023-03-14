@@ -8,11 +8,12 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.IsoFields;
 import java.time.temporal.WeekFields;
 import java.time.zone.ZoneRulesException;
-
+import java.time.zone.ZoneRulesException;
 import javax.annotation.CheckForNull;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.BursarExportDataToken;
+import org.folio.dew.domain.dto.BursarExportHeaderFooter;
 import org.folio.dew.domain.dto.BursarExportTokenConstant;
 import org.folio.dew.domain.dto.BursarExportTokenDate;
 import org.folio.dew.domain.dto.BursarExportTokenLengthControl;
@@ -22,6 +23,16 @@ import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 @UtilityClass
 public class BursarTokenFormatter {
 
+  public static String formatHeaderFooterToken(BursarExportHeaderFooter token) {
+    if (token instanceof BursarExportTokenConstant) {
+      BursarExportTokenConstant tokenConstant = (BursarExportTokenConstant) token;
+      return tokenConstant.getValue();
+    } else {
+      log.error("Unexpected token: ", token);
+      return String.format("[header/footer-placeholder %s]", token.getType());
+    }
+  }
+
   public static String formatDataToken(
     BursarExportDataToken token,
     AccountWithAncillaryData account
@@ -29,24 +40,22 @@ public class BursarTokenFormatter {
     if (token instanceof BursarExportTokenConstant) {
       BursarExportTokenConstant tokenConstant = (BursarExportTokenConstant) token;
       return tokenConstant.getValue();
-    } else if (token instanceof BursarExportTokenDate){
+    } else if (token instanceof BursarExportTokenDate) {
       BursarExportTokenDate tokenDate = (BursarExportTokenDate) token;
       String result;
 
       ZonedDateTime currentDateTime;
 
       try {
-        currentDateTime = Instant.now().atZone(ZoneId.of(tokenDate.getTimezone()));
-      } catch (ZoneRulesException e){
-        result = String.format("[unknown time zone: %s]", tokenDate.getTimezone());
-        return applyLengthControl(
-          result,
-          tokenDate.getLengthControl()
-        );
+        currentDateTime =
+          Instant.now().atZone(ZoneId.of(tokenDate.getTimezone()));
+      } catch (ZoneRulesException e) {
+        result =
+          String.format("[unknown time zone: %s]", tokenDate.getTimezone());
+        return applyLengthControl(result, tokenDate.getLengthControl());
       }
 
-
-      switch (tokenDate.getValue()){
+      switch (tokenDate.getValue()) {
         case YEAR_LONG:
           result = currentDateTime.format(DateTimeFormatter.ofPattern("yyyy"));
           break;
@@ -72,25 +81,32 @@ public class BursarTokenFormatter {
           result = currentDateTime.format(DateTimeFormatter.ofPattern("Q"));
           break;
         case WEEK_OF_YEAR:
-          result = String.valueOf(currentDateTime.get(WeekFields.of(DayOfWeek.MONDAY, 7).weekOfYear()));
+          result =
+            String.valueOf(
+              currentDateTime.get(
+                WeekFields.of(DayOfWeek.MONDAY, 7).weekOfYear()
+              )
+            );
           break;
         case WEEK_OF_YEAR_ISO:
-          result = String.valueOf(currentDateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
+          result =
+            String.valueOf(
+              currentDateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
+            );
           break;
         case WEEK_YEAR:
           result = currentDateTime.format(DateTimeFormatter.ofPattern("YYYY"));
           break;
         case WEEK_YEAR_ISO:
-          result = String.valueOf(currentDateTime.get(IsoFields.WEEK_BASED_YEAR));
+          result =
+            String.valueOf(currentDateTime.get(IsoFields.WEEK_BASED_YEAR));
           break;
         default:
-          result = String.format("[invalid date type %s]", tokenDate.getValue());
+          result =
+            String.format("[invalid date type %s]", tokenDate.getValue());
       }
 
-      return applyLengthControl(
-        result,
-        tokenDate.getLengthControl()
-      );
+      return applyLengthControl(result, tokenDate.getLengthControl());
     } else {
       log.error("Unexpected token: ", token);
       return String.format("[placeholder %s]", token.getType());

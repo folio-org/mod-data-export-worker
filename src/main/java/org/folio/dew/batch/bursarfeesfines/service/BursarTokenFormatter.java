@@ -7,6 +7,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.IsoFields;
 import java.time.temporal.WeekFields;
+import java.time.zone.ZoneRulesException;
 
 import javax.annotation.CheckForNull;
 import lombok.experimental.UtilityClass;
@@ -31,8 +32,19 @@ public class BursarTokenFormatter {
     } else if (token instanceof BursarExportTokenDate){
       BursarExportTokenDate tokenDate = (BursarExportTokenDate) token;
       String result;
-      
-      ZonedDateTime currentDateTime = Instant.now().atZone(ZoneId.of(tokenDate.getTimezone()));
+
+      ZonedDateTime currentDateTime;
+
+      try {
+        currentDateTime = Instant.now().atZone(ZoneId.of(tokenDate.getTimezone()));
+      } catch (ZoneRulesException e){
+        result = String.format("[unknown time zone: %s]", tokenDate.getTimezone());
+        return applyLengthControl(
+          result,
+          tokenDate.getLengthControl()
+        );
+      }
+
 
       switch (tokenDate.getValue()){
         case YEAR_LONG:

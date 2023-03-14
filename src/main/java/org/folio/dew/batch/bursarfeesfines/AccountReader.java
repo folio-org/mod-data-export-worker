@@ -34,7 +34,7 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
   private int nextIndex = 0;
 
   // just to test temporarily
-  private boolean createEvenIfEmpty = true;
+  private boolean createEvenIfEmpty = false;
 
   @Override
   public AccountWithAncillaryData read() {

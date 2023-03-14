@@ -1,5 +1,7 @@
 package org.folio.dew.batch.bursarfeesfines.service;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -15,6 +17,7 @@ import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.BursarExportDataToken;
 import org.folio.dew.domain.dto.BursarExportTokenConstant;
 import org.folio.dew.domain.dto.BursarExportTokenDate;
+import org.folio.dew.domain.dto.BursarExportTokenFeeAmount;
 import org.folio.dew.domain.dto.BursarExportTokenLengthControl;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 
@@ -44,7 +47,6 @@ public class BursarTokenFormatter {
           tokenDate.getLengthControl()
         );
       }
-
 
       switch (tokenDate.getValue()){
         case YEAR_LONG:
@@ -91,7 +93,21 @@ public class BursarTokenFormatter {
         result,
         tokenDate.getLengthControl()
       );
-    } else {
+    }
+    else if (token instanceof BursarExportTokenFeeAmount tokenFeeAmount) {
+      String result;
+
+      if (tokenFeeAmount.getDecimal()){
+        result = new DecimalFormat("0.00").format(account.getAccount().getAmount());
+      } else {
+        result = account.getAccount().getAmount().multiply(new BigDecimal("100")).setScale(0).toString();
+      }
+      return applyLengthControl(
+        result,
+        tokenFeeAmount.getLengthControl()
+      );
+    }
+    else {
       log.error("Unexpected token: ", token);
       return String.format("[placeholder %s]", token.getType());
     }

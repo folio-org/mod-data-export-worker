@@ -10,7 +10,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.IsoFields;
 import java.time.temporal.WeekFields;
 import java.time.zone.ZoneRulesException;
-import java.time.zone.ZoneRulesException;
 import javax.annotation.CheckForNull;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
@@ -19,6 +18,7 @@ import org.folio.dew.domain.dto.BursarExportHeaderFooter;
 import org.folio.dew.domain.dto.BursarExportTokenConstant;
 import org.folio.dew.domain.dto.BursarExportTokenDate;
 import org.folio.dew.domain.dto.BursarExportTokenFeeAmount;
+import org.folio.dew.domain.dto.BursarExportTokenFeeMetadata;
 import org.folio.dew.domain.dto.BursarExportTokenLengthControl;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 
@@ -39,23 +39,25 @@ public class BursarTokenFormatter {
   private static String formatFeeAmountsDataToken(
     BursarExportTokenFeeAmount tokenFeeAmount,
     AccountWithAncillaryData account
-  ){
+  ) {
     String result;
 
-    if (tokenFeeAmount.getDecimal()){
-      result = new DecimalFormat("0.00").format(account.getAccount().getAmount());
+    if (tokenFeeAmount.getDecimal()) {
+      result =
+        new DecimalFormat("0.00").format(account.getAccount().getAmount());
     } else {
-      result = account.getAccount().getAmount().multiply(new BigDecimal("100")).setScale(0).toString();
+      result =
+        account
+          .getAccount()
+          .getAmount()
+          .multiply(new BigDecimal("100"))
+          .setScale(0)
+          .toString();
     }
-    return applyLengthControl(
-      result,
-      tokenFeeAmount.getLengthControl()
-    );
+    return applyLengthControl(result, tokenFeeAmount.getLengthControl());
   }
 
-  private static String formatDateDataToken(
-    BursarExportTokenDate tokenDate
-  ){
+  private static String formatDateDataToken(BursarExportTokenDate tokenDate) {
     String result;
 
     ZonedDateTime currentDateTime;
@@ -69,7 +71,7 @@ public class BursarTokenFormatter {
       return applyLengthControl(result, tokenDate.getLengthControl());
     }
 
-    switch (tokenDate.getValue()){
+    switch (tokenDate.getValue()) {
       case YEAR_LONG:
         result = currentDateTime.format(DateTimeFormatter.ofPattern("yyyy"));
         break;
@@ -97,9 +99,7 @@ public class BursarTokenFormatter {
       case WEEK_OF_YEAR:
         result =
           String.valueOf(
-            currentDateTime.get(
-              WeekFields.of(DayOfWeek.MONDAY, 7).weekOfYear()
-            )
+            currentDateTime.get(WeekFields.of(DayOfWeek.MONDAY, 7).weekOfYear())
           );
         break;
       case WEEK_OF_YEAR_ISO:
@@ -112,18 +112,34 @@ public class BursarTokenFormatter {
         result = currentDateTime.format(DateTimeFormatter.ofPattern("YYYY"));
         break;
       case WEEK_YEAR_ISO:
-        result =
-          String.valueOf(currentDateTime.get(IsoFields.WEEK_BASED_YEAR));
+        result = String.valueOf(currentDateTime.get(IsoFields.WEEK_BASED_YEAR));
         break;
       default:
-        result =
-          String.format("[invalid date type %s]", tokenDate.getValue());
+        result = String.format("[invalid date type %s]", tokenDate.getValue());
     }
 
-    return applyLengthControl(
-      result,
-      tokenDate.getLengthControl()
-    );
+    return applyLengthControl(result, tokenDate.getLengthControl());
+  }
+
+  private static String formatFeeMetadataToken(
+    BursarExportTokenFeeMetadata tokenFeeMetadata,
+    AccountWithAncillaryData account
+  ) {
+    if (
+      tokenFeeMetadata.getValue() == BursarExportTokenFeeMetadata.ValueEnum.ID
+    ) {
+      return account.getAccount().getFeeFineId();
+    } else if (
+      tokenFeeMetadata.getValue() ==
+      BursarExportTokenFeeMetadata.ValueEnum.TYPE_ID
+    ) {
+      return account.getAccount().getFeeFineType();
+    } else {
+      return String.format(
+        "[unexpected metadata token: %s]",
+        tokenFeeMetadata.getValue()
+      );
+    }
   }
 
   public static String formatDataToken(
@@ -135,11 +151,11 @@ public class BursarTokenFormatter {
       return tokenConstant.getValue();
     } else if (token instanceof BursarExportTokenDate tokenDate) {
       return formatDateDataToken(tokenDate);
-    }
-    else if (token instanceof BursarExportTokenFeeAmount tokenFeeAmount) {
+    } else if (token instanceof BursarExportTokenFeeAmount tokenFeeAmount) {
       return formatFeeAmountsDataToken(tokenFeeAmount, account);
-    }
-    else {
+    } else if (token instanceof BursarExportTokenFeeMetadata tokenFeeMetadata) {
+      return formatFeeMetadataToken(tokenFeeMetadata, account);
+    } else {
       log.error("Unexpected token: ", token);
       return String.format("[placeholder %s]", token.getType());
     }

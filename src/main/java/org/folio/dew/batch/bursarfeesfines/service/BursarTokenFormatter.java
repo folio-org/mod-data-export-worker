@@ -69,8 +69,7 @@ public class BursarTokenFormatter {
     ) {
       return account.getAccount().getFeeFineId();
     } else if (
-      tokenFeeMetadata.getValue() ==
-      BursarExportTokenFeeMetadata.ValueEnum.NAME
+      tokenFeeMetadata.getValue() == BursarExportTokenFeeMetadata.ValueEnum.NAME
     ) {
       return account.getAccount().getFeeFineType();
     } else {

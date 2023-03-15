@@ -1,6 +1,8 @@
 package org.folio.dew.config.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -17,13 +19,9 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.listener.RecordInterceptor;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 @Configuration
@@ -34,11 +32,9 @@ public class KafkaConfiguration {
 
   @Bean
   public <V> ConcurrentKafkaListenerContainerFactory<String, V> kafkaListenerContainerFactory(
-    ConsumerFactory<String, V> cf,
-    RecordInterceptor<String, V> recordInterceptor) {
+    ConsumerFactory<String, V> cf) {
     var factory = new ConcurrentKafkaListenerContainerFactory<String, V>();
     factory.setConsumerFactory(cf);
-    factory.setRecordInterceptor(recordInterceptor);
     if (kafkaProperties.getListener().getAckMode() != null) {
       factory.getContainerProperties().setAckMode(kafkaProperties.getListener().getAckMode());
     }
@@ -59,7 +55,7 @@ public class KafkaConfiguration {
 
   @Bean
   public <V> ProducerFactory<String, V> producerFactory(
-      FolioExecutionContext folioExecutionContext) {
+    FolioExecutionContext folioExecutionContext) {
     Map<String, Object> props = new HashMap<>(kafkaProperties.buildProducerProperties());
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);

@@ -14,16 +14,15 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.UUID;
-
 import org.folio.de.entity.JobCommand;
 import org.folio.de.entity.JobCommandType;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.services.FTPStorageService;
-import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
+import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
 import org.folio.dew.repository.JobCommandRepository;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.junit.jupiter.api.DisplayName;
@@ -52,7 +51,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createStartCirculationLogJobRequest(id);
 
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders, acknowledgment);
 
     verify(exportJobManagerSync, times(1)).launchJob(any());
 
@@ -71,7 +70,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createStartResendRequest(id);
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders, acknowledgment);
 
     verify(exportJobManagerSync, never()).launchJob(any());
   }
@@ -86,7 +85,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createStartResendRequest(id);
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders, acknowledgment);
 
     verify(exportJobManagerSync, never()).launchJob(any());
   }
@@ -96,7 +95,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
   void failedResendTestJobIdIsNull() throws Exception {
     doNothing().when(acknowledgment).acknowledge();
     JobCommand jobCommand = createStartResendRequest(null);
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders, acknowledgment);
 
     verify(ftpStorageService, never()).uploadToFtp(any(), any(), anyString());
     verify(exportJobManagerSync, never()).launchJob(any());
@@ -110,7 +109,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createStartEHoldingsJobRequest(id);
 
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders, acknowledgment);
 
     verify(exportJobManagerSync, times(1)).launchJob(any());
 
@@ -127,7 +126,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createStartAuthorityControlAuthorityJobRequest(id);
 
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders, acknowledgment);
 
     verify(exportJobManagerSync, times(1)).launchJob(any());
 
@@ -144,7 +143,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createStartAuthorityControlInstanceJobRequest(id);
 
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders, acknowledgment);
 
     verify(exportJobManagerSync, times(1)).launchJob(any());
 
@@ -161,7 +160,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createDeleteJobRequest(id);
 
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, acknowledgment);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders, acknowledgment);
 
     verify(acknowledgment, times(1)).acknowledge();
   }

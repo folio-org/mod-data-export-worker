@@ -2,7 +2,7 @@ package org.folio.dew.config;
 
 import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.launch.support.SimpleJobLauncher;
+import org.springframework.batch.core.launch.support.TaskExecutorJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -21,7 +21,7 @@ public class AsyncConfig {
   @Bean(name = "asyncJobLauncher")
   public JobLauncher getAsyncJobLauncher(
       JobRepository jobRepository, @Qualifier("asyncTaskExecutor") TaskExecutor taskExecutor) {
-    var jobLauncher = new SimpleJobLauncher();
+    var jobLauncher = new TaskExecutorJobLauncher();
     jobLauncher.setJobRepository(jobRepository);
     jobLauncher.setTaskExecutor(taskExecutor);
     return jobLauncher;

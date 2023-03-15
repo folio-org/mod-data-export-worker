@@ -10,7 +10,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.IsoFields;
 import java.time.temporal.WeekFields;
 import java.time.zone.ZoneRulesException;
-import java.time.zone.ZoneRulesException;
 import javax.annotation.CheckForNull;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
@@ -19,6 +18,7 @@ import org.folio.dew.domain.dto.BursarExportHeaderFooter;
 import org.folio.dew.domain.dto.BursarExportTokenConstant;
 import org.folio.dew.domain.dto.BursarExportTokenDate;
 import org.folio.dew.domain.dto.BursarExportTokenFeeAmount;
+import org.folio.dew.domain.dto.BursarExportTokenFeeMetadata;
 import org.folio.dew.domain.dto.BursarExportTokenLengthControl;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 
@@ -60,6 +60,26 @@ public class BursarTokenFormatter {
     return applyLengthControl(result, tokenFeeAmount.getLengthControl());
   }
 
+  private static String formatFeeMetadataToken(
+    BursarExportTokenFeeMetadata tokenFeeMetadata,
+    AccountWithAncillaryData account
+  ) {
+    if (
+      tokenFeeMetadata.getValue() == BursarExportTokenFeeMetadata.ValueEnum.ID
+    ) {
+      return account.getAccount().getFeeFineId();
+    } else if (
+      tokenFeeMetadata.getValue() == BursarExportTokenFeeMetadata.ValueEnum.NAME
+    ) {
+      return account.getAccount().getFeeFineType();
+    } else {
+      return String.format(
+        "[unexpected metadata token: %s]",
+        tokenFeeMetadata.getValue()
+      );
+    }
+  }
+
   private static String formatDateDataToken(BursarExportTokenDate tokenDate) {
     return processDateToken(tokenDate);
   }
@@ -75,6 +95,8 @@ public class BursarTokenFormatter {
       return formatDateDataToken(tokenDate);
     } else if (token instanceof BursarExportTokenFeeAmount tokenFeeAmount) {
       return formatFeeAmountsDataToken(tokenFeeAmount, account);
+    } else if (token instanceof BursarExportTokenFeeMetadata tokenFeeMetadata) {
+      return formatFeeMetadataToken(tokenFeeMetadata, account);
     } else {
       log.error("Unexpected token: ", token);
       return String.format("[placeholder %s]", token.getType());

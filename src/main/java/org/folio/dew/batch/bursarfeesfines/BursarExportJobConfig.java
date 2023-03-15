@@ -122,8 +122,6 @@ public class BursarExportJobConfig {
 
     BursarWriter writer = BursarWriter
       .builder()
-      .header("HEADER GOES HERE\n")
-      .footer("FOOTER GOES HERE\n")
       .resource(exportFileResource)
       .localFilesStorage(localFilesStorage)
       .build();

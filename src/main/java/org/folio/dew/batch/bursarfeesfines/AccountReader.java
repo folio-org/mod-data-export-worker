@@ -2,6 +2,7 @@ package org.folio.dew.batch.bursarfeesfines;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -73,5 +74,11 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
     accounts = exportService.getAllAccounts();
 
     stepExecution.getExecutionContext().put("accounts", accounts);
+
+    // initializing a totalAmount variable in jobExecutionContext
+    stepExecution
+      .getJobExecution()
+      .getExecutionContext()
+      .put("totalAmount", new BigDecimal(0));
   }
 }

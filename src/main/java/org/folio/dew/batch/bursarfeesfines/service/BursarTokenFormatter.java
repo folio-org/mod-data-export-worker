@@ -15,6 +15,7 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.BursarExportDataToken;
 import org.folio.dew.domain.dto.BursarExportHeaderFooter;
+import org.folio.dew.domain.dto.BursarExportTokenAggregate;
 import org.folio.dew.domain.dto.BursarExportTokenConstant;
 import org.folio.dew.domain.dto.BursarExportTokenDate;
 import org.folio.dew.domain.dto.BursarExportTokenFeeAmount;
@@ -26,13 +27,24 @@ import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 @UtilityClass
 public class BursarTokenFormatter {
 
-  public static String formatHeaderFooterToken(BursarExportHeaderFooter token) {
+  public static String formatHeaderFooterToken(
+    BursarExportHeaderFooter token,
+    int aggregateNumRows,
+    BigDecimal aggregateTotalAmount
+  ) {
     if (token instanceof BursarExportTokenConstant) {
       BursarExportTokenConstant tokenConstant = (BursarExportTokenConstant) token;
       return tokenConstant.getValue();
     } else if (token instanceof BursarExportTokenDate) {
       BursarExportTokenDate tokenDate = (BursarExportTokenDate) token;
       return processDateToken(tokenDate);
+    } else if (token instanceof BursarExportTokenAggregate) {
+      BursarExportTokenAggregate tokenAggregate = (BursarExportTokenAggregate) token;
+      return processAggregateToken(
+        tokenAggregate,
+        aggregateNumRows,
+        aggregateTotalAmount
+      );
     } else {
       log.error("Unexpected token: ", token);
       return String.format("[header/footer-placeholder %s]", token.getType());
@@ -218,5 +230,40 @@ public class BursarTokenFormatter {
     }
 
     return applyLengthControl(result, tokenDate.getLengthControl());
+  }
+
+  /*
+   * Helper method to process aggregate token into string
+   * @param tokenAggregate aggregate token that needs to process into string
+   */
+  private String processAggregateToken(
+    BursarExportTokenAggregate tokenAggregate,
+    int aggregateNumRows,
+    BigDecimal aggregateTotalAmount
+  ) {
+    String result;
+
+    switch (tokenAggregate.getValue()) {
+      case NUM_ROWS:
+        log.info("Number of row is {}", aggregateNumRows);
+        result = String.valueOf(aggregateNumRows);
+        break;
+      case TOTAL_AMOUNT:
+        log.info("Total fee amount is {}", aggregateTotalAmount);
+        result =
+          aggregateTotalAmount
+            .multiply(new BigDecimal("100"))
+            .setScale(0)
+            .toString();
+        break;
+      default:
+        result =
+          String.format(
+            "[invalid aggregate type %s]",
+            tokenAggregate.getValue()
+          );
+    }
+
+    return applyLengthControl(result, tokenAggregate.getLengthControl());
   }
 }

@@ -3,21 +3,32 @@ package org.folio.dew.batch.bursarfeesfines.service.impl;
 import static java.util.stream.Collectors.joining;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collector;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.client.AccountBulkClient;
 import org.folio.dew.client.AccountClient;
 import org.folio.dew.client.FeefineactionsClient;
+import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.ServicePointClient;
 import org.folio.dew.client.TransferClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.Account;
+import org.folio.dew.domain.dto.AccountdataCollection;
 import org.folio.dew.domain.dto.BursarExportJob;
+import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ServicePoint;
+import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.bursarfeesfines.TransferRequest;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,6 +63,7 @@ public class BursarExportServiceImpl implements BursarExportService {
 
   // used to query data from Okapi/other modules
   private final UserClient userClient;
+  private final InventoryClient inventoryClient;
   private final AccountClient accountClient;
   private final AccountBulkClient bulkClient;
   private final FeefineactionsClient feefineClient;
@@ -79,9 +91,69 @@ public class BursarExportServiceImpl implements BursarExportService {
 
   @Override
   public List<Account> getAllAccounts() {
-    return accountClient
-      .getAccounts("remaining > 0.0", DEFAULT_LIMIT)
-      .getAccounts();
+    List<Account> accounts = new ArrayList<>();
+
+    AccountdataCollection response = accountClient.getAccounts(
+      "remaining > 0.0",
+      DEFAULT_LIMIT
+    );
+    int total = response.getTotalRecords();
+    accounts.addAll(response.getAccounts());
+    while (accounts.size() < total) {
+      response =
+        accountClient.getAccounts(
+          "remaining > 0.0",
+          DEFAULT_LIMIT,
+          accounts.size()
+        );
+      accounts.addAll(response.getAccounts());
+    }
+
+    return accounts;
+  }
+
+  public Map<String, User> getUsers(Set<String> userIds) {
+    Map<String, User> map = new HashMap<>();
+
+    List<User> users = fetchDataInBatch(
+      new ArrayList<String>(userIds),
+      partition ->
+        userClient
+          .getUserByQuery(
+            String.format(
+              "id==(%s)",
+              partition.stream().collect(toQueryParameters)
+            ),
+            bucketSize
+          )
+          .getUsers()
+    );
+
+    users.forEach(user -> map.put(user.getId(), user));
+
+    return map;
+  }
+
+  public Map<String, Item> getItems(Set<String> itemIds) {
+    Map<String, Item> map = new HashMap<>();
+
+    List<Item> items = fetchDataInBatch(
+      new ArrayList<String>(itemIds),
+      partition ->
+        inventoryClient
+          .getItemByQuery(
+            String.format(
+              "id==(%s)",
+              partition.stream().collect(toQueryParameters)
+            ),
+            bucketSize
+          )
+          .getItems()
+    );
+
+    items.forEach(item -> map.put(item.getId(), item));
+
+    return map;
   }
 
   // NCO: Some sample queries that were done to get all users and patron groups;
@@ -102,7 +174,7 @@ public class BursarExportServiceImpl implements BursarExportService {
   //     log.error("Can not create query for batch job, cause outStandingDays are null.");
   //     return Collections.emptyList();
   //   }
-  //   return fetchDataInBatch(users, outStandingDays, (u, d) -> fetchAccounts(d, (Long) u));
+  // return fetchDataInBatch(users, outStandingDays, (u, d) -> fetchAccounts(d, (Long) u));
   // }
 
   // @Override
@@ -113,20 +185,22 @@ public class BursarExportServiceImpl implements BursarExportService {
   //   return fetchDataInBatch(accountIds, null, (nill, paramList) -> fetchFeefineActions(paramList));
   // }
 
-  // private <T, P> List<T> fetchDataInBatch(
-  //     List<P> parameters, Object additionalParam, BiFunction<Object, List<P>, List<T>> client) {
+  private <T, P> List<T> fetchDataInBatch(
+    List<P> parameters,
+    Function<List<P>, List<T>> client
+  ) {
+    if (parameters.size() <= bucketSize) {
+      log.debug("Fetch data by one call");
+      return client.apply(parameters);
+    }
 
-  //   if (parameters.size() <= bucketSize) {
-  //     log.debug("Fetch data by one call");
-  //     return client.apply(additionalParam, parameters);
-  //   }
-
-  //   final List<List<P>> partition = ListUtils.partition(parameters, bucketSize);
-  //   log.debug("Fetch data in several calls, bucket count {}", partition::size);
-  //   return partition.stream()
-  //       .map(paramBucket -> client.apply(additionalParam, paramBucket))
-  //       .collect(ArrayList::new, List::addAll, List::addAll);
-  // }
+    final List<List<P>> partition = ListUtils.partition(parameters, bucketSize);
+    log.debug("Fetch data in several calls, bucket count {}", partition::size);
+    return partition
+      .stream()
+      .map(paramBucket -> client.apply(paramBucket))
+      .collect(ArrayList::new, List::addAll, List::addAll);
+  }
 
   // private List<User> fetchUsers(List<String> patronGroups) {
   //   final String groupIds = patronGroups.stream().collect(toQueryParameters);

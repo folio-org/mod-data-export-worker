@@ -4,12 +4,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.BursarExportJob;
+import org.folio.dew.domain.dto.Item;
+import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
@@ -30,7 +36,8 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
   @Value("#{jobParameters['bursarFeeFines']}")
   private String bursarFeeFinesStr;
 
-  private StepExecution stepExecution;
+  private Map<String, User> userMap;
+  private Map<String, Item> itemMap;
   private List<Account> accounts = new ArrayList<>();
   private int nextIndex = 0;
 
@@ -40,9 +47,14 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
   @Override
   public AccountWithAncillaryData read() {
     if (nextIndex < accounts.size()) {
-      Account next = accounts.get(nextIndex);
+      Account account = accounts.get(nextIndex);
       nextIndex++;
-      return AccountWithAncillaryData.builder().account(next).build();
+      return AccountWithAncillaryData
+        .builder()
+        .account(account)
+        .user(userMap.get(account.getUserId()))
+        .item(itemMap.get(account.getItemId()))
+        .build();
     } else {
       nextIndex = 0;
       if (createEvenIfEmpty) {
@@ -56,8 +68,6 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
   @BeforeStep
   public void initStep(StepExecution stepExecution)
     throws JsonProcessingException {
-    this.stepExecution = stepExecution;
-
     BursarExportJob bursarFeeFines = objectMapper.readValue(
       bursarFeeFinesStr,
       BursarExportJob.class
@@ -68,12 +78,22 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
       .put("jobConfig", bursarFeeFines);
 
     log.error("--- Called AccountReader::initStep ---");
-    log.error("--- The implementation here is TBD ---");
 
-    // should do some filtering magic here
+    // TODO: should do some proactive filtering magic here
+    // grabbing accounts before users/items because, with a relatively
+    // frequent transfer process, there will be less accounts than users
     accounts = exportService.getAllAccounts();
-
     stepExecution.getExecutionContext().put("accounts", accounts);
+
+    Set<String> userIds = new HashSet<>(
+      accounts.stream().map(Account::getUserId).toList()
+    );
+    Set<String> itemIds = new HashSet<>(
+      accounts.stream().map(Account::getItemId).toList()
+    );
+
+    userMap = exportService.getUsers(userIds);
+    itemMap = exportService.getItems(itemIds);
 
     // initializing a totalAmount variable in jobExecutionContext
     stepExecution

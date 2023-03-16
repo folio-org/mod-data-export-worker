@@ -20,6 +20,7 @@ import org.folio.dew.domain.dto.BursarExportTokenDate;
 import org.folio.dew.domain.dto.BursarExportTokenFeeAmount;
 import org.folio.dew.domain.dto.BursarExportTokenFeeMetadata;
 import org.folio.dew.domain.dto.BursarExportTokenLengthControl;
+import org.folio.dew.domain.dto.BursarExportTokenUserData;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 
 @Log4j2
@@ -41,16 +42,17 @@ public class BursarTokenFormatter {
 
   private static String formatFeeAmountsDataToken(
     BursarExportTokenFeeAmount tokenFeeAmount,
-    AccountWithAncillaryData account
+    AccountWithAncillaryData accountWithAncillaryData
   ) {
     String result;
 
     if (tokenFeeAmount.getDecimal()) {
       result =
-        new DecimalFormat("0.00").format(account.getAccount().getAmount());
+        new DecimalFormat("0.00")
+          .format(accountWithAncillaryData.getAccount().getAmount());
     } else {
       result =
-        account
+        accountWithAncillaryData
           .getAccount()
           .getAmount()
           .multiply(new BigDecimal("100"))
@@ -62,16 +64,16 @@ public class BursarTokenFormatter {
 
   private static String formatFeeMetadataToken(
     BursarExportTokenFeeMetadata tokenFeeMetadata,
-    AccountWithAncillaryData account
+    AccountWithAncillaryData accountWithAncillaryData
   ) {
     if (
       tokenFeeMetadata.getValue() == BursarExportTokenFeeMetadata.ValueEnum.ID
     ) {
-      return account.getAccount().getFeeFineId();
+      return accountWithAncillaryData.getAccount().getFeeFineId();
     } else if (
       tokenFeeMetadata.getValue() == BursarExportTokenFeeMetadata.ValueEnum.NAME
     ) {
-      return account.getAccount().getFeeFineType();
+      return accountWithAncillaryData.getAccount().getFeeFineType();
     } else {
       return String.format(
         "[unexpected metadata token: %s]",
@@ -82,6 +84,31 @@ public class BursarTokenFormatter {
 
   private static String formatDateDataToken(BursarExportTokenDate tokenDate) {
     return processDateToken(tokenDate);
+  }
+
+  private static String formatUserDataToken(
+    BursarExportTokenUserData tokenUserData,
+    AccountWithAncillaryData accountWithAncillaryData
+  ) {
+    String result;
+    if (
+      tokenUserData.getValue() == BursarExportTokenUserData.ValueEnum.FOLIO_ID
+    ) {
+      result = accountWithAncillaryData.getUser().getId();
+    } else if (
+      tokenUserData.getValue() ==
+      BursarExportTokenUserData.ValueEnum.PATRON_GROUP_ID
+    ) {
+      result = accountWithAncillaryData.getUser().getPatronGroup();
+    } else {
+      result =
+        String.format(
+          "[unexpected user data token: %s]",
+          tokenUserData.getValue()
+        );
+    }
+
+    return applyLengthControl(result, tokenUserData.getLengthControl());
   }
 
   public static String formatDataToken(
@@ -97,6 +124,8 @@ public class BursarTokenFormatter {
       return formatFeeAmountsDataToken(tokenFeeAmount, account);
     } else if (token instanceof BursarExportTokenFeeMetadata tokenFeeMetadata) {
       return formatFeeMetadataToken(tokenFeeMetadata, account);
+    } else if (token instanceof BursarExportTokenUserData tokenUserData) {
+      return formatUserDataToken(tokenUserData, account);
     } else {
       log.error("Unexpected token: ", token);
       return String.format("[placeholder %s]", token.getType());

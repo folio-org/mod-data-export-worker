@@ -35,7 +35,7 @@ public class BursarExportJobConfig {
 
   @Bean
   public Job bursarExportJob(
-    Step getFilename,
+    Step prepareContext,
     Step exportStep,
     Step transferStep,
     JobRepository jobRepository,
@@ -47,7 +47,7 @@ public class BursarExportJobConfig {
     )
       .incrementer(new RunIdIncrementer())
       .listener(jobCompletionNotificationListener)
-      .flow(getFilename)
+      .flow(prepareContext)
       .next(exportStep)
       .next(transferStep)
       .end()
@@ -55,13 +55,13 @@ public class BursarExportJobConfig {
   }
 
   @Bean
-  public Step getFilename(
+  public Step prepareContext(
     JobRepository jobRepository,
-    FilenameTasklet filenameStep,
+    PrepareContextTasklet contextStep,
     PlatformTransactionManager transactionManager
   ) {
     return new StepBuilder(BursarExportUtils.GET_FILENAME_STEP, jobRepository)
-      .tasklet(filenameStep, transactionManager)
+      .tasklet(contextStep, transactionManager)
       .build();
   }
 

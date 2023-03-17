@@ -117,3 +117,4 @@ folio:
 logging:
   level:
     org.folio.dew.client.*: debug
+    org.apache.kafka.*: ERROR

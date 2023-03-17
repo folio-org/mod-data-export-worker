@@ -1,9 +1,12 @@
 package org.folio.dew.batch.bursarfeesfines;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportUtils;
+import org.folio.dew.domain.dto.BursarExportJob;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
@@ -17,7 +20,9 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @RequiredArgsConstructor
-public class FilenameTasklet implements Tasklet, StepExecutionListener {
+public class PrepareContextTasklet implements Tasklet, StepExecutionListener {
+
+  private final ObjectMapper objectMapper;
 
   @Override
   public void beforeStep(StepExecution stepExecution) {
@@ -30,6 +35,19 @@ public class FilenameTasklet implements Tasklet, StepExecutionListener {
       filename,
       ""
     );
+
+    try {
+      BursarExportJob jobConfig = objectMapper.readValue(
+        stepExecution.getJobParameters().getString("bursarFeeFines"),
+        BursarExportJob.class
+      );
+      stepExecution
+        .getJobExecution()
+        .getExecutionContext()
+        .put("jobConfig", jobConfig);
+    } catch (JsonProcessingException e) {
+      log.error("Could not parse job config... ", e);
+    }
   }
 
   @Override

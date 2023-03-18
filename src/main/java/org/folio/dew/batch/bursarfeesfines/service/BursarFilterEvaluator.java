@@ -18,7 +18,6 @@ import org.folio.dew.domain.dto.BursarExportFilterNegation;
 import org.folio.dew.domain.dto.BursarExportFilterPatronGroup;
 import org.folio.dew.domain.dto.BursarExportFilterServicePoint;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
-import org.springframework.cglib.core.Local;
 
 @Log4j2
 @UtilityClass

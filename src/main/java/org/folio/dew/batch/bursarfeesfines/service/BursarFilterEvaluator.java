@@ -50,12 +50,9 @@ public class BursarFilterEvaluator {
       return true;
     } else if (filter instanceof BursarExportFilterFeeType) {
       BursarExportFilterFeeType filterFeeType = (BursarExportFilterFeeType) filter;
-      return (
-        Objects.equals(
-          filterFeeType.getFeeFineTypeId().toString(),
-          account.getAccount().getFeeFineId()
-        )
-      );
+      return UUID
+        .fromString(account.getAccount().getFeeFineId())
+        .equals(filterFeeType.getFeeFineTypeId());
     } else if (filter instanceof BursarExportFilterInstitution) {
       BursarExportFilterInstitution filterInstitution = (BursarExportFilterInstitution) filter;
       return true;

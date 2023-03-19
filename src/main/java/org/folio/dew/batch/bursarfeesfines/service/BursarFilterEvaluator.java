@@ -1,5 +1,8 @@
 package org.folio.dew.batch.bursarfeesfines.service;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
@@ -27,7 +30,18 @@ public class BursarFilterEvaluator {
   ) {
     if (filter instanceof BursarExportFilterAge) {
       BursarExportFilterAge filterAge = (BursarExportFilterAge) filter;
-      return true;
+      LocalDate currentDate = LocalDate.now();
+
+      if (account.getAccount().getDateCreated() == null) {
+        return true;
+      }
+      return (
+        ChronoUnit.DAYS.between(
+          account.getAccount().getDateCreated().toInstant(),
+          currentDate
+        ) >
+        filterAge.getNumDays()
+      );
     } else if (filter instanceof BursarExportFilterAmount) {
       BursarExportFilterAmount filterAmount = (BursarExportFilterAmount) filter;
       return true;
@@ -36,7 +50,9 @@ public class BursarFilterEvaluator {
       return true;
     } else if (filter instanceof BursarExportFilterFeeType) {
       BursarExportFilterFeeType filterFeeType = (BursarExportFilterFeeType) filter;
-      return true;
+      return UUID
+        .fromString(account.getAccount().getFeeFineId())
+        .equals(filterFeeType.getFeeFineTypeId());
     } else if (filter instanceof BursarExportFilterInstitution) {
       BursarExportFilterInstitution filterInstitution = (BursarExportFilterInstitution) filter;
       return true;

@@ -2,18 +2,14 @@ package org.folio.dew.batch.bursarfeesfines.service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.Objects;
 import java.util.UUID;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.BursarExportFilter;
 import org.folio.dew.domain.dto.BursarExportFilterAge;
 import org.folio.dew.domain.dto.BursarExportFilterAmount;
-import org.folio.dew.domain.dto.BursarExportFilterCampus;
 import org.folio.dew.domain.dto.BursarExportFilterCondition;
 import org.folio.dew.domain.dto.BursarExportFilterFeeType;
-import org.folio.dew.domain.dto.BursarExportFilterInstitution;
-import org.folio.dew.domain.dto.BursarExportFilterLibrary;
 import org.folio.dew.domain.dto.BursarExportFilterLocation;
 import org.folio.dew.domain.dto.BursarExportFilterNegation;
 import org.folio.dew.domain.dto.BursarExportFilterPatronGroup;
@@ -45,26 +41,18 @@ public class BursarFilterEvaluator {
     } else if (filter instanceof BursarExportFilterAmount) {
       BursarExportFilterAmount filterAmount = (BursarExportFilterAmount) filter;
       return true;
-    } else if (filter instanceof BursarExportFilterCampus) {
-      BursarExportFilterCampus filterCampus = (BursarExportFilterCampus) filter;
-      return true;
     } else if (filter instanceof BursarExportFilterFeeType) {
       BursarExportFilterFeeType filterFeeType = (BursarExportFilterFeeType) filter;
       return UUID
         .fromString(account.getAccount().getFeeFineId())
         .equals(filterFeeType.getFeeFineTypeId());
-    } else if (filter instanceof BursarExportFilterInstitution) {
-      BursarExportFilterInstitution filterInstitution = (BursarExportFilterInstitution) filter;
-      return true;
-    } else if (filter instanceof BursarExportFilterLibrary) {
-      BursarExportFilterLibrary filterLibrary = (BursarExportFilterLibrary) filter;
-      return true;
     } else if (filter instanceof BursarExportFilterLocation) {
       BursarExportFilterLocation filterLocation = (BursarExportFilterLocation) filter;
-      return true;
+      return UUID
+        .fromString(account.getItem().getEffectiveLocation().getId())
+        .equals(filterLocation.getLocationId());
     } else if (filter instanceof BursarExportFilterPatronGroup) {
       BursarExportFilterPatronGroup filterPatronGroup = (BursarExportFilterPatronGroup) filter;
-      log.info(UUID.fromString(account.getUser().getPatronGroup()));
       return (
         UUID
           .fromString(account.getUser().getPatronGroup())

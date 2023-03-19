@@ -117,4 +117,5 @@ folio:
 logging:
   level:
     org.folio.dew.client.*: debug
+    org.springframework.core.log.*: ERROR
     org.apache.kafka.*: ERROR

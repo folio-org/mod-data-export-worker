@@ -60,7 +60,9 @@ public class BursarFilterEvaluator {
       );
     } else if (filter instanceof BursarExportFilterServicePoint) {
       BursarExportFilterServicePoint filterServicePoint = (BursarExportFilterServicePoint) filter;
-      return true;
+      return UUID
+        .fromString(account.getItem().getInTransitDestinationServicePointId())
+        .equals(filterServicePoint.getServicePointId());
     } else if (filter instanceof BursarExportFilterCondition) {
       return evaluateCondition(account, (BursarExportFilterCondition) filter);
     } else if (filter instanceof BursarExportFilterNegation) {

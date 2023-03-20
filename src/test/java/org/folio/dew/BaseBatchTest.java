@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.ExportJobManagerSync;
-import org.folio.dew.repository.InMemoryAcknowledgementRepository;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.spring.DefaultFolioExecutionContext;
@@ -54,7 +53,6 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.support.TestPropertySourceUtils;
@@ -94,17 +92,12 @@ public abstract class BaseBatchTest {
   protected RemoteFilesStorage remoteFilesStorage;
   @SpyBean
   protected JobCommandsReceiverService jobCommandsReceiverService;
-  @Autowired
-  protected InMemoryAcknowledgementRepository repository;
   @MockBean
   @Qualifier("exportJobManager")
   protected ExportJobManager exportJobManager;
   @MockBean
   @Qualifier("exportJobManagerSync")
   protected ExportJobManagerSync exportJobManagerSync;
-  @MockBean
-  protected Acknowledgment acknowledgment;
-
   @Value("${spring.application.name}")
   protected String springApplicationName;
 

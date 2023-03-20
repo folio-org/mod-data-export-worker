@@ -1,6 +1,5 @@
 package org.folio.dew.service;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -32,7 +31,6 @@ import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.kafka.support.Acknowledgment;
 
 class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
@@ -46,31 +44,26 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
   @Test
   @DisplayName("Start CirculationLog job by kafka request")
   void startCirculationLogJobTest() throws JobExecutionException {
-    doNothing().when(acknowledgment).acknowledge();
 
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createStartCirculationLogJobRequest(id);
 
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders, acknowledgment);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders);
 
     verify(exportJobManagerSync, times(1)).launchJob(any());
-
-    final Acknowledgment savedAcknowledgment = repository.getAcknowledgement(id.toString());
-
-    assertNotNull(savedAcknowledgment);
   }
 
   @Test
   @DisplayName("Resend job by kafka request")
   void startResendTest() throws Exception {
     String testString = "Test string";
-    doNothing().when(acknowledgment).acknowledge();
+
     doReturn(testString.getBytes()).when(remoteFilesStorage).readAllBytes(anyString());
     doNothing().when(ftpStorageService).uploadToFtp(any(), any(), anyString());
 
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createStartResendRequest(id);
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders, acknowledgment);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders);
 
     verify(exportJobManagerSync, never()).launchJob(any());
   }
@@ -79,13 +72,13 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
   @DisplayName("Resend job should failed")
   void failedResendTest() throws Exception {
     String testString = "Test string";
-    doNothing().when(acknowledgment).acknowledge();
+
     doReturn(testString.getBytes()).when(remoteFilesStorage).readAllBytes(anyString());
     doThrow(new Exception("Something went wrong")).when(ftpStorageService).uploadToFtp(any(), any(), anyString());
 
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createStartResendRequest(id);
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders, acknowledgment);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders);
 
     verify(exportJobManagerSync, never()).launchJob(any());
   }
@@ -93,9 +86,9 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
   @Test
   @DisplayName("Resend job should failed JobId is null")
   void failedResendTestJobIdIsNull() throws Exception {
-    doNothing().when(acknowledgment).acknowledge();
+
     JobCommand jobCommand = createStartResendRequest(null);
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders, acknowledgment);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders);
 
     verify(ftpStorageService, never()).uploadToFtp(any(), any(), anyString());
     verify(exportJobManagerSync, never()).launchJob(any());
@@ -104,65 +97,43 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
   @Test
   @DisplayName("Start EHoldings job by kafka request")
   void startEHoldingsJobTest() throws JobExecutionException {
-    doNothing().when(acknowledgment).acknowledge();
-
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createStartEHoldingsJobRequest(id);
 
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders, acknowledgment);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders);
 
     verify(exportJobManagerSync, times(1)).launchJob(any());
-
-    final Acknowledgment savedAcknowledgment = repository.getAcknowledgement(id.toString());
-
-    assertNotNull(savedAcknowledgment);
   }
 
   @Test
   @DisplayName("Start Authority Control job by kafka request")
   void startAuthorityControlForAuthorityJobTest() throws JobExecutionException {
-    doNothing().when(acknowledgment).acknowledge();
-
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createStartAuthorityControlAuthorityJobRequest(id);
 
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders, acknowledgment);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders);
 
     verify(exportJobManagerSync, times(1)).launchJob(any());
-
-    final Acknowledgment savedAcknowledgment = repository.getAcknowledgement(id.toString());
-
-    assertNotNull(savedAcknowledgment);
   }
 
   @Test
   @DisplayName("Start Authority Control job by kafka request")
   void startAuthorityControlForInstanceJobTest() throws JobExecutionException {
-    doNothing().when(acknowledgment).acknowledge();
-
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createStartAuthorityControlInstanceJobRequest(id);
 
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders, acknowledgment);
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders);
 
     verify(exportJobManagerSync, times(1)).launchJob(any());
-
-    final Acknowledgment savedAcknowledgment = repository.getAcknowledgement(id.toString());
-
-    assertNotNull(savedAcknowledgment);
   }
 
   @Test
   @DisplayName("Delete files by kafka request")
   void deleteFilesTest() {
-    doNothing().when(acknowledgment).acknowledge();
-
     UUID id = UUID.randomUUID();
     JobCommand jobCommand = createDeleteJobRequest(id);
 
-    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders, acknowledgment);
-
-    verify(acknowledgment, times(1)).acknowledge();
+    jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders);
   }
 
   @Test

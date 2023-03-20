@@ -40,7 +40,6 @@ import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarFeeFinesDto;
 import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.folio.dew.error.FileOperationException;
-import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.JobCommandRepository;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
@@ -55,7 +54,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
@@ -70,7 +68,6 @@ public class JobCommandsReceiverService {
   private final ExportJobManager exportJobManager;
   private final ExportJobManagerSync exportJobManagerSync;
   private final BursarExportService bursarExportService;
-  private final IAcknowledgementRepository acknowledgementRepository;
   private final RemoteFilesStorage remoteFilesStorage;
   private final LocalFilesStorage localFilesStorage;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
@@ -100,7 +97,7 @@ public class JobCommandsReceiverService {
     containerFactory = "kafkaListenerContainerFactory",
     topicPattern = "${application.kafka.topic-pattern}",
     groupId = "${application.kafka.group-id}")
-  public void receiveStartJobCommand(@Payload JobCommand jobCommand, @Headers Map<String, Object> messageHeaders, Acknowledgment acknowledgment) {
+  public void receiveStartJobCommand(@Payload JobCommand jobCommand, @Headers Map<String, Object> messageHeaders) {
     var defaultFolioExecutionContext = DefaultFolioExecutionContext.fromMessageHeaders(folioModuleMetadata, messageHeaders);
 
     try (var context = new FolioExecutionContextSetter(defaultFolioExecutionContext)) {
@@ -108,11 +105,11 @@ public class JobCommandsReceiverService {
 
       try {
         if (JobCommandType.RESEND.equals(jobCommand.getType())) {
-          resendService.resendExportedFile(jobCommand, acknowledgment);
+          resendService.resendExportedFile(jobCommand);
           return;
         }
 
-        if (deleteOldFiles(jobCommand, acknowledgment)) {
+        if (deleteOldFiles(jobCommand)) {
           return;
         }
         log.info("-----------------------------JOB---STARTS-----------------------------");
@@ -122,8 +119,6 @@ public class JobCommandsReceiverService {
         if (Set.of(BULK_EDIT_IDENTIFIERS, BULK_EDIT_QUERY, BULK_EDIT_UPDATE).contains(jobCommand.getExportType())) {
           addBulkEditJobCommand(jobCommand);
           if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
-            acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-            log.debug("FOLIO context closed.");
             return;
           }
         }
@@ -133,7 +128,6 @@ public class JobCommandsReceiverService {
             jobMap.get(resolveJobKey(jobCommand)),
             jobCommand.getJobParameters());
 
-        acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
         exportJobManagerSync.launchJob(jobLaunchRequest);
 
       } catch (Exception e) {
@@ -230,12 +224,10 @@ public class JobCommandsReceiverService {
     return objectMapper.readValue(value, BursarFeeFinesDto.class);
   }
 
-  private boolean deleteOldFiles(JobCommand jobCommand, Acknowledgment acknowledgment) {
+  private boolean deleteOldFiles(JobCommand jobCommand) {
     if (jobCommand.getType() != JobCommandType.DELETE) {
       return false;
     }
-
-    acknowledgment.acknowledge();
 
     var filesStr = jobCommand.getJobParameters().getString(JobParameterNames.OUTPUT_FILES_IN_STORAGE);
     log.info("Deleting old job files {}.", filesStr);

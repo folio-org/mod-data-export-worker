@@ -15,7 +15,6 @@ spring:
       concurrency: ${KAFKA_CONCURRENCY_LEVEL:30}
     consumer:
       auto-offset-reset: latest
-      enable-auto-commit: false
       fetch-max-wait: ${KAFKA_CONSUMER_POLL_INTERVAL:3600000}
   datasource:
     username: ${DB_USERNAME:folio_admin}

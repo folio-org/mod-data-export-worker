@@ -8,12 +8,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.domain.dto.Account;
-import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
@@ -21,7 +19,6 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -31,10 +28,6 @@ import org.springframework.stereotype.Component;
 public class AccountReader implements ItemReader<AccountWithAncillaryData> {
 
   private final BursarExportService exportService;
-  private final ObjectMapper objectMapper;
-
-  @Value("#{jobParameters['bursarFeeFines']}")
-  private String bursarFeeFinesStr;
 
   private Map<String, User> userMap;
   private Map<String, Item> itemMap;
@@ -66,17 +59,7 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
   }
 
   @BeforeStep
-  public void initStep(StepExecution stepExecution)
-    throws JsonProcessingException {
-    BursarExportJob bursarFeeFines = objectMapper.readValue(
-      bursarFeeFinesStr,
-      BursarExportJob.class
-    );
-    stepExecution
-      .getJobExecution()
-      .getExecutionContext()
-      .put("jobConfig", bursarFeeFines);
-
+  public void initStep(StepExecution stepExecution) {
     log.error("--- Called AccountReader::initStep ---");
 
     // TODO: should do some proactive filtering magic here

@@ -10,7 +10,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.IsoFields;
 import java.time.temporal.WeekFields;
 import java.time.zone.ZoneRulesException;
-import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import lombok.experimental.UtilityClass;

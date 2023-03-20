@@ -8,7 +8,6 @@ import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
-import org.apache.logging.log4j.core.config.Order;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.batch.bursarfeesfines.service.BursarTokenFormatter;
 import org.folio.dew.domain.dto.BursarExportJob;
@@ -65,7 +64,6 @@ public class AccountFormatter
 
   @BeforeStep
   public void initStep(StepExecution stepExecution) {
-    this.stepExecution = stepExecution;
     log.error("In AccountFormatter::initStep (implementation TBD, if any)");
   }
 }

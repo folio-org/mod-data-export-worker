@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bursarfeesfines;
 
+import java.util.Arrays;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportUtils;
 import org.folio.dew.batch.bursarfeesfines.service.BursarWriter;
@@ -10,7 +11,9 @@ import org.folio.dew.repository.S3CompatibleResource;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.listener.ExecutionContextPromotionListener;
@@ -75,13 +78,18 @@ public class BursarExportJobConfig {
     JobRepository jobRepository,
     PlatformTransactionManager transactionManager
   ) {
+    CompositeItemProcessor<AccountWithAncillaryData, String> compositeProcessor = new CompositeItemProcessor<>();
+    compositeProcessor.setDelegates(Arrays.asList(filterer, formatter));
+
     return new StepBuilder(BursarExportUtils.EXPORT_STEP, jobRepository)
       .<AccountWithAncillaryData, String>chunk(CHUNK_SIZE, transactionManager)
       .reader(reader)
-      .processor(new CompositeItemProcessor<>(filterer, formatter))
+      .processor(compositeProcessor)
       .writer(writer)
       .listener(promotionListener())
       .listener(listener)
+      .listener(reader)
+      .listener(formatter)
       .build();
   }
 

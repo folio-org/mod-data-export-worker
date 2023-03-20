@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bursarfeesfines;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -74,5 +75,11 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
 
     userMap = exportService.getUsers(userIds);
     itemMap = exportService.getItems(itemIds);
+
+    // initializing a totalAmount variable in jobExecutionContext
+    stepExecution
+      .getJobExecution()
+      .getExecutionContext()
+      .put("totalAmount", new BigDecimal(0));
   }
 }

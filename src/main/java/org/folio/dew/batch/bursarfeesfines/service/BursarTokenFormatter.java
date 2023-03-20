@@ -10,6 +10,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.IsoFields;
 import java.time.temporal.WeekFields;
 import java.time.zone.ZoneRulesException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.CheckForNull;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
@@ -17,6 +19,8 @@ import org.folio.dew.domain.dto.BursarExportDataToken;
 import org.folio.dew.domain.dto.BursarExportHeaderFooter;
 import org.folio.dew.domain.dto.BursarExportTokenAggregate;
 import org.folio.dew.domain.dto.BursarExportTokenConstant;
+import org.folio.dew.domain.dto.BursarExportTokenConstantConditional;
+import org.folio.dew.domain.dto.BursarExportTokenConstantConditionalConditionsInner;
 import org.folio.dew.domain.dto.BursarExportTokenDate;
 import org.folio.dew.domain.dto.BursarExportTokenFeeAmount;
 import org.folio.dew.domain.dto.BursarExportTokenFeeMetadata;
@@ -130,6 +134,9 @@ public class BursarTokenFormatter {
     if (token instanceof BursarExportTokenConstant) {
       BursarExportTokenConstant tokenConstant = (BursarExportTokenConstant) token;
       return tokenConstant.getValue();
+    } else if (token instanceof BursarExportTokenConstantConditional) {
+      BursarExportTokenConstantConditional tokenConstantConditional = (BursarExportTokenConstantConditional) token;
+      return processConstantConditional(tokenConstantConditional, account);
     } else if (token instanceof BursarExportTokenDate tokenDate) {
       return formatDateDataToken(tokenDate);
     } else if (token instanceof BursarExportTokenFeeAmount tokenFeeAmount) {
@@ -294,5 +301,24 @@ public class BursarTokenFormatter {
     }
 
     return applyLengthControl(result, tokenAggregate.getLengthControl());
+  }
+
+  /*
+   * Helper method to process conditional constant token
+   * @param tokenConstantConditional conditional constant token
+   */
+  private String processConstantConditional(
+    BursarExportTokenConstantConditional tokenConstantConditional,
+    AccountWithAncillaryData account
+  ) {
+    List<BursarExportTokenConstantConditionalConditionsInner> conditions = tokenConstantConditional.getConditions();
+
+    for (BursarExportTokenConstantConditionalConditionsInner condition : conditions) {
+      if (BursarFilterEvaluator.evaluate(account, condition.getCondition())) {
+        return condition.getValue().getValue();
+      }
+    }
+
+    return tokenConstantConditional.getElse().getValue();
   }
 }

@@ -1,3 +1,11 @@
+## 2023-03-21 v3.0.3
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.2...v3.0.3)
+
+### Bug fixes
+* [MODEXPW-388](https://issues.folio.org/browse/MODEXPW-388) Scheduled Bursar jobs stop Bulk edit's, Authority control, eHoldings jobs
+* [FOLSPRINGB-95](https://issues.folio.org/browse/FOLSPRINGB-95) non-public beginFolioExecutionContext avoids wrong tenant/user
+
 ## 2023-03-10 v3.0.2
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.1...v3.0.2)

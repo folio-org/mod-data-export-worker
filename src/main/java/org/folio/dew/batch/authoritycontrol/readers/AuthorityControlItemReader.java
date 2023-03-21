@@ -20,7 +20,7 @@ public abstract class AuthorityControlItemReader<T extends DataStatDTO> extends 
   private int currentChunkOffset;
   private List<T> currentChunk;
 
-  public AuthorityControlItemReader(EntitiesLinksStatsClient entitiesLinksStatsClient,
+  protected AuthorityControlItemReader(EntitiesLinksStatsClient entitiesLinksStatsClient,
                                     AuthorityControlExportConfig exportConfig,
                                     AuthorityControlJobProperties jobProperties) {
     this.entitiesLinksStatsClient = entitiesLinksStatsClient;

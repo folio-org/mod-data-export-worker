@@ -3,7 +3,6 @@ package org.folio.dew.service;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.folio.dew.utils.BulkEditProcessorHelper.ofEmptyString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
@@ -19,7 +18,6 @@ import org.folio.dew.error.NotFoundException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -47,6 +45,7 @@ public class ElectronicAccessService {
     var stringOutput = isEmpty(electronicAccesses) ?
       EMPTY :
       electronicAccesses.stream()
+        .filter(Objects::nonNull)
         .map(electronicAccess -> this.electronicAccessToString(electronicAccess, errors))
         .collect(Collectors.joining(ITEM_DELIMITER));
     errors.forEach(e -> bulkEditProcessingErrorsService.saveErrorInCSV(jobId, formatIdentifier, new BulkEditException(e), fileName));
@@ -57,13 +56,12 @@ public class ElectronicAccessService {
     var relationshipNameAndId = isEmpty(access.getRelationshipId()) ? ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER : getRelationshipNameAndIdById(access.getRelationshipId());
     if (isNotEmpty(access.getRelationshipId()) && relationshipNameAndId.startsWith(ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER))
       errors.add("Electronic access relationship not found by id=" + access.getRelationshipId());
-    List<String> entries = new ArrayList<>();
-    ofEmptyString(access.getUri()).ifPresent(e -> entries.add(escaper.escape(e)));
-    ofEmptyString(access.getLinkText()).ifPresent(e -> entries.add(escaper.escape(e)));
-    ofEmptyString(access.getMaterialsSpecification()).ifPresent(e -> entries.add(escaper.escape(e)));
-    ofEmptyString(access.getPublicNote()).ifPresent(e -> entries.add(escaper.escape(e)));
-    ofEmptyString(access.getRelationshipId()).ifPresent(e -> entries.add(getRelationshipNameAndIdById(access.getRelationshipId())));
-    return String.join(ARRAY_DELIMITER, entries);
+    return String.join(ARRAY_DELIMITER,
+      escaper.escape(access.getUri()),
+      escaper.escape(isEmpty(access.getLinkText()) ? EMPTY : access.getLinkText()),
+      escaper.escape(isEmpty(access.getMaterialsSpecification()) ? EMPTY : access.getMaterialsSpecification()),
+      escaper.escape(isEmpty(access.getPublicNote()) ? EMPTY : access.getPublicNote()),
+      relationshipNameAndId);
   }
 
   @Cacheable(cacheNames = "relationships")

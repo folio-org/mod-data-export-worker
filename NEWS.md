@@ -1,3 +1,12 @@
+## 2023-03-10 v3.0.2
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.1...v3.0.2)
+
+### Bug fixes
+* [MODEXPW-385](https://issues.folio.org/browse/MODEXPW-385) Add missing mod-configuration dependency
+* [MODEXPW-375](https://issues.folio.org/browse/MODEXPW-375) Job runs by user not the one who created the job
+* [MODEXPW-358](https://issues.folio.org/browse/MODEXPW-358) Bad data causes bulk edit to fail
+* 
 ## 2023-03-07 v3.0.1
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.0...v3.0.1)

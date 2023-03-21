@@ -7,7 +7,7 @@ import static org.folio.dew.utils.ExportFormatHelper.getHeaderLine;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
-import org.folio.dew.domain.dto.authoritycontrol.AuthorityControlExportFormat;
+import org.folio.dew.domain.dto.authoritycontrol.exportformat.AuthorityControlExportFormat;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.S3CompatibleResource;
 import org.folio.dew.utils.ExportFormatHelper;

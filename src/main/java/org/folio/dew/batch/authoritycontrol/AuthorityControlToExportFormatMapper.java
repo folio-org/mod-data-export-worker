@@ -1,18 +1,19 @@
 package org.folio.dew.batch.authoritycontrol;
 
+import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDto;
+import org.folio.dew.domain.dto.authority.control.InstanceDataStatDto;
+import org.folio.dew.domain.dto.authority.control.Metadata;
+import org.folio.dew.domain.dto.authoritycontrol.exportformat.AuthUpdateHeadingExportFormat;
+import org.folio.dew.domain.dto.authoritycontrol.exportformat.FailedLinkedBibExportFormat;
+import org.springframework.stereotype.Component;
+
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
-
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDto;
-import org.folio.dew.domain.dto.authority.control.InstanceDataStatDto;
-import org.folio.dew.domain.dto.authority.control.Metadata;
-import org.folio.dew.domain.dto.authoritycontrol.AuthUpdateHeadingExportFormat;
-import org.folio.dew.domain.dto.authoritycontrol.FailedLinkedBibExportFormat;
-import org.springframework.stereotype.Component;
 
 @Component
 public class AuthorityControlToExportFormatMapper {

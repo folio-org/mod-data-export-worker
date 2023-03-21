@@ -1,4 +1,4 @@
 package org.folio.dew.domain.dto.authoritycontrol;
 
-public interface AuthorityControlExportFormat {
+public interface DataStatDTO {
 }

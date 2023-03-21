@@ -1,4 +1,4 @@
-package org.folio.dew.domain.dto.authoritycontrol;
+package org.folio.dew.domain.dto.authoritycontrol.exportformat;
 
 import lombok.Data;
 import org.folio.dew.domain.dto.annotation.ExportFormat;

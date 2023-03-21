@@ -12,8 +12,8 @@ import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
 import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDto;
 import org.folio.dew.domain.dto.authority.control.InstanceDataStatDto;
-import org.folio.dew.domain.dto.authoritycontrol.AuthUpdateHeadingExportFormat;
-import org.folio.dew.domain.dto.authoritycontrol.FailedLinkedBibExportFormat;
+import org.folio.dew.domain.dto.authoritycontrol.exportformat.AuthUpdateHeadingExportFormat;
+import org.folio.dew.domain.dto.authoritycontrol.exportformat.FailedLinkedBibExportFormat;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -38,10 +38,9 @@ public class AuthorityControlJobConfig {
   private final ObjectMapper objectMapper;
 
   @Bean
-  public Job getAuthHeadingJob(
-    JobRepository jobRepository,
-    JobCompletionNotificationListener jobCompletionNotificationListener,
-    @Qualifier("getAuthHeadingStep") Step getAuthHeadingStep) {
+  public Job getAuthHeadingJob(JobRepository jobRepository,
+                               JobCompletionNotificationListener jobCompletionNotificationListener,
+                               @Qualifier("getAuthHeadingStep") Step getAuthHeadingStep) {
     return new JobBuilder(ExportType.AUTH_HEADINGS_UPDATES.toString(), jobRepository)
       .incrementer(new RunIdIncrementer())
       .listener(jobCompletionNotificationListener)
@@ -50,10 +49,9 @@ public class AuthorityControlJobConfig {
   }
 
   @Bean
-  public Job getFailedLinkedBibJob(
-    JobRepository jobRepository,
-    JobCompletionNotificationListener jobCompletionNotificationListener,
-    @Qualifier("getFailedLinkedBibStep") Step getFailedLinkedBibStep) {
+  public Job getFailedLinkedBibJob(JobRepository jobRepository,
+                                   JobCompletionNotificationListener jobCompletionNotificationListener,
+                                   @Qualifier("getFailedLinkedBibStep") Step getFailedLinkedBibStep) {
     return new JobBuilder(ExportType.FAILED_LINKED_BIB_UPDATES.toString(), jobRepository)
       .incrementer(new RunIdIncrementer())
       .listener(jobCompletionNotificationListener)

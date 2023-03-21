@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.SneakyThrows;
-import org.folio.dew.domain.dto.authoritycontrol.AuthUpdateHeadingExportFormat;
+import org.folio.dew.domain.dto.authoritycontrol.exportformat.AuthUpdateHeadingExportFormat;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -6,8 +6,10 @@ import org.folio.dew.config.properties.AuthorityControlJobProperties;
 import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
 import org.folio.dew.domain.dto.authority.control.InstanceDataStatDto;
 import org.folio.dew.domain.dto.authority.control.InstanceDataStatDtoCollection;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 
+@StepScope
 @Component
 public class LinkedBibUpdateItemReader extends AuthorityControlItemReader<InstanceDataStatDto> {
 

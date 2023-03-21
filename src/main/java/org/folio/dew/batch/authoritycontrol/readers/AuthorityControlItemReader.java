@@ -10,10 +10,8 @@ import org.folio.dew.config.properties.AuthorityControlJobProperties;
 import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
 import org.folio.dew.domain.dto.authoritycontrol.DataStatCollectionDTO;
 import org.folio.dew.domain.dto.authoritycontrol.DataStatDTO;
-import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
 
-@StepScope
 public abstract class AuthorityControlItemReader<T extends DataStatDTO> extends AbstractItemCountingItemStreamItemReader<T> {
   protected final EntitiesLinksStatsClient entitiesLinksStatsClient;
   private final int limit;

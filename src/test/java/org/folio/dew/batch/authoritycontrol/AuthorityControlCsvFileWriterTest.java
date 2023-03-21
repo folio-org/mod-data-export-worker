@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.SneakyThrows;
-import org.folio.dew.domain.dto.authoritycontrol.AuthorityUpdateHeadingExportFormat;
+import org.folio.dew.domain.dto.authoritycontrol.AuthUpdateHeadingExportFormat;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ class AuthorityControlCsvFileWriterTest {
   @SneakyThrows
   @BeforeEach
   void setUp() {
-    authorityControlCsvFileWriter = new AuthorityControlCsvFileWriter(TEMP_FILE, localFilesStorage);
+    authorityControlCsvFileWriter = new AuthorityControlCsvFileWriter(AuthUpdateHeadingExportFormat.class, TEMP_FILE, localFilesStorage);
     lenient().doNothing().when(localFilesStorage).append(anyString(), any());
   }
 
@@ -73,8 +73,8 @@ class AuthorityControlCsvFileWriterTest {
   @SneakyThrows
   void testWriteItemsMethod() {
     //Given
-    List<AuthorityUpdateHeadingExportFormat> items = new ArrayList<>();
-    AuthorityUpdateHeadingExportFormat exportFormat = new AuthorityUpdateHeadingExportFormat();
+    List<AuthUpdateHeadingExportFormat> items = new ArrayList<>();
+    AuthUpdateHeadingExportFormat exportFormat = new AuthUpdateHeadingExportFormat();
     exportFormat.setUpdater("Test User");
     items.add(exportFormat);
 

@@ -42,7 +42,7 @@ public class AuthorityControlToExportFormatMapper {
     exportFormat.setFailed(dateToString(dto.getUpdatedAt()));
     exportFormat.setBibliographicTitle(dto.getInstanceTitle());
     exportFormat.setBibliographicUUID(dto.getInstanceId().toString());
-    exportFormat.setFailedBibFieldUpdate(dto.getBibRecordsTag());
+    exportFormat.setFailedBibFieldUpdate(dto.getBibRecordTag());
     exportFormat.setLinkedAuthorityIdentifier(dto.getAuthorityNaturalId());
     exportFormat.setReasonForError(dto.getErrorCause());
 

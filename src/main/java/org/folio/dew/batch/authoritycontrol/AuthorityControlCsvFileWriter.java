@@ -7,7 +7,7 @@ import static org.folio.dew.utils.ExportFormatHelper.getHeaderLine;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
-import org.folio.dew.domain.dto.authoritycontrol.AuthorityUpdateHeadingExportFormat;
+import org.folio.dew.domain.dto.authoritycontrol.AuthorityControlExportFormat;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.S3CompatibleResource;
 import org.folio.dew.utils.ExportFormatHelper;
@@ -23,17 +23,18 @@ import org.springframework.util.ClassUtils;
 
 @Component
 @StepScope
-public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<AuthorityUpdateHeadingExportFormat> {
+public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<AuthorityControlExportFormat> {
   private final String headersLine;
   private final String tempOutputFilePath;
   private final LocalFilesStorage localFilesStorage;
 
-  public AuthorityControlCsvFileWriter(@Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
+  public AuthorityControlCsvFileWriter(Class<? extends AuthorityControlExportFormat> exportFormatClass,
+                                       @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
                                        LocalFilesStorage localFilesStorage) {
     setResource(tempOutputFilePath);
 
-    this.setExecutionContextName(ClassUtils.getShortName(AuthorityControlCsvFileWriter.class));
-    this.headersLine = getHeaderLine(AuthorityUpdateHeadingExportFormat.class, lineSeparator);
+    this.setExecutionContextName(ClassUtils.getShortName(exportFormatClass));
+    this.headersLine = getHeaderLine(exportFormatClass, lineSeparator);
     this.tempOutputFilePath = tempOutputFilePath;
     this.localFilesStorage = localFilesStorage;
   }
@@ -59,13 +60,13 @@ public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<Author
   }
 
   @Override
-  public void write(@NotNull Chunk<? extends AuthorityUpdateHeadingExportFormat> items) throws Exception {
+  public void write(@NotNull Chunk<? extends AuthorityControlExportFormat> items) throws Exception {
     writeString(doWrite(items));
   }
 
   @NotNull
   @Override
-  protected String doWrite(Chunk<? extends AuthorityUpdateHeadingExportFormat> chunk) {
+  protected String doWrite(Chunk<? extends AuthorityControlExportFormat> chunk) {
     return chunk.getItems().stream()
       .map(ExportFormatHelper::getItemRow)
       .collect(Collectors.joining(lineSeparator, EMPTY, lineSeparator));

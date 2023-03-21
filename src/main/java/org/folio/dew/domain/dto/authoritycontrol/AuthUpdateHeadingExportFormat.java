@@ -6,7 +6,7 @@ import org.folio.dew.domain.dto.annotation.ExportHeader;
 
 @Data
 @ExportFormat(sentenceCaseHeaders = true)
-public class AuthorityUpdateHeadingExportFormat {
+public class AuthUpdateHeadingExportFormat implements AuthorityControlExportFormat {
   private String lastUpdated;
   private String originalHeading;
   private String newHeading;

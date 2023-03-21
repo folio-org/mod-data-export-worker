@@ -1,36 +1,34 @@
-package org.folio.dew.batch.authoritycontrol;
-
-import org.folio.dew.client.EntitiesLinksStatsClient;
-import org.folio.dew.config.properties.AuthorityControlJobProperties;
-import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
-import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDto;
-import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDtoCollection;
-import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
-import org.springframework.stereotype.Component;
+package org.folio.dew.batch.authoritycontrol.readers;
 
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
-
-import static org.folio.dew.domain.dto.authority.control.AuthorityDataStatDto.ActionEnum.UPDATE_HEADING;
+import org.folio.dew.client.EntitiesLinksStatsClient;
+import org.folio.dew.client.EntitiesLinksStatsClient.LinkStatus;
+import org.folio.dew.config.properties.AuthorityControlJobProperties;
+import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
+import org.folio.dew.domain.dto.authority.control.InstanceDataStatDto;
+import org.folio.dew.domain.dto.authority.control.InstanceDataStatDtoCollection;
+import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
+import org.springframework.stereotype.Component;
 
 @Component
 @StepScope
-public class AuthorityControlItemReader extends AbstractItemCountingItemStreamItemReader<AuthorityDataStatDto> {
+public class LinkedBibUpdateItemReader extends AbstractItemCountingItemStreamItemReader<InstanceDataStatDto> {
 
   private final EntitiesLinksStatsClient entitiesLinksStatsClient;
   private final int limit;
   private final OffsetDateTime fromDate;
   private OffsetDateTime toDate;
   private int currentChunkOffset;
-  private List<AuthorityDataStatDto> currentChunk;
+  private List<InstanceDataStatDto> currentChunk;
 
-  protected AuthorityControlItemReader(EntitiesLinksStatsClient entitiesLinksStatsClient,
-                                       AuthorityControlExportConfig exportConfig,
-                                       AuthorityControlJobProperties jobProperties) {
+  protected LinkedBibUpdateItemReader(EntitiesLinksStatsClient entitiesLinksStatsClient,
+                                      AuthorityControlExportConfig exportConfig,
+                                      AuthorityControlJobProperties jobProperties) {
     this.limit = jobProperties.getEntitiesLinksChunkSize();
     this.entitiesLinksStatsClient = entitiesLinksStatsClient;
     this.fromDate = OffsetDateTime.of(exportConfig.getFromDate(), LocalTime.MIN, ZoneOffset.UTC);
@@ -42,7 +40,7 @@ public class AuthorityControlItemReader extends AbstractItemCountingItemStreamIt
   }
 
   @Override
-  protected AuthorityDataStatDto doRead() {
+  protected InstanceDataStatDto doRead() {
     if (currentChunk == null || currentChunkOffset >= currentChunk.size()) {
       if (toDate == null) {
         return null;
@@ -60,8 +58,8 @@ public class AuthorityControlItemReader extends AbstractItemCountingItemStreamIt
     return currentChunk.get(currentChunkOffset++);
   }
 
-  protected AuthorityDataStatDtoCollection getItems(int limit) {
-    return entitiesLinksStatsClient.getAuthorityStats(limit, UPDATE_HEADING, fromDate.toString(), toDate.toString());
+  protected InstanceDataStatDtoCollection getItems(int limit) {
+    return entitiesLinksStatsClient.getInstanceStats(limit, LinkStatus.ERROR, fromDate.toString(), toDate.toString());
   }
 
   @Override

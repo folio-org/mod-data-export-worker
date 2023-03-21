@@ -23,6 +23,7 @@ import org.folio.dew.domain.dto.BursarExportTokenConstantConditionalConditionsIn
 import org.folio.dew.domain.dto.BursarExportTokenDate;
 import org.folio.dew.domain.dto.BursarExportTokenFeeAmount;
 import org.folio.dew.domain.dto.BursarExportTokenFeeMetadata;
+import org.folio.dew.domain.dto.BursarExportTokenItemData;
 import org.folio.dew.domain.dto.BursarExportTokenLengthControl;
 import org.folio.dew.domain.dto.BursarExportTokenUserData;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
@@ -126,6 +127,33 @@ public class BursarTokenFormatter {
     return applyLengthControl(result, tokenUserData.getLengthControl());
   }
 
+  private static String formatItemDataToken(
+    BursarExportTokenItemData tokenItemData,
+    AccountWithAncillaryData accountWithAncillaryData
+  ) {
+    String result;
+    switch (tokenItemData.getValue()) {
+      case LOCATION_ID:
+        result =
+          accountWithAncillaryData.getItem().getEffectiveLocation().getId();
+        break;
+      case NAME:
+        result = accountWithAncillaryData.getItem().getTitle();
+        break;
+      case BARCODE:
+        result = accountWithAncillaryData.getItem().getBarcode();
+        break;
+      case MATERIAL_TYPE:
+        result = accountWithAncillaryData.getItem().getMaterialType().getName();
+        break;
+      default:
+        result = tokenItemData.getPlaceholder();
+        break;
+    }
+
+    return applyLengthControl(result, tokenItemData.getLengthControl());
+  }
+
   public static String formatDataToken(
     BursarExportDataToken token,
     AccountWithAncillaryData account
@@ -144,6 +172,8 @@ public class BursarTokenFormatter {
       return formatFeeMetadataToken(tokenFeeMetadata, account);
     } else if (token instanceof BursarExportTokenUserData tokenUserData) {
       return formatUserDataToken(tokenUserData, account);
+    } else if (token instanceof BursarExportTokenItemData tokenItemData) {
+      return formatItemDataToken(tokenItemData, account);
     } else {
       log.error("Unexpected token: ", token);
       return String.format("[placeholder %s]", token.getType());

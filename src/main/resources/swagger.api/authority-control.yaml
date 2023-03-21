@@ -21,4 +21,4 @@ components:
     authorityDataStatDtoCollection:
       $ref: '../../../../folio-export-common/schemas/authority-control/authorityDataStatDtoCollection.json#/AuthorityDataStatDtoCollection'
     instanceDataStatDtoCollection:
-      $ref: '../../../../folio-export-common/schemas/authority-control/instanceDataLinkStatCollection.json#/InstanceDataStatDtoCollection'
+      $ref: '../../../../folio-export-common/schemas/authority-control/instanceDataStatDtoCollection.json#/InstanceDataStatDtoCollection'

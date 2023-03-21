@@ -22,14 +22,20 @@ import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.FILE_UPLOAD_ERROR;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
+import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
-import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
-import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
+import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 import static org.folio.dew.utils.CsvHelper.countLines;
+import static org.folio.spring.scope.FolioExecutionScopeExecutionContextManager.getRunnableWithCurrentFolioContext;
 
+import com.opencsv.CSVReader;
+import io.swagger.annotations.ApiParam;
+import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -38,17 +44,10 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import jakarta.annotation.PostConstruct;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-
-import com.opencsv.CSVReader;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
@@ -56,36 +55,34 @@ import org.folio.dew.batch.ExportJobManagerSync;
 import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
+import org.folio.dew.domain.dto.Errors;
 import org.folio.dew.domain.dto.HoldingsContentUpdateCollection;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
 import org.folio.dew.domain.dto.IdentifierType;
-import org.folio.dew.domain.dto.ItemContentUpdateCollection;
-import org.folio.dew.domain.dto.Errors;
 import org.folio.dew.domain.dto.ItemCollection;
+import org.folio.dew.domain.dto.ItemContentUpdateCollection;
 import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.domain.dto.UserCollection;
 import org.folio.dew.domain.dto.UserContentUpdateCollection;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.FileOperationException;
-import org.folio.dew.error.NotFoundException;
 import org.folio.dew.error.NonSupportedEntityException;
+import org.folio.dew.error.NotFoundException;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.BulkEditItemContentUpdateService;
 import org.folio.dew.service.BulkEditParseService;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
-import org.folio.dew.service.UpdatesResult;
 import org.folio.dew.service.JobCommandsReceiverService;
+import org.folio.dew.service.UpdatesResult;
 import org.folio.dew.service.mapper.HoldingsMapper;
 import org.folio.dew.service.update.BulkEditHoldingsContentUpdateService;
 import org.folio.dew.service.update.BulkEditUserContentUpdateService;
 import org.folio.dew.utils.CsvHelper;
-import org.folio.spring.DefaultFolioExecutionContext;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
-import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 import org.openapitools.api.JobIdApi;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionException;
@@ -105,10 +102,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import io.swagger.annotations.ApiParam;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 
 @RestController
 @RequestMapping("/bulk-edit")
@@ -323,23 +316,14 @@ public class BulkEditController implements JobIdApi {
         var job = getBulkEditJob(jobCommand);
         var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
         log.info("Launching bulk edit user identifiers job.");
-        var tenantId = folioExecutionContext.getTenantId();
-        var headers = folioExecutionContext.getOkapiHeaders();
-        new Thread(() -> {
-          Map<String, Collection<String>> okapiHeaders = new HashMap<>(headers);
-          okapiHeaders.put("x-okapi-tenant", List.of(tenantId));
-          var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
-          FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
+        new Thread(getRunnableWithCurrentFolioContext(() -> {
           try {
             exportJobManagerSync.launchJob(jobLaunchRequest);
           } catch (JobExecutionException e) {
             String errorMessage = format(FILE_UPLOAD_ERROR, e.getMessage());
             log.error(errorMessage);
-          } finally {
-            FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
-            log.debug("FOLIO context closed.");
           }
-        }).start();
+        })).start();
       }
       var numberOfLines = jobCommand.getJobParameters().getLong(TOTAL_CSV_LINES);
       return new ResponseEntity<>(Long.toString(isNull(numberOfLines) ? 0 : numberOfLines), HttpStatus.OK);
@@ -363,22 +347,13 @@ public class BulkEditController implements JobIdApi {
     var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
     try {
       log.info("Launching bulk-edit job.");
-      var tenantId = folioExecutionContext.getTenantId();
-      var headers = folioExecutionContext.getOkapiHeaders();
-      new Thread(() -> {
-        Map<String, Collection<String>> okapiHeaders = new HashMap<>(headers);
-        okapiHeaders.put("x-okapi-tenant", List.of(tenantId));
-        var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
-        FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
+      new Thread(getRunnableWithCurrentFolioContext(() -> {
         try {
           exportJobManagerSync.launchJob(jobLaunchRequest);
         } catch (JobExecutionException e) {
           log.error(e.getMessage());
-        } finally {
-          FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
-          log.debug("FOLIO context closed.");
         }
-      }).start();
+      })).start();
     } catch (Exception e) {
       var errorMessage = e.getMessage();
       log.error(errorMessage);

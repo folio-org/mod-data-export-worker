@@ -8,6 +8,7 @@ import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
+import org.aspectj.lang.annotation.After;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.batch.bursarfeesfines.service.BursarTokenFormatter;
 import org.folio.dew.domain.dto.BursarExportJob;
@@ -50,10 +51,6 @@ public class AccountFormatter
     BigDecimal accountFeeAmount = item.getAccount().getAmount();
     log.info("Current total fee is {}", currentTotalFeeAmount.toString());
     currentTotalFeeAmount = currentTotalFeeAmount.add(accountFeeAmount);
-    stepExecution
-      .getJobExecution()
-      .getExecutionContext()
-      .put("totalAmount", currentTotalFeeAmount);
 
     return jobConfig
       .getData()
@@ -65,5 +62,14 @@ public class AccountFormatter
   @BeforeStep
   public void initStep(StepExecution stepExecution) {
     log.error("In AccountFormatter::initStep (implementation TBD, if any)");
+    currentTotalFeeAmount = new BigDecimal(0);
+  }
+
+  @AfterStep
+  public void afterStep(StepExecution stepExecution) {
+    stepExecution
+      .getJobExecution()
+      .getExecutionContext()
+      .put("totalAmount", currentTotalFeeAmount);
   }
 }

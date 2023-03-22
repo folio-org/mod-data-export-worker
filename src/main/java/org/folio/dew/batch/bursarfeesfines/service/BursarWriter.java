@@ -39,6 +39,7 @@ public class BursarWriter
   @Value("#{jobExecutionContext['jobConfig']}")
   private BursarExportJob jobConfig;
 
+  @Value("#{jobExecutionContext['totalAmount']}")
   private BigDecimal aggregateTotalAmount;
 
   private int aggregateNumRows;
@@ -47,15 +48,9 @@ public class BursarWriter
   public void write(Chunk<? extends String> items) throws Exception {
     // Build the items into lines to write to file
     // Also aggregate the number of rows
-    StepExecution stepExecution = StepSynchronizationManager
-      .getContext()
-      .getStepExecution();
-
-    aggregateTotalAmount =
-      (BigDecimal) stepExecution
-        .getJobExecution()
-        .getExecutionContext()
-        .get("totalAmount");
+    // StepExecution stepExecution = StepSynchronizationManager
+    //   .getContext()
+    //   .getStepExecution();
 
     log.info("Total amount fee is {}", aggregateTotalAmount.toString());
     aggregateNumRows = 0;

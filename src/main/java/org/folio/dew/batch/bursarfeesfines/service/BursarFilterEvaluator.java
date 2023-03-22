@@ -54,7 +54,7 @@ public class BursarFilterEvaluator {
           return centFeeValue > filterAmount.getAmount();
         case LESS_THAN_EQUAL:
           return centFeeValue <= filterAmount.getAmount();
-        case GREATER_THAN_EQUAL_:
+        case GREATER_THAN_EQUAL:
           return centFeeValue >= filterAmount.getAmount();
         default:
           return false;

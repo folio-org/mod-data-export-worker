@@ -47,6 +47,7 @@ public class AbstractStorageStreamAndJsonWriter<O, T extends Formatable<O>, S ex
         var holdingsJson = (ObjectNode) objectMapper.valueToTree(item.getOriginal());
         holdingsJson.putIfAbsent("instanceHrid", holdingsFormatJson.get("instanceHrid"));
         holdingsJson.putIfAbsent("itemBarcode", holdingsFormatJson.get("itemBarcode"));
+        holdingsJson.putIfAbsent("instanceTitle", holdingsFormatJson.get("instance"));
         json.append(objectMapper.writeValueAsString(holdingsJson));
       } else {
         json.append(jacksonJsonObjectMarshaller.marshal(item.getOriginal()));

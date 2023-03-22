@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bursarfeesfines.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
@@ -40,7 +41,24 @@ public class BursarFilterEvaluator {
       );
     } else if (filter instanceof BursarExportFilterAmount) {
       BursarExportFilterAmount filterAmount = (BursarExportFilterAmount) filter;
-      return true;
+      int centFeeValue = account
+        .getAccount()
+        .getAmount()
+        .multiply(new BigDecimal("100"))
+        .intValue();
+
+      switch (filterAmount.getCondition()) {
+        case LESS_THAN:
+          return centFeeValue < filterAmount.getAmount();
+        case GREATER_THAN:
+          return centFeeValue > filterAmount.getAmount();
+        case LESS_THAN_EQUAL:
+          return centFeeValue <= filterAmount.getAmount();
+        case GREATER_THAN_EQUAL_:
+          return centFeeValue >= filterAmount.getAmount();
+        default:
+          return false;
+      }
     } else if (filter instanceof BursarExportFilterFeeType) {
       BursarExportFilterFeeType filterFeeType = (BursarExportFilterFeeType) filter;
       return UUID

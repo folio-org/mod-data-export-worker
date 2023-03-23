@@ -4,6 +4,7 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import org.folio.dew.client.EntitiesLinksStatsClient;
 import org.folio.dew.config.properties.AuthorityControlJobProperties;
@@ -12,22 +13,28 @@ import org.folio.dew.domain.dto.authoritycontrol.DataStatCollectionDTO;
 import org.folio.dew.domain.dto.authoritycontrol.DataStatDTO;
 import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
 
-public abstract class AuthorityControlItemReader<T extends DataStatDTO> extends AbstractItemCountingItemStreamItemReader<T> {
+public abstract class AuthorityControlItemReader<T extends DataStatDTO>
+  extends AbstractItemCountingItemStreamItemReader<T> {
   protected final EntitiesLinksStatsClient entitiesLinksStatsClient;
   private final int limit;
-  private final OffsetDateTime fromDate;
+  private OffsetDateTime fromDate;
   private OffsetDateTime toDate;
   private int currentChunkOffset;
   private List<T> currentChunk;
 
   protected AuthorityControlItemReader(EntitiesLinksStatsClient entitiesLinksStatsClient,
-                                    AuthorityControlExportConfig exportConfig,
-                                    AuthorityControlJobProperties jobProperties) {
+                                       AuthorityControlExportConfig exportConfig,
+                                       AuthorityControlJobProperties jobProperties) {
     this.entitiesLinksStatsClient = entitiesLinksStatsClient;
     this.limit = jobProperties.getEntitiesLinksChunkSize();
-    this.fromDate = OffsetDateTime.of(exportConfig.getFromDate(), LocalTime.MIN, ZoneOffset.UTC);
-    this.toDate = OffsetDateTime.of(exportConfig.getToDate(), LocalTime.MAX, ZoneOffset.UTC);
-
+    if (exportConfig != null) {
+      if (exportConfig.getFromDate() != null) {
+        this.fromDate = OffsetDateTime.of(exportConfig.getFromDate(), LocalTime.MIN, ZoneOffset.UTC);
+      }
+      if (exportConfig.getToDate() != null) {
+        this.toDate = OffsetDateTime.of(exportConfig.getToDate(), LocalTime.MAX, ZoneOffset.UTC);
+      }
+    }
     setSaveState(false);
     setCurrentItemCount(0);
     setExecutionContextName(getClass().getSimpleName() + '_' + UUID.randomUUID());
@@ -37,7 +44,7 @@ public abstract class AuthorityControlItemReader<T extends DataStatDTO> extends 
   @SuppressWarnings("unchecked")
   protected T doRead() {
     if (currentChunk == null || currentChunkOffset >= currentChunk.size()) {
-      if (toDate == null) {
+      if (toDate == null && currentChunk != null) {
         return null;
       }
       var collection = getCollection(limit);
@@ -55,12 +62,12 @@ public abstract class AuthorityControlItemReader<T extends DataStatDTO> extends 
 
   protected abstract DataStatCollectionDTO getCollection(int limit);
 
-  protected OffsetDateTime fromDate() {
-    return fromDate;
+  protected String fromDate() {
+    return Objects.isNull(fromDate) ? null : fromDate.toString();
   }
 
-  protected OffsetDateTime toDate() {
-    return toDate;
+  protected String toDate() {
+    return Objects.isNull(toDate) ? null : toDate.toString();
   }
 
   @Override

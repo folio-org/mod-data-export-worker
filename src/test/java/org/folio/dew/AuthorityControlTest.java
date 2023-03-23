@@ -44,8 +44,10 @@ import org.springframework.core.io.FileSystemResource;
 @Log4j2
 class AuthorityControlTest extends BaseBatchTest {
 
-  private static final String EXPECTED_FAILED_LINKED_BIB_OUTPUT = "src/test/resources/output/authority_control/failed_linked_bib_updates.csv";
-  private static final String EXPECTED_AUTH_HEADING_UPDATE_OUTPUT = "src/test/resources/output/authority_control/auth_heading_update.csv";
+  private static final String EXPECTED_FAILED_LINKED_BIB_OUTPUT =
+    "src/test/resources/output/authority_control/failed_linked_bib_updates.csv";
+  private static final String EXPECTED_AUTH_HEADING_UPDATE_OUTPUT =
+    "src/test/resources/output/authority_control/auth_heading_update.csv";
   private static final String EXPECTED_AUTH_HEADING_UPDATE_EMPTY_OUTPUT =
     "src/test/resources/output/authority_control/auth_heading_update_empty.csv";
   private static final String FILE_PATH = "mod-data-export-worker/authority_control_export/diku/";
@@ -105,10 +107,8 @@ class AuthorityControlTest extends BaseBatchTest {
   @Test
   @DisplayName("Run FailedLinkedBibJob export successfully")
   void failedLinkedBibJobTest() throws Exception {
-    var exportConfig = buildExportConfig("2023-01-01", "2023-12-01");
-
     final JobLauncherTestUtils testLauncher = createTestLauncher(getFailedLinkedBibJob);
-    final JobParameters jobParameters = prepareJobParameters(FAILED_LINKED_BIB_UPDATES, exportConfig);
+    final JobParameters jobParameters = prepareJobParameters(FAILED_LINKED_BIB_UPDATES, new AuthorityControlExportConfig());
 
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
@@ -117,9 +117,9 @@ class AuthorityControlTest extends BaseBatchTest {
     verifyFile(jobExecution, EXPECTED_FAILED_LINKED_BIB_OUTPUT);
 
     wireMockServer.verify(getRequestedFor(urlEqualTo(
-      "/links/stats/instance?limit=2&status=ERROR&fromDate=2023-01-01T00%3A00Z&toDate=2023-12-01T23%3A59%3A59.999999999Z")));
+      "/links/stats/instance?limit=2&status=ERROR")));
     wireMockServer.verify(getRequestedFor(urlEqualTo(
-      "/links/stats/instance?limit=2&status=ERROR&fromDate=2023-01-01T00%3A00Z&toDate=2023-08-01T12%3A00Z")));
+      "/links/stats/instance?limit=2&status=ERROR&toDate=2023-08-01T12%3A00Z")));
 
     verifyJobEvent();
   }

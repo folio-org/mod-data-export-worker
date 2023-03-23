@@ -22,6 +22,6 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
 
   @Override
   protected AuthorityDataStatDtoCollection getCollection(int limit) {
-    return entitiesLinksStatsClient.getAuthorityStats(limit, UPDATE_HEADING, fromDate().toString(), toDate().toString());
+    return entitiesLinksStatsClient.getAuthorityStats(limit, UPDATE_HEADING, fromDate(), toDate());
   }
 }

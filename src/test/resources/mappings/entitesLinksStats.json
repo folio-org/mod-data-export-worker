@@ -42,7 +42,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/links/stats/instance?limit=2&status=ERROR&fromDate=2023-01-01T00%3A00Z&toDate=2023-12-01T23%3A59%3A59.999999999Z"
+        "url": "/links/stats/instance?limit=2&status=ERROR"
       },
       "response": {
         "status": 200,
@@ -55,7 +55,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/links/stats/instance?limit=2&status=ERROR&fromDate=2023-01-01T00%3A00Z&toDate=2023-08-01T12%3A00Z"
+        "url": "/links/stats/instance?limit=2&status=ERROR&toDate=2023-08-01T12%3A00Z"
       },
       "response": {
         "status": 200,

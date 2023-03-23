@@ -9,6 +9,10 @@
     {
       "id": "configuration",
       "version": "2.0"
+    },
+    {
+      "id": "feesfines",
+      "version": "18.0"
     }
   ],
   "provides": [

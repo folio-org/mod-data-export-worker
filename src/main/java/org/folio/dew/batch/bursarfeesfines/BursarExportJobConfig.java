@@ -11,9 +11,7 @@ import org.folio.dew.repository.S3CompatibleResource;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.listener.ExecutionContextPromotionListener;
@@ -90,6 +88,7 @@ public class BursarExportJobConfig {
       .listener(listener)
       .listener(reader)
       .listener(formatter)
+      // .listener(writer)
       .build();
   }
 

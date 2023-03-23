@@ -25,16 +25,14 @@ public abstract class AuthorityControlItemReader<T extends DataStatDTO>
   protected AuthorityControlItemReader(EntitiesLinksStatsClient entitiesLinksStatsClient,
                                        AuthorityControlExportConfig exportConfig,
                                        AuthorityControlJobProperties jobProperties) {
+    if (exportConfig.getFromDate() != null) {
+      this.fromDate = OffsetDateTime.of(exportConfig.getFromDate(), LocalTime.MIN, ZoneOffset.UTC);
+    }
+    if (exportConfig.getToDate() != null) {
+      this.toDate = OffsetDateTime.of(exportConfig.getToDate(), LocalTime.MAX, ZoneOffset.UTC);
+    }
     this.entitiesLinksStatsClient = entitiesLinksStatsClient;
     this.limit = jobProperties.getEntitiesLinksChunkSize();
-    if (exportConfig != null) {
-      if (exportConfig.getFromDate() != null) {
-        this.fromDate = OffsetDateTime.of(exportConfig.getFromDate(), LocalTime.MIN, ZoneOffset.UTC);
-      }
-      if (exportConfig.getToDate() != null) {
-        this.toDate = OffsetDateTime.of(exportConfig.getToDate(), LocalTime.MAX, ZoneOffset.UTC);
-      }
-    }
     setSaveState(false);
     setCurrentItemCount(0);
     setExecutionContextName(getClass().getSimpleName() + '_' + UUID.randomUUID());

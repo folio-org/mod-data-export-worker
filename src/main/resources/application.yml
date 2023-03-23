@@ -11,10 +11,10 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
     listener:
-      ack-mode: manual
       concurrency: ${KAFKA_CONCURRENCY_LEVEL:30}
     consumer:
       auto-offset-reset: latest
+      enable-auto-commit: true
       fetch-max-wait: ${KAFKA_CONSUMER_POLL_INTERVAL:3600000}
   datasource:
     username: ${DB_USERNAME:folio_admin}

@@ -20,7 +20,7 @@ import org.folio.dew.domain.dto.BursarExportTokenAggregate;
 import org.folio.dew.domain.dto.BursarExportTokenConstant;
 import org.folio.dew.domain.dto.BursarExportTokenConstantConditional;
 import org.folio.dew.domain.dto.BursarExportTokenConstantConditionalConditionsInner;
-import org.folio.dew.domain.dto.BursarExportTokenDate;
+import org.folio.dew.domain.dto.BursarExportTokenCurrentDate;
 import org.folio.dew.domain.dto.BursarExportTokenFeeAmount;
 import org.folio.dew.domain.dto.BursarExportTokenFeeMetadata;
 import org.folio.dew.domain.dto.BursarExportTokenItemData;
@@ -39,7 +39,7 @@ public class BursarTokenFormatter {
   ) {
     if (token instanceof BursarExportTokenConstant tokenConstant) {
       return tokenConstant.getValue();
-    } else if (token instanceof BursarExportTokenDate tokenDate) {
+    } else if (token instanceof BursarExportTokenCurrentDate tokenDate) {
       return processDateToken(tokenDate);
     } else if (token instanceof BursarExportTokenAggregate tokenAggregate) {
       return processAggregateToken(
@@ -95,7 +95,9 @@ public class BursarTokenFormatter {
     }
   }
 
-  private static String formatDateDataToken(BursarExportTokenDate tokenDate) {
+  private static String formatCurrentDateDataToken(
+    BursarExportTokenCurrentDate tokenDate
+  ) {
     return processDateToken(tokenDate);
   }
 
@@ -152,8 +154,8 @@ public class BursarTokenFormatter {
       token instanceof BursarExportTokenConstantConditional tokenConstantConditional
     ) {
       return processConstantConditional(tokenConstantConditional, account);
-    } else if (token instanceof BursarExportTokenDate tokenDate) {
-      return formatDateDataToken(tokenDate);
+    } else if (token instanceof BursarExportTokenCurrentDate tokenDate) {
+      return formatCurrentDateDataToken(tokenDate);
     } else if (token instanceof BursarExportTokenFeeAmount tokenFeeAmount) {
       return formatFeeAmountsDataToken(tokenFeeAmount, account);
     } else if (token instanceof BursarExportTokenFeeMetadata tokenFeeMetadata) {
@@ -221,7 +223,7 @@ public class BursarTokenFormatter {
    * Helper method to process date token into string
    * @params tokenDate date token that needs to process into string
    */
-  private String processDateToken(BursarExportTokenDate tokenDate) {
+  private String processDateToken(BursarExportTokenCurrentDate tokenDate) {
     String result;
 
     ZonedDateTime currentDateTime;

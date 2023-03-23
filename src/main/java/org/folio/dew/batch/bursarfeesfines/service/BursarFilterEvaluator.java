@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bursarfeesfines.service;
 
+import jakarta.annotation.Nonnull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -13,9 +14,11 @@ import org.folio.dew.domain.dto.BursarExportFilterCondition;
 import org.folio.dew.domain.dto.BursarExportFilterFeeType;
 import org.folio.dew.domain.dto.BursarExportFilterLocation;
 import org.folio.dew.domain.dto.BursarExportFilterNegation;
+import org.folio.dew.domain.dto.BursarExportFilterPass;
 import org.folio.dew.domain.dto.BursarExportFilterPatronGroup;
 import org.folio.dew.domain.dto.BursarExportFilterServicePoint;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
+import org.openapitools.jackson.nullable.JsonNullable;
 
 @Log4j2
 @UtilityClass
@@ -23,9 +26,21 @@ public class BursarFilterEvaluator {
 
   public static boolean evaluate(
     AccountWithAncillaryData account,
-    BursarExportFilter filter
+    JsonNullable<BursarExportFilter> filter
   ) {
-    if (filter instanceof BursarExportFilterAge) {
+    if (filter.isPresent()) {
+      return evaluate(account, filter.get());
+    }
+    return true;
+  }
+
+  public static boolean evaluate(
+    AccountWithAncillaryData account,
+    @Nonnull BursarExportFilter filter
+  ) {
+    if (filter instanceof BursarExportFilterPass) {
+      return true;
+    } else if (filter instanceof BursarExportFilterAge) {
       BursarExportFilterAge filterAge = (BursarExportFilterAge) filter;
       LocalDate currentDate = LocalDate.now();
 

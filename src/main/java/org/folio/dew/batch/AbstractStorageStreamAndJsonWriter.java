@@ -1,7 +1,8 @@
 package org.folio.dew.batch;
 
+import static org.folio.dew.utils.WriterHelper.enrichHoldingsJson;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.folio.dew.domain.dto.Formatable;
 import org.folio.dew.domain.dto.HoldingsFormat;
@@ -42,12 +43,8 @@ public class AbstractStorageStreamAndJsonWriter<O, T extends Formatable<O>, S ex
       var item = iterator.next();
       sb.append(super.getLineAggregator().aggregate(item)).append('\n');
 
-      if (item instanceof HoldingsFormat) {
-        var holdingsFormatJson = objectMapper.valueToTree(item);
-        var holdingsJson = (ObjectNode) objectMapper.valueToTree(item.getOriginal());
-        holdingsJson.putIfAbsent("instanceHrid", holdingsFormatJson.get("instanceHrid"));
-        holdingsJson.putIfAbsent("itemBarcode", holdingsFormatJson.get("itemBarcode"));
-        json.append(objectMapper.writeValueAsString(holdingsJson));
+      if (item instanceof HoldingsFormat hf) {
+        json.append(enrichHoldingsJson(hf, objectMapper));
       } else {
         json.append(jacksonJsonObjectMarshaller.marshal(item.getOriginal()));
       }

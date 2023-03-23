@@ -3,6 +3,8 @@ package org.folio.dew;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.domain.dto.ExportType.AUTH_HEADINGS_UPDATES;
+import static org.folio.dew.domain.dto.ExportType.FAILED_LINKED_BIB_UPDATES;
 import static org.folio.dew.domain.dto.JobParameterNames.AUTHORITY_CONTROL_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,12 +43,18 @@ import org.springframework.core.io.FileSystemResource;
 
 @Log4j2
 class AuthorityControlTest extends BaseBatchTest {
-  private static final String EXPECTED_AUTHORITY_STAT_OUTPUT = "src/test/resources/output/auth_heading_update.csv";
-  private static final String EXPECTED_AUTHORITY_STAT_EMPTY_OUTPUT =
-    "src/test/resources/output/auth_heading_update_empty.csv";
+
+  private static final String EXPECTED_FAILED_LINKED_BIB_OUTPUT =
+    "src/test/resources/output/authority_control/failed_linked_bib_updates.csv";
+  private static final String EXPECTED_AUTH_HEADING_UPDATE_OUTPUT =
+    "src/test/resources/output/authority_control/auth_heading_update.csv";
+  private static final String EXPECTED_AUTH_HEADING_UPDATE_EMPTY_OUTPUT =
+    "src/test/resources/output/authority_control/auth_heading_update_empty.csv";
   private static final String FILE_PATH = "mod-data-export-worker/authority_control_export/diku/";
   @Autowired
   private Job getAuthHeadingJob;
+  @Autowired
+  private Job getFailedLinkedBibJob;
   @Autowired
   private FileNameResolver fileNameResolver;
   @Autowired
@@ -55,18 +63,18 @@ class AuthorityControlTest extends BaseBatchTest {
   private KafkaService kafkaService;
 
   @Test
-  @DisplayName("Run AuthorityControlJob export successfully")
-  void authorityControlJobTest() throws Exception {
+  @DisplayName("Run AuthHeadingJob export successfully")
+  void authHeadingJobTest() throws Exception {
     var exportConfig = buildExportConfig("2023-01-01", "2023-12-01");
 
     final JobLauncherTestUtils testLauncher = createTestLauncher(getAuthHeadingJob);
-    final JobParameters jobParameters = prepareJobParameters(exportConfig);
+    final JobParameters jobParameters = prepareJobParameters(AUTH_HEADINGS_UPDATES, exportConfig);
 
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
-    verifyFile(jobExecution, EXPECTED_AUTHORITY_STAT_OUTPUT);
+    verifyFile(jobExecution, EXPECTED_AUTH_HEADING_UPDATE_OUTPUT);
 
     wireMockServer.verify(getRequestedFor(urlEqualTo(
       "/links/authority/stats?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T00%3A00Z&toDate=2023-12-01T23%3A59%3A59.999999999Z")));
@@ -77,21 +85,41 @@ class AuthorityControlTest extends BaseBatchTest {
   }
 
   @Test
-  @DisplayName("Run AuthorityControlJob export successfully")
-  void authorityControlJobTest_whenNoStatsFound() throws Exception {
+  @DisplayName("Run AuthHeadingJob export successfully")
+  void authHeadingJobTest_whenNoStatsFound() throws Exception {
     var exportConfig = buildExportConfig("2022-01-01", "2022-12-01");
 
     final JobLauncherTestUtils testLauncher = createTestLauncher(getAuthHeadingJob);
-    final JobParameters jobParameters = prepareJobParameters(exportConfig);
+    final JobParameters jobParameters = prepareJobParameters(AUTH_HEADINGS_UPDATES, exportConfig);
 
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
-    verifyFile(jobExecution, EXPECTED_AUTHORITY_STAT_EMPTY_OUTPUT);
+    verifyFile(jobExecution, EXPECTED_AUTH_HEADING_UPDATE_EMPTY_OUTPUT);
 
     wireMockServer.verify(getRequestedFor(urlEqualTo(
       "/links/authority/stats?limit=2&action=UPDATE_HEADING&fromDate=2022-01-01T00%3A00Z&toDate=2022-12-01T23%3A59%3A59.999999999Z")));
+
+    verifyJobEvent();
+  }
+
+  @Test
+  @DisplayName("Run FailedLinkedBibJob export successfully")
+  void failedLinkedBibJobTest() throws Exception {
+    final JobLauncherTestUtils testLauncher = createTestLauncher(getFailedLinkedBibJob);
+    final JobParameters jobParameters = prepareJobParameters(FAILED_LINKED_BIB_UPDATES, new AuthorityControlExportConfig());
+
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
+    verifyFile(jobExecution, EXPECTED_FAILED_LINKED_BIB_OUTPUT);
+
+    wireMockServer.verify(getRequestedFor(urlEqualTo(
+      "/links/stats/instance?limit=2&status=ERROR")));
+    wireMockServer.verify(getRequestedFor(urlEqualTo(
+      "/links/stats/instance?limit=2&status=ERROR&toDate=2023-08-01T12%3A00Z")));
 
     verifyJobEvent();
   }
@@ -131,7 +159,7 @@ class AuthorityControlTest extends BaseBatchTest {
     return exportConfig;
   }
 
-  private JobParameters prepareJobParameters(AuthorityControlExportConfig exportConfig)
+  private JobParameters prepareJobParameters(ExportType exportType, AuthorityControlExportConfig exportConfig)
     throws JsonProcessingException {
     String jobId = UUID.randomUUID().toString();
     var paramBuilder = new JobParametersBuilder();
@@ -147,7 +175,7 @@ class AuthorityControlTest extends BaseBatchTest {
     var jobParameters = paramBuilder.toJobParameters();
     var jobCommand = new JobCommand();
     jobCommand.setJobParameters(jobParameters);
-    jobCommand.setExportType(ExportType.AUTH_HEADINGS_UPDATES);
+    jobCommand.setExportType(exportType);
     final String outputFile = fileNameResolver.resolve(jobCommand, workDir, jobId);
     paramBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFile);
 

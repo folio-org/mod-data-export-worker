@@ -12,6 +12,7 @@ import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.QUERY;
+import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
@@ -29,6 +30,7 @@ import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 import static org.folio.dew.utils.CsvHelper.countLines;
+import static org.folio.dew.utils.SystemHelper.getTempDirWithSeparatorSuffix;
 import static org.folio.spring.scope.FolioExecutionScopeExecutionContextManager.getRunnableWithCurrentFolioContext;
 
 import com.opencsv.CSVReader;
@@ -376,8 +378,9 @@ public class BulkEditController implements JobIdApi {
     var paramsBuilder = new JobParametersBuilder(jobCommand.getJobParameters());
     paramsBuilder.addString(FILE_NAME, uploadedPath);
     paramsBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, uploadedPath, isBulkEditUpdate(jobCommand)));
-    paramsBuilder.addString(TEMP_OUTPUT_FILE_PATH,
-      workDir + jobCommand.getId() + PATH_SEPARATOR + (isBulkEditUpdate(jobCommand) ? EMPTY : LocalDate.now() + MATCHED_RECORDS) + FilenameUtils.getBaseName(uploadedPath));
+    var fileName = jobCommand.getId() + PATH_SEPARATOR + (isBulkEditUpdate(jobCommand) ? EMPTY : LocalDate.now() + MATCHED_RECORDS) + FilenameUtils.getBaseName(uploadedPath);
+    paramsBuilder.addString(TEMP_OUTPUT_FILE_PATH, workDir + fileName);
+    paramsBuilder.addString(TEMP_LOCAL_FILE_PATH, getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + fileName);
     paramsBuilder.addString(EXPORT_TYPE, jobCommand.getExportType().getValue());
     ofNullable(jobCommand.getIdentifierType()).ifPresent(type ->
       paramsBuilder.addString("identifierType", type.getValue()));

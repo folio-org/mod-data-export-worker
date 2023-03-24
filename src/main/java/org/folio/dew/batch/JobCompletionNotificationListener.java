@@ -17,6 +17,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.AUTHORITY_CONTROL_FILE_
 import static org.folio.dew.domain.dto.JobParameterNames.CIRCULATION_LOG_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
@@ -30,6 +31,9 @@ import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -93,6 +97,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
 
     if (after) {
       if (isBulkEditIdentifiersJob(jobExecution)) {
+        moveTemporaryFilesToStorage(jobParameters);
         handleProcessingErrors(jobExecution, jobId);
       }
       if (isBulkEditUpdateJob(jobExecution)) {
@@ -148,6 +153,23 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
     kafka.send(KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     if (after) {
       log.info("-----------------------------JOB---ENDS-----------------------------");
+    }
+  }
+
+  private void moveTemporaryFilesToStorage(JobParameters jobParameters) throws IOException {
+    var tmpPath = jobParameters.getString(TEMP_LOCAL_FILE_PATH);
+    if (nonNull(tmpPath)) {
+      localFilesStorage.writeFile(jobParameters.getString(TEMP_OUTPUT_FILE_PATH), Path.of(tmpPath));
+      localFilesStorage.writeFile(jobParameters.getString(TEMP_OUTPUT_FILE_PATH) + ".json", Path.of(tmpPath + ".json"));
+
+      if (Files.deleteIfExists(Path.of(tmpPath))) {
+        log.info("Deleted temporary file: {}", tmpPath);
+      }
+
+      var jsonPath = tmpPath + ".json";
+      if (Files.deleteIfExists(Path.of(jsonPath))) {
+        log.info("Deleted temporary file: {}", jsonPath);
+      }
     }
   }
 

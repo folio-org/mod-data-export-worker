@@ -1,3 +1,10 @@
+## 2023-03-24 v3.0.5
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.4...v3.0.5)
+
+### Bug fixes
+* [MODEXPW-382](https://issues.folio.org/browse/MODEXPW-382) Bulk edit job reported as Scheduled
+
 ## 2023-03-23 v3.0.4
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.3...v3.0.4)

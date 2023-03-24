@@ -1,10 +1,8 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
-import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.TEMP_IDENTIFIERS_FILE_NAME;
 
 import org.folio.dew.domain.dto.ItemIdentifier;
-import org.folio.dew.repository.LocalFilesStorage;
-import org.folio.dew.repository.S3CompatibleResource;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.LineMapper;
@@ -15,17 +13,17 @@ import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.FileSystemResource;
 
 @Configuration
 public class IdentifiersConfig {
   @Bean
   @StepScope
   public FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader(
-    @Value("#{jobParameters['" + FILE_NAME + "']}") String uploadedFileName,
-    LocalFilesStorage localFilesStorage) {
+    @Value("#{jobParameters['" + TEMP_IDENTIFIERS_FILE_NAME + "']}") String uploadedFileName) {
     return new FlatFileItemReaderBuilder<ItemIdentifier>()
       .name("userItemIdentifierReader")
-      .resource(new S3CompatibleResource<>(uploadedFileName, localFilesStorage))
+      .resource(new FileSystemResource(uploadedFileName))
       .linesToSkip(0)
       .lineMapper(lineMapper())
       .build();

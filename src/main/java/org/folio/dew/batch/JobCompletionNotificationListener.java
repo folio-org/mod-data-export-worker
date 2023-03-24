@@ -29,6 +29,7 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
+import static org.folio.dew.utils.Constants.TEMP_IDENTIFIERS_FILE_NAME;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 
 import java.io.IOException;
@@ -170,6 +171,11 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       if (Files.deleteIfExists(Path.of(jsonPath))) {
         log.info("Deleted temporary file: {}", jsonPath);
       }
+    }
+
+    var tmpIdentifiersFileName = jobParameters.getString(TEMP_IDENTIFIERS_FILE_NAME);
+    if (nonNull(tmpIdentifiersFileName) && Files.deleteIfExists(Path.of(tmpIdentifiersFileName))) {
+      log.info("Deleted temporary identifiers file: {}", tmpIdentifiersFileName);
     }
   }
 

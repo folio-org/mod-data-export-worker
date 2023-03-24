@@ -73,7 +73,7 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.ROLLBACK_FILE;
-import static org.folio.dew.utils.Constants.TMP_DIR_PROPERTY;
+import static org.folio.dew.utils.Constants.TEMP_IDENTIFIERS_FILE_NAME;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 import static org.folio.dew.utils.CsvHelper.countLines;
@@ -731,6 +731,11 @@ class BulkEditTest extends BaseBatchTest {
       parametersBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, file, false), false);
     }
 
+    var tempDir = getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + jobId;
+    var tempFile = tempDir + PATH_SEPARATOR + of.getFileName();
+    Files.createDirectories(Path.of(tempDir));
+    Files.write(Path.of(tempFile), Files.readAllBytes(of));
+    parametersBuilder.addString(TEMP_IDENTIFIERS_FILE_NAME, tempFile);
 
     parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
     parametersBuilder.addString(EXPORT_TYPE, exportType.getValue());

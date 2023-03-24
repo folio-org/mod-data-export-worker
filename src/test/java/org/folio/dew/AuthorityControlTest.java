@@ -77,9 +77,9 @@ class AuthorityControlTest extends BaseBatchTest {
     verifyFile(jobExecution, EXPECTED_AUTH_HEADING_UPDATE_OUTPUT);
 
     wireMockServer.verify(getRequestedFor(urlEqualTo(
-      "/links/authority/stats?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T00%3A00Z&toDate=2023-12-01T23%3A59%3A59.999999999Z")));
+      "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T00%3A00Z&toDate=2023-12-01T23%3A59%3A59.999999999Z")));
     wireMockServer.verify(getRequestedFor(urlEqualTo(
-      "/links/authority/stats?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T00%3A00Z&toDate=2023-08-01T12%3A00Z")));
+      "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T00%3A00Z&toDate=2023-08-01T12%3A00Z")));
 
     verifyJobEvent();
   }
@@ -99,7 +99,7 @@ class AuthorityControlTest extends BaseBatchTest {
     verifyFile(jobExecution, EXPECTED_AUTH_HEADING_UPDATE_EMPTY_OUTPUT);
 
     wireMockServer.verify(getRequestedFor(urlEqualTo(
-      "/links/authority/stats?limit=2&action=UPDATE_HEADING&fromDate=2022-01-01T00%3A00Z&toDate=2022-12-01T23%3A59%3A59.999999999Z")));
+      "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2022-01-01T00%3A00Z&toDate=2022-12-01T23%3A59%3A59.999999999Z")));
 
     verifyJobEvent();
   }

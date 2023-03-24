@@ -14,6 +14,9 @@ import io.minio.UploadObjectArgs;
 import io.minio.credentials.IamAwsProvider;
 import io.minio.credentials.Provider;
 import io.minio.credentials.StaticProvider;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ArrayUtils;
@@ -197,6 +200,44 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     return write(path, bytes, new HashMap<>());
   }
 
+  /**
+   * Writes file to a file on S3-compatible storage
+   *
+   * @param path - the path to the file on S3-compatible storage
+   * @param inputPath – path to the file to write
+   * @param headers - headers
+   * @return the path to the file
+   * @throws IOException - if an I/O error occurs
+   */
+  public String writeFile(String path, Path inputPath, Map<String, String> headers) throws IOException {
+
+    if (isComposeWithAwsSdk) {
+      log.info("Writing file using AWS SDK client");
+      s3Client.putObject(PutObjectRequest.builder().bucket(bucket)
+          .key(path).build(),
+        RequestBody.fromFile(inputPath));
+      return path;
+    } else {
+      log.info("Writing file using Minio client");
+      try (var is = Files.newInputStream(inputPath)) {
+        return client.putObject(PutObjectArgs.builder()
+            .bucket(bucket)
+            .region(region)
+            .object(path)
+            .headers(headers)
+            .stream(is, -1, MIN_MULTIPART_SIZE)
+            .build())
+          .object();
+      } catch (Exception e) {
+        throw new IOException("Cannot write file: " + path, e);
+      }
+
+    }
+  }
+
+  public String writeFile(String destPath, Path inputPath) throws IOException {
+    return writeFile(destPath, inputPath, new HashMap<>());
+  }
 
   /**
    * Appends byte[] to existing on the storage file.

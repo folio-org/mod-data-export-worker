@@ -24,6 +24,7 @@ public class Constants {
   public static final String KEY_VALUE_DELIMITER = ":";
 
   public static final String FILE_NAME = "fileName";
+  public static final String TEMP_IDENTIFIERS_FILE_NAME = "tempIdentifiersFileName";
   public static final String TOTAL_CSV_LINES = "totalCsvLines";
   public static final String NUMBER_OF_WRITTEN_RECORDS = "numberOfWrittenRecords";
   public static final String JOB_ID = "jobId";

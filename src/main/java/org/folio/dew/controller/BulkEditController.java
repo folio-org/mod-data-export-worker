@@ -26,8 +26,9 @@ import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
-import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
+import static org.folio.dew.utils.Constants.TEMP_IDENTIFIERS_FILE_NAME;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
+import static org.folio.dew.utils.Constants.PREVIEW_PREFIX;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 import static org.folio.dew.utils.CsvHelper.countLines;
 import static org.folio.dew.utils.SystemHelper.getTempDirWithSeparatorSuffix;
@@ -42,6 +43,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -308,7 +311,11 @@ public class BulkEditController implements JobIdApi {
     try {
       localFilesStorage.delete(uploadedPath);
       localFilesStorage.write(uploadedPath, file.getBytes());
-      prepareJobParameters(jobCommand, uploadedPath);
+      String tempIdentifiersFile = null;
+      if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())) {
+        tempIdentifiersFile = saveTemporaryIdentifiersFile(jobId, file);
+      }
+      prepareJobParameters(jobCommand, uploadedPath, tempIdentifiersFile);
       jobCommandsReceiverService.updateJobCommand(jobCommand);
       if (isBulkEditUpdate(jobCommand) && jobCommand.getEntityType() == USER) {
         localFilesStorage.write(workDir + jobId + PATH_SEPARATOR + INITIAL_PREFIX + file.getOriginalFilename(), file.getBytes());
@@ -334,6 +341,16 @@ public class BulkEditController implements JobIdApi {
       log.error(errorMessage);
       return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  private String saveTemporaryIdentifiersFile(UUID jobId, MultipartFile file) throws IOException {
+    var tempDir = getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + jobId;
+    var tempFilePath = tempDir + PATH_SEPARATOR + file.getOriginalFilename();
+    var path = Path.of(tempFilePath);
+    Files.deleteIfExists(path);
+    Files.createDirectories(Path.of(tempDir));
+    Files.write(path, file.getBytes());
+    return tempFilePath;
   }
 
   @Override
@@ -374,8 +391,9 @@ public class BulkEditController implements JobIdApi {
       .orElseThrow(() -> new IllegalStateException("Job was not found, aborting"));
   }
 
-  private void prepareJobParameters(JobCommand jobCommand, String uploadedPath) throws IOException {
+  private void prepareJobParameters(JobCommand jobCommand, String uploadedPath, String tempIdentifiersFile) throws IOException {
     var paramsBuilder = new JobParametersBuilder(jobCommand.getJobParameters());
+    ofNullable(tempIdentifiersFile).ifPresent(path -> paramsBuilder.addString(TEMP_IDENTIFIERS_FILE_NAME, path));
     paramsBuilder.addString(FILE_NAME, uploadedPath);
     paramsBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, uploadedPath, isBulkEditUpdate(jobCommand)));
     var fileName = jobCommand.getId() + PATH_SEPARATOR + (isBulkEditUpdate(jobCommand) ? EMPTY : LocalDate.now() + MATCHED_RECORDS) + FilenameUtils.getBaseName(uploadedPath);

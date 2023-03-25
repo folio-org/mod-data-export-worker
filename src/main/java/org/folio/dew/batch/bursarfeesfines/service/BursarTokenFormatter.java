@@ -205,8 +205,8 @@ public class BursarTokenFormatter {
       return formatFeeMetadataToken(tokenFeeMetadata, account);
     } else if (token instanceof BursarExportTokenUserData tokenUserData) {
       return formatUserDataToken(tokenUserData, account);
-    } else if (token instanceof BursarExportTokenUserDataOptional token) {
-      return formatUserDataOptionalToken(token, account);
+    } else if (token instanceof BursarExportTokenUserDataOptional tokenUserOp) {
+      return formatUserDataOptionalToken(tokenUserOp, account);
     } else if (token instanceof BursarExportTokenItemData tokenItemData) {
       return formatItemDataToken(tokenItemData, account);
     } else {

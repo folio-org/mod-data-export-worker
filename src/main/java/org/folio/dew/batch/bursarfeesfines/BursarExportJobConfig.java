@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bursarfeesfines;
 
+import java.util.Arrays;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportUtils;
 import org.folio.dew.batch.bursarfeesfines.service.BursarWriter;
@@ -75,13 +76,19 @@ public class BursarExportJobConfig {
     JobRepository jobRepository,
     PlatformTransactionManager transactionManager
   ) {
+    CompositeItemProcessor<AccountWithAncillaryData, String> compositeProcessor = new CompositeItemProcessor<>();
+    compositeProcessor.setDelegates(Arrays.asList(filterer, formatter));
+
     return new StepBuilder(BursarExportUtils.EXPORT_STEP, jobRepository)
       .<AccountWithAncillaryData, String>chunk(CHUNK_SIZE, transactionManager)
       .reader(reader)
-      .processor(new CompositeItemProcessor<>(filterer, formatter))
+      .processor(compositeProcessor)
       .writer(writer)
       .listener(promotionListener())
       .listener(listener)
+      .listener(reader)
+      .listener(formatter)
+      // .listener(writer)
       .build();
   }
 

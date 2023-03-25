@@ -1,7 +1,6 @@
 package org.folio.dew.batch.bursarfeesfines;
 
-import java.util.Collections;
-import java.util.Map;
+import java.math.BigDecimal;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
@@ -26,17 +25,31 @@ public class AccountFormatter
 
   private final BursarExportService exportService;
 
+  @Value("#{stepExecution}")
+  private StepExecution stepExecution;
+
   @Value("#{jobParameters['jobId']}")
   private String jobId;
 
   @Value("#{jobExecutionContext['jobConfig']}")
   private BursarExportJob jobConfig;
 
+  @Value("#{jobExecutionContext['totalAmount']}")
+  private BigDecimal currentTotalFeeAmount;
+
   @Override
   public String process(@CheckForNull AccountWithAncillaryData item) {
     if (item == null) {
       return null;
     }
+
+    // Update job total amount
+    currentTotalFeeAmount =
+      currentTotalFeeAmount.add(item.getAccount().getAmount());
+    stepExecution
+      .getJobExecution()
+      .getExecutionContext()
+      .put("totalAmount", currentTotalFeeAmount);
 
     return jobConfig
       .getData()
@@ -48,5 +61,6 @@ public class AccountFormatter
   @BeforeStep
   public void initStep(StepExecution stepExecution) {
     log.error("In AccountFormatter::initStep (implementation TBD, if any)");
+    currentTotalFeeAmount = new BigDecimal(0);
   }
 }

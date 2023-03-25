@@ -88,6 +88,7 @@ public class BursarExportJobConfig {
       .listener(listener)
       .listener(reader)
       .listener(formatter)
+      .listener(filterer)
       // .listener(writer)
       .build();
   }

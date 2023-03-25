@@ -7,6 +7,7 @@ import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.BursarExportJob;
+import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -29,14 +30,16 @@ public class TransferFeesFinesTasklet implements Tasklet {
   ) {
     log.error("In unimplemented TransferFeesFinesTasklet");
     // from AccountItemReader
-    List<Account> accounts = (List<Account>) ExecutionContextUtils.getExecutionVariable(
-      contribution.getStepExecution(),
-      "accounts"
-    );
 
-    if (!accounts.isEmpty()) {
+    List<Account> filteredAccounts = (List<Account>) contribution
+      .getStepExecution()
+      .getJobExecution()
+      .getExecutionContext()
+      .get("filteredAccounts");
+
+    if (filteredAccounts != null && !filteredAccounts.isEmpty()) {
       exportService.transferAccounts(
-        accounts,
+        filteredAccounts,
         (BursarExportJob) ExecutionContextUtils.getExecutionVariable(
           contribution.getStepExecution(),
           "bursarFeeFines"

@@ -44,7 +44,7 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
         .builder()
         .account(account)
         .user(userMap.get(account.getUserId()))
-        .item(itemMap.get(account.getItemId()))
+        .item(itemMap.getOrDefault(account.getItemId(), null))
         .build();
     } else {
       nextIndex = 0;

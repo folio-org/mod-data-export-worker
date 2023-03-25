@@ -26,6 +26,7 @@ import org.folio.dew.domain.dto.BursarExportTokenFeeMetadata;
 import org.folio.dew.domain.dto.BursarExportTokenItemData;
 import org.folio.dew.domain.dto.BursarExportTokenLengthControl;
 import org.folio.dew.domain.dto.BursarExportTokenUserData;
+import org.folio.dew.domain.dto.BursarExportTokenUserDataOptional;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 
 @Log4j2
@@ -126,10 +127,45 @@ public class BursarTokenFormatter {
     return applyLengthControl(result, tokenUserData.getLengthControl());
   }
 
+  private static String formatUserDataOptionalToken(
+    BursarExportTokenUserDataOptional tokenUserData,
+    AccountWithAncillaryData accountWithAncillaryData
+  ) {
+    String result;
+    switch (tokenUserData.getValue()) {
+      case BARCODE -> result = accountWithAncillaryData.getUser().getBarcode();
+      case USERNAME -> result =
+        accountWithAncillaryData.getUser().getUsername();
+      case FIRST_NAME -> result =
+        accountWithAncillaryData.getUser().getPersonal().getFirstName();
+      case MIDDLE_NAME -> result =
+        accountWithAncillaryData.getUser().getPersonal().getMiddleName();
+      case LAST_NAME -> result =
+        accountWithAncillaryData.getUser().getPersonal().getLastName();
+      default -> {
+        log.error("Invalid user data token: {}", tokenUserData);
+        result = tokenUserData.getPlaceholder();
+      }
+    }
+
+    if (result == null) {
+      result = tokenUserData.getPlaceholder();
+    }
+
+    return applyLengthControl(result, tokenUserData.getLengthControl());
+  }
+
   private static String formatItemDataToken(
     BursarExportTokenItemData tokenItemData,
     AccountWithAncillaryData accountWithAncillaryData
   ) {
+    if (accountWithAncillaryData.getItem() == null) {
+      return applyLengthControl(
+        tokenItemData.getPlaceholder(),
+        tokenItemData.getLengthControl()
+      );
+    }
+
     String result;
     switch (tokenItemData.getValue()) {
       case LOCATION_ID -> result =
@@ -138,7 +174,14 @@ public class BursarTokenFormatter {
       case BARCODE -> result = accountWithAncillaryData.getItem().getBarcode();
       case MATERIAL_TYPE -> result =
         accountWithAncillaryData.getItem().getMaterialType().getName();
-      default -> result = tokenItemData.getPlaceholder();
+      default -> {
+        log.error("Invalid item data token: {}", tokenItemData);
+        result = tokenItemData.getPlaceholder();
+      }
+    }
+
+    if (result == null) {
+      result = tokenItemData.getPlaceholder();
     }
 
     return applyLengthControl(result, tokenItemData.getLengthControl());
@@ -162,6 +205,8 @@ public class BursarTokenFormatter {
       return formatFeeMetadataToken(tokenFeeMetadata, account);
     } else if (token instanceof BursarExportTokenUserData tokenUserData) {
       return formatUserDataToken(tokenUserData, account);
+    } else if (token instanceof BursarExportTokenUserDataOptional token) {
+      return formatUserDataOptionalToken(token, account);
     } else if (token instanceof BursarExportTokenItemData tokenItemData) {
       return formatItemDataToken(tokenItemData, account);
     } else {

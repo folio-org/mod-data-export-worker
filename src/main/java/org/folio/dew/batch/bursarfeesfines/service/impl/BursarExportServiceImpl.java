@@ -115,6 +115,10 @@ public class BursarExportServiceImpl implements BursarExportService {
   public Map<String, User> getUsers(Set<String> userIds) {
     Map<String, User> map = new HashMap<>();
 
+    if (userIds.isEmpty()) {
+      return map;
+    }
+
     List<User> users = fetchDataInBatch(
       new ArrayList<String>(userIds),
       partition ->
@@ -136,6 +140,10 @@ public class BursarExportServiceImpl implements BursarExportService {
 
   public Map<String, Item> getItems(Set<String> itemIds) {
     Map<String, Item> map = new HashMap<>();
+
+    if (itemIds.isEmpty()) {
+      return map;
+    }
 
     List<Item> items = fetchDataInBatch(
       new ArrayList<String>(itemIds),

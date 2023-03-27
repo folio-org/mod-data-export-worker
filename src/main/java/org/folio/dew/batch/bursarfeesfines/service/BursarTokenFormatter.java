@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.IsoFields;
 import java.time.temporal.WeekFields;
 import java.time.zone.ZoneRulesException;
+import java.util.Date;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import lombok.experimental.UtilityClass;
@@ -21,7 +22,9 @@ import org.folio.dew.domain.dto.BursarExportTokenConstant;
 import org.folio.dew.domain.dto.BursarExportTokenConstantConditional;
 import org.folio.dew.domain.dto.BursarExportTokenConstantConditionalConditionsInner;
 import org.folio.dew.domain.dto.BursarExportTokenCurrentDate;
+import org.folio.dew.domain.dto.BursarExportTokenDateType;
 import org.folio.dew.domain.dto.BursarExportTokenFeeAmount;
+import org.folio.dew.domain.dto.BursarExportTokenFeeDate;
 import org.folio.dew.domain.dto.BursarExportTokenFeeMetadata;
 import org.folio.dew.domain.dto.BursarExportTokenItemData;
 import org.folio.dew.domain.dto.BursarExportTokenLengthControl;
@@ -41,7 +44,7 @@ public class BursarTokenFormatter {
     if (token instanceof BursarExportTokenConstant tokenConstant) {
       return tokenConstant.getValue();
     } else if (token instanceof BursarExportTokenCurrentDate tokenDate) {
-      return processDateToken(tokenDate);
+      return formatCurrentDateDataToken(tokenDate);
     } else if (token instanceof BursarExportTokenAggregate tokenAggregate) {
       return processAggregateToken(
         tokenAggregate,
@@ -99,7 +102,65 @@ public class BursarTokenFormatter {
   private static String formatCurrentDateDataToken(
     BursarExportTokenCurrentDate tokenDate
   ) {
-    return processDateToken(tokenDate);
+    ZonedDateTime currentDateTime;
+
+    try {
+      currentDateTime =
+        Instant.now().atZone(ZoneId.of(tokenDate.getTimezone()));
+    } catch (ZoneRulesException e) {
+      log.error("Unknown timezone: ", e);
+      String result = String.format(
+        "[unknown time zone: %s]",
+        tokenDate.getTimezone()
+      );
+      return applyLengthControl(result, tokenDate.getLengthControl());
+    }
+    return processDateToken(
+      currentDateTime,
+      tokenDate.getValue(),
+      tokenDate.getLengthControl()
+    );
+  }
+
+  private static String formatFeeDateDataToken(
+    BursarExportTokenFeeDate tokenFeeDate,
+    AccountWithAncillaryData accountWithAncillaryData
+  ) {
+    ZonedDateTime feeDateTime;
+    Date accountDate;
+
+    switch (tokenFeeDate.getProperty()) {
+      case CREATED -> accountDate =
+        accountWithAncillaryData.getAccount().getDateCreated();
+      case UPDATED -> accountDate =
+        accountWithAncillaryData.getAccount().getDateUpdated();
+      case DUE -> accountDate =
+        accountWithAncillaryData.getAccount().getDueDate();
+      case RETURNED -> accountDate =
+        accountWithAncillaryData.getAccount().getReturnedDate();
+      default -> {
+        log.error("[invalid fee date property: {}]", tokenFeeDate.getValue());
+        return tokenFeeDate.getPlaceholder();
+      }
+    }
+
+    try {
+      feeDateTime =
+        accountDate.toInstant().atZone(ZoneId.of(tokenFeeDate.getTimezone()));
+    } catch (ZoneRulesException e) {
+      log.error("Unknown timezone: ", e);
+      String result = String.format(
+        "[unknown time zone: %s]",
+        tokenFeeDate.getTimezone()
+      );
+      return applyLengthControl(result, tokenFeeDate.getLengthControl());
+    }
+
+    return processDateToken(
+      feeDateTime,
+      tokenFeeDate.getValue(),
+      tokenFeeDate.getLengthControl()
+    );
   }
 
   private static String formatUserDataToken(
@@ -199,6 +260,8 @@ public class BursarTokenFormatter {
       return processConstantConditional(tokenConstantConditional, account);
     } else if (token instanceof BursarExportTokenCurrentDate tokenDate) {
       return formatCurrentDateDataToken(tokenDate);
+    } else if (token instanceof BursarExportTokenFeeDate tokenFeeDate) {
+      return formatFeeDateDataToken(tokenFeeDate, account);
     } else if (token instanceof BursarExportTokenFeeAmount tokenFeeAmount) {
       return formatFeeAmountsDataToken(tokenFeeAmount, account);
     } else if (token instanceof BursarExportTokenFeeMetadata tokenFeeMetadata) {
@@ -268,48 +331,39 @@ public class BursarTokenFormatter {
    * Helper method to process date token into string
    * @params tokenDate date token that needs to process into string
    */
-  private String processDateToken(BursarExportTokenCurrentDate tokenDate) {
+  private String processDateToken(
+    ZonedDateTime dateTime,
+    BursarExportTokenDateType dateType,
+    BursarExportTokenLengthControl lengthControl
+  ) {
     String result;
 
-    ZonedDateTime currentDateTime;
-
-    try {
-      currentDateTime =
-        Instant.now().atZone(ZoneId.of(tokenDate.getTimezone()));
-    } catch (ZoneRulesException e) {
-      log.error("Unknown timezone: ", e);
-      result =
-        String.format("[unknown time zone: %s]", tokenDate.getTimezone());
-      return applyLengthControl(result, tokenDate.getLengthControl());
-    }
-
-    switch (tokenDate.getValue()) {
+    switch (dateType) {
       case YEAR_LONG -> result =
-        currentDateTime.format(DateTimeFormatter.ofPattern("yyyy"));
+        dateTime.format(DateTimeFormatter.ofPattern("yyyy"));
       case YEAR_SHORT -> result =
-        currentDateTime.format(DateTimeFormatter.ofPattern("yy"));
-      case MONTH -> result = String.valueOf(currentDateTime.getMonthValue());
-      case DATE -> result = String.valueOf(currentDateTime.getDayOfMonth());
-      case HOUR -> result = String.valueOf(currentDateTime.getHour());
-      case MINUTE -> result = String.valueOf(currentDateTime.getMinute());
-      case SECOND -> result = String.valueOf(currentDateTime.getSecond());
+        dateTime.format(DateTimeFormatter.ofPattern("yy"));
+      case MONTH -> result = String.valueOf(dateTime.getMonthValue());
+      case DATE -> result = String.valueOf(dateTime.getDayOfMonth());
+      case HOUR -> result = String.valueOf(dateTime.getHour());
+      case MINUTE -> result = String.valueOf(dateTime.getMinute());
+      case SECOND -> result = String.valueOf(dateTime.getSecond());
       case QUARTER -> result =
-        currentDateTime.format(DateTimeFormatter.ofPattern("Q"));
+        dateTime.format(DateTimeFormatter.ofPattern("Q"));
       case WEEK_OF_YEAR -> result =
         String.valueOf(
-          currentDateTime.get(WeekFields.of(DayOfWeek.MONDAY, 7).weekOfYear())
+          dateTime.get(WeekFields.of(DayOfWeek.MONDAY, 7).weekOfYear())
         );
       case WEEK_OF_YEAR_ISO -> result =
-        String.valueOf(currentDateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
+        String.valueOf(dateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
       case WEEK_YEAR -> result =
-        currentDateTime.format(DateTimeFormatter.ofPattern("YYYY"));
+        dateTime.format(DateTimeFormatter.ofPattern("YYYY"));
       case WEEK_YEAR_ISO -> result =
-        String.valueOf(currentDateTime.get(IsoFields.WEEK_BASED_YEAR));
-      default -> result =
-        String.format("[invalid date type %s]", tokenDate.getValue());
+        String.valueOf(dateTime.get(IsoFields.WEEK_BASED_YEAR));
+      default -> result = String.format("[invalid date type %s]", dateType);
     }
 
-    return applyLengthControl(result, tokenDate.getLengthControl());
+    return applyLengthControl(result, lengthControl);
   }
 
   /*

@@ -1,3 +1,14 @@
+## 2023-03-24 v3.0.6
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.5...v3.0.6)
+
+### Bug fixes
+* [MODEXPW-389](https://issues.folio.org/browse/MODEXPW-389) [Bulk Edit] Status Code: 500 from s3 bucket
+* [MODEXPW-386](https://issues.folio.org/browse/MODEXPW-386) "Connection reset (SocketException)" error bulk editing Items on large bulk edit job
+
+### Technical tasks
+* [MODEXPW-395](https://issues.folio.org/browse/MODEXPW-395) Instance Title supporting in the HoldingsRecord
+
 ## 2023-03-24 v3.0.5
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.4...v3.0.5)

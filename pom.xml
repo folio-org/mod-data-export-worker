@@ -12,7 +12,7 @@
     <groupId>org.folio</groupId>
     <artifactId>mod-data-export-worker</artifactId>
     <description>Data Export Worker module</description>
-    <version>3.1.0-SNAPSHOT</version>
+    <version>3.0.8</version>
     <packaging>jar</packaging>
 
     <licenses>
@@ -686,7 +686,7 @@
         <url>https://github.com/folio-org/${project.artifactId}</url>
         <connection>scm:git:git://github.com/folio-org/${project.artifactId}.git</connection>
         <developerConnection>scm:git:git@github.com:folio-org/${project.artifactId}.git</developerConnection>
-        <tag>v3.0.0</tag>
+        <tag>v3.0.8</tag>
     </scm>
 
     <repositories>

@@ -29,6 +29,7 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
+import static org.folio.dew.utils.Constants.TEMP_IDENTIFIERS_FILE_NAME;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 
 import java.io.IOException;
@@ -157,18 +158,24 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
   }
 
   private void moveTemporaryFilesToStorage(JobParameters jobParameters) throws IOException {
-    var tmpPath = jobParameters.getString(TEMP_LOCAL_FILE_PATH);
-    if (nonNull(tmpPath)) {
-      localFilesStorage.writeFile(jobParameters.getString(TEMP_OUTPUT_FILE_PATH), Path.of(tmpPath));
-      localFilesStorage.writeFile(jobParameters.getString(TEMP_OUTPUT_FILE_PATH) + ".json", Path.of(tmpPath + ".json"));
+    var tmpFileName = jobParameters.getString(TEMP_LOCAL_FILE_PATH);
+    if (nonNull(tmpFileName)) {
+      moveFileToStorage(jobParameters.getString(TEMP_OUTPUT_FILE_PATH), tmpFileName);
+      moveFileToStorage(jobParameters.getString(TEMP_OUTPUT_FILE_PATH) + ".json", tmpFileName + ".json");
+    }
 
-      if (Files.deleteIfExists(Path.of(tmpPath))) {
-        log.info("Deleted temporary file: {}", tmpPath);
-      }
+    var tmpIdentifiersFileName = jobParameters.getString(TEMP_IDENTIFIERS_FILE_NAME);
+    if (nonNull(tmpIdentifiersFileName) && Files.deleteIfExists(Path.of(tmpIdentifiersFileName))) {
+      log.info("Deleted temporary identifiers file: {}", tmpIdentifiersFileName);
+    }
+  }
 
-      var jsonPath = tmpPath + ".json";
-      if (Files.deleteIfExists(Path.of(jsonPath))) {
-        log.info("Deleted temporary file: {}", jsonPath);
+  private void moveFileToStorage(String destFileName, String sourceFileName) throws IOException {
+    var sourcePath = Path.of(sourceFileName);
+    if (Files.exists(sourcePath)) {
+      localFilesStorage.writeFile(destFileName, sourcePath);
+      if (Files.deleteIfExists(sourcePath)) {
+        log.info("Deleted temporary file: {}", sourceFileName);
       }
     }
   }

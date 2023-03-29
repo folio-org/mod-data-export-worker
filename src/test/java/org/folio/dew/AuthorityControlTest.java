@@ -108,7 +108,7 @@ class AuthorityControlTest extends BaseBatchTest {
   @DisplayName("Run FailedLinkedBibJob export successfully")
   void failedLinkedBibJobTest() throws Exception {
     final JobLauncherTestUtils testLauncher = createTestLauncher(getFailedLinkedBibJob);
-    final JobParameters jobParameters = prepareJobParameters(FAILED_LINKED_BIB_UPDATES, new AuthorityControlExportConfig());
+    final JobParameters jobParameters = prepareJobParameters(FAILED_LINKED_BIB_UPDATES, null);
 
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
@@ -165,8 +165,9 @@ class AuthorityControlTest extends BaseBatchTest {
     var paramBuilder = new JobParametersBuilder();
 
     paramBuilder.addString(JobParameterNames.JOB_ID, jobId);
-    paramBuilder.addString("authorityControlExportConfig", objectMapper.writeValueAsString(exportConfig));
-
+    if (exportConfig != null) {
+      paramBuilder.addString("authorityControlExportConfig", objectMapper.writeValueAsString(exportConfig));
+    }
     String workDir =
       System.getProperty("java.io.tmpdir")
         + File.separator

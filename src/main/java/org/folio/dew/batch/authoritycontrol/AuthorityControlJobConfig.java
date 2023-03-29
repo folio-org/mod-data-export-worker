@@ -122,6 +122,9 @@ public class AuthorityControlJobConfig {
   @Bean("authorityControlExportConfig")
   public AuthorityControlExportConfig exportConfig(
     @Value("#{jobParameters['authorityControlExportConfig']}") String exportConfigStr) throws JsonProcessingException {
+    if (exportConfigStr == null) {
+      return new AuthorityControlExportConfig();
+    }
     return objectMapper.readValue(exportConfigStr, AuthorityControlExportConfig.class);
   }
 }

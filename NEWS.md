@@ -1,3 +1,10 @@
+## 2023-03-24 v3.0.8
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.7...v3.0.8)
+
+### Bug fixes
+* [MODEXPW-386](https://issues.folio.org/browse/MODEXPW-386) "Connection reset (SocketException)" error bulk editing Items on large bulk edit job
+
 ## 2023-03-28 v3.0.7
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.6...v3.0.7)

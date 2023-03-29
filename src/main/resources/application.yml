@@ -14,7 +14,6 @@ spring:
       concurrency: ${KAFKA_CONCURRENCY_LEVEL:30}
     consumer:
       auto-offset-reset: latest
-      enable-auto-commit: true
   datasource:
     username: ${DB_USERNAME:folio_admin}
     password: ${DB_PASSWORD:folio_admin}

@@ -3,32 +3,42 @@ package org.folio.dew.batch.bursarfeesfines.service.impl;
 import static java.util.stream.Collectors.joining;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
+import org.folio.dew.batch.bursarfeesfines.service.BursarFilterEvaluator;
 import org.folio.dew.client.AccountBulkClient;
 import org.folio.dew.client.AccountClient;
 import org.folio.dew.client.FeefineactionsClient;
 import org.folio.dew.client.InventoryClient;
+import org.folio.dew.client.OwnersClient;
 import org.folio.dew.client.ServicePointClient;
 import org.folio.dew.client.TransferClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.AccountdataCollection;
 import org.folio.dew.domain.dto.BursarExportJob;
+import org.folio.dew.domain.dto.BursarExportTransferCriteriaConditionsInner;
 import org.folio.dew.domain.dto.Item;
+import org.folio.dew.domain.dto.Owner;
 import org.folio.dew.domain.dto.ServicePoint;
+import org.folio.dew.domain.dto.Transfer;
 import org.folio.dew.domain.dto.User;
+import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 import org.folio.dew.domain.dto.bursarfeesfines.TransferRequest;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,6 +78,7 @@ public class BursarExportServiceImpl implements BursarExportService {
   private final AccountBulkClient bulkClient;
   private final FeefineactionsClient feefineClient;
   private final TransferClient transferClient;
+  private final OwnersClient ownersClient;
   private final ServicePointClient servicePointClient;
 
   /** Convert the JobParameter to our schema */
@@ -80,13 +91,69 @@ public class BursarExportServiceImpl implements BursarExportService {
   /** Take the found fine accounts and mark them as transferred */
   @Override
   public void transferAccounts(
-    List<Account> accounts,
+    List<AccountWithAncillaryData> accounts,
     BursarExportJob bursarFeeFines
   ) {
-    log.error("I don't know how to create transfer requests yet...");
-    // var transferRequest = toTransferRequest(accounts, bursarFeeFines);
-    // log.info("Creating {}.", transferRequest);
-    // bulkClient.transferAccount(transferRequest);
+    /*
+    TODO:
+
+    For each filter condition, use that condition to filter the appropriate accounts and create a transferRequest object after each filtration
+    At the end, get a set of all the accounts that have been encountered and so far and subtract them from the universal set of accounts
+   to get the accounts that didn't fulfill any conditions and create a final transferRequest object out of that
+
+     */
+
+    Set<AccountWithAncillaryData> transferredAccountsSet = new HashSet<>();
+    Set<AccountWithAncillaryData> nonTransferredAccountsSet = new HashSet<>(
+      accounts
+    );
+
+    for (BursarExportTransferCriteriaConditionsInner bursarExportTransferCriteriaConditionsInner : bursarFeeFines
+      .getTransferInfo()
+      .getConditions()) {
+      List<AccountWithAncillaryData> accountsToBeTransferred = accounts
+        .stream()
+        .filter(account ->
+          BursarFilterEvaluator.evaluate(
+            account,
+            bursarExportTransferCriteriaConditionsInner.getCondition()
+          )
+        )
+        .collect(Collectors.toList());
+      transferredAccountsSet.addAll(accountsToBeTransferred);
+
+      String servicePointID = getServicePointID(bursarExportTransferCriteriaConditionsInner.getOwner().toString());
+
+      String accountName = getTransferAccountName(bursarExportTransferCriteriaConditionsInner.getAccount().toString());
+
+      //      log.error("I don't know how to create transfer requests yet...");
+      log.info(
+        "transferring accounts for filter condition: " +
+        bursarExportTransferCriteriaConditionsInner.getCondition().toString()
+      );
+      TransferRequest transferRequest = toTransferRequest(
+        accountsToBeTransferred,
+        accountName,
+        servicePointID
+      );
+      log.info("Creating {}.", transferRequest);
+      bulkClient.transferAccount(transferRequest);
+    }
+
+    // transfer non-transferred accounts to owner and account specified in else
+    nonTransferredAccountsSet.removeAll(transferredAccountsSet);
+
+    String servicePointID = getServicePointID(bursarFeeFines.getTransferInfo().getElse().getOwner().toString());
+
+    String accountName = getTransferAccountName(bursarFeeFines.getTransferInfo().getElse().getAccount().toString());
+
+    TransferRequest transferRequest = toTransferRequest(
+      nonTransferredAccountsSet.stream().toList(),
+      accountName,
+      servicePointID
+    );
+    log.info("Creating {}.", transferRequest);
+    bulkClient.transferAccount(transferRequest);
   }
 
   @Override
@@ -226,8 +293,9 @@ public class BursarExportServiceImpl implements BursarExportService {
   // }
 
   private TransferRequest toTransferRequest(
-    List<Account> accounts,
-    BursarExportJob bursarFeeFines
+    List<AccountWithAncillaryData> accounts,
+    String accountName,
+    String servicePoint
   ) {
     if (CollectionUtils.isEmpty(accounts)) {
       throw new IllegalArgumentException(
@@ -237,19 +305,24 @@ public class BursarExportServiceImpl implements BursarExportService {
 
     log.error("I don't know how to create transfer requests yet...");
 
-    // BigDecimal remainingAmount = BigDecimal.ZERO;
-    // List<String> accountIds = new ArrayList<>();
-    // for (Account account : accounts) {
-    //   remainingAmount = remainingAmount.add(account.getRemaining());
-    //   accountIds.add(account.getId());
-    // }
+    BigDecimal remainingAmount = BigDecimal.ZERO;
+    List<String> accountIds = new ArrayList<>();
+    for (AccountWithAncillaryData accountWithAncillaryData : accounts) {
+      remainingAmount =
+        remainingAmount.add(
+          accountWithAncillaryData.getAccount().getRemaining()
+        );
+      accountIds.add(accountWithAncillaryData.getAccount().getId());
+    }
 
-    // if (remainingAmount.doubleValue() <= 0) {
-    //   throw new IllegalArgumentException(
-    //       String.format(
-    //           "Transfer amount should be positive for account(s) %s",
-    //           StringUtils.join(accounts, ",")));
-    // }
+    if (remainingAmount.doubleValue() <= 0) {
+      throw new IllegalArgumentException(
+        String.format(
+          "Transfer amount should be positive for account(s) %s",
+          StringUtils.join(accounts, ",")
+        )
+      );
+    }
 
     // String paymentMethod;
     // if (bursarFeeFines.getTransferAccountId() == null) {
@@ -263,13 +336,13 @@ public class BursarExportServiceImpl implements BursarExportService {
     //           : transfers.getTransfers().get(0).getAccountName();
     // }
 
-    var transferRequest = new TransferRequest();
-    // transferRequest.setAmount(remainingAmount.doubleValue());
-    // transferRequest.setPaymentMethod(paymentMethod);
+    TransferRequest transferRequest = new TransferRequest();
+    transferRequest.setAmount(remainingAmount.doubleValue());
+    transferRequest.setPaymentMethod(accountName);
     transferRequest.setServicePointId(getSystemServicePoint().getId());
-    // transferRequest.setNotifyPatron(false);
+    transferRequest.setNotifyPatron(false);
     transferRequest.setUserName(USER_NAME);
-    // transferRequest.setAccountIds(accountIds);
+    transferRequest.setAccountIds(accountIds);
     return transferRequest;
   }
 
@@ -299,4 +372,44 @@ public class BursarExportServiceImpl implements BursarExportService {
     }
     return servicePoints.getServicepoints().get(0);
   }
+
+  /**
+   * Get the transfer account name given a transfer account id
+   * @param transferAccountID transfer account ID
+   * @return transfer account name
+   */
+  private String getTransferAccountName(String transferAccountID){
+    return transferClient
+      .get(
+        "id == " +
+          transferAccountID,
+        1
+      )
+      .getTransfers()
+      .get(0)
+      .getAccountName();
+  }
+
+  /**
+   * Gets the service point ID of a fee fine owner
+   * @param feeFineOwnerID fee fine owner ID
+   * @return Service point ID
+   */
+
+  private String getServicePointID(String feeFineOwnerID){
+    Owner ownerInfo = ownersClient
+      .get(
+        "id == " +
+          feeFineOwnerID,
+        1
+      )
+      .getOwners()
+      .get(0);
+
+    return ownerInfo
+      .getServicePointOwner()
+      .get(0)
+      .getValue();
+  }
+
 }

@@ -38,13 +38,9 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
   private Map<String, Item> itemMap;
   private List<Account> accounts = new ArrayList<>();
   private int nextIndex = 0;
-  private List<AggregatedAccountsByUser> aggregatedAccountsByUsersList = new ArrayList<>();
 
   // just to test temporarily
   private boolean createEvenIfEmpty = false;
-
-  @Value("#{jobExecutionContext['jobConfig']}")
-  private BursarExportJob jobConfig;
 
   @Override
   public AccountWithAncillaryData read() {
@@ -86,63 +82,6 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
 
     userMap = exportService.getUsers(userIds);
     itemMap = exportService.getItems(itemIds);
-
-    // for loop to create a list of accounts with their respective user and item
-    List<AccountWithAncillaryData> accountsWithAncillaryData = new ArrayList<>();
-    for (Account account : accounts) {
-      AccountWithAncillaryData accountWithAncillaryData = AccountWithAncillaryData
-        .builder()
-        .account(account)
-        .user(null)
-        .user(userMap.get(account.getUserId()))
-        .item(itemMap.getOrDefault(account.getItemId(), null))
-        .build();
-      if (
-        BursarFilterEvaluator.evaluate(
-          accountWithAncillaryData,
-          jobConfig.getFilter()
-        )
-      ) {
-        accountsWithAncillaryData.add(accountWithAncillaryData);
-      }
-    }
-
-    // then pass the list through bursarFilterEvaluator
-    HashMap<User, List<Account>> userToAccountsListMap = new HashMap<>();
-    for (AccountWithAncillaryData accountWithAncillaryData : accountsWithAncillaryData) {
-      User user = accountWithAncillaryData.getUser();
-      Account account = accountWithAncillaryData.getAccount();
-
-      userToAccountsListMap.computeIfAbsent(
-        user,
-        (User key) -> new ArrayList<Account>(Arrays.asList(account))
-      );
-
-      userToAccountsListMap.computeIfPresent(
-        user,
-        (User key, List<Account> accountsList) -> {
-          accountsList.add(account);
-          return accountsList;
-        }
-      );
-    }
-
-    // then aggregate them by users. As a result, a list of AggregratedAccountsByUser
-    userToAccountsListMap.forEach((User user, List<Account> accountsList) -> {
-      aggregatedAccountsByUsersList.add(
-        AggregatedAccountsByUser
-          .builder()
-          .user(user)
-          .accounts(accountsList)
-          .build()
-      );
-    });
-
-    log.info(aggregatedAccountsByUsersList.toString());
-
-    // then pass it through the filterer (new step)
-    // then pass it through the formatter (a new step)
-    // then write it in BursarWriter
 
     // initializing a totalAmount variable in jobExecutionContext
     stepExecution

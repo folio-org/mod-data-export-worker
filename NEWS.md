@@ -1,3 +1,11 @@
+## 2023-03-31 v3.0.10
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.9...v3.0.10)
+
+### Bug fixes
+* [MODEXPW-378](https://issues.folio.org/browse/MODEXPW-378) Circulation log Export going into loop few times which leads to high CPU usage on DB during long time
+
+
 ## 2023-03-29 v3.0.9
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.8...v3.0.9)

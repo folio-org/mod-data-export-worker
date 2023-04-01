@@ -106,22 +106,25 @@ public class BursarExportServiceImpl implements BursarExportService {
           )
         )
         .collect(Collectors.toList());
-      transferredAccountsSet.addAll(accountsToBeTransferred);
 
-      String accountName = getTransferAccountName(
-        bursarExportTransferCriteriaConditionsInner.getAccount().toString()
-      );
+      if (accountsToBeTransferred.size() > 0) {
+        transferredAccountsSet.addAll(accountsToBeTransferred);
 
-      log.info(
-        "transferring accounts for filter condition: " +
-        bursarExportTransferCriteriaConditionsInner.getCondition().toString()
-      );
-      TransferRequest transferRequest = toTransferRequest(
-        accountsToBeTransferred,
-        accountName
-      );
-      log.info("Creating {}.", transferRequest);
-      bulkClient.transferAccount(transferRequest);
+        String accountName = getTransferAccountName(
+          bursarExportTransferCriteriaConditionsInner.getAccount().toString()
+        );
+
+        log.info(
+          "transferring accounts for filter condition: " +
+          bursarExportTransferCriteriaConditionsInner.getCondition().toString()
+        );
+        TransferRequest transferRequest = toTransferRequest(
+          accountsToBeTransferred,
+          accountName
+        );
+        log.info("Creating {}.", transferRequest);
+        bulkClient.transferAccount(transferRequest);
+      }
     }
 
     // transfer non-transferred accounts to account specified in else

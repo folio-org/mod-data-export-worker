@@ -42,7 +42,7 @@ public class TransferFeesFinesTasklet implements Tasklet {
         filteredAccounts,
         (BursarExportJob) ExecutionContextUtils.getExecutionVariable(
           contribution.getStepExecution(),
-          "bursarFeeFines"
+          "jobConfig"
         )
       );
     }

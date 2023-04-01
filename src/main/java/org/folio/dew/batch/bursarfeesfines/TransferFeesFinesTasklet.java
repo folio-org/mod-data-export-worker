@@ -31,7 +31,7 @@ public class TransferFeesFinesTasklet implements Tasklet {
     log.error("In unimplemented TransferFeesFinesTasklet");
     // from AccountItemReader
 
-    List<Account> filteredAccounts = (List<Account>) contribution
+    List<AccountWithAncillaryData> filteredAccounts = (List<AccountWithAncillaryData>) contribution
       .getStepExecution()
       .getJobExecution()
       .getExecutionContext()
@@ -42,7 +42,7 @@ public class TransferFeesFinesTasklet implements Tasklet {
         filteredAccounts,
         (BursarExportJob) ExecutionContextUtils.getExecutionVariable(
           contribution.getStepExecution(),
-          "bursarFeeFines"
+          "jobConfig"
         )
       );
     }

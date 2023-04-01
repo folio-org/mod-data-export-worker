@@ -12,6 +12,8 @@ paths:
           description: stub
 components:
   schemas:
+    ownerdatacollection:
+      $ref: '../../../../folio-export-common/schemas/feesfines/ownerDataCollection.json#/OwnerDataCollection'
     userdataCollection:
       $ref: '../../../../folio-export-common/schemas/user/userCollection.json#/UserCollection'
     accountdataCollection:

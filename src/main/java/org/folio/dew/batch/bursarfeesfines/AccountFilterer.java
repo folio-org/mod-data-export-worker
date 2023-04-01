@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 public class AccountFilterer
   implements ItemProcessor<AccountWithAncillaryData, AccountWithAncillaryData> {
 
-  private List<Account> filteredAccounts = new ArrayList<>();
+  private List<AccountWithAncillaryData> filteredAccounts = new ArrayList<>();
 
   @Value("#{jobExecutionContext['jobConfig']}")
   private BursarExportJob jobConfig;
@@ -31,7 +31,7 @@ public class AccountFilterer
   @Override
   public AccountWithAncillaryData process(AccountWithAncillaryData account) {
     if (BursarFilterEvaluator.evaluate(account, jobConfig.getFilter())) {
-      filteredAccounts.add(account.getAccount());
+      filteredAccounts.add(account);
       return account;
     } else {
       return null;

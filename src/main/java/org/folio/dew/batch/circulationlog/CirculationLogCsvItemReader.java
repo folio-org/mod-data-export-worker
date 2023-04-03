@@ -11,8 +11,10 @@ public class CirculationLogCsvItemReader extends CsvItemReader<LogRecord> {
   private final AuditClient auditClient;
   private final String query;
 
+  private static final int QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST = 100;
+
   public CirculationLogCsvItemReader(AuditClient auditClient, String query, Long offset, Long limit) {
-    super(offset, limit, limit.intValue());
+    super(offset, limit, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST);
 
     this.auditClient = auditClient;
     this.query = query;

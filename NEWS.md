@@ -1,3 +1,10 @@
+## 2023-04-03 v3.0.12
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.11...v3.0.12)
+
+### Bug fixes
+* [MODEXPW-378](https://issues.folio.org/browse/MODEXPW-378) The fix is reverted. 
+
 ## 2023-03-31 v3.0.11
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.10...v3.0.11)

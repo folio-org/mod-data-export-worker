@@ -1,10 +1,7 @@
 package org.folio.dew.batch.bursarfeesfines;
 
-import com.google.inject.Key;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -12,18 +9,14 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
-import org.folio.dew.batch.bursarfeesfines.service.BursarFilterEvaluator;
 import org.folio.dew.domain.dto.Account;
-import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
-import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUser;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -8,7 +8,7 @@ import org.folio.dew.domain.dto.User;
 
 @Data
 @Builder
-public class AggregatedAccountsDataByUser {
+public class AggregatedAccountsByUser {
 
   private User user;
   private List<Account> accounts;

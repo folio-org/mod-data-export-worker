@@ -7,9 +7,10 @@ import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.User;
+import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 
 public interface BursarExportService {
-  void transferAccounts(List<Account> accounts, BursarExportJob bursarFeeFines);
+  void transferAccounts(List<AccountWithAncillaryData> accounts, BursarExportJob bursarFeeFines);
 
   List<Account> getAllAccounts();
 

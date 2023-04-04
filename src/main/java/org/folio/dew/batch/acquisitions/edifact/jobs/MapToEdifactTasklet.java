@@ -141,13 +141,13 @@ public class MapToEdifactTasklet implements Tasklet {
   }
 
   private List<CompositePurchaseOrder> assembleCompositeOrders(List<PurchaseOrder> orders, List<PoLine> poLines) {
-    Map<String, List<CompositePoLine>> orderIdToCompositePoLine = poLines.stream()
+    Map<String, List<CompositePoLine>> orderIdToCompositePoLines = poLines.stream()
       .map(poLine -> convertTo(poLine, CompositePoLine.class))
       .collect(groupingBy(CompositePoLine::getPurchaseOrderId));
     return orders.stream()
       .map(order -> convertTo(order, CompositePurchaseOrder.class))
       .map(compPo -> compPo.compositePoLines(
-        requireNonNullElse(orderIdToCompositePoLine.get(compPo.getId().toString()), List.of())))
+        requireNonNullElse(orderIdToCompositePoLines.get(compPo.getId().toString()), List.of())))
       .toList();
   }
 

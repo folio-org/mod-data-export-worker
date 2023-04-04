@@ -64,14 +64,14 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
       " AND (cql.allRecords=1 NOT lastEDIExportDate=\"\")" +
       " AND acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\")" +
       " AND vendorDetail.vendorAccount==(\"BRXXXXX-01\")";
-    doReturn(poLines).when(ordersService).getPoLinesByQuery(eq(cqlString));
+    doReturn(poLines).when(ordersService).getPoLinesByQuery(cqlString);
     doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
     doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
 
     JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters(false));
 
     Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-    verify(ordersService).getPoLinesByQuery(eq(cqlString));
+    verify(ordersService).getPoLinesByQuery(cqlString);
     verify(ordersService).getPurchaseOrdersByIds(anyList());
   }
 
@@ -112,14 +112,14 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
       " AND acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\")" +
       " AND (vendorDetail.vendorAccount==\"\" OR (cql.allRecords=1 NOT vendorDetail.vendorAccount=\"\"))";
     poLines.get(0).getVendorDetail().setVendorAccount(null);
-    doReturn(poLines).when(ordersService).getPoLinesByQuery(eq(cqlString));
+    doReturn(poLines).when(ordersService).getPoLinesByQuery(cqlString);
     doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
     doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
 
     JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters(true));
 
     Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-    verify(ordersService).getPoLinesByQuery(eq(cqlString));
+    verify(ordersService).getPoLinesByQuery(cqlString);
     verify(ordersService).getPurchaseOrdersByIds(anyList());
   }
 
@@ -134,12 +134,12 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
       " AND (cql.allRecords=1 NOT lastEDIExportDate=\"\")" +
       " AND acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\")" +
       " AND vendorDetail.vendorAccount==(\"BRXXXXX-01\")";
-    doReturn(poLines).when(ordersService).getPoLinesByQuery(eq(cqlString));
+    doReturn(poLines).when(ordersService).getPoLinesByQuery(cqlString);
 
     JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters(false));
 
     assertThat(jobExecution.getExitStatus().getExitDescription(), containsString("Orders for export not found"));
-    verify(ordersService).getPoLinesByQuery(eq(cqlString));
+    verify(ordersService).getPoLinesByQuery(cqlString);
     verify(ordersService).getPurchaseOrdersByIds(anyList());
   }
 

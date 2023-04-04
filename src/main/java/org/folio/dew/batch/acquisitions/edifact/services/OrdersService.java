@@ -32,7 +32,7 @@ public class OrdersService {
       else
         modifiedQuery = String.format("%s AND id > %s sortBy id", query, lastId);
       var linesInChunk = ordersStorageClient.getPoLinesByQuery(modifiedQuery, 0, CHUNK_SIZE).getPoLines();
-      if (linesInChunk.size() == 0)
+      if (linesInChunk.isEmpty())
         break;
       allLines.addAll(linesInChunk);
       lastId = linesInChunk.get(linesInChunk.size() - 1).getId();

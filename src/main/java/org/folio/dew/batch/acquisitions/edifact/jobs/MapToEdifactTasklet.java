@@ -2,7 +2,6 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static java.util.Objects.requireNonNullElse;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 
 import java.util.List;
@@ -13,6 +12,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
+import org.folio.dew.batch.acquisitions.edifact.exceptions.CompositeOrderMappingException;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.OrderNotFoundException;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
@@ -84,7 +84,7 @@ public class MapToEdifactTasklet implements Tasklet {
     var orderIds = poLines.stream()
       .map(PoLine::getPurchaseOrderId)
       .distinct()
-      .collect(toList());
+      .toList();
     var orders = ordersService.getPurchaseOrdersByIds(orderIds);
 
     var compOrders = assembleCompositeOrders(orders, poLines);
@@ -129,7 +129,7 @@ public class MapToEdifactTasklet implements Tasklet {
     var polineIds = compOrders.stream()
       .flatMap(ord -> ord.getCompositePoLines().stream())
       .map(CompositePoLine::getId)
-      .collect(toList());
+      .toList();
     ExecutionContextUtils.addToJobExecutionContext(chunkContext.getStepContext().getStepExecution(),"polineIds", ediObjectMapper.writeValueAsString(polineIds),"");
   }
 
@@ -148,14 +148,14 @@ public class MapToEdifactTasklet implements Tasklet {
       .map(order -> convertTo(order, CompositePurchaseOrder.class))
       .map(compPo -> compPo.compositePoLines(
         requireNonNullElse(orderIdToCompositePoLine.get(compPo.getId().toString()), List.of())))
-      .collect(toList());
+      .toList();
   }
 
   private <T> T convertTo(Object value, Class<T> c) {
     try {
       return ediObjectMapper.readValue(ediObjectMapper.writeValueAsString(value), c);
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
+    } catch (JsonProcessingException ex) {
+      throw new CompositeOrderMappingException(String.format("%s for object %s", ex.getMessage(), value));
     }
   }
 }

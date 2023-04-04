@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/audit-data/circulation/logs?query&offset=0&limit=100"
+        "url": "/audit-data/circulation/logs?query&offset=0&limit=10000"
       },
       "response": {
         "status": 200,

@@ -321,10 +321,10 @@ public class BulkEditController implements JobIdApi {
         localFilesStorage.write(workDir + jobId + PATH_SEPARATOR + INITIAL_PREFIX + file.getOriginalFilename(), file.getBytes());
       }
       log.info("File {} has been uploaded successfully.", file.getOriginalFilename());
-      if (!isBulkEditUpdate(jobCommand) && ITEM != jobCommand.getEntityType()) {
+      if (!isBulkEditUpdate(jobCommand)) {
         var job = getBulkEditJob(jobCommand);
         var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
-        log.info("Launching bulk edit user identifiers job.");
+        log.info("Launching bulk edit identifiers job.");
         new Thread(getRunnableWithCurrentFolioContext(() -> {
           try {
             exportJobManagerSync.launchJob(jobLaunchRequest);
@@ -350,6 +350,7 @@ public class BulkEditController implements JobIdApi {
     Files.deleteIfExists(path);
     Files.createDirectories(Path.of(tempDir));
     Files.write(path, file.getBytes());
+    log.info("Saved temporary identifiers file: {}", tempFilePath);
     return tempFilePath;
   }
 

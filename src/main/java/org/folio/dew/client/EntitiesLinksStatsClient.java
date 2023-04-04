@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "links")
 public interface EntitiesLinksStatsClient {
 
-  @GetMapping(value = "/authority/stats", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/stats/authority", produces = MediaType.APPLICATION_JSON_VALUE)
   AuthorityDataStatDtoCollection getAuthorityStats(@RequestParam int limit,
                                                    @RequestParam AuthorityDataStatDto.ActionEnum action,
                                                    @RequestParam String fromDate,

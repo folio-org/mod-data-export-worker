@@ -1,6 +1,5 @@
 package org.folio.dew.batch.acquisitions.edifact;
 
-import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.client.OrdersStorageClient;
 import org.folio.dew.domain.dto.PoLine;
@@ -8,8 +7,10 @@ import org.folio.dew.domain.dto.PoLineCollection;
 import org.folio.dew.domain.dto.PurchaseOrder;
 import org.folio.dew.domain.dto.PurchaseOrderCollection;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,10 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
-public class OrderServiceTest extends BaseBatchTest {
-  @Autowired
+@ExtendWith(MockitoExtension.class)
+public class OrderServiceTest {
+  @InjectMocks
   private OrdersService orderService;
-  @MockBean
+  @Mock
   OrdersStorageClient ordersStorageClient;
 
   @Test

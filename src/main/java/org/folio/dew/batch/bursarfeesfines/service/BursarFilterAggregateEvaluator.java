@@ -64,6 +64,7 @@ public class BursarFilterAggregateEvaluator {
       case GREATER_THAN_EQUAL:
         return amount >= conditionAmount;
       default:
+        log.error("Unexpected aggregated filter condition {}", condition);
         return false;
     }
   }

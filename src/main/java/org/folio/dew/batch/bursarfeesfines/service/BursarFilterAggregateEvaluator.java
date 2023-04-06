@@ -39,7 +39,7 @@ public class BursarFilterAggregateEvaluator {
       }
       return compareHelper(
         filter.getCondition(),
-        totalAmount.floatValue(),
+        totalAmount.intValue(),
         filter.getAmount()
       );
     } else {
@@ -48,10 +48,11 @@ public class BursarFilterAggregateEvaluator {
     }
   }
 
+  // TODO: determine if float is the desired type here?
   private final boolean compareHelper(
     ConditionEnum condition,
-    float amount,
-    float conditionAmount
+    int amount,
+    int conditionAmount
   ) {
     switch (condition) {
       case LESS_THAN:
@@ -63,6 +64,7 @@ public class BursarFilterAggregateEvaluator {
       case GREATER_THAN_EQUAL:
         return amount >= conditionAmount;
       default:
+        log.error("Unexpected aggregated filter condition {}", condition);
         return false;
     }
   }

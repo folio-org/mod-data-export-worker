@@ -27,7 +27,7 @@ public class AggregatedAccountFilterer
     AggregatedAccountsByUser aggregatedAccounts
   ) {
     if (
-      BursarFilterAggregateEvaluator.evaluate(
+      BursarFilterAggregateEvaluator.evaluateAggregate(
         aggregatedAccounts,
         jobConfig.getGroupByPatronFilter()
       )

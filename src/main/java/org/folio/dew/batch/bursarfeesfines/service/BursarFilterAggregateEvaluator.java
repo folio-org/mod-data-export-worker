@@ -2,11 +2,15 @@ package org.folio.dew.batch.bursarfeesfines.service;
 
 import io.micrometer.common.lang.NonNull;
 import java.math.BigDecimal;
+import java.util.UUID;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
+import org.folio.dew.domain.dto.BursarExportFilter;
 import org.folio.dew.domain.dto.BursarExportFilterAggregate;
 import org.folio.dew.domain.dto.BursarExportFilterAggregate.ConditionEnum;
 import org.folio.dew.domain.dto.BursarExportFilterAggregate.PropertyEnum;
+import org.folio.dew.domain.dto.BursarExportFilterPass;
+import org.folio.dew.domain.dto.BursarExportFilterPatronGroup;
 import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUser;
 import org.openapitools.jackson.nullable.JsonNullable;
 
@@ -14,9 +18,19 @@ import org.openapitools.jackson.nullable.JsonNullable;
 @UtilityClass
 public class BursarFilterAggregateEvaluator {
 
-  public static boolean evaluate(
+  public static boolean evaluateAggregate(
     AggregatedAccountsByUser aggregatedAccounts,
     JsonNullable<BursarExportFilterAggregate> filter
+  ) {
+    if (filter.isPresent()) {
+      return evaluateAggregate(aggregatedAccounts, filter.get());
+    }
+    return true;
+  }
+
+  public static boolean evaluate(
+    AggregatedAccountsByUser aggregatedAccounts,
+    JsonNullable<BursarExportFilter> filter
   ) {
     if (filter.isPresent()) {
       return evaluate(aggregatedAccounts, filter.get());
@@ -24,7 +38,7 @@ public class BursarFilterAggregateEvaluator {
     return true;
   }
 
-  public static boolean evaluate(
+  public static boolean evaluateAggregate(
     AggregatedAccountsByUser aggregatedAccounts,
     @NonNull BursarExportFilterAggregate filter
   ) {
@@ -44,6 +58,26 @@ public class BursarFilterAggregateEvaluator {
       );
     } else {
       log.error("Unexpected aggregate filter {}", filter);
+      return true;
+    }
+  }
+
+  public static boolean evaluate(
+    AggregatedAccountsByUser aggregatedAccounts,
+    @NonNull BursarExportFilter filter
+  ) {
+    if (filter instanceof BursarExportFilterPass) {
+      return true;
+    } else if (
+      filter instanceof BursarExportFilterPatronGroup filterPatronGroup
+    ) {
+      return (
+        UUID
+          .fromString(aggregatedAccounts.getUser().getPatronGroup())
+          .equals(filterPatronGroup.getPatronGroupId())
+      );
+    } else {
+      log.error("Unexpected filter: {}", filter);
       return true;
     }
   }

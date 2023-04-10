@@ -31,6 +31,7 @@ import org.folio.dew.domain.dto.BursarExportTokenItemData;
 import org.folio.dew.domain.dto.BursarExportTokenLengthControl;
 import org.folio.dew.domain.dto.BursarExportTokenUserData;
 import org.folio.dew.domain.dto.BursarExportTokenUserDataOptional;
+import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUser;
 
@@ -59,29 +60,22 @@ public class BursarTokenFormatter {
     }
   }
 
-  private static String formatFeeAmountsDataToken(
+  private static String formatFeeAmountToken(
     BursarExportTokenFeeAmount tokenFeeAmount,
-    AccountWithAncillaryData accountWithAncillaryData
+    BigDecimal feeAmount
   ) {
     String result;
 
     if (tokenFeeAmount.getDecimal()) {
-      result =
-        new DecimalFormat("0.00")
-          .format(accountWithAncillaryData.getAccount().getAmount());
+      result = new DecimalFormat("0.00").format(feeAmount);
     } else {
-      result =
-        accountWithAncillaryData
-          .getAccount()
-          .getAmount()
-          .multiply(new BigDecimal("100"))
-          .setScale(0)
-          .toString();
+      result = feeAmount.multiply(new BigDecimal("100")).setScale(0).toString();
     }
+
     return applyLengthControl(result, tokenFeeAmount.getLengthControl());
   }
 
-  private static String formatFeeMetadataToken(
+  private static String formatFeeMetaDataToken(
     BursarExportTokenFeeMetadata tokenFeeMetadata,
     AccountWithAncillaryData accountWithAncillaryData
   ) {
@@ -167,18 +161,18 @@ public class BursarTokenFormatter {
 
   private static String formatUserDataToken(
     BursarExportTokenUserData tokenUserData,
-    AccountWithAncillaryData accountWithAncillaryData
+    User user
   ) {
     String result;
     if (
       tokenUserData.getValue() == BursarExportTokenUserData.ValueEnum.FOLIO_ID
     ) {
-      result = accountWithAncillaryData.getUser().getId();
+      result = user.getId();
     } else if (
       tokenUserData.getValue() ==
       BursarExportTokenUserData.ValueEnum.PATRON_GROUP_ID
     ) {
-      result = accountWithAncillaryData.getUser().getPatronGroup();
+      result = user.getPatronGroup();
     } else {
       result =
         String.format(
@@ -192,19 +186,15 @@ public class BursarTokenFormatter {
 
   private static String formatUserDataOptionalToken(
     BursarExportTokenUserDataOptional tokenUserData,
-    AccountWithAncillaryData accountWithAncillaryData
+    User user
   ) {
     String result;
     switch (tokenUserData.getValue()) {
-      case BARCODE -> result = accountWithAncillaryData.getUser().getBarcode();
-      case USERNAME -> result =
-        accountWithAncillaryData.getUser().getUsername();
-      case FIRST_NAME -> result =
-        accountWithAncillaryData.getUser().getPersonal().getFirstName();
-      case MIDDLE_NAME -> result =
-        accountWithAncillaryData.getUser().getPersonal().getMiddleName();
-      case LAST_NAME -> result =
-        accountWithAncillaryData.getUser().getPersonal().getLastName();
+      case BARCODE -> result = user.getBarcode();
+      case USERNAME -> result = user.getUsername();
+      case FIRST_NAME -> result = user.getPersonal().getFirstName();
+      case MIDDLE_NAME -> result = user.getPersonal().getMiddleName();
+      case LAST_NAME -> result = user.getPersonal().getLastName();
       default -> {
         log.error("Invalid user data token: {}", tokenUserData);
         result = tokenUserData.getPlaceholder();
@@ -283,13 +273,16 @@ public class BursarTokenFormatter {
     } else if (token instanceof BursarExportTokenFeeDate tokenFeeDate) {
       return formatFeeDateDataToken(tokenFeeDate, account);
     } else if (token instanceof BursarExportTokenFeeAmount tokenFeeAmount) {
-      return formatFeeAmountsDataToken(tokenFeeAmount, account);
+      return formatFeeAmountToken(
+        tokenFeeAmount,
+        account.getAccount().getAmount()
+      );
     } else if (token instanceof BursarExportTokenFeeMetadata tokenFeeMetadata) {
-      return formatFeeMetadataToken(tokenFeeMetadata, account);
+      return formatFeeMetaDataToken(tokenFeeMetadata, account);
     } else if (token instanceof BursarExportTokenUserData tokenUserData) {
-      return formatUserDataToken(tokenUserData, account);
+      return formatUserDataToken(tokenUserData, account.getUser());
     } else if (token instanceof BursarExportTokenUserDataOptional tokenUserOp) {
-      return formatUserDataOptionalToken(tokenUserOp, account);
+      return formatUserDataOptionalToken(tokenUserOp, account.getUser());
     } else if (token instanceof BursarExportTokenItemData tokenItemData) {
       return formatItemDataToken(tokenItemData, account);
     } else {
@@ -318,78 +311,6 @@ public class BursarTokenFormatter {
     return tokenConstantConditional.getElse().getValue();
   }
 
-  private static String formatFeeAmountAggregatedAccountsToken(
-    BursarExportTokenFeeAmount tokenFeeAmount,
-    AggregatedAccountsByUser aggregatedAccounts
-  ) {
-    String result;
-
-    BigDecimal totalAmount = new BigDecimal(0);
-    for (Account account : aggregatedAccounts.getAccounts()) {
-      totalAmount = totalAmount.add(account.getAmount());
-    }
-    if (tokenFeeAmount.getDecimal()) {
-      result = new DecimalFormat("0.00").format(totalAmount);
-    } else {
-      result =
-        totalAmount.multiply(new BigDecimal("100")).setScale(0).toString();
-    }
-
-    return applyLengthControl(result, tokenFeeAmount.getLengthControl());
-  }
-
-  private static String formatUserDataAggregatedAccountsToken(
-    BursarExportTokenUserData tokenUserData,
-    AggregatedAccountsByUser aggregatedAccounts
-  ) {
-    String result;
-    if (
-      tokenUserData.getValue() == BursarExportTokenUserData.ValueEnum.FOLIO_ID
-    ) {
-      result = aggregatedAccounts.getUser().getId();
-    } else if (
-      tokenUserData.getValue() ==
-      BursarExportTokenUserData.ValueEnum.PATRON_GROUP_ID
-    ) {
-      result = aggregatedAccounts.getUser().getPatronGroup();
-    } else {
-      result =
-        String.format(
-          "[unexpected user data token: %s]",
-          tokenUserData.getValue()
-        );
-    }
-
-    return applyLengthControl(result, tokenUserData.getLengthControl());
-  }
-
-  private static String formatUserDataOptionalAggregatedAccountsToken(
-    BursarExportTokenUserDataOptional tokenUserData,
-    AggregatedAccountsByUser aggregatedAccounts
-  ) {
-    String result;
-    switch (tokenUserData.getValue()) {
-      case BARCODE -> result = aggregatedAccounts.getUser().getBarcode();
-      case USERNAME -> result = aggregatedAccounts.getUser().getUsername();
-      case FIRST_NAME -> result =
-        aggregatedAccounts.getUser().getPersonal().getFirstName();
-      case MIDDLE_NAME -> result =
-        aggregatedAccounts.getUser().getPersonal().getMiddleName();
-      case LAST_NAME -> result =
-        aggregatedAccounts.getUser().getPersonal().getLastName();
-      default -> {
-        log.error("Invalid user data token: {}", tokenUserData);
-        result = tokenUserData.getPlaceholder();
-      }
-    }
-
-    if (result == null) {
-      result = tokenUserData.getPlaceholder();
-    }
-
-    return applyLengthControl(result, tokenUserData.getLengthControl());
-  }
-
   public static String formatAggregatedAccountsToken(
     BursarExportDataToken token,
     AggregatedAccountsByUser aggregatedAccounts
@@ -404,31 +325,24 @@ public class BursarTokenFormatter {
         aggregatedAccounts
       );
     } else if (token instanceof BursarExportTokenAggregate tokenAggregate) {
-      BigDecimal totalAmount = new BigDecimal(0);
-      for (Account account : aggregatedAccounts.getAccounts()) {
-        totalAmount = totalAmount.add(account.getAmount());
-      }
       return processAggregateToken(
         tokenAggregate,
         aggregatedAccounts.getAccounts().size(),
-        totalAmount
+        aggregatedAccounts.findTotalAmount()
       );
     } else if (token instanceof BursarExportTokenCurrentDate tokenDate) {
       return formatCurrentDateDataToken(tokenDate);
     } else if (token instanceof BursarExportTokenFeeAmount tokenFeeAmount) {
-      return formatFeeAmountAggregatedAccountsToken(
+      return formatFeeAmountToken(
         tokenFeeAmount,
-        aggregatedAccounts
+        aggregatedAccounts.findTotalAmount()
       );
     } else if (token instanceof BursarExportTokenUserData tokenUserData) {
-      return formatUserDataAggregatedAccountsToken(
-        tokenUserData,
-        aggregatedAccounts
-      );
+      return formatUserDataToken(tokenUserData, aggregatedAccounts.getUser());
     } else if (token instanceof BursarExportTokenUserDataOptional tokenUserOp) {
-      return formatUserDataOptionalAggregatedAccountsToken(
+      return formatUserDataOptionalToken(
         tokenUserOp,
-        aggregatedAccounts
+        aggregatedAccounts.getUser()
       );
     } else {
       log.error("Unexpected token: ", token);

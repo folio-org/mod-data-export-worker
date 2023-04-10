@@ -77,7 +77,6 @@ public class BursarFilterAggregateEvaluator {
     }
   }
 
-  // TODO: determine if float is the desired type here?
   private final boolean compareHelper(
     ConditionEnum condition,
     int amount,

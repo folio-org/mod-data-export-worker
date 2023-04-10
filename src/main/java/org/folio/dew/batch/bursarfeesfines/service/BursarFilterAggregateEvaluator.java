@@ -46,14 +46,9 @@ public class BursarFilterAggregateEvaluator {
     if (filter.getProperty() == PropertyEnum.NUM_ROWS) {
       return compareHelper(filter.getCondition(), numRows, filter.getAmount());
     } else if (filter.getProperty() == PropertyEnum.TOTAL_AMOUNT) {
-      BigDecimal totalAmount = new BigDecimal(0);
-      for (int i = 0; i < numRows; ++i) {
-        totalAmount =
-          totalAmount.add(aggregatedAccounts.getAccounts().get(i).getAmount());
-      }
       return compareHelper(
         filter.getCondition(),
-        totalAmount.intValue(),
+        aggregatedAccounts.findTotalAmount().intValue(),
         filter.getAmount()
       );
     } else {

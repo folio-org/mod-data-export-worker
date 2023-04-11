@@ -15,6 +15,7 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
+import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.BursarExportDataToken;
 import org.folio.dew.domain.dto.BursarExportHeaderFooter;
 import org.folio.dew.domain.dto.BursarExportTokenAggregate;
@@ -30,7 +31,9 @@ import org.folio.dew.domain.dto.BursarExportTokenItemData;
 import org.folio.dew.domain.dto.BursarExportTokenLengthControl;
 import org.folio.dew.domain.dto.BursarExportTokenUserData;
 import org.folio.dew.domain.dto.BursarExportTokenUserDataOptional;
+import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
+import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUser;
 
 @Log4j2
 @UtilityClass
@@ -57,29 +60,22 @@ public class BursarTokenFormatter {
     }
   }
 
-  private static String formatFeeAmountsDataToken(
+  private static String formatFeeAmountToken(
     BursarExportTokenFeeAmount tokenFeeAmount,
-    AccountWithAncillaryData accountWithAncillaryData
+    BigDecimal feeAmount
   ) {
     String result;
 
     if (tokenFeeAmount.getDecimal()) {
-      result =
-        new DecimalFormat("0.00")
-          .format(accountWithAncillaryData.getAccount().getAmount());
+      result = new DecimalFormat("0.00").format(feeAmount);
     } else {
-      result =
-        accountWithAncillaryData
-          .getAccount()
-          .getAmount()
-          .multiply(new BigDecimal("100"))
-          .setScale(0)
-          .toString();
+      result = feeAmount.multiply(new BigDecimal("100")).setScale(0).toString();
     }
+
     return applyLengthControl(result, tokenFeeAmount.getLengthControl());
   }
 
-  private static String formatFeeMetadataToken(
+  private static String formatFeeMetaDataToken(
     BursarExportTokenFeeMetadata tokenFeeMetadata,
     AccountWithAncillaryData accountWithAncillaryData
   ) {
@@ -165,18 +161,18 @@ public class BursarTokenFormatter {
 
   private static String formatUserDataToken(
     BursarExportTokenUserData tokenUserData,
-    AccountWithAncillaryData accountWithAncillaryData
+    User user
   ) {
     String result;
     if (
       tokenUserData.getValue() == BursarExportTokenUserData.ValueEnum.FOLIO_ID
     ) {
-      result = accountWithAncillaryData.getUser().getId();
+      result = user.getId();
     } else if (
       tokenUserData.getValue() ==
       BursarExportTokenUserData.ValueEnum.PATRON_GROUP_ID
     ) {
-      result = accountWithAncillaryData.getUser().getPatronGroup();
+      result = user.getPatronGroup();
     } else {
       result =
         String.format(
@@ -190,19 +186,15 @@ public class BursarTokenFormatter {
 
   private static String formatUserDataOptionalToken(
     BursarExportTokenUserDataOptional tokenUserData,
-    AccountWithAncillaryData accountWithAncillaryData
+    User user
   ) {
     String result;
     switch (tokenUserData.getValue()) {
-      case BARCODE -> result = accountWithAncillaryData.getUser().getBarcode();
-      case USERNAME -> result =
-        accountWithAncillaryData.getUser().getUsername();
-      case FIRST_NAME -> result =
-        accountWithAncillaryData.getUser().getPersonal().getFirstName();
-      case MIDDLE_NAME -> result =
-        accountWithAncillaryData.getUser().getPersonal().getMiddleName();
-      case LAST_NAME -> result =
-        accountWithAncillaryData.getUser().getPersonal().getLastName();
+      case BARCODE -> result = user.getBarcode();
+      case USERNAME -> result = user.getUsername();
+      case FIRST_NAME -> result = user.getPersonal().getFirstName();
+      case MIDDLE_NAME -> result = user.getPersonal().getMiddleName();
+      case LAST_NAME -> result = user.getPersonal().getLastName();
       default -> {
         log.error("Invalid user data token: {}", tokenUserData);
         result = tokenUserData.getPlaceholder();
@@ -248,6 +240,21 @@ public class BursarTokenFormatter {
     return applyLengthControl(result, tokenItemData.getLengthControl());
   }
 
+  private static String formatConstantConditionalDataToken(
+    BursarExportTokenConstantConditional tokenConstantConditional,
+    AccountWithAncillaryData account
+  ) {
+    List<BursarExportTokenConstantConditionalConditionsInner> conditions = tokenConstantConditional.getConditions();
+
+    for (BursarExportTokenConstantConditionalConditionsInner condition : conditions) {
+      if (BursarFilterEvaluator.evaluate(account, condition.getCondition())) {
+        return condition.getValue().getValue();
+      }
+    }
+
+    return tokenConstantConditional.getElse().getValue();
+  }
+
   public static String formatDataToken(
     BursarExportDataToken token,
     AccountWithAncillaryData account
@@ -257,21 +264,86 @@ public class BursarTokenFormatter {
     } else if (
       token instanceof BursarExportTokenConstantConditional tokenConstantConditional
     ) {
-      return processConstantConditional(tokenConstantConditional, account);
+      return formatConstantConditionalDataToken(
+        tokenConstantConditional,
+        account
+      );
     } else if (token instanceof BursarExportTokenCurrentDate tokenDate) {
       return formatCurrentDateDataToken(tokenDate);
     } else if (token instanceof BursarExportTokenFeeDate tokenFeeDate) {
       return formatFeeDateDataToken(tokenFeeDate, account);
     } else if (token instanceof BursarExportTokenFeeAmount tokenFeeAmount) {
-      return formatFeeAmountsDataToken(tokenFeeAmount, account);
+      return formatFeeAmountToken(
+        tokenFeeAmount,
+        account.getAccount().getAmount()
+      );
     } else if (token instanceof BursarExportTokenFeeMetadata tokenFeeMetadata) {
-      return formatFeeMetadataToken(tokenFeeMetadata, account);
+      return formatFeeMetaDataToken(tokenFeeMetadata, account);
     } else if (token instanceof BursarExportTokenUserData tokenUserData) {
-      return formatUserDataToken(tokenUserData, account);
+      return formatUserDataToken(tokenUserData, account.getUser());
     } else if (token instanceof BursarExportTokenUserDataOptional tokenUserOp) {
-      return formatUserDataOptionalToken(tokenUserOp, account);
+      return formatUserDataOptionalToken(tokenUserOp, account.getUser());
     } else if (token instanceof BursarExportTokenItemData tokenItemData) {
       return formatItemDataToken(tokenItemData, account);
+    } else {
+      log.error("Unexpected token: ", token);
+      return String.format("[placeholder %s]", token.getType());
+    }
+  }
+
+  private static String formatConstantConditionalAggregatedAccountsToken(
+    BursarExportTokenConstantConditional tokenConstantConditional,
+    AggregatedAccountsByUser aggregatedAccounts
+  ) {
+    List<BursarExportTokenConstantConditionalConditionsInner> conditions = tokenConstantConditional.getConditions();
+
+    for (BursarExportTokenConstantConditionalConditionsInner condition : conditions) {
+      if (
+        BursarFilterAggregateEvaluator.evaluate(
+          aggregatedAccounts,
+          condition.getCondition()
+        )
+      ) {
+        return condition.getValue().getValue();
+      }
+    }
+
+    return tokenConstantConditional.getElse().getValue();
+  }
+
+  public static String formatAggregatedAccountsToken(
+    BursarExportDataToken token,
+    AggregatedAccountsByUser aggregatedAccounts
+  ) {
+    if (token instanceof BursarExportTokenConstant tokenConstant) {
+      return tokenConstant.getValue();
+    } else if (
+      token instanceof BursarExportTokenConstantConditional tokenConstantConditional
+    ) {
+      return formatConstantConditionalAggregatedAccountsToken(
+        tokenConstantConditional,
+        aggregatedAccounts
+      );
+    } else if (token instanceof BursarExportTokenAggregate tokenAggregate) {
+      return processAggregateToken(
+        tokenAggregate,
+        aggregatedAccounts.getAccounts().size(),
+        aggregatedAccounts.findTotalAmount()
+      );
+    } else if (token instanceof BursarExportTokenCurrentDate tokenDate) {
+      return formatCurrentDateDataToken(tokenDate);
+    } else if (token instanceof BursarExportTokenFeeAmount tokenFeeAmount) {
+      return formatFeeAmountToken(
+        tokenFeeAmount,
+        aggregatedAccounts.findTotalAmount()
+      );
+    } else if (token instanceof BursarExportTokenUserData tokenUserData) {
+      return formatUserDataToken(tokenUserData, aggregatedAccounts.getUser());
+    } else if (token instanceof BursarExportTokenUserDataOptional tokenUserOp) {
+      return formatUserDataOptionalToken(
+        tokenUserOp,
+        aggregatedAccounts.getUser()
+      );
     } else {
       log.error("Unexpected token: ", token);
       return String.format("[placeholder %s]", token.getType());
@@ -389,24 +461,5 @@ public class BursarTokenFormatter {
     }
 
     return applyLengthControl(result, tokenAggregate.getLengthControl());
-  }
-
-  /*
-   * Helper method to process conditional constant token
-   * @param tokenConstantConditional conditional constant token
-   */
-  private String processConstantConditional(
-    BursarExportTokenConstantConditional tokenConstantConditional,
-    AccountWithAncillaryData account
-  ) {
-    List<BursarExportTokenConstantConditionalConditionsInner> conditions = tokenConstantConditional.getConditions();
-
-    for (BursarExportTokenConstantConditionalConditionsInner condition : conditions) {
-      if (BursarFilterEvaluator.evaluate(account, condition.getCondition())) {
-        return condition.getValue().getValue();
-      }
-    }
-
-    return tokenConstantConditional.getElse().getValue();
   }
 }

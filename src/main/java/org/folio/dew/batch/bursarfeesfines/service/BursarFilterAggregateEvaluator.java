@@ -18,16 +18,6 @@ import org.openapitools.jackson.nullable.JsonNullable;
 @UtilityClass
 public class BursarFilterAggregateEvaluator {
 
-  public static boolean evaluateAggregate(
-    AggregatedAccountsByUser aggregatedAccounts,
-    JsonNullable<BursarExportFilterAggregate> filter
-  ) {
-    if (filter.isPresent()) {
-      return evaluateAggregate(aggregatedAccounts, filter.get());
-    }
-    return true;
-  }
-
   public static boolean evaluate(
     AggregatedAccountsByUser aggregatedAccounts,
     JsonNullable<BursarExportFilter> filter
@@ -40,8 +30,12 @@ public class BursarFilterAggregateEvaluator {
 
   public static boolean evaluateAggregate(
     AggregatedAccountsByUser aggregatedAccounts,
-    @NonNull BursarExportFilterAggregate filter
+    BursarExportFilterAggregate filter
   ) {
+    if (filter == null) {
+      return true;
+    }
+
     int numRows = aggregatedAccounts.getAccounts().size();
     if (filter.getProperty() == PropertyEnum.NUM_ROWS) {
       return compareHelper(filter.getCondition(), numRows, filter.getAmount());

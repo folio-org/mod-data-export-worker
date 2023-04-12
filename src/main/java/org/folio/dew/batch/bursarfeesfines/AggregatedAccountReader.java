@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bursarfeesfines;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -45,8 +46,11 @@ public class AggregatedAccountReader
   @Override
   public AggregatedAccountsByUser read() {
     if (nextIndex < aggregatedAccountsByUsersList.size()) {
+      AggregatedAccountsByUser aggregatedAccounts = aggregatedAccountsByUsersList.get(
+        nextIndex
+      );
       ++nextIndex;
-      return aggregatedAccountsByUsersList.get(nextIndex);
+      return aggregatedAccounts;
     } else {
       nextIndex = 0;
       return null;
@@ -55,7 +59,7 @@ public class AggregatedAccountReader
 
   @BeforeStep
   public void initStep(StepExecution stepExecution) {
-    log.error("--- Called AccountReader::initStep ---");
+    log.error("--- Called AggregatedAccountReader::initStep ---");
 
     // TODO: should do some proactive filtering magic here
     // grabbing accounts before users/items because, with a relatively
@@ -101,7 +105,7 @@ public class AggregatedAccountReader
 
       userToAccountsListMap.computeIfAbsent(
         user,
-        (User key) -> new ArrayList<Account>(Arrays.asList(account))
+        (User key) -> new ArrayList<Account>()
       );
 
       userToAccountsListMap.computeIfPresent(
@@ -125,5 +129,11 @@ public class AggregatedAccountReader
     });
 
     log.info(aggregatedAccountsByUsersList.toString());
+
+    // initializing a totalAmount variable in jobExecutionContext
+    stepExecution
+      .getJobExecution()
+      .getExecutionContext()
+      .put("totalAmount", new BigDecimal(0));
   }
 }

@@ -59,9 +59,7 @@ public class AggregatedAccountFormatter
 
   @BeforeStep
   public void initStep(StepExecution stepExecution) {
-    log.error(
-      "In AggregatedAccountFormatter::initStep (implementation TBD, if any)"
-    );
+    log.info("In AggregatedAccountFormatter::initStep");
     currentTotalFeeAmount = new BigDecimal(0);
   }
 }

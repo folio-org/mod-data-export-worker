@@ -40,8 +40,8 @@ public class BursarExportJobConfig {
   @Bean
   public Job bursarExportJob(
     Step prepareContext,
-    @Qualifier("exportStepRegular") Step exportStepRegular,
-    @Qualifier("exportStepAggregate") Step exportStepAggregate,
+    Step exportStepRegular,
+    Step exportStepAggregate,
     Step transferStep,
     JobRepository jobRepository,
     JobExecutionListener jobCompletionNotificationListener
@@ -93,7 +93,7 @@ public class BursarExportJobConfig {
     JobRepository jobRepository,
     PlatformTransactionManager transactionManager
   ) {
-    log.info("In exportStepRegular");
+    log.info("Starting regular (non-aggregate) bursar export flow");
     CompositeItemProcessor<AccountWithAncillaryData, String> compositeProcessor = new CompositeItemProcessor<>();
     compositeProcessor.setDelegates(Arrays.asList(filterer, formatter));
 
@@ -121,6 +121,7 @@ public class BursarExportJobConfig {
     JobRepository jobRepository,
     PlatformTransactionManager transactionManager
   ) {
+    log.info("Starting aggregate bursar export flow");
     CompositeItemProcessor<AggregatedAccountsByUser, String> compositeProcessor = new CompositeItemProcessor<>();
     compositeProcessor.setDelegates(Arrays.asList(filterer, formatter));
 

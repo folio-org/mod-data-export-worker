@@ -59,7 +59,7 @@ public class AggregatedAccountReader
 
   @BeforeStep
   public void initStep(StepExecution stepExecution) {
-    log.error("--- Called AggregatedAccountReader::initStep ---");
+    log.info("--- Called AggregatedAccountReader::initStep ---");
 
     // TODO: should do some proactive filtering magic here
     // grabbing accounts before users/items because, with a relatively
@@ -103,18 +103,9 @@ public class AggregatedAccountReader
       User user = accountWithAncillaryData.getUser();
       Account account = accountWithAncillaryData.getAccount();
 
-      userToAccountsListMap.computeIfAbsent(
-        user,
-        (User key) -> new ArrayList<Account>()
-      );
-
-      userToAccountsListMap.computeIfPresent(
-        user,
-        (User key, List<Account> accountsList) -> {
-          accountsList.add(account);
-          return accountsList;
-        }
-      );
+      userToAccountsListMap
+        .computeIfAbsent(user, (User key) -> new ArrayList<Account>())
+        .add(account);
     }
 
     // then aggregate them by users. As a result, a list of AggregratedAccountsByUser

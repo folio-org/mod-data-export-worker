@@ -93,7 +93,7 @@ public class BursarExportJobConfig {
     JobRepository jobRepository,
     PlatformTransactionManager transactionManager
   ) {
-    log.info("In exportStepRegular");
+    log.info("Starting regular (non-aggregate) bursar export flow");
     CompositeItemProcessor<AccountWithAncillaryData, String> compositeProcessor = new CompositeItemProcessor<>();
     compositeProcessor.setDelegates(Arrays.asList(filterer, formatter));
 

@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bursarfeesfines;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -45,8 +46,11 @@ public class AggregatedAccountReader
   @Override
   public AggregatedAccountsByUser read() {
     if (nextIndex < aggregatedAccountsByUsersList.size()) {
+      AggregatedAccountsByUser aggregatedAccounts = aggregatedAccountsByUsersList.get(
+        nextIndex
+      );
       ++nextIndex;
-      return aggregatedAccountsByUsersList.get(nextIndex);
+      return aggregatedAccounts;
     } else {
       nextIndex = 0;
       return null;
@@ -55,7 +59,7 @@ public class AggregatedAccountReader
 
   @BeforeStep
   public void initStep(StepExecution stepExecution) {
-    log.error("--- Called AccountReader::initStep ---");
+    log.info("--- Called AggregatedAccountReader::initStep ---");
 
     // TODO: should do some proactive filtering magic here
     // grabbing accounts before users/items because, with a relatively
@@ -99,18 +103,9 @@ public class AggregatedAccountReader
       User user = accountWithAncillaryData.getUser();
       Account account = accountWithAncillaryData.getAccount();
 
-      userToAccountsListMap.computeIfAbsent(
-        user,
-        (User key) -> new ArrayList<Account>(Arrays.asList(account))
-      );
-
-      userToAccountsListMap.computeIfPresent(
-        user,
-        (User key, List<Account> accountsList) -> {
-          accountsList.add(account);
-          return accountsList;
-        }
-      );
+      userToAccountsListMap
+        .computeIfAbsent(user, (User key) -> new ArrayList<Account>())
+        .add(account);
     }
 
     // then aggregate them by users. As a result, a list of AggregratedAccountsByUser
@@ -125,5 +120,11 @@ public class AggregatedAccountReader
     });
 
     log.info(aggregatedAccountsByUsersList.toString());
+
+    // initializing a totalAmount variable in jobExecutionContext
+    stepExecution
+      .getJobExecution()
+      .getExecutionContext()
+      .put("totalAmount", new BigDecimal(0));
   }
 }

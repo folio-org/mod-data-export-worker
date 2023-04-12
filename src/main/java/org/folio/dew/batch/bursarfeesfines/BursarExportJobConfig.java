@@ -6,13 +6,16 @@ import org.folio.dew.batch.bursarfeesfines.service.BursarExportUtils;
 import org.folio.dew.batch.bursarfeesfines.service.BursarWriter;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
+import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUser;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.S3CompatibleResource;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.builder.FlowBuilder;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.job.flow.Flow;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.listener.ExecutionContextPromotionListener;
 import org.springframework.batch.core.repository.JobRepository;
@@ -37,20 +40,34 @@ public class BursarExportJobConfig {
   @Bean
   public Job bursarExportJob(
     Step prepareContext,
-    Step exportStep,
+    Step exportStepRegular,
+    Step exportStepAggregate,
     Step transferStep,
     JobRepository jobRepository,
     JobExecutionListener jobCompletionNotificationListener
   ) {
+    Flow regularFlow = new FlowBuilder<Flow>("mainFlow")
+      .start(exportStepRegular)
+      .next(transferStep)
+      .build();
+
+    Flow aggregateFlow = new FlowBuilder<Flow>("alternateFlow")
+      .start(exportStepAggregate)
+      .next(transferStep)
+      .build();
+
     return new JobBuilder(
       ExportType.BURSAR_FEES_FINES.toString(),
       jobRepository
     )
       .incrementer(new RunIdIncrementer())
       .listener(jobCompletionNotificationListener)
-      .flow(prepareContext)
-      .next(exportStep)
-      .next(transferStep)
+      .start(prepareContext)
+      .on("IS AGGREGATE")
+      .to(aggregateFlow)
+      .from(prepareContext)
+      .on("*")
+      .to(regularFlow)
       .end()
       .build();
   }
@@ -67,7 +84,7 @@ public class BursarExportJobConfig {
   }
 
   @Bean
-  public Step exportStep(
+  public Step exportStepRegular(
     ItemReader<AccountWithAncillaryData> reader,
     ItemProcessor<AccountWithAncillaryData, AccountWithAncillaryData> filterer,
     ItemProcessor<AccountWithAncillaryData, String> formatter,
@@ -76,11 +93,40 @@ public class BursarExportJobConfig {
     JobRepository jobRepository,
     PlatformTransactionManager transactionManager
   ) {
+    log.info("Starting regular (non-aggregate) bursar export flow");
     CompositeItemProcessor<AccountWithAncillaryData, String> compositeProcessor = new CompositeItemProcessor<>();
     compositeProcessor.setDelegates(Arrays.asList(filterer, formatter));
 
     return new StepBuilder(BursarExportUtils.EXPORT_STEP, jobRepository)
       .<AccountWithAncillaryData, String>chunk(CHUNK_SIZE, transactionManager)
+      .reader(reader)
+      .processor(compositeProcessor)
+      .writer(writer)
+      .listener(promotionListener())
+      .listener(listener)
+      .listener(reader)
+      .listener(formatter)
+      .listener(filterer)
+      // .listener(writer)
+      .build();
+  }
+
+  @Bean
+  public Step exportStepAggregate(
+    ItemReader<AggregatedAccountsByUser> reader,
+    ItemProcessor<AggregatedAccountsByUser, AggregatedAccountsByUser> filterer,
+    ItemProcessor<AggregatedAccountsByUser, String> formatter,
+    @Qualifier("bursarWriter") ItemWriter<String> writer,
+    BursarExportStepListener listener,
+    JobRepository jobRepository,
+    PlatformTransactionManager transactionManager
+  ) {
+    log.info("Starting aggregate bursar export flow");
+    CompositeItemProcessor<AggregatedAccountsByUser, String> compositeProcessor = new CompositeItemProcessor<>();
+    compositeProcessor.setDelegates(Arrays.asList(filterer, formatter));
+
+    return new StepBuilder(BursarExportUtils.EXPORT_STEP, jobRepository)
+      .<AggregatedAccountsByUser, String>chunk(CHUNK_SIZE, transactionManager)
       .reader(reader)
       .processor(compositeProcessor)
       .writer(writer)

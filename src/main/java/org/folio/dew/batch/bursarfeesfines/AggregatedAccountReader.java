@@ -83,7 +83,6 @@ public class AggregatedAccountReader
       AccountWithAncillaryData accountWithAncillaryData = AccountWithAncillaryData
         .builder()
         .account(account)
-        .user(null)
         .user(userMap.get(account.getUserId()))
         .item(itemMap.getOrDefault(account.getItemId(), null))
         .build();
@@ -120,6 +119,11 @@ public class AggregatedAccountReader
     });
 
     log.info(aggregatedAccountsByUsersList.toString());
+
+    stepExecution
+      .getJobExecution()
+      .getExecutionContext()
+      .put("itemMap", itemMap);
 
     // initializing a totalAmount variable in jobExecutionContext
     stepExecution

@@ -15,13 +15,12 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
-import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.BursarExportDataToken;
 import org.folio.dew.domain.dto.BursarExportHeaderFooter;
 import org.folio.dew.domain.dto.BursarExportTokenAggregate;
+import org.folio.dew.domain.dto.BursarExportTokenConditional;
+import org.folio.dew.domain.dto.BursarExportTokenConditionalConditionsInner;
 import org.folio.dew.domain.dto.BursarExportTokenConstant;
-import org.folio.dew.domain.dto.BursarExportTokenConstantConditional;
-import org.folio.dew.domain.dto.BursarExportTokenConstantConditionalConditionsInner;
 import org.folio.dew.domain.dto.BursarExportTokenCurrentDate;
 import org.folio.dew.domain.dto.BursarExportTokenDateType;
 import org.folio.dew.domain.dto.BursarExportTokenFeeAmount;
@@ -240,19 +239,19 @@ public class BursarTokenFormatter {
     return applyLengthControl(result, tokenItemData.getLengthControl());
   }
 
-  private static String formatConstantConditionalDataToken(
-    BursarExportTokenConstantConditional tokenConstantConditional,
+  private static String formatConditionalDataToken(
+    BursarExportTokenConditional tokenConditional,
     AccountWithAncillaryData account
   ) {
-    List<BursarExportTokenConstantConditionalConditionsInner> conditions = tokenConstantConditional.getConditions();
+    List<BursarExportTokenConditionalConditionsInner> conditions = tokenConditional.getConditions();
 
-    for (BursarExportTokenConstantConditionalConditionsInner condition : conditions) {
+    for (BursarExportTokenConditionalConditionsInner condition : conditions) {
       if (BursarFilterEvaluator.evaluate(account, condition.getCondition())) {
-        return condition.getValue().getValue();
+        return formatDataToken(condition.getValue(), account);
       }
     }
 
-    return tokenConstantConditional.getElse().getValue();
+    return formatDataToken(tokenConditional.getElse(), account);
   }
 
   public static String formatDataToken(
@@ -262,10 +261,10 @@ public class BursarTokenFormatter {
     if (token instanceof BursarExportTokenConstant tokenConstant) {
       return tokenConstant.getValue();
     } else if (
-      token instanceof BursarExportTokenConstantConditional tokenConstantConditional
+      token instanceof BursarExportTokenConditional tokenConditional
     ) {
-      return formatConstantConditionalDataToken(
-        tokenConstantConditional,
+      return formatConditionalDataToken(
+        tokenConditional,
         account
       );
     } else if (token instanceof BursarExportTokenCurrentDate tokenDate) {
@@ -291,24 +290,24 @@ public class BursarTokenFormatter {
     }
   }
 
-  private static String formatConstantConditionalAggregatedAccountsToken(
-    BursarExportTokenConstantConditional tokenConstantConditional,
+  private static String formatConditionalAggregatedAccountsToken(
+    BursarExportTokenConditional tokenConditional,
     AggregatedAccountsByUser aggregatedAccounts
   ) {
-    List<BursarExportTokenConstantConditionalConditionsInner> conditions = tokenConstantConditional.getConditions();
+    List<BursarExportTokenConditionalConditionsInner> conditions = tokenConditional.getConditions();
 
-    for (BursarExportTokenConstantConditionalConditionsInner condition : conditions) {
+    for (BursarExportTokenConditionalConditionsInner condition : conditions) {
       if (
         BursarFilterAggregateEvaluator.evaluate(
           aggregatedAccounts,
           condition.getCondition()
         )
       ) {
-        return condition.getValue().getValue();
+        return formatAggregatedAccountsToken(condition.getValue(), aggregatedAccounts);
       }
     }
 
-    return tokenConstantConditional.getElse().getValue();
+    return formatAggregatedAccountsToken(tokenConditional.getElse(), aggregatedAccounts);
   }
 
   public static String formatAggregatedAccountsToken(
@@ -318,9 +317,9 @@ public class BursarTokenFormatter {
     if (token instanceof BursarExportTokenConstant tokenConstant) {
       return tokenConstant.getValue();
     } else if (
-      token instanceof BursarExportTokenConstantConditional tokenConstantConditional
+      token instanceof BursarExportTokenConditional tokenConstantConditional
     ) {
-      return formatConstantConditionalAggregatedAccountsToken(
+      return formatConditionalAggregatedAccountsToken(
         tokenConstantConditional,
         aggregatedAccounts
       );

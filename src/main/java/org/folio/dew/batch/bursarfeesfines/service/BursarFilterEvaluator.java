@@ -11,6 +11,7 @@ import org.folio.dew.domain.dto.BursarExportFilter;
 import org.folio.dew.domain.dto.BursarExportFilterAge;
 import org.folio.dew.domain.dto.BursarExportFilterAmount;
 import org.folio.dew.domain.dto.BursarExportFilterCondition;
+import org.folio.dew.domain.dto.BursarExportFilterFeeFineOwner;
 import org.folio.dew.domain.dto.BursarExportFilterFeeType;
 import org.folio.dew.domain.dto.BursarExportFilterLocation;
 import org.folio.dew.domain.dto.BursarExportFilterNegation;
@@ -79,6 +80,11 @@ public class BursarFilterEvaluator {
       return UUID
         .fromString(account.getAccount().getFeeFineId())
         .equals(filterFeeType.getFeeFineTypeId());
+    } else if (filter instanceof BursarExportFilterFeeFineOwner){
+        BursarExportFilterFeeFineOwner filterFeeFineOwner = (BursarExportFilterFeeFineOwner) filter;
+        return UUID
+          .fromString(account.getAccount().getFeeFineOwner())
+          .equals(filterFeeFineOwner.getFeeFineOwnerId());
     } else if (filter instanceof BursarExportFilterLocation) {
       BursarExportFilterLocation filterLocation = (BursarExportFilterLocation) filter;
       return UUID

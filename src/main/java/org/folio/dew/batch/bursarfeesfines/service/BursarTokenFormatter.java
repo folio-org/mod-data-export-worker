@@ -177,16 +177,6 @@ public class BursarTokenFormatter {
       BursarExportTokenUserData.ValueEnum.EXTERNAL_SYSTEM_ID
     ) {
       result = user.getExternalSystemId();
-    } else if (
-      tokenUserData.getValue() ==
-      BursarExportTokenUserData.ValueEnum.CORNELL_EXTERNAL_SYSTEM_ID
-    ) {
-      result = user.getExternalSystemId();
-
-      // get last 7 digits which matches employee's Cornell ID(EmpIID)
-      if (result.length() > 7) {
-        result = result.substring(result.length() - 7);
-      }
     } else {
       result =
         String.format(
@@ -378,7 +368,7 @@ public class BursarTokenFormatter {
     }
 
     // should be shortened
-    if (input.length() > lengthControl.getLength()) {
+    if (input.length() > lengthControl.getLength() && lengthControl.getTruncate()) {
       if (
         lengthControl.getDirection() ==
         BursarExportTokenLengthControl.DirectionEnum.BACK

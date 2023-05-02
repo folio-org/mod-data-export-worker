@@ -172,6 +172,11 @@ public class BursarTokenFormatter {
       BursarExportTokenUserData.ValueEnum.PATRON_GROUP_ID
     ) {
       result = user.getPatronGroup();
+    } else if (
+      tokenUserData.getValue() ==
+      BursarExportTokenUserData.ValueEnum.EXTERNAL_SYSTEM_ID
+    ) {
+      result = user.getExternalSystemId();
     } else {
       result =
         String.format(
@@ -260,13 +265,8 @@ public class BursarTokenFormatter {
   ) {
     if (token instanceof BursarExportTokenConstant tokenConstant) {
       return tokenConstant.getValue();
-    } else if (
-      token instanceof BursarExportTokenConditional tokenConditional
-    ) {
-      return formatConditionalDataToken(
-        tokenConditional,
-        account
-      );
+    } else if (token instanceof BursarExportTokenConditional tokenConditional) {
+      return formatConditionalDataToken(tokenConditional, account);
     } else if (token instanceof BursarExportTokenCurrentDate tokenDate) {
       return formatCurrentDateDataToken(tokenDate);
     } else if (token instanceof BursarExportTokenFeeDate tokenFeeDate) {
@@ -303,11 +303,17 @@ public class BursarTokenFormatter {
           condition.getCondition()
         )
       ) {
-        return formatAggregatedAccountsToken(condition.getValue(), aggregatedAccounts);
+        return formatAggregatedAccountsToken(
+          condition.getValue(),
+          aggregatedAccounts
+        );
       }
     }
 
-    return formatAggregatedAccountsToken(tokenConditional.getElse(), aggregatedAccounts);
+    return formatAggregatedAccountsToken(
+      tokenConditional.getElse(),
+      aggregatedAccounts
+    );
   }
 
   public static String formatAggregatedAccountsToken(
@@ -362,7 +368,7 @@ public class BursarTokenFormatter {
     }
 
     // should be shortened
-    if (input.length() > lengthControl.getLength()) {
+    if (input.length() > lengthControl.getLength() && lengthControl.getTruncate()) {
       if (
         lengthControl.getDirection() ==
         BursarExportTokenLengthControl.DirectionEnum.BACK

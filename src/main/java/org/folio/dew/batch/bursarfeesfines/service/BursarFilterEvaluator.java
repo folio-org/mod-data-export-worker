@@ -80,11 +80,11 @@ public class BursarFilterEvaluator {
       return UUID
         .fromString(account.getAccount().getFeeFineId())
         .equals(filterFeeType.getFeeFineTypeId());
-    } else if (filter instanceof BursarExportFilterFeeFineOwner){
-        BursarExportFilterFeeFineOwner filterFeeFineOwner = (BursarExportFilterFeeFineOwner) filter;
-        return UUID
-          .fromString(account.getAccount().getFeeFineOwner())
-          .equals(filterFeeFineOwner.getFeeFineOwnerId());
+    } else if (filter instanceof BursarExportFilterFeeFineOwner) {
+      BursarExportFilterFeeFineOwner filterFeeFineOwner = (BursarExportFilterFeeFineOwner) filter;
+      return UUID
+        .fromString(account.getAccount().getFeeFineOwner())
+        .equals(filterFeeFineOwner.getFeeFineOwner());
     } else if (filter instanceof BursarExportFilterLocation) {
       BursarExportFilterLocation filterLocation = (BursarExportFilterLocation) filter;
       return UUID

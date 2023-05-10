@@ -71,7 +71,7 @@ public class BursarFilterAggregateEvaluator {
     }
   }
 
-  private final boolean compareHelper(
+  public static final boolean compareHelper(
     ConditionEnum condition,
     int amount,
     int conditionAmount

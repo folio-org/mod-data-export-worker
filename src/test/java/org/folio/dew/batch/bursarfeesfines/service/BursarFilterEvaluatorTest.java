@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
-import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.BursarExportFilter;
 import org.folio.dew.domain.dto.BursarExportFilterAge;
@@ -27,11 +26,11 @@ import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 import org.junit.jupiter.api.Test;
 import org.openapitools.jackson.nullable.JsonNullable;
 
-@Log4j2
+
 public class BursarFilterEvaluatorTest {
 
   @Test
-  void evaluateJSONNullableExportFilter() {
+  void testJsonNullableExportFilter() {
     AccountWithAncillaryData accountWithAncillaryData = AccountWithAncillaryData
       .builder()
       .account(null)
@@ -61,7 +60,7 @@ public class BursarFilterEvaluatorTest {
   }
 
   @Test
-  void filterAccountByAge() {
+  void testFilterAccountByAge() {
     Account account = new Account();
     account.setDateCreated(new Date());
 
@@ -91,7 +90,7 @@ public class BursarFilterEvaluatorTest {
   }
 
   @Test
-  void filterAccountByAmount() {
+  void testFilterAccountByAmount() {
     BursarExportFilterAmount filterAmount = new BursarExportFilterAmount();
 
     Account account = new Account();
@@ -139,7 +138,7 @@ public class BursarFilterEvaluatorTest {
   }
 
   @Test
-  void filterAccountByFeeType() {
+  void testFilterAccountByFeeType() {
     UUID feeFineTypeUUID = UUID.randomUUID();
     BursarExportFilterFeeType filterFeeType = new BursarExportFilterFeeType();
     filterFeeType.setFeeFineTypeId(feeFineTypeUUID);
@@ -160,7 +159,7 @@ public class BursarFilterEvaluatorTest {
   }
 
   @Test
-  void filterAccountByFeeFineOwner() {
+  void testFilterAccountByFeeFineOwner() {
     UUID feeFineOwnerUUID = UUID.randomUUID();
     BursarExportFilterFeeFineOwner filterFeeFineOwner = new BursarExportFilterFeeFineOwner();
     filterFeeFineOwner.setFeeFineOwner(feeFineOwnerUUID);
@@ -184,7 +183,7 @@ public class BursarFilterEvaluatorTest {
   }
 
   @Test
-  void filterAccountByItemLocation() {
+  void testFilterAccountByItemLocation() {
     UUID itemLocationID = UUID.randomUUID();
     BursarExportFilterLocation filterLocation = new BursarExportFilterLocation();
     filterLocation.setLocationId(itemLocationID);
@@ -207,7 +206,7 @@ public class BursarFilterEvaluatorTest {
   }
 
   @Test
-  void filterAccountByPatronGroup() {
+  void testFilterAccountByPatronGroup() {
     UUID patronGroupID = UUID.randomUUID();
     BursarExportFilterPatronGroup filterPatronGroup = new BursarExportFilterPatronGroup();
     filterPatronGroup.setPatronGroupId(patronGroupID);
@@ -231,7 +230,7 @@ public class BursarFilterEvaluatorTest {
   }
 
   @Test
-  void filterAccountByServicePoint() {
+  void testFilterAccountByServicePoint() {
     UUID servicePointID = UUID.randomUUID();
     BursarExportFilterServicePoint filterServicePoint = new BursarExportFilterServicePoint();
     filterServicePoint.setServicePointId(servicePointID);
@@ -255,7 +254,7 @@ public class BursarFilterEvaluatorTest {
   }
 
   @Test
-  void evaluateNegationFilter() {
+  void testNegationFilter() {
     BursarExportFilterNegation filterNegation = new BursarExportFilterNegation();
     filterNegation.setCriteria(new BursarExportFilterPass());
 
@@ -272,7 +271,7 @@ public class BursarFilterEvaluatorTest {
   }
 
   @Test
-  void evaluateConditionalFilters() {
+  void testConditionalFilters() {
     BursarExportFilterCondition filterCondition = new BursarExportFilterCondition();
 
     BursarExportFilterPass filterPass = new BursarExportFilterPass();

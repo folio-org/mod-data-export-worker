@@ -2,7 +2,7 @@ package org.folio.dew.batch.bursarfeesfines.service;
 
 import jakarta.annotation.Nonnull;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import lombok.experimental.UtilityClass;
@@ -43,7 +43,6 @@ public class BursarFilterEvaluator {
       return true;
     } else if (filter instanceof BursarExportFilterAge) {
       BursarExportFilterAge filterAge = (BursarExportFilterAge) filter;
-      LocalDate currentDate = LocalDate.now();
 
       if (account.getAccount().getDateCreated() == null) {
         return true;
@@ -51,7 +50,7 @@ public class BursarFilterEvaluator {
       return (
         ChronoUnit.DAYS.between(
           account.getAccount().getDateCreated().toInstant(),
-          currentDate
+          Instant.now()
         ) >
         filterAge.getNumDays()
       );
@@ -105,7 +104,10 @@ public class BursarFilterEvaluator {
     } else if (filter instanceof BursarExportFilterCondition) {
       return evaluateCondition(account, (BursarExportFilterCondition) filter);
     } else if (filter instanceof BursarExportFilterNegation) {
-      return !evaluate(account, (BursarExportFilterNegation) filter);
+      return !evaluate(
+        account,
+        ((BursarExportFilterNegation) filter).getCriteria()
+      );
     } else {
       log.error("Unexpected filter: {}", filter);
       return true;

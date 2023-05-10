@@ -1,5 +1,7 @@
 package org.folio.dew.batch.bursarfeesfines.service;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -45,18 +47,20 @@ public class BursarFilterEvaluatorTest {
       bursarExportFilterPass
     );
 
-    assertTrue(
+    assertThat(
       BursarFilterEvaluator.evaluate(
         accountWithAncillaryData,
         jsonNullableFilterPass
-      )
+      ),
+      is(true)
     );
 
-    assertTrue(
+    assertThat(
       BursarFilterEvaluator.evaluate(
         accountWithAncillaryData,
         JsonNullable.<BursarExportFilter>undefined()
-      )
+      ),
+      is(true)
     );
   }
 
@@ -85,8 +89,9 @@ public class BursarFilterEvaluatorTest {
     account.setDateCreated(calendar.getTime());
     accountWithAncillaryData.setAccount(account);
 
-    assertTrue(
-      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAge)
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAge),
+      is(true)
     );
   }
 
@@ -106,8 +111,9 @@ public class BursarFilterEvaluatorTest {
     // test for accounts less than filter value
     filterAmount.setAmount(6000);
     filterAmount.setCondition(BursarExportFilterAmount.ConditionEnum.LESS_THAN);
-    assertTrue(
-      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount)
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
+      is(true)
     );
 
     // test for accounts less than or equal to filter value
@@ -115,8 +121,9 @@ public class BursarFilterEvaluatorTest {
     filterAmount.setCondition(
       BursarExportFilterAmount.ConditionEnum.LESS_THAN_EQUAL
     );
-    assertTrue(
-      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount)
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
+      is(true)
     );
 
     // test for accounts greater than filter value
@@ -124,8 +131,9 @@ public class BursarFilterEvaluatorTest {
     filterAmount.setCondition(
       BursarExportFilterAmount.ConditionEnum.GREATER_THAN
     );
-    assertTrue(
-      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount)
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
+      is(true)
     );
 
     // test for accounts less than filter value
@@ -133,8 +141,9 @@ public class BursarFilterEvaluatorTest {
     filterAmount.setCondition(
       BursarExportFilterAmount.ConditionEnum.GREATER_THAN_EQUAL
     );
-    assertTrue(
-      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount)
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
+      is(true)
     );
   }
 
@@ -154,8 +163,9 @@ public class BursarFilterEvaluatorTest {
       .item(null)
       .build();
 
-    assertTrue(
-      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterFeeType)
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterFeeType),
+      is(true)
     );
   }
 
@@ -175,11 +185,12 @@ public class BursarFilterEvaluatorTest {
       .item(null)
       .build();
 
-    assertTrue(
+    assertThat(
       BursarFilterEvaluator.evaluate(
         accountWithAncillaryData,
         filterFeeFineOwner
-      )
+      ),
+      is(true)
     );
   }
 
@@ -201,8 +212,9 @@ public class BursarFilterEvaluatorTest {
       .item(item)
       .build();
 
-    assertTrue(
-      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterLocation)
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterLocation),
+      is(true)
     );
   }
 
@@ -222,11 +234,12 @@ public class BursarFilterEvaluatorTest {
       .item(null)
       .build();
 
-    assertTrue(
+    assertThat(
       BursarFilterEvaluator.evaluate(
         accountWithAncillaryData,
         filterPatronGroup
-      )
+      ),
+      is(true)
     );
   }
 
@@ -246,11 +259,12 @@ public class BursarFilterEvaluatorTest {
       .item(item)
       .build();
 
-    assertTrue(
+    assertThat(
       BursarFilterEvaluator.evaluate(
         accountWithAncillaryData,
         filterServicePoint
-      )
+      ),
+      is(true)
     );
   }
 
@@ -298,8 +312,9 @@ public class BursarFilterEvaluatorTest {
 
     // testing OR filter
     filterCondition.setOperation(BursarExportFilterCondition.OperationEnum.OR);
-    assertTrue(
-      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterCondition)
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterCondition),
+      is(true)
     );
   }
 }

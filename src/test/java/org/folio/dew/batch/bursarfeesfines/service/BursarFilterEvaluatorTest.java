@@ -120,9 +120,13 @@ public class BursarFilterEvaluatorTest {
       BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
       is(true)
     );
+    filterAmount.setAmount(5000);
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
+      is(false)
+    );
 
     // test for accounts less than or equal to filter value
-    filterAmount.setAmount(5000);
     filterAmount.setCondition(
       BursarExportFilterAmount.ConditionEnum.LESS_THAN_EQUAL
     );
@@ -130,9 +134,13 @@ public class BursarFilterEvaluatorTest {
       BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
       is(true)
     );
+    filterAmount.setAmount(4000);
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
+      is(false)
+    );
 
     // test for accounts greater than filter value
-    filterAmount.setAmount(4000);
     filterAmount.setCondition(
       BursarExportFilterAmount.ConditionEnum.GREATER_THAN
     );
@@ -140,15 +148,24 @@ public class BursarFilterEvaluatorTest {
       BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
       is(true)
     );
+    filterAmount.setAmount(5000);
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
+      is(false)
+    );
 
     // test for accounts less than filter value
-    filterAmount.setAmount(5000);
     filterAmount.setCondition(
       BursarExportFilterAmount.ConditionEnum.GREATER_THAN_EQUAL
     );
     assertThat(
       BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
       is(true)
+    );
+    filterAmount.setAmount(6000);
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
+      is(false)
     );
   }
 
@@ -300,6 +317,22 @@ public class BursarFilterEvaluatorTest {
     assertThat(
       BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterNegation),
       is(false)
+    );
+
+    BursarExportFilterAmount filterAmount = new BursarExportFilterAmount();
+    filterAmount.setCondition(BursarExportFilterAmount.ConditionEnum.GREATER_THAN);
+    filterAmount.setAmount(6000);
+
+    Account account = new Account();
+    account.setAmount(new BigDecimal(50));
+
+    accountWithAncillaryData.setAccount(account);
+
+    filterNegation.setCriteria(filterAmount);
+
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterNegation),
+      is(true)
     );
   }
 

@@ -1,4 +1,4 @@
-package org.folio.dew.domain.dto.bursarfeefines;
+package org.folio.dew.domain.dto.bursarfeesfines;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

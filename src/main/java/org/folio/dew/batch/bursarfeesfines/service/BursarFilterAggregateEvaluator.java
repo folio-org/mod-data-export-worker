@@ -76,6 +76,10 @@ public class BursarFilterAggregateEvaluator {
     int amount,
     int conditionAmount
   ) {
+    if (condition == null) {
+      return true;
+    }
+
     switch (condition) {
       case LESS_THAN:
         return amount < conditionAmount;

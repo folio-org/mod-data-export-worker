@@ -2,14 +2,11 @@ package org.folio.dew.batch.bursarfeesfines.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
-import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.BursarExportFilter;
 import org.folio.dew.domain.dto.BursarExportFilterAge;
@@ -26,14 +23,14 @@ import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemLocation;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
+import org.folio.dew.helpers.bursarfeesfines.InvalidBursarExportFilter;
 import org.junit.jupiter.api.Test;
 import org.openapitools.jackson.nullable.JsonNullable;
 
-@Log4j2
 public class BursarFilterEvaluatorTest {
 
   @Test
-  void evaluateJSONNullableExportFilter() {
+  void testJsonNullableExportFilter() {
     AccountWithAncillaryData accountWithAncillaryData = AccountWithAncillaryData
       .builder()
       .account(null)
@@ -65,9 +62,8 @@ public class BursarFilterEvaluatorTest {
   }
 
   @Test
-  void filterAccountByAge() {
+  void testFilterAccountByAge() {
     Account account = new Account();
-    account.setDateCreated(new Date());
 
     AccountWithAncillaryData accountWithAncillaryData = AccountWithAncillaryData
       .builder()
@@ -79,8 +75,17 @@ public class BursarFilterEvaluatorTest {
     BursarExportFilterAge filterAge = new BursarExportFilterAge();
     filterAge.setNumDays(1);
 
-    assertFalse(
-      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAge)
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAge),
+      is(true)
+    );
+
+    account.setDateCreated(new Date());
+    accountWithAncillaryData.setAccount(account);
+
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAge),
+      is(false)
     );
 
     Calendar calendar = Calendar.getInstance();
@@ -96,7 +101,7 @@ public class BursarFilterEvaluatorTest {
   }
 
   @Test
-  void filterAccountByAmount() {
+  void testFilterAccountByAmount() {
     BursarExportFilterAmount filterAmount = new BursarExportFilterAmount();
 
     Account account = new Account();
@@ -115,9 +120,13 @@ public class BursarFilterEvaluatorTest {
       BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
       is(true)
     );
+    filterAmount.setAmount(5000);
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
+      is(false)
+    );
 
     // test for accounts less than or equal to filter value
-    filterAmount.setAmount(5000);
     filterAmount.setCondition(
       BursarExportFilterAmount.ConditionEnum.LESS_THAN_EQUAL
     );
@@ -125,9 +134,13 @@ public class BursarFilterEvaluatorTest {
       BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
       is(true)
     );
+    filterAmount.setAmount(4000);
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
+      is(false)
+    );
 
     // test for accounts greater than filter value
-    filterAmount.setAmount(4000);
     filterAmount.setCondition(
       BursarExportFilterAmount.ConditionEnum.GREATER_THAN
     );
@@ -135,9 +148,13 @@ public class BursarFilterEvaluatorTest {
       BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
       is(true)
     );
+    filterAmount.setAmount(5000);
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
+      is(false)
+    );
 
     // test for accounts less than filter value
-    filterAmount.setAmount(5000);
     filterAmount.setCondition(
       BursarExportFilterAmount.ConditionEnum.GREATER_THAN_EQUAL
     );
@@ -145,16 +162,23 @@ public class BursarFilterEvaluatorTest {
       BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
       is(true)
     );
+    filterAmount.setAmount(6000);
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAmount),
+      is(false)
+    );
   }
 
   @Test
-  void filterAccountByFeeType() {
-    UUID feeFineTypeUUID = UUID.randomUUID();
+  void testFilterAccountByFeeType() {
+    UUID feeFineTypeUUID = UUID.fromString(
+      "00000000-0000-4000-8000-000000000000"
+    );
     BursarExportFilterFeeType filterFeeType = new BursarExportFilterFeeType();
     filterFeeType.setFeeFineTypeId(feeFineTypeUUID);
 
     Account account = new Account();
-    account.setFeeFineId(feeFineTypeUUID.toString());
+    account.setFeeFineId("00000000-0000-4000-8000-000000000000");
 
     AccountWithAncillaryData accountWithAncillaryData = AccountWithAncillaryData
       .builder()
@@ -170,13 +194,15 @@ public class BursarFilterEvaluatorTest {
   }
 
   @Test
-  void filterAccountByFeeFineOwner() {
-    UUID feeFineOwnerUUID = UUID.randomUUID();
+  void testFilterAccountByFeeFineOwner() {
+    UUID feeFineOwnerUUID = UUID.fromString(
+      "00000000-0000-4000-8000-000000000000"
+    );
     BursarExportFilterFeeFineOwner filterFeeFineOwner = new BursarExportFilterFeeFineOwner();
     filterFeeFineOwner.setFeeFineOwner(feeFineOwnerUUID);
 
     Account account = new Account();
-    account.setFeeFineOwner(feeFineOwnerUUID.toString());
+    account.setFeeFineOwner("00000000-0000-4000-8000-000000000000");
 
     AccountWithAncillaryData accountWithAncillaryData = AccountWithAncillaryData
       .builder()
@@ -195,14 +221,16 @@ public class BursarFilterEvaluatorTest {
   }
 
   @Test
-  void filterAccountByItemLocation() {
-    UUID itemLocationID = UUID.randomUUID();
+  void testFilterAccountByItemLocation() {
+    UUID itemLocationID = UUID.fromString(
+      "00000000-0000-4000-8000-000000000000"
+    );
     BursarExportFilterLocation filterLocation = new BursarExportFilterLocation();
     filterLocation.setLocationId(itemLocationID);
 
     Item item = new Item();
     ItemLocation itemLocation = new ItemLocation();
-    itemLocation.setId(itemLocationID.toString());
+    itemLocation.setId("00000000-0000-4000-8000-000000000000");
     item.setEffectiveLocation(itemLocation);
 
     AccountWithAncillaryData accountWithAncillaryData = AccountWithAncillaryData
@@ -219,13 +247,15 @@ public class BursarFilterEvaluatorTest {
   }
 
   @Test
-  void filterAccountByPatronGroup() {
-    UUID patronGroupID = UUID.randomUUID();
+  void testFilterAccountByPatronGroup() {
+    UUID patronGroupID = UUID.fromString(
+      "00000000-0000-4000-8000-000000000000"
+    );
     BursarExportFilterPatronGroup filterPatronGroup = new BursarExportFilterPatronGroup();
     filterPatronGroup.setPatronGroupId(patronGroupID);
 
     User user = new User();
-    user.setPatronGroup(patronGroupID.toString());
+    user.setPatronGroup("00000000-0000-4000-8000-000000000000");
 
     AccountWithAncillaryData accountWithAncillaryData = AccountWithAncillaryData
       .builder()
@@ -244,13 +274,17 @@ public class BursarFilterEvaluatorTest {
   }
 
   @Test
-  void filterAccountByServicePoint() {
-    UUID servicePointID = UUID.randomUUID();
+  void testFilterAccountByServicePoint() {
+    UUID servicePointID = UUID.fromString(
+      "00000000-0000-4000-8000-000000000000"
+    );
     BursarExportFilterServicePoint filterServicePoint = new BursarExportFilterServicePoint();
     filterServicePoint.setServicePointId(servicePointID);
 
     Item item = new Item();
-    item.setInTransitDestinationServicePointId(servicePointID.toString());
+    item.setInTransitDestinationServicePointId(
+      "00000000-0000-4000-8000-000000000000"
+    );
 
     AccountWithAncillaryData accountWithAncillaryData = AccountWithAncillaryData
       .builder()
@@ -269,7 +303,7 @@ public class BursarFilterEvaluatorTest {
   }
 
   @Test
-  void evaluateNegationFilter() {
+  void testNegationFilter() {
     BursarExportFilterNegation filterNegation = new BursarExportFilterNegation();
     filterNegation.setCriteria(new BursarExportFilterPass());
 
@@ -280,13 +314,30 @@ public class BursarFilterEvaluatorTest {
       .item(null)
       .build();
 
-    assertFalse(
-      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterNegation)
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterNegation),
+      is(false)
+    );
+
+    BursarExportFilterAmount filterAmount = new BursarExportFilterAmount();
+    filterAmount.setCondition(BursarExportFilterAmount.ConditionEnum.GREATER_THAN);
+    filterAmount.setAmount(6000);
+
+    Account account = new Account();
+    account.setAmount(new BigDecimal(50));
+
+    accountWithAncillaryData.setAccount(account);
+
+    filterNegation.setCriteria(filterAmount);
+
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterNegation),
+      is(true)
     );
   }
 
   @Test
-  void evaluateConditionalFilters() {
+  void testConditionalFilters() {
     BursarExportFilterCondition filterCondition = new BursarExportFilterCondition();
 
     BursarExportFilterPass filterPass = new BursarExportFilterPass();
@@ -306,14 +357,35 @@ public class BursarFilterEvaluatorTest {
 
     // testing AND filter
     filterCondition.setOperation(BursarExportFilterCondition.OperationEnum.AND);
-    assertFalse(
-      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterCondition)
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterCondition),
+      is(false)
     );
 
     // testing OR filter
     filterCondition.setOperation(BursarExportFilterCondition.OperationEnum.OR);
     assertThat(
       BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterCondition),
+      is(true)
+    );
+  }
+
+  @Test
+  void testInvalidFilter() {
+    InvalidBursarExportFilter invalidBursarExportFilter = new InvalidBursarExportFilter();
+
+    AccountWithAncillaryData accountWithAncillaryData = AccountWithAncillaryData
+      .builder()
+      .account(null)
+      .user(null)
+      .item(null)
+      .build();
+
+    assertThat(
+      BursarFilterEvaluator.evaluate(
+        accountWithAncillaryData,
+        invalidBursarExportFilter
+      ),
       is(true)
     );
   }

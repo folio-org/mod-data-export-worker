@@ -355,7 +355,7 @@ public class BursarTokenFormatter {
     }
   }
 
-  private static String applyLengthControl(
+  public static String applyLengthControl(
     String input,
     @CheckForNull BursarExportTokenLengthControl lengthControl
   ) {

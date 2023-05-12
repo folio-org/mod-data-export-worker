@@ -111,6 +111,7 @@ public class BursarFilterAggregateEvaluatorTest {
     );
 
     // test invalid filter
+    filter.setProperty(null);
     assertThat(
       BursarFilterAggregateEvaluator.evaluateAggregate(
         aggregatedAccounts,

@@ -71,11 +71,15 @@ public class BursarFilterAggregateEvaluator {
     }
   }
 
-  private final boolean compareHelper(
+  public static final boolean compareHelper(
     ConditionEnum condition,
     int amount,
     int conditionAmount
   ) {
+    if (condition == null) {
+      return true;
+    }
+
     switch (condition) {
       case LESS_THAN:
         return amount < conditionAmount;

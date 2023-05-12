@@ -176,6 +176,14 @@ public class BursarFilterAggregateEvaluatorTest {
     );
     assertThat(
       BursarFilterAggregateEvaluator.compareHelper(
+        ConditionEnum.LESS_THAN,
+        12,
+        10
+      ),
+      is(false)
+    );
+    assertThat(
+      BursarFilterAggregateEvaluator.compareHelper(
         ConditionEnum.GREATER_THAN,
         14,
         10
@@ -184,6 +192,14 @@ public class BursarFilterAggregateEvaluatorTest {
     );
     assertThat(
       BursarFilterAggregateEvaluator.compareHelper(
+        ConditionEnum.GREATER_THAN,
+        5,
+        10
+      ),
+      is(false)
+    );
+    assertThat(
+      BursarFilterAggregateEvaluator.compareHelper(
         ConditionEnum.GREATER_THAN_EQUAL,
         10,
         10
@@ -193,10 +209,10 @@ public class BursarFilterAggregateEvaluatorTest {
     assertThat(
       BursarFilterAggregateEvaluator.compareHelper(
         ConditionEnum.GREATER_THAN_EQUAL,
-        12,
+        8,
         10
       ),
-      is(true)
+      is(false)
     );
     assertThat(
       BursarFilterAggregateEvaluator.compareHelper(
@@ -209,10 +225,10 @@ public class BursarFilterAggregateEvaluatorTest {
     assertThat(
       BursarFilterAggregateEvaluator.compareHelper(
         ConditionEnum.LESS_THAN_EQUAL,
-        7,
+        15,
         10
       ),
-      is(true)
+      is(false)
     );
     assertThat(
       BursarFilterAggregateEvaluator.compareHelper(null, 10, 10),

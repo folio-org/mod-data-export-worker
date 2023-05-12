@@ -368,7 +368,9 @@ public class BursarTokenFormatter {
     }
 
     // should be shortened
-    if (input.length() > lengthControl.getLength() && lengthControl.getTruncate()) {
+    if (
+      input.length() > lengthControl.getLength() && lengthControl.getTruncate()
+    ) {
       if (
         lengthControl.getDirection() ==
         BursarExportTokenLengthControl.DirectionEnum.BACK

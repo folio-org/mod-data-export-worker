@@ -77,6 +77,27 @@ public class AggregatedAccountReader
     userMap = exportService.getUsers(userIds);
     itemMap = exportService.getItems(itemIds);
 
+    aggregatedAccountsByUsersList =
+      createAggregatedAccountsList(accounts, userMap, itemMap, jobConfig);
+
+    stepExecution
+      .getJobExecution()
+      .getExecutionContext()
+      .put("itemMap", itemMap);
+
+    // initializing a totalAmount variable in jobExecutionContext
+    stepExecution
+      .getJobExecution()
+      .getExecutionContext()
+      .put("totalAmount", new BigDecimal(0));
+  }
+
+  public static List<AggregatedAccountsByUser> createAggregatedAccountsList(
+    List<Account> accounts,
+    Map<String, User> userMap,
+    Map<String, Item> itemMap,
+    BursarExportJob jobConfig
+  ) {
     // for loop to create a list of accounts with their respective user and item
     List<AccountWithAncillaryData> accountsWithAncillaryData = new ArrayList<>();
     for (Account account : accounts) {
@@ -108,6 +129,7 @@ public class AggregatedAccountReader
     }
 
     // then aggregate them by users. As a result, a list of AggregratedAccountsByUser
+    List<AggregatedAccountsByUser> aggregatedAccountsByUsersList = new ArrayList<>();
     userToAccountsListMap.forEach((User user, List<Account> accountsList) -> {
       aggregatedAccountsByUsersList.add(
         AggregatedAccountsByUser
@@ -118,17 +140,6 @@ public class AggregatedAccountReader
       );
     });
 
-    log.info(aggregatedAccountsByUsersList.toString());
-
-    stepExecution
-      .getJobExecution()
-      .getExecutionContext()
-      .put("itemMap", itemMap);
-
-    // initializing a totalAmount variable in jobExecutionContext
-    stepExecution
-      .getJobExecution()
-      .getExecutionContext()
-      .put("totalAmount", new BigDecimal(0));
+    return aggregatedAccountsByUsersList;
   }
 }

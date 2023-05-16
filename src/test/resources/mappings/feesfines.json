@@ -2,6 +2,19 @@
   "mappings": [
     {
       "request": {
+        "method": "GET",
+        "urlPath": "/accounts"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n  \"accounts\": [\n    {\n      \"amount\": 100.0,\n      \"remaining\": 100.0,\n      \"status\": {\n        \"name\": \"Open\"\n      },\n      \"paymentStatus\": {\n        \"name\": \"Outstanding\"\n      },\n      \"feeFineType\": \"Test ff type                 1\",\n      \"feeFineOwner\": \"Bursar owner\",\n      \"metadata\": {\n        \"createdDate\": \"2021-03-30T19:53:50.289+00:00\",\n        \"createdByUserId\": \"61187964-6bb3-526f-bdaa-e20e8e2f9305\",\n        \"updatedDate\": \"2021-03-30T19:53:50.289+00:00\",\n        \"updatedByUserId\": \"61187964-6bb3-526f-bdaa-e20e8e2f9305\"\n      },\n      \"userId\": \"bec20636-fb68-41fd-84ea-2cf910673599\",\n      \"feeFineId\": \"933336fd-0290-468a-b69f-35815b713265\",\n      \"ownerId\": \"782c9784-cba0-480a-b8c0-1ffba088c9a4\",\n      \"id\": \"807becbc-c3e6-4871-bf38-d140597e41cb\"\n    },\n    {\n      \"amount\": 400.0,\n      \"remaining\": 400.0,\n      \"status\": {\n        \"name\": \"Open\"\n      },\n      \"paymentStatus\": {\n        \"name\": \"Outstanding\"\n      },\n      \"feeFineType\": \"Test ff type                 1\",\n      \"feeFineOwner\": \"Bursar owner\",\n      \"metadata\": {\n        \"createdDate\": \"2021-03-30T19:53:50.289+00:00\",\n        \"createdByUserId\": \"61187964-6bb3-526f-bdaa-e20e8e2f9305\",\n        \"updatedDate\": \"2021-03-30T19:53:50.289+00:00\",\n        \"updatedByUserId\": \"61187964-6bb3-526f-bdaa-e20e8e2f9305\"\n      },\n      \"userId\": \"2205005b-ca51-4a04-87fd-938eefa8f6de\",\n      \"feeFineId\": \"933336fd-0290-468a-b69f-35815b713265\",\n      \"ownerId\": \"782c9784-cba0-480a-b8c0-1ffba088c9a5\",\n      \"id\": \"707becbc-c3e6-4871-bf38-d140597e41cb\"\n    },\n    {\n      \"amount\": 400.0,\n      \"remaining\": 400.0,\n      \"status\": {\n        \"name\": \"Open\"\n      },\n      \"paymentStatus\": {\n        \"name\": \"Outstanding\"\n      },\n      \"feeFineType\": \"Test ff type                 1\",\n      \"feeFineOwner\": \"Bursar owner\",\n      \"metadata\": {\n        \"createdDate\": \"2021-03-30T19:53:50.289+00:00\",\n        \"createdByUserId\": \"61187964-6bb3-526f-bdaa-e20e8e2f9305\",\n        \"updatedDate\": \"2021-03-30T19:53:50.289+00:00\",\n        \"updatedByUserId\": \"61187964-6bb3-526f-bdaa-e20e8e2f9305\"\n      },\n      \"userId\": \"b4cee18d-f862-4ef1-95a5-879fdd619603\",\n      \"feeFineId\": \"933336fd-0290-468a-b69f-35815b713265\",\n      \"ownerId\": \"782c9784-cba0-480a-b8c0-1ffba088c9a4\",\n      \"id\": \"907becbc-c3e6-4871-bf38-d140597e41cb\"\n    }\n  ],\n  \"totalRecords\": 3,\n  \"resultInfo\": {\n    \"totalRecords\": 3,\n    \"facets\": [],\n    \"diagnostics\": []\n  }\n}\"\n",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
         "method": "POST",
         "url": "/accounts-bulk/transfer"
       },

@@ -3,9 +3,12 @@ package org.folio.dew;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.File;
@@ -30,30 +33,21 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class BursarFeesFinesTest extends BaseBatchTest {
 
-  private static final String USERS_GET_REQUEST =
-    "/users?query=%28active%3D%3D%22true%22%20and%20patronGroup%3D%3D%283684a786-6671-4268-8ed0-9db82ebca60b%29%29&limit=10000";
-  private static final String ITEMS_GET_REQUEST = "/inventory/items";
-  private static final String FEEFINEACTIONS_GET_REQUEST =
-    "/feefineactions?query=%28accountId%3D%3D%28807becbc-c3e6-4871-bf38-d140597e41cb%20or%20707becbc-c3e6-4871-bf38-d140597e41cb%20or%20907becbc-c3e6-4871-bf38-d140597e41cb%29%20and%20%28typeAction%3D%3D%28%22Refunded%20partially%22%20or%20%22Refunded%20fully%22%29%29%29&limit=10000";
+  private static final String USERS_ENDPOINT_PATH = "/users";
+  private static final String ITEMS_ENDPOINT_PATH = "/inventory/items";
 
-  private static final String ACCOUNTS_GET_REQUEST = "/accounts";
-  private static final String TRANSFERS_GET_REQUEST =
-    "/transfers?query=id%3D%3D998ecb15-9f5d-4674-b288-faad24e44c0b&limit=1";
+  private static final String ALL_OPEN_ACCOUNTS_GET_REQUEST =
+    "/accounts?query=remaining%20%3E%200.0&limit=10000";
+  private static final String TRANSFERS_ENDPOINT_PATH = "/transfers";
+
   private static final String SERVICE_POINTS_GET_REQUEST =
     "/service-points?query=code%3D%3Dsystem&limit=2";
-  private static final String PATRON_GROUP_WITH_USERS =
-    "3684a786-6671-4268-8ed0-9db82ebca60b";
-  private static final String PATRON_GROUP_WITH_NO_USER =
-    "0004a786-6671-4268-8ed0-9db82ebca600";
-  private static final String EXPECTED_CHARGE_OUTPUT =
-    "src/test/resources/output/charge_bursar_export.dat";
-  private static final String EXPECTED_REFUND_OUTPUT =
-    "src/test/resources/output/refund_bursar_export.dat";
 
   @Autowired
   private Job bursarExportJob;
@@ -66,7 +60,7 @@ class BursarFeesFinesTest extends BaseBatchTest {
   void testNoFeesFines() throws Exception {
     // stub GET accounts endpoint to return no accounts
     wireMockServer.stubFor(
-      get(urlEqualTo("/accounts"))
+      get(urlEqualTo(ALL_OPEN_ACCOUNTS_GET_REQUEST))
         .willReturn(
           aResponse()
             .withStatus(200)
@@ -91,39 +85,39 @@ class BursarFeesFinesTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     // job status should be FAILED
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.FAILED);
+    assertThat(jobExecution.getExitStatus(), is(ExitStatus.FAILED));
 
-    // assert that the ACCOUNT_GET_REQUEST endpoint was hit
+    // check that the ACCOUNT_GET_REQUEST endpoint was hit
     wireMockServer.verify(
-      getRequestedFor(urlPathMatching(ACCOUNTS_GET_REQUEST))
+      getRequestedFor(urlEqualTo(ALL_OPEN_ACCOUNTS_GET_REQUEST))
     );
-    // todo: assert that no new file was created
 
+    // check that user and items endpoints were not hit
+    wireMockServer.verify(
+      0,
+      getRequestedFor(urlPathMatching(USERS_ENDPOINT_PATH))
+    );
+    wireMockServer.verify(
+      0,
+      getRequestedFor(urlPathMatching(ITEMS_ENDPOINT_PATH))
+    );
+    wireMockServer.verify(
+      0,
+      postRequestedFor(urlPathMatching(TRANSFERS_ENDPOINT_PATH))
+    );
+    wireMockServer.verify(
+      0,
+      postRequestedFor(urlEqualTo(SERVICE_POINTS_GET_REQUEST))
+    );
+
+    // check that no new file was created
+    final ExecutionContext executionContext = jobExecution.getExecutionContext();
+    final String filesInStorage = (String) executionContext.get(
+      "outputFilesInStorage"
+    );
+
+    assertThat(filesInStorage, nullValue());
   }
-
-  //  private void verifyServerCallsNoFeesFines() {
-  //    // todo: i just copied this from the original MDEW
-  //    wireMockServer.verify(getRequestedFor(urlPathMatching(ACCOUNTS_GET_REQUEST)));
-  //    wireMockServer.verify(getRequestedFor(urlEqualTo(USERS_GET_REQUEST)));
-  //    wireMockServer.verify(getRequestedFor(urlEqualTo(ITEMS_GET_REQUEST)));
-  //    wireMockServer.verify(getRequestedFor(urlEqualTo(FEEFINEACTIONS_GET_REQUEST)));
-  //    wireMockServer.verify(getRequestedFor(urlEqualTo(TRANSFERS_GET_REQUEST)));
-  //    wireMockServer.verify(getRequestedFor(urlEqualTo(SERVICE_POINTS_GET_REQUEST)));
-  //    wireMockServer.verify(
-  //      postRequestedFor(urlEqualTo("/accounts-bulk/transfer"))
-  //        .withRequestBody(matchingJsonPath("$.amount", equalTo("900.0")))
-  //        .withRequestBody(
-  //          matchingJsonPath(
-  //            "$.servicePointId", equalTo("afdb59ae-1185-4cd7-94dd-39a87fe01c51")))
-  //        .withRequestBody(matchingJsonPath("$.paymentMethod", equalTo("Transfer2bursar")))
-  //        .withRequestBody(matchingJsonPath("$.notifyPatron", equalTo("false")))
-  //        .withRequestBody(matchingJsonPath("$.userName", equalTo("System")))
-  //        .withRequestBody(
-  //          matchingJsonPath(
-  //            "$.accountIds",
-  //            equalTo(
-  //              "[ \"807becbc-c3e6-4871-bf38-d140597e41cb\", \"707becbc-c3e6-4871-bf38-d140597e41cb\", \"907becbc-c3e6-4871-bf38-d140597e41cb\" ]"))));
-  //  }
 
   private JobParameters prepareNoFeesFinesJobParameters()
     throws JsonProcessingException {

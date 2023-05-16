@@ -16,6 +16,11 @@ public class AggregatedAccountsByUser {
 
   public BigDecimal findTotalAmount() {
     BigDecimal totalAmount = new BigDecimal(0);
+
+    if (accounts == null) {
+      return totalAmount;
+    }
+
     for (Account account : accounts) {
       totalAmount = totalAmount.add(account.getAmount());
     }

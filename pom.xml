@@ -593,13 +593,6 @@
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
             <version>${jacoco-maven-plugin.version}</version>
-            <configuration>
-              <excludes>
-                <exclude>**/domain/mapper/*Impl.class</exclude>
-                <exclude>**/domain/dto/*</exclude>
-                <exclude>**/rest/resource/*</exclude>
-              </excludes>
-            </configuration>
             <executions>
               <execution>
                 <phase>test-compile</phase>

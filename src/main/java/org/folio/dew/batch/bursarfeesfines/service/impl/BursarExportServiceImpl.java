@@ -2,7 +2,6 @@ package org.folio.dew.batch.bursarfeesfines.service.impl;
 
 import static java.util.stream.Collectors.joining;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,7 +21,6 @@ import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.batch.bursarfeesfines.service.BursarFilterEvaluator;
 import org.folio.dew.client.AccountBulkClient;
 import org.folio.dew.client.AccountClient;
-import org.folio.dew.client.FeefineactionsClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.ServicePointClient;
 import org.folio.dew.client.TransferClient;
@@ -36,7 +34,6 @@ import org.folio.dew.domain.dto.ServicePoint;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 import org.folio.dew.domain.dto.bursarfeesfines.TransferRequest;
-import org.springframework.batch.core.JobParameter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -46,14 +43,7 @@ import org.springframework.stereotype.Service;
 public class BursarExportServiceImpl implements BursarExportService {
 
   private static final String SERVICE_POINT_CODE = "system";
-  private static final String DEFAULT_PAYMENT_METHOD = "Bursar";
   private static final String USER_NAME = "System";
-  private static final String ACCOUNT_QUERY =
-    "userId==%s and remaining > 0.0 and metadata.createdDate<=%s";
-  private static final String USER_QUERY =
-    "(active==\"true\" and patronGroup==%s)";
-  private static final String FEEFINE_QUERY =
-    "(accountId==(%s) and (typeAction==(\"Refunded partially\" or \"Refunded fully\")))";
   private static final long DEFAULT_LIMIT = 10000L;
   private final Collector<CharSequence, ?, String> toQueryParameters = joining(
     " or ",
@@ -65,23 +55,13 @@ public class BursarExportServiceImpl implements BursarExportService {
   @Value("${application.bucket.size}")
   private int bucketSize;
 
-  private final ObjectMapper objectMapper;
-
   // used to query data from Okapi/other modules
   private final UserClient userClient;
   private final InventoryClient inventoryClient;
   private final AccountClient accountClient;
   private final AccountBulkClient bulkClient;
-  private final FeefineactionsClient feefineClient;
   private final TransferClient transferClient;
   private final ServicePointClient servicePointClient;
-
-  /** Convert the JobParameter to our schema */
-  private BursarExportJob extractBursarFeeFines(JobParameter jobParameter)
-    throws com.fasterxml.jackson.core.JsonProcessingException {
-    final String value = (String) jobParameter.getValue();
-    return objectMapper.readValue(value, BursarExportJob.class);
-  }
 
   /** Take the found fine accounts and mark them as transferred */
   @Override
@@ -107,7 +87,7 @@ public class BursarExportServiceImpl implements BursarExportService {
         )
         .collect(Collectors.toList());
 
-      if (accountsToBeTransferred.size() > 0) {
+      if (!accountsToBeTransferred.isEmpty()) {
         transferredAccountsSet.addAll(accountsToBeTransferred);
 
         String accountName = getTransferAccountName(
@@ -122,7 +102,7 @@ public class BursarExportServiceImpl implements BursarExportService {
           accountsToBeTransferred,
           accountName
         );
-        log.info("Creating {}.", transferRequest);
+        log.info("Transferring {}.", transferRequest);
         bulkClient.transferAccount(transferRequest);
       }
     }
@@ -130,7 +110,7 @@ public class BursarExportServiceImpl implements BursarExportService {
     // transfer non-transferred accounts to account specified in else
     nonTransferredAccountsSet.removeAll(transferredAccountsSet);
 
-    if (nonTransferredAccountsSet.size() > 0) {
+    if (!nonTransferredAccountsSet.isEmpty()) {
       String accountName = getTransferAccountName(
         bursarFeeFines.getTransferInfo().getElse().getAccount().toString()
       );
@@ -167,6 +147,7 @@ public class BursarExportServiceImpl implements BursarExportService {
     return accounts;
   }
 
+  @Override
   public Map<String, User> getUsers(Set<String> userIds) {
     Map<String, User> map = new HashMap<>();
 
@@ -193,6 +174,7 @@ public class BursarExportServiceImpl implements BursarExportService {
     return map;
   }
 
+  @Override
   public Map<String, Item> getItems(Set<String> itemIds) {
     Map<String, Item> map = new HashMap<>();
 
@@ -219,35 +201,6 @@ public class BursarExportServiceImpl implements BursarExportService {
     return map;
   }
 
-  // NCO: Some sample queries that were done to get all users and patron groups;
-  //        this will likely be combined/expanded to some aggregate thing to find accounts
-  //        matching our more complex filter types
-  // @Override
-  // public List<User> findUsers(List<String> patronGroups) {
-  //   if (patronGroups == null) {
-  //     log.error("Can not create query for batch job, cause config parameters are null.");
-  //     return Collections.emptyList();
-  //   }
-  //   return fetchDataInBatch(patronGroups, null, (nill, listParams) -> fetchUsers(listParams));
-  // }
-
-  // @Override
-  // public List<Account> findAccounts(Long outStandingDays, List<User> users) {
-  //   if (outStandingDays == null) {
-  //     log.error("Can not create query for batch job, cause outStandingDays are null.");
-  //     return Collections.emptyList();
-  //   }
-  // return fetchDataInBatch(users, outStandingDays, (u, d) -> fetchAccounts(d, (Long) u));
-  // }
-
-  // @Override
-  // public List<Feefineaction> findRefundedFeefineActions(List<String> accountIds) {
-  //   if (accountIds.isEmpty()) {
-  //     return Collections.emptyList();
-  //   }
-  //   return fetchDataInBatch(accountIds, null, (nill, paramList) -> fetchFeefineActions(paramList));
-  // }
-
   private <T, P> List<T> fetchDataInBatch(
     List<P> parameters,
     Function<List<P>, List<T>> client
@@ -264,29 +217,6 @@ public class BursarExportServiceImpl implements BursarExportService {
       .map(paramBucket -> client.apply(paramBucket))
       .collect(ArrayList::new, List::addAll, List::addAll);
   }
-
-  // private List<User> fetchUsers(List<String> patronGroups) {
-  //   final String groupIds = patronGroups.stream().collect(toQueryParameters);
-  //   var userResponse = userClient.getUserByQuery(String.format(USER_QUERY, groupIds), DEFAULT_LIMIT);
-  //   if (userResponse == null || userResponse.getTotalRecords() == 0) {
-  //     log.error("There are no active users for patrons group(s) {}.", groupIds);
-  //     return Collections.emptyList();
-  //   }
-  //   return userResponse.getUsers();
-  // }
-
-  // private List<Account> fetchAccounts(List<User> users, Long outStandingDays) {
-  //   var localDate = LocalDate.now().minusDays(outStandingDays);
-  //   final String userIdsAsParameter = users.stream().map(User::getId).collect(toQueryParameters);
-  //   var accountQuery = String.format(ACCOUNT_QUERY, userIdsAsParameter, localDate);
-  //   return accountClient.getAccounts(accountQuery, DEFAULT_LIMIT).getAccounts();
-  // }
-
-  // private List<Feefineaction> fetchFeefineActions(List<String> accountIds) {
-  //   var ids = Strings.join(accountIds, " or ");
-  //   var query = String.format(FEEFINE_QUERY, ids);
-  //   return feefineClient.getFeefineactions(query, DEFAULT_LIMIT).getFeefineactions();
-  // }
 
   private TransferRequest toTransferRequest(
     List<AccountWithAncillaryData> accounts,

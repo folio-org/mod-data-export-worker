@@ -17,6 +17,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.AUTHORITY_CONTROL_FILE_
 import static org.folio.dew.domain.dto.JobParameterNames.CIRCULATION_LOG_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
@@ -28,12 +29,13 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
+import static org.folio.dew.utils.Constants.TEMP_IDENTIFIERS_FILE_NAME;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -49,7 +51,6 @@ import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.Progress;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
-import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.BulkEditChangedRecordsService;
@@ -60,7 +61,6 @@ import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -69,8 +69,6 @@ import org.springframework.stereotype.Component;
 public class JobCompletionNotificationListener implements JobExecutionListener {
   private static final String PATHS_DELIMITER = ";";
   private static final int COMPLETE_PROGRESS_VALUE = 100;
-
-  private final IAcknowledgementRepository acknowledgementRepository;
   private final KafkaService kafka;
   private final RemoteFilesStorage remoteFilesStorage;
   private final LocalFilesStorage localFilesStorage;
@@ -100,6 +98,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
 
     if (after) {
       if (isBulkEditIdentifiersJob(jobExecution)) {
+        moveTemporaryFilesToStorage(jobParameters);
         handleProcessingErrors(jobExecution, jobId);
       }
       if (isBulkEditUpdateJob(jobExecution)) {
@@ -158,6 +157,29 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
     }
   }
 
+  private void moveTemporaryFilesToStorage(JobParameters jobParameters) throws IOException {
+    var tmpFileName = jobParameters.getString(TEMP_LOCAL_FILE_PATH);
+    if (nonNull(tmpFileName)) {
+      moveFileToStorage(jobParameters.getString(TEMP_OUTPUT_FILE_PATH), tmpFileName);
+      moveFileToStorage(jobParameters.getString(TEMP_OUTPUT_FILE_PATH) + ".json", tmpFileName + ".json");
+    }
+
+    var tmpIdentifiersFileName = jobParameters.getString(TEMP_IDENTIFIERS_FILE_NAME);
+    if (nonNull(tmpIdentifiersFileName) && Files.deleteIfExists(Path.of(tmpIdentifiersFileName))) {
+      log.info("Deleted temporary identifiers file: {}", tmpIdentifiersFileName);
+    }
+  }
+
+  private void moveFileToStorage(String destFileName, String sourceFileName) throws IOException {
+    var sourcePath = Path.of(sourceFileName);
+    if (Files.exists(sourcePath)) {
+      localFilesStorage.writeFile(destFileName, sourcePath);
+      if (Files.deleteIfExists(sourcePath)) {
+        log.info("Deleted temporary file: {}", sourceFileName);
+      }
+    }
+  }
+
   private void handleProcessingErrors(JobExecution jobExecution, String jobId) {
     String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
     jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution, false) + PATHS_DELIMITER + (isNull(downloadErrorLink) ? EMPTY : downloadErrorLink) + PATHS_DELIMITER + saveJsonResult(jobExecution, !isBulkEditUpdateJob(jobExecution)));
@@ -168,12 +190,6 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
   }
 
   private void processJobAfter(String jobId, JobParameters jobParameters) {
-    var acknowledgment = acknowledgementRepository.getAcknowledgement(jobId);
-    if (acknowledgment != null) {
-      acknowledgment.acknowledge();
-      acknowledgementRepository.deleteAcknowledgement(jobId);
-    }
-
     var tempOutputFilePath = jobParameters.getString(TEMP_OUTPUT_FILE_PATH);
     if (StringUtils.isBlank(tempOutputFilePath) ||
       jobParameters.getParameters().containsKey(EXPORT_TYPE) && jobParameters.getString(EXPORT_TYPE).equals(BULK_EDIT_UPDATE.getValue())) {

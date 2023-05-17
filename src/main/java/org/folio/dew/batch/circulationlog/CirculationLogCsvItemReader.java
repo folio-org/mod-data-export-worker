@@ -8,7 +8,7 @@ import java.util.List;
 
 public class CirculationLogCsvItemReader extends CsvItemReader<LogRecord> {
 
-  private static final int QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST = 100;
+  private static final int QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST = 10000;
 
   private final AuditClient auditClient;
   private final String query;

@@ -1,20 +1,26 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
+import static java.util.Objects.requireNonNullElse;
+import static java.util.stream.Collectors.groupingBy;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
+import org.folio.dew.batch.acquisitions.edifact.exceptions.CompositeOrderMappingException;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.OrderNotFoundException;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.PoLine;
+import org.folio.dew.domain.dto.PurchaseOrder;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -72,16 +78,16 @@ public class MapToEdifactTasklet implements Tasklet {
   }
 
   private List<CompositePurchaseOrder> getCompPOList(VendorEdiOrdersExportConfig ediConfig) {
-    var poQuery = buildPurchaseOrderQuery(ediConfig);
+    var poLineQuery = buildPoLineQuery(ediConfig);
+    var poLines = ordersService.getPoLinesByQuery(poLineQuery);
 
-    var orders = ordersService.getCompositePurchaseOrderByQuery(poQuery, Integer.MAX_VALUE);
+    var orderIds = poLines.stream()
+      .map(PoLine::getPurchaseOrderId)
+      .distinct()
+      .toList();
+    var orders = ordersService.getPurchaseOrdersByIds(orderIds);
 
-    var compOrders = orders.getPurchaseOrders()
-      .stream().sequential()
-      .map(order -> ordersService.getCompositePurchaseOrderById(order.getId()))
-      .map(order -> order.compositePoLines(poLineFilteredOrder(order, ediConfig)))
-      .filter(order -> !order.getCompositePoLines().isEmpty())
-      .collect(Collectors.toList());
+    var compOrders = assembleCompositeOrders(orders, poLines);
 
     log.debug("composite purchase orders: {}", compOrders);
 
@@ -91,13 +97,31 @@ public class MapToEdifactTasklet implements Tasklet {
     return compOrders;
   }
 
-  private String buildPurchaseOrderQuery(VendorEdiOrdersExportConfig ediConfig) {
-    var workflowStatusFilter = "workflowStatus==Open";
-    var vendorFilter = String.format(" and vendor==%s", ediConfig.getVendorId());
-    var automaticExportFilter = " and poLine.automaticExport==true";
-    var notManualFilter = " and cql.allRecords=1 NOT manualPo==true";
-    var resultQuery = "(" + workflowStatusFilter + vendorFilter + automaticExportFilter + notManualFilter + ")";
-    log.info("GET purchase orders query: {}", resultQuery);
+  private String buildPoLineQuery(VendorEdiOrdersExportConfig ediConfig) {
+    // Order filters
+    var workflowStatusFilter = "purchaseOrder.workflowStatus==Open"; // order status is Open
+    var vendorFilter = String.format(" AND purchaseOrder.vendor==%s", ediConfig.getVendorId()); // vendor id matches
+    var notManualFilter = " AND (cql.allRecords=1 NOT purchaseOrder.manualPo==true)"; // not a manual order
+
+    // Order line filters
+    var automaticExportFilter = " AND automaticExport==true"; // line with automatic export
+    var ediExportDateFilter = " AND (cql.allRecords=1 NOT lastEDIExportDate=\"\")"; // has not been exported yet
+    var acqMethodsFilter = fieldInListFilter("acquisitionMethod",
+      ediConfig.getEdiConfig().getDefaultAcquisitionMethods()); // acquisitionMethod in default list
+    String vendorAccountFilter;
+    if (ediConfig.getIsDefaultConfig() != null && ediConfig.getIsDefaultConfig()) {
+      // vendorAccount empty or undefined
+      vendorAccountFilter = " AND (vendorDetail.vendorAccount==\"\" OR " +
+        "(cql.allRecords=1 NOT vendorDetail.vendorAccount=\"\"))";
+    } else {
+      // vendorAccount in the config account number list
+      vendorAccountFilter = fieldInListFilter("vendorDetail.vendorAccount",
+        ediConfig.getEdiConfig().getAccountNoList());
+    }
+
+    var resultQuery = String.format("%s%s%s%s%s%s%s", workflowStatusFilter, vendorFilter, notManualFilter,
+      automaticExportFilter, ediExportDateFilter, acqMethodsFilter, vendorAccountFilter);
+    log.info("GET purchase order line query: {}", resultQuery);
     return resultQuery;
   }
 
@@ -105,25 +129,33 @@ public class MapToEdifactTasklet implements Tasklet {
     var polineIds = compOrders.stream()
       .flatMap(ord -> ord.getCompositePoLines().stream())
       .map(CompositePoLine::getId)
-      .collect(Collectors.toList());
+      .toList();
     ExecutionContextUtils.addToJobExecutionContext(chunkContext.getStepContext().getStepExecution(),"polineIds", ediObjectMapper.writeValueAsString(polineIds),"");
   }
 
-  private List<CompositePoLine> poLineFilteredOrder(CompositePurchaseOrder order, VendorEdiOrdersExportConfig ediConfig) {
-    return order.getCompositePoLines().stream()
-      .filter(CompositePoLine::getAutomaticExport)
-      // comment filters for development time
-      // fix filter after implementation of re-export logic
-      .filter(poLine -> poLine.getLastEDIExportDate() == null)
-      .filter(poLine -> ediConfig.getEdiConfig().getDefaultAcquisitionMethods().contains(poLine.getAcquisitionMethod()))
-      .filter(poLine -> {
-        if (ediConfig.getIsDefaultConfig() != null && ediConfig.getIsDefaultConfig()) {
-          return StringUtils.isEmpty(poLine.getVendorDetail().getVendorAccount());
-        }
-        return ediConfig.getEdiConfig().getAccountNoList().contains(poLine.getVendorDetail().getVendorAccount());
-      })
-      .collect(Collectors.toList());
+  private String fieldInListFilter(String fieldName, List<?> list) {
+    return String.format(" AND %s==%s", fieldName,
+      list.stream()
+      .map(item -> String.format("\"%s\"", item.toString()))
+      .collect(Collectors.joining(" OR ", "(", ")")));
   }
 
+  private List<CompositePurchaseOrder> assembleCompositeOrders(List<PurchaseOrder> orders, List<PoLine> poLines) {
+    Map<String, List<CompositePoLine>> orderIdToCompositePoLines = poLines.stream()
+      .map(poLine -> convertTo(poLine, CompositePoLine.class))
+      .collect(groupingBy(CompositePoLine::getPurchaseOrderId));
+    return orders.stream()
+      .map(order -> convertTo(order, CompositePurchaseOrder.class))
+      .map(compPo -> compPo.compositePoLines(
+        requireNonNullElse(orderIdToCompositePoLines.get(compPo.getId().toString()), List.of())))
+      .toList();
+  }
 
+  private <T> T convertTo(Object value, Class<T> c) {
+    try {
+      return ediObjectMapper.readValue(ediObjectMapper.writeValueAsString(value), c);
+    } catch (JsonProcessingException ex) {
+      throw new CompositeOrderMappingException(String.format("%s for object %s", ex.getMessage(), value));
+    }
+  }
 }

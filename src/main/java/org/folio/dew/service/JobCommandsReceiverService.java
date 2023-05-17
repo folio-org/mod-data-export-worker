@@ -1,10 +1,6 @@
 package org.folio.dew.service;
 
 import static java.util.Objects.nonNull;
-
-import org.folio.de.entity.JobCommandType;
-import org.folio.dew.batch.ExportJobManagerSync;
-
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
@@ -14,6 +10,7 @@ import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
+import jakarta.annotation.PostConstruct;
 import java.io.FileOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -25,49 +22,41 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import jakarta.annotation.PostConstruct;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import org.folio.de.entity.JobCommand;
-import org.folio.dew.batch.ExportJobManager;
+import org.folio.de.entity.JobCommandType;
+import org.folio.dew.batch.ExportJobManagerSync;
 import org.folio.dew.batch.acquisitions.edifact.services.ResendService;
-import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.error.FileOperationException;
-import org.folio.dew.repository.IAcknowledgementRepository;
 import org.folio.dew.repository.JobCommandRepository;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
-import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
-
+import org.folio.spring.DefaultFolioExecutionContext;
+import org.folio.spring.FolioModuleMetadata;
+import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.messaging.handler.annotation.Headers;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
-
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
 
 @Service
 @RequiredArgsConstructor
 @Log4j2
 public class JobCommandsReceiverService {
+  private final FolioModuleMetadata folioModuleMetadata;
 
   private final ExportJobManagerSync exportJobManagerSync;
-  private final IAcknowledgementRepository acknowledgementRepository;
   private final RemoteFilesStorage remoteFilesStorage;
   private final LocalFilesStorage localFilesStorage;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
@@ -97,45 +86,42 @@ public class JobCommandsReceiverService {
     containerFactory = "kafkaListenerContainerFactory",
     topicPattern = "${application.kafka.topic-pattern}",
     groupId = "${application.kafka.group-id}")
-  public void receiveStartJobCommand(JobCommand jobCommand, Acknowledgment acknowledgment) {
-    log.info("Received {}.", jobCommand);
+  public void receiveStartJobCommand(@Payload JobCommand jobCommand, @Headers Map<String, Object> messageHeaders) {
+    var defaultFolioExecutionContext = DefaultFolioExecutionContext.fromMessageHeaders(folioModuleMetadata, messageHeaders);
 
-    try {
-      if (JobCommandType.RESEND.equals(jobCommand.getType())) {
-        resendService.resendExportedFile(jobCommand, acknowledgment);
-        return;
-      }
+    try (var context = new FolioExecutionContextSetter(defaultFolioExecutionContext)) {
+      log.info("Received {}.", jobCommand);
 
-      if (deleteOldFiles(jobCommand, acknowledgment)) {
-        return;
-      }
-      log.info("-----------------------------JOB---STARTS-----------------------------");
-
-      prepareJobParameters(jobCommand);
-
-      if (Set.of(BULK_EDIT_IDENTIFIERS, BULK_EDIT_QUERY, BULK_EDIT_UPDATE).contains(jobCommand.getExportType())) {
-        addBulkEditJobCommand(jobCommand);
-        if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
-          acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-          FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
-          log.debug("FOLIO context closed.");
+      try {
+        if (JobCommandType.RESEND.equals(jobCommand.getType())) {
+          resendService.resendExportedFile(jobCommand);
           return;
         }
+
+        if (deleteOldFiles(jobCommand)) {
+          return;
+        }
+        log.info("-----------------------------JOB---STARTS-----------------------------");
+
+        prepareJobParameters(jobCommand);
+
+        if (Set.of(BULK_EDIT_IDENTIFIERS, BULK_EDIT_QUERY, BULK_EDIT_UPDATE).contains(jobCommand.getExportType())) {
+          addBulkEditJobCommand(jobCommand);
+          if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
+            return;
+          }
+        }
+
+        var jobLaunchRequest =
+          new JobLaunchRequest(
+            jobMap.get(resolveJobKey(jobCommand)),
+            jobCommand.getJobParameters());
+
+        exportJobManagerSync.launchJob(jobLaunchRequest);
+
+      } catch (Exception e) {
+        log.error(e.toString(), e);
       }
-
-      var jobLaunchRequest =
-        new JobLaunchRequest(
-          jobMap.get(resolveJobKey(jobCommand)),
-          jobCommand.getJobParameters());
-
-      acknowledgementRepository.addAcknowledgement(jobCommand.getId().toString(), acknowledgment);
-      exportJobManagerSync.launchJob(jobLaunchRequest);
-
-    } catch (Exception e) {
-      log.error(e.toString(), e);
-    } finally {
-      FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
-      log.debug("FOLIO context closed.");
     }
   }
 
@@ -195,12 +181,10 @@ public class JobCommandsReceiverService {
     }
   }
 
-  private boolean deleteOldFiles(JobCommand jobCommand, Acknowledgment acknowledgment) {
+  private boolean deleteOldFiles(JobCommand jobCommand) {
     if (jobCommand.getType() != JobCommandType.DELETE) {
       return false;
     }
-
-    acknowledgment.acknowledge();
 
     var filesStr = jobCommand.getJobParameters().getString(JobParameterNames.OUTPUT_FILES_IN_STORAGE);
     log.info("Deleting old job files {}.", filesStr);

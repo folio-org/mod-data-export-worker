@@ -1,0 +1,76 @@
+{
+  "contributorNames": [
+    {
+      "name": "name1"
+    },
+    null,
+    {
+      "name": "name2"
+    }
+  ],
+  "notes": [
+    {
+      "itemNoteTypeId": "0e40884c-3523-4c6d-8187-d578e3d2794e",
+      "note": "note",
+      "staffOnly": null
+    },
+    null,
+    {
+      "itemNoteTypeId": "0e40884c-3523-4c6d-8187-d578e3d2794e",
+      "note": "note",
+      "staffOnly": false
+    }
+  ],
+  "circulationNotes": [
+    {
+      "id": "id_1",
+      "noteType": "Check in",
+      "note": "check in",
+      "staffOnly": false,
+      "source": {
+        "personal": {
+          "lastName": "last",
+          "firstName": "first"
+        }
+      }
+    },
+    null,
+    {
+      "id": "id_2",
+      "note": "check in",
+      "staffOnly": null,
+      "source": null
+    },
+    {
+      "id": "id_3",
+      "noteType": "Check in",
+      "note": "check in",
+      "staffOnly": false,
+      "source": {
+        "id": "source_id",
+        "personal": null
+      }
+    }
+  ],
+  "statisticalCodeIds": [
+    "b5968c9e-cddc-4576-99e3-8e60aed8b0dd",
+    null,
+    "be53b4c9-6eb8-4bdf-a785-904cccd04146"
+  ],
+  "boundWithTitles": [
+    {
+      "briefHoldingsRecord": {
+        "hrid": "hrid"
+      },
+      "briefInstance": {
+        "hrid": "hrid",
+        "title": "title"
+      }
+    },
+    null,
+    {
+      "briefHoldingsRecord": null,
+      "briefInstance": null
+    }
+  ]
+}

@@ -10,7 +10,6 @@ import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import java.io.FileOutputStream;
 import java.net.MalformedURLException;
@@ -24,16 +23,13 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.de.entity.JobCommandType;
-import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.ExportJobManagerSync;
 import org.folio.dew.batch.acquisitions.edifact.services.ResendService;
-import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
@@ -61,7 +57,6 @@ public class JobCommandsReceiverService {
   private final FolioModuleMetadata folioModuleMetadata;
 
   private final ExportJobManagerSync exportJobManagerSync;
-  private final IAcknowledgementRepository acknowledgementRepository;
   private final RemoteFilesStorage remoteFilesStorage;
   private final LocalFilesStorage localFilesStorage;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
@@ -186,7 +181,7 @@ public class JobCommandsReceiverService {
     }
   }
 
-  private boolean deleteOldFiles(JobCommand jobCommand, Acknowledgment acknowledgment) {
+  private boolean deleteOldFiles(JobCommand jobCommand) {
     if (jobCommand.getType() != JobCommandType.DELETE) {
       return false;
     }

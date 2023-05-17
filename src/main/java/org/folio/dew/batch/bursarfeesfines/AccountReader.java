@@ -32,9 +32,6 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
   private List<Account> accounts = new ArrayList<>();
   private int nextIndex = 0;
 
-  // just to test temporarily
-  private boolean createEvenIfEmpty = false;
-
   @Override
   public AccountWithAncillaryData read() {
     if (nextIndex < accounts.size()) {
@@ -48,10 +45,6 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
         .build();
     } else {
       nextIndex = 0;
-      if (createEvenIfEmpty) {
-        createEvenIfEmpty = false;
-        return AccountWithAncillaryData.builder().build();
-      }
       return null;
     }
   }

@@ -677,8 +677,6 @@ public class BursarTokenFormatterTest {
     conditions.add(condition2);
     conditionalToken.setConditions(conditions);
 
-    log.info(conditions.toString());
-
     // test conditions
     assertThat(
       BursarTokenFormatter.formatConditionalDataToken(
@@ -741,7 +739,6 @@ public class BursarTokenFormatterTest {
     conditions.add(condition2);
     conditionalToken.setConditions(conditions);
 
-    log.info(conditionalToken.toString());
     assertThat(
       BursarTokenFormatter.formatConditionalAggregatedAccountsToken(
         conditionalToken,

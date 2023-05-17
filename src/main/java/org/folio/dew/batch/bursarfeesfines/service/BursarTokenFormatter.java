@@ -163,22 +163,11 @@ public class BursarTokenFormatter {
     User user
   ) {
     String result;
-    if (
-      tokenUserData.getValue() == BursarExportTokenUserData.ValueEnum.FOLIO_ID
-    ) {
-      result = user.getId();
-    } else if (
-      tokenUserData.getValue() ==
-      BursarExportTokenUserData.ValueEnum.PATRON_GROUP_ID
-    ) {
-      result = user.getPatronGroup();
-    } else if (
-      tokenUserData.getValue() ==
-      BursarExportTokenUserData.ValueEnum.EXTERNAL_SYSTEM_ID
-    ) {
-      result = user.getExternalSystemId();
-    } else {
-      result =
+    switch (tokenUserData.getValue()) {
+      case FOLIO_ID -> result = user.getId();
+      case PATRON_GROUP_ID -> result = user.getPatronGroup();
+      case EXTERNAL_SYSTEM_ID -> result = user.getExternalSystemId();
+      default -> result =
         String.format(
           "[unexpected user data token: %s]",
           tokenUserData.getValue()

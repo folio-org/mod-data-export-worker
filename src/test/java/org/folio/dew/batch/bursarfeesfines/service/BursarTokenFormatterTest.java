@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.BursarExportFilterAmount;
 import org.folio.dew.domain.dto.BursarExportFilterAmount.ConditionEnum;
@@ -41,7 +40,6 @@ import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUser;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-@Log4j2
 public class BursarTokenFormatterTest {
 
   public static AccountWithAncillaryData accountWithAncillaryData;

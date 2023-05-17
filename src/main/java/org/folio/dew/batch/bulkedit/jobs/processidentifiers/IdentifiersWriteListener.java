@@ -55,9 +55,7 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
     job.setType(ExportType.BULK_EDIT_IDENTIFIERS);
     job.setEntityType(EntityType.fromValue(jobExecution.getJobInstance().getJobName().split("-")[1]));
     job.setBatchStatus(BatchStatus.STARTED);
-    job.setStartTime(new Date());
     job.setCreatedDate(new Date());
-    job.setEndTime(new Date());
     job.setUpdatedDate(new Date());
 
     var totalCsvLines = jobExecution.getJobParameters().getLong(TOTAL_CSV_LINES);

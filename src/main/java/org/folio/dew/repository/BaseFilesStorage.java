@@ -14,6 +14,10 @@ import io.minio.UploadObjectArgs;
 import io.minio.credentials.IamAwsProvider;
 import io.minio.credentials.Provider;
 import io.minio.credentials.StaticProvider;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.NotImplementedException;
@@ -196,6 +200,44 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     return write(path, bytes, new HashMap<>());
   }
 
+  /**
+   * Writes file to a file on S3-compatible storage
+   *
+   * @param path - the path to the file on S3-compatible storage
+   * @param inputPath – path to the file to write
+   * @param headers - headers
+   * @return the path to the file
+   * @throws IOException - if an I/O error occurs
+   */
+  public String writeFile(String path, Path inputPath, Map<String, String> headers) throws IOException {
+
+    if (isComposeWithAwsSdk) {
+      log.info("Writing file using AWS SDK client");
+      s3Client.putObject(PutObjectRequest.builder().bucket(bucket)
+          .key(path).build(),
+        RequestBody.fromFile(inputPath));
+      return path;
+    } else {
+      log.info("Writing file using Minio client");
+      try (var is = Files.newInputStream(inputPath)) {
+        return client.putObject(PutObjectArgs.builder()
+            .bucket(bucket)
+            .region(region)
+            .object(path)
+            .headers(headers)
+            .stream(is, -1, MIN_MULTIPART_SIZE)
+            .build())
+          .object();
+      } catch (Exception e) {
+        throw new IOException("Cannot write file: " + path, e);
+      }
+
+    }
+  }
+
+  public String writeFile(String destPath, Path inputPath) throws IOException {
+    return writeFile(destPath, inputPath, new HashMap<>());
+  }
 
   /**
    * Appends byte[] to existing on the storage file.
@@ -411,6 +453,27 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    */
   public Stream<String> lines(String path) throws IOException {
     return new BufferedReader(new InputStreamReader(newInputStream(path))).lines();
+  }
+
+  /**
+   * Read number lines from a file as a {@code Stream}
+   *
+   * @param path - the path to the file on S3-compatible storage
+   * @param num - the num of lines to read from start of file
+   * @return the lines from the file as a {@code Stream}
+   * @throws IOException - if an I/O error occurs reading from the file
+   */
+  public List<String> linesNumber(String path, int num) throws IOException {
+    try (var reader = new BufferedReader(new InputStreamReader(newInputStream(path)))) {
+      List<String> list = new ArrayList<>();
+      for (int i = 0; i < num; i++) {
+        var line = reader.readLine();
+        if (StringUtils.isNotBlank(line)) {
+          list.add(line);
+        }
+      }
+      return list;
+    }
   }
 
   /**

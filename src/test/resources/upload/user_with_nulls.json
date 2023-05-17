@@ -1,0 +1,10 @@
+{
+  "proxyFor": [ null ],
+  "departments": [ null ],
+  "personal": {
+    "addresses": [ null ]
+  },
+  "customFields": {
+    "testmultiselect": [ null ]
+  }
+}

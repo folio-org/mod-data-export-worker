@@ -3,7 +3,6 @@ package org.folio.dew.client;
 import java.util.List;
 import lombok.Data;
 import lombok.Getter;
-import lombok.Value;
 import org.folio.dew.config.feign.FeignClientConfiguration;
 import org.folio.dew.domain.dto.eholdings.Note;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(name = "note-links", configuration = FeignClientConfiguration.class)
 public interface NotesClient {
 
-  @GetMapping(value = "/domain/{domain}/type/{type}/id/{id}?status=assigned",
+  @GetMapping(value = "/domain/{domain}/type/{type}/id/{id}?status=assigned&orderBy=updatedDate",
               produces = MediaType.APPLICATION_JSON_VALUE)
   NoteCollection getAssignedNotes(@PathVariable("domain") NoteLinkDomain domain,
                                   @PathVariable("type") NoteLinkType type,

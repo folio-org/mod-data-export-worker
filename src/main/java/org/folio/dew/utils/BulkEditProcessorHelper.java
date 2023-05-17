@@ -2,6 +2,7 @@ package org.folio.dew.utils;
 
 import static java.time.ZoneOffset.UTC;
 import static java.util.Objects.nonNull;
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.folio.dew.domain.dto.IdentifierType.ACCESSION_NUMBER;
@@ -15,6 +16,7 @@ import static org.folio.dew.domain.dto.IdentifierType.USER_NAME;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 
 import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.IdentifierType;
 
 import java.text.DateFormat;
@@ -24,6 +26,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.EnumMap;
+import java.util.Optional;
 import java.util.TimeZone;
 
 @UtilityClass
@@ -69,5 +72,13 @@ public class BulkEditProcessorHelper {
 
   public static String getMatchPattern(String identifierType) {
     return FORMER_IDS == IdentifierType.fromValue(identifierType) ? MATCH_PATTERN : EXACT_MATCH_PATTERN;
+  }
+
+  public static Optional<String> ofEmptyString(String string) {
+    return StringUtils.isNotEmpty(string) ? Optional.of(string) : Optional.empty();
+  }
+
+  public static String booleanToStringNullSafe(Boolean b) {
+    return isEmpty(b) ? EMPTY : b.toString();
   }
 }

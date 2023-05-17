@@ -39,44 +39,7 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
 
     this.storage = storage;
 
-    BeanWrapperFieldExtractor<T> fieldExtractor = new BeanWrapperFieldExtractor<>() {
-      @Override
-      public Object[] extract(T item) {
-        Object[] result = super.extract(item);
-        if (ArrayUtils.isEmpty(result)) {
-          return result;
-        }
-
-        for (var i = 0; i < result.length; i++) {
-          Object o = result[i];
-          if (o == null) {
-            continue;
-          }
-
-          if (fieldProcessor != null) {
-            o = fieldProcessor.process(o, i);
-          }
-
-          var s = o.toString();
-
-          if (s.contains("\"")) {
-            s = s.replace("\"", "\"\"");
-          }
-
-          if (s.contains("\n")) {
-            s = s.replace(LINE_SEPARATOR, LINE_SEPARATOR_REPLACEMENT);
-          }
-
-          if (s.contains(",")) {
-            s = "\"" + s + "\"";
-          }
-
-          result[i] = s;
-        }
-
-        return result;
-      }
-    };
+    BeanWrapperFieldExtractor<T> fieldExtractor = new CsvFieldExtractor<>(fieldProcessor);
 
     fieldExtractor.setNames(extractedFieldNames);
 

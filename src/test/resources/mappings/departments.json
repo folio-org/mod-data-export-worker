@@ -20,7 +20,7 @@
       },
       "response": {
         "status": 200,
-        "body": "{\n    \"departments\": [\n        {\n            \"id\": \"ef0f61a5-d911-4c28-9b52-12ebf959d095\",\n            \"name\": \"Departments\",\n            \"code\": \"ACC\",\n            \"usageNumber\": 0,\n            \"metadata\": {\n                \"createdDate\": \"2021-12-08T11:23:34.096+00:00\",\n                \"createdByUserId\": \"1b83b39d-56ba-5905-a195-0a3f1f2da0fd\",\n                \"updatedDate\": \"2021-12-08T11:23:34.096+00:00\",\n                \"updatedByUserId\": \"1b83b39d-56ba-5905-a195-0a3f1f2da0fd\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "body": "{\n            \"id\": \"ef0f61a5-d911-4c28-9b52-12ebf959d095\",\n            \"name\": \"Departments\",\n            \"code\": \"ACC\",\n            \"usageNumber\": 0,\n            \"metadata\": {\n                \"createdDate\": \"2021-12-08T11:23:34.096+00:00\",\n                \"createdByUserId\": \"1b83b39d-56ba-5905-a195-0a3f1f2da0fd\",\n                \"updatedDate\": \"2021-12-08T11:23:34.096+00:00\",\n                \"updatedByUserId\": \"1b83b39d-56ba-5905-a195-0a3f1f2da0fd\"\n            }\n        }",
         "headers": {
           "Content-Type": "application/json"
         }

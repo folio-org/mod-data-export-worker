@@ -3,7 +3,9 @@ package org.folio.dew.batch.bulkedit.jobs;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.utils.BulkEditProcessorHelper.booleanToStringNullSafe;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
@@ -16,14 +18,16 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
+
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.Address;
 import org.folio.dew.domain.dto.CustomField;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.IdentifierType;
+import org.folio.dew.domain.dto.Personal;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserFormat;
-import org.folio.dew.error.BulkEditException;
-import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.SpecialCharacterEscaper;
 import org.folio.dew.service.UserReferenceService;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -40,7 +44,6 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
   private final UserReferenceService userReferenceService;
-  private final BulkEditProcessingErrorsService errorsService;
   private final SpecialCharacterEscaper escaper;
 
   @Value("#{jobParameters['identifierType']}")
@@ -53,25 +56,27 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
   @Override
   public UserFormat process(User user) {
     var errorServiceArgs = new ErrorServiceArgs(jobId, getIdentifier(user, identifierType), FilenameUtils.getName(fileName));
+    var personal = isNull(user.getPersonal()) ? new Personal() : user.getPersonal();
     return UserFormat.builder()
       .username(user.getUsername())
       .id(user.getId())
       .externalSystemId(user.getExternalSystemId())
       .barcode(user.getBarcode())
-      .active((isNull(user.getActive()) ? Boolean.FALSE : user.getActive()).toString())
+      .active(booleanToStringNullSafe(user.getActive()))
       .type(user.getType())
       .patronGroup(userReferenceService.getPatronGroupNameById(user.getPatronGroup(), errorServiceArgs))
       .departments(fetchDepartments(user, errorServiceArgs))
-      .lastName(user.getPersonal().getLastName())
-      .firstName(user.getPersonal().getFirstName())
-      .middleName(user.getPersonal().getMiddleName())
-      .preferredFirstName(user.getPersonal().getPreferredFirstName())
-      .email(user.getPersonal().getEmail())
-      .phone(user.getPersonal().getPhone())
-      .mobilePhone(user.getPersonal().getMobilePhone())
-      .dateOfBirth(dateToString(user.getPersonal().getDateOfBirth()))
-      .addresses(addressesToString(user.getPersonal().getAddresses(), errorServiceArgs))
-      .preferredContactTypeId(isNull(user.getPersonal().getPreferredContactTypeId()) ? EMPTY : user.getPersonal().getPreferredContactTypeId())
+      .proxyFor(proxyForToString(user.getProxyFor()))
+      .lastName(ofNullable(personal.getLastName()).orElse(EMPTY))
+      .firstName(ofNullable(personal.getFirstName()).orElse(EMPTY))
+      .middleName(ofNullable(personal.getMiddleName()).orElse(EMPTY))
+      .preferredFirstName(ofNullable(personal.getPreferredFirstName()).orElse(EMPTY))
+      .email(ofNullable(personal.getEmail()).orElse(EMPTY))
+      .phone(ofNullable(personal.getPhone()).orElse(EMPTY))
+      .mobilePhone(ofNullable(personal.getMobilePhone()).orElse(EMPTY))
+      .dateOfBirth(dateToString(personal.getDateOfBirth()))
+      .addresses(addressesToString(personal.getAddresses(), errorServiceArgs))
+      .preferredContactTypeId(ofNullable(personal.getPreferredContactTypeId()).orElse(EMPTY))
       .enrollmentDate(dateToString(user.getEnrollmentDate()))
       .expirationDate(dateToString(user.getExpirationDate()))
       .createdDate(dateToString(user.getCreatedDate()))
@@ -82,22 +87,31 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
   }
 
   private String fetchDepartments(User user, ErrorServiceArgs args) {
-    if (nonNull(user.getDepartments())) {
-      return user.getDepartments().stream()
+    return isEmpty(user.getDepartments()) ?
+      EMPTY :
+      user.getDepartments().stream()
+        .filter(Objects::nonNull)
         .map(id -> userReferenceService.getDepartmentNameById(id.toString(), args))
+        .filter(StringUtils::isNotEmpty)
         .map(escaper::escape)
         .collect(Collectors.joining(ARRAY_DELIMITER));
-    }
-    return EMPTY;
+  }
+
+  private String proxyForToString(List<String> values) {
+    return ObjectUtils.isEmpty(values) ?
+      EMPTY :
+      values.stream()
+        .filter(Objects::nonNull)
+        .collect(Collectors.joining(ARRAY_DELIMITER));
   }
 
   private String addressesToString(List<Address> addresses, ErrorServiceArgs args) {
-    if (nonNull(addresses)) {
-      return addresses.stream()
+    return isEmpty(addresses) ?
+      EMPTY :
+      addresses.stream()
+        .filter(Objects::nonNull)
         .map(address -> addressToString(address, args))
         .collect(Collectors.joining(ITEM_DELIMITER));
-    }
-    return EMPTY;
   }
 
   private String addressToString(Address address, ErrorServiceArgs args) {
@@ -109,7 +123,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
     addressData.add(ofNullable(address.getCity()).orElse(EMPTY));
     addressData.add(ofNullable(address.getRegion()).orElse(EMPTY));
     addressData.add(ofNullable(address.getPostalCode()).orElse(EMPTY));
-    addressData.add(nonNull(address.getPrimaryAddress()) ? address.getPrimaryAddress().toString() : EMPTY);
+    addressData.add(booleanToStringNullSafe(address.getPrimaryAddress()));
     addressData.add(userReferenceService.getAddressTypeDescById(address.getAddressTypeId(), args));
     return String.join(ARRAY_DELIMITER, escaper.escape(addressData));
   }
@@ -117,31 +131,27 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
   private String customFieldsToString(Map<String, Object> map) {
     return map.entrySet().stream()
       .map(this::customFieldToString)
+      .filter(StringUtils::isNotEmpty)
       .collect(Collectors.joining(ITEM_DELIMITER));
   }
 
   private String customFieldToString(Map.Entry<String, Object> entry) {
     var customField = userReferenceService.getCustomFieldByRefId(entry.getKey());
-    switch (customField.getType()) {
-    case TEXTBOX_LONG:
-    case TEXTBOX_SHORT:
-    case SINGLE_CHECKBOX:
-      if (entry.getValue() instanceof String) {
-        return escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + escaper.escape((String) entry.getValue());
-      } else {
-        return escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + entry.getValue();
-      }
-    case SINGLE_SELECT_DROPDOWN:
-    case RADIO_BUTTON:
-      return escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + escaper.escape(extractValueById(customField, entry.getValue().toString()));
-    case MULTI_SELECT_DROPDOWN:
-      var values = (ArrayList) entry.getValue();
-      return escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + values.stream()
-        .map(v -> escaper.escape(extractValueById(customField, v.toString())))
-        .collect(Collectors.joining(ARRAY_DELIMITER));
-    default:
-      throw new BulkEditException("Invalid custom field: " + entry);
-    }
+    return switch (customField.getType()) {
+    case TEXTBOX_LONG, TEXTBOX_SHORT, SINGLE_CHECKBOX ->
+      escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + (isNull(entry.getValue()) ? EMPTY : escaper.escape(entry.getValue().toString()));
+    case SINGLE_SELECT_DROPDOWN, RADIO_BUTTON ->
+      escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + (isNull(entry.getValue()) ? EMPTY : escaper.escape(extractValueById(customField, entry.getValue().toString())));
+    case MULTI_SELECT_DROPDOWN ->
+      escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER +
+        (entry.getValue() instanceof ArrayList<?> list ?
+          list.stream()
+            .filter(Objects::nonNull)
+            .map(v -> escaper.escape(extractValueById(customField, v.toString())))
+            .filter(ObjectUtils::isNotEmpty)
+            .collect(Collectors.joining(ARRAY_DELIMITER)) :
+          EMPTY);
+    };
   }
 
   private String extractValueById(CustomField customField, String id) {
@@ -153,16 +163,12 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
 
   private String getIdentifier(User user, String identifierType) {
     try {
-      switch (IdentifierType.fromValue(identifierType)) {
-        case BARCODE:
-          return user.getBarcode();
-        case USER_NAME:
-          return user.getUsername();
-        case EXTERNAL_SYSTEM_ID:
-          return user.getExternalSystemId();
-        default:
-          return user.getId();
-      }
+      return switch (IdentifierType.fromValue(identifierType)) {
+        case BARCODE -> user.getBarcode();
+        case USER_NAME -> user.getUsername();
+        case EXTERNAL_SYSTEM_ID -> user.getExternalSystemId();
+        default -> user.getId();
+      };
     } catch (IllegalArgumentException e) {
       return user.getId();
     }

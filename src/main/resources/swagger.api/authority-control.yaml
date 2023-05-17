@@ -16,7 +16,9 @@ components:
       $ref: '../../../../folio-export-common/schemas/authority-control/authorityControlExportConfig.json#/AuthorityControlExportConfig'
     authorityDataStatDto:
       $ref: '../../../../folio-export-common/schemas/authority-control/authorityDataStatDto.json#/AuthorityDataStatDto'
+    instanceDataStatDto:
+      $ref: '../../../../folio-export-common/schemas/authority-control/instanceDataStatDto.json#/InstanceDataStatDto'
     authorityDataStatDtoCollection:
       $ref: '../../../../folio-export-common/schemas/authority-control/authorityDataStatDtoCollection.json#/AuthorityDataStatDtoCollection'
-    instanceDataLinkDtoCollection:
-      $ref: '../../../../folio-export-common/schemas/authority-control/instanceDataLinkDtoCollection.json#/InstanceDataLinkDtoCollection'
+    instanceDataStatDtoCollection:
+      $ref: '../../../../folio-export-common/schemas/authority-control/instanceDataStatDtoCollection.json#/InstanceDataStatDtoCollection'

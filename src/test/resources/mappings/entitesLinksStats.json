@@ -3,11 +3,11 @@
     {
       "request": {
         "method": "GET",
-        "url": "/links/authority/stats?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T00%3A00Z&toDate=2023-12-01T00%3A00Z"
+        "url": "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T00%3A00Z&toDate=2023-12-01T23%3A59%3A59.999999999Z"
       },
       "response": {
         "status": 200,
-        "body": "{\"stats\": [\n{\n\"id\": \"497f6eca-6276-4993-bfeb-53cbbbba6f08\",\n\"authorityId\": \"f4d72275-fbca-44d0-9214-72647a812332\",\n\"action\": \"UPDATE_HEADING\",\n\"naturalIdOld\": \"n1234567\",\n\"naturalIdNew\": \"n1234567\",\n\"headingOld\": \"Charles, Prince of Wales\",\n\"headingNew\": \"Charles III, King\",\n\"headingTypeOld\": \"150\",\n\"headingTypeNew\": \"110\",\n\"sourceFileOld\": \"Not specified\",\n\"sourceFileNew\": \"LC Name Authority file (LCNAF)\",\n\"lbTotal\": 105,\n\"lbUpdated\": 55,\n\"lbFailed\": 50,\n\"metadata\": {\n\"startedAt\": \"2023-10-01T12:00:00Z\",\n\"completedAt\": \"2023-10-01T15:00:00Z\",\n\"startedByUserId\": \"c8f721bd-38ac-411d-82c8-a5902fb19deb\",\n\"startedByUserFirstName\": \"Diku\",\n\"startedByUserLastName\": \"Admin\"\n}\n},\n{\n\"id\": \"500f6eca-6276-4993-bfeb-53cbbbba6f08\",\n\"authorityId\": \"f4d72275-fbca-44d0-9214-72647a812332\",\n\"action\": \"DELETE\",\n\"naturalIdOld\": \"n1234567\",\n\"naturalIdNew\": \"n1234567\",\n\"headingOld\": \"Charles, Prince of Wales\",\n\"headingNew\": \"Charles III, King\",\n\"headingTypeOld\": \"150\",\n\"headingTypeNew\": \"110\",\n\"sourceFileOld\": \"Not specified\",\n\"sourceFileNew\": \"LC Name Authority file (LCNAF)\",\n\"lbTotal\": 105,\n\"lbUpdated\": 55,\n\"lbFailed\": 50,\n\"metadata\": {\n\"startedAt\": \"2023-10-01T12:00:00Z\",\n\"completedAt\": \"2023-09-01T15:00:00Z\",\n\"startedByUserId\": \"c8f721bd-38ac-411d-82c8-a5902fb19deb\",\n\"startedByUserFirstName\": \"Diku\",\n\"startedByUserLastName\": \"Admin\"\n}\n}\n],\n\"next\": \"2023-08-01T12:00:00.000000Z\"}",
+        "body": "{\"stats\": [{\"id\": \"497f6eca-6276-4993-bfeb-53cbbbba6f08\",\"authorityId\": \"f4d72275-fbca-44d0-9214-72647a812332\",\"action\": \"UPDATE_HEADING\",\"naturalIdOld\": \"n1234567\",\"naturalIdNew\": \"n1234567\",\"headingOld\": \"Charles, Prince of Wales\",\"headingNew\": \"Charles III, King\",\"headingTypeOld\": \"150\",\"headingTypeNew\": \"110\",\"sourceFileOld\": \"Not specified\",\"sourceFileNew\": \"LC Name Authority file (LCNAF)\",\"lbTotal\": 105,\"lbUpdated\": 55,\"lbFailed\": 50,\"metadata\": {\"startedAt\": \"2023-10-01T12:00:00Z\",\"completedAt\": \"2023-10-01T15:00:00Z\",\"startedByUserId\": \"c8f721bd-38ac-411d-82c8-a5902fb19deb\",\"startedByUserFirstName\": \"Diku\",\"startedByUserLastName\": \"Admin\"}},{\"id\": \"500f6eca-6276-4993-bfeb-53cbbbba6f08\",\"authorityId\": \"f4d72275-fbca-44d0-9214-72647a812332\",\"action\": \"DELETE\",\"naturalIdOld\": \"n1234567\",\"naturalIdNew\": \"n1234567\",\"headingOld\": \"Charles, Prince of Wales\",\"headingNew\": \"Charles III, King\",\"headingTypeOld\": \"150\",\"headingTypeNew\": \"110\",\"sourceFileOld\": \"Not specified\",\"sourceFileNew\": \"LC Name Authority file (LCNAF)\",\"lbTotal\": 105,\"lbUpdated\": 55,\"lbFailed\": 50,\"metadata\": {\"startedAt\": \"2023-10-01T12:00:00Z\",\"completedAt\": \"2023-09-01T15:00:00Z\",\"startedByUserId\": \"c8f721bd-38ac-411d-82c8-a5902fb19deb\",\"startedByUserFirstName\": \"Diku\",\"startedByUserLastName\": \"Admin\"}}],\"next\": \"2023-08-01T12:00:00.000000Z\"}",
         "headers": {
           "Content-Type": "application/json"
         }
@@ -16,11 +16,50 @@
     {
       "request": {
         "method": "GET",
-        "url": "/links/authority/stats?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T00%3A00Z&toDate=2023-08-01T12%3A00Z"
+        "url": "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T00%3A00Z&toDate=2023-08-01T12%3A00Z"
       },
       "response": {
         "status": 200,
-        "body": "{\"stats\": [\n{\n\"id\": \"0b1e3760-f689-493e-a98e-9cc9dadb7e83\",\n\"authorityId\": \"c8f721bd-38ac-411d-82c8-a5902fb20deb\",\n\"action\": \"UPDATE_HEADING\",\n\"naturalIdOld\": \"mo34056\",\n\"naturalIdNew\": \"mo34056\",\n\"headingOld\": \"Charles III, King\",\n\"headingNew\": \"King Charles III\",\n\"headingTypeOld\": \"100\",\n\"headingTypeNew\": \"100\",\n\"sourceFileOld\": \"Not specified\",\n\"sourceFileNew\": \"Not specified\",\n\"lbTotal\": 10,\n\"lbUpdated\": 10,\n\"lbFailed\": 0,\n\"metadata\": {\n\"startedAt\": \"2023-08-01T12:00:00Z\",\n\"completedAt\": \"2023-08-01T15:00:00Z\",\n\"startedByUserId\": \"f4d72275-fbca-44d0-9214-72647a812333\",\n\"startedByUserFirstName\": \"Folio\",\n\"startedByUserLastName\": \"Test\"}},\n{\n\"id\": \"1b1e3760-f689-493e-a98e-9cc9dadb7e83\",\n\"authorityId\": \"c8f721bd-38ac-411d-82c8-a5902fb20deb\",\n\"action\": \"UPDATE_HEADING\",\n\"naturalIdOld\": \"mo34056\",\n\"naturalIdNew\": \"mo34056\",\n\"headingOld\": \"Charles III, King\",\n\"headingNew\": \"King Charles III\",\n\"headingTypeOld\": \"100\",\n\"headingTypeNew\": \"100\",\n\"sourceFileOld\": \"Not specified\",\n\"sourceFileNew\": \"Not specified\",\n\"lbTotal\": 10,\n\"lbUpdated\": 10,\n\"lbFailed\": 0,\n\"metadata\": {\n\"startedAt\": \"2023-08-01T12:00:00Z\",\n\"completedAt\": \"2023-07-01T15:00:00Z\",\n\"startedByUserId\": \"f4d72275-fbca-44d0-9214-72647a812333\",\n\"startedByUserFirstName\": \"Folio\",\n\"startedByUserLastName\": \"Test\"}}]}",
+        "body": "{\"stats\": [{\"id\": \"0b1e3760-f689-493e-a98e-9cc9dadb7e83\",\"authorityId\": \"c8f721bd-38ac-411d-82c8-a5902fb20deb\",\"action\": \"UPDATE_HEADING\",\"naturalIdOld\": \"mo34056\",\"naturalIdNew\": \"mo34056\",\"headingOld\": \"Charles III, King\",\"headingNew\": \"King Charles III\",\"headingTypeOld\": \"100\",\"headingTypeNew\": \"100\",\"sourceFileOld\": \"Not specified\",\"sourceFileNew\": \"Not specified\",\"lbTotal\": 10,\"lbUpdated\": 10,\"lbFailed\": 0,\"metadata\": {\"startedAt\": \"2023-08-01T12:00:00Z\",\"completedAt\": \"2023-08-01T15:00:00Z\",\"startedByUserId\": \"f4d72275-fbca-44d0-9214-72647a812333\",\"startedByUserFirstName\": \"Folio\",\"startedByUserLastName\": \"Test\"}},{\"id\": \"1b1e3760-f689-493e-a98e-9cc9dadb7e83\",\"authorityId\": \"c8f721bd-38ac-411d-82c8-a5902fb20deb\",\"action\": \"UPDATE_HEADING\",\"naturalIdOld\": \"mo34056\",\"naturalIdNew\": \"mo34056\",\"headingOld\": \"Charles III, King\",\"headingNew\": \"King Charles III\",\"headingTypeOld\": \"100\",\"headingTypeNew\": \"100\",\"sourceFileOld\": \"Not specified\",\"sourceFileNew\": \"Not specified\",\"lbTotal\": 10,\"lbUpdated\": 10,\"lbFailed\": 0,\"metadata\": {\"startedAt\": \"2023-08-01T12:00:00Z\",\"completedAt\": \"2023-07-01T15:00:00Z\",\"startedByUserId\": \"f4d72275-fbca-44d0-9214-72647a812333\",\"startedByUserLastName\": \"Test\"}},{\"id\": \"1b1e3760-f689-493e-a98e-9cc9dadb7e83\",\"authorityId\": \"c8f721bd-38ac-411d-82c8-a5902fb20deb\",\"action\": \"UPDATE_HEADING\",\"naturalIdOld\": \"mo34056\",\"naturalIdNew\": \"mo34056\",\"headingOld\": \"Charles III, King\",\"headingNew\": \"King Charles III\",\"headingTypeOld\": \"100\",\"headingTypeNew\": \"100\",\"sourceFileOld\": \"Not specified\",\"sourceFileNew\": \"Not specified\",\"lbTotal\": 10,\"lbUpdated\": 10,\"lbFailed\": 0,\"metadata\": {\"startedAt\": \"2023-08-01T12:00:00Z\",\"completedAt\": \"2023-07-01T15:00:00Z\",\"startedByUserId\": \"f4d72275-fbca-44d0-9214-72647a812334\",\"startedByUserLastName\": \"\",\"startedByUserFirstName\": null}}]}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2022-01-01T00%3A00Z&toDate=2022-12-01T23%3A59%3A59.999999999Z"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"stats\":[]}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/links/stats/instance?limit=2&status=ERROR"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"stats\": [{ \"instanceId\": \"64d2028c-ae87-4069-a624-66089d957ef9\",\"instanceTitle\": \"First title\", \"bibRecordTag\": \"650\", \"authorityNaturalId\": \"mo34056\", \"updatedAt\": \"2019-08-24T14:15:22Z\", \"errorCause\": \"Not found 404\" }], \"next\": \"2023-08-01T12:00:00.000000Z\"}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/links/stats/instance?limit=2&status=ERROR&toDate=2023-08-01T12%3A00Z"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"stats\": [{ \"instanceId\": \"65d2028c-ae87-4069-a624-66089d957ef9\",\"instanceTitle\": \"Second title\", \"bibRecordTag\": \"150\", \"authorityNaturalId\": \"mo34057\", \"updatedAt\": \"2019-08-24T14:15:22Z\", \"errorCause\": \"Invalid value\" }]}",
         "headers": {
           "Content-Type": "application/json"
         }

@@ -1,0 +1,87 @@
+{
+  "poLines": [
+    {
+      "id": "f7cebba9-900d-4e46-ac96-9dfdb6da214e",
+      "edition": "",
+      "checkinItems": false,
+      "instanceId": "69640328-788e-43fc-9c3c-af39e243f3b7",
+      "acquisitionMethod": "306489dd-0053-49ee-a068-c316444a8f55",
+      "automaticExport": true,
+      "alerts": [],
+      "claims": [],
+      "collection": false,
+      "contributors": [
+        {
+          "contributor": "Moutinho, Luiz",
+          "contributorNameTypeId": "2b94c631-fca9-4892-a730-03ee529ffe2a"
+        }
+      ],
+      "cost": {
+        "listUnitPrice": 2.0,
+        "currency": "USD",
+        "discount": 10.0,
+        "discountType": "percentage",
+        "quantityPhysical": 1,
+        "poLineEstimatedPrice": 1.8
+      },
+      "details": {
+        "productIds": [
+          {
+            "productId": "9783319643991",
+            "productIdType": "8261054f-be78-422d-bd51-4ed9f33c3422",
+            "qualifier": ""
+          }
+        ],
+        "subscriptionInterval": 0
+      },
+      "eresource": {
+        "activated": false,
+        "createInventory": "Instance, Holding",
+        "trial": false,
+        "accessProvider": "50fb6ae0-cdf1-11e8-a8d5-f2801f1b9fd1"
+      },
+      "fundDistribution": [
+        {
+          "code": "USHIST",
+          "fundId": "65032151-39a5-4cef-8810-5350eb316300",
+          "distributionType": "percentage",
+          "value": 100.0
+        }
+      ],
+      "isPackage": false,
+      "locations": [
+        {
+          "holdingId": "c4a15834-0184-4a6f-9c0c-0ca5bad8286d",
+          "quantity": 1,
+          "quantityPhysical": 1
+        }
+      ],
+      "orderFormat": "Physical Resource",
+      "paymentStatus": "Pending",
+      "physical": {
+        "createInventory": "Instance, Holding, Item",
+        "materialSupplier": "50fb6ae0-cdf1-11e8-a8d5-f2801f1b9fd1",
+        "volumes": []
+      },
+      "poLineNumber": "10000-1",
+      "publisher": "Palgrave Macmillan",
+      "purchaseOrderId": "91103993-acc5-46c4-a2e6-a79cae1959be",
+      "receiptStatus": "Pending",
+      "reportingCodes": [],
+      "rush": false,
+      "source": "User",
+      "titleOrPackage": "Futures, biometrics and neuroscience research Luiz Moutinho, Mladen Sokele, editors",
+      "vendorDetail": {
+        "instructions": "",
+        "vendorAccount": "BRXXXXX-01",
+        "referenceNumbers": []
+      },
+      "metadata": {
+        "createdDate": "2021-12-28T08:17:02.171+00:00",
+        "createdByUserId": "7a626480-284e-5b55-9cf2-db32f93956cf",
+        "updatedDate": "2021-12-28T08:17:02.171+00:00",
+        "updatedByUserId": "7a626480-284e-5b55-9cf2-db32f93956cf"
+      }
+    }
+  ]
+}

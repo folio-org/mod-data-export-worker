@@ -1,89 +1,5 @@
 package org.folio.dew.controller;
 
-import lombok.SneakyThrows;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.folio.de.entity.JobCommand;
-import org.folio.de.entity.JobCommandType;
-import org.folio.dew.BaseBatchTest;
-import org.folio.dew.client.ConfigurationClient;
-import org.folio.dew.client.GroupClient;
-import org.folio.dew.client.InventoryClient;
-import org.folio.dew.client.UserClient;
-import org.folio.dew.domain.dto.ConfigurationCollection;
-import org.folio.dew.domain.dto.EntityType;
-import org.folio.dew.domain.dto.ExportType;
-import org.folio.dew.domain.dto.HoldingsContentUpdate;
-import org.folio.dew.domain.dto.HoldingsContentUpdateCollection;
-import org.folio.dew.domain.dto.HoldingsRecordCollection;
-import org.folio.dew.domain.dto.IdentifierType;
-import org.folio.dew.domain.dto.InventoryItemStatus;
-import org.folio.dew.domain.dto.Item;
-import org.folio.dew.domain.dto.ItemCollection;
-import org.folio.dew.domain.dto.ItemContentUpdate;
-import org.folio.dew.domain.dto.ItemContentUpdateCollection;
-import org.folio.dew.domain.dto.JobParameterNames;
-import org.folio.dew.domain.dto.Metadata;
-import org.folio.dew.domain.dto.ModelConfiguration;
-import org.folio.dew.domain.dto.Personal;
-import org.folio.dew.domain.dto.User;
-import org.folio.dew.domain.dto.UserCollection;
-import org.folio.dew.domain.dto.UserContentUpdate;
-import org.folio.dew.domain.dto.UserContentUpdateAction;
-import org.folio.dew.domain.dto.UserContentUpdateCollection;
-import org.folio.dew.domain.dto.UserGroup;
-import org.folio.dew.domain.dto.UserGroupCollection;
-import org.folio.dew.error.BulkEditException;
-import org.folio.dew.error.FileOperationException;
-import org.folio.dew.repository.JobCommandRepository;
-import org.folio.dew.repository.LocalFilesStorage;
-import org.folio.dew.repository.RemoteFilesStorage;
-import org.folio.dew.repository.S3CompatibleResource;
-import org.folio.dew.service.BulkEditProcessingErrorsService;
-import org.folio.dew.service.BulkEditRollBackService;
-import org.folio.dew.service.JobCommandsReceiverService;
-import org.folio.spring.DefaultFolioExecutionContext;
-import org.folio.spring.FolioModuleMetadata;
-import org.folio.spring.integration.XOkapiHeaders;
-import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
-import org.folio.tenant.domain.dto.Errors;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.ArgumentCaptor;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobExecutionException;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.integration.launch.JobLaunchRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.controller.ItemsContentUpdateTestData.CLEAR_FIELD_PERMANENT_LOAN_TYPE;
@@ -128,6 +44,90 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import lombok.SneakyThrows;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.folio.de.entity.JobCommand;
+import org.folio.de.entity.JobCommandType;
+import org.folio.dew.BaseBatchTest;
+import org.folio.dew.client.ConfigurationClient;
+import org.folio.dew.client.GroupClient;
+import org.folio.dew.client.InventoryClient;
+import org.folio.dew.client.UserClient;
+import org.folio.dew.domain.dto.ConfigurationCollection;
+import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.HoldingsContentUpdate;
+import org.folio.dew.domain.dto.HoldingsContentUpdateCollection;
+import org.folio.dew.domain.dto.HoldingsRecordCollection;
+import org.folio.dew.domain.dto.IdentifierType;
+import org.folio.dew.domain.dto.InventoryItemStatus;
+import org.folio.dew.domain.dto.Item;
+import org.folio.dew.domain.dto.ItemCollection;
+import org.folio.dew.domain.dto.ItemContentUpdate;
+import org.folio.dew.domain.dto.ItemContentUpdateCollection;
+import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.Metadata;
+import org.folio.dew.domain.dto.ModelConfiguration;
+import org.folio.dew.domain.dto.Personal;
+import org.folio.dew.domain.dto.User;
+import org.folio.dew.domain.dto.UserCollection;
+import org.folio.dew.domain.dto.UserContentUpdate;
+import org.folio.dew.domain.dto.UserContentUpdateAction;
+import org.folio.dew.domain.dto.UserContentUpdateCollection;
+import org.folio.dew.domain.dto.UserGroup;
+import org.folio.dew.domain.dto.UserGroupCollection;
+import org.folio.dew.error.BulkEditException;
+import org.folio.dew.error.FileOperationException;
+import org.folio.dew.repository.JobCommandRepository;
+import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.repository.RemoteFilesStorage;
+import org.folio.dew.repository.S3CompatibleResource;
+import org.folio.dew.service.BulkEditProcessingErrorsService;
+import org.folio.dew.service.BulkEditRollBackService;
+import org.folio.dew.service.JobCommandsReceiverService;
+import org.folio.spring.DefaultFolioExecutionContext;
+import org.folio.spring.FolioExecutionContext;
+import org.folio.spring.FolioModuleMetadata;
+import org.folio.spring.integration.XOkapiHeaders;
+import org.folio.spring.scope.FolioExecutionContextSetter;
+import org.folio.tenant.domain.dto.Errors;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobExecutionException;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.integration.launch.JobLaunchRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 
 class BulkEditControllerTest extends BaseBatchTest {
   private static final String UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/upload";
@@ -193,6 +193,9 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @Autowired
   private FolioModuleMetadata folioModuleMetadata;
+
+  @Autowired
+  private FolioExecutionContext folioExecutionContext;
 
   @MockBean
   private GroupClient groupClient;
@@ -322,7 +325,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = IdentifierType.class, names = { "EXTERNAL_SYSTEM_ID", "USER_NAME" }, mode = EnumSource.Mode.EXCLUDE)
+  @EnumSource(value = IdentifierType.class, names = {"EXTERNAL_SYSTEM_ID", "USER_NAME"}, mode = EnumSource.Mode.EXCLUDE)
   @SneakyThrows
   void shouldReturnCompleteItemPreview(IdentifierType identifierType) {
     var jobId = UUID.randomUUID();
@@ -351,7 +354,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = IdentifierType.class, names = {"ID", "HOLDINGS_RECORD_ID","INSTANCE_HRID","ITEM_BARCODE"})
+  @EnumSource(value = IdentifierType.class, names = {"ID", "HOLDINGS_RECORD_ID", "INSTANCE_HRID", "ITEM_BARCODE"})
   @SneakyThrows
   void shouldReturnCompleteHoldingsRecordPreview(IdentifierType identifierType) {
     var jobId = UUID.randomUUID();
@@ -380,7 +383,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = IdentifierType.class, names = {"ID", "HOLDINGS_RECORD_ID","INSTANCE_HRID","ITEM_BARCODE"})
+  @EnumSource(value = IdentifierType.class, names = {"ID", "HOLDINGS_RECORD_ID", "INSTANCE_HRID", "ITEM_BARCODE"})
   @SneakyThrows
   void shouldReturnChangedHoldingsRecordPreview(IdentifierType identifierType) {
     var jobId = UUID.randomUUID();
@@ -438,7 +441,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = IdentifierType.class, names = { "EXTERNAL_SYSTEM_ID", "USER_NAME" }, mode = EnumSource.Mode.EXCLUDE)
+  @EnumSource(value = IdentifierType.class, names = {"EXTERNAL_SYSTEM_ID", "USER_NAME"}, mode = EnumSource.Mode.EXCLUDE)
   @SneakyThrows
   void shouldReturnEmptyItemPreviewIfNoRecordsAvailable(IdentifierType identifierType) {
     var jobId = UUID.randomUUID();
@@ -465,7 +468,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = IdentifierType.class, names = {"ID", "HOLDINGS_RECORD_ID","INSTANCE_HRID","ITEM_BARCODE"})
+  @EnumSource(value = IdentifierType.class, names = {"ID", "HOLDINGS_RECORD_ID", "INSTANCE_HRID", "ITEM_BARCODE"})
   @SneakyThrows
   void shouldReturnEmptyHoldingsRecordPreviewIfNoRecordsAvailable(IdentifierType identifierType) {
     var jobId = UUID.randomUUID();
@@ -584,12 +587,14 @@ class BulkEditControllerTest extends BaseBatchTest {
     var file = new MockMultipartFile("file", "barcodes.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
 
     var result = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
-      .file(file)
-      .headers(headers))
+        .file(file)
+        .headers(headers))
       .andExpect(status().isOk())
       .andReturn();
 
     assertThat(result.getResponse().getContentAsString(), equalTo("3"));
+    // Lets wait for async invocation to complete
+    Thread.sleep(3000);
     verify(exportJobManagerSync, times(1)).launchJob(any());
   }
 
@@ -666,7 +671,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     when(exportJobManagerSync.launchJob(isA(JobLaunchRequest.class))).thenReturn(jobExecution);
 
     mockMvc.perform(multipart(format(START_URL_TEMPLATE, jobId))
-      .headers(headers))
+        .headers(headers))
       .andExpect(status().isOk());
 
     verify(jobCommandsReceiverService, times(1)).getBulkEditJobCommandById(jobId.toString());
@@ -683,7 +688,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.empty());
 
     mockMvc.perform(multipart(format(START_URL_TEMPLATE, jobId))
-      .headers(headers))
+        .headers(headers))
       .andExpect(status().isNotFound());
   }
 
@@ -703,7 +708,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     when(exportJobManagerSync.launchJob(isA(JobLaunchRequest.class))).thenThrow(new JobExecutionException("Execution exception"));
 
     mockMvc.perform(multipart(format(START_URL_TEMPLATE, jobId))
-      .headers(headers))
+        .headers(headers))
       .andExpect(status().isOk());
   }
 
@@ -733,8 +738,8 @@ class BulkEditControllerTest extends BaseBatchTest {
       .totalRecords(1));
 
     var response = mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
-      .headers(defaultHeaders())
-      .content(updates))
+        .headers(defaultHeaders())
+        .content(updates))
       .andExpect(status().isOk())
       .andReturn();
 
@@ -830,13 +835,13 @@ class BulkEditControllerTest extends BaseBatchTest {
       .totalRecords(1));
 
     var response = mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
-      .headers(defaultHeaders())
-      .content(updatesString))
+        .headers(defaultHeaders())
+        .content(updatesString))
       .andExpect(status().isOk())
       .andReturn();
 
     response = mockMvc.perform(get(format(ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE, jobId))
-      .headers(defaultHeaders()))
+        .headers(defaultHeaders()))
       .andExpect(status().isOk())
       .andReturn();
 
@@ -885,15 +890,15 @@ class BulkEditControllerTest extends BaseBatchTest {
       .totalRecords(1));
 
     mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
-      .headers(defaultHeaders())
-      .content(updates))
+        .headers(defaultHeaders())
+        .content(updates))
       .andExpect(status().isOk())
       .andReturn();
 
     UUID jobByThisIdCannotBeFound = UUID.randomUUID();
 
     mockMvc.perform(get(format(ITEMS_CONTENT_PREVIEW_DOWNLOAD_URL_TEMPLATE, jobByThisIdCannotBeFound))
-      .headers(defaultHeaders()))
+        .headers(defaultHeaders()))
       .andExpect(status().isNotFound())
       .andReturn();
   }
@@ -931,9 +936,9 @@ class BulkEditControllerTest extends BaseBatchTest {
     when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var response = mockMvc.perform(get(format(urlTemplate, jobId))
-            .headers(defaultHeaders()))
-        .andExpect(status().isOk())
-        .andReturn();
+        .headers(defaultHeaders()))
+      .andExpect(status().isOk())
+      .andReturn();
 
     var expectedCsv = new FileSystemResource(previewPath);
     var actualCsvByteArr = response.getResponse().getContentAsByteArray();
@@ -1061,23 +1066,23 @@ class BulkEditControllerTest extends BaseBatchTest {
     jobCommand.setEntityType(ITEM);
     jobCommand.setIdentifierType(identifierType);
     jobCommand.setJobParameters(new JobParametersBuilder()
-        .addString(FILE_NAME, "fileName.csv")
-        .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEM_FOR_STATUS_UPDATE_ERROR.replace(CSV_EXTENSION, EMPTY))
-        .toJobParameters());
+      .addString(FILE_NAME, "fileName.csv")
+      .addString(TEMP_OUTPUT_FILE_PATH, "test/path/" + ITEM_FOR_STATUS_UPDATE_ERROR.replace(CSV_EXTENSION, EMPTY))
+      .toJobParameters());
 
     when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
 
     var updates = objectMapper.writeValueAsString(new ItemContentUpdateCollection()
-        .itemContentUpdates(Collections.singletonList(new ItemContentUpdate()
-            .option(ItemContentUpdate.OptionEnum.STATUS)
-            .action(ItemContentUpdate.ActionEnum.CLEAR_FIELD)))
-        .totalRecords(1));
+      .itemContentUpdates(Collections.singletonList(new ItemContentUpdate()
+        .option(ItemContentUpdate.OptionEnum.STATUS)
+        .action(ItemContentUpdate.ActionEnum.CLEAR_FIELD)))
+      .totalRecords(1));
 
     mockMvc.perform(post(format(ITEMS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
-            .headers(defaultHeaders())
-            .content(updates))
-        .andExpect(status().isOk())
-        .andReturn();
+        .headers(defaultHeaders())
+        .content(updates))
+      .andExpect(status().isOk())
+      .andReturn();
 
     var errors = errorsService.readErrorsFromCSV(jobId.toString(), jobCommand.getJobParameters().getString(FILE_NAME), 10);
     assertThat(errors.getErrors(), hasSize(1));
@@ -1198,7 +1203,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(result.getResponse().getContentAsString(), equalTo("3"));
 
     jobId = UUID.randomUUID();
-    var jobCommand3 =createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, USER, BARCODE) ;
+    var jobCommand3 = createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, USER, BARCODE);
     when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand3));
 
     headers = defaultHeaders();
@@ -1217,7 +1222,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(result.getResponse().getContentAsString(), equalTo("3"));
 
     jobId = UUID.randomUUID();
-    var jobCommand4 =createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, USER, BARCODE) ;
+    var jobCommand4 = createBulkEditJobRequest(jobId, BULK_EDIT_UPDATE, USER, BARCODE);
     when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand4));
 
     headers = defaultHeaders();
@@ -1269,142 +1274,60 @@ class BulkEditControllerTest extends BaseBatchTest {
     var file = new MockMultipartFile("file", "barcodes.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
 
     var responseUpload = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
-      .file(file)
-      .headers(defaultHeaders()))
+        .file(file)
+        .headers(defaultHeaders()))
       .andExpect(status().isOk())
       .andReturn();
 
     Map<String, Collection<String>> okapiHeaders = new LinkedHashMap<>();
     okapiHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
     var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
-    FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
+    try (var context = new FolioExecutionContextSetter(defaultFolioExecutionContext)) {
 
-    createTestLauncher(bulkEditProcessUserIdentifiersJob).launchJob(jobCommand.getJobParameters());
+      createTestLauncher(bulkEditProcessUserIdentifiersJob).launchJob(jobCommand.getJobParameters());
 
-    assertThat(responseUpload.getResponse().getContentAsString(), equalTo("3"));
+      assertThat(responseUpload.getResponse().getContentAsString(), equalTo("3"));
 
-    var updates = objectMapper.writeValueAsString(new UserContentUpdateCollection()
-      .userContentUpdates(List.of(new UserContentUpdate()
-        .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
-        .actions(List.of(
-          new UserContentUpdateAction().name(FIND).value("example1.com"),
-          new UserContentUpdateAction().name(REPLACE_WITH).value("NEWexample1.com"))),
-        new UserContentUpdate()
-          .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
-          .actions(List.of(
-            new UserContentUpdateAction().name(FIND).value("example2.com"),
-            new UserContentUpdateAction().name(REPLACE_WITH).value("NEWexample2.com"))),
-        new UserContentUpdate()
-          .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
-          .actions(List.of(
-            new UserContentUpdateAction().name(FIND).value("example3.com"),
-            new UserContentUpdateAction().name(REPLACE_WITH).value("NEWexample3.com")))))
-      .totalRecords(3));
+      var updates = objectMapper.writeValueAsString(new UserContentUpdateCollection()
+        .userContentUpdates(List.of(new UserContentUpdate()
+            .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
+            .actions(List.of(
+              new UserContentUpdateAction().name(FIND).value("example1.com"),
+              new UserContentUpdateAction().name(REPLACE_WITH).value("NEWexample1.com"))),
+          new UserContentUpdate()
+            .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
+            .actions(List.of(
+              new UserContentUpdateAction().name(FIND).value("example2.com"),
+              new UserContentUpdateAction().name(REPLACE_WITH).value("NEWexample2.com"))),
+          new UserContentUpdate()
+            .option(UserContentUpdate.OptionEnum.EMAIL_ADDRESS)
+            .actions(List.of(
+              new UserContentUpdateAction().name(FIND).value("example3.com"),
+              new UserContentUpdateAction().name(REPLACE_WITH).value("NEWexample3.com")))))
+        .totalRecords(3));
 
-    var responseContentUpdateUpload = mockMvc.perform(post(format(USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
-      .headers(defaultHeaders())
-      .content(updates))
-      .andExpect(status().isOk())
-      .andReturn();
-    var actualUsers = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
-      UserCollection.class);
-    actualUsers.getUsers().forEach(u -> {
-      if (u.getBarcode().equals("123")) {
-        assertEquals("123@NEWexample1.com", u.getPersonal().getEmail());
-      } else if (u.getBarcode().equals("456")) {
-        assertEquals("456@NEWexample2.com", u.getPersonal().getEmail());
-      } else if (u.getBarcode().equals("789")) {
-        assertEquals("789@NEWexample3.com", u.getPersonal().getEmail());
-      }
-    });
-    mockMvc.perform(get(format(PREVIEW_USERS_URL_TEMPLATE, jobId))
-      .headers(defaultHeaders())
-      .queryParam(LIMIT, String.valueOf(10)))
-      .andExpect(status().isOk())
-      .andReturn();
-  }
-
-  @Test
-  @DisplayName("Post user content update to replace patron group and replace expiration date")
-  @SneakyThrows
-  void shouldAndReplacePatronGroupAndClearExpirationDate() {
-    when(userClient.getUserByQuery("barcode==\"123\"", 1))
-      .thenReturn(new UserCollection().addUsersItem(new User().barcode("123").active(true).personal(new Personal().email("123@example1.com"))
-        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
-    when(userClient.getUserByQuery("barcode==\"456\"", 1))
-      .thenReturn(new UserCollection().addUsersItem(new User().barcode("456").active(true).personal(new Personal().email("456@example2.com"))
-        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
-    when(userClient.getUserByQuery("barcode==\"789\"", 1))
-      .thenReturn(new UserCollection().addUsersItem(new User().barcode("789").active(true).personal(new Personal().email("789@example3.com"))
-        .expirationDate(new Date()).patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b")).totalRecords(1));
-    UserGroup userGroup, newUserGroup;
-    when(groupClient.getGroupById("3684a786-6671-4268-8ed0-9db82ebca60b"))
-      .thenReturn(userGroup = new UserGroup().group("some group").id("3684a786-6671-4268-8ed0-9db82ebca60b"));
-    when(groupClient.getGroupById("4684a786-6671-4268-8ed0-9db82ebca60b"))
-      .thenReturn(newUserGroup = new UserGroup().group("some new group").id("4684a786-6671-4268-8ed0-9db82ebca60b"));
-    when(groupClient.getGroupByQuery("group==\"some group\""))
-      .thenReturn(new UserGroupCollection().usergroups(List.of(userGroup)));
-    when(groupClient.getGroupByQuery("group==\"some new group\""))
-      .thenReturn(new UserGroupCollection().usergroups(List.of(newUserGroup)));
-
-    var jobId = UUID.randomUUID();
-    var jobCommand = new JobCommand();
-    jobCommand.setId(jobId);
-    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
-    jobCommand.setEntityType(USER);
-    jobCommand.setIdentifierType(BARCODE);
-    jobCommand.setJobParameters(new JobParametersBuilder().addString(JobParameterNames.JOB_ID, jobId.toString()).toJobParameters());
-
-    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
-
-    var bytes = new FileInputStream("src/test/resources/upload/barcodes.csv").readAllBytes();
-    var file = new MockMultipartFile("file", "barcodes.csv", MediaType.TEXT_PLAIN_VALUE, bytes);
-
-    var responseUpload = mockMvc.perform(multipart(format(UPLOAD_URL_TEMPLATE, jobId))
-      .file(file)
-      .headers(defaultHeaders()))
-      .andExpect(status().isOk())
-      .andReturn();
-
-    Map<String, Collection<String>> okapiHeaders = new LinkedHashMap<>();
-    okapiHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
-    var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
-    FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
-
-    createTestLauncher(bulkEditProcessUserIdentifiersJob).launchJob(jobCommand.getJobParameters());
-
-    assertThat(responseUpload.getResponse().getContentAsString(), equalTo("3"));
-
-    var updates = objectMapper.writeValueAsString(new UserContentUpdateCollection()
-      .userContentUpdates(List.of(new UserContentUpdate()
-          .option(UserContentUpdate.OptionEnum.PATRON_GROUP)
-          .actions(Collections.singletonList(new UserContentUpdateAction().name(REPLACE_WITH).value("some new group"))),
-        new UserContentUpdate()
-          .option(UserContentUpdate.OptionEnum.EXPIRATION_DATE)
-          .actions(List.of(
-            new UserContentUpdateAction().name(REPLACE_WITH).value("2022-06-12 23:59:00.000Z")))))
-      .totalRecords(3));
-
-    var responseContentUpdateUpload = mockMvc.perform(post(format(USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
-      .headers(defaultHeaders())
-      .content(updates))
-      .andExpect(status().isOk())
-      .andReturn();
-    var actualUsers = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
-      UserCollection.class);
-    actualUsers.getUsers().forEach(u -> {
-      assertEquals(new Date(Instant.parse("2022-06-12T23:59:00.00Z").toEpochMilli()), u.getExpirationDate());
-      assertEquals("some new group", groupClient.getGroupById(u.getPatronGroup()).getGroup());
-    });
-
-    okapiHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
-    defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
-    FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
-    jobCommand.setExportType(BULK_EDIT_UPDATE);
-    var jobExecution = createTestLauncher(bulkEditProcessUserIdentifiersJob).launchJob(jobCommand.getJobParameters());
-    assertEquals("COMPLETED", jobExecution.getStatus().name());
-    assertEquals(Files.readString(Path.of(EXPECTED_USER_CONTENT_UPDATE_OUTPUT)), new String(remoteFilesStorage.newInputStream
-      (jobExecution.getJobParameters().getString(UPDATED_FILE_NAME)).readAllBytes()));
+      var responseContentUpdateUpload = mockMvc.perform(post(format(USERS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
+          .headers(defaultHeaders())
+          .content(updates))
+        .andExpect(status().isOk())
+        .andReturn();
+      var actualUsers = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
+        UserCollection.class);
+      actualUsers.getUsers().forEach(u -> {
+        if (u.getBarcode().equals("123")) {
+          assertEquals("123@NEWexample1.com", u.getPersonal().getEmail());
+        } else if (u.getBarcode().equals("456")) {
+          assertEquals("456@NEWexample2.com", u.getPersonal().getEmail());
+        } else if (u.getBarcode().equals("789")) {
+          assertEquals("789@NEWexample3.com", u.getPersonal().getEmail());
+        }
+      });
+      mockMvc.perform(get(format(PREVIEW_USERS_URL_TEMPLATE, jobId))
+          .headers(defaultHeaders())
+          .queryParam(LIMIT, String.valueOf(10)))
+        .andExpect(status().isOk())
+        .andReturn();
+    }
   }
 
   @Test
@@ -1525,20 +1448,20 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   private String getIdentifier(IdentifierType identifierType) {
     switch (identifierType) {
-    case ID:
-      return  "b7a9718a-0c26-4d43-ace9-52234ff74ad8";
-    case HRID:
-      return  "it00000000002";
-    case HOLDINGS_RECORD_ID:
-      return  "4929e3d5-8de5-4bb2-8818-3c23695e7505";
-    case BARCODE:
-      return  "0001";
-    case FORMER_IDS:
-      return  "former_id";
-    case ACCESSION_NUMBER:
-      return  "accession_number";
-    default:
-      return null;
+      case ID:
+        return "b7a9718a-0c26-4d43-ace9-52234ff74ad8";
+      case HRID:
+        return "it00000000002";
+      case HOLDINGS_RECORD_ID:
+        return "4929e3d5-8de5-4bb2-8818-3c23695e7505";
+      case BARCODE:
+        return "0001";
+      case FORMER_IDS:
+        return "former_id";
+      case ACCESSION_NUMBER:
+        return "accession_number";
+      default:
+        return null;
     }
   }
 }

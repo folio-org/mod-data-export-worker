@@ -1,8 +1,12 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
+import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.folio.dew.utils.BulkEditProcessorHelper.booleanToStringNullSafe;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
+import static org.folio.dew.utils.BulkEditProcessorHelper.ofEmptyString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 
@@ -16,6 +20,7 @@ import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemFormat;
+import org.folio.dew.domain.dto.Source;
 import org.folio.dew.domain.dto.Title;
 import org.folio.dew.service.ElectronicAccessService;
 import org.folio.dew.service.ItemReferenceService;
@@ -26,6 +31,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -53,7 +61,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .hrid(item.getHrid())
       .holdingsRecordId(item.getHoldingsRecordId())
       .formerIds(isEmpty(item.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getFormerIds())))
-      .discoverySuppress(isEmpty(item.getDiscoverySuppress()) ? EMPTY : item.getDiscoverySuppress().toString())
+      .discoverySuppress(booleanToStringNullSafe(item.getDiscoverySuppress()))
       .title(item.getTitle())
       .contributorNames(fetchContributorNames(item))
       .callNumber(item.getCallNumber())
@@ -64,7 +72,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .itemLevelCallNumberPrefix(item.getItemLevelCallNumberPrefix())
       .itemLevelCallNumberSuffix(item.getItemLevelCallNumberSuffix())
       .itemLevelCallNumberType(itemReferenceService.getCallNumberTypeNameById(item.getItemLevelCallNumberTypeId(), errorServiceArgs))
-      .effectiveCallNumberComponents(effectiveCallNumberComponentsToString(item.getEffectiveCallNumberComponents(), errorServiceArgs))
+      .effectiveCallNumberComponents(effectiveCallNumberComponentsToString(item.getEffectiveCallNumberComponents()))
       .volume(item.getVolume())
       .enumeration(item.getEnumeration())
       .chronology(item.getChronology())
@@ -81,9 +89,9 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .administrativeNotes(isEmpty(item.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getAdministrativeNotes())))
       .notes(fetchNotes(item, errorServiceArgs))
       .circulationNotes(fetchCirculationNotes(item))
-      .status(String.join(ARRAY_DELIMITER, item.getStatus().getName().getValue(), dateToString(item.getStatus().getDate())))
-      .materialType(item.getMaterialType().getName())
-      .isBoundWith(item.getIsBoundWith().toString())
+      .status(statusToString(item))
+      .materialType(isEmpty(item.getMaterialType()) ? EMPTY : item.getMaterialType().getName())
+      .isBoundWith(booleanToStringNullSafe(item.getIsBoundWith()))
       .boundWithTitles(fetchBoundWithTitles(item))
       .permanentLoanType(isEmpty(item.getPermanentLoanType()) ? EMPTY : item.getPermanentLoanType().getName())
       .temporaryLoanType(isEmpty(item.getTemporaryLoanType()) ? EMPTY : item.getTemporaryLoanType().getName())
@@ -93,41 +101,52 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .inTransitDestinationServicePoint(itemReferenceService.getServicePointNameById(item.getInTransitDestinationServicePointId(), errorServiceArgs))
       .statisticalCodes(fetchStatisticalCodes(item, errorServiceArgs))
       .purchaseOrderLineIdentifier(item.getPurchaseOrderLineIdentifier())
-      .tags(isEmpty(item.getTags().getTagList()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getTags().getTagList())))
+      .tags(isEmpty(item.getTags()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getTags().getTagList())))
       .lastCheckIn(lastCheckInToString(item, errorServiceArgs))
       .build();
     itemFormat.setElectronicAccess(electronicAccessService.getElectronicAccessesToString(item.getElectronicAccess(), itemFormat.getIdentifier(identifierType), jobId, FilenameUtils.getName(fileName)));
     return itemFormat.withOriginal(item);
   }
 
+
+  private String statusToString(Item item) {
+    var status = item.getStatus();
+    if (nonNull(status)) {
+      return isEmpty(status.getName()) ? EMPTY : status.getName().getValue();
+    }
+    return EMPTY;
+  }
+
   private String fetchContributorNames(Item item) {
     return isEmpty(item.getContributorNames()) ?
       EMPTY :
       item.getContributorNames().stream()
+        .filter(Objects::nonNull)
         .map(ContributorName::getName)
         .map(escaper::escape)
         .collect(Collectors.joining(ARRAY_DELIMITER));
   }
 
-  private String effectiveCallNumberComponentsToString(EffectiveCallNumberComponents components, ErrorServiceArgs args) {
+  private String effectiveCallNumberComponentsToString(EffectiveCallNumberComponents components) {
     if (isEmpty(components)) {
       return EMPTY;
     }
-    return String.join(ARRAY_DELIMITER,
-      isEmpty(components.getCallNumber()) ? EMPTY : escaper.escape(components.getCallNumber()),
-      isEmpty(components.getPrefix()) ? EMPTY : escaper.escape(components.getPrefix()),
-      isEmpty(components.getSuffix()) ? EMPTY : escaper.escape(components.getSuffix()),
-      escaper.escape(itemReferenceService.getCallNumberTypeNameById(components.getTypeId(), args)));
+    List<String> entries = new ArrayList<>();
+    ofEmptyString(components.getPrefix()).ifPresent(e -> entries.add(escaper.escape(e)));
+    ofEmptyString(components.getCallNumber()).ifPresent(e -> entries.add(escaper.escape(e)));
+    ofEmptyString(components.getSuffix()).ifPresent(e -> entries.add(escaper.escape(e)));
+    return String.join(SPACE, entries);
   }
 
   private String fetchNotes(Item item, ErrorServiceArgs args) {
     return isEmpty(item.getNotes()) ?
       EMPTY :
       item.getNotes().stream()
+        .filter(Objects::nonNull)
         .map(itemNote -> String.join(ARRAY_DELIMITER,
           escaper.escape(itemReferenceService.getNoteTypeNameById(itemNote.getItemNoteTypeId(), args)),
           escaper.escape(itemNote.getNote()),
-          escaper.escape(itemNote.getStaffOnly().toString())))
+          escaper.escape(booleanToStringNullSafe(itemNote.getStaffOnly()))))
         .collect(Collectors.joining(ITEM_DELIMITER));
   }
 
@@ -135,19 +154,21 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
     return isEmpty(item.getCirculationNotes()) ?
       EMPTY :
       item.getCirculationNotes().stream()
+        .filter(Objects::nonNull)
         .map(this::circulationNotesToString)
         .collect(Collectors.joining(ITEM_DELIMITER));
   }
 
   private String circulationNotesToString(CirculationNote note) {
+    var source = isEmpty(note.getSource()) ? new Source() : note.getSource();
     return String.join(ARRAY_DELIMITER,
       note.getId(),
-      note.getNoteType().getValue(),
+      isEmpty(note.getNoteType()) ? EMPTY : note.getNoteType().getValue(),
       escaper.escape(note.getNote()),
-      note.getStaffOnly().toString(),
-      isEmpty(note.getSource().getId()) ? EMPTY : note.getSource().getId(),
-      isEmpty(note.getSource().getPersonal().getLastName()) ? EMPTY : escaper.escape(note.getSource().getPersonal().getLastName()),
-      isEmpty(note.getSource().getPersonal().getFirstName()) ? EMPTY : escaper.escape(note.getSource().getPersonal().getFirstName()),
+      booleanToStringNullSafe(note.getStaffOnly()),
+      isEmpty(source.getId()) ? EMPTY : note.getSource().getId(),
+      isEmpty(source.getPersonal()) ? EMPTY : escaper.escape(source.getPersonal().getLastName()),
+      isEmpty(source.getPersonal()) ? EMPTY : escaper.escape(source.getPersonal().getFirstName()),
       dateToString(note.getDate()));
   }
 
@@ -155,21 +176,23 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
     return isEmpty(item.getBoundWithTitles()) ?
       EMPTY :
       item.getBoundWithTitles().stream()
+        .filter(Objects::nonNull)
         .map(this::titleToString)
         .collect(Collectors.joining(ITEM_DELIMITER));
   }
 
   private String titleToString(Title title) {
     return String.join(ARRAY_DELIMITER,
-      escaper.escape(title.getBriefHoldingsRecord().getHrid()),
-      escaper.escape(title.getBriefInstance().getHrid()),
-      escaper.escape(title.getBriefInstance().getTitle()));
+      escaper.escape(isEmpty(title.getBriefHoldingsRecord()) ? EMPTY : title.getBriefHoldingsRecord().getHrid()),
+      escaper.escape(isEmpty(title.getBriefInstance()) ? EMPTY : title.getBriefInstance().getHrid()),
+      escaper.escape(isEmpty(title.getBriefInstance()) ? EMPTY : title.getBriefInstance().getTitle()));
   }
 
   private String fetchStatisticalCodes(Item item, ErrorServiceArgs args) {
     return isEmpty(item.getStatisticalCodeIds()) ?
       EMPTY :
       item.getStatisticalCodeIds().stream()
+        .filter(Objects::nonNull)
         .map(id -> itemReferenceService.getStatisticalCodeById(id, args))
         .map(escaper::escape)
         .collect(Collectors.joining(ARRAY_DELIMITER));
@@ -188,20 +211,14 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
 
   private String getIdentifier(Item item, String identifierType) {
     try {
-      switch (IdentifierType.fromValue(identifierType)) {
-      case BARCODE:
-        return item.getBarcode();
-      case HOLDINGS_RECORD_ID:
-        return item.getHoldingsRecordId();
-      case HRID:
-        return item.getHrid();
-      case FORMER_IDS:
-        return String.join(ARRAY_DELIMITER, item.getFormerIds());
-      case ACCESSION_NUMBER:
-        return item.getAccessionNumber();
-      default:
-        return item.getId();
-      }
+      return switch (IdentifierType.fromValue(identifierType)) {
+        case BARCODE -> item.getBarcode();
+        case HOLDINGS_RECORD_ID -> item.getHoldingsRecordId();
+        case HRID -> item.getHrid();
+        case FORMER_IDS -> String.join(ARRAY_DELIMITER, item.getFormerIds());
+        case ACCESSION_NUMBER -> item.getAccessionNumber();
+        default -> item.getId();
+      };
     } catch (IllegalArgumentException e) {
       return item.getId();
     }

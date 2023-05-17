@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
@@ -27,7 +27,10 @@ public class SpecialCharacterEscaper {
 
   public List<String> escape(List<String> initial) {
     if (initial == null) return Collections.emptyList();
-    return initial.stream().map(this::escape).collect(Collectors.toList());
+    return initial.stream()
+      .filter(Objects::nonNull)
+      .map(this::escape)
+      .toList();
   }
 
 
@@ -41,6 +44,6 @@ public class SpecialCharacterEscaper {
 
   public List<String> restore(List<String> escaped) {
     if (escaped == null) return Collections.emptyList();
-    return escaped.stream().map(this::restore).collect(Collectors.toList());
+    return escaped.stream().map(this::restore).toList();
   }
 }

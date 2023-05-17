@@ -3,8 +3,10 @@ package org.folio.dew.batch.acquisitions.edifact.services;
 import static org.folio.dew.utils.Constants.EDIFACT_EXPORT_DIR_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.folio.de.entity.Job;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
@@ -18,13 +20,7 @@ import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 
 @Service
 @RequiredArgsConstructor
@@ -43,8 +39,7 @@ public class ResendService {
   @Value("${spring.application.name}")
   protected String springApplicationName;
 
-  public void resendExportedFile(JobCommand jobCommand, Acknowledgment acknowledgment) {
-    acknowledgment.acknowledge();
+  public void resendExportedFile(JobCommand jobCommand) {
     UUID jobId = jobCommand.getId();
     JobParameters jobParameters = jobCommand.getJobParameters();
 

@@ -1,30 +1,35 @@
 package org.folio.dew;
 
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.folio.dew.batch.ExportJobManagerSync;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
+import java.util.stream.Collectors;
+import lombok.SneakyThrows;
 import org.folio.dew.batch.ExportJobManager;
-import org.folio.dew.repository.InMemoryAcknowledgementRepository;
+import org.folio.dew.batch.ExportJobManagerSync;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.spring.DefaultFolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.integration.XOkapiHeaders;
-import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
+import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.folio.tenant.domain.dto.TenantAttributes;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -48,19 +53,11 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.springframework.test.util.TestSocketUtils;
 import org.springframework.test.web.servlet.MockMvc;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
-
-import lombok.SneakyThrows;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -95,23 +92,21 @@ public abstract class BaseBatchTest {
   protected RemoteFilesStorage remoteFilesStorage;
   @SpyBean
   protected JobCommandsReceiverService jobCommandsReceiverService;
-  @Autowired
-  protected InMemoryAcknowledgementRepository repository;
   @MockBean
   @Qualifier("exportJobManager")
   protected ExportJobManager exportJobManager;
   @MockBean
   @Qualifier("exportJobManagerSync")
   protected ExportJobManagerSync exportJobManagerSync;
-  @MockBean
-  protected Acknowledgment acknowledgment;
-
   @Value("${spring.application.name}")
   protected String springApplicationName;
 
   static {
     postgreDBContainer.start();
   }
+
+  protected Map<String, Object> okapiHeaders = new HashMap<>();
+  protected FolioExecutionContextSetter folioExecutionContextSetter;
 
   public static class DockerPostgreDataSourceInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
@@ -163,20 +158,27 @@ public abstract class BaseBatchTest {
 
   @BeforeEach
   void setUp() {
-    Map<String, Collection<String>> okapiHeaders = new LinkedHashMap<>();
-    okapiHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
-    okapiHeaders.put(XOkapiHeaders.TOKEN, List.of(TOKEN));
-    okapiHeaders.put(XOkapiHeaders.URL, List.of(wireMockServer.baseUrl()));
-    okapiHeaders.put(XOkapiHeaders.USER_ID, List.of(UUID.randomUUID().toString()));
-    var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
-    FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
+    okapiHeaders = new LinkedHashMap<>();
+    okapiHeaders.put(XOkapiHeaders.TENANT, TENANT);
+    okapiHeaders.put(XOkapiHeaders.TOKEN, TOKEN);
+    okapiHeaders.put(XOkapiHeaders.URL, wireMockServer.baseUrl());
+    okapiHeaders.put(XOkapiHeaders.USER_ID, UUID.randomUUID().toString());
+
+    var localHeaders =
+      okapiHeaders.entrySet()
+        .stream()
+        .filter(e -> e.getKey().startsWith(XOkapiHeaders.OKAPI_HEADERS_PREFIX))
+        .collect(Collectors.toMap(Map.Entry::getKey, e -> (Collection<String>)List.of(String.valueOf(e.getValue()))));
+
+    var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, localHeaders);
+    folioExecutionContextSetter = new FolioExecutionContextSetter(defaultFolioExecutionContext);
 
     remoteFilesStorage.createBucketIfNotExists();
   }
 
   @AfterEach
   void eachTearDown() {
-    FolioExecutionScopeExecutionContextManager.endFolioExecutionContext();
+    folioExecutionContextSetter.close();
   }
 
   protected JobLauncherTestUtils createTestLauncher(Job job) {

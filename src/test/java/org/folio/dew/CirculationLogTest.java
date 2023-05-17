@@ -32,6 +32,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.CIRCULATION_LOG_FILE_NA
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
+
 class CirculationLogTest extends BaseBatchTest {
 
   @Autowired private Job getCirculationLogJob;

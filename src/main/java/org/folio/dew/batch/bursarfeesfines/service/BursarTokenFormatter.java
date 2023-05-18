@@ -59,7 +59,7 @@ public class BursarTokenFormatter {
     }
   }
 
-  private static String formatFeeAmountToken(
+  public static String formatFeeAmountToken(
     BursarExportTokenFeeAmount tokenFeeAmount,
     BigDecimal feeAmount
   ) {
@@ -74,7 +74,7 @@ public class BursarTokenFormatter {
     return applyLengthControl(result, tokenFeeAmount.getLengthControl());
   }
 
-  private static String formatFeeMetaDataToken(
+  public static String formatFeeMetaDataToken(
     BursarExportTokenFeeMetadata tokenFeeMetadata,
     AccountWithAncillaryData accountWithAncillaryData
   ) {
@@ -94,7 +94,7 @@ public class BursarTokenFormatter {
     }
   }
 
-  private static String formatCurrentDateDataToken(
+  public static String formatCurrentDateDataToken(
     BursarExportTokenCurrentDate tokenDate
   ) {
     ZonedDateTime currentDateTime;
@@ -117,7 +117,7 @@ public class BursarTokenFormatter {
     );
   }
 
-  private static String formatFeeDateDataToken(
+  public static String formatFeeDateDataToken(
     BursarExportTokenFeeDate tokenFeeDate,
     AccountWithAncillaryData accountWithAncillaryData
   ) {
@@ -158,7 +158,7 @@ public class BursarTokenFormatter {
     );
   }
 
-  private static String formatUserDataToken(
+  public static String formatUserDataToken(
     BursarExportTokenUserData tokenUserData,
     User user
   ) {
@@ -177,7 +177,7 @@ public class BursarTokenFormatter {
     return applyLengthControl(result, tokenUserData.getLengthControl());
   }
 
-  private static String formatUserDataOptionalToken(
+  public static String formatUserDataOptionalToken(
     BursarExportTokenUserDataOptional tokenUserData,
     User user
   ) {
@@ -201,7 +201,7 @@ public class BursarTokenFormatter {
     return applyLengthControl(result, tokenUserData.getLengthControl());
   }
 
-  private static String formatItemDataToken(
+  public static String formatItemDataToken(
     BursarExportTokenItemData tokenItemData,
     AccountWithAncillaryData accountWithAncillaryData
   ) {
@@ -233,7 +233,7 @@ public class BursarTokenFormatter {
     return applyLengthControl(result, tokenItemData.getLengthControl());
   }
 
-  private static String formatConditionalDataToken(
+  public static String formatConditionalDataToken(
     BursarExportTokenConditional tokenConditional,
     AccountWithAncillaryData account
   ) {
@@ -279,7 +279,7 @@ public class BursarTokenFormatter {
     }
   }
 
-  private static String formatConditionalAggregatedAccountsToken(
+  public static String formatConditionalAggregatedAccountsToken(
     BursarExportTokenConditional tokenConditional,
     AggregatedAccountsByUser aggregatedAccounts
   ) {
@@ -357,10 +357,11 @@ public class BursarTokenFormatter {
     }
 
     // should be shortened
-    if (
-      input.length() > lengthControl.getLength() && lengthControl.getTruncate()
-    ) {
-      if (
+    if (input.length() > lengthControl.getLength()) {
+      if (Boolean.FALSE.equals(lengthControl.getTruncate())) {
+        // should not be truncated
+        return input;
+      } else if (
         lengthControl.getDirection() ==
         BursarExportTokenLengthControl.DirectionEnum.BACK
       ) {
@@ -399,7 +400,7 @@ public class BursarTokenFormatter {
    * Helper method to process date token into string
    * @params tokenDate date token that needs to process into string
    */
-  private String processDateToken(
+  public static String processDateToken(
     ZonedDateTime dateTime,
     BursarExportTokenDateType dateType,
     BursarExportTokenLengthControl lengthControl
@@ -438,7 +439,7 @@ public class BursarTokenFormatter {
    * Helper method to process aggregate token into string
    * @param tokenAggregate aggregate token that needs to process into string
    */
-  private String processAggregateToken(
+  public static String processAggregateToken(
     BursarExportTokenAggregate tokenAggregate,
     int aggregateNumRows,
     BigDecimal aggregateTotalAmount
@@ -446,14 +447,26 @@ public class BursarTokenFormatter {
     String result;
 
     switch (tokenAggregate.getValue()) {
-      case NUM_ROWS -> result = String.valueOf(aggregateNumRows);
-      case TOTAL_AMOUNT -> result =
-        aggregateTotalAmount
-          .multiply(new BigDecimal("100"))
-          .setScale(0)
-          .toString();
-      default -> result =
-        String.format("[invalid aggregate type %s]", tokenAggregate.getValue());
+      case NUM_ROWS:
+        result = String.valueOf(aggregateNumRows);
+        break;
+      case TOTAL_AMOUNT:
+        if (tokenAggregate.getDecimal()) {
+          result = new DecimalFormat("0.00").format(aggregateTotalAmount);
+        } else {
+          result =
+            aggregateTotalAmount
+              .multiply(new BigDecimal("100"))
+              .setScale(0)
+              .toString();
+        }
+        break;
+      default:
+        result =
+          String.format(
+            "[invalid aggregate type %s]",
+            tokenAggregate.getValue()
+          );
     }
 
     return applyLengthControl(result, tokenAggregate.getLengthControl());

@@ -24,16 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class NoFeesFinesTest extends BaseBatchTest {
 
-  private static final String USERS_ENDPOINT_PATH = "/users";
-  private static final String ITEMS_ENDPOINT_PATH = "/inventory/items";
-
-  private static final String ALL_OPEN_ACCOUNTS_GET_REQUEST =
-    "/accounts?query=remaining%20%3E%200.0&limit=10000";
-  private static final String TRANSFERS_ENDPOINT_PATH = "/transfers";
-
-  private static final String SERVICE_POINTS_GET_REQUEST =
-    "/service-points?query=code%3D%3Dsystem&limit=2";
-
   @Autowired
   private Job bursarExportJob;
 
@@ -42,7 +32,7 @@ class NoFeesFinesTest extends BaseBatchTest {
   void testNoFeesFines() throws Exception {
     // stub GET accounts endpoint to return no accounts
     wireMockServer.stubFor(
-      get(urlEqualTo(ALL_OPEN_ACCOUNTS_GET_REQUEST))
+      get(urlEqualTo(BursarFeesFinesTestUtils.ALL_OPEN_ACCOUNTS_GET_REQUEST))
         .willReturn(
           aResponse()
             .withStatus(200)
@@ -75,25 +65,35 @@ class NoFeesFinesTest extends BaseBatchTest {
 
     // check that the ACCOUNT_GET_REQUEST endpoint was hit
     wireMockServer.verify(
-      getRequestedFor(urlEqualTo(ALL_OPEN_ACCOUNTS_GET_REQUEST))
+      getRequestedFor(
+        urlEqualTo(BursarFeesFinesTestUtils.ALL_OPEN_ACCOUNTS_GET_REQUEST)
+      )
     );
 
     // check that user and items endpoints were not hit
     wireMockServer.verify(
       0,
-      getRequestedFor(urlPathMatching(USERS_ENDPOINT_PATH))
+      getRequestedFor(
+        urlPathMatching(BursarFeesFinesTestUtils.USERS_ENDPOINT_PATH)
+      )
     );
     wireMockServer.verify(
       0,
-      getRequestedFor(urlPathMatching(ITEMS_ENDPOINT_PATH))
+      getRequestedFor(
+        urlPathMatching(BursarFeesFinesTestUtils.ITEMS_ENDPOINT_PATH)
+      )
     );
     wireMockServer.verify(
       0,
-      postRequestedFor(urlPathMatching(TRANSFERS_ENDPOINT_PATH))
+      postRequestedFor(
+        urlPathMatching(BursarFeesFinesTestUtils.TRANSFERS_ENDPOINT_PATH)
+      )
     );
     wireMockServer.verify(
       0,
-      postRequestedFor(urlEqualTo(SERVICE_POINTS_GET_REQUEST))
+      getRequestedFor(
+        urlEqualTo(BursarFeesFinesTestUtils.SERVICE_POINTS_GET_REQUEST)
+      )
     );
 
     // check that no new file was created

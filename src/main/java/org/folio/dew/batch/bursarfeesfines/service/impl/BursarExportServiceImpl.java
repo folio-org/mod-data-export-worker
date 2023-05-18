@@ -85,7 +85,7 @@ public class BursarExportServiceImpl implements BursarExportService {
             bursarExportTransferCriteriaConditionsInner.getCondition()
           )
         )
-        .collect(Collectors.toList());
+        .toList();
 
       if (!accountsToBeTransferred.isEmpty()) {
         transferredAccountsSet.addAll(accountsToBeTransferred);
@@ -214,7 +214,7 @@ public class BursarExportServiceImpl implements BursarExportService {
     log.debug("Fetch data in several calls, bucket count {}", partition::size);
     return partition
       .stream()
-      .map(paramBucket -> client.apply(paramBucket))
+      .map(client::apply)
       .collect(ArrayList::new, List::addAll, List::addAll);
   }
 

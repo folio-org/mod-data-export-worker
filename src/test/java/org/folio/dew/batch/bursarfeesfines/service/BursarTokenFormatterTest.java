@@ -40,7 +40,7 @@ import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUser;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class BursarTokenFormatterTest {
+class BursarTokenFormatterTest {
 
   public static AccountWithAncillaryData accountWithAncillaryData;
   public static Account account;

@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.openapitools.jackson.nullable.JsonNullable;
 
 @Log4j2
-public class BursarFilterAggregateEvaluatorTest {
+class BursarFilterAggregateEvaluatorTest {
 
   public static AggregatedAccountsByUser aggregatedAccounts;
 

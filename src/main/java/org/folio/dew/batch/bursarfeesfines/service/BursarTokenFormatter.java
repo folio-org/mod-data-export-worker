@@ -54,7 +54,7 @@ public class BursarTokenFormatter {
         aggregateTotalAmount
       );
     } else {
-      log.error("Unexpected token: ", token);
+      log.error("Unexpected header/footer token: ", token);
       return String.format("[header/footer-placeholder %s]", token.getType());
     }
   }
@@ -274,7 +274,7 @@ public class BursarTokenFormatter {
     } else if (token instanceof BursarExportTokenItemData tokenItemData) {
       return formatItemDataToken(tokenItemData, account);
     } else {
-      log.error("Unexpected token: ", token);
+      log.error("Unexpected data token: ", token);
       return String.format("[placeholder %s]", token.getType());
     }
   }
@@ -339,7 +339,7 @@ public class BursarTokenFormatter {
         aggregatedAccounts.getUser()
       );
     } else {
-      log.error("Unexpected token: ", token);
+      log.error("Unexpected aggregated token: ", token);
       return String.format("[placeholder %s]", token.getType());
     }
   }

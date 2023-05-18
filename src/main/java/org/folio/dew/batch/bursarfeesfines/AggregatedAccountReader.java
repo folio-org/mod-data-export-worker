@@ -61,7 +61,6 @@ public class AggregatedAccountReader
   public void initStep(StepExecution stepExecution) {
     log.info("--- Called AggregatedAccountReader::initStep ---");
 
-    // TODO: should do some proactive filtering magic here
     // grabbing accounts before users/items because, with a relatively
     // frequent transfer process, there will be less accounts than users
     accounts = exportService.getAllAccounts();
@@ -130,15 +129,15 @@ public class AggregatedAccountReader
 
     // then aggregate them by users. As a result, a list of AggregratedAccountsByUser
     List<AggregatedAccountsByUser> aggregatedAccountsByUsersList = new ArrayList<>();
-    userToAccountsListMap.forEach((User user, List<Account> accountsList) -> {
+    userToAccountsListMap.forEach((User user, List<Account> accountsList) ->
       aggregatedAccountsByUsersList.add(
         AggregatedAccountsByUser
           .builder()
           .user(user)
           .accounts(accountsList)
           .build()
-      );
-    });
+      )
+    );
 
     return aggregatedAccountsByUsersList;
   }

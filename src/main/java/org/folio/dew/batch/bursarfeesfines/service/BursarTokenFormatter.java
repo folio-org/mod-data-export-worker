@@ -38,6 +38,8 @@ import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUser;
 @UtilityClass
 public class BursarTokenFormatter {
 
+  public static final int NUM_DAYS_IN_WEEK = 7;
+
   public static String formatHeaderFooterToken(
     BursarExportHeaderFooter token,
     int aggregateNumRows,
@@ -54,7 +56,7 @@ public class BursarTokenFormatter {
         aggregateTotalAmount
       );
     } else {
-      log.error("Unexpected token: ", token);
+      log.error("Unexpected header/footer token: ", token);
       return String.format("[header/footer-placeholder %s]", token.getType());
     }
   }
@@ -274,7 +276,7 @@ public class BursarTokenFormatter {
     } else if (token instanceof BursarExportTokenItemData tokenItemData) {
       return formatItemDataToken(tokenItemData, account);
     } else {
-      log.error("Unexpected token: ", token);
+      log.error("Unexpected data token: ", token);
       return String.format("[placeholder %s]", token.getType());
     }
   }
@@ -339,7 +341,7 @@ public class BursarTokenFormatter {
         aggregatedAccounts.getUser()
       );
     } else {
-      log.error("Unexpected token: ", token);
+      log.error("Unexpected aggregated token: ", token);
       return String.format("[placeholder %s]", token.getType());
     }
   }
@@ -421,7 +423,9 @@ public class BursarTokenFormatter {
         dateTime.format(DateTimeFormatter.ofPattern("Q"));
       case WEEK_OF_YEAR -> result =
         String.valueOf(
-          dateTime.get(WeekFields.of(DayOfWeek.MONDAY, 7).weekOfYear())
+          dateTime.get(
+            WeekFields.of(DayOfWeek.MONDAY, NUM_DAYS_IN_WEEK).weekOfYear()
+          )
         );
       case WEEK_OF_YEAR_ISO -> result =
         String.valueOf(dateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));

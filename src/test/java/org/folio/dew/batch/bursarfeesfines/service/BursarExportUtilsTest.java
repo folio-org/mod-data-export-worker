@@ -7,7 +7,7 @@ import static org.hamcrest.Matchers.matchesPattern;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 
-public class BursarExportUtilsTest {
+class BursarExportUtilsTest {
 
   @Test
   void testGetFilename() {

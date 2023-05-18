@@ -27,7 +27,7 @@ import org.folio.dew.helpers.bursarfeesfines.InvalidBursarExportFilter;
 import org.junit.jupiter.api.Test;
 import org.openapitools.jackson.nullable.JsonNullable;
 
-public class BursarFilterEvaluatorTest {
+class BursarFilterEvaluatorTest {
 
   @Test
   void testJsonNullableExportFilter() {
@@ -320,7 +320,9 @@ public class BursarFilterEvaluatorTest {
     );
 
     BursarExportFilterAmount filterAmount = new BursarExportFilterAmount();
-    filterAmount.setCondition(BursarExportFilterAmount.ConditionEnum.GREATER_THAN);
+    filterAmount.setCondition(
+      BursarExportFilterAmount.ConditionEnum.GREATER_THAN
+    );
     filterAmount.setAmount(6000);
 
     Account account = new Account();

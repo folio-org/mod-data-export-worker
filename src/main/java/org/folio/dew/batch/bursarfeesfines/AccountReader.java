@@ -53,7 +53,6 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
   public void initStep(StepExecution stepExecution) {
     log.error("--- Called AccountReader::initStep ---");
 
-    // TODO: should do some proactive filtering magic here
     // grabbing accounts before users/items because, with a relatively
     // frequent transfer process, there will be less accounts than users
     accounts = exportService.getAllAccounts();
@@ -68,6 +67,8 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
 
     userMap = exportService.getUsers(userIds);
     itemMap = exportService.getItems(itemIds);
+
+    log.info(accounts.toString());
 
     // initializing a totalAmount variable in jobExecutionContext
     stepExecution

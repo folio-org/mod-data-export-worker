@@ -41,9 +41,7 @@ public class BursarFilterEvaluator {
   ) {
     if (filter instanceof BursarExportFilterPass) {
       return true;
-    } else if (filter instanceof BursarExportFilterAge) {
-      BursarExportFilterAge filterAge = (BursarExportFilterAge) filter;
-
+    } else if (filter instanceof BursarExportFilterAge filterAge) {
       if (account.getAccount().getDateCreated() == null) {
         return true;
       }
@@ -54,8 +52,7 @@ public class BursarFilterEvaluator {
         ) >
         filterAge.getNumDays()
       );
-    } else if (filter instanceof BursarExportFilterAmount) {
-      BursarExportFilterAmount filterAmount = (BursarExportFilterAmount) filter;
+    } else if (filter instanceof BursarExportFilterAmount filterAmount) {
       int centFeeValue = account
         .getAccount()
         .getAmount()
@@ -74,40 +71,38 @@ public class BursarFilterEvaluator {
         default:
           return false;
       }
-    } else if (filter instanceof BursarExportFilterFeeType) {
-      BursarExportFilterFeeType filterFeeType = (BursarExportFilterFeeType) filter;
+    } else if (filter instanceof BursarExportFilterFeeType filterFeeType) {
       return UUID
         .fromString(account.getAccount().getFeeFineId())
         .equals(filterFeeType.getFeeFineTypeId());
-    } else if (filter instanceof BursarExportFilterFeeFineOwner) {
-      BursarExportFilterFeeFineOwner filterFeeFineOwner = (BursarExportFilterFeeFineOwner) filter;
+    } else if (
+      filter instanceof BursarExportFilterFeeFineOwner filterFeeFineOwner
+    ) {
       return UUID
         .fromString(account.getAccount().getFeeFineOwner())
         .equals(filterFeeFineOwner.getFeeFineOwner());
-    } else if (filter instanceof BursarExportFilterLocation) {
-      BursarExportFilterLocation filterLocation = (BursarExportFilterLocation) filter;
+    } else if (filter instanceof BursarExportFilterLocation filterLocation) {
       return UUID
         .fromString(account.getItem().getEffectiveLocation().getId())
         .equals(filterLocation.getLocationId());
-    } else if (filter instanceof BursarExportFilterPatronGroup) {
-      BursarExportFilterPatronGroup filterPatronGroup = (BursarExportFilterPatronGroup) filter;
+    } else if (
+      filter instanceof BursarExportFilterPatronGroup filterPatronGroup
+    ) {
       return (
         UUID
           .fromString(account.getUser().getPatronGroup())
           .equals(filterPatronGroup.getPatronGroupId())
       );
-    } else if (filter instanceof BursarExportFilterServicePoint) {
-      BursarExportFilterServicePoint filterServicePoint = (BursarExportFilterServicePoint) filter;
+    } else if (
+      filter instanceof BursarExportFilterServicePoint filterServicePoint
+    ) {
       return UUID
         .fromString(account.getItem().getInTransitDestinationServicePointId())
         .equals(filterServicePoint.getServicePointId());
-    } else if (filter instanceof BursarExportFilterCondition) {
-      return evaluateCondition(account, (BursarExportFilterCondition) filter);
-    } else if (filter instanceof BursarExportFilterNegation) {
-      return !evaluate(
-        account,
-        ((BursarExportFilterNegation) filter).getCriteria()
-      );
+    } else if (filter instanceof BursarExportFilterCondition filterCondition) {
+      return evaluateCondition(account, filterCondition);
+    } else if (filter instanceof BursarExportFilterNegation filterNegation) {
+      return !evaluate(account, filterNegation.getCriteria());
     } else {
       log.error("Unexpected filter: {}", filter);
       return true;

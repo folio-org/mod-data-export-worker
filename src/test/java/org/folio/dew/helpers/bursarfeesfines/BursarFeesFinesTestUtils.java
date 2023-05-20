@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import lombok.experimental.UtilityClass;
+import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.BursarExportDataToken;
 import org.folio.dew.domain.dto.BursarExportFilterAmount;
 import org.folio.dew.domain.dto.BursarExportFilterNegation;
@@ -29,6 +30,7 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 
 @UtilityClass
+@Log4j2
 public class BursarFeesFinesTestUtils {
 
   public static final String USERS_ENDPOINT_PATH = "/users";
@@ -282,6 +284,114 @@ public class BursarFeesFinesTestUtils {
     );
 
     String jobId = "00000000-0000-1000-2000-000000000000";
+    parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
+
+    Date now = new Date();
+    String workDir =
+      System.getProperty("java.io.tmpdir") +
+      File.separator +
+      springApplicationName +
+      File.separator;
+    final String outputFile = String.format(
+      "%s%s_%tF_%tH%tM%tS_%s",
+      workDir,
+      ExportType.BURSAR_FEES_FINES,
+      now,
+      now,
+      now,
+      now,
+      jobId
+    );
+    parametersBuilder.addString(
+      JobParameterNames.TEMP_OUTPUT_FILE_PATH,
+      outputFile
+    );
+
+    return parametersBuilder.toJobParameters();
+  }
+
+  public static JobParameters prepareMultipleFeeFinesMatchingJobParameters(
+    String springApplicationName,
+    ObjectMapper objectMapper
+  ) throws JsonProcessingException {
+    BursarExportJob job = new BursarExportJob();
+
+    BursarExportFilterAmount filterAmount = new BursarExportFilterAmount();
+    filterAmount.setAmount(10000);
+    filterAmount.setCondition(
+      BursarExportFilterAmount.ConditionEnum.GREATER_THAN
+    );
+    job.setFilter(filterAmount);
+
+    BursarExportTokenLengthControl lengthControl = new BursarExportTokenLengthControl();
+    lengthControl.setLength(30);
+    lengthControl.setCharacter(" ");
+    lengthControl.setDirection(
+      BursarExportTokenLengthControl.DirectionEnum.BACK
+    );
+    lengthControl.setTruncate(true);
+
+    List<BursarExportHeaderFooter> headerTokens = new ArrayList<>();
+    BursarExportTokenAggregate headerAggregate = new BursarExportTokenAggregate();
+    headerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.TOTAL_AMOUNT);
+    headerAggregate.setDecimal(true);
+    headerTokens.add(headerAggregate);
+    BursarExportTokenConstant newLineToken = new BursarExportTokenConstant();
+    newLineToken.setValue("\n");
+    headerTokens.add(newLineToken);
+
+    job.setHeader(headerTokens);
+
+    List<BursarExportHeaderFooter> footerTokens = new ArrayList<>();
+    BursarExportTokenAggregate footerAggregate = new BursarExportTokenAggregate();
+    footerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.NUM_ROWS);
+    footerAggregate.setDecimal(false);
+    footerTokens.add(footerAggregate);
+
+    job.setFooter(footerTokens);
+
+    List<BursarExportDataToken> dataTokens = new ArrayList<>();
+
+    BursarExportTokenFeeMetadata tokenFeeMetadata = new BursarExportTokenFeeMetadata();
+    tokenFeeMetadata.setValue(BursarExportTokenFeeMetadata.ValueEnum.ID);
+
+    BursarExportTokenItemData tokenItemData = new BursarExportTokenItemData();
+    tokenItemData.setValue(BursarExportTokenItemData.ValueEnum.NAME);
+    tokenItemData.setLengthControl(lengthControl);
+
+    BursarExportTokenUserData tokenUserData = new BursarExportTokenUserData();
+    tokenUserData.setLengthControl(lengthControl);
+    tokenUserData.setValue(BursarExportTokenUserData.ValueEnum.FOLIO_ID);
+
+    dataTokens.add(tokenFeeMetadata);
+    dataTokens.add(tokenItemData);
+    dataTokens.add(tokenUserData);
+    dataTokens.add(newLineToken);
+
+    job.setData(dataTokens);
+    job.setGroupByPatron(false);
+
+    BursarExportTransferCriteria transferCriteria = new BursarExportTransferCriteria();
+
+    List<BursarExportTransferCriteriaConditionsInner> transferConditions = new ArrayList<>();
+
+    BursarExportTransferCriteriaElse transferInfo = new BursarExportTransferCriteriaElse();
+    transferInfo.setAccount(
+      UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b")
+    );
+
+    transferCriteria.setConditions(transferConditions);
+    transferCriteria.setElse(transferInfo);
+
+    job.setTransferInfo(transferCriteria);
+
+    var parametersBuilder = new JobParametersBuilder();
+    parametersBuilder.addString(
+      "bursarFeeFines",
+      objectMapper.writeValueAsString(job)
+    );
+
+    String jobId = "00000000-0000-1000-1000-000000000000";
     parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
 
     Date now = new Date();

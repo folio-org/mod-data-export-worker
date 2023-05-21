@@ -240,16 +240,6 @@ class BursarTokenFormatterTest {
       is("1")
     );
 
-    dateType = BursarExportTokenDateType.WEEK_OF_YEAR;
-    assertThat(
-      BursarTokenFormatter.processDateToken(
-        testDateTime,
-        dateType,
-        lengthControl
-      ),
-      is("5")
-    );
-
     dateType = BursarExportTokenDateType.WEEK_OF_YEAR_ISO;
     assertThat(
       BursarTokenFormatter.processDateToken(
@@ -258,16 +248,6 @@ class BursarTokenFormatterTest {
         lengthControl
       ),
       is("5")
-    );
-
-    dateType = BursarExportTokenDateType.WEEK_YEAR;
-    assertThat(
-      BursarTokenFormatter.processDateToken(
-        testDateTime,
-        dateType,
-        lengthControl
-      ),
-      is("2023")
     );
 
     dateType = BursarExportTokenDateType.WEEK_YEAR_ISO;

@@ -2,13 +2,11 @@ package org.folio.dew.batch.bursarfeesfines.service;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.IsoFields;
-import java.time.temporal.WeekFields;
 import java.time.zone.ZoneRulesException;
 import java.util.Date;
 import java.util.List;
@@ -421,16 +419,8 @@ public class BursarTokenFormatter {
       case SECOND -> result = String.valueOf(dateTime.getSecond());
       case QUARTER -> result =
         dateTime.format(DateTimeFormatter.ofPattern("Q"));
-      case WEEK_OF_YEAR -> result =
-        String.valueOf(
-          dateTime.get(
-            WeekFields.of(DayOfWeek.MONDAY, NUM_DAYS_IN_WEEK).weekOfYear()
-          )
-        );
       case WEEK_OF_YEAR_ISO -> result =
         String.valueOf(dateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
-      case WEEK_YEAR -> result =
-        dateTime.format(DateTimeFormatter.ofPattern("YYYY"));
       case WEEK_YEAR_ISO -> result =
         String.valueOf(dateTime.get(IsoFields.WEEK_BASED_YEAR));
       default -> result = String.format("[invalid date type %s]", dateType);

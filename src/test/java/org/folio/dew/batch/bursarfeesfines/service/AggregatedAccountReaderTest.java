@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.log4j.Log4j2;
-import org.assertj.core.util.Arrays;
 import org.folio.dew.batch.bursarfeesfines.AggregatedAccountReader;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.BursarExportFilterAmount;
@@ -20,12 +19,10 @@ import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUser;
-import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUserTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-@Log4j2
-public class AggregatedAccountReaderTest {
+class AggregatedAccountReaderTest {
 
   public static Map<String, User> userMap;
   public static Map<String, Item> itemMap;

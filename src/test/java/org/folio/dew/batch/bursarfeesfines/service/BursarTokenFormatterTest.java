@@ -411,6 +411,7 @@ class BursarTokenFormatterTest {
     feeDateToken.setTimezone("UTC");
     feeDateToken.setValue(BursarExportTokenDateType.MONTH);
     feeDateToken.setProperty(BursarExportTokenFeeDate.PropertyEnum.CREATED);
+    feeDateToken.setPlaceholder("");
     assertThat(
       BursarTokenFormatter.formatFeeDateDataToken(
         feeDateToken,

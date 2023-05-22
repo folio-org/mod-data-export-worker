@@ -2,13 +2,11 @@ package org.folio.dew.batch.bursarfeesfines.service;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.IsoFields;
-import java.time.temporal.WeekFields;
 import java.time.zone.ZoneRulesException;
 import java.util.Date;
 import java.util.List;
@@ -123,9 +121,7 @@ public class BursarTokenFormatter {
     BursarExportTokenFeeDate tokenFeeDate,
     AccountWithAncillaryData accountWithAncillaryData
   ) {
-    ZonedDateTime feeDateTime;
     Date accountDate;
-
     switch (tokenFeeDate.getProperty()) {
       case CREATED -> accountDate =
         accountWithAncillaryData.getAccount().getDateCreated();
@@ -141,9 +137,19 @@ public class BursarTokenFormatter {
       }
     }
 
+    if (accountDate == null) {
+      return applyLengthControl(
+        tokenFeeDate.getPlaceholder(),
+        tokenFeeDate.getLengthControl()
+      );
+    }
+
     try {
-      feeDateTime =
-        accountDate.toInstant().atZone(ZoneId.of(tokenFeeDate.getTimezone()));
+      return processDateToken(
+        accountDate.toInstant().atZone(ZoneId.of(tokenFeeDate.getTimezone())),
+        tokenFeeDate.getValue(),
+        tokenFeeDate.getLengthControl()
+      );
     } catch (ZoneRulesException e) {
       log.error("Unknown timezone: ", e);
       String result = String.format(
@@ -152,12 +158,6 @@ public class BursarTokenFormatter {
       );
       return applyLengthControl(result, tokenFeeDate.getLengthControl());
     }
-
-    return processDateToken(
-      feeDateTime,
-      tokenFeeDate.getValue(),
-      tokenFeeDate.getLengthControl()
-    );
   }
 
   public static String formatUserDataToken(
@@ -403,10 +403,14 @@ public class BursarTokenFormatter {
    * @params tokenDate date token that needs to process into string
    */
   public static String processDateToken(
-    ZonedDateTime dateTime,
+    @CheckForNull ZonedDateTime dateTime,
     BursarExportTokenDateType dateType,
     BursarExportTokenLengthControl lengthControl
   ) {
+    if (dateTime == null) {
+      return applyLengthControl("", lengthControl);
+    }
+
     String result;
 
     switch (dateType) {
@@ -421,16 +425,8 @@ public class BursarTokenFormatter {
       case SECOND -> result = String.valueOf(dateTime.getSecond());
       case QUARTER -> result =
         dateTime.format(DateTimeFormatter.ofPattern("Q"));
-      case WEEK_OF_YEAR -> result =
-        String.valueOf(
-          dateTime.get(
-            WeekFields.of(DayOfWeek.MONDAY, NUM_DAYS_IN_WEEK).weekOfYear()
-          )
-        );
       case WEEK_OF_YEAR_ISO -> result =
         String.valueOf(dateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
-      case WEEK_YEAR -> result =
-        dateTime.format(DateTimeFormatter.ofPattern("YYYY"));
       case WEEK_YEAR_ISO -> result =
         String.valueOf(dateTime.get(IsoFields.WEEK_BASED_YEAR));
       default -> result = String.format("[invalid date type %s]", dateType);

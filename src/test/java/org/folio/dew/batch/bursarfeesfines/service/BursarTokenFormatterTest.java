@@ -240,16 +240,6 @@ class BursarTokenFormatterTest {
       is("1")
     );
 
-    dateType = BursarExportTokenDateType.WEEK_OF_YEAR;
-    assertThat(
-      BursarTokenFormatter.processDateToken(
-        testDateTime,
-        dateType,
-        lengthControl
-      ),
-      is("5")
-    );
-
     dateType = BursarExportTokenDateType.WEEK_OF_YEAR_ISO;
     assertThat(
       BursarTokenFormatter.processDateToken(
@@ -260,7 +250,7 @@ class BursarTokenFormatterTest {
       is("5")
     );
 
-    dateType = BursarExportTokenDateType.WEEK_YEAR;
+    dateType = BursarExportTokenDateType.WEEK_YEAR_ISO;
     assertThat(
       BursarTokenFormatter.processDateToken(
         testDateTime,
@@ -270,14 +260,9 @@ class BursarTokenFormatterTest {
       is("2023")
     );
 
-    dateType = BursarExportTokenDateType.WEEK_YEAR_ISO;
     assertThat(
-      BursarTokenFormatter.processDateToken(
-        testDateTime,
-        dateType,
-        lengthControl
-      ),
-      is("2023")
+      BursarTokenFormatter.processDateToken(null, dateType, lengthControl),
+      is("")
     );
   }
 
@@ -468,6 +453,14 @@ class BursarTokenFormatterTest {
         accountWithAncillaryData
       ),
       is("[unknown time zone: invalid]")
+    );
+
+    assertThat(
+      BursarTokenFormatter.formatFeeDateDataToken(
+        feeDateToken,
+        accountWithAncillaryData.withAccount(new Account())
+      ),
+      is("")
     );
   }
 

@@ -14,10 +14,7 @@ import static org.folio.dew.domain.dto.IdentifierType.HRID;
 import static org.folio.dew.domain.dto.IdentifierType.ID;
 import static org.folio.dew.domain.dto.IdentifierType.USER_NAME;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
-
-import lombok.experimental.UtilityClass;
-import org.apache.commons.lang3.StringUtils;
-import org.folio.dew.domain.dto.IdentifierType;
+import static org.folio.dew.utils.Constants.DATE_WITHOUT_TIME_PATTERN;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -29,16 +26,24 @@ import java.util.EnumMap;
 import java.util.Optional;
 import java.util.TimeZone;
 
+import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.domain.dto.IdentifierType;
+
+import lombok.experimental.UtilityClass;
+
 @UtilityClass
 public class BulkEditProcessorHelper {
   private static final String MATCH_PATTERN = "%s=%s";
   private static final String EXACT_MATCH_PATTERN = "%s==%s";
   private static final DateFormat dateFormat;
+  private static final DateFormat dateWithoutTimeFormat;
   private static final EnumMap<IdentifierType, String> identifiersMap = new EnumMap<>(IdentifierType.class);
 
   static {
     dateFormat = new SimpleDateFormat(DATE_TIME_PATTERN);
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    dateWithoutTimeFormat = new SimpleDateFormat(DATE_WITHOUT_TIME_PATTERN);
+    dateWithoutTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
     identifiersMap.put(ID, "id");
     identifiersMap.put(BARCODE, "barcode");
@@ -52,6 +57,10 @@ public class BulkEditProcessorHelper {
 
   public static String dateToString(Date date) {
     return nonNull(date) ? dateFormat.format(date) : EMPTY;
+  }
+
+  public static String dateToStringWithoutTime(Date date) {
+    return nonNull(date) ? dateWithoutTimeFormat.format(date) : EMPTY;
   }
 
   public static Date dateFromString(String date) {

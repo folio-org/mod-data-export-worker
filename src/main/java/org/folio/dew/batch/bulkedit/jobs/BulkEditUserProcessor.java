@@ -7,6 +7,7 @@ import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.BulkEditProcessorHelper.booleanToStringNullSafe;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
+import static org.folio.dew.utils.BulkEditProcessorHelper.dateToStringWithoutTime;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
@@ -18,7 +19,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.Address;
@@ -74,7 +74,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       .email(ofNullable(personal.getEmail()).orElse(EMPTY))
       .phone(ofNullable(personal.getPhone()).orElse(EMPTY))
       .mobilePhone(ofNullable(personal.getMobilePhone()).orElse(EMPTY))
-      .dateOfBirth(dateToString(personal.getDateOfBirth()))
+      .dateOfBirth(dateToStringWithoutTime(personal.getDateOfBirth()))
       .addresses(addressesToString(personal.getAddresses(), errorServiceArgs))
       .preferredContactTypeId(ofNullable(personal.getPreferredContactTypeId()).orElse(EMPTY))
       .enrollmentDate(dateToString(user.getEnrollmentDate()))

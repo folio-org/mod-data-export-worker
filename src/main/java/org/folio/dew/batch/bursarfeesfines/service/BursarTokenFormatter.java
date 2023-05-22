@@ -121,9 +121,7 @@ public class BursarTokenFormatter {
     BursarExportTokenFeeDate tokenFeeDate,
     AccountWithAncillaryData accountWithAncillaryData
   ) {
-    ZonedDateTime feeDateTime;
     Date accountDate;
-
     switch (tokenFeeDate.getProperty()) {
       case CREATED -> accountDate =
         accountWithAncillaryData.getAccount().getDateCreated();
@@ -139,9 +137,19 @@ public class BursarTokenFormatter {
       }
     }
 
+    if (accountDate == null) {
+      return applyLengthControl(
+        tokenFeeDate.getPlaceholder(),
+        tokenFeeDate.getLengthControl()
+      );
+    }
+
     try {
-      feeDateTime =
-        accountDate.toInstant().atZone(ZoneId.of(tokenFeeDate.getTimezone()));
+      return processDateToken(
+        accountDate.toInstant().atZone(ZoneId.of(tokenFeeDate.getTimezone())),
+        tokenFeeDate.getValue(),
+        tokenFeeDate.getLengthControl()
+      );
     } catch (ZoneRulesException e) {
       log.error("Unknown timezone: ", e);
       String result = String.format(
@@ -150,12 +158,6 @@ public class BursarTokenFormatter {
       );
       return applyLengthControl(result, tokenFeeDate.getLengthControl());
     }
-
-    return processDateToken(
-      feeDateTime,
-      tokenFeeDate.getValue(),
-      tokenFeeDate.getLengthControl()
-    );
   }
 
   public static String formatUserDataToken(
@@ -401,10 +403,14 @@ public class BursarTokenFormatter {
    * @params tokenDate date token that needs to process into string
    */
   public static String processDateToken(
-    ZonedDateTime dateTime,
+    @CheckForNull ZonedDateTime dateTime,
     BursarExportTokenDateType dateType,
     BursarExportTokenLengthControl lengthControl
   ) {
+    if (dateTime == null) {
+      return applyLengthControl("", lengthControl);
+    }
+
     String result;
 
     switch (dateType) {

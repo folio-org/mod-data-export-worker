@@ -259,6 +259,11 @@ class BursarTokenFormatterTest {
       ),
       is("2023")
     );
+
+    assertThat(
+      BursarTokenFormatter.processDateToken(null, dateType, lengthControl),
+      is("")
+    );
   }
 
   @Test
@@ -448,6 +453,14 @@ class BursarTokenFormatterTest {
         accountWithAncillaryData
       ),
       is("[unknown time zone: invalid]")
+    );
+
+    assertThat(
+      BursarTokenFormatter.formatFeeDateDataToken(
+        feeDateToken,
+        accountWithAncillaryData.withAccount(new Account())
+      ),
+      is("")
     );
   }
 

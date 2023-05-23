@@ -25,8 +25,7 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 
-public class NoFeeFineMatchingAggregateCriteriaAggregateTest
-  extends BaseBatchTest {
+class NoFeeFineMatchingAggregateCriteriaAggregateTest extends BaseBatchTest {
 
   @Autowired
   private Job bursarExportJob;
@@ -154,36 +153,11 @@ public class NoFeeFineMatchingAggregateCriteriaAggregateTest
                         "updatedByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305"
                       },
                       "customFields": {}
-                    },
-                    {
-                      "username": "rick",
-                      "id": "2205005b-ca51-4a04-87fd-938eefa8f6de",
-                      "barcode": "123",
-                      "active": true,
-                      "patronGroup": "3684a786-6671-4268-8ed0-9db82ebca60b",
-                      "departments": [],
-                      "proxyFor": [],
-                      "personal": {
-                        "lastName": "rick",
-                        "firstName": "psych",
-                        "email": "rick@example.com",
-                        "addresses": [],
-                        "preferredContactTypeId": "002"
-                      },
-                      "enrollmentDate": "2020-10-07T04:00:00.000+00:00",
-                      "createdDate": "2021-03-26T11:38:48.485+00:00",
-                      "updatedDate": "2021-03-26T11:38:48.485+00:00",
-                      "metadata": {
-                        "createdDate": "2021-02-25T11:12:22.297+00:00",
-                        "updatedDate": "2021-03-26T11:38:48.479+00:00",
-                        "updatedByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305"
-                      },
-                      "customFields": {}
                     }
                   ],
-                  "totalRecords": 2,
+                  "totalRecords": 1,
                   "resultInfo": {
-                    "totalRecords": 2,
+                    "totalRecords": 1,
                     "facets": [],
                     "diagnostics": []
                   }

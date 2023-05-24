@@ -1,10 +1,8 @@
 package org.folio.dew.bursarfeesfines;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -27,25 +25,25 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 
-class UseMostOuputTokensTest extends BaseBatchTest {
+class NoFeeFineMatchingAggregateCriteriaAggregateTest extends BaseBatchTest {
 
   @Autowired
   private Job bursarExportJob;
 
   private static final String GET_USERS_REQUEST =
-    "/users?query=id%3D%3D%28%28bec20636-fb68-41fd-84ea-2cf910673599%20or%202205005b-ca51-4a04-87fd-938eefa8f6de%29%29&limit=50";
+    "/users?query=id%3D%3D%28%28bec20636-fb68-41fd-84ea-2cf910673599%29%29&limit=50";
 
   private static final String GET_ITEMS_REQUEST =
     "/inventory/items?query=id%3D%3D%28%28100d10bf-2f06-4aa0-be15-0b95b2d9f9e4%20or%20100d10bf-2f06-4aa0-be15-0b95b2d9f9e3%29%29&limit=50";
 
   private static final String EXPECTED_CHARGE_OUTPUT =
-    "src/test/resources/output/bursar_most_output_tokens.dat";
+    "src/test/resources/output/bursar_no_fee_matching_aggregate_criteria.dat";
 
   @Test
   @DisplayName(
-    "Run bursar export that creates output file that uses most output tokens"
+    "Run bursar export that has fee/fines matching initial criteria but not aggregate criteria"
   )
-  void testUseMostOutputTokens() throws Exception {
+  void testNoFeeFineMatchingAggregateCriteria() throws Exception {
     // stub request to get accounts
     wireMockServer.stubFor(
       get(urlEqualTo(BursarFeesFinesTestUtils.ALL_OPEN_ACCOUNTS_GET_REQUEST))
@@ -101,7 +99,7 @@ class UseMostOuputTokensTest extends BaseBatchTest {
                         "dateUpdated": "2021-03-30T19:53:50.289+00:00",
                         "updatedByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305"
                       },
-                      "userId": "2205005b-ca51-4a04-87fd-938eefa8f6de",
+                      "userId": "bec20636-fb68-41fd-84ea-2cf910673599",
                       "itemId": "100d10bf-2f06-4aa0-be15-0b95b2d9f9e4",
                       "feeFineId": "933336fd-0290-468a-b69f-35815b713265",
                       "ownerId": "782c9784-cba0-480a-b8c0-1ffba088c9a5",
@@ -155,36 +153,11 @@ class UseMostOuputTokensTest extends BaseBatchTest {
                         "updatedByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305"
                       },
                       "customFields": {}
-                    },
-                    {
-                      "username": "rick",
-                      "id": "2205005b-ca51-4a04-87fd-938eefa8f6de",
-                      "barcode": "123",
-                      "active": true,
-                      "patronGroup": "3684a786-6671-4268-8ed0-9db82ebca60b",
-                      "departments": [],
-                      "proxyFor": [],
-                      "personal": {
-                        "lastName": "rick",
-                        "firstName": "psych",
-                        "email": "rick@example.com",
-                        "addresses": [],
-                        "preferredContactTypeId": "002"
-                      },
-                      "enrollmentDate": "2020-10-07T04:00:00.000+00:00",
-                      "createdDate": "2021-03-26T11:38:48.485+00:00",
-                      "updatedDate": "2021-03-26T11:38:48.485+00:00",
-                      "metadata": {
-                        "createdDate": "2021-02-25T11:12:22.297+00:00",
-                        "updatedDate": "2021-03-26T11:38:48.479+00:00",
-                        "updatedByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305"
-                      },
-                      "customFields": {}
                     }
                   ],
-                  "totalRecords": 2,
+                  "totalRecords": 1,
                   "resultInfo": {
-                    "totalRecords": 2,
+                    "totalRecords": 1,
                     "facets": [],
                     "diagnostics": []
                   }
@@ -259,10 +232,11 @@ class UseMostOuputTokensTest extends BaseBatchTest {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bursarExportJob);
 
-    final JobParameters jobParameters = BursarFeesFinesTestUtils.prepareUseMostOutputTokensTest(
+    final JobParameters jobParameters = BursarFeesFinesTestUtils.prepareNoFeeFineMatchingAggregateCriteriaAggregateTest(
       springApplicationName,
       objectMapper
     );
+
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
@@ -288,47 +262,24 @@ class UseMostOuputTokensTest extends BaseBatchTest {
     );
 
     wireMockServer.verify(
+      0,
       getRequestedFor(
         urlPathMatching(BursarFeesFinesTestUtils.TRANSFERS_ENDPOINT_PATH)
       )
     );
 
     wireMockServer.verify(
+      0,
       postRequestedFor(
         urlPathMatching(BursarFeesFinesTestUtils.TRANSFER_ACCOUNTS_ENDPOINT)
       )
     );
 
     wireMockServer.verify(
+      0,
       getRequestedFor(
         urlEqualTo(BursarFeesFinesTestUtils.SERVICE_POINTS_GET_REQUEST)
       )
-    );
-
-    wireMockServer.verify(
-      postRequestedFor(
-        urlEqualTo(BursarFeesFinesTestUtils.TRANSFER_ACCOUNTS_ENDPOINT)
-      )
-        .withRequestBody(matchingJsonPath("$.amount", equalTo("500.0")))
-        .withRequestBody(
-          matchingJsonPath(
-            "$.servicePointId",
-            equalTo("afdb59ae-1185-4cd7-94dd-39a87fe01c51")
-          )
-        )
-        .withRequestBody(
-          matchingJsonPath("$.paymentMethod", equalTo("Transfer2bursar"))
-        )
-        .withRequestBody(matchingJsonPath("$.notifyPatron", equalTo("false")))
-        .withRequestBody(matchingJsonPath("$.userName", equalTo("System")))
-        .withRequestBody(
-          matchingJsonPath(
-            "$.accountIds",
-            equalTo(
-              "[ \"807becbc-c3e6-4871-bf38-d140597e41cb\", \"707becbc-c3e6-4871-bf38-d140597e41cb\" ]"
-            )
-          )
-        )
     );
 
     // check file content

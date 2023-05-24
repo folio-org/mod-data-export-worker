@@ -563,16 +563,7 @@ public class BursarFeesFinesTestUtils {
 
     BursarExportFilterPass filterPass = new BursarExportFilterPass();
     job.setFilter(filterPass);
-
-    BursarExportFilterAggregate filterAggregate = new BursarExportFilterAggregate();
-    filterAggregate.setProperty(
-      BursarExportFilterAggregate.PropertyEnum.TOTAL_AMOUNT
-    );
-    filterAggregate.setAmount(100000);
-    filterAggregate.setCondition(
-      BursarExportFilterAggregate.ConditionEnum.GREATER_THAN
-    );
-    job.setGroupByPatronFilter(filterAggregate);
+    job.setGroupByPatronFilter(null);
 
     List<BursarExportHeaderFooter> headerTokens = new ArrayList<>();
     BursarExportTokenAggregate headerAggregate = new BursarExportTokenAggregate();
@@ -594,9 +585,208 @@ public class BursarFeesFinesTestUtils {
     job.setFooter(footerTokens);
 
     List<BursarExportDataToken> dataTokens = new ArrayList<>();
-    BursarExportTokenFeeMetadata tokenFeeMetadata = new BursarExportTokenFeeMetadata();
-    tokenFeeMetadata.setValue(BursarExportTokenFeeMetadata.ValueEnum.ID);
-    dataTokens.add(tokenFeeMetadata);
+
+    BursarExportTokenUserData tokenUserData = new BursarExportTokenUserData();
+    tokenUserData.setValue(BursarExportTokenUserData.ValueEnum.FOLIO_ID);
+
+    BursarExportTokenAggregate tokenAggregate = new BursarExportTokenAggregate();
+    tokenAggregate.setValue(BursarExportTokenAggregate.ValueEnum.TOTAL_AMOUNT);
+    tokenAggregate.setDecimal(true);
+
+    dataTokens.add(tokenUserData);
+    dataTokens.add(tokenAggregate);
+    job.setData(dataTokens);
+
+    job.setGroupByPatron(true);
+
+    BursarExportTransferCriteria transferCriteria = new BursarExportTransferCriteria();
+
+    List<BursarExportTransferCriteriaConditionsInner> transferConditions = new ArrayList<>();
+
+    BursarExportTransferCriteriaElse transferInfo = new BursarExportTransferCriteriaElse();
+    transferInfo.setAccount(
+      UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b")
+    );
+
+    transferCriteria.setConditions(transferConditions);
+    transferCriteria.setElse(transferInfo);
+
+    job.setTransferInfo(transferCriteria);
+
+    var parametersBuilder = new JobParametersBuilder();
+    parametersBuilder.addString(
+      "bursarFeeFines",
+      objectMapper.writeValueAsString(job)
+    );
+
+    String jobId = "00000000-0000-3000-6000-000000000000";
+    parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
+
+    Date now = new Date();
+    String workDir =
+      System.getProperty("java.io.tmpdir") +
+      File.separator +
+      springApplicationName +
+      File.separator;
+    final String outputFile = String.format(
+      "%s%s_%tF_%tH%tM%tS_%s",
+      workDir,
+      ExportType.BURSAR_FEES_FINES,
+      now,
+      now,
+      now,
+      now,
+      jobId
+    );
+    parametersBuilder.addString(
+      JobParameterNames.TEMP_OUTPUT_FILE_PATH,
+      outputFile
+    );
+
+    return parametersBuilder.toJobParameters();
+  }
+
+  public static JobParameters prepareOneFeeFineOnOneAccountAggregateTest(
+    String springApplicationName,
+    ObjectMapper objectMapper
+  ) throws JsonProcessingException {
+    BursarExportJob job = new BursarExportJob();
+    BursarExportFilterPass filterPass = new BursarExportFilterPass();
+    job.setFilter(filterPass);
+    job.setGroupByPatronFilter(null);
+
+    List<BursarExportHeaderFooter> headerTokens = new ArrayList<>();
+    BursarExportTokenAggregate headerAggregate = new BursarExportTokenAggregate();
+    headerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.TOTAL_AMOUNT);
+    headerAggregate.setDecimal(true);
+    headerTokens.add(headerAggregate);
+    BursarExportTokenConstant newLineToken = new BursarExportTokenConstant();
+    newLineToken.setValue("\n");
+    headerTokens.add(newLineToken);
+
+    job.setHeader(headerTokens);
+
+    List<BursarExportHeaderFooter> footerTokens = new ArrayList<>();
+    BursarExportTokenAggregate footerAggregate = new BursarExportTokenAggregate();
+    footerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.NUM_ROWS);
+    footerAggregate.setDecimal(false);
+    footerTokens.add(footerAggregate);
+
+    job.setFooter(footerTokens);
+
+    List<BursarExportDataToken> dataTokens = new ArrayList<>();
+
+    BursarExportTokenUserData tokenUser = new BursarExportTokenUserData();
+    tokenUser.setValue(BursarExportTokenUserData.ValueEnum.FOLIO_ID);
+
+    BursarExportTokenAggregate tokenAggregate = new BursarExportTokenAggregate();
+    tokenAggregate.setDecimal(true);
+    tokenAggregate.setValue(BursarExportTokenAggregate.ValueEnum.TOTAL_AMOUNT);
+
+    dataTokens.add(tokenUser);
+    dataTokens.add(tokenAggregate);
+    dataTokens.add(newLineToken);
+
+    job.setData(dataTokens);
+
+    job.setGroupByPatron(true);
+
+    BursarExportTransferCriteria transferCriteria = new BursarExportTransferCriteria();
+
+    List<BursarExportTransferCriteriaConditionsInner> transferConditions = new ArrayList<>();
+
+    BursarExportTransferCriteriaElse transferInfo = new BursarExportTransferCriteriaElse();
+    transferInfo.setAccount(
+      UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b")
+    );
+
+    transferCriteria.setConditions(transferConditions);
+    transferCriteria.setElse(transferInfo);
+
+    job.setTransferInfo(transferCriteria);
+
+    var parametersBuilder = new JobParametersBuilder();
+    parametersBuilder.addString(
+      "bursarFeeFines",
+      objectMapper.writeValueAsString(job)
+    );
+
+    String jobId = "00000000-0000-3000-6000-000000000000";
+    parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
+
+    Date now = new Date();
+    String workDir =
+      System.getProperty("java.io.tmpdir") +
+      File.separator +
+      springApplicationName +
+      File.separator;
+    final String outputFile = String.format(
+      "%s%s_%tF_%tH%tM%tS_%s",
+      workDir,
+      ExportType.BURSAR_FEES_FINES,
+      now,
+      now,
+      now,
+      now,
+      jobId
+    );
+    parametersBuilder.addString(
+      JobParameterNames.TEMP_OUTPUT_FILE_PATH,
+      outputFile
+    );
+
+    return parametersBuilder.toJobParameters();
+  }
+
+  public static JobParameters prepareMultipleFeeFinesAcrossPatronsAggregateTest(
+    String springApplicationName,
+    ObjectMapper objectMapper
+  ) throws JsonProcessingException {
+    BursarExportJob job = new BursarExportJob();
+
+    BursarExportFilterPass filterPass = new BursarExportFilterPass();
+    job.setFilter(filterPass);
+    job.setGroupByPatronFilter(null);
+
+    List<BursarExportHeaderFooter> headerTokens = new ArrayList<>();
+    BursarExportTokenAggregate headerAggregate = new BursarExportTokenAggregate();
+    headerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.TOTAL_AMOUNT);
+    headerAggregate.setDecimal(true);
+    headerTokens.add(headerAggregate);
+    BursarExportTokenConstant newLineToken = new BursarExportTokenConstant();
+    newLineToken.setValue("\n");
+    headerTokens.add(newLineToken);
+
+    job.setHeader(headerTokens);
+
+    List<BursarExportHeaderFooter> footerTokens = new ArrayList<>();
+    BursarExportTokenAggregate footerAggregate = new BursarExportTokenAggregate();
+    footerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.NUM_ROWS);
+    footerAggregate.setDecimal(false);
+    footerTokens.add(footerAggregate);
+
+    job.setFooter(footerTokens);
+
+    List<BursarExportDataToken> dataTokens = new ArrayList<>();
+
+    BursarExportTokenUserData tokenUserData = new BursarExportTokenUserData();
+    tokenUserData.setValue(BursarExportTokenUserData.ValueEnum.FOLIO_ID);
+
+    BursarExportTokenAggregate tokenAggregateAmount = new BursarExportTokenAggregate();
+    tokenAggregateAmount.setValue(
+      BursarExportTokenAggregate.ValueEnum.TOTAL_AMOUNT
+    );
+    tokenAggregateAmount.setDecimal(true);
+    BursarExportTokenAggregate tokenAggregateNumRows = new BursarExportTokenAggregate();
+    tokenAggregateNumRows.setValue(
+      BursarExportTokenAggregate.ValueEnum.NUM_ROWS
+    );
+    tokenAggregateNumRows.setDecimal(false);
+
+    dataTokens.add(tokenUserData);
+    dataTokens.add(tokenAggregateAmount);
+    dataTokens.add(tokenAggregateNumRows);
+    dataTokens.add(newLineToken);
     job.setData(dataTokens);
 
     job.setGroupByPatron(true);

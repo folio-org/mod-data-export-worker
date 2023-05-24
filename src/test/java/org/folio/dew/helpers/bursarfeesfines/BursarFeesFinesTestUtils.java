@@ -795,6 +795,7 @@ public class BursarFeesFinesTestUtils {
     dataTokens.add(tokenUserData);
     dataTokens.add(tokenAggregateAmount);
     dataTokens.add(tokenAggregateNumRows);
+    dataTokens.add(newLineToken);
     job.setData(dataTokens);
 
     job.setGroupByPatron(true);

@@ -11,7 +11,6 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.BursarExportDataToken;
 import org.folio.dew.domain.dto.BursarExportFilterAggregate;
-import org.folio.dew.domain.dto.BursarExportFilterAggregate;
 import org.folio.dew.domain.dto.BursarExportFilterAmount;
 import org.folio.dew.domain.dto.BursarExportFilterNegation;
 import org.folio.dew.domain.dto.BursarExportFilterPass;
@@ -20,18 +19,13 @@ import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.domain.dto.BursarExportTokenAggregate;
 import org.folio.dew.domain.dto.BursarExportTokenConditional;
 import org.folio.dew.domain.dto.BursarExportTokenConditional;
-import org.folio.dew.domain.dto.BursarExportTokenConditional;
 import org.folio.dew.domain.dto.BursarExportTokenConstant;
 import org.folio.dew.domain.dto.BursarExportTokenCurrentDate;
 import org.folio.dew.domain.dto.BursarExportTokenCurrentDate;
-import org.folio.dew.domain.dto.BursarExportTokenCurrentDate;
-import org.folio.dew.domain.dto.BursarExportTokenDateType;
 import org.folio.dew.domain.dto.BursarExportTokenDateType;
 import org.folio.dew.domain.dto.BursarExportTokenDateType;
 import org.folio.dew.domain.dto.BursarExportTokenFeeAmount;
 import org.folio.dew.domain.dto.BursarExportTokenFeeAmount;
-import org.folio.dew.domain.dto.BursarExportTokenFeeAmount;
-import org.folio.dew.domain.dto.BursarExportTokenFeeDate;
 import org.folio.dew.domain.dto.BursarExportTokenFeeDate;
 import org.folio.dew.domain.dto.BursarExportTokenFeeDate;
 import org.folio.dew.domain.dto.BursarExportTokenFeeMetadata;
@@ -569,7 +563,16 @@ public class BursarFeesFinesTestUtils {
 
     BursarExportFilterPass filterPass = new BursarExportFilterPass();
     job.setFilter(filterPass);
-    job.setGroupByPatronFilter(null);
+
+    BursarExportFilterAggregate filterAggregate = new BursarExportFilterAggregate();
+    filterAggregate.setProperty(
+      BursarExportFilterAggregate.PropertyEnum.TOTAL_AMOUNT
+    );
+    filterAggregate.setAmount(100000);
+    filterAggregate.setCondition(
+      BursarExportFilterAggregate.ConditionEnum.GREATER_THAN
+    );
+    job.setGroupByPatronFilter(filterAggregate);
 
     List<BursarExportHeaderFooter> headerTokens = new ArrayList<>();
     BursarExportTokenAggregate headerAggregate = new BursarExportTokenAggregate();
@@ -792,7 +795,6 @@ public class BursarFeesFinesTestUtils {
     dataTokens.add(tokenUserData);
     dataTokens.add(tokenAggregateAmount);
     dataTokens.add(tokenAggregateNumRows);
-    dataTokens.add(newLineToken);
     job.setData(dataTokens);
 
     job.setGroupByPatron(true);

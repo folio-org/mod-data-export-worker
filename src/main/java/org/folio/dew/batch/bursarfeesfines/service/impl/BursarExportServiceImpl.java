@@ -283,7 +283,7 @@ public class BursarExportServiceImpl implements BursarExportService {
    * @param transferAccountID transfer account ID
    * @return transfer account name
    */
-  public String getTransferAccountName(String transferAccountID) {
+  private String getTransferAccountName(String transferAccountID) {
     return transferClient
       .get("id==" + transferAccountID, 1)
       .getTransfers()

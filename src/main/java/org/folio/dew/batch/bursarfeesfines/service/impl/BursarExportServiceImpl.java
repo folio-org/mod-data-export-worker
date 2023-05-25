@@ -222,12 +222,6 @@ public class BursarExportServiceImpl implements BursarExportService {
     List<AccountWithAncillaryData> accounts,
     String accountName
   ) {
-    if (CollectionUtils.isEmpty(accounts)) {
-      throw new IllegalArgumentException(
-        "No accounts found to make transfer request for"
-      );
-    }
-
     BigDecimal remainingAmount = BigDecimal.ZERO;
     List<String> accountIds = new ArrayList<>();
     for (AccountWithAncillaryData accountWithAncillaryData : accounts) {
@@ -289,7 +283,7 @@ public class BursarExportServiceImpl implements BursarExportService {
    * @param transferAccountID transfer account ID
    * @return transfer account name
    */
-  private String getTransferAccountName(String transferAccountID) {
+  public String getTransferAccountName(String transferAccountID) {
     return transferClient
       .get("id==" + transferAccountID, 1)
       .getTransfers()

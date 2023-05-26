@@ -28,6 +28,7 @@ import org.folio.dew.domain.dto.BursarExportTokenItemData;
 import org.folio.dew.domain.dto.BursarExportTokenLengthControl;
 import org.folio.dew.domain.dto.BursarExportTokenUserData;
 import org.folio.dew.domain.dto.BursarExportTokenUserDataOptional;
+import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUser;
@@ -207,7 +208,8 @@ public class BursarTokenFormatter {
     BursarExportTokenItemData tokenItemData,
     AccountWithAncillaryData accountWithAncillaryData
   ) {
-    if (accountWithAncillaryData.getItem() == null) {
+    Item item = accountWithAncillaryData.getItem();
+    if (item == null) {
       return applyLengthControl(
         tokenItemData.getPlaceholder(),
         tokenItemData.getLengthControl()
@@ -216,12 +218,10 @@ public class BursarTokenFormatter {
 
     String result;
     switch (tokenItemData.getValue()) {
-      case LOCATION_ID -> result =
-        accountWithAncillaryData.getItem().getEffectiveLocation().getId();
-      case NAME -> result = accountWithAncillaryData.getItem().getTitle();
-      case BARCODE -> result = accountWithAncillaryData.getItem().getBarcode();
-      case MATERIAL_TYPE -> result =
-        accountWithAncillaryData.getItem().getMaterialType().getName();
+      case LOCATION_ID -> result = item.getEffectiveLocation().getId();
+      case NAME -> result = item.getTitle();
+      case BARCODE -> result = item.getBarcode();
+      case MATERIAL_TYPE -> result = item.getMaterialType().getName();
       default -> {
         log.error("Invalid item data token: {}", tokenItemData);
         result = tokenItemData.getPlaceholder();

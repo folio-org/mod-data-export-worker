@@ -18,6 +18,7 @@ import org.folio.dew.domain.dto.BursarExportFilterNegation;
 import org.folio.dew.domain.dto.BursarExportFilterPass;
 import org.folio.dew.domain.dto.BursarExportFilterPatronGroup;
 import org.folio.dew.domain.dto.BursarExportFilterServicePoint;
+import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 import org.openapitools.jackson.nullable.JsonNullable;
 
@@ -53,24 +54,7 @@ public class BursarFilterEvaluator {
         filterAge.getNumDays()
       );
     } else if (filter instanceof BursarExportFilterAmount filterAmount) {
-      int centFeeValue = account
-        .getAccount()
-        .getAmount()
-        .multiply(new BigDecimal("100"))
-        .intValue();
-
-      switch (filterAmount.getCondition()) {
-        case LESS_THAN:
-          return centFeeValue < filterAmount.getAmount();
-        case GREATER_THAN:
-          return centFeeValue > filterAmount.getAmount();
-        case LESS_THAN_EQUAL:
-          return centFeeValue <= filterAmount.getAmount();
-        case GREATER_THAN_EQUAL:
-          return centFeeValue >= filterAmount.getAmount();
-        default:
-          return false;
-      }
+      return evaluateFilterAmount(account, filterAmount);
     } else if (filter instanceof BursarExportFilterFeeType filterFeeType) {
       return UUID
         .fromString(account.getAccount().getFeeFineId())
@@ -82,8 +66,12 @@ public class BursarFilterEvaluator {
         .fromString(account.getAccount().getFeeFineOwner())
         .equals(filterFeeFineOwner.getFeeFineOwner());
     } else if (filter instanceof BursarExportFilterLocation filterLocation) {
+      Item item = account.getItem();
+      if (item == null) {
+        return false;
+      }
       return UUID
-        .fromString(account.getItem().getEffectiveLocation().getId())
+        .fromString(item.getEffectiveLocation().getId())
         .equals(filterLocation.getLocationId());
     } else if (
       filter instanceof BursarExportFilterPatronGroup filterPatronGroup
@@ -96,8 +84,12 @@ public class BursarFilterEvaluator {
     } else if (
       filter instanceof BursarExportFilterServicePoint filterServicePoint
     ) {
+      Item item = account.getItem();
+      if (item == null) {
+        return false;
+      }
       return UUID
-        .fromString(account.getItem().getInTransitDestinationServicePointId())
+        .fromString(item.getInTransitDestinationServicePointId())
         .equals(filterServicePoint.getServicePointId());
     } else if (filter instanceof BursarExportFilterCondition filterCondition) {
       return evaluateCondition(account, filterCondition);
@@ -106,6 +98,30 @@ public class BursarFilterEvaluator {
     } else {
       log.error("Unexpected filter: {}", filter);
       return true;
+    }
+  }
+
+  private static boolean evaluateFilterAmount(
+    AccountWithAncillaryData account,
+    BursarExportFilterAmount filter
+  ) {
+    int centFeeValue = account
+      .getAccount()
+      .getAmount()
+      .multiply(new BigDecimal("100"))
+      .intValue();
+
+    switch (filter.getCondition()) {
+      case LESS_THAN:
+        return centFeeValue < filter.getAmount();
+      case GREATER_THAN:
+        return centFeeValue > filter.getAmount();
+      case LESS_THAN_EQUAL:
+        return centFeeValue <= filter.getAmount();
+      case GREATER_THAN_EQUAL:
+        return centFeeValue >= filter.getAmount();
+      default:
+        return false;
     }
   }
 

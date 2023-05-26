@@ -1,7 +1,6 @@
 package org.folio.dew.batch.bursarfeesfines.service;
 
 import io.micrometer.common.lang.NonNull;
-import java.math.BigDecimal;
 import java.util.UUID;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;

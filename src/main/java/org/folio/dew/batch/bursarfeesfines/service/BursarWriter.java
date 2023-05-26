@@ -8,7 +8,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.springframework.batch.core.StepExecution;
@@ -19,7 +18,6 @@ import org.springframework.batch.item.support.AbstractItemStreamItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.WritableResource;
 
-@Log4j2
 @Getter
 @Setter
 @Builder

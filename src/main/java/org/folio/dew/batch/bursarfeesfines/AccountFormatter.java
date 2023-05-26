@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.batch.bursarfeesfines.service.BursarTokenFormatter;
 import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
@@ -22,8 +21,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AccountFormatter
   implements ItemProcessor<AccountWithAncillaryData, String> {
-
-  private final BursarExportService exportService;
 
   @Value("#{stepExecution}")
   private StepExecution stepExecution;

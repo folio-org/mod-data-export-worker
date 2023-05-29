@@ -110,25 +110,18 @@ public class UserReferenceService {
 
   @Cacheable(cacheNames = "customFields")
   public CustomField getCustomFieldByRefId(String refId) {
-
-    var customFields = customFieldsClient.getCustomFieldsByQuery(getModuleId(MOD_USERS),String.format("refId==\"%s\"", refId));
-    if (customFields.getCustomFields().isEmpty()) {
-      var msg = format("Custom field with refId=%s not found", refId);
-      log.error(msg);
-      throw new BulkEditException(msg);
-    }
-    return customFields.getCustomFields().stream().filter(cf -> cf.getRefId().equals(refId)).toList().get(0);
+    return customFieldsClient.getCustomFieldsByQuery(getModuleId(MOD_USERS),String.format("refId==\"%s\"", refId))
+    .getCustomFields().stream().filter(customField -> customField.getRefId().equals(refId))
+      .findFirst()
+      .orElseThrow(() -> new BulkEditException(format("Custom field with refId=%s not found", refId)));
   }
 
   @Cacheable(cacheNames = "customFields")
   public CustomField getCustomFieldByName(String name) {
-    var customFields = customFieldsClient.getCustomFieldsByQuery(getModuleId(MOD_USERS), String.format("name==\"%s\"", name));
-    if (customFields.getCustomFields().isEmpty()) {
-      var msg = format("Custom field with name=%s not found", name);
-      log.error(msg);
-      throw new BulkEditException(msg);
-    }
-    return customFields.getCustomFields().stream().filter(cf -> cf.getName().equals(name)).toList().get(0);
+    return customFieldsClient.getCustomFieldsByQuery(getModuleId(MOD_USERS), String.format("name==\"%s\"", name))
+      .getCustomFields().stream().filter(customField -> customField.getName().equals(name))
+      .findFirst()
+      .orElseThrow(() -> new BulkEditException(format("Custom field with name=%s not found", name)));
   }
 
   @Cacheable(cacheNames = "moduleIds")

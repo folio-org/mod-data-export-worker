@@ -117,7 +117,7 @@ public class UserReferenceService {
       log.error(msg);
       throw new BulkEditException(msg);
     }
-    return customFields.getCustomFields().get(0);
+    return customFields.getCustomFields().stream().filter(cf -> cf.getRefId().equals(refId)).toList().get(0);
   }
 
   @Cacheable(cacheNames = "customFields")
@@ -128,7 +128,7 @@ public class UserReferenceService {
       log.error(msg);
       throw new BulkEditException(msg);
     }
-    return customFields.getCustomFields().get(0);
+    return customFields.getCustomFields().stream().filter(cf -> cf.getName().equals(name)).toList().get(0);
   }
 
   @Cacheable(cacheNames = "moduleIds")

@@ -20,6 +20,7 @@ import org.folio.dew.client.TransferClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.config.JacksonConfiguration;
 import org.folio.dew.domain.dto.Account;
+import org.folio.dew.domain.dto.AccountdataCollection;
 import org.folio.dew.domain.dto.BursarExportFilterNegation;
 import org.folio.dew.domain.dto.BursarExportFilterPass;
 import org.folio.dew.domain.dto.BursarExportJob;
@@ -36,9 +37,7 @@ import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -160,7 +159,7 @@ class BursarExportServiceImplTest {
   }
 
   @Test
-  void testFetchDataInBatch() {
+  void testFetchDataInBatchMoreThanBucketSize() {
     Set<String> userIds = generateUserIds(100);
     UserCollection userCollection = new UserCollection();
     List<User> users = new ArrayList<>();
@@ -168,18 +167,17 @@ class BursarExportServiceImplTest {
     userCollection.setUsers(new ArrayList<>());
 
     when(userClient.getUserByQuery(any(), eq(50L)))
-      .thenAnswer(
-        new Answer<UserCollection>() {
-          @Override
-          public UserCollection answer(InvocationOnMock invocation)
-            throws Throwable {
-            // Generate a random value using mockUserCollection()
-            UserCollection randomUserCollection = mockUserCollection();
-            return randomUserCollection;
-          }
-        }
-      );
+      .thenAnswer(invocation -> mockUserCollection());
     Assertions.assertEquals(2, service.getUsers(userIds).size());
+  }
+
+  @Test
+  void testGetAllAccounts() {
+    when(accountClient.getAccounts("remaining > 0.0", 10000L))
+      .thenReturn(mockAccountdataCollection(10000));
+    when(accountClient.getAccounts("remaining > 0.0", 10000L, 10000))
+      .thenReturn(mockAccountdataCollection(10000));
+    Assertions.assertEquals(20000, service.getAllAccounts().size());
   }
 
   private TransferdataCollection mockTransferDataCollection() {
@@ -217,7 +215,19 @@ class BursarExportServiceImplTest {
     User user = new User().id(UUID.randomUUID().toString());
     userCollection.setUsers(List.of(user));
 
-    log.debug("In mockUserCollection(): {}", userCollection.toString());
     return userCollection;
+  }
+
+  private AccountdataCollection mockAccountdataCollection(int size) {
+    AccountdataCollection accountdataCollection = new AccountdataCollection();
+    List<Account> accounts = new ArrayList<>();
+    for (int i = 0; i < size; i++) {
+      Account account = new Account();
+      accounts.add(account);
+    }
+    accountdataCollection.setAccounts(accounts);
+    accountdataCollection.setTotalRecords(2 * size);
+
+    return accountdataCollection;
   }
 }

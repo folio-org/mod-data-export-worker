@@ -1,6 +1,10 @@
 package org.folio.dew.batch.bursarfeesfines.service.impl;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -10,7 +14,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.log4j.Log4j2;
-import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.client.AccountBulkClient;
 import org.folio.dew.client.AccountClient;
@@ -168,17 +171,8 @@ class BursarExportServiceImplTest {
     userCollection.setUsers(new ArrayList<>());
 
     when(userClient.getUserByQuery(any(), eq(50L)))
-      .thenAnswer(
-        new Answer<UserCollection>() {
-          @Override
-          public UserCollection answer(InvocationOnMock invocation)
-            throws Throwable {
-            // Generate a random value using mockUserCollection()
-            UserCollection randomUserCollection = mockUserCollection();
-            return randomUserCollection;
-          }
-        }
-      );
+      // Generate a random value using mockUserCollection()
+      .thenAnswer((InvocationOnMock invocation) -> mockUserCollection());
     Assertions.assertEquals(2, service.getUsers(userIds).size());
   }
 

@@ -1,6 +1,10 @@
 package org.folio.dew.batch.bursarfeesfines.service.impl;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -10,7 +14,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.log4j.Log4j2;
-import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.client.AccountBulkClient;
 import org.folio.dew.client.AccountClient;

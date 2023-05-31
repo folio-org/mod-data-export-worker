@@ -1,6 +1,7 @@
 package org.folio.dew.batch.bursarfeesfines.service;
 
 import io.micrometer.common.lang.NonNull;
+import java.math.BigDecimal;
 import java.util.UUID;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
@@ -41,7 +42,10 @@ public class BursarFilterAggregateEvaluator {
     } else if (filter.getProperty() == PropertyEnum.TOTAL_AMOUNT) {
       return compareHelper(
         filter.getCondition(),
-        aggregatedAccounts.findTotalAmount().intValue(),
+        aggregatedAccounts
+          .findTotalAmount()
+          .multiply(new BigDecimal("100"))
+          .intValue(),
         filter.getAmount()
       );
     } else {

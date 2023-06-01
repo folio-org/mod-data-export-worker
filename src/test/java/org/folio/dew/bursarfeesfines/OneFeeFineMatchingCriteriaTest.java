@@ -281,6 +281,7 @@ class OneFeeFineMatchingCriteriaTest extends BaseBatchTest {
 
     // job status should be COMPLETED
     assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
+    assertThat(jobExecution.getFailureExceptions().isEmpty(), is(true));
 
     verifyServerCalls();
 

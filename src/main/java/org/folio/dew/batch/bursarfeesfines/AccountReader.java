@@ -58,6 +58,14 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
     accounts = exportService.getAllAccounts();
     stepExecution.getExecutionContext().put("accounts", accounts);
 
+    if (accounts.isEmpty()) {
+      log.error("No accounts found, terminating job...");
+      stepExecution.addFailureException(
+        new IllegalStateException("No accounts found")
+      );
+      return;
+    }
+
     Set<String> userIds = new HashSet<>(
       accounts.stream().map(Account::getUserId).toList()
     );
@@ -67,8 +75,6 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
 
     userMap = exportService.getUsers(userIds);
     itemMap = exportService.getItems(itemIds);
-
-    log.info(accounts.toString());
 
     // initializing a totalAmount variable in jobExecutionContext
     stepExecution

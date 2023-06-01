@@ -8,7 +8,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import lombok.experimental.UtilityClass;
-import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.BursarExportDataToken;
 import org.folio.dew.domain.dto.BursarExportFilterAggregate;
 import org.folio.dew.domain.dto.BursarExportFilterAmount;
@@ -37,7 +36,6 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 
 @UtilityClass
-@Log4j2
 public class BursarFeesFinesTestUtils {
 
   public static final String USERS_ENDPOINT_PATH = "/users";

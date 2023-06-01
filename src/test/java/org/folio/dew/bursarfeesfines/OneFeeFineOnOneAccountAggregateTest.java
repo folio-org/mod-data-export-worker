@@ -202,6 +202,7 @@ class OneFeeFineOnOneAccountAggregateTest extends BaseBatchTest {
 
     // job status should be COMPLETED
     assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
+    assertThat(jobExecution.getFailureExceptions().isEmpty(), is(true));
 
     wireMockServer.verify(
       getRequestedFor(

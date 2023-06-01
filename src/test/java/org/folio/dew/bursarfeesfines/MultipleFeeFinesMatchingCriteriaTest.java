@@ -339,6 +339,7 @@ class MultipleFeeFinesMatchingCriteriaTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
+    assertThat(jobExecution.getFailureExceptions().isEmpty(), is(true));
 
     wireMockServer.verify(
       getRequestedFor(

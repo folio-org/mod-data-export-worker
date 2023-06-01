@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.bursarfeesfines.service.BursarTokenFormatter;
 import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
@@ -15,7 +14,6 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-@Log4j2
 @Component
 @StepScope
 @RequiredArgsConstructor
@@ -57,7 +55,6 @@ public class AccountFormatter
 
   @BeforeStep
   public void initStep(StepExecution stepExecution) {
-    log.error("In AccountFormatter::initStep (implementation TBD, if any)");
     currentTotalFeeAmount = new BigDecimal(0);
   }
 }

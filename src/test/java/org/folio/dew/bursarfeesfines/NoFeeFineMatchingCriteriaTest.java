@@ -8,10 +8,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
-import org.assertj.core.api.Assertions;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.helpers.bursarfeesfines.BursarFeesFinesTestUtils;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +23,6 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
 
 class NoFeeFineMatchingCriteriaTest extends BaseBatchTest {
 
@@ -35,9 +34,6 @@ class NoFeeFineMatchingCriteriaTest extends BaseBatchTest {
 
   private static final String GET_ITEMS_REQUEST =
     "/inventory/items?query=id%3D%3D%28%28100d10bf-2f06-4aa0-be15-0b95b2d9f9e4%20or%20100d10bf-2f06-4aa0-be15-0b95b2d9f9e3%29%29&limit=50";
-
-  private static final String EXPECTED_CHARGE_OUTPUT =
-    "src/test/resources/output/bursar_no_matching_fee.dat";
 
   @Test
   @DisplayName(
@@ -277,7 +273,12 @@ class NoFeeFineMatchingCriteriaTest extends BaseBatchTest {
     );
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
-    assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
+    assertThat(jobExecution.getExitStatus(), is(ExitStatus.FAILED));
+    assertThat(jobExecution.getAllFailureExceptions().size(), is(1));
+    assertThat(
+      jobExecution.getAllFailureExceptions().get(0).getMessage(),
+      containsString("No accounts matched the criteria")
+    );
 
     wireMockServer.verify(
       getRequestedFor(
@@ -325,20 +326,6 @@ class NoFeeFineMatchingCriteriaTest extends BaseBatchTest {
     final String filesInStorage = (String) executionContext.get(
       "outputFilesInStorage"
     );
-    assertThat(filesInStorage, notNullValue());
-
-    final String[] split = filesInStorage.split(",");
-
-    final FileSystemResource actualChargeFeesFinesOutput = actualFileOutput(
-      split[0]
-    );
-    FileSystemResource expectedCharges = new FileSystemResource(
-      EXPECTED_CHARGE_OUTPUT
-    );
-
-    Assertions
-      .assertThat(expectedCharges.getFile())
-      .usingCharset("UTF-8")
-      .hasSameTextualContentAs(actualChargeFeesFinesOutput.getFile());
+    assertThat(filesInStorage, is(nullValue()));
   }
 }

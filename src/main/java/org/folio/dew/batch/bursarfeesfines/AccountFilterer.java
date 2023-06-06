@@ -10,7 +10,6 @@ import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.AfterStep;
-import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @RequiredArgsConstructor
-@Log4j2
 public class AccountFilterer
   implements ItemProcessor<AccountWithAncillaryData, AccountWithAncillaryData> {
 
@@ -52,7 +50,5 @@ public class AccountFilterer
       .getJobExecution()
       .getExecutionContext()
       .put("filteredAccounts", filteredAccounts);
-
-    log.info("Filtered accounts: {}", filteredAccounts.toString());
   }
 }

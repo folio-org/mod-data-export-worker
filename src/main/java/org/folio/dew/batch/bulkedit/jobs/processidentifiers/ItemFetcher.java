@@ -5,6 +5,7 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 
 import feign.codec.DecodeException;
+import liquibase.util.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.InventoryClient;
@@ -18,6 +19,8 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,7 +44,7 @@ public class ItemFetcher implements ItemProcessor<ItemIdentifier, ItemCollection
     identifiersToCheckDuplication.add(itemIdentifier);
     var limit = HOLDINGS_RECORD_ID == IdentifierType.fromValue(identifierType) ? Integer.MAX_VALUE : 1;
     var idType = resolveIdentifier(identifierType);
-    var identifier = "barcode".equals(idType) ? String.format("\"%s\"", itemIdentifier.getItemId()) : itemIdentifier.getItemId();
+    var identifier = "barcode".equals(idType) ? Utils.encode(itemIdentifier.getItemId()) : itemIdentifier.getItemId();
     try {
       return inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), idType, identifier), limit);
     } catch (DecodeException e) {

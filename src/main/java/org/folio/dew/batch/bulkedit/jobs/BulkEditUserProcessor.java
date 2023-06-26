@@ -139,15 +139,15 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
     var customField = userReferenceService.getCustomFieldByRefId(entry.getKey());
     return switch (customField.getType()) {
     case TEXTBOX_LONG, TEXTBOX_SHORT, SINGLE_CHECKBOX ->
-      escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + (isNull(entry.getValue()) ? EMPTY : escaper.escape(entry.getValue().toString()));
+      customField.getName() + KEY_VALUE_DELIMITER + (isNull(entry.getValue()) ? EMPTY : entry.getValue().toString());
     case SINGLE_SELECT_DROPDOWN, RADIO_BUTTON ->
-      escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + (isNull(entry.getValue()) ? EMPTY : escaper.escape(extractValueById(customField, entry.getValue().toString())));
+      customField.getName() + KEY_VALUE_DELIMITER + (isNull(entry.getValue()) ? EMPTY : extractValueById(customField, entry.getValue().toString()));
     case MULTI_SELECT_DROPDOWN ->
-      escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER +
+      customField.getName() + KEY_VALUE_DELIMITER +
         (entry.getValue() instanceof ArrayList<?> list ?
           list.stream()
             .filter(Objects::nonNull)
-            .map(v -> escaper.escape(extractValueById(customField, v.toString())))
+            .map(v -> extractValueById(customField, v.toString()))
             .filter(ObjectUtils::isNotEmpty)
             .collect(Collectors.joining(ARRAY_DELIMITER)) :
           EMPTY);

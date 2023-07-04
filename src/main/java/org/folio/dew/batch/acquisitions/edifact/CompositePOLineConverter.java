@@ -304,6 +304,9 @@ public class CompositePOLineConverter {
       .writeStartElement()
       .writeComponent("")
       .writeComponent("")
+      .writeComponent("")
+      .endElement()
+      .writeStartElement()
       .writeComponent(instructions)
       .endElement()
       .writeEndSegment();
@@ -341,8 +344,6 @@ public class CompositePOLineConverter {
     writer.writeStartSegment("LOC")
       .writeElement("20")
       .writeStartElement()
-      .writeComponent("")
-      .writeComponent("")
       .writeComponent(locationCode)
       .endElement()
       .writeEndSegment();

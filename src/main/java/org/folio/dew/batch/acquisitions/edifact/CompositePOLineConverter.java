@@ -35,6 +35,8 @@ public class CompositePOLineConverter {
   private static final String IS_PRODUCT_ID_QUALIFIER = "IS";
   private static final String IM_PRODUCT_ID_QUALIFIER = "IM";
   private static final String MF_PRODUCT_ID_QUALIFIER = "MF";
+  private static final String EN_PRODUCT_ID_QUALIFIER = "EN";
+  private static final int EAN_IDENTIFIER_LENGTH = 13;
 
   @Autowired
   private IdentifierTypeService identifierTypeService;
@@ -179,12 +181,14 @@ public class CompositePOLineConverter {
   // Since ISBNs expanded to 13 digits, they are equivalent to UPC barcode numbers
   // Identifier qualifier not included
   private void writeOrderLine(String productId, EDIStreamWriter writer, int currentLineNumber, String qualifier) throws EDIStreamException {
+    String linQualifier = productId != null && productId.length() == EAN_IDENTIFIER_LENGTH
+      ? EN_PRODUCT_ID_QUALIFIER : qualifier;
     writer.writeStartSegment("LIN")
       .writeElement(String.valueOf(currentLineNumber))
       .writeElement("")
       .writeStartElement()
       .writeComponent(productId)
-      .writeComponent(qualifier)
+      .writeComponent(linQualifier)
       .endElement()
       .writeEndSegment();
   }

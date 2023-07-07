@@ -475,20 +475,6 @@ class BursarTokenFormatterTest {
       BursarTokenFormatter.formatUserDataToken(userDataToken, user),
       is("test_userid")
     );
-
-    userDataToken.setValue(BursarExportTokenUserData.ValueEnum.PATRON_GROUP_ID);
-    assertThat(
-      BursarTokenFormatter.formatUserDataToken(userDataToken, user),
-      is("test_groupid")
-    );
-
-    userDataToken.setValue(
-      BursarExportTokenUserData.ValueEnum.EXTERNAL_SYSTEM_ID
-    );
-    assertThat(
-      BursarTokenFormatter.formatUserDataToken(userDataToken, user),
-      is("test_extid")
-    );
   }
 
   @Test
@@ -562,6 +548,28 @@ class BursarTokenFormatterTest {
         new User()
       ),
       is("placeholder")
+    );
+
+    tokenUserDataOptional.setValue(
+      BursarExportTokenUserDataOptional.ValueEnum.PATRON_GROUP_ID
+    );
+    assertThat(
+      BursarTokenFormatter.formatUserDataOptionalToken(
+        tokenUserDataOptional,
+        user
+      ),
+      is("test_groupid")
+    );
+
+    tokenUserDataOptional.setValue(
+      BursarExportTokenUserDataOptional.ValueEnum.EXTERNAL_SYSTEM_ID
+    );
+    assertThat(
+      BursarTokenFormatter.formatUserDataOptionalToken(
+        tokenUserDataOptional,
+        user
+      ),
+      is("test_extid")
     );
   }
 

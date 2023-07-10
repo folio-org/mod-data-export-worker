@@ -167,9 +167,12 @@ public class BursarTokenFormatter {
     User user
   ) {
     String result;
-    switch (tokenUserData.getValue()) {
-      case FOLIO_ID -> result = user.getId();
-      default -> result =
+    if (
+      tokenUserData.getValue() == BursarExportTokenUserData.ValueEnum.FOLIO_ID
+    ) {
+      result = user.getId();
+    } else {
+      result =
         String.format(
           "[unexpected user data token: %s]",
           tokenUserData.getValue()

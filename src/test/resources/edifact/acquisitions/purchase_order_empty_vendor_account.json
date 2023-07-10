@@ -1,0 +1,31 @@
+{
+  "id": "24fa8e44-ae40-4eca-86c3-c4838420ce1f",
+  "poNumber": "10003",
+  "compositePoLines": [
+    {
+      "id": "31af5b5c-251e-4582-9896-2c9cef360288",
+      "poLineNumber": "10003-1",
+      "cost": {
+        "currency": "USD"
+      },
+      "titleOrPackage": "empty",
+      "vendorDetail": {
+        "instructions": "",
+        "vendorAccount": "",
+        "referenceNumbers": []
+      },
+      "metadata": {
+        "createdDate": "2021-12-28T08:17:02.171+00:00",
+        "createdByUserId": "7a626480-284e-5b55-9cf2-db32f93956cf",
+        "updatedDate": "2021-12-28T08:17:02.171+00:00",
+        "updatedByUserId": "7a626480-284e-5b55-9cf2-db32f93956cf"
+      }
+    }
+  ],
+  "metadata": {
+    "createdDate": "2021-12-28T08:16:56.074+00:00",
+    "createdByUserId": "7a626480-284e-5b55-9cf2-db32f93956cf",
+    "updatedDate": "2021-12-28T08:16:56.074+00:00",
+    "updatedByUserId": "7a626480-284e-5b55-9cf2-db32f93956cf"
+  }
+}

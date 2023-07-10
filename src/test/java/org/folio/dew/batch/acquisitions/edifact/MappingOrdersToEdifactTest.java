@@ -1,5 +1,6 @@
 package org.folio.dew.batch.acquisitions.edifact;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.AdditionalMatchers.not;
@@ -54,24 +55,30 @@ class MappingOrdersToEdifactTest extends BaseBatchTest {
   private ConfigurationService configurationService;
 
   @Test void convertOrdersToEdifact() throws Exception {
+    String jobName = "123456789012345";
+    String fileIdExpected = "23456789012345";
     List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson();
 
     serviceMocks();
 
-    String ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, getTestEdiConfig(), "123456789012345");
-    assertFalse(ediOrder.isEmpty());
+    String ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, getTestEdiConfig(), jobName);
     log.info(ediOrder);
+    assertFalse(ediOrder.isEmpty());
+    validateEdifactOrders(ediOrder, fileIdExpected);
   }
 
   @Test
   void convertOrdersToEdifactByteArray() throws Exception {
+    String jobName = "12345";
     List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson();
 
     serviceMocks();
 
-    byte[] ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifactArray(compPOs, getTestEdiConfig(), "12345");
+    byte[] ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifactArray(compPOs, getTestEdiConfig(), jobName);
     assertNotNull(ediOrder);
-    log.info(new String(ediOrder));
+    String ediOrderString = new String(ediOrder);
+    log.info(ediOrderString);
+    validateEdifactOrders(ediOrderString, jobName);
   }
 
   private VendorEdiOrdersExportConfig getTestEdiConfig() throws IOException {
@@ -86,10 +93,16 @@ class MappingOrdersToEdifactTest extends BaseBatchTest {
 
     CompositePurchaseOrder minimalisticCompPo = objectMapper.readValue(getMockData("edifact/acquisitions/minimalistic_composite_purchase_order.json"), CompositePurchaseOrder.class);
 
+    CompositePurchaseOrder compPoWithEmptyVendorAccount = objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_empty_vendor_account.json"), CompositePurchaseOrder.class);
+
+    CompositePurchaseOrder compPoWithNonEANProductIds = objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_non_ean_product_ids.json"), CompositePurchaseOrder.class);
+
     List<CompositePurchaseOrder> compPOs = new ArrayList<>();
     compPOs.add(compPo);
     compPOs.add(comprehensiveCompPo);
     compPOs.add(minimalisticCompPo);
+    compPOs.add(compPoWithEmptyVendorAccount);
+    compPOs.add(compPoWithNonEANProductIds);
     return compPOs;
   }
 
@@ -109,7 +122,7 @@ class MappingOrdersToEdifactTest extends BaseBatchTest {
 
   private void serviceMocks(){
     Mockito.when(identifierTypeService.getIdentifierTypeName("8261054f-be78-422d-bd51-4ed9f33c3422"))
-      .thenReturn("ISSN", "ISMN", "ISBN");
+      .thenReturn("ISSN", "ISMN", "ISBN", "ISSN", "ISMN", "ISBN");
     Mockito.when(identifierTypeService.getIdentifierTypeName(not(eq("8261054f-be78-422d-bd51-4ed9f33c3422"))))
       .thenReturn("Publisher or distributor number");
     Mockito.when(materialTypeService.getMaterialTypeName(anyString()))
@@ -122,5 +135,13 @@ class MappingOrdersToEdifactTest extends BaseBatchTest {
       .thenReturn("fcd64ce1-6995-48f0-840e-89ffa2288371");
     Mockito.when(configurationService.getSystemCurrency())
       .thenReturn("GBP");
+  }
+
+  private void validateEdifactOrders(String ediOrder, String fileId) throws IOException {
+    String ediOrderExpected = getMockData("edifact/acquisitions/edifact_orders_result.edi")
+      .replaceAll("\\{fileId}", fileId);
+
+    String ediOrderWithRemovedDateTime = ediOrder.replaceFirst("\\d{6}:\\d{4}\\+", "ddmmyy:hhmm+");
+    assertEquals(ediOrderExpected, ediOrderWithRemovedDateTime);
   }
 }

@@ -520,6 +520,12 @@ class BursarTokenFormatterTest {
     BursarExportTokenUserData userDataToken = new BursarExportTokenUserData();
     userDataToken.setLengthControl(null);
 
+    userDataToken.setValue(null);
+    assertThat(
+      BursarTokenFormatter.formatUserDataToken(userDataToken, user),
+      is("[unexpected user data token: null]")
+    );
+
     userDataToken.setValue(BursarExportTokenUserData.ValueEnum.FOLIO_ID);
     assertThat(
       BursarTokenFormatter.formatUserDataToken(userDataToken, user),

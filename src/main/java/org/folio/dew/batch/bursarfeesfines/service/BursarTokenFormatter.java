@@ -158,7 +158,6 @@ public class BursarTokenFormatter {
         tokenFeeDate.getTimezone()
       );
 
-      log.info(result);
       return applyLengthControl(result, tokenFeeDate.getLengthControl());
     }
   }

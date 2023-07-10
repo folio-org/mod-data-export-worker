@@ -260,6 +260,56 @@ class BursarTokenFormatterTest {
       is("2023")
     );
 
+    dateType = BursarExportTokenDateType.DAY_OF_YEAR;
+    assertThat(
+      BursarTokenFormatter.processDateToken(
+        testDateTime,
+        dateType,
+        lengthControl
+      ),
+      is("32")
+    );
+
+    dateType = BursarExportTokenDateType.YYYYMMDD;
+    assertThat(
+      BursarTokenFormatter.processDateToken(
+        testDateTime,
+        dateType,
+        lengthControl
+      ),
+      is("20230201")
+    );
+
+    dateType = BursarExportTokenDateType.YYYY_MM_DD;
+    assertThat(
+      BursarTokenFormatter.processDateToken(
+        testDateTime,
+        dateType,
+        lengthControl
+      ),
+      is("2023-02-01")
+    );
+
+    dateType = BursarExportTokenDateType.MMDDYYYY;
+    assertThat(
+      BursarTokenFormatter.processDateToken(
+        testDateTime,
+        dateType,
+        lengthControl
+      ),
+      is("02012023")
+    );
+
+    dateType = BursarExportTokenDateType.DDMMYYYY;
+    assertThat(
+      BursarTokenFormatter.processDateToken(
+        testDateTime,
+        dateType,
+        lengthControl
+      ),
+      is("01022023")
+    );
+
     assertThat(
       BursarTokenFormatter.processDateToken(null, dateType, lengthControl),
       is("")

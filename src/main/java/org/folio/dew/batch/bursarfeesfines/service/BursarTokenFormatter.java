@@ -157,6 +157,7 @@ public class BursarTokenFormatter {
         "[unknown time zone: %s]",
         tokenFeeDate.getTimezone()
       );
+
       return applyLengthControl(result, tokenFeeDate.getLengthControl());
     }
   }
@@ -166,15 +167,20 @@ public class BursarTokenFormatter {
     User user
   ) {
     String result;
-    switch (tokenUserData.getValue()) {
-      case FOLIO_ID -> result = user.getId();
-      case PATRON_GROUP_ID -> result = user.getPatronGroup();
-      case EXTERNAL_SYSTEM_ID -> result = user.getExternalSystemId();
-      default -> result =
+    if (
+      tokenUserData.getValue() == BursarExportTokenUserData.ValueEnum.FOLIO_ID
+    ) {
+      result = user.getId();
+    } else {
+      result =
         String.format(
           "[unexpected user data token: %s]",
           tokenUserData.getValue()
         );
+    }
+
+    if (result == null) {
+      log.error("User data token null: {}", tokenUserData);
     }
 
     return applyLengthControl(result, tokenUserData.getLengthControl());
@@ -191,6 +197,8 @@ public class BursarTokenFormatter {
       case FIRST_NAME -> result = user.getPersonal().getFirstName();
       case MIDDLE_NAME -> result = user.getPersonal().getMiddleName();
       case LAST_NAME -> result = user.getPersonal().getLastName();
+      case PATRON_GROUP_ID -> result = user.getPatronGroup();
+      case EXTERNAL_SYSTEM_ID -> result = user.getExternalSystemId();
       default -> {
         log.error("Invalid user data token: {}", tokenUserData);
         result = tokenUserData.getPlaceholder();
@@ -429,6 +437,15 @@ public class BursarTokenFormatter {
         String.valueOf(dateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
       case WEEK_YEAR_ISO -> result =
         String.valueOf(dateTime.get(IsoFields.WEEK_BASED_YEAR));
+      case DAY_OF_YEAR -> result = String.valueOf(dateTime.getDayOfYear());
+      case YYYYMMDD -> result =
+        dateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+      case YYYY_MM_DD -> result =
+        dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+      case MMDDYYYY -> result =
+        dateTime.format(DateTimeFormatter.ofPattern("MMddyyyy"));
+      case DDMMYYYY -> result =
+        dateTime.format(DateTimeFormatter.ofPattern("ddMMyyyy"));
       default -> result = String.format("[invalid date type %s]", dateType);
     }
 

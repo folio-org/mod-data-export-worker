@@ -349,6 +349,8 @@ public class CompositePOLineConverter {
       .writeElement("20")
       .writeStartElement()
       .writeComponent(locationCode)
+      .writeComponent("")
+      .writeComponent("92")
       .endElement()
       .writeEndSegment();
   }

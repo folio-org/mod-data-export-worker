@@ -346,7 +346,7 @@ public class CompositePOLineConverter {
 
   private void writeDeliveryLocation(String locationCode, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("LOC")
-      .writeElement("20")
+      .writeElement("7")
       .writeStartElement()
       .writeComponent(locationCode)
       .writeComponent("")

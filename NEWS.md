@@ -1,3 +1,10 @@
+## 2023-07-19 v3.0.13
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.12...v3.0.13)
+
+### Bug fixes
+* [MODEXPW-422](https://issues.folio.org/browse/MODEXPW-422) Resolve EDIFACT order export syntax errors. 
+
 ## 2023-04-03 v3.0.12
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.11...v3.0.12)

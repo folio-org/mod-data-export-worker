@@ -46,13 +46,7 @@ public class BursarFilterEvaluator {
       if (account.getAccount().getDateCreated() == null) {
         return true;
       }
-      return (
-        ChronoUnit.DAYS.between(
-          account.getAccount().getDateCreated().toInstant(),
-          Instant.now()
-        ) >
-        filterAge.getNumDays()
-      );
+      return evaluateFilterAge(account, filterAge);
     } else if (filter instanceof BursarExportFilterAmount filterAmount) {
       return evaluateFilterAmount(account, filterAmount);
     } else if (filter instanceof BursarExportFilterFeeType filterFeeType) {
@@ -98,6 +92,30 @@ public class BursarFilterEvaluator {
     } else {
       log.error("Unexpected filter: {}", filter);
       return true;
+    }
+  }
+
+  private static boolean evaluateFilterAge(
+    AccountWithAncillaryData account,
+    BursarExportFilterAge filter
+  ) {
+    int numDaysFilter = filter.getNumDays();
+    long accountAge = ChronoUnit.DAYS.between(
+      account.getAccount().getDateCreated().toInstant(),
+      Instant.now()
+    );
+
+    switch (filter.getCondition()) {
+      case LESS_THAN:
+        return accountAge < numDaysFilter;
+      case GREATER_THAN:
+        return accountAge > numDaysFilter;
+      case LESS_THAN_EQUAL:
+        return accountAge <= numDaysFilter;
+      case GREATER_THAN_EQUAL:
+        return accountAge >= numDaysFilter;
+      default:
+        return false;
     }
   }
 

@@ -73,7 +73,8 @@ class BursarFilterEvaluatorTest {
       .build();
 
     BursarExportFilterAge filterAge = new BursarExportFilterAge();
-    filterAge.setNumDays(1);
+    filterAge.setNumDays(5);
+    filterAge.setCondition(BursarExportFilterAge.ConditionEnum.GREATER_THAN);
 
     assertThat(
       BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAge),
@@ -89,14 +90,70 @@ class BursarFilterEvaluatorTest {
     );
 
     Calendar calendar = Calendar.getInstance();
-    calendar.add(Calendar.DAY_OF_MONTH, -2);
-
+    calendar.add(Calendar.DAY_OF_MONTH, -10);
     account.setDateCreated(calendar.getTime());
     accountWithAncillaryData.setAccount(account);
-
     assertThat(
       BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAge),
       is(true)
+    );
+    calendar.add(Calendar.DAY_OF_MONTH, 8);
+    account.setDateCreated(calendar.getTime());
+    accountWithAncillaryData.setAccount(account);
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAge),
+      is(false)
+    );
+
+    filterAge.setCondition(
+      BursarExportFilterAge.ConditionEnum.GREATER_THAN_EQUAL
+    );
+    calendar.add(Calendar.DAY_OF_MONTH, -3);
+    account.setDateCreated(calendar.getTime());
+    accountWithAncillaryData.setAccount(account);
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAge),
+      is(true)
+    );
+    calendar.add(Calendar.DAY_OF_MONTH, 2);
+    account.setDateCreated(calendar.getTime());
+    accountWithAncillaryData.setAccount(account);
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAge),
+      is(false)
+    );
+
+    calendar.add(Calendar.DAY_OF_MONTH, -2);
+    account.setDateCreated(calendar.getTime());
+    accountWithAncillaryData.setAccount(account);
+    filterAge.setCondition(BursarExportFilterAge.ConditionEnum.LESS_THAN_EQUAL);
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAge),
+      is(true)
+    );
+    calendar.add(Calendar.DAY_OF_MONTH, -5);
+    account.setDateCreated(calendar.getTime());
+    accountWithAncillaryData.setAccount(account);
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAge),
+      is(false)
+    );
+
+    calendar.add(Calendar.DAY_OF_MONTH, 8);
+    account.setDateCreated(calendar.getTime());
+    accountWithAncillaryData.setAccount(account);
+    filterAge.setCondition(BursarExportFilterAge.ConditionEnum.LESS_THAN);
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAge),
+      is(true)
+    );
+    calendar.add(Calendar.DAY_OF_MONTH, -5);
+    account.setDateCreated(calendar.getTime());
+    accountWithAncillaryData.setAccount(account);
+    filterAge.setCondition(BursarExportFilterAge.ConditionEnum.LESS_THAN);
+    assertThat(
+      BursarFilterEvaluator.evaluate(accountWithAncillaryData, filterAge),
+      is(false)
     );
   }
 

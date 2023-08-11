@@ -41,7 +41,7 @@ public class UserReferenceService {
   @Cacheable(cacheNames = "addressTypeNames")
   public String getAddressTypeDescById(String id, ErrorServiceArgs args) {
     try {
-      return isNull(id) ? EMPTY : addressTypeClient.getAddressTypeById(id).getDesc();
+      return isNull(id) ? EMPTY : addressTypeClient.getAddressTypeById(id).getAddressType();
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Address type was not found by id: [%s]", id)), args.getFileName());
       return id;

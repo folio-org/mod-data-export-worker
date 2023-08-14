@@ -1,0 +1,84 @@
+{
+  "id": "77fa8e44-ae40-4eca-86c3-c4838420ce1f",
+  "poNumber": "10004",
+  "compositePoLines": [
+    {
+      "id": "55af5b5c-251e-4582-9896-2c9cef360284",
+      "poLineNumber": "10004-1",
+      "cost": {
+        "currency": "USD"
+      },
+      "titleOrPackage": "empty",
+      "details": {
+        "productIds": [
+          {
+            "productId": "12345679",
+            "productIdType": "8261054f-be78-422d-bd51-4ed9f33c3422",
+            "qualifier": ""
+          }
+        ],
+        "subscriptionInterval": 0
+      },
+      "metadata": {
+        "createdDate": "2021-12-28T08:17:02.171+00:00",
+        "createdByUserId": "7a626480-284e-5b55-9cf2-db32f93956cf",
+        "updatedDate": "2021-12-28T08:17:02.171+00:00",
+        "updatedByUserId": "7a626480-284e-5b55-9cf2-db32f93956cf"
+      }
+    },
+    {
+      "id": "66af5b5c-251e-4582-9896-2c9cef360284",
+      "poLineNumber": "10004-2",
+      "cost": {
+        "currency": "USD"
+      },
+      "titleOrPackage": "empty",
+      "details": {
+        "productIds": [
+          {
+            "productId": "0545010225",
+            "productIdType": "8261054f-be78-422d-bd51-4ed9f33c3422",
+            "qualifier": ""
+          }
+        ],
+        "subscriptionInterval": 0
+      },
+      "metadata": {
+        "createdDate": "2021-12-28T08:17:02.171+00:00",
+        "createdByUserId": "7a626480-284e-5b55-9cf2-db32f93956cf",
+        "updatedDate": "2021-12-28T08:17:02.171+00:00",
+        "updatedByUserId": "7a626480-284e-5b55-9cf2-db32f93956cf"
+      }
+    },
+    {
+      "id": "77af5b5c-251e-4582-9896-2c9cef360284",
+      "poLineNumber": "10004-3",
+      "cost": {
+        "currency": "USD"
+      },
+      "titleOrPackage": "empty",
+      "details": {
+        "productIds": [
+          {
+            "productId": "0545010225",
+            "productIdType": "8261054f-be78-422d-bd51-4ed9f33c3422",
+            "qualifier": ""
+          }
+        ],
+        "subscriptionInterval": 0
+      },
+      "metadata": {
+        "createdDate": "2021-12-28T08:17:02.171+00:00",
+        "createdByUserId": "7a626480-284e-5b55-9cf2-db32f93956cf",
+        "updatedDate": "2021-12-28T08:17:02.171+00:00",
+        "updatedByUserId": "7a626480-284e-5b55-9cf2-db32f93956cf"
+      }
+    }
+  ],
+  "metadata": {
+    "createdDate": "2021-12-28T08:16:56.074+00:00",
+    "createdByUserId": "7a626480-284e-5b55-9cf2-db32f93956cf",
+    "updatedDate": "2021-12-28T08:16:56.074+00:00",
+    "updatedByUserId": "7a626480-284e-5b55-9cf2-db32f93956cf"
+  }
+}

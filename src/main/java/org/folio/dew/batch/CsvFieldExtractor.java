@@ -1,8 +1,5 @@
 package org.folio.dew.batch;
 
-import static org.folio.dew.utils.Constants.LINE_SEPARATOR;
-import static org.folio.dew.utils.Constants.LINE_SEPARATOR_REPLACEMENT;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 
@@ -36,11 +33,7 @@ public class CsvFieldExtractor<T> extends BeanWrapperFieldExtractor<T> {
         s = s.replace("\"", "\"\"");
       }
 
-      if (s.contains("\n")) {
-        s = s.replace(LINE_SEPARATOR, LINE_SEPARATOR_REPLACEMENT);
-      }
-
-      if (s.contains(",")) {
+      if (s.contains(",") || s.contains("\n")) {
         s = "\"" + s + "\"";
       }
 

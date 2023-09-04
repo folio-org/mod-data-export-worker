@@ -37,7 +37,7 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
     var affectedIdentifier = "ID";
     var reasonForError = new BulkEditException("Record not found");
     var fileName = "userUUIDs.csv";
-    var csvFileName = LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Errors-" + fileName;
+    var csvFileName = LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Matching-Records-Errors-" + fileName;
     var pathToCsvFile = "E" + File.separator + BulkEditProcessingErrorsService.STORAGE + File.separator + jobId + File.separator + csvFileName;
     bulkEditProcessingErrorsService.saveErrorInCSV(jobId, affectedIdentifier, reasonForError, fileName);
     assertTrue(localFilesStorage.exists(pathToCsvFile));

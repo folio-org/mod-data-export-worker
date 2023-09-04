@@ -163,7 +163,7 @@ public class BulkEditProcessingErrorsService {
       }).collect(Collectors.toList());
     }
     if (names.isEmpty()) {
-      return LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Errors-" + fileName;
+      return LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Matching-Records-Errors-" + fileName;
     } else {
       return  names.get(0);
     }

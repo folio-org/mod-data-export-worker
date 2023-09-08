@@ -151,6 +151,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       jobExecutionUpdate.setProgress(progress);
     }
 
+    log.info("processJobUpdate:: send data into kafka with params: topic={}; key={}; object={}.", KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     kafka.send(KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     if (after) {
       log.info("-----------------------------JOB---ENDS-----------------------------");
@@ -192,7 +193,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
   private void processJobAfter(String jobId, JobParameters jobParameters) {
     var tempOutputFilePath = jobParameters.getString(TEMP_OUTPUT_FILE_PATH);
     if (StringUtils.isBlank(tempOutputFilePath) ||
-      jobParameters.getParameters().containsKey(EXPORT_TYPE) && jobParameters.getString(EXPORT_TYPE).equals(BULK_EDIT_UPDATE.getValue())) {
+      jobParameters.getParameters().containsKey(EXPORT_TYPE) && (BULK_EDIT_UPDATE.getValue().equals(jobParameters.getString(EXPORT_TYPE)))) {
       return;
     }
     String path = FilenameUtils.getFullPath(tempOutputFilePath);
@@ -202,7 +203,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
     }
     var files = localFilesStorage.walk(path)
       .filter(name -> FilenameUtils.getName(name).startsWith(fileNameStart)).collect(Collectors.toList());
-    if (files.size() == 0) {
+    if (files.isEmpty()) {
       return;
     }
     for (String f : files) {

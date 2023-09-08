@@ -48,11 +48,14 @@ public class BulkEditUserContentUpdateService {
   public UpdatesResult<UserFormat> process(JobCommand jobCommand, UserContentUpdateCollection contentUpdates) {
     validatorService.validateContentUpdateCollection(contentUpdates);
     try {
+      log.info("process:: Processing content updates for job id {}", jobCommand.getId());
       var fileName = FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       var updatedFileName = jobCommand.getId() + PATH_SEPARATOR + UPDATED_PREFIX + fileName;
       var previewFileName = jobCommand.getId() + PATH_SEPARATOR + PREVIEW_PREFIX + fileName;
       var userFormats = CsvHelper.readRecordsFromStorage(remoteFilesStorage, jobCommand.getId() + PATH_SEPARATOR + fileName, UserFormat.class, true);
+      log.info("process:: Reading of file {} complete, number of userFormats: {}", fileName, userFormats.size());
       var contentUpdatedUsers = applyContentUpdates(userFormats, contentUpdates, jobCommand);
+      log.info("process:: Finished processing content updates: {} records, {} preview", contentUpdatedUsers.getUpdated().size(), contentUpdatedUsers.getPreview().size());
       CsvHelper.saveRecordsToStorage(remoteFilesStorage, contentUpdatedUsers.getUpdated(), UserFormat.class, updatedFileName);
       CsvHelper.saveRecordsToStorage(remoteFilesStorage, contentUpdatedUsers.getPreview(), UserFormat.class, previewFileName);
       jobCommand.setJobParameters(new JobParametersBuilder(jobCommand.getJobParameters())

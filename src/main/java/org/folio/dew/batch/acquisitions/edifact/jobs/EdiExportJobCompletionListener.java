@@ -52,6 +52,7 @@ public class EdiExportJobCompletionListener extends JobExecutionListenerSupport 
 
     var jobExecutionUpdate = createJobExecutionUpdate(jobId, jobExecution);
 
+    log.info("processJobUpdate::  send data into kafka with params: topic={}; key={}; object={}.", KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     kafka.send(KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     if (after) {
       log.info("-----------------------------JOB---ENDS-----------------------------");

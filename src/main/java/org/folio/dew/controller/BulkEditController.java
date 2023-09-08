@@ -148,7 +148,9 @@ public class BulkEditController implements JobIdApi {
   @Override
   public ResponseEntity<ItemCollection> postItemContentUpdates(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId,@ApiParam(value = "" ,required=true )  @Valid @RequestBody ItemContentUpdateCollection contentUpdateCollection,@ApiParam(value = "The numbers of records to return") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
     var jobCommand = prepareForContentUpdates(jobId);
+    log.info("postItemContentUpdates: jobCommand={}.", jobCommand);
     var updatesResult = itemContentUpdateService.processContentUpdates(jobCommand, contentUpdateCollection);
+    log.info("postItemContentUpdates: jobCommand={}; updatesResult size={}.", jobCommand, updatesResult.getEntitiesForPreview().size());
     jobCommandsReceiverService.updateJobCommand(jobCommand);
     return new ResponseEntity<>(prepareItemContentUpdateResponse(updatesResult, limit), HttpStatus.OK);
   }
@@ -156,6 +158,7 @@ public class BulkEditController implements JobIdApi {
   @Override
   public ResponseEntity<UserCollection> postUserContentUpdates(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId, @ApiParam(value = "" ,required=true )  @Valid @RequestBody UserContentUpdateCollection contentUpdateCollection, @ApiParam(value = "The numbers of records to return") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
     var jobCommand = prepareForContentUpdates(jobId);
+    log.info("postUserContentUpdates: jobCommand={}.", jobCommand);
     var updatesResult = userContentUpdateService.process(jobCommand, contentUpdateCollection);
     log.info("postUserContentUpdate: {} users", updatesResult.getEntitiesForPreview().size());
     jobCommandsReceiverService.updateJobCommand(jobCommand);
@@ -165,7 +168,9 @@ public class BulkEditController implements JobIdApi {
   @Override
   public ResponseEntity<HoldingsRecordCollection> postHoldingsContentUpdates(@ApiParam(value = "UUID of the JobCommand",required=true) @PathVariable("jobId") UUID jobId, @ApiParam(value = "" ,required=true )  @Valid @RequestBody HoldingsContentUpdateCollection contentUpdateCollection, @ApiParam(value = "The numbers of records to return") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
     var jobCommand = prepareForContentUpdates(jobId);
+    log.info("postHoldingsContentUpdates: jobCommand={}.", jobCommand);
     var updatesResult = holdingsContentUpdateService.process(jobCommand, contentUpdateCollection);
+    log.info("postHoldingsContentUpdates: jobCommand={}; updatesResult size={}.", jobCommand, updatesResult.getEntitiesForPreview().size());
     jobCommandsReceiverService.updateJobCommand(jobCommand);
     return new ResponseEntity<>(prepareHoldingsContentUpdateResponse(updatesResult, limit), HttpStatus.OK);
   }
@@ -184,10 +189,12 @@ public class BulkEditController implements JobIdApi {
   @Override
   public ResponseEntity<UserCollection> getPreviewUsersByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId, @NotNull @ApiParam(value = "The numbers of items to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
     var jobCommand = getJobCommandById(jobId.toString());
+    log.info("getPreviewUsersByJobId:: with jobExportType={}", jobCommand.getExportType());
     if (BULK_EDIT_IDENTIFIERS == jobCommand.getExportType()) {
       var fileName = jobCommand.getId() + PATH_SEPARATOR + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       try {
         var userFormats = CsvHelper.readRecordsFromRemoteFilesStorage(remoteFilesStorage, fileName, limit, UserFormat.class);
+        log.info("getPreviewUsersByJobId:: Reading of file {} complete, number of userFormats: {}", fileName, userFormats.size());
         var users = userFormats.stream()
           .map(bulkEditParseService::mapUserFormatToUser)
           .collect(Collectors.toList());
@@ -204,11 +211,13 @@ public class BulkEditController implements JobIdApi {
 
   @Override public ResponseEntity<ItemCollection> getPreviewItemsByJobId(UUID jobId, Integer limit) {
     var jobCommand = getJobCommandById(jobId.toString());
+    log.info("getPreviewItemsByJobId:: with jobExportType={}", jobCommand.getExportType());
     if (BULK_EDIT_IDENTIFIERS == jobCommand.getExportType()) {
       var fileName = jobCommand.getId() + PATH_SEPARATOR + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       try {
-        var items = CsvHelper.readRecordsFromRemoteFilesStorage(remoteFilesStorage, fileName, limit, ItemFormat.class)
-          .stream()
+        var itemsFormat = CsvHelper.readRecordsFromRemoteFilesStorage(remoteFilesStorage, fileName, limit, ItemFormat.class);
+        log.info("getPreviewItemsByJobId:: Reading of file {} complete, number of itemsFormat: {}", fileName, itemsFormat.size());
+        var items = itemsFormat.stream()
           .map(bulkEditParseService::mapItemFormatToItem)
           .collect(Collectors.toList());
         return new ResponseEntity<>(new ItemCollection().items(items).totalRecords(items.size()), HttpStatus.OK);
@@ -225,11 +234,13 @@ public class BulkEditController implements JobIdApi {
   @Override
   public ResponseEntity<HoldingsRecordCollection> getPreviewHoldingsByJobId(UUID jobId, Integer limit) {
     var jobCommand = getJobCommandById(jobId.toString());
+    log.info("getPreviewHoldingsByJobId:: with jobExportType={}", jobCommand.getExportType());
     if (BULK_EDIT_IDENTIFIERS == jobCommand.getExportType()) {
       var fileName = jobCommand.getId() + PATH_SEPARATOR + FilenameUtils.getName(jobCommand.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH)) + CSV_EXTENSION;
       try {
-        var holdings = CsvHelper.readRecordsFromRemoteFilesStorage(remoteFilesStorage, fileName, limit, HoldingsFormat.class)
-          .stream()
+        var holdingsFormat = CsvHelper.readRecordsFromRemoteFilesStorage(remoteFilesStorage, fileName, limit, HoldingsFormat.class);
+        log.info("getPreviewHoldingsByJobId:: Reading of file {} complete, number of holdingsFormat: {}", fileName, holdingsFormat.size());
+        var holdings = holdingsFormat.stream()
           .map(holdingsMapper::mapToHoldingsRecord)
           .collect(Collectors.toList());
         return new ResponseEntity<>(new HoldingsRecordCollection().holdingsRecords(holdings).totalRecords(holdings.size()), HttpStatus.OK);
@@ -245,6 +256,7 @@ public class BulkEditController implements JobIdApi {
 
   @Override
   public ResponseEntity<Resource> downloadItemsPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId) {
+    log.info("downloadItemsPreviewByJobId:: ");
     var jobCommand = getJobCommandById(jobId.toString());
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
@@ -258,17 +270,20 @@ public class BulkEditController implements JobIdApi {
       headers.setContentDispositionFormData(updatedFileName, updatedFileName);
       return ResponseEntity.ok().headers(headers).body(updatedFileResource);
     } catch (Exception e) {
+      log.error("Something went wrong during downloadItemsPreviewByJobId.");
       return ResponseEntity.internalServerError().body(new DescriptiveResource(e.getMessage()));
     }
   }
 
   @Override
   public ResponseEntity<Resource> downloadUsersPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId) {
+    log.info("downloadUsersPreviewByJobId:: ");
     return downloadPreviewByJobId(jobId);
   }
 
   @Override
   public ResponseEntity<Resource> downloadHoldingsPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId) {
+    log.info("downloadHoldingsPreviewByJobId:: ");
     return downloadPreviewByJobId(jobId);
   }
 
@@ -284,9 +299,11 @@ public class BulkEditController implements JobIdApi {
         headers.setContentDispositionFormData(fileName, fileName);
         return ResponseEntity.ok().headers(headers).body(updatedUsersResource);
       } catch (Exception e) {
+        log.error("Something went wrong during downloadPreviewByJobId.");
         return ResponseEntity.internalServerError().body(new DescriptiveResource(e.getMessage()));
       }
     }
+    log.error("Preview is not available");
     throw new NotFoundException("Preview is not available");
   }
 
@@ -294,6 +311,7 @@ public class BulkEditController implements JobIdApi {
   public ResponseEntity<Errors> getErrorsPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId, @NotNull @ApiParam(value = "The numbers of users to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
     var jobCommand = getJobCommandById(jobId.toString());
     var fileName = jobCommand.getId() + PATH_SEPARATOR + FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME));
+    log.info("downloadHoldingsPreviewByJobId:: fileName={}", fileName);
 
     var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobId.toString(), fileName, limit);
     return new ResponseEntity<>(errors, HttpStatus.OK);
@@ -301,7 +319,9 @@ public class BulkEditController implements JobIdApi {
 
   @Override
   public ResponseEntity<String> uploadCsvFile(UUID jobId, MultipartFile file) {
+    log.info("uploadCsvFile:: ");
     if (file.isEmpty()) {
+      log.info("uploadCsvFile:: file provided is empty.");
       return new ResponseEntity<>(format(FILE_UPLOAD_ERROR, "file is empty"), HttpStatus.BAD_REQUEST);
     }
 
@@ -312,6 +332,7 @@ public class BulkEditController implements JobIdApi {
       localFilesStorage.delete(uploadedPath);
       localFilesStorage.write(uploadedPath, file.getBytes());
       String tempIdentifiersFile = null;
+      log.info("uploadCsvFile:: with jobExportType={}", jobCommand.getExportType());
       if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())) {
         tempIdentifiersFile = saveTemporaryIdentifiersFile(jobId, file);
       }
@@ -356,6 +377,7 @@ public class BulkEditController implements JobIdApi {
 
   @Override
   public ResponseEntity<String> rollBackCsvFile(UUID jobId) {
+    log.info("rollBackCsvFile:: for jobId={}", jobId.toString());
     var message = bulkEditRollBackService.stopAndRollBackJobExecutionByJobId(jobId);
     return new ResponseEntity<>(message, HttpStatus.OK);
   }
@@ -416,7 +438,7 @@ public class BulkEditController implements JobIdApi {
     var jobCommandOptional = jobCommandsReceiverService.getBulkEditJobCommandById(jobId);
     if (jobCommandOptional.isEmpty()) {
       String msg = format(JOB_COMMAND_NOT_FOUND_ERROR, jobId);
-      log.debug(msg);
+      log.error(msg);
       throw new NotFoundException(msg);
     }
     return jobCommandOptional.get();

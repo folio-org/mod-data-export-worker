@@ -8,6 +8,7 @@ import static org.folio.dew.utils.Constants.NUMBER_OF_WRITTEN_RECORDS;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.folio.de.entity.Job;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
@@ -23,7 +24,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 @JobScope
 @RequiredArgsConstructor
+@Log4j2
 public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
   private final KafkaService kafka;
 
@@ -72,6 +73,7 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
 
     jobExecution.getExecutionContext().putLong(NUMBER_OF_WRITTEN_RECORDS, processedRecords.longValue());
 
+    log.info("afterWrite::  send data into kafka with params: topic={}; key={}; object={}.", KafkaService.Topic.JOB_UPDATE, job.getId().toString(), job);
     kafka.send(KafkaService.Topic.JOB_UPDATE, job.getId().toString(), job);
   }
 

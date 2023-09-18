@@ -96,7 +96,6 @@ application:
   ftp:
     bufferSize: 1048576 #that 1024 * 1024
     defaultPort: 21
-    workingDir: /files
     defaultTimeout: 30000
     controlKeepAliveTimeout: 30
   bucket:

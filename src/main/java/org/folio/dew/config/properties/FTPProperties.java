@@ -20,11 +20,6 @@ public class FTPProperties {
   private int defaultPort;
 
   /**
-   * Working directory.
-   */
-  private String workingDir;
-
-  /**
    * The timeout in milliseconds to use for the socket
    * connection.
    */

@@ -13,9 +13,10 @@ import lombok.extern.log4j.Log4j2;
 @Service
 @Log4j2
 public class FTPStorageService {
+  private static final String SFTP_PROTOCOL = "sftp://";
+
   private final SFTPObjectStorageRepository sftpObjectStorageRepository;
   private final FTPObjectStorageRepository ftpObjectStorageRepository;
-  private static final String SFTP_PROTOCOL = "sftp://";
 
   public void uploadToFtp(VendorEdiOrdersExportConfig ediExportConfig, byte[] fileByteContent, String filename) throws Exception {
     String username = ediExportConfig.getEdiFtp().getUsername();
@@ -26,9 +27,8 @@ public class FTPStorageService {
 
     if (EdiFtp.FtpFormatEnum.SFTP.equals(ediExportConfig.getEdiFtp().getFtpFormat())) {
       sftpObjectStorageRepository.upload(username, password, host, port, folder, filename, fileByteContent);
-    }
-    else {
-      ftpObjectStorageRepository.upload(host, username, password, filename, fileByteContent);
+    } else {
+      ftpObjectStorageRepository.upload(host, username, password, folder, filename, fileByteContent);
     }
   }
 }

@@ -1,11 +1,7 @@
 package org.folio.dew.repository;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-
+import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
@@ -15,28 +11,37 @@ import org.folio.dew.exceptions.FtpException;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.stereotype.Repository;
 
-import lombok.extern.log4j.Log4j2;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.regex.Pattern;
 
 @Log4j2
 @Repository
 public class FTPObjectStorageRepository {
 
-  private final ObjectFactory<FTPClient> ftpClientFactory;
+  public static final String ERROR_CAN_NOT_CHANGE_WORKING_DIR = "Can not change working dir. ";
+  public static final String ERROR_FILE_UPLOAD_FAILED = "File upload failed. ";
+
   private final FTPProperties ftpProperties;
-  private static final String FILE_UPLOAD_FAILED = "File upload failed. ";
+  private final ObjectFactory<FTPClient> ftpClientFactory;
 
   public FTPObjectStorageRepository(ObjectFactory<FTPClient> ftpClientFactory, FTPProperties ftpProperties) {
     this.ftpProperties = ftpProperties;
     this.ftpClientFactory = ftpClientFactory;
   }
 
-  private FTPClient login(String ftpUrl, String username, String password) throws URISyntaxException, IOException {
-    FTPClient ftpClient = ftpClientFactory.getObject();
-    if (!isUriValid(ftpUrl)) {
+  @SneakyThrows
+  private FTPClient login(String ftpUrl, String username, String password) {
+    URI url = new URI(ftpUrl);
+    String scheme = url.getScheme();
+    if (StringUtils.isNotEmpty(scheme) && !scheme.equalsIgnoreCase("FTP")) {
       throw new URISyntaxException(ftpUrl, "URI should be valid ftp path");
     }
 
-    URI url = new URI(ftpUrl);
+    FTPClient ftpClient = ftpClientFactory.getObject();
     String server = url.getHost();
     int port = url.getPort() > 0 ? url.getPort() : ftpProperties.getDefaultPort();
     ftpClient.connect(server, port);
@@ -75,58 +80,58 @@ public class FTPObjectStorageRepository {
     }
   }
 
-  public void upload(String ftpUrl, String username, String password, String filename, byte[] fileByteContent) throws Exception {
+  public void upload(String ftpUrl,
+                     String username,
+                     String password,
+                     String path,
+                     String filename,
+                     byte[] fileByteContent) throws Exception {
+
+    String remoteAbsPath = path + File.separator + filename;
+
     FTPClient ftpClient = login(ftpUrl, username, password);
     try (InputStream is = new ByteArrayInputStream(fileByteContent)) {
       ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
       ftpClient.enterLocalPassiveMode();
-      changeWorkingDirectory(ftpClient);
-      if (ftpClient.storeFile(filename, is)) {
-        log.info("File {} uploaded on FTP", filename);
-      } else {
-        log.warn("File {} NOT uploaded on FTP", filename);
-        throw new FtpException(ftpClient.getReplyCode(), getReplyMessage(ftpClient.getReplyCode(), ftpClient.getReplyString()));
+      changeWorkingDirectory(ftpClient, path);
+      if (!ftpClient.storeFile(filename, is)) {
+        throw getFtpException(ftpClient, ERROR_FILE_UPLOAD_FAILED);
       }
-    } catch (IOException ioException) {
-      log.error("Error uploading file {} with message: {}",filename, ioException.getMessage());
-      throw ioException;
+      log.info("File uploaded to ftp path: {}", remoteAbsPath);
+
+    } catch (Exception e) {
+      log.error("Error uploading to ftp path: {}", remoteAbsPath, e);
+      throw e;
     } finally {
       logout(ftpClient);
     }
   }
 
-  private void changeWorkingDirectory(FTPClient ftpClient) throws IOException {
-    if (isDirectoryAbsent(ftpClient, ftpProperties.getWorkingDir())) {
-      log.info("A directory has been created: " + ftpProperties.getWorkingDir());
-      ftpClient.makeDirectory(ftpProperties.getWorkingDir());
+  @SneakyThrows
+  private void changeWorkingDirectory(FTPClient ftpClient, String path) {
+    for (String dir : path.split(Pattern.quote(File.separator))) {
+      if (dir.isEmpty()) {
+        continue;
+      }
+      if (ftpClient.makeDirectory(dir)) {
+        log.info("A directory has been created: " + dir);
+      }
+      if (!ftpClient.changeWorkingDirectory(dir)) {
+        throw getFtpException(ftpClient, ERROR_CAN_NOT_CHANGE_WORKING_DIR);
+      }
     }
-    ftpClient.changeWorkingDirectory(ftpProperties.getWorkingDir());
-  }
-
-  private boolean isDirectoryAbsent(FTPClient ftpClient, String dirPath) throws IOException {
-    ftpClient.changeWorkingDirectory(dirPath);
-    int returnCode = ftpClient.getReplyCode();
-    return returnCode == 550;
-  }
-
-  private boolean isUriValid(String uri) throws URISyntaxException {
-    String proto = new URI(uri).getScheme();
-    return StringUtils.isEmpty(proto) || proto.equalsIgnoreCase("FTP");
   }
 
   private void disconnect(FTPClient ftpClient) {
     try {
       ftpClient.disconnect();
-    } catch (IOException e) {
-      log.error("Error disconnect from FTP", e);
+    } catch (Exception e) {
+      log.error("Error disconnecting from FTP", e);
     }
   }
 
-  private static String getReplyMessage(Integer replyCode, String replyMessage) {
-    if (replyCode == 550) {
-      return FILE_UPLOAD_FAILED + "Please check if user has write permissions";
-    }
-    return FILE_UPLOAD_FAILED + replyMessage;
+  private FtpException getFtpException(FTPClient ftpClient, String errorPrefix) {
+    return new FtpException(ftpClient.getReplyCode(), errorPrefix + ftpClient.getReplyString());
   }
 
 }

@@ -23,7 +23,6 @@ public class ExportHistoryService {
     var exportHistory = buildExportHistoryRecord(compositePoLines, jobId);
     var id = UUID.randomUUID().toString();
 
-    log.info("sendExportHistoryEvent::  send data into kafka with params: topic={}; key={}; object={}.", KafkaService.Topic.EXPORT_HISTORY_CREATE, id, exportHistory);
     kafkaService.send(KafkaService.Topic.EXPORT_HISTORY_CREATE, id, exportHistory);
   }
 

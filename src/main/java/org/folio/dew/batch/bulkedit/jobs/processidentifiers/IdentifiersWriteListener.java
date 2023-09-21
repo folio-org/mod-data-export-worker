@@ -58,6 +58,7 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
     job.setBatchStatus(BatchStatus.STARTED);
     job.setCreatedDate(new Date());
     job.setUpdatedDate(new Date());
+    log.info("afterWrite:: update job by id {} after write for identifiers", job.getId());
 
     var totalCsvLines = jobExecution.getJobParameters().getLong(TOTAL_CSV_LINES);
     var processed = processedIdentifiers.addAndGet(CHUNKS);
@@ -73,7 +74,6 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
 
     jobExecution.getExecutionContext().putLong(NUMBER_OF_WRITTEN_RECORDS, processedRecords.longValue());
 
-    log.info("afterWrite::  send data into kafka with params: topic={}; key={}; object={}.", KafkaService.Topic.JOB_UPDATE, job.getId().toString(), job);
     kafka.send(KafkaService.Topic.JOB_UPDATE, job.getId().toString(), job);
   }
 

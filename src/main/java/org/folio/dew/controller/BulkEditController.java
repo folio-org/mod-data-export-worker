@@ -256,7 +256,6 @@ public class BulkEditController implements JobIdApi {
 
   @Override
   public ResponseEntity<Resource> downloadItemsPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId) {
-    log.info("downloadItemsPreviewByJobId:: ");
     var jobCommand = getJobCommandById(jobId.toString());
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
@@ -277,13 +276,11 @@ public class BulkEditController implements JobIdApi {
 
   @Override
   public ResponseEntity<Resource> downloadUsersPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId) {
-    log.info("downloadUsersPreviewByJobId:: ");
     return downloadPreviewByJobId(jobId);
   }
 
   @Override
   public ResponseEntity<Resource> downloadHoldingsPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId) {
-    log.info("downloadHoldingsPreviewByJobId:: ");
     return downloadPreviewByJobId(jobId);
   }
 
@@ -319,9 +316,9 @@ public class BulkEditController implements JobIdApi {
 
   @Override
   public ResponseEntity<String> uploadCsvFile(UUID jobId, MultipartFile file) {
-    log.info("uploadCsvFile:: ");
+    log.info("uploadCsvFile:: for jobId={} ", jobId);
     if (file.isEmpty()) {
-      log.info("uploadCsvFile:: file provided is empty.");
+      log.info("uploadCsvFile:: file provided is empty for job id {}", jobId);
       return new ResponseEntity<>(format(FILE_UPLOAD_ERROR, "file is empty"), HttpStatus.BAD_REQUEST);
     }
 
@@ -332,7 +329,7 @@ public class BulkEditController implements JobIdApi {
       localFilesStorage.delete(uploadedPath);
       localFilesStorage.write(uploadedPath, file.getBytes());
       String tempIdentifiersFile = null;
-      log.info("uploadCsvFile:: with jobExportType={}", jobCommand.getExportType());
+      log.info("uploadCsvFile:: file is uploaded for jobId={} with jobExportType={}", jobId, jobCommand.getExportType());
       if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())) {
         tempIdentifiersFile = saveTemporaryIdentifiersFile(jobId, file);
       }

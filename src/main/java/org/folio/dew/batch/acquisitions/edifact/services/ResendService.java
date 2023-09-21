@@ -41,6 +41,7 @@ public class ResendService {
 
   public void resendExportedFile(JobCommand jobCommand) {
     UUID jobId = jobCommand.getId();
+    log.info("resendExportedFile:: resend exported file for {}", jobId);
     JobParameters jobParameters = jobCommand.getJobParameters();
 
     if (jobId == null) {
@@ -75,7 +76,6 @@ public class ResendService {
       job.setBatchStatus(BatchStatus.FAILED);
       job.setExitStatus(ExitStatus.FAILED);
     } finally {
-      log.info("resendExportedFile::  send data into kafka with params: topic={}; key={}; object={}.", KafkaService.Topic.JOB_UPDATE, jobId.toString(), job);
       kafka.send(KafkaService.Topic.JOB_UPDATE, jobId.toString(), job);
     }
   }

@@ -88,13 +88,13 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
 
   @SneakyThrows
   private void processJobUpdate(JobExecution jobExecution, boolean after) {
+    log.info("processJobUpdate:: process job update with id {}", jobExecution.getJobId());
     var jobParameters = jobExecution.getJobParameters();
     var jobId = jobParameters.getString(JobParameterNames.JOB_ID);
     if (StringUtils.isBlank(jobId)) {
       log.error("Job update with empty Job ID {}.", jobExecution);
       return;
     }
-    log.info("Job update {}.", jobExecution);
 
     if (after) {
       if (isBulkEditIdentifiersJob(jobExecution)) {
@@ -150,8 +150,6 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       }
       jobExecutionUpdate.setProgress(progress);
     }
-
-    log.info("processJobUpdate:: send data into kafka with params: topic={}; key={}; object={}.", KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     kafka.send(KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     if (after) {
       log.info("-----------------------------JOB---ENDS-----------------------------");

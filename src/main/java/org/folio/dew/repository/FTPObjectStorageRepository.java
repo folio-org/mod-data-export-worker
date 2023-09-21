@@ -82,13 +82,13 @@ public class FTPObjectStorageRepository {
       ftpClient.enterLocalPassiveMode();
       changeWorkingDirectory(ftpClient);
       if (ftpClient.storeFile(filename, is)) {
-        log.debug("File uploaded on FTP");
+        log.info("File {} uploaded on FTP", filename);
       } else {
-        log.debug("File NOT uploaded on FTP");
+        log.warn("File {} NOT uploaded on FTP", filename);
         throw new FtpException(ftpClient.getReplyCode(), getReplyMessage(ftpClient.getReplyCode(), ftpClient.getReplyString()));
       }
     } catch (IOException ioException) {
-      log.error("Error uploading file", ioException);
+      log.error("Error uploading file {} with message: {}",filename, ioException.getMessage());
       throw ioException;
     } finally {
       logout(ftpClient);

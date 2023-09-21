@@ -43,7 +43,6 @@ public class UpdateRecordWriteListener<T> implements ItemWriteListener<T> {
   @Override
   public void afterWrite(Chunk<? extends T> items) {
     var job = prepareJobWithProgress();
-    log.info("afterWrite::  send data into kafka with params: topic={}; key={}; object={}.", KafkaService.Topic.JOB_UPDATE, job.getId().toString(), job);
     kafka.send(KafkaService.Topic.JOB_UPDATE, job.getId().toString(), job);
   }
 

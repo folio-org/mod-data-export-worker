@@ -20,6 +20,7 @@ public class PresignedUrlController implements RefreshPresignedUrlApi {
 
   @Override
   public ResponseEntity<PresignedUrl> getRefreshedPresignedUrl(String filePath) {
+    log.info("getRefreshedPresignedUrl:: for filePath={}", filePath);
     try {
       String url = remoteFilesStorage.objectToPresignedObjectUrl(filePath);
       PresignedUrl presignedUrl = new PresignedUrl();

@@ -42,6 +42,7 @@ public class EdiExportJobCompletionListener extends JobExecutionListenerSupport 
 
   @SneakyThrows
   private void processJobUpdate(JobExecution jobExecution, boolean after) {
+    log.info("processJobUpdate:: process job update with id {}", jobExecution.getJobId());
     var jobParameters = jobExecution.getJobParameters();
     var jobId = jobParameters.getString(JobParameterNames.JOB_ID);
     if (StringUtils.isBlank(jobId)) {

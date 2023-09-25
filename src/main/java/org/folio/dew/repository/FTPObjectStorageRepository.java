@@ -93,7 +93,6 @@ public class FTPObjectStorageRepository {
     try (InputStream is = new ByteArrayInputStream(fileByteContent)) {
       ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
       ftpClient.enterLocalPassiveMode();
-
       changeWorkingDirectory(ftpClient, path);
       if (!ftpClient.storeFile(filename, is)) {
         throw getFtpException(ftpClient, ERROR_FILE_UPLOAD_FAILED);

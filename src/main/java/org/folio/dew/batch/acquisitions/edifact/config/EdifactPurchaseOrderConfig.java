@@ -9,7 +9,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ComponentScan({ "org.folio" })
+@ComponentScan({ "org.folio.dew.batch.acquisitions.edifact" })
 public class EdifactPurchaseOrderConfig {
   @Bean
   CompositePOLineConverter compositePOLineConverter() {

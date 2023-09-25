@@ -44,7 +44,6 @@ public class ExportHistoryTasklet implements Tasklet {
   @Override
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     var exportHistory = buildExportHistory(chunkContext);
-
     kafkaService.send(KafkaService.Topic.EXPORT_HISTORY_CREATE, null, exportHistory);
 
     return RepeatStatus.FINISHED;

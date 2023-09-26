@@ -1,5 +1,6 @@
 package org.folio.dew.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.folio.dew.domain.dto.BriefInstance;
 import org.folio.dew.domain.dto.BriefInstanceCollection;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -15,4 +16,7 @@ public interface InstanceClient {
 
   @GetMapping(value = "/{instanceId}", produces = MediaType.APPLICATION_JSON_VALUE)
   BriefInstance getById(@PathVariable String instanceId);
+
+  @GetMapping(value = "/{instanceId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  JsonNode getInstanceJsonById(@PathVariable String instanceId);
 }

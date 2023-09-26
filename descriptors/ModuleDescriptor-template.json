@@ -19,6 +19,122 @@
       "version": "18.0"
     },
     {
+      "id": "inventory",
+      "version": "13.0"
+    },
+    {
+      "id": "holdings-storage",
+      "version": "6.0"
+    },
+    {
+      "id": "instance-storage",
+      "version": "10.0"
+    },
+    {
+      "id": "call-number-types",
+      "version": "1.0"
+    },
+    {
+      "id": "erm",
+      "version": "6.0"
+    },
+    {
+      "id": "audit",
+      "version": "1.1"
+    },
+    {
+      "id": "item-damaged-statuses",
+      "version": "1.0"
+    },
+    {
+      "id": "data-export-spring",
+      "version": "1.0"
+    },
+    {
+      "id": "electronic-access-relationships",
+      "version": "1.0"
+    },
+    {
+      "id": "instance-authority-links-statistics",
+      "version": "2.0"
+    },
+    {
+      "id": "finance-storage.expense-classes",
+      "version": "3.0"
+    },
+    {
+      "id": "holdings-note-types",
+      "version": "1.0"
+    },
+    {
+      "id": "holdings-sources",
+      "version": "1.0"
+    },
+    {
+      "id": "holdings-types",
+      "version": "1.0"
+    },
+    {
+      "id": "identifier-types",
+      "version": "1.2"
+    },
+    {
+      "id": "ill-policies",
+      "version": "1.0"
+    },
+    {
+      "id": "item-note-types",
+      "version": "1.0"
+    },
+    {
+      "id": "eholdings",
+      "version": "3.1"
+    },
+    {
+      "id": "loan-types",
+      "version": "2.0"
+    },
+    {
+      "id": "locations",
+      "version": "3.0"
+    },
+    {
+      "id": "material-types",
+      "version": "2.2"
+    },
+    {
+      "id": "notes",
+      "version": "3.0"
+    },
+    {
+      "id": "orders-storage.purchase-orders",
+      "version": "8.0"
+    },
+    {
+      "id": "orders-storage.po-lines",
+      "version": "12.1"
+    },
+    {
+      "id": "organizations.organizations",
+      "version": "1.2"
+    },
+    {
+      "id": "order-lines",
+      "version": "3.2"
+    },
+    {
+      "id": "search",
+      "version": "1.0"
+    },
+    {
+      "id": "service-points",
+      "version": "3.3"
+    },
+    {
+      "id": "statistical-codes",
+      "version": "1.0"
+    },
+    {
       "id": "service-points",
       "version": "3.3"
     }

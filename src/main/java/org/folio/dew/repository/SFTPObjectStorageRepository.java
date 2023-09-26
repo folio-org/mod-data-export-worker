@@ -1,11 +1,7 @@
 package org.folio.dew.repository;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.concurrent.TimeUnit;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.future.AuthFuture;
@@ -18,8 +14,11 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.stereotype.Repository;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
 
 @Log4j2
 @Repository
@@ -85,22 +84,19 @@ public class SFTPObjectStorageRepository {
 
       return true;
     } catch (Exception e) {
-      log.info("Error uploading the file", e);
-      throw new EdifactException(String.format("Unable to upload to %s:%d%s. %s", host, port, folder, e.getMessage()));
+      log.error("Error uploading to SFTP path: {}", remoteAbsPath, e);
+      throw new EdifactException(String.format("Unable to upload to %s:%d/%s. %s", host, port, folder, e.getMessage()));
     }
   }
 
   public byte[] download(SftpClient sftpClient, String path) {
-    byte[] fileBytes = null;
-    try {
-      InputStream stream = sftpClient.read(path);
-      log.info("File found from path: {}", path);
-      fileBytes = stream.readAllBytes();
-      stream.close();
-    } catch (IOException e) {
-      log.error(e);
+    try (InputStream stream = sftpClient.read(path)) {
+      log.info("File found to path: {}", path);
+      return stream.readAllBytes();
+    } catch (Exception e) {
+      log.error("Error downloading from SFTP path: {}", path, e);
+      return null;
     }
-    return fileBytes;
   }
 
   private void createRemoteDirectoryIfAbsent(Session<SftpClient.DirEntry> session, String folder) throws IOException {

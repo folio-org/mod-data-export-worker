@@ -34,3 +34,4 @@ components:
       $ref: '../../../../folio-export-common/schemas/jobStatus.json#/JobStatus'
     exportTypeSpecificParameters:
       $ref: '../../../../folio-export-common/schemas/exportTypeSpecificParameters.json#/ExportTypeSpecificParameters'
+

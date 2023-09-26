@@ -20,6 +20,7 @@ import org.mockftpserver.fake.FakeFtpServer;
 import org.mockftpserver.fake.UserAccount;
 import org.mockftpserver.fake.filesystem.DirectoryEntry;
 import org.mockftpserver.fake.filesystem.FileSystem;
+import org.mockftpserver.fake.filesystem.Permissions;
 import org.mockftpserver.fake.filesystem.UnixFakeFileSystem;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,23 +35,25 @@ import lombok.extern.log4j.Log4j2;
   FTPClient.class})
 class FTPObjectStorageRepositoryTest {
 
+  private static final String ALLOWED_PATH = "/files/upload/";
+  private static final String FORBIDDEN_PATH = "/invalid/path/";
+  private static final String FILE_NAME = "filename.txt";
+  private static final String USERNAME_VALID = "validUser";
+  private static final String PASSWORD_VALID = "letMeIn";
+  private static final String PASSWORD_INVALID = "don'tLetMeIn";
+  private static final String INVALID_URI = "http://localhost";
+  private static final byte[] FILE_CONTENT = "Some text".getBytes();
+
+  private static FakeFtpServer fakeFtpServer;
+
+  private static String uri;
+
   @Autowired
   private FTPObjectStorageRepository repository;
   @Autowired
   private ObjectFactory<FTPClient> ftpClientFactory;
   @Autowired
   private FTPProperties properties;
-
-  private static FakeFtpServer fakeFtpServer;
-
-  private static final String user_home_dir = "/files";
-  private static final String filename = "filename.txt";
-  private static final String username_valid = "validUser";
-  private static final String password_valid = "letMeIn";
-  private static final String password_invalid = "don'tLetMeIn";
-  private static final String invalid_uri = "http://localhost";
-
-  private static String uri;
 
   private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSz", Locale.ENGLISH);
 
@@ -64,10 +67,13 @@ class FTPObjectStorageRepositoryTest {
     fakeFtpServer.setServerControlPort(0); // use any free port
 
     FileSystem fileSystem = new UnixFakeFileSystem();
-    fileSystem.add(new DirectoryEntry(user_home_dir));
+    fileSystem.add(new DirectoryEntry(ALLOWED_PATH));
+    DirectoryEntry forbidden = new DirectoryEntry(FORBIDDEN_PATH);
+    forbidden.setPermissions(Permissions.NONE);
+    fileSystem.add(forbidden);
     fakeFtpServer.setFileSystem(fileSystem);
 
-    UserAccount userAccount = new UserAccount(username_valid, password_valid, user_home_dir);
+    UserAccount userAccount = new UserAccount(USERNAME_VALID, PASSWORD_VALID, "/");
 
     fakeFtpServer.addUserAccount(userAccount);
 
@@ -90,7 +96,7 @@ class FTPObjectStorageRepositoryTest {
     log.info("=== Test unsuccessful login ===");
 
     Exception exception = assertThrows(URISyntaxException.class, () -> {
-      repository.upload(invalid_uri, username_valid, password_valid, filename, "Some text".getBytes());
+      repository.upload(INVALID_URI, USERNAME_VALID, PASSWORD_VALID, FILE_NAME, FILE_NAME, FILE_CONTENT);
     });
 
     String expectedMessage = "URI should be valid ftp path";
@@ -102,20 +108,23 @@ class FTPObjectStorageRepositoryTest {
   @Test
   void testFailedLogin() {
     log.info("=== Test unsuccessful login ===");
-    assertThrows(FtpException.class, () -> repository.upload(uri, username_valid, password_invalid, filename, "Some text".getBytes()));
+    assertThrows(FtpException.class, () -> repository.upload(uri, USERNAME_VALID, PASSWORD_INVALID, "/", FILE_NAME, FILE_CONTENT));
   }
 
   @Test
   void testSuccessfulUpload() {
     log.info("=== Test successful upload ===");
 
-    assertDoesNotThrow(() -> repository.upload(uri, username_valid, password_valid, filename, "Some text".getBytes()));
-    assertTrue(fakeFtpServer.getFileSystem().exists(user_home_dir + "/" + filename));
+    assertDoesNotThrow(() -> repository.upload(uri, USERNAME_VALID, PASSWORD_VALID, ALLOWED_PATH, FILE_NAME, FILE_CONTENT));
+    assertTrue(fakeFtpServer.getFileSystem().exists(ALLOWED_PATH + FILE_NAME));
   }
 
   @Test
   void testFailedUpload() {
     log.info("=== Test unsuccessful upload ===");
-    assertThrows(FtpException.class, () -> repository.upload(uri, username_valid, password_valid, "/invalid/path/" + filename, "Some text".getBytes()));
+    assertThrows(
+      FtpException.class,
+      () -> repository.upload(uri, USERNAME_VALID, PASSWORD_VALID, "/invalid/path/", FILE_NAME, FILE_CONTENT)
+    );
   }
 }

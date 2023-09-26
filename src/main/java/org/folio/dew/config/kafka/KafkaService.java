@@ -106,12 +106,12 @@ public class KafkaService {
   }
 
   public void send(Topic topic, String key, Object data) {
-    log.info("Sending {}.", data);
+    log.info("Sending message in topic {} with key {} and data {}.", topic.getTopicName(), key, data);
     String tenant = folioExecutionContext.getTenantId();
     if (StringUtils.isBlank(tenant)) {
       throw new IllegalStateException("Can't send to Kafka because tenant is blank");
     }
     kafkaTemplate.send(getTenantTopicName(topic, tenant), key, data);
-    log.info("Sent {}.", data);
+    log.info("Message was sent to topic {} with key {}", topic.getTopicName(), key);
   }
 }

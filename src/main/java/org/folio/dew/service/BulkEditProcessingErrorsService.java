@@ -86,14 +86,14 @@ public class BulkEditProcessingErrorsService {
         var errors = lines.limit(limit)
           .map(message -> new Error().message(message).type(BULK_EDIT_ERROR_TYPE_NAME))
           .collect(toList());
-        log.debug("Errors file {} processing completed", csvFileName);
+        log.info("Errors file {} processing completed", csvFileName);
         return new Errors().errors(errors).totalRecords(errors.size());
       } catch (IOException e) {
         log.error("Failed to read {} errors file for job id {} cause {}", csvFileName, jobId, e);
         throw new FileOperationException(format("Failed to read %s errors file for job id %s", csvFileName, jobId));
       }
     } else {
-      log.debug("Errors file {} doesn't exist - empty error list returned", csvFileName);
+      log.info("Errors file {} doesn't exist - empty error list returned", csvFileName);
       return new Errors().errors(emptyList()).totalRecords(0);
     }
   }
@@ -163,7 +163,7 @@ public class BulkEditProcessingErrorsService {
       }).collect(Collectors.toList());
     }
     if (names.isEmpty()) {
-      return LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Errors-" + fileName;
+      return LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Matching-Records-Errors-" + fileName;
     } else {
       return  names.get(0);
     }

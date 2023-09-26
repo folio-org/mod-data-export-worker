@@ -41,6 +41,7 @@ public class ResendService {
 
   public void resendExportedFile(JobCommand jobCommand) {
     UUID jobId = jobCommand.getId();
+    log.info("resendExportedFile:: resend exported file for {}", jobId);
     JobParameters jobParameters = jobCommand.getJobParameters();
 
     if (jobId == null) {

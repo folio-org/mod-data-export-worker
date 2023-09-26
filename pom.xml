@@ -49,7 +49,8 @@
           ${project.basedir}/src/main/resources/swagger.api/refresh-presigned-url.yaml
         </refresh-presigned-url.yaml.file>
 
-        <folio-spring-base.version>6.2.0-SNAPSHOT</folio-spring-base.version>
+        <folio-spring-base.version>7.0.0</folio-spring-base.version>
+      <folio-spring-cql.version>7.0.0</folio-spring-cql.version>
         <commons-io.version>2.11.0</commons-io.version>
         <minio.version>8.5.1</minio.version>
         <openapi-generator.version>6.2.1</openapi-generator.version>
@@ -93,6 +94,11 @@
           <groupId>org.folio</groupId>
           <artifactId>folio-spring-base</artifactId>
           <version>${folio-spring-base.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.folio</groupId>
+        <artifactId>folio-spring-cql</artifactId>
+        <version>${folio-spring-cql.version}</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.datatype</groupId>

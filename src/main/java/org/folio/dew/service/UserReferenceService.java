@@ -41,7 +41,7 @@ public class UserReferenceService {
   @Cacheable(cacheNames = "addressTypeNames")
   public String getAddressTypeDescById(String id, ErrorServiceArgs args) {
     try {
-      return isNull(id) ? EMPTY : addressTypeClient.getAddressTypeById(id).getDesc();
+      return isNull(id) ? EMPTY : addressTypeClient.getAddressTypeById(id).getAddressType();
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Address type was not found by id: [%s]", id)), args.getFileName());
       return id;
@@ -110,25 +110,18 @@ public class UserReferenceService {
 
   @Cacheable(cacheNames = "customFields")
   public CustomField getCustomFieldByRefId(String refId) {
-
-    var customFields = customFieldsClient.getCustomFieldsByQuery(getModuleId(MOD_USERS),String.format("refId==\"%s\"", refId));
-    if (customFields.getCustomFields().isEmpty()) {
-      var msg = format("Custom field with refId=%s not found", refId);
-      log.error(msg);
-      throw new BulkEditException(msg);
-    }
-    return customFields.getCustomFields().get(0);
+    return customFieldsClient.getCustomFieldsByQuery(getModuleId(MOD_USERS),String.format("refId==\"%s\"", refId))
+    .getCustomFields().stream().filter(customField -> customField.getRefId().equals(refId))
+      .findFirst()
+      .orElseThrow(() -> new BulkEditException(format("Custom field with refId=%s not found", refId)));
   }
 
   @Cacheable(cacheNames = "customFields")
   public CustomField getCustomFieldByName(String name) {
-    var customFields = customFieldsClient.getCustomFieldsByQuery(getModuleId(MOD_USERS), String.format("name==\"%s\"", name));
-    if (customFields.getCustomFields().isEmpty()) {
-      var msg = format("Custom field with name=%s not found", name);
-      log.error(msg);
-      throw new BulkEditException(msg);
-    }
-    return customFields.getCustomFields().get(0);
+    return customFieldsClient.getCustomFieldsByQuery(getModuleId(MOD_USERS), String.format("name==\"%s\"", name))
+      .getCustomFields().stream().filter(customField -> customField.getName().equals(name))
+      .findFirst()
+      .orElseThrow(() -> new BulkEditException(format("Custom field with name=%s not found", name)));
   }
 
   @Cacheable(cacheNames = "moduleIds")

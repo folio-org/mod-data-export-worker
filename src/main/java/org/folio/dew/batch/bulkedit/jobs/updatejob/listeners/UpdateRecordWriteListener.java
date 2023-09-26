@@ -4,9 +4,10 @@ import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
 
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import lombok.extern.log4j.Log4j2;
 import org.folio.de.entity.Job;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
@@ -26,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 @Component
 @JobScope
 @RequiredArgsConstructor
+@Log4j2
 public class UpdateRecordWriteListener<T> implements ItemWriteListener<T> {
 
   private static final int BATCH_SIZE = 10;

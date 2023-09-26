@@ -2,6 +2,8 @@ package org.folio.dew.batch.acquisitions.edifact;
 
 import io.xlate.edi.stream.EDIStreamException;
 import io.xlate.edi.stream.EDIStreamWriter;
+
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
@@ -43,7 +45,7 @@ public class CompositePOConverter {
 
     if (!compPO.getCompositePoLines().isEmpty()
         && compPO.getCompositePoLines().get(0).getVendorDetail() != null
-        && compPO.getCompositePoLines().get(0).getVendorDetail().getVendorAccount() != null){
+        && StringUtils.isNotBlank(compPO.getCompositePoLines().get(0).getVendorDetail().getVendorAccount())){
       messageSegmentCount++;
       writeAccountNumber(compPO.getCompositePoLines().get(0).getVendorDetail().getVendorAccount(), writer);
     }
@@ -139,7 +141,6 @@ public class CompositePOConverter {
       .writeStartElement()
       .writeComponent("API")
       .writeComponent(accountNumber)
-      .writeComponent("91")
       .endElement()
       .writeEndSegment();
   }

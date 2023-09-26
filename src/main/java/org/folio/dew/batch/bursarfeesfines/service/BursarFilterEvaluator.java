@@ -57,7 +57,7 @@ public class BursarFilterEvaluator {
       filter instanceof BursarExportFilterFeeFineOwner filterFeeFineOwner
     ) {
       return UUID
-        .fromString(account.getAccount().getFeeFineOwner())
+        .fromString(account.getAccount().getOwnerId())
         .equals(filterFeeFineOwner.getFeeFineOwner());
     } else if (filter instanceof BursarExportFilterLocation filterLocation) {
       Item item = account.getItem();

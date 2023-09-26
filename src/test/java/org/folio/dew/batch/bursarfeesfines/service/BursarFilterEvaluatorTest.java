@@ -259,7 +259,7 @@ class BursarFilterEvaluatorTest {
     filterFeeFineOwner.setFeeFineOwner(feeFineOwnerUUID);
 
     Account account = new Account();
-    account.setFeeFineOwner("00000000-0000-4000-8000-000000000000");
+    account.setOwnerId("00000000-0000-4000-8000-000000000000");
 
     AccountWithAncillaryData accountWithAncillaryData = AccountWithAncillaryData
       .builder()

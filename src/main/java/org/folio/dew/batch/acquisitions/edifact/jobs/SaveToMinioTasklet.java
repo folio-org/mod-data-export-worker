@@ -42,7 +42,7 @@ public class SaveToMinioTasklet implements Tasklet {
   private final OrganizationsService organizationsService;
   private final FolioExecutionContext folioExecutionContext;
   private final ObjectMapper ediObjectMapper;
-  private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+  private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
   private static final String REMOTE_STORAGE_ERROR_MESSAGE = "Failed to save edifact file to remote storage";
 
   @Value("${spring.application.name}")

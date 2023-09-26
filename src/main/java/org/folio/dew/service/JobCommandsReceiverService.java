@@ -10,7 +10,6 @@ import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import java.io.FileOutputStream;
 import java.net.MalformedURLException;
@@ -24,21 +23,16 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.de.entity.JobCommandType;
-import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.ExportJobManagerSync;
 import org.folio.dew.batch.acquisitions.edifact.services.ResendService;
-import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
-import org.folio.dew.domain.dto.bursarfeesfines.BursarFeeFinesDto;
-import org.folio.dew.domain.dto.bursarfeesfines.BursarJobPrameterDto;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.JobCommandRepository;
 import org.folio.dew.repository.LocalFilesStorage;
@@ -47,10 +41,8 @@ import org.folio.spring.DefaultFolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -64,10 +56,7 @@ import org.springframework.stereotype.Service;
 public class JobCommandsReceiverService {
   private final FolioModuleMetadata folioModuleMetadata;
 
-  private final ObjectMapper objectMapper;
-  private final ExportJobManager exportJobManager;
   private final ExportJobManagerSync exportJobManagerSync;
-  private final BursarExportService bursarExportService;
   private final RemoteFilesStorage remoteFilesStorage;
   private final LocalFilesStorage localFilesStorage;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
@@ -183,8 +172,6 @@ public class JobCommandsReceiverService {
 
     addOrderExportSpecificParameters(jobCommand, paramsBuilder);
 
-    normalizeParametersForBursarExport(paramsBuilder, jobId);
-
     jobCommand.setJobParameters(paramsBuilder.toJobParameters());
   }
 
@@ -192,36 +179,6 @@ public class JobCommandsReceiverService {
     if (jobCommand.getExportType().equals(EDIFACT_ORDERS_EXPORT)) {
       paramsBuilder.addString(JobParameterNames.JOB_NAME, jobCommand.getName());
     }
-  }
-
-  @SneakyThrows
-  private void normalizeParametersForBursarExport(JobParametersBuilder paramsBuilder, String jobId) {
-    final JobParameter bursarFeeFines = paramsBuilder.toJobParameters().getParameters().get("bursarFeeFines");
-    if (bursarFeeFines == null) {
-      return;
-    }
-
-    var bff = extractBursarFeeFines(bursarFeeFines);
-
-    BursarJobPrameterDto dto = replaceTypeMappingsCollectionWithHash(bff);
-    paramsBuilder.addString("bursarFeeFines", objectMapper.writeValueAsString(dto));
-
-
-    bursarExportService.addMapping(jobId, bff.getTypeMappings());
-  }
-
-  private BursarJobPrameterDto replaceTypeMappingsCollectionWithHash(BursarFeeFinesDto bursarFeeFines) {
-    var dto = new BursarJobPrameterDto();
-    BeanUtils.copyProperties(bursarFeeFines, dto, "typeMappings");
-
-    dto.setTypeMappings(String.valueOf(bursarFeeFines.getTypeMappings().hashCode()));
-    return dto;
-  }
-
-  private BursarFeeFinesDto extractBursarFeeFines(JobParameter bursarFeeFines)
-    throws com.fasterxml.jackson.core.JsonProcessingException {
-    final String value = (String) bursarFeeFines.getValue();
-    return objectMapper.readValue(value, BursarFeeFinesDto.class);
   }
 
   private boolean deleteOldFiles(JobCommand jobCommand) {

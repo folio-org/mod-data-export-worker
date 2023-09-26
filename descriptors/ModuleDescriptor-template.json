@@ -7,6 +7,10 @@
       "version": "15.4 16.0"
     },
     {
+      "id": "inventory",
+      "version": "13.0"
+    },
+    {
       "id": "configuration",
       "version": "2.0"
     },
@@ -129,6 +133,10 @@
     {
       "id": "statistical-codes",
       "version": "1.0"
+    },
+    {
+      "id": "service-points",
+      "version": "3.3"
     }
   ],
   "provides": [
@@ -137,9 +145,9 @@
       "version": "3.0",
       "handlers": [
         {
-          "methods": [ "POST" ],
+          "methods": ["POST"],
           "pathPattern": "/bulk-edit/{id}/upload",
-          "permissionsRequired": [ "bulk-edit.item.post" ],
+          "permissionsRequired": ["bulk-edit.item.post"],
           "modulePermissions": [
             "addresstypes.collection.get",
             "addresstypes.item.get",
@@ -188,9 +196,11 @@
           ]
         },
         {
-          "methods": [ "POST" ],
+          "methods": ["POST"],
           "pathPattern": "/bulk-edit/{id}/item-content-update/upload",
-          "permissionsRequired": [ "bulk-edit.items-content-update.collection.post" ],
+          "permissionsRequired": [
+            "bulk-edit.items-content-update.collection.post"
+          ],
           "modulePermissions": [
             "inventory-storage.call-number-types.item.get",
             "inventory-storage.call-number-types.collection.get",
@@ -218,9 +228,11 @@
           ]
         },
         {
-          "methods": [ "POST" ],
+          "methods": ["POST"],
           "pathPattern": "/bulk-edit/{id}/user-content-update/upload",
-          "permissionsRequired": [ "bulk-edit.users-content-update.collection.post" ],
+          "permissionsRequired": [
+            "bulk-edit.users-content-update.collection.post"
+          ],
           "modulePermissions": [
             "users.collection.get",
             "users.item.get",
@@ -234,9 +246,11 @@
           ]
         },
         {
-          "methods": [ "POST" ],
+          "methods": ["POST"],
           "pathPattern": "/bulk-edit/{id}/holdings-content-update/upload",
-          "permissionsRequired": [ "bulk-edit.holdings-content-update.collection.post" ],
+          "permissionsRequired": [
+            "bulk-edit.holdings-content-update.collection.post"
+          ],
           "modulePermissions": [
             "inventory-storage.instances.item.get",
             "inventory-storage.holdings-types.collection.get",
@@ -257,9 +271,9 @@
           ]
         },
         {
-          "methods": [ "POST" ],
+          "methods": ["POST"],
           "pathPattern": "/bulk-edit/{id}/start",
-          "permissionsRequired": [ "bulk-edit.start.item.post" ],
+          "permissionsRequired": ["bulk-edit.start.item.post"],
           "modulePermissions": [
             "users.collection.get",
             "users.item.get",
@@ -309,13 +323,9 @@
           ]
         },
         {
-          "methods": [
-            "POST"
-          ],
+          "methods": ["POST"],
           "pathPattern": "/bulk-edit/{jobId}/roll-back",
-          "permissionsRequired": [
-            "bulk-edit.roll-back.item.post"
-          ],
+          "permissionsRequired": ["bulk-edit.roll-back.item.post"],
           "modulePermissions": [
             "users.collection.get",
             "users.item.get",
@@ -330,9 +340,9 @@
           ]
         },
         {
-          "methods": [ "GET" ],
+          "methods": ["GET"],
           "pathPattern": "/bulk-edit/{jobId}/preview/users",
-          "permissionsRequired": [ "bulk-edit.preview-users.collection.get" ],
+          "permissionsRequired": ["bulk-edit.preview-users.collection.get"],
           "modulePermissions": [
             "users.collection.get",
             "addresstypes.collection.get",
@@ -340,9 +350,9 @@
           ]
         },
         {
-          "methods": [ "GET" ],
+          "methods": ["GET"],
           "pathPattern": "/bulk-edit/{jobId}/preview/items",
-          "permissionsRequired": [ "bulk-edit.preview-items.collection.get" ],
+          "permissionsRequired": ["bulk-edit.preview-items.collection.get"],
           "modulePermissions": [
             "inventory.items.collection.get",
             "inventory-storage.material-types.collection.get",
@@ -361,9 +371,9 @@
           ]
         },
         {
-          "methods": [ "GET" ],
+          "methods": ["GET"],
           "pathPattern": "/bulk-edit/{jobId}/preview/holdings",
-          "permissionsRequired": [ "bulk-edit.preview-holdings.collection.get" ],
+          "permissionsRequired": ["bulk-edit.preview-holdings.collection.get"],
           "modulePermissions": [
             "inventory-storage.holdings.collection.get",
             "inventory-storage.holdings-types.collection.get",
@@ -383,33 +393,39 @@
           ]
         },
         {
-          "methods": [ "GET" ],
+          "methods": ["GET"],
           "pathPattern": "/bulk-edit/{jobId}/errors",
-          "permissionsRequired": [ "bulk-edit.errors.collection.get" ],
+          "permissionsRequired": ["bulk-edit.errors.collection.get"],
           "modulePermissions": []
         },
         {
-          "methods": [ "GET" ],
+          "methods": ["GET"],
           "pathPattern": "/bulk-edit/{jobId}/preview/updated-items/download",
-          "permissionsRequired": [ "bulk-edit.preview.updated-items.collection.get" ],
+          "permissionsRequired": [
+            "bulk-edit.preview.updated-items.collection.get"
+          ],
           "modulePermissions": []
         },
         {
-          "methods": [ "GET" ],
+          "methods": ["GET"],
           "pathPattern": "/bulk-edit/{jobId}/preview/updated-users/download",
-          "permissionsRequired": [ "bulk-edit.preview.updated-users.collection.get" ],
+          "permissionsRequired": [
+            "bulk-edit.preview.updated-users.collection.get"
+          ],
           "modulePermissions": []
         },
         {
-          "methods": [ "GET" ],
+          "methods": ["GET"],
           "pathPattern": "/bulk-edit/{jobId}/preview/updated-holdings/download",
-          "permissionsRequired": [ "bulk-edit.preview.updated-holdings.collection.get" ],
+          "permissionsRequired": [
+            "bulk-edit.preview.updated-holdings.collection.get"
+          ],
           "modulePermissions": []
         },
         {
-          "methods": [ "GET" ],
+          "methods": ["GET"],
           "pathPattern": "/refresh-presigned-url",
-          "permissionsRequired": [ "refresh-presigned-url.get" ],
+          "permissionsRequired": ["refresh-presigned-url.get"],
           "modulePermissions": []
         }
       ]
@@ -420,9 +436,7 @@
       "interfaceType": "system",
       "handlers": [
         {
-          "methods": [
-            "POST"
-          ],
+          "methods": ["POST"],
           "pathPattern": "/_/tenant",
           "modulePermissions": [
             "circulation-logs.collection.get",
@@ -438,10 +452,7 @@
           ]
         },
         {
-          "methods": [
-            "GET",
-            "DELETE"
-          ],
+          "methods": ["GET", "DELETE"],
           "pathPattern": "/_/tenant/{id}"
         }
       ]
@@ -452,9 +463,7 @@
       "interfaceType": "multiple",
       "handlers": [
         {
-          "methods": [
-            "GET"
-          ],
+          "methods": ["GET"],
           "pathPattern": "/_/jsonSchemas"
         }
       ]
@@ -462,39 +471,39 @@
   ],
   "permissionSets": [
     {
-      "permissionName" : "bulk-edit.item.post",
-      "displayName" : "upload identifiers list",
-      "description" : "Upload list of item identifiers"
+      "permissionName": "bulk-edit.item.post",
+      "displayName": "upload identifiers list",
+      "description": "Upload list of item identifiers"
     },
     {
-      "permissionName" : "bulk-edit.items-content-update.collection.post",
-      "displayName" : "upload items content update collection",
-      "description" : "Upload collection of item content updates"
+      "permissionName": "bulk-edit.items-content-update.collection.post",
+      "displayName": "upload items content update collection",
+      "description": "Upload collection of item content updates"
     },
     {
-      "permissionName" : "bulk-edit.users-content-update.collection.post",
-      "displayName" : "upload users content update collection",
-      "description" : "Upload collection of user content updates"
+      "permissionName": "bulk-edit.users-content-update.collection.post",
+      "displayName": "upload users content update collection",
+      "description": "Upload collection of user content updates"
     },
     {
-      "permissionName" : "bulk-edit.holdings-content-update.collection.post",
-      "displayName" : "upload holdings records content update collection",
-      "description" : "Upload collection of holdings records content updates"
+      "permissionName": "bulk-edit.holdings-content-update.collection.post",
+      "displayName": "upload holdings records content update collection",
+      "description": "Upload collection of holdings records content updates"
     },
     {
-      "permissionName" : "bulk-edit.preview.updated-items.collection.get",
-      "displayName" : "download updated items preview csv",
-      "description" : "Download csv of preview updated items"
+      "permissionName": "bulk-edit.preview.updated-items.collection.get",
+      "displayName": "download updated items preview csv",
+      "description": "Download csv of preview updated items"
     },
     {
-      "permissionName" : "bulk-edit.preview.updated-users.collection.get",
-      "displayName" : "download updated users preview csv",
-      "description" : "Download csv with preview of updated users"
+      "permissionName": "bulk-edit.preview.updated-users.collection.get",
+      "displayName": "download updated users preview csv",
+      "description": "Download csv with preview of updated users"
     },
     {
-      "permissionName" : "bulk-edit.preview.updated-holdings.collection.get",
-      "displayName" : "download updated holdings records preview csv",
-      "description" : "Download csv with preview of updated holdings records"
+      "permissionName": "bulk-edit.preview.updated-holdings.collection.get",
+      "displayName": "download updated holdings records preview csv",
+      "description": "Download csv with preview of updated holdings records"
     },
     {
       "permissionName": "bulk-edit.start.item.post",
@@ -507,36 +516,35 @@
       "description": "Roll back list of uploaded items"
     },
     {
-      "permissionName" : "bulk-edit.preview-users.collection.get",
-      "displayName" : "get N users for preview",
-      "description" : "Get N users for preview"
+      "permissionName": "bulk-edit.preview-users.collection.get",
+      "displayName": "get N users for preview",
+      "description": "Get N users for preview"
     },
     {
-      "permissionName" : "bulk-edit.preview-items.collection.get",
-      "displayName" : "get N items for preview",
-      "description" : "Get N items for preview"
+      "permissionName": "bulk-edit.preview-items.collection.get",
+      "displayName": "get N items for preview",
+      "description": "Get N items for preview"
     },
     {
-      "permissionName" : "bulk-edit.preview-holdings.collection.get",
-      "displayName" : "get N holdings for preview",
-      "description" : "Get N holdings for preview"
+      "permissionName": "bulk-edit.preview-holdings.collection.get",
+      "displayName": "get N holdings for preview",
+      "description": "Get N holdings for preview"
     },
     {
-      "permissionName" : "bulk-edit.errors.collection.get",
-      "displayName" : "get errors for preview",
-      "description" : "Get errors for preview"
-
+      "permissionName": "bulk-edit.errors.collection.get",
+      "displayName": "get errors for preview",
+      "description": "Get errors for preview"
     },
     {
-      "permissionName" : "refresh-presigned-url.get",
-      "displayName" : "Get refreshed presigned url for export file",
-      "description" : "Get refreshed presigned url for export file"
+      "permissionName": "refresh-presigned-url.get",
+      "displayName": "Get refreshed presigned url for export file",
+      "description": "Get refreshed presigned url for export file"
     },
     {
-      "permissionName" : "bulk-edit.all",
-      "displayName" : "bulk-edit all",
-      "description" : "All permissions for bulk-edit module",
-      "subPermissions" : [
+      "permissionName": "bulk-edit.all",
+      "displayName": "bulk-edit all",
+      "description": "All permissions for bulk-edit module",
+      "subPermissions": [
         "bulk-edit.item.post",
         "bulk-edit.items-content-update.collection.post",
         "bulk-edit.users-content-update.collection.post",
@@ -553,12 +561,10 @@
       ]
     },
     {
-      "permissionName" : "refresh-presigned-url.all",
-      "displayName" : "refresh-presigned-url all",
-      "description" : "All permissions for refresh presigned url",
-      "subPermissions" : [
-        "refresh-presigned-url.get"
-      ]
+      "permissionName": "refresh-presigned-url.all",
+      "displayName": "refresh-presigned-url all",
+      "description": "All permissions for refresh presigned url",
+      "subPermissions": ["refresh-presigned-url.get"]
     }
   ],
   "launchDescriptor": {

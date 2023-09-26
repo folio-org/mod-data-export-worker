@@ -8,10 +8,12 @@ paths:
   /stub:
     get:
       responses:
-        "200":
+        '200':
           description: stub
 components:
   schemas:
+    ownerdatacollection:
+      $ref: '../../../../folio-export-common/schemas/feesfines/ownerDataCollection.json#/OwnerDataCollection'
     userdataCollection:
       $ref: '../../../../folio-export-common/schemas/user/userCollection.json#/UserCollection'
     accountdataCollection:
@@ -22,10 +24,8 @@ components:
       $ref: '../../../../folio-export-common/schemas/feesfines/transferdataCollection.json#/TransferdataCollection'
     servicepoints:
       $ref: '../../../../folio-export-common/schemas/feesfines/servicepoints.json#/ServicePoints'
-    bursarFeeFines:
-      $ref: '../../../../folio-export-common/schemas/bursarFeeFines.json#/BursarFeeFines'
-    bursarFeeFinesTypeMapping:
-      $ref: '../../../../folio-export-common/schemas/bursarFeeFinesTypeMapping.json#/BursarFeeFinesTypeMapping'
+    bursarExportJob:
+      $ref: '../../../../folio-export-common/schemas/bursar-export/bursarExportJob.json'
     ediConfig:
       $ref: '../../../../folio-export-common/schemas/acquisitions/ediConfig.json#/EdiConfig'
     ediEmail:

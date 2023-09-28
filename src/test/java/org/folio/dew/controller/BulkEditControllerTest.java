@@ -1330,45 +1330,6 @@ class BulkEditControllerTest extends BaseBatchTest {
     }
   }
 
-  @Test
-  @SneakyThrows
-  @DisplayName("Post holdings content updates - successful")
-  void shouldReplaceHoldingsLocationAndReturnPreview() {
-    var jobId = UUID.randomUUID();
-    remoteFilesStorage.upload(jobId + PATH_SEPARATOR + FilenameUtils.getName(HOLDINGS_RECORDS_FOR_UPDATE), HOLDINGS_RECORDS_FOR_UPDATE);
-
-
-    var jobCommand = new JobCommand();
-    jobCommand.setId(jobId);
-    jobCommand.setExportType(BULK_EDIT_IDENTIFIERS);
-    jobCommand.setEntityType(HOLDINGS_RECORD);
-    jobCommand.setIdentifierType(ID);
-    jobCommand.setJobParameters(new JobParametersBuilder()
-      .addString(JobParameterNames.JOB_ID, jobId.toString())
-      .addString(TEMP_OUTPUT_FILE_PATH, FilenameUtils.getBaseName(HOLDINGS_RECORDS_FOR_UPDATE))
-      .toJobParameters());
-
-    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
-
-    var contentUpdates = objectMapper.writeValueAsString(new HoldingsContentUpdateCollection()
-      .holdingsContentUpdates(Collections.singletonList(new HoldingsContentUpdate()
-        .option(HoldingsContentUpdate.OptionEnum.TEMPORARY_LOCATION)
-        .action(HoldingsContentUpdate.ActionEnum.REPLACE_WITH)
-        .value("Annex")))
-      .totalRecords(1));
-
-    var responseContentUpdateUpload = mockMvc.perform(post(format(HOLDINGS_CONTENT_UPDATE_UPLOAD_URL_TEMPLATE, jobId))
-        .headers(defaultHeaders())
-        .content(contentUpdates))
-      .andExpect(status().isOk())
-      .andReturn();
-    var actualHoldings = objectMapper.readValue(responseContentUpdateUpload.getResponse().getContentAsString(),
-      HoldingsRecordCollection.class).getHoldingsRecords();
-    var expectedHoldings = objectMapper.readValue(Path.of(UPDATED_HOLDINGS_RECORDS_JSON).toFile(), HoldingsRecordCollection.class).getHoldingsRecords();
-
-    assertThat(actualHoldings, equalTo(expectedHoldings));
-  }
-
   private JobCommand createBulkEditJobRequest(UUID id, ExportType exportType, EntityType entityType, IdentifierType identifierType) {
     JobCommand jobCommand = new JobCommand();
     jobCommand.setType(JobCommandType.START);

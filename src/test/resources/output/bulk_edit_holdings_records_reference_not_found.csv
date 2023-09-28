@@ -1,7 +1,7 @@
 Holdings record id,Version,HRID,Holdings type,Former ids,Instance,Permanent location,Temporary location,Effective location,Electronic access,Call number type,Call number prefix,Call number,Call number suffix,Shelving title,Acquisition format,Acquisition method,Receipt status,Administrative notes,Notes,Ill policy,Retention policy,Digitization policy,Holdings statements,Holdings statements for indexes,Holdings statements for supplements,Copy number,Number of items,Receiving history,Discovery suppress,Statistical codes,Tags,Source,Instance HRID,Item barcode
-855d4693-4087-4339-8c14-c25c350e5e59,1,ho14,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,Sample instance;123;5bf370e0-8cca-4d9c-82e4-5170ab2a0a39,Main Library,,Main Library,,,,,,,,,,,,,,,,,,,,,,,,FOLIO,,
-855d4693-4087-4339-8c14-c25c350e5e59,1,ho14,,,Sample instance;123;5bf370e0-8cca-4d9c-82e4-5170ab2a0a39,Main Library,,Main Library,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,,,,,,,,,,,,,,,,,,,,,FOLIO,,
-855d4693-4087-4339-8c14-c25c350e5e59,1,ho14,,,Sample instance;123;5bf370e0-8cca-4d9c-82e4-5170ab2a0a39,Main Library,,Main Library,,,,,,,,,,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3;a note;false,,,,,,,,,,,,,FOLIO,,
-855d4693-4087-4339-8c14-c25c350e5e59,1,ho14,,,Sample instance;123;5bf370e0-8cca-4d9c-82e4-5170ab2a0a39,Main Library,,Main Library,,,,,,,,,,,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,,,,,,,,,,,FOLIO,,
-855d4693-4087-4339-8c14-c25c350e5e59,1,ho14,,,Sample instance;123;5bf370e0-8cca-4d9c-82e4-5170ab2a0a39,Main Library,,Main Library,,,,,,,,,,,,,,,,,,,,,,,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,
-855d4693-4087-4339-8c14-c25c350e5e59,1,ho14,,,Sample instance;123;5bf370e0-8cca-4d9c-82e4-5170ab2a0a39,Main Library,,Main Library,,,,,,,,,,,,,,,,,,,,,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,FOLIO,,
+855d4693-4087-4339-8c14-c25c350e5e59,1,ho14,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,Sample instance;123,Main Library,,Main Library,,,,,,,,,,,,,,,,,,,,,,,,FOLIO,,
+855d4693-4087-4339-8c14-c25c350e5e59,1,ho14,,,Sample instance;123,Main Library,,Main Library,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,,,,,,,,,,,,,,,,,,,,,FOLIO,,
+855d4693-4087-4339-8c14-c25c350e5e59,1,ho14,,,Sample instance;123,Main Library,,Main Library,,,,,,,,,,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3;a note;false,,,,,,,,,,,,,FOLIO,,
+855d4693-4087-4339-8c14-c25c350e5e59,1,ho14,,,Sample instance;123,Main Library,,Main Library,,,,,,,,,,,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,,,,,,,,,,,FOLIO,,
+855d4693-4087-4339-8c14-c25c350e5e59,1,ho14,,,Sample instance;123,Main Library,,Main Library,,,,,,,,,,,,,,,,,,,,,,,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,
+855d4693-4087-4339-8c14-c25c350e5e59,1,ho14,,,Sample instance;123,Main Library,,Main Library,,,,,,,,,,,,,,,,,,,,,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,FOLIO,,

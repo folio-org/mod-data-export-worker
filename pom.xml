@@ -50,6 +50,7 @@
         </refresh-presigned-url.yaml.file>
 
         <folio-spring-base.version>7.0.0</folio-spring-base.version>
+      <folio-service-tools.version>3.1.0-SNAPSHOT</folio-service-tools.version>
       <folio-spring-cql.version>7.0.0</folio-spring-cql.version>
         <commons-io.version>2.11.0</commons-io.version>
         <minio.version>8.5.1</minio.version>
@@ -94,6 +95,11 @@
           <groupId>org.folio</groupId>
           <artifactId>folio-spring-base</artifactId>
           <version>${folio-spring-base.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.folio</groupId>
+        <artifactId>folio-service-tools-spring-dev</artifactId>
+        <version>${folio-service-tools.version}</version>
       </dependency>
       <dependency>
         <groupId>org.folio</groupId>

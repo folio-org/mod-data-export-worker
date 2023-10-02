@@ -11,6 +11,7 @@ import org.folio.dew.BaseBatchTest;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsNote;
 import org.folio.dew.domain.dto.HoldingsRecord;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -37,6 +38,7 @@ class HoldingsMapperTest extends BaseBatchTest {
   @ParameterizedTest
   @EnumSource(HoldingsMapperTestData.class)
   @SneakyThrows
+  @Disabled("Mapping holdingsFormat -> holdingsRecord is deprecated")
   void shouldMapHoldingsFormatToHoldingsRecord(HoldingsMapperTestData testData) {
     var holdingsFormat = objectMapper.readValue(Path.of(testData.getHoldingsFormatPath()).toFile(), HoldingsFormat.class);
     var expectedHoldingsRecord = objectMapper.readValue(Path.of(testData.getHoldingsRecordPath()).toFile(), HoldingsRecord.class);

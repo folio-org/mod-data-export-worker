@@ -39,7 +39,7 @@ public class HoldingsFormat implements Formatable<org.folio.dew.domain.dto.Holdi
   @CsvBindByPosition(position = 4)
   private String formerIds;
 
-  @CsvBindByName(column = "Instance")
+  @CsvBindByName(column = "\"Instance (Title, Publisher, Publication date)\"")
   @CsvBindByPosition(position = 5)
   private String instance;
 

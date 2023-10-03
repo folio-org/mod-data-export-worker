@@ -110,8 +110,6 @@ public class BulkEditParseService {
     user.setPersonal(getUserPersonalInfo(userFormat));
     user.setEnrollmentDate(dateFromString(userFormat.getEnrollmentDate()));
     user.setExpirationDate(dateFromString(userFormat.getExpirationDate()));
-    user.setCreatedDate(dateFromString(userFormat.getCreatedDate()));
-    user.setUpdatedDate(dateFromString(userFormat.getUpdatedDate()));
     user.setTags(getTags(userFormat));
     user.setCustomFields(getCustomFields(userFormat));
   }

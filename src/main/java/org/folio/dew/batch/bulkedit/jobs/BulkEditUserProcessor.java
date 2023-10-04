@@ -79,8 +79,6 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       .preferredContactTypeId(ofNullable(personal.getPreferredContactTypeId()).orElse(EMPTY))
       .enrollmentDate(dateToString(user.getEnrollmentDate()))
       .expirationDate(dateToString(user.getExpirationDate()))
-      .createdDate(dateToString(user.getCreatedDate()))
-      .updatedDate(dateToString(user.getUpdatedDate()))
       .tags(nonNull(user.getTags()) ? String.join(ARRAY_DELIMITER, escaper.escape(user.getTags().getTagList())) : EMPTY)
       .customFields(nonNull(user.getCustomFields()) ? customFieldsToString(user.getCustomFields()) : EMPTY)
       .build().withOriginal(user);

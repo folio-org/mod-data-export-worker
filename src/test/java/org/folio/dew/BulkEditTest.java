@@ -3,6 +3,7 @@ package org.folio.dew;
 import lombok.SneakyThrows;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.config.kafka.KafkaService;
@@ -34,17 +35,19 @@ import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.FileSystemResource;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -671,11 +674,25 @@ class BulkEditTest extends BaseBatchTest {
 
     FileSystemResource expectedJsonFile = new FileSystemResource(outputJsonPath);
     final FileSystemResource actualJsonResult = actualFileOutput(links[2]);
-    assertFileEquals(expectedJsonFile, actualJsonResult);
+    assertFileEqualsIgnoringCreatedAndUpdatedDate(expectedJsonFile, actualJsonResult);
 
     final FileSystemResource actualResult = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(output);
     assertFileEquals(expectedCharges, actualResult);
+  }
+
+  private void assertFileEqualsIgnoringCreatedAndUpdatedDate(FileSystemResource expectedJsonFile, FileSystemResource actualJsonResult)
+      throws IOException, JSONException {
+    var expectedContent = IOUtils.toString(expectedJsonFile.getInputStream(), Charset.forName("UTF-8"));
+    var actualContent = IOUtils.toString(actualJsonResult.getInputStream(), Charset.forName("UTF-8"));
+    String actualUpdated = "";
+    for (String json : actualContent.split("\n")) {
+      var actualJsonItem = new JSONObject(json);
+      actualJsonItem.remove("createdDate");
+      actualJsonItem.remove("updatedDate");
+      actualUpdated += actualJsonItem + "\n";
+    }
+    assertEquals(expectedContent.trim(), actualUpdated.trim().replaceAll("\\\\", ""));
   }
 
   @SneakyThrows

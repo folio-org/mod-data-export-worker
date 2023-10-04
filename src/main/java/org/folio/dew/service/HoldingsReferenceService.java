@@ -1,8 +1,11 @@
 package org.folio.dew.service;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.CallNumberTypeClient;
@@ -50,13 +53,35 @@ public class HoldingsReferenceService {
   }
 
   public String getInstanceTitleById(String instanceId) {
+    if (isEmpty(instanceId)) {
+      return EMPTY;
+    }
     try {
-      return isEmpty(instanceId) ? EMPTY : instanceClient.getById(instanceId).getTitle();
+      var instanceJson = instanceClient.getInstanceJsonById(instanceId);
+      var title = instanceJson.get("title");
+      var publications = instanceJson.get("publication");
+      String publicationString = EMPTY;
+      if (nonNull(publications) && publications.isArray() && !publications.isEmpty()) {
+        publicationString = formatPublication(publications.get(0));
+      }
+      return title.asText() + publicationString;
     } catch (NotFoundException e) {
       var msg = "Instance not found by id=" + instanceId;
       log.error(msg);
       throw new BulkEditException(msg);
     }
+  }
+
+  private String formatPublication(JsonNode publication) {
+    if (nonNull(publication)) {
+      var publisher = publication.get("publisher");
+      var dateOfPublication = publication.get("dateOfPublication");
+      if (isNull(dateOfPublication)) {
+        return isNull(publisher) ? EMPTY : String.format(". %s", publisher.asText());
+      }
+      return String.format(". %s, %s", isNull(publisher) ? EMPTY : publisher.asText(), dateOfPublication.asText());
+    }
+    return EMPTY;
   }
 
   public String getHoldingsIdByItemBarcode(String itemBarcode) {

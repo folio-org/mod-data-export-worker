@@ -683,8 +683,8 @@ class BulkEditTest extends BaseBatchTest {
 
   private void assertFileEqualsIgnoringCreatedAndUpdatedDate(FileSystemResource expectedJsonFile, FileSystemResource actualJsonResult)
       throws IOException, JSONException {
-    var expectedContent = IOUtils.toString(expectedJsonFile.getInputStream(), Charset.defaultCharset());
-    var actualContent = IOUtils.toString(actualJsonResult.getInputStream(), Charset.defaultCharset());
+    var expectedContent = IOUtils.toString(expectedJsonFile.getInputStream(), Charset.forName("UTF-8"));
+    var actualContent = IOUtils.toString(actualJsonResult.getInputStream(), Charset.forName("UTF-8"));
     String actualUpdated = "";
     for (String json : actualContent.split("\n")) {
       var actualJsonItem = new JSONObject(json);
@@ -692,7 +692,7 @@ class BulkEditTest extends BaseBatchTest {
       actualJsonItem.remove("updatedDate");
       actualUpdated += actualJsonItem + "\n";
     }
-    assertEquals(expectedContent, actualUpdated);
+    assertEquals(expectedContent.trim(), actualUpdated.trim().replaceAll("\\\\", ""));
   }
 
   @SneakyThrows

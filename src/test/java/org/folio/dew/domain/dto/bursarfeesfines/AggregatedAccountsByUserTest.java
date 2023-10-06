@@ -9,7 +9,7 @@ import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUser;
 import org.junit.jupiter.api.Test;
 
-public class AggregatedAccountsByUserTest {
+class AggregatedAccountsByUserTest {
 
   @Test
   void testFindTotalAmount() {

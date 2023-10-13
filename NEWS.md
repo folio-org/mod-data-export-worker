@@ -1,3 +1,28 @@
+## 2023-10-13 v3.1.0
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.13...v3.1.0)
+
+### Technical tasks
+* [MODEXPW-441](https://issues.folio.org/browse/MODEXPW-441) mod-data-export-worker: spring upgrade
+* [MODEXPW-428](https://issues.folio.org/browse/MODEXPW-428) Add missing required interfaces to module descriptor
+* [MODEXPW-421](https://issues.folio.org/browse/MODEXPW-421) Remove line break replacements in CSV writer
+* [MODEXPW-412](https://issues.folio.org/browse/MODEXPW-412) Migrate to folio-spring-support v7.0.0
+* [MODEXPW-75](https://issues.folio.org/browse/MODEXPW-75) Logging improvement
+
+### Stories
+* [MODEXPW-437](https://issues.folio.org/browse/MODEXPW-437) Handling system updated fields in csv approach
+* [MODEXPW-433](https://issues.folio.org/browse/MODEXPW-433) Allow Tenant Collection Topics
+* [MODEXPW-431](https://issues.folio.org/browse/MODEXPW-431) Provide additional details for Instance (Title, Publisher, Publication date) for holdings record
+* [MODEXPW-225](https://issues.folio.org/browse/MODEXPW-225) Improve performance of retrieving orders for EDIFACT export
+
+### Bug fixes
+* [MODEXPW-435](https://issues.folio.org/browse/MODEXPW-435) EDIFACT order export default file naming convention includes colon
+* [MODEXPW-429](https://issues.folio.org/browse/MODEXPW-429) EDI orders are place in /files directory regardless of directory defined
+* [MODEXPW-416](https://issues.folio.org/browse/MODEXPW-416) Error parsing custom fields names with semicolon
+* [MODEXPW-415](https://issues.folio.org/browse/MODEXPW-415) Special Character * in Item Barcode for Item Bulk Edit Treated as Wildcard
+* [MODEXPW-405](https://issues.folio.org/browse/MODEXPW-405) Birth date is displayed with time in CSV file
+* [MODEXPW-404](https://issues.folio.org/browse/MODEXPW-404) Bulk edit: jobs start_time and end_time in the database and the Export manager can be irrelevant for jobs IN_PROGRESS
+
 ## 2023-02-24 v3.0.0
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v2.0.7...v3.0.0)

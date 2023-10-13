@@ -50,7 +50,7 @@
         </refresh-presigned-url.yaml.file>
 
         <folio-spring-base.version>7.2.0</folio-spring-base.version>
-        <folio-service-tools.version>3.1.0-SNAPSHOT</folio-service-tools.version>
+        <folio-service-tools.version>3.1.0</folio-service-tools.version>
         <folio-spring-cql.version>7.2.0</folio-spring-cql.version>
         <commons-io.version>2.11.0</commons-io.version>
         <minio.version>8.5.1</minio.version>

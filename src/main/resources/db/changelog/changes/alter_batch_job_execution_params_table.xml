@@ -7,7 +7,7 @@
 
 
   <changeSet id="alter_batch_job_execution_params_table" author="spitfire" runOnChange="true">
-    <sqlFile path="changes/alter_batch_job_execution_params_table.sql" relativeToChangelogFile="true" />
+    <sqlFile path="alter_batch_job_execution_params_table.sql" relativeToChangelogFile="true" />
   </changeSet>
 
 </databaseChangeLog>

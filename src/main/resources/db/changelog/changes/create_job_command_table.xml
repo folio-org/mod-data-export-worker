@@ -7,7 +7,7 @@
 
 
   <changeSet id="create_job_command_table" author="firebird">
-    <sqlFile path="changes/create_job_command_table.sql" relativeToChangelogFile="true" />
+    <sqlFile path="create_job_command_table.sql" relativeToChangelogFile="true" />
   </changeSet>
 
 </databaseChangeLog>

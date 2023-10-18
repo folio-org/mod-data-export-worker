@@ -7,7 +7,7 @@
 
 
   <changeSet id="initial_schema_for_jobs" author="firebird">
-    <sqlFile path="changes/initial_schema.sql" relativeToChangelogFile="true" />
+    <sqlFile path="initial_schema.sql" relativeToChangelogFile="true" />
   </changeSet>
 
 </databaseChangeLog>

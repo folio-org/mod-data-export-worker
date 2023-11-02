@@ -79,7 +79,7 @@ public class BulkEditHoldingsProcessor implements ItemProcessor<ItemIdentifier, 
       case ID, HRID -> holdingClient.getHoldingsByQuery(
         String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId()));
       case INSTANCE_HRID ->
-        holdingClient.getHoldingsByQuery("instanceId==" + holdingsReferenceService.getInstanceIdByHrid(itemIdentifier.getItemId()));
+        holdingClient.getHoldingsByQuery("instanceId==" + holdingsReferenceService.getInstanceIdByHrid(itemIdentifier.getItemId()), Integer.MAX_VALUE);
       case ITEM_BARCODE ->
         holdingClient.getHoldingsByQuery("id==" + holdingsReferenceService.getHoldingsIdByItemBarcode(itemIdentifier.getItemId()), 1);
       default -> throw new BulkEditException(String.format("Identifier type \"%s\" is not supported", identifierType));

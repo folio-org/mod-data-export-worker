@@ -22,6 +22,7 @@ import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.client.DataExportSpringClient;
+import org.folio.dew.domain.dto.ExportConfigCollection;
 import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.PoLineCollection;
 import org.folio.dew.domain.dto.PurchaseOrder;
@@ -113,8 +114,12 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
       " AND (cql.allRecords=1 NOT lastEDIExportDate=\"\")" +
       " AND acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\")" +
       " AND (vendorDetail.vendorAccount==\"\" OR (cql.allRecords=1 NOT vendorDetail.vendorAccount=\"\"))";
+    String configSql = "EDIFACT_ORDERS_EXPORT_d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1*";
+    ExportConfigCollection exportConfigCollection = new ExportConfigCollection();
+    exportConfigCollection.setTotalRecords(1);
     poLines.get(0).getVendorDetail().setVendorAccount(null);
     doReturn(poLines).when(ordersService).getPoLinesByQuery(cqlString);
+    doReturn(exportConfigCollection).when(dataExportSpringClient).getExportConfigs(configSql);
     doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
     doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
 

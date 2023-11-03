@@ -1,0 +1,106 @@
+{
+  "configs": [
+    {
+      "id": "a96b3caa-f534-4f64-83a3-ed705665062e",
+      "type": "EDIFACT_ORDERS_EXPORT",
+      "tenant": "consortium",
+      "exportTypeSpecificParameters": {
+        "vendorEdiOrdersExportConfig": {
+          "exportConfigId": "a96b3caa-f534-4f64-83a3-ed705665062e",
+          "vendorId": "7baa459e-b99d-4f25-b918-9e367e1aa430",
+          "configName": "default",
+          "ediConfig": {
+            "defaultAcquisitionMethods": [
+              "86d12634-b848-4968-adf0-5a95ce41c41b",
+              "df26d81b-9d63-4ff8-bf41-49bf75cfa70e"
+            ],
+            "ediNamingConvention": "{organizationCode}-{integrationName}-{exportJobEndDate}",
+            "libEdiCode": "default",
+            "libEdiType": "31B/US-SAN",
+            "vendorEdiCode": "default",
+            "vendorEdiType": "31B/US-SAN",
+            "sendAccountNumber": false,
+            "supportOrder": true,
+            "supportInvoice": false
+          },
+          "ediFtp": {
+            "ftpConnMode": "Active",
+            "ftpFormat": "FTP",
+            "ftpMode": "ASCII",
+            "ftpPort": 22,
+            "invoiceDirectory": "/files",
+            "orderDirectory": "/files",
+            "password": "Ffx29%pu",
+            "serverAddress": "ftp://ftp.ci.folio.org",
+            "username": "folio"
+          },
+          "ediSchedule": {
+            "enableScheduledExport": true,
+            "scheduleParameters": {
+              "id": "a96b3caa-f534-4f64-83a3-ed705665062e",
+              "scheduleFrequency": 1,
+              "schedulePeriod": "DAY",
+              "scheduleTime": "14:24:00",
+              "timeZone": "UTC"
+            }
+          },
+          "isDefaultConfig": true
+        }
+      },
+      "schedulePeriod": "NONE"
+    },
+    {
+      "id": "411ca1a1-4547-4e4b-a873-0f3852cdf0e5",
+      "type": "EDIFACT_ORDERS_EXPORT",
+      "tenant": "consortium",
+      "exportTypeSpecificParameters": {
+        "vendorEdiOrdersExportConfig": {
+          "exportConfigId": "411ca1a1-4547-4e4b-a873-0f3852cdf0e5",
+          "vendorId": "7baa459e-b99d-4f25-b918-9e367e1aa430",
+          "configName": "neworg1",
+          "ediConfig": {
+            "accountNoList": [
+              "org1",
+              "org2"
+            ],
+            "defaultAcquisitionMethods": [
+              "796596c4-62b5-4b64-a2ce-524c747afaa2"
+            ],
+            "ediNamingConvention": "{organizationCode}-{integrationName}-{exportJobEndDate}",
+            "libEdiCode": "neworg1",
+            "libEdiType": "31B/US-SAN",
+            "vendorEdiCode": "neworg1",
+            "vendorEdiType": "31B/US-SAN",
+            "sendAccountNumber": false,
+            "supportOrder": true,
+            "supportInvoice": false
+          },
+          "ediFtp": {
+            "ftpConnMode": "Active",
+            "ftpFormat": "FTP",
+            "ftpMode": "ASCII",
+            "ftpPort": 22,
+            "invoiceDirectory": "/files",
+            "orderDirectory": "/files",
+            "password": "Ffx29%pu",
+            "serverAddress": "ftp://ftp.ci.folio.org",
+            "username": "folio"
+          },
+          "ediSchedule": {
+            "enableScheduledExport": true,
+            "scheduleParameters": {
+              "id": "411ca1a1-4547-4e4b-a873-0f3852cdf0e5",
+              "scheduleFrequency": 1,
+              "schedulePeriod": "DAY",
+              "scheduleTime": "14:26:00",
+              "timeZone": "UTC"
+            }
+          },
+          "isDefaultConfig": false
+        }
+      },
+      "schedulePeriod": "NONE"
+    }
+  ],
+  "totalRecords": 2
+}

@@ -121,7 +121,7 @@ public class MapToEdifactTasklet implements Tasklet {
       ediConfig.getEdiConfig().getDefaultAcquisitionMethods()); // acquisitionMethod in default list
     String vendorAccountFilter;
     if (Boolean.TRUE.equals(ediConfig.getIsDefaultConfig())) {
-      var configQuery = String.format("%s_%s*", ExportType.EDIFACT_ORDERS_EXPORT, ediConfig.getVendorId());
+      var configQuery = String.format("configName==%s_%s*", ExportType.EDIFACT_ORDERS_EXPORT, ediConfig.getVendorId());
       var configs =  dataExportSpringClient.getExportConfigs(configQuery);
       if (configs.getTotalRecords() > 1) {
         var accountNoSetForExclude = getAccountNoSet(configs);

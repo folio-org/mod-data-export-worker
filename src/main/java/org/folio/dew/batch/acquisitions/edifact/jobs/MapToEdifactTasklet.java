@@ -4,11 +4,16 @@ import static java.util.Objects.requireNonNullElse;
 import static java.util.stream.Collectors.groupingBy;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
@@ -16,9 +21,14 @@ import org.folio.dew.batch.acquisitions.edifact.exceptions.CompositeOrderMapping
 import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.OrderNotFoundException;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
+import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.domain.dto.EdiConfig;
+import org.folio.dew.domain.dto.ExportConfig;
+import org.folio.dew.domain.dto.ExportConfigCollection;
+import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.PurchaseOrder;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
@@ -43,6 +53,7 @@ public class MapToEdifactTasklet implements Tasklet {
   private final ObjectMapper ediObjectMapper;
 
   private final OrdersService ordersService;
+  private final DataExportSpringClient dataExportSpringClient;
   private final PurchaseOrdersToEdifactMapper purchaseOrdersToEdifactMapper;
 
   @Override
@@ -109,10 +120,17 @@ public class MapToEdifactTasklet implements Tasklet {
     var acqMethodsFilter = fieldInListFilter("acquisitionMethod",
       ediConfig.getEdiConfig().getDefaultAcquisitionMethods()); // acquisitionMethod in default list
     String vendorAccountFilter;
-    if (ediConfig.getIsDefaultConfig() != null && ediConfig.getIsDefaultConfig()) {
-      // vendorAccount empty or undefined
-      vendorAccountFilter = " AND (vendorDetail.vendorAccount==\"\" OR " +
-        "(cql.allRecords=1 NOT vendorDetail.vendorAccount=\"\"))";
+    if (Boolean.TRUE.equals(ediConfig.getIsDefaultConfig())) {
+      var configQuery = String.format("%s_%s*", ExportType.EDIFACT_ORDERS_EXPORT, ediConfig.getVendorId());
+      var configs =  dataExportSpringClient.getExportConfigs(configQuery);
+      if (configs.getTotalRecords() > 1) {
+        var accountNoSetForExclude = getAccountNoSet(configs);
+        vendorAccountFilter = fieldNotInListFilter("vendorDetail.vendorAccount", accountNoSetForExclude);
+      } else {
+        // vendorAccount empty or undefined
+        vendorAccountFilter = " AND (vendorDetail.vendorAccount==\"\" OR " +
+          "(cql.allRecords=1 NOT vendorDetail.vendorAccount=\"\"))";
+      }
     } else {
       // vendorAccount in the config account number list
       vendorAccountFilter = fieldInListFilter("vendorDetail.vendorAccount",
@@ -123,6 +141,20 @@ public class MapToEdifactTasklet implements Tasklet {
       automaticExportFilter, ediExportDateFilter, acqMethodsFilter, vendorAccountFilter);
     log.info("GET purchase order line query: {}", resultQuery);
     return resultQuery;
+  }
+
+  private Set<String> getAccountNoSet(ExportConfigCollection configs) {
+    Set<String> accountNoSet = new HashSet<>();
+    for (ExportConfig exportConfig : configs.getConfigs()) {
+      EdiConfig ediConfig = exportConfig.getExportTypeSpecificParameters().getVendorEdiOrdersExportConfig().getEdiConfig();
+      if (Objects.nonNull(ediConfig)) {
+        List<String> currentAccountNoList = ediConfig.getAccountNoList();
+        if (CollectionUtils.isNotEmpty(currentAccountNoList)) {
+          accountNoSet.addAll(currentAccountNoList);
+        }
+      }
+    }
+    return accountNoSet;
   }
 
   private void persistPoLineIds(ChunkContext chunkContext, List<CompositePurchaseOrder> compOrders) throws JsonProcessingException {
@@ -138,6 +170,13 @@ public class MapToEdifactTasklet implements Tasklet {
       list.stream()
       .map(item -> String.format("\"%s\"", item.toString()))
       .collect(Collectors.joining(" OR ", "(", ")")));
+  }
+
+  private static String fieldNotInListFilter(String fieldName, Collection<?> list) {
+    return String.format(" AND cql.allRecords=1 NOT %s==%s", fieldName,
+      list.stream()
+        .map(item -> String.format("\"%s\"", item.toString()))
+        .collect(Collectors.joining(" OR ", "(", ")")));
   }
 
   private List<CompositePurchaseOrder> assembleCompositeOrders(List<PurchaseOrder> orders, List<PoLine> poLines) {

@@ -21,6 +21,7 @@ import org.assertj.core.api.Assertions;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
+import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.PoLineCollection;
 import org.folio.dew.domain.dto.PurchaseOrder;
@@ -41,6 +42,8 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
 
   @MockBean
   private OrdersService ordersService;
+  @MockBean
+  DataExportSpringClient dataExportSpringClient;
   @MockBean
   private PurchaseOrdersToEdifactMapper purchaseOrdersToEdifactMapper;
 

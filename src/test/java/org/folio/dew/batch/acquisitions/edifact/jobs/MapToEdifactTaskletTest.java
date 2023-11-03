@@ -112,11 +112,39 @@ class MapToEdifactTaskletTest extends BaseBatchTest {
       " AND (cql.allRecords=1 NOT purchaseOrder.manualPo==true)" +
       " AND automaticExport==true" +
       " AND (cql.allRecords=1 NOT lastEDIExportDate=\"\")" +
-      " AND acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\")" +
-      " AND (vendorDetail.vendorAccount==\"\" OR (cql.allRecords=1 NOT vendorDetail.vendorAccount=\"\"))";
+      " AND acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\")";
     String configSql = "configName==EDIFACT_ORDERS_EXPORT_d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1*";
     ExportConfigCollection exportConfigCollection = new ExportConfigCollection();
     exportConfigCollection.setTotalRecords(1);
+    poLines.get(0).getVendorDetail().setVendorAccount(null);
+    doReturn(poLines).when(ordersService).getPoLinesByQuery(cqlString);
+    doReturn(exportConfigCollection).when(dataExportSpringClient).getExportConfigs(configSql);
+    doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
+    doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
+
+    JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters(true));
+
+    Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+    verify(ordersService).getPoLinesByQuery(cqlString);
+    verify(ordersService).getPurchaseOrdersByIds(anyList());
+  }
+
+  @Test
+  void edifactExportJobIfDefaultConfigNotOneTestSuccess() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    List<PurchaseOrder> orders = objectMapper.readValue(getMockData(
+      "edifact/acquisitions/purchase_order_collection.json"), PurchaseOrderCollection.class).getPurchaseOrders();
+    List<PoLine> poLines = objectMapper.readValue(getMockData("edifact/acquisitions/po_line_collection.json"),
+      PoLineCollection.class).getPoLines();
+    String cqlString = "purchaseOrder.workflowStatus==Open" +
+      " AND purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1" +
+      " AND (cql.allRecords=1 NOT purchaseOrder.manualPo==true)" +
+      " AND automaticExport==true" +
+      " AND (cql.allRecords=1 NOT lastEDIExportDate=\"\")" +
+      " AND acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\")" +
+      " AND cql.allRecords=1 NOT vendorDetail.vendorAccount==(\"org1\" OR \"org2\")";
+    String configSql = "configName==EDIFACT_ORDERS_EXPORT_d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1*";
+    ExportConfigCollection exportConfigCollection = objectMapper.readValue(getMockData("edifact/dataExportConfigs.json"), ExportConfigCollection.class);
     poLines.get(0).getVendorDetail().setVendorAccount(null);
     doReturn(poLines).when(ordersService).getPoLinesByQuery(cqlString);
     doReturn(exportConfigCollection).when(dataExportSpringClient).getExportConfigs(configSql);

@@ -119,17 +119,13 @@ public class MapToEdifactTasklet implements Tasklet {
     var ediExportDateFilter = " AND (cql.allRecords=1 NOT lastEDIExportDate=\"\")"; // has not been exported yet
     var acqMethodsFilter = fieldInListFilter("acquisitionMethod",
       ediConfig.getEdiConfig().getDefaultAcquisitionMethods()); // acquisitionMethod in default list
-    String vendorAccountFilter;
+    String vendorAccountFilter = "";
     if (Boolean.TRUE.equals(ediConfig.getIsDefaultConfig())) {
       var configQuery = String.format("configName==%s_%s*", ExportType.EDIFACT_ORDERS_EXPORT, ediConfig.getVendorId());
       var configs =  dataExportSpringClient.getExportConfigs(configQuery);
       if (configs.getTotalRecords() > 1) {
         var accountNoSetForExclude = getAccountNoSet(configs);
         vendorAccountFilter = fieldNotInListFilter("vendorDetail.vendorAccount", accountNoSetForExclude);
-      } else {
-        // vendorAccount empty or undefined
-        vendorAccountFilter = " AND (vendorDetail.vendorAccount==\"\" OR " +
-          "(cql.allRecords=1 NOT vendorDetail.vendorAccount=\"\"))";
       }
     } else {
       // vendorAccount in the config account number list

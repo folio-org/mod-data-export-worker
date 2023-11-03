@@ -1,3 +1,11 @@
+## 2023-11-03 v3.1.1
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.1.0...v3.1.1)
+
+### Bug fixes
+* [MODEXPW-446](https://issues.folio.org/browse/MODEXPW-446) Bulk edit holdings by instance hrid: changes are applied to no more than 10 associated holdings
+* [MODEXPW-443](https://issues.folio.org/browse/MODEXPW-443) Unexpected "Optimistic locking" error for Holdings with multiple Items
+
 ## 2023-10-13 v3.1.0
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.13...v3.1.0)

@@ -1,3 +1,13 @@
+## 2023-11-08 v3.1.2
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.1.1...v3.1.2)
+
+### Bug fixes
+* [MODEXPW-445](https://issues.folio.org/browse/MODEXPW-445) EDI export fails when vendorDetails value is null
+
+### Technical tasks
+* [MODEXPW-441](https://issues.folio.org/browse/MODEXPW-441) mod-data-export-worker: spring upgrade
+
 ## 2023-11-03 v3.1.1
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.1.0...v3.1.1)

@@ -20,6 +20,7 @@ public class Constants {
   public static final String ARRAY_DELIMITER = ";";
   public static final String ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER = ARRAY_DELIMITER;
   public static final String ITEM_DELIMITER = "|";
+  public static final String ITEM_DELIMITER_SPACED = " | ";
   public static final String ITEM_DELIMITER_PATTERN = "\\|";
   public static final String KEY_VALUE_DELIMITER = ":";
 
@@ -57,6 +58,7 @@ public class Constants {
   public static final String STATUSES_CONFIG_NAME = "statuses";
   public static final String BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE = "module==%s and configName==%s";
   public static final String FILE_UPLOAD_ERROR = "Cannot upload a file. Reason: %s.";
+  public static final String STAFF_ONLY = "(staff only)";
 
   public static String getWorkingDirectory(String springApplicationName, String dirName) {
     return springApplicationName + PATH_SEPARATOR + dirName + PATH_SEPARATOR;

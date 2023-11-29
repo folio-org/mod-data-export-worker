@@ -149,68 +149,72 @@ public class ItemFormat implements Formatable<org.folio.dew.domain.dto.Item> {
   @CsvBindByPosition(position = 31)
   private String notes;
 
-  @CsvBindByName(column = "Circulation Notes")
+  @CsvBindByName(column = "Check In Notes")
   @CsvBindByPosition(position = 32)
-  private String circulationNotes;
+  private String checkInNotes;
+
+  @CsvBindByName(column = "Check Out Notes")
+  @CsvBindByPosition(position = 33)
+  private String checkOutNotes;
 
   @CsvBindByName(column = "Status")
-  @CsvBindByPosition(position = 33)
+  @CsvBindByPosition(position = 34)
   private String status;
 
   @CsvBindByName(column = "Material Type")
-  @CsvBindByPosition(position = 34)
+  @CsvBindByPosition(position = 35)
   private String materialType;
 
   @CsvBindByName(column = "Is Bound With")
-  @CsvBindByPosition(position = 35)
+  @CsvBindByPosition(position = 36)
   private String isBoundWith;
 
   @CsvBindByName(column = "Bound With Titles")
-  @CsvBindByPosition(position = 36)
+  @CsvBindByPosition(position = 37)
   private String boundWithTitles;
 
   @CsvBindByName(column = "Permanent Loan Type")
-  @CsvBindByPosition(position = 37)
+  @CsvBindByPosition(position = 38)
   private String permanentLoanType;
 
   @CsvBindByName(column = "Temporary Loan Type")
-  @CsvBindByPosition(position = 38)
+  @CsvBindByPosition(position = 39)
   private String temporaryLoanType;
 
   @CsvBindByName(column = "Permanent Location")
-  @CsvBindByPosition(position = 39)
+  @CsvBindByPosition(position = 40)
   private String permanentLocation;
 
   @CsvBindByName(column = "Temporary Location")
-  @CsvBindByPosition(position = 40)
+  @CsvBindByPosition(position = 41)
   private String temporaryLocation;
 
   @CsvBindByName(column = "Effective Location")
-  @CsvBindByPosition(position = 41)
+  @CsvBindByPosition(position = 42)
   private String effectiveLocation;
 
   @CsvBindByName(column = "Electronic Access")
-  @CsvBindByPosition(position = 42)
+  @CsvBindByPosition(position = 43)
   private String electronicAccess;
 
   @CsvBindByName(column = "In Transit Destination Service Point")
-  @CsvBindByPosition(position = 43)
+  @CsvBindByPosition(position = 44)
   private String inTransitDestinationServicePoint;
 
   @CsvBindByName(column = "Statistical Codes")
-  @CsvBindByPosition(position = 44)
+  @CsvBindByPosition(position = 45)
   private String statisticalCodes;
 
   @CsvBindByName(column = "Purchase Order LineIdentifier")
-  @CsvBindByPosition(position = 45)
+  @CsvBindByPosition(position = 46)
   private String purchaseOrderLineIdentifier;
 
   @CsvBindByName(column = "Tags")
-  @CsvBindByPosition(position = 46)
+  @CsvBindByPosition(position = 47)
   private String tags;
 
   @CsvBindByName(column = "Last CheckIn")
-  @CsvBindByPosition(position = 47)
+  @CsvBindByPosition(position = 48)
   private String lastCheckIn;
 
   public static String[] getItemFieldsArray() {

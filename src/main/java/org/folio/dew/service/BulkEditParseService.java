@@ -282,7 +282,7 @@ public class BulkEditParseService {
       .itemDamagedStatusDate(restoreStringValue(itemFormat.getItemDamagedStatusDate()))
       .administrativeNotes(restoreListValue(itemFormat.getAdministrativeNotes()))
       .notes(restoreItemNotes(itemFormat.getNotes()))
-      .circulationNotes(restoreCirculationNotes(itemFormat.getCirculationNotes()))
+      .circulationNotes(restoreCirculationNotes(itemFormat.getCheckInNotes() + ITEM_DELIMITER_PATTERN + itemFormat.getCheckOutNotes()))
       .status(restoreStatus(itemFormat.getStatus()))
       .materialType(restoreMaterialType(itemFormat.getMaterialType()))
       .permanentLoanType(restoreLoanType(itemFormat.getPermanentLoanType()))

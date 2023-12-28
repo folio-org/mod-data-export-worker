@@ -5,9 +5,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.folio.dew.domain.dto.EntityType.HOLDINGS_RECORD;
-import static org.folio.dew.domain.dto.EntityType.ITEM;
-import static org.folio.dew.domain.dto.EntityType.USER;
+import static org.folio.dew.domain.dto.EntityType.*;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
@@ -60,17 +58,15 @@ import org.folio.dew.batch.ExportJobManagerSync;
 import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
+import org.folio.dew.domain.dto.*;
 import org.folio.dew.domain.dto.Errors;
 import org.folio.dew.domain.dto.HoldingsContentUpdateCollection;
-import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.ItemCollection;
 import org.folio.dew.domain.dto.ItemContentUpdateCollection;
-import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.domain.dto.UserCollection;
 import org.folio.dew.domain.dto.UserContentUpdateCollection;
-import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.error.NonSupportedEntityException;
 import org.folio.dew.error.NotFoundException;
@@ -569,6 +565,8 @@ public class BulkEditController implements JobIdApi {
       return Arrays.asList(ItemFormat.getItemFieldsArray()).indexOf(resolveIdentifier(jobCommand.getIdentifierType().getValue()));
     } else if (HOLDINGS_RECORD == jobCommand.getEntityType()) {
       return  Arrays.asList(HoldingsFormat.getHoldingsFieldsArray()).indexOf(IdentifierType.ID.getValue().toLowerCase());
+    }else if (INSTANCE == jobCommand.getEntityType()) {
+      return  Arrays.asList(InstanceFormat.getInstanceFieldsArray()).indexOf(IdentifierType.ID.getValue().toLowerCase());
     } else {
       throw new NonSupportedEntityException(format("Non-supported entity type: %s", jobCommand.getEntityType()));
     }

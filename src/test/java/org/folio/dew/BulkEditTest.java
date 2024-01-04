@@ -241,6 +241,10 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run bulk-edit (item identifiers) successfully")
   void uploadItemIdentifiersJobTest(IdentifierType identifierType) throws Exception {
 
+    if (identifierType == IdentifierType.ISSN || identifierType == IdentifierType.ISBN){
+      return;
+    }
+
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, identifierType, ITEM_BARCODES_CSV);

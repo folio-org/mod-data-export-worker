@@ -13,7 +13,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
-import org.assertj.core.api.Assertions;
+import java.time.LocalDate;
+
+import org.apache.commons.io.FileUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.helpers.bursarfeesfines.BursarFeesFinesTestUtils;
 import org.junit.jupiter.api.DisplayName;
@@ -344,13 +346,20 @@ class UseMostOuputTokensTest extends BaseBatchTest {
     final FileSystemResource actualChargeFeesFinesOutput = actualFileOutput(
       split[0]
     );
-    FileSystemResource expectedCharges = new FileSystemResource(
-      EXPECTED_CHARGE_OUTPUT
-    );
 
-    Assertions
-      .assertThat(expectedCharges.getFile())
-      .usingCharset("UTF-8")
-      .hasSameTextualContentAs(actualChargeFeesFinesOutput.getFile());
+    String expected = FileUtils
+      .readFileToString(
+        new FileSystemResource(EXPECTED_CHARGE_OUTPUT).getFile(),
+        "UTF-8"
+      )
+      .replaceAll("\\{CURRENT_YEAR_HERE\\}", LocalDate.now().getYear() + "");
+
+    assertThat(
+      FileUtils.readFileToString(
+        actualChargeFeesFinesOutput.getFile(),
+        "UTF-8"
+      ),
+      is(expected)
+    );
   }
 }

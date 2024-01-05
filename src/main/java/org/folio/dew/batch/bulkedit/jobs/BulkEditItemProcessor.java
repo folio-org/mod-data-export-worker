@@ -5,10 +5,11 @@ import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.booleanToStringNullSafe;
-import static org.folio.dew.utils.BulkEditProcessorHelper.dateToString;
 import static org.folio.dew.utils.BulkEditProcessorHelper.ofEmptyString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
+import static org.folio.dew.utils.Constants.ITEM_DELIMITER_SPACED;
+import static org.folio.dew.utils.Constants.STAFF_ONLY;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -20,7 +21,6 @@ import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemFormat;
-import org.folio.dew.domain.dto.Source;
 import org.folio.dew.domain.dto.Title;
 import org.folio.dew.service.ElectronicAccessService;
 import org.folio.dew.service.ItemReferenceService;
@@ -88,7 +88,8 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .itemDamagedStatusDate(item.getItemDamagedStatusDate())
       .administrativeNotes(isEmpty(item.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getAdministrativeNotes())))
       .notes(fetchNotes(item, errorServiceArgs))
-      .circulationNotes(fetchCirculationNotes(item))
+      .checkInNotes(fetchCirculationNotes(item, CirculationNote.NoteTypeEnum.IN))
+      .checkOutNotes(fetchCirculationNotes(item, CirculationNote.NoteTypeEnum.OUT))
       .status(statusToString(item))
       .materialType(isEmpty(item.getMaterialType()) ? EMPTY : item.getMaterialType().getName())
       .isBoundWith(booleanToStringNullSafe(item.getIsBoundWith()))
@@ -150,26 +151,18 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
         .collect(Collectors.joining(ITEM_DELIMITER));
   }
 
-  private String fetchCirculationNotes(Item item) {
+  private String fetchCirculationNotes(Item item, CirculationNote.NoteTypeEnum noteType) {
     return isEmpty(item.getCirculationNotes()) ?
       EMPTY :
       item.getCirculationNotes().stream()
         .filter(Objects::nonNull)
+        .filter(circulationNote -> noteType.equals(circulationNote.getNoteType()))
         .map(this::circulationNotesToString)
-        .collect(Collectors.joining(ITEM_DELIMITER));
+        .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
   }
 
   private String circulationNotesToString(CirculationNote note) {
-    var source = isEmpty(note.getSource()) ? new Source() : note.getSource();
-    return String.join(ARRAY_DELIMITER,
-      note.getId(),
-      isEmpty(note.getNoteType()) ? EMPTY : note.getNoteType().getValue(),
-      escaper.escape(note.getNote()),
-      booleanToStringNullSafe(note.getStaffOnly()),
-      isEmpty(source.getId()) ? EMPTY : note.getSource().getId(),
-      isEmpty(source.getPersonal()) ? EMPTY : escaper.escape(source.getPersonal().getLastName()),
-      isEmpty(source.getPersonal()) ? EMPTY : escaper.escape(source.getPersonal().getFirstName()),
-      dateToString(note.getDate()));
+    return escaper.escape(note.getNote() + (Boolean.TRUE.equals(note.getStaffOnly()) ? SPACE + STAFF_ONLY : EMPTY));
   }
 
   private String fetchBoundWithTitles(Item item) {

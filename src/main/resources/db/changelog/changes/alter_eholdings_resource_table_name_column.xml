@@ -7,7 +7,7 @@
 
 
   <changeSet id="alter_eholdings_resource_table_name_column" author="spitfire" runOnChange="true">
-    <sqlFile path="changes/alter_eholdings_resource_table_name_column.sql" relativeToChangelogFile="true" />
+    <sqlFile path="alter_eholdings_resource_table_name_column.sql" relativeToChangelogFile="true" />
   </changeSet>
 
 </databaseChangeLog>

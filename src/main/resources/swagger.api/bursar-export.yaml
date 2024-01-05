@@ -40,3 +40,7 @@ components:
       $ref: '../../../../folio-export-common/schemas/acquisitions/vendorEdiOrdersExportConfig.json#/VendorEdiOrdersExportConfig'
     eHoldingsExportConfig:
       $ref: '../../../../folio-export-common/schemas/eholdings/eHoldingsExportConfig.json#/EHoldingsExportConfig'
+    exportConfig:
+      $ref: '../../../../folio-export-common/schemas/exportConfig.json#/ExportConfig'
+    exportConfigCollection:
+      $ref: '../../../../folio-export-common/schemas/exportConfigCollection.json#/ExportConfigCollection'

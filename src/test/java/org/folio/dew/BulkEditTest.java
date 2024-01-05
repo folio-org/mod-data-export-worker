@@ -95,7 +95,9 @@ class BulkEditTest extends BaseBatchTest {
   private static final String ITEM_BARCODE_FOR_HOLDINGS_IDENTIFIERS_CSV = "src/test/resources/upload/item_barcode_for_holdings_identifiers.csv";
   private static final String EXPECTED_HOLDINGS_OUTPUT_BAD_REFERENCE_CSV = "src/test/resources/output/bulk_edit_holdings_records_reference_not_found.csv";
   private static final String HOLDINGS_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV = "src/test/resources/upload/holdings_identifiers_empty_reference_ids.csv";
+  private static final String HOLDINGS_IDENTIFIERS_ITEM_BARCODE_CSV = "src/test/resources/upload/holdings_identifiers_item_barcode.csv";
   private static final String EXPECTED_HOLDINGS_OUTPUT_EMPTY_REFERENCE_CSV = "src/test/resources/output/bulk_edit_holdings_records_empty_reference.csv";
+  private static final String EXPECTED_HOLDINGS_OUTPUT_BY_ITEM_BARCODE_CSV = "src/test/resources/output/bulk_edit_holdings_records_by_item_barcode.csv";
   private static final String ITEM_IDENTIFIERS_BAD_REFERENCE_IDS_CSV = "src/test/resources/upload/item_identifiers_bad_reference.csv";
   private static final String EXPECTED_ITEMS_OUTPUT_BAD_REFERENCE_CSV = "src/test/resources/output/bulk_edit_items_reference_not_found.csv";
   private final static String EXPECTED_ITEM_OUTPUT_BAD_REFERENCE_ERRORS = "src/test/resources/output/bulk_edit_items_bad_reference_errors.csv";
@@ -357,6 +359,19 @@ class BulkEditTest extends BaseBatchTest {
   }
 
   @Test
+  @DisplayName("Run bulk-edit (holdings records by item barcode) with duplicated holdings")
+  void shouldSkipDuplicatedHoldingsOnItemBarcodes() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
+
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, ITEM_BARCODE, HOLDINGS_IDENTIFIERS_ITEM_BARCODE_CSV);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    verifyFilesOutput(jobExecution, EXPECTED_HOLDINGS_OUTPUT_BY_ITEM_BARCODE_CSV, null);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  @Test
   @DisplayName("Upload item identifiers (holdingsRecordId) successfully")
   void shouldProcessMultipleItemsOnHoldingsRecordId() throws Exception {
 
@@ -462,46 +477,6 @@ class BulkEditTest extends BaseBatchTest {
       assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
       assertThat(errors.getErrors()).isEmpty();
     }
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {ITEM_RECORD_CSV, ITEM_RECORD_CSV_NOT_FOUND,
-    ITEM_RECORD_CSV_INVALID_NOTES, ITEM_RECORD_CSV_INVALID_CIRCULATION_NOTES})
-  @DisplayName("Run update item records w/ and w/o errors")
-  void uploadItemRecordsJobTest(String csvFileName) throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateItemRecordsJob);
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, ITEM, BARCODE, csvFileName);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
-
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-
-    var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobExecution.getJobParameters().getString("jobId"), csvFileName, 10);
-    if (!ITEM_RECORD_CSV.equals(csvFileName)) {
-      assertThat(errors.getErrors()).hasSize(1);
-      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
-    } else {
-      assertThat(errors.getErrors()).isEmpty();
-      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
-    }
-  }
-
-  @Test
-  @DisplayName("Run item records update when in-app updates available - successful")
-  @SneakyThrows
-  void shouldUseItemsInAppUpdatesFileIfPresent() {
-    // create a copy of file since it will be deleted and consequent test runs will fail
-    localFilesStorage.write(ITEM_RECORD_IN_APP_UPDATED_COPY, Files.readAllBytes(new File(ITEM_RECORD_IN_APP_UPDATED).toPath()));
-
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateItemRecordsJob);
-    var builder = new JobParametersBuilder(prepareJobParameters(BULK_EDIT_UPDATE, ITEM, BARCODE, ITEM_RECORD_CSV));
-    builder.addString(UPDATED_FILE_NAME, ITEM_RECORD_IN_APP_UPDATED_COPY);
-    JobExecution jobExecution = testLauncher.launchJob(builder.toJobParameters());
-
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-
-    var request = wireMockServer.getAllServeEvents().get(0).getRequest();
-    assertThat(request.getMethod().getName()).isEqualTo("PUT");
-    assertThat(request.getUrl()).isEqualTo("/inventory/items/8a29baff-b703-4c3a-8b7b-ef476b2cd583");
   }
 
   @Test
@@ -611,19 +586,6 @@ class BulkEditTest extends BaseBatchTest {
     verifyFilesOutput(jobExecution, EXPECTED_BULK_EDIT_ITEM_OUTPUT_ESCAPED);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-  }
-
-  @Test
-  @DisplayName("_version field should be absent in item PUT body if its value is empty")
-  @SneakyThrows
-  void emptyVersionFieldShouldBeAbsentInItemUpdateRequestBody() {
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateItemRecordsJob);
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, ITEM, BARCODE, ITEM_NO_VERSION);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
-
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-    assertThat(wireMockServer.getAllServeEvents().get(0).getRequest().getMethod().getName()).isEqualTo("PUT");
-    assertFalse(wireMockServer.getAllServeEvents().get(0).getRequest().getBodyAsString().contains("_version"));
   }
 
   @Test

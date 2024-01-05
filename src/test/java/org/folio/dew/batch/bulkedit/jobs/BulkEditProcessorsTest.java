@@ -32,7 +32,7 @@ class BulkEditProcessorsTest extends BaseBatchTest {
       var itemFormat = bulkEditItemProcessor.process(item);
       assertEquals("name1;name2", itemFormat.getContributorNames());
       assertEquals("0e40884c-3523-4c6d-8187-d578e3d2794e;note;|0e40884c-3523-4c6d-8187-d578e3d2794e;note;false", itemFormat.getNotes());
-      assertEquals("id_1;Check in;check in;false;;last;first;|id_2;;check in;;;;;|id_3;Check in;check in;false;source_id;;;", itemFormat.getCirculationNotes());
+      assertEquals("check in (staff only) | check in", itemFormat.getCheckInNotes());
       assertEquals("books;be53b4c9-6eb8-4bdf-a785-904cccd04146", itemFormat.getStatisticalCodes());
       assertEquals("hrid;hrid;title|;;", itemFormat.getBoundWithTitles());
       return null;

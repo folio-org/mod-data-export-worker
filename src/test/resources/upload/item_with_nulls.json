@@ -26,7 +26,7 @@
       "id": "id_1",
       "noteType": "Check in",
       "note": "check in",
-      "staffOnly": false,
+      "staffOnly": true,
       "source": {
         "personal": {
           "lastName": "last",

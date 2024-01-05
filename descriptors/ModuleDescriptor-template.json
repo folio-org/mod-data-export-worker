@@ -317,9 +317,13 @@
           ]
         },
         {
-          "methods": [ "POST" ],
+          "methods": [
+            "POST"
+          ],
           "pathPattern": "/bulk-edit/{jobId}/roll-back",
-          "permissionsRequired": [ "bulk-edit.roll-back.item.post" ],
+          "permissionsRequired": [
+            "bulk-edit.roll-back.item.post"
+          ],
           "modulePermissions": [
             "users.collection.get",
             "users.item.get",

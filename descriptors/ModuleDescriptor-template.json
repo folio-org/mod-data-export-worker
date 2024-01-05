@@ -501,14 +501,14 @@
       "description" : "Download csv with preview of updated holdings records"
     },
     {
-      "permissionName" : "bulk-edit.start.item.post",
-      "displayName" : "start update items",
-      "description" : "Start update items"
+      "permissionName": "bulk-edit.start.item.post",
+      "displayName": "start update items",
+      "description": "Start update items"
     },
     {
-      "permissionName" : "bulk-edit.roll-back.item.post",
-      "displayName" : "roll back list of uploaded items",
-      "description" : "Roll back list of uploaded items"
+      "permissionName": "bulk-edit.roll-back.item.post",
+      "displayName": "roll back list of uploaded items",
+      "description": "Roll back list of uploaded items"
     },
     {
       "permissionName" : "bulk-edit.preview-users.collection.get",
@@ -536,10 +536,10 @@
       "description" : "Get refreshed presigned url for export file"
     },
     {
-      "permissionName": "bulk-edit.all",
-      "displayName": "bulk-edit all",
-      "description": "All permissions for bulk-edit module",
-      "subPermissions": [
+      "permissionName" : "bulk-edit.all",
+      "displayName" : "bulk-edit all",
+      "description" : "All permissions for bulk-edit module",
+      "subPermissions" : [
         "bulk-edit.item.post",
         "bulk-edit.items-content-update.collection.post",
         "bulk-edit.users-content-update.collection.post",
@@ -556,10 +556,12 @@
       ]
     },
     {
-      "permissionName": "refresh-presigned-url.all",
-      "displayName": "refresh-presigned-url all",
-      "description": "All permissions for refresh presigned url",
-      "subPermissions": ["refresh-presigned-url.get"]
+      "permissionName" : "refresh-presigned-url.all",
+      "displayName" : "refresh-presigned-url all",
+      "description" : "All permissions for refresh presigned url",
+      "subPermissions" : [
+        "refresh-presigned-url.get"
+      ]
     }
   ],
   "launchDescriptor": {

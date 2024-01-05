@@ -13,7 +13,6 @@ import org.folio.dew.domain.dto.ItemCollection;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.utils.ExceptionHelper;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,18 +31,19 @@ public class ItemFetcher implements ItemProcessor<ItemIdentifier, ItemCollection
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
 
-  private final Set<ItemIdentifier> identifiersToCheckDuplication = new HashSet<>();
+  private Set<ItemIdentifier> identifiersToCheckDuplication = new HashSet<>();
 
   @Override
-  public ItemCollection process(@NotNull ItemIdentifier itemIdentifier) throws BulkEditException {
+  public ItemCollection process(ItemIdentifier itemIdentifier) throws BulkEditException {
     if (identifiersToCheckDuplication.contains(itemIdentifier)) {
       throw new BulkEditException("Duplicate entry");
     }
     identifiersToCheckDuplication.add(itemIdentifier);
     var limit = HOLDINGS_RECORD_ID == IdentifierType.fromValue(identifierType) ? Integer.MAX_VALUE : 1;
     var idType = resolveIdentifier(identifierType);
+    var identifier = "barcode".equals(idType) ? Utils.encode(itemIdentifier.getItemId()) : itemIdentifier.getItemId();
     try {
-      return inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), idType, itemIdentifier.getItemId()), limit);
+      return inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), idType, identifier), limit);
     } catch (DecodeException e) {
       throw new BulkEditException(ExceptionHelper.fetchMessage(e));
     }

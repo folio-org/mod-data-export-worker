@@ -54,9 +54,7 @@ import java.util.UUID;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.folio.dew.domain.dto.EntityType.HOLDINGS_RECORD;
-import static org.folio.dew.domain.dto.EntityType.ITEM;
-import static org.folio.dew.domain.dto.EntityType.USER;
+import static org.folio.dew.domain.dto.EntityType.*;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
@@ -111,6 +109,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String BARCODES_CSV = "src/test/resources/upload/barcodes.csv";
   private static final String BARCODES_FOR_PROGRESS_CSV = "src/test/resources/upload/barcodes_for_progress.csv";
   private static final String ITEM_BARCODES_CSV = "src/test/resources/upload/item_barcodes.csv";
+  private static final String INSTANCE_HRIDS_CSV = "src/test/resources/upload/instance_hrids.csv";
   private static final String ITEM_BARCODES_DOUBLE_QOUTES_CSV = "src/test/resources/upload/item_barcodes_double_qoutes.csv";
   private static final String ITEM_HOLDINGS_CSV = "src/test/resources/upload/item_holdings.csv";
   private static final String USER_RECORD_CSV = "src/test/resources/upload/bulk_edit_user_record.csv";
@@ -135,6 +134,8 @@ class BulkEditTest extends BaseBatchTest {
   private static final String EXPECTED_BULK_EDIT_USER_JSON_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_json_output.json";
   private static final String EXPECTED_BULK_EDIT_ITEM_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_output.csv";
   private static final String EXPECTED_BULK_EDIT_ITEM_JSON_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_json_output.json";
+  private static final String EXPECTED_BULK_EDIT_INSTANCE_OUTPUT = "src/test/resources/output/bulk_edit_instance_identifiers_output.csv";
+  private static final String EXPECTED_BULK_EDIT_INSTANCE_JSON_OUTPUT = "src/test/resources/output/bulk_edit_instance_identifiers_json_output.json";
   private static final String EXPECTED_BULK_EDIT_ITEM_QUERY_JSON_OUTPUT = "src/test/resources/output/bulk_edit_item_query_json_output.json";
 
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT = "src/test/resources/output/bulk_edit_holdings_records_output.csv";
@@ -166,6 +167,8 @@ class BulkEditTest extends BaseBatchTest {
 
   @Autowired
   private Job bulkEditProcessHoldingsIdentifiersJob;
+  @Autowired
+  private Job bulkEditProcessInstanceIdentifiersJob;
   @Autowired
   private Job bulkEditUserCqlJob;
   @Autowired
@@ -247,6 +250,21 @@ class BulkEditTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_ITEM_OUTPUT, EXPECTED_BULK_EDIT_ITEM_JSON_OUTPUT);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = IdentifierType.class, names = {"ID","HRID"}, mode = EnumSource.Mode.INCLUDE)
+  @DisplayName("Run bulk-edit (instance identifiers) successfully")
+  void uploadInstanceIdentifiersJobTest(IdentifierType identifierType) throws Exception {
+
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessInstanceIdentifiersJob);
+
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, INSTANCE, identifierType, INSTANCE_HRIDS_CSV);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_INSTANCE_OUTPUT, EXPECTED_BULK_EDIT_INSTANCE_JSON_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }

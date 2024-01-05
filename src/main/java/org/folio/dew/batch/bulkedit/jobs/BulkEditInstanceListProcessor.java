@@ -10,7 +10,6 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 
@@ -29,6 +28,6 @@ public class BulkEditInstanceListProcessor implements ItemProcessor<InstanceColl
     }
     return instances.getInstances().stream()
       .map(bulkEditInstanceProcessor::process)
-      .collect(Collectors.toList());
+      .toList();
   }
 }

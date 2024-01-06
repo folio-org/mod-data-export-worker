@@ -25,6 +25,32 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/instances?query=hrid%3D%3Dinst000000000003&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"instances\": [ ],\"totalRecords\": 0}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/instances?query=hrid%3D%3Dinst000000000004&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"instances\": [ ],\"totalRecords\": 0}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

@@ -55,7 +55,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/instances?query=hrid%3D%3Dinst00000000022&limit=1"
+        "url": "/inventory/instances?query=hrid%3D%3Dinst000000000022&limit=1"
       },
       "response": {
         "status": 200,

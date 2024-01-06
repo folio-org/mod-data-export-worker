@@ -454,6 +454,7 @@ public class BursarFeesFinesTestUtils {
     List<BursarExportHeaderFooter> footerTokens = new ArrayList<>();
     footerTokens.add(headerAggregateAmount);
     footerTokens.add(headerAggregateNumRows);
+    footerTokens.add(newLineToken);
 
     job.setFooter(footerTokens);
 

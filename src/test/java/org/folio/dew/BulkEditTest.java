@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
@@ -651,11 +652,11 @@ class BulkEditTest extends BaseBatchTest {
       String[] links = fileInStorage.split(";");
       fileInStorage = links[0];
       String errorInStorage = links[1];
-      /*if (StringUtils.isNotEmpty(errorInStorage)){
+      if (StringUtils.isNotEmpty(errorInStorage)){
         final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
         final FileSystemResource expectedResultWithErrors = getExpectedResourceByJobName(jobExecution.getJobInstance().getJobName());
         assertFileEquals(expectedResultWithErrors, actualResultWithErrors);
-      }*/
+      }
     }
     final FileSystemResource actualResult = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(output);

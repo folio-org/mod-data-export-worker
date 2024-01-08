@@ -1,0 +1,17 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/instance-types/30fffe0e-e985-4144-b2e2-1e8179bdb41f"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"id\": \"30fffe0e-e985-4144-b2e2-1e8179bdb41f\",\n    \"name\": \"unspecified\",\n    \"code\": \"zzz\",\n    \"source\": \"rdacontent\",\n    \"metadata\": {\n        \"createdDate\": \"2024-01-02T13:46:55.725+00:00\",\n        \"updatedDate\": \"2024-01-02T13:46:55.725+00:00\"\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import lombok.SneakyThrows;
 import org.folio.dew.BaseBatchTest;
+import org.folio.dew.domain.dto.Instance;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.User;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,9 @@ class BulkEditProcessorsTest extends BaseBatchTest {
 
   @Autowired
   private BulkEditUserProcessor bulkEditUserProcessor;
+
+  @Autowired
+  private BulkEditInstanceProcessor bulkEditInstanceProcessor;
 
   @Test
   @SneakyThrows
@@ -50,6 +54,27 @@ class BulkEditProcessorsTest extends BaseBatchTest {
       assertEquals(EMPTY, userFormat.getAddresses());
       assertEquals("TestMultiSelect:", userFormat.getCustomFields());
       System.out.println(userFormat);
+      return null;
+    });
+  }
+  @Test
+  @SneakyThrows
+  void processInstance() {
+    var instance = objectMapper.readValue(Path.of("src/test/resources/upload/instance.json").toFile(), Instance.class);
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters());
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var instanceFormat = bulkEditInstanceProcessor.process(instance);
+
+      assert instanceFormat != null;
+      assertEquals(EMPTY, instanceFormat.getNatureOfContentTermIds());
+      assertEquals(EMPTY, instanceFormat.getInstanceFormatIds());
+      assertEquals(EMPTY, instanceFormat.getAdministrativeNotes());
+
+      assertEquals("in00000000004", instanceFormat.getHrid());
+      assertEquals("Batch Loaded", instanceFormat.getStatusId());
+      assertEquals("single unit", instanceFormat.getModeOfIssuanceId());
+      assertEquals("unspecified", instanceFormat.getInstanceTypeId());
+      System.out.println(instanceFormat);
       return null;
     });
   }

@@ -131,7 +131,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String USER_RECORD_ROLLBACK_CSV = "test-directory/bulk_edit_rollback.csv";
   private static final String BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/barcodesSomeNotFound.csv";
   private static final String ITEM_BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/item_barcodes_some_not_found.csv";
-  private static final String INSTANCE_BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/instance_barcodes_some_not_found.csv";
+  private static final String INSTANCE_HRIDS_SOME_NOT_FOUND = "src/test/resources/upload/instance_hrids_some_not_found.csv";
   private static final String USERS_QUERY_FILE_PATH = "src/test/resources/upload/users_by_group.cql";
   private static final String ITEMS_QUERY_FILE_PATH = "src/test/resources/upload/items_by_barcode.cql";
   private static final String QUERY_NO_GROUP_FILE_PATH = "src/test/resources/upload/active_no_group.cql";
@@ -442,7 +442,7 @@ class BulkEditTest extends BaseBatchTest {
   void bulkEditInstanceJobTestWithErrors() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessInstanceIdentifiersJob);
 
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, INSTANCE, HRID, INSTANCE_BARCODES_SOME_NOT_FOUND);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, INSTANCE, HRID, INSTANCE_HRIDS_SOME_NOT_FOUND);
 
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 

@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 
 @Component
@@ -95,8 +96,8 @@ public class BulkEditInstanceProcessor implements ItemProcessor<Instance, Instan
   private String fetchContributorNames(List<InstanceContributorsInner> contributors) {
     return isEmpty(contributors) ? EMPTY :
       contributors.stream()
-        .map(c -> String.join(ITEM_DELIMITER, escaper.escape(c.getName())))
-        .collect(Collectors.joining(ITEM_DELIMITER));
+        .map(c -> String.join(ARRAY_DELIMITER, escaper.escape(c.getName())))
+        .collect(Collectors.joining(ARRAY_DELIMITER));
   }
 
   private String fetchSeries(Set<InstanceSeriesInner> series) {

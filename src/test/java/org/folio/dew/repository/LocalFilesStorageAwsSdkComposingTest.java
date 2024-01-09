@@ -22,8 +22,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 
 @Log4j2
-@SpringBootTest(classes = { LocalFilesStorageProperties.class, LocalFilesStorage.class },
-  properties = { "application.minio-local.compose-with-aws-sdk = true" })
+@SpringBootTest(classes = {LocalFilesStorageProperties.class, LocalFilesStorage.class},
+  properties = {"application.minio-local.compose-with-aws-sdk = true"})
 @EnableConfigurationProperties
 class LocalFilesStorageAwsSdkComposingTest {
 

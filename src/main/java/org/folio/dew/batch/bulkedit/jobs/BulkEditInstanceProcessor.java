@@ -9,6 +9,7 @@ import org.folio.dew.domain.dto.*;
 import org.folio.dew.domain.dto.FormatOfInstance;
 import org.folio.dew.domain.dto.Instance;
 import org.folio.dew.domain.dto.InstanceContributorsInner;
+import org.folio.dew.domain.dto.InstanceIdentifiersInner;
 import org.folio.dew.domain.dto.InstanceSeriesInner;
 import org.folio.dew.service.InstanceReferenceService;
 import org.folio.dew.service.SpecialCharacterEscaper;
@@ -24,8 +25,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.folio.dew.utils.Constants.ARRAY_DELIMITER_SPACED;
-import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
+import static org.folio.dew.domain.dto.eholdings.Identifier.TypeEnum.ISBN;
+import static org.folio.dew.domain.dto.eholdings.Identifier.TypeEnum.ISSN;
+import static org.folio.dew.utils.Constants.*;
 
 @Component
 @StepScope
@@ -81,30 +83,32 @@ public class BulkEditInstanceProcessor implements ItemProcessor<Instance, Instan
     return isEmpty(instanceFormats) ? EMPTY :
       instanceFormats.stream()
         .map(iFormat -> instanceReferenceService.getFormatOfInstanceNameById(iFormat.getId(), errorServiceArgs))
-        .map(iFormatName -> String.join(ITEM_DELIMITER, escaper.escape(iFormatName)))
-        .collect(Collectors.joining(ITEM_DELIMITER));
+        .map(escaper::escape)
+        .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
   }
 
   private String fetchNatureOfContentTerms(Set<String> natureOfContentTermIds, ErrorServiceArgs errorServiceArgs) {
     return isEmpty(natureOfContentTermIds) ? EMPTY :
       natureOfContentTermIds.stream()
         .map(natId -> instanceReferenceService.getNatureOfContentTermNameById(natId, errorServiceArgs))
-        .map(natName -> String.join(ITEM_DELIMITER, escaper.escape(natName)))
-        .collect(Collectors.joining(ITEM_DELIMITER));
+        .map(escaper::escape)
+        .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
   }
 
   private String fetchContributorNames(List<InstanceContributorsInner> contributors) {
     return isEmpty(contributors) ? EMPTY :
       contributors.stream()
-        .map(c -> String.join(ARRAY_DELIMITER_SPACED, escaper.escape(c.getName())))
+        .map(InstanceContributorsInner::getName)
+        .map(escaper::escape)
         .collect(Collectors.joining(ARRAY_DELIMITER_SPACED));
   }
 
   private String fetchSeries(Set<InstanceSeriesInner> series) {
     return isEmpty(series) ? EMPTY :
         series.stream()
-        .map(instanceSeriesInner -> String.join(ITEM_DELIMITER, escaper.escape(instanceSeriesInner.getValue())))
-        .collect(Collectors.joining(ITEM_DELIMITER));
+          .map(InstanceSeriesInner::getValue)
+          .map(escaper::escape)
+          .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
   }
 
 
@@ -112,6 +116,17 @@ public class BulkEditInstanceProcessor implements ItemProcessor<Instance, Instan
     try {
       return switch (org.folio.dew.domain.dto.IdentifierType.fromValue(identifierType)) {
         case HRID -> instance.getHrid();
+        case ISSN -> instance.getIdentifiers().stream()
+          .filter(identifier -> instanceReferenceService.getTypeOfIdentifiersIdByName(ISSN.getValue()).equals(identifier.getIdentifierTypeId()))
+          .findFirst()
+          .map(InstanceIdentifiersInner::getValue)
+          .orElse(instance.getId());
+        case ISBN -> instance.getIdentifiers().stream()
+          .filter(identifier -> instanceReferenceService.getTypeOfIdentifiersIdByName(ISBN.getValue()).equals(identifier.getIdentifierTypeId()))
+          .findFirst()
+          .map(InstanceIdentifiersInner::getValue)
+          .orElse(instance.getId());
+
         default -> instance.getId();
       };
     } catch (IllegalArgumentException e) {

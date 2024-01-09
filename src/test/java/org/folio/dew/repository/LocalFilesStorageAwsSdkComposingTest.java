@@ -13,7 +13,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ArrayUtils;
 import org.folio.dew.config.properties.LocalFilesStorageProperties;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -23,13 +22,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 
 @Log4j2
-@Disabled(
-  "This test is ignored because, for some reason, UA can't make it work locally. Maybe it requires some magic AWS server?"
-)
-@SpringBootTest(
-  classes = { LocalFilesStorageProperties.class, LocalFilesStorage.class },
-  properties = { "application.minio-local.compose-with-aws-sdk = true" }
-)
+@SpringBootTest(classes = { LocalFilesStorageProperties.class, LocalFilesStorage.class },
+  properties = { "application.minio-local.compose-with-aws-sdk = true" })
 @EnableConfigurationProperties
 class LocalFilesStorageAwsSdkComposingTest {
 
@@ -40,44 +34,32 @@ class LocalFilesStorageAwsSdkComposingTest {
   @DisplayName("Create file, update it (append bytes[]), read and delete")
   @ValueSource(ints = { 1024, ObjectWriteArgs.MIN_MULTIPART_SIZE + 1 })
   void testWriteReadPatchDelete(int size) throws IOException {
+
     byte[] original = getRandomBytes(size);
     var remoteFilePath = "CSV_Data.csv";
 
-    assertThat(
-      localFilesStorage.write(remoteFilePath, original),
-      is(remoteFilePath)
-    );
+    assertThat(localFilesStorage.write(remoteFilePath, original), is(remoteFilePath));
     assertTrue(localFilesStorage.exists(remoteFilePath));
 
-    assertTrue(
-      Objects.deepEquals(
-        localFilesStorage.readAllBytes(remoteFilePath),
-        original
-      )
-    );
-    assertTrue(
-      Objects.deepEquals(
-        localFilesStorage.lines(remoteFilePath).collect(toList()),
-        localFilesStorage.readAllLines(remoteFilePath)
-      )
-    );
+    assertTrue(Objects.deepEquals(localFilesStorage.readAllBytes(remoteFilePath), original));
+    assertTrue(Objects.deepEquals(localFilesStorage.lines(remoteFilePath).collect(toList()), localFilesStorage.readAllLines(remoteFilePath)));
 
     localFilesStorage.delete(remoteFilePath);
     assertTrue(localFilesStorage.notExists(remoteFilePath));
   }
 
+
   @Test
-  @DisplayName(
-    "Append files with using AWS SDK workaround instead of MinIO client composeObject-method"
-  )
+  @DisplayName("Append files with using AWS SDK workaround instead of MinIO client composeObject-method")
   void testAppendFileParts() throws IOException {
+
     var name = "directory_1/directory_2/CSV_Data.csv";
     byte[] file = getRandomBytes(30000000);
     var size = file.length;
 
-    var first = Arrays.copyOfRange(file, 0, size / 3);
-    var second = Arrays.copyOfRange(file, size / 3, 2 * size / 3);
-    var third = Arrays.copyOfRange(file, 2 * size / 3, size);
+    var first = Arrays.copyOfRange(file, 0, size/3);
+    var second = Arrays.copyOfRange(file, size/3, 2 * size/3);
+    var third = Arrays.copyOfRange(file, 2 * size/3, size);
 
     var expected = ArrayUtils.addAll(ArrayUtils.addAll(first, second), third);
 
@@ -90,7 +72,9 @@ class LocalFilesStorageAwsSdkComposingTest {
     var result = localFilesStorage.readAllBytes(name);
 
     assertTrue(Objects.deepEquals(file, result));
+
   }
+
 
   private byte[] getRandomBytes(int size) {
     var original = new byte[size];

@@ -114,6 +114,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String BARCODES_FOR_PROGRESS_CSV = "src/test/resources/upload/barcodes_for_progress.csv";
   private static final String ITEM_BARCODES_CSV = "src/test/resources/upload/item_barcodes.csv";
   private static final String INSTANCE_HRIDS_CSV = "src/test/resources/upload/instance_hrids.csv";
+  private static final String INSTANCE_ISSN_ISBN_CSV = "src/test/resources/upload/instance_ISSN_ISBN.csv";
   private static final String ITEM_BARCODES_DOUBLE_QOUTES_CSV = "src/test/resources/upload/item_barcodes_double_qoutes.csv";
   private static final String ITEM_HOLDINGS_CSV = "src/test/resources/upload/item_holdings.csv";
   private static final String USER_RECORD_CSV = "src/test/resources/upload/bulk_edit_user_record.csv";
@@ -140,7 +141,9 @@ class BulkEditTest extends BaseBatchTest {
   private static final String EXPECTED_BULK_EDIT_ITEM_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_output.csv";
   private static final String EXPECTED_BULK_EDIT_ITEM_JSON_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_json_output.json";
   private static final String EXPECTED_BULK_EDIT_INSTANCE_OUTPUT = "src/test/resources/output/bulk_edit_instance_identifiers_output.csv";
+  private static final String EXPECTED_BULK_EDIT_INSTANCE_BY_ISSN_ISBN_OUTPUT = "src/test/resources/output/bulk_edit_instance_by_issn_isbn_output.csv";
   private static final String EXPECTED_BULK_EDIT_INSTANCE_JSON_OUTPUT = "src/test/resources/output/bulk_edit_instance_identifiers_json_output.json";
+  private static final String EXPECTED_BULK_EDIT_INSTANCE_BY_ISSN_ISBN_JSON_OUTPUT = "src/test/resources/output/bulk_edit_instance_by_issn_isbn_json_output.json";
   private static final String EXPECTED_BULK_EDIT_ITEM_QUERY_JSON_OUTPUT = "src/test/resources/output/bulk_edit_item_query_json_output.json";
 
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT = "src/test/resources/output/bulk_edit_holdings_records_output.csv";
@@ -263,8 +266,8 @@ class BulkEditTest extends BaseBatchTest {
 
   @ParameterizedTest
   @EnumSource(value = IdentifierType.class, names = {"ID","HRID"}, mode = EnumSource.Mode.INCLUDE)
-  @DisplayName("Run bulk-edit (instance identifiers) successfully")
-  void uploadInstanceIdentifiersJobTest(IdentifierType identifierType) throws Exception {
+  @DisplayName("Run bulk-edit (instance identifiers ID or HRID) successfully")
+  void uploadInstanceIdentifiersJobTest_1(IdentifierType identifierType) throws Exception {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessInstanceIdentifiersJob);
 
@@ -272,6 +275,21 @@ class BulkEditTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_INSTANCE_OUTPUT, EXPECTED_BULK_EDIT_INSTANCE_JSON_OUTPUT);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = IdentifierType.class, names = {"ISSN","ISBN"}, mode = EnumSource.Mode.INCLUDE)
+  @DisplayName("Run bulk-edit (instance identifiers ISSN or ISBN) successfully")
+  void uploadInstanceIdentifiersJobTest_2(IdentifierType identifierType) throws Exception {
+
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessInstanceIdentifiersJob);
+
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, INSTANCE, identifierType, INSTANCE_ISSN_ISBN_CSV);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_INSTANCE_BY_ISSN_ISBN_OUTPUT, EXPECTED_BULK_EDIT_INSTANCE_BY_ISSN_ISBN_JSON_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }

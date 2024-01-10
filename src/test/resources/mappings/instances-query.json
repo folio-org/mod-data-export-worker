@@ -64,6 +64,32 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/instances?query=%28identifiers%3D/%40identifierTypeId%3D913300b2-03ed-469a-8179-c1092c991227%2012345%29"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"instances\": [\n        {\n            \"id\": \"7fbd5d84-62d1-44c6-9c45-6cb173998bbd\",\n            \"_version\": \"31\",\n            \"hrid\": \"inst000000000006\",\n            \"source\": \"FOLIO\",\n            \"title\": \"Bridget Jones's Baby: the diaries\",\n            \"administrativeNotes\": [\n                \"Cataloging data\"\n            ],\n            \"parentInstances\": [],\n            \"childInstances\": [],\n            \"isBoundWith\": false,\n            \"alternativeTitles\": [],\n            \"editions\": [\n                \"First American Edition\"\n            ],\n            \"series\": [],\n            \"identifiers\": [\n                {\n                    \"identifierTypeId\": \"913300b2-03ed-469a-8179-c1092c991227\",\n                    \"value\": \"12345\"\n                },\n                {\n                    \"identifierTypeId\": \"8261054f-be78-422d-bd51-4ed9f33c3422\",\n                    \"value\": \"12345\"\n                }\n            ],\n            \"contributors\": [\n                {\n                    \"authorityId\": null,\n                    \"contributorNameTypeId\": \"2b94c631-fca9-4892-a730-03ee529ffe2a\",\n                    \"name\": \"Fielding, Helen\",\n                    \"contributorTypeId\": null,\n                    \"contributorTypeText\": null,\n                    \"primary\": null\n                }\n            ],\n            \"subjects\": [],\n            \"classifications\": [],\n            \"publication\": [],\n            \"publicationFrequency\": [\n                \"A frequency description\"\n            ],\n            \"publicationRange\": [\n                \"A publication range\"\n            ],\n            \"electronicAccess\": [],\n            \"instanceTypeId\": \"6312d172-f0cf-40f6-b27d-9fa8feaf332f\",\n            \"instanceFormatIds\": [],\n            \"physicalDescriptions\": [\n                \"219 pages ; 20 cm.\"\n            ],\n            \"languages\": [\n                \"eng\"\n            ],\n            \"notes\": [],\n            \"catalogedDate\": \"2024-01-26\",\n            \"previouslyHeld\": true,\n            \"staffSuppress\": false,\n            \"discoverySuppress\": false,\n            \"statisticalCodeIds\": [],\n            \"metadata\": {\n                \"createdDate\": \"2023-11-10T11:54:17.074+00:00\",\n                \"createdByUserId\": \"cffb2565-07fc-470b-86c6-17d8ce14432e\",\n                \"updatedDate\": \"2024-01-09T14:26:24.610+00:00\",\n                \"updatedByUserId\": \"ca6022de-2644-46fe-b6f2-78df15483721\"\n            },\n            \"tags\": {\n                \"tagList\": []\n            },\n            \"natureOfContentTermIds\": [],\n            \"precedingTitles\": [],\n            \"succeedingTitles\": []\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/instances?query=%28identifiers%3D/%40identifierTypeId%3D8261054f-be78-422d-bd51-4ed9f33c3422%2012345%29"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"instances\": [\n        {\n            \"id\": \"7fbd5d84-62d1-44c6-9c45-6cb173998bbd\",\n            \"_version\": \"31\",\n            \"hrid\": \"inst000000000006\",\n            \"source\": \"FOLIO\",\n            \"title\": \"Bridget Jones's Baby: the diaries\",\n            \"administrativeNotes\": [\n                \"Cataloging data\"\n            ],\n            \"parentInstances\": [],\n            \"childInstances\": [],\n            \"isBoundWith\": false,\n            \"alternativeTitles\": [],\n            \"editions\": [\n                \"First American Edition\"\n            ],\n            \"series\": [],\n            \"identifiers\": [\n                {\n                    \"identifierTypeId\": \"913300b2-03ed-469a-8179-c1092c991227\",\n                    \"value\": \"12345\"\n                },\n                {\n                    \"identifierTypeId\": \"8261054f-be78-422d-bd51-4ed9f33c3422\",\n                    \"value\": \"12345\"\n                }\n            ],\n            \"contributors\": [\n                {\n                    \"authorityId\": null,\n                    \"contributorNameTypeId\": \"2b94c631-fca9-4892-a730-03ee529ffe2a\",\n                    \"name\": \"Fielding, Helen\",\n                    \"contributorTypeId\": null,\n                    \"contributorTypeText\": null,\n                    \"primary\": null\n                }\n            ],\n            \"subjects\": [],\n            \"classifications\": [],\n            \"publication\": [],\n            \"publicationFrequency\": [\n                \"A frequency description\"\n            ],\n            \"publicationRange\": [\n                \"A publication range\"\n            ],\n            \"electronicAccess\": [],\n            \"instanceTypeId\": \"6312d172-f0cf-40f6-b27d-9fa8feaf332f\",\n            \"instanceFormatIds\": [],\n            \"physicalDescriptions\": [\n                \"219 pages ; 20 cm.\"\n            ],\n            \"languages\": [\n                \"eng\"\n            ],\n            \"notes\": [],\n            \"catalogedDate\": \"2024-01-26\",\n            \"previouslyHeld\": true,\n            \"staffSuppress\": false,\n            \"discoverySuppress\": false,\n            \"statisticalCodeIds\": [],\n            \"metadata\": {\n                \"createdDate\": \"2023-11-10T11:54:17.074+00:00\",\n                \"createdByUserId\": \"cffb2565-07fc-470b-86c6-17d8ce14432e\",\n                \"updatedDate\": \"2024-01-09T14:26:24.610+00:00\",\n                \"updatedByUserId\": \"ca6022de-2644-46fe-b6f2-78df15483721\"\n            },\n            \"tags\": {\n                \"tagList\": []\n            },\n            \"natureOfContentTermIds\": [],\n            \"precedingTitles\": [],\n            \"succeedingTitles\": []\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

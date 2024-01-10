@@ -5,14 +5,14 @@ import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
-import org.folio.dew.domain.dto.*;
+import org.folio.dew.domain.dto.InstanceFormat;
+import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.FormatOfInstance;
 import org.folio.dew.domain.dto.Instance;
 import org.folio.dew.domain.dto.InstanceContributorsInner;
 import org.folio.dew.domain.dto.InstanceIdentifiersInner;
 import org.folio.dew.domain.dto.InstanceSeriesInner;
 import org.folio.dew.service.InstanceReferenceService;
-import org.folio.dew.service.SpecialCharacterEscaper;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
@@ -36,7 +36,6 @@ import static org.folio.dew.utils.Constants.*;
 public class BulkEditInstanceProcessor implements ItemProcessor<Instance, InstanceFormat> {
 
   private final InstanceReferenceService  instanceReferenceService;
-  private final SpecialCharacterEscaper escaper;
 
 
   @Value("#{jobParameters['identifierType']}")
@@ -60,19 +59,19 @@ public class BulkEditInstanceProcessor implements ItemProcessor<Instance, Instan
       .catalogedDate(instance.getCatalogedDate())
       .statusId(instanceReferenceService.getInstanceStatusNameById(instance.getStatusId(), errorServiceArgs))
       .modeOfIssuanceId(instanceReferenceService.getModeOfIssuanceNameById(instance.getModeOfIssuanceId(), errorServiceArgs))
-      .administrativeNotes(isEmpty(instance.getAdministrativeNotes()) ? EMPTY : String.join(ITEM_DELIMITER, escaper.escape(instance.getAdministrativeNotes())))
+      .administrativeNotes(isEmpty(instance.getAdministrativeNotes()) ? EMPTY : String.join(ITEM_DELIMITER, instance.getAdministrativeNotes()))
       .title(instance.getTitle())
       .indexTitle(instance.getIndexTitle())
       .series(fetchSeries(instance.getSeries()))
       .contributors(fetchContributorNames(instance.getContributors()))
-      .editions(isEmpty(instance.getEditions()) ? EMPTY : String.join(ITEM_DELIMITER, escaper.escape(new ArrayList<>(instance.getEditions()))))
-      .physicalDescriptions(isEmpty(instance.getPhysicalDescriptions()) ? EMPTY : String.join(ITEM_DELIMITER, escaper.escape(instance.getPhysicalDescriptions())))
+      .editions(isEmpty(instance.getEditions()) ? EMPTY : String.join(ITEM_DELIMITER, new ArrayList<>(instance.getEditions())))
+      .physicalDescriptions(isEmpty(instance.getPhysicalDescriptions()) ? EMPTY : String.join(ITEM_DELIMITER, instance.getPhysicalDescriptions()))
       .instanceTypeId(instanceReferenceService.getInstanceTypeNameById(instance.getInstanceTypeId(), errorServiceArgs))
       .natureOfContentTermIds(fetchNatureOfContentTerms(instance.getNatureOfContentTermIds(), errorServiceArgs))
       .instanceFormatIds(fetchInstanceFormats(instance.getInstanceFormats(), errorServiceArgs))
-      .languages(isEmpty(instance.getLanguages()) ? EMPTY : String.join(ITEM_DELIMITER, escaper.escape(instance.getLanguages())))
-      .publicationFrequency(isEmpty(instance.getPublicationFrequency()) ? EMPTY : String.join(ITEM_DELIMITER, escaper.escape(new ArrayList<>(instance.getPublicationFrequency()))))
-      .publicationRange(isEmpty(instance.getPublicationRange()) ? EMPTY : String.join(ITEM_DELIMITER, escaper.escape(new ArrayList<>(instance.getPublicationRange()))))
+      .languages(isEmpty(instance.getLanguages()) ? EMPTY : String.join(ITEM_DELIMITER, instance.getLanguages()))
+      .publicationFrequency(isEmpty(instance.getPublicationFrequency()) ? EMPTY : String.join(ITEM_DELIMITER, new ArrayList<>(instance.getPublicationFrequency())))
+      .publicationRange(isEmpty(instance.getPublicationRange()) ? EMPTY : String.join(ITEM_DELIMITER, new ArrayList<>(instance.getPublicationRange())))
       .build();
 
 
@@ -83,7 +82,6 @@ public class BulkEditInstanceProcessor implements ItemProcessor<Instance, Instan
     return isEmpty(instanceFormats) ? EMPTY :
       instanceFormats.stream()
         .map(iFormat -> instanceReferenceService.getFormatOfInstanceNameById(iFormat.getId(), errorServiceArgs))
-        .map(escaper::escape)
         .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
   }
 
@@ -91,7 +89,6 @@ public class BulkEditInstanceProcessor implements ItemProcessor<Instance, Instan
     return isEmpty(natureOfContentTermIds) ? EMPTY :
       natureOfContentTermIds.stream()
         .map(natId -> instanceReferenceService.getNatureOfContentTermNameById(natId, errorServiceArgs))
-        .map(escaper::escape)
         .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
   }
 
@@ -99,7 +96,6 @@ public class BulkEditInstanceProcessor implements ItemProcessor<Instance, Instan
     return isEmpty(contributors) ? EMPTY :
       contributors.stream()
         .map(InstanceContributorsInner::getName)
-        .map(escaper::escape)
         .collect(Collectors.joining(ARRAY_DELIMITER_SPACED));
   }
 
@@ -107,7 +103,6 @@ public class BulkEditInstanceProcessor implements ItemProcessor<Instance, Instan
     return isEmpty(series) ? EMPTY :
         series.stream()
           .map(InstanceSeriesInner::getValue)
-          .map(escaper::escape)
           .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
   }
 

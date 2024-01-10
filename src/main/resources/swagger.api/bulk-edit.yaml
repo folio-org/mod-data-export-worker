@@ -677,10 +677,10 @@ components:
       $ref: '../../../../folio-export-common/schemas/inventory/instanceType.json#/InstanceType'
     natureOfContentTerm:
       $ref: '../../../../folio-export-common/schemas/inventory/natureOfContentTerm.json#/NatureOfContentTerm'
-    typeOfIdentifier:
-      $ref: '../../../../folio-export-common/schemas/inventory/typeOfIdentifier.json#/TypeOfIdentifier'
-    typeOfIdentifiersCollection:
-      $ref: '../../../../folio-export-common/schemas/inventory/typeOfIdentifiersCollection.json#/TypeOfIdentifiersCollection'
+    identifierTypeReference:
+      $ref: '../../../../folio-export-common/schemas/inventory/identifierTypeReference.json#/IdentifierTypeReference'
+    IdentifierTypeReferenceCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/IdentifierTypeReferenceCollection.json#/IdentifierTypeReferenceCollection'
   examples:
     errors:
       value:

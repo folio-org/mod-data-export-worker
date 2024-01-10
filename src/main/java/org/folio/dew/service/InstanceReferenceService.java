@@ -11,7 +11,7 @@ import org.folio.dew.client.NatureOfContentTermsClient;
 import org.folio.dew.client.InstanceFormatsClient;
 import org.folio.dew.client.IdentifierTypeClient;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
-import org.folio.dew.domain.dto.TypeOfIdentifiersCollection;
+import org.folio.dew.domain.dto.IdentifierTypeReferenceCollection;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.springframework.cache.annotation.Cacheable;
@@ -87,12 +87,12 @@ public class InstanceReferenceService {
     if (StringUtils.isEmpty(identifierName)) {
       return null;
     }
-    TypeOfIdentifiersCollection typeOfIdentifiers = identifierTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, identifierName));
-    if (typeOfIdentifiers.getTypesOfIdentifier().isEmpty()) {
+    IdentifierTypeReferenceCollection typeOfIdentifiers = identifierTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, identifierName));
+    if (typeOfIdentifiers.getIdentifierTypes().isEmpty()) {
       log.error("Identifier type not found by identifierName={}", identifierName);
       return identifierName;
     }
-    return typeOfIdentifiers.getTypesOfIdentifier().get(0).getId();
+    return typeOfIdentifiers.getIdentifierTypes().get(0).getId();
   }
 
 }

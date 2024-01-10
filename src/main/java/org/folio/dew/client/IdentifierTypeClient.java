@@ -1,7 +1,6 @@
 package org.folio.dew.client;
 
-import org.folio.dew.domain.dto.HoldingsTypeCollection;
-import org.folio.dew.domain.dto.TypeOfIdentifiersCollection;
+import org.folio.dew.domain.dto.IdentifierTypeReferenceCollection;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,5 +15,5 @@ public interface IdentifierTypeClient {
   @GetMapping(value = "/{identifierTypeId}", produces = MediaType.APPLICATION_JSON_VALUE) JsonNode getIdentifierType(@PathVariable String identifierTypeId);
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  TypeOfIdentifiersCollection getByQuery(@RequestParam String query);
+  IdentifierTypeReferenceCollection getByQuery(@RequestParam String query);
 }

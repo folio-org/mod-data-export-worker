@@ -83,7 +83,6 @@ public class AggregatedAccountReader
       .getExecutionContext()
       .put("itemMap", itemMap);
 
-    // initializing a totalAmount variable in jobExecutionContext
     stepExecution
       .getJobExecution()
       .getExecutionContext()
@@ -96,7 +95,6 @@ public class AggregatedAccountReader
     Map<String, Item> itemMap,
     BursarExportJob jobConfig
   ) {
-    // for loop to create a list of accounts with their respective user and item
     List<AccountWithAncillaryData> accountsWithAncillaryData = new ArrayList<>();
     for (Account account : accounts) {
       AccountWithAncillaryData accountWithAncillaryData = AccountWithAncillaryData
@@ -115,7 +113,6 @@ public class AggregatedAccountReader
       }
     }
 
-    // then pass the list through bursarFilterEvaluator
     HashMap<User, List<Account>> userToAccountsListMap = new HashMap<>();
     for (AccountWithAncillaryData accountWithAncillaryData : accountsWithAncillaryData) {
       User user = accountWithAncillaryData.getUser();
@@ -126,7 +123,6 @@ public class AggregatedAccountReader
         .add(account);
     }
 
-    // then aggregate them by users. As a result, a list of AggregratedAccountsByUser
     List<AggregatedAccountsByUser> aggregatedAccountsByUsersList = new ArrayList<>();
     userToAccountsListMap.forEach((User user, List<Account> accountsList) ->
       aggregatedAccountsByUsersList.add(

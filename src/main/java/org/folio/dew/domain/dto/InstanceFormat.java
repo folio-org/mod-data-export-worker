@@ -109,6 +109,9 @@ public class InstanceFormat implements Formatable<org.folio.dew.domain.dto.Insta
   @CsvBindByPosition(position = 21)
   private String publicationRange;
 
+  private String isbn;
+  private String issn;
+
   public static String[] getInstanceFieldsArray() {
     return FieldUtils.getFieldsListWithAnnotation(InstanceFormat.class, CsvBindByName.class).stream()
       .map(Field::getName)

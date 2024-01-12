@@ -677,6 +677,10 @@ components:
       $ref: '../../../../folio-export-common/schemas/inventory/instanceType.json#/InstanceType'
     natureOfContentTerm:
       $ref: '../../../../folio-export-common/schemas/inventory/natureOfContentTerm.json#/NatureOfContentTerm'
+    identifierTypeReference:
+      $ref: '../../../../folio-export-common/schemas/inventory/identifierTypeReference.json#/IdentifierTypeReference'
+    IdentifierTypeReferenceCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/identifierTypeReferenceCollection.json#/IdentifierTypeReferenceCollection'
   examples:
     errors:
       value:

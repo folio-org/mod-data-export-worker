@@ -192,7 +192,12 @@
             "usergroups.collection.get",
             "usergroups.item.get",
             "users.collection.get",
-            "users.item.get"
+            "users.item.get",
+            "inventory-storage.instance-statuses.item.get",
+            "inventory-storage.modes-of-issuance.item.get",
+            "inventory-storage.instance-types.item.get",
+            "inventory-storage.nature-of-content-terms.item.get",
+            "inventory-storage.instance-formats.item.get"
           ]
         },
         {

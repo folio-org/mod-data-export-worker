@@ -12,6 +12,32 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/identifier-types?query=name%3D%3D%22ISSN%22"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"identifierTypes\": [\n        {\n            \"id\": \"913300b2-03ed-469a-8179-c1092c991227\",\n            \"name\": \"ISSN\",\n            \"source\": \"folio\",\n            \"metadata\": {\n                \"createdDate\": \"2023-11-10T11:53:52.492+00:00\",\n                \"createdByUserId\": \"cffb2565-07fc-470b-86c6-17d8ce14432e\",\n                \"updatedDate\": \"2023-11-10T11:53:52.492+00:00\",\n                \"updatedByUserId\": \"cffb2565-07fc-470b-86c6-17d8ce14432e\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/identifier-types?query=name%3D%3D%22ISBN%22"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"identifierTypes\": [\n        {\n            \"id\": \"8261054f-be78-422d-bd51-4ed9f33c3422\",\n            \"name\": \"ISBN\",\n            \"source\": \"folio\",\n            \"metadata\": {\n                \"createdDate\": \"2023-11-10T11:53:51.879+00:00\",\n                \"createdByUserId\": \"cffb2565-07fc-470b-86c6-17d8ce14432e\",\n                \"updatedDate\": \"2023-11-10T11:53:51.879+00:00\",\n                \"updatedByUserId\": \"cffb2565-07fc-470b-86c6-17d8ce14432e\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

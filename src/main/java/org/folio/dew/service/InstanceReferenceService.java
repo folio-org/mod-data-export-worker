@@ -3,8 +3,15 @@ package org.folio.dew.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.folio.dew.client.*;
+import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.client.InstanceStatusesClient;
+import org.folio.dew.client.InstanceModeOfIssuanceClient;
+import org.folio.dew.client.InstanceTypesClient;
+import org.folio.dew.client.NatureOfContentTermsClient;
+import org.folio.dew.client.InstanceFormatsClient;
+import org.folio.dew.client.IdentifierTypeClient;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
+import org.folio.dew.domain.dto.IdentifierTypeReferenceCollection;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.springframework.cache.annotation.Cacheable;
@@ -18,12 +25,15 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 @RequiredArgsConstructor
 public class InstanceReferenceService {
 
+  private static final String QUERY_PATTERN_NAME = "name==\"%s\"";
+
   private final BulkEditProcessingErrorsService errorsService;
   private final InstanceStatusesClient instanceStatusesClient;
   private final InstanceModeOfIssuanceClient instanceModeOfIssuanceClient;
   private final InstanceTypesClient instanceTypesClient;
   private final NatureOfContentTermsClient natureOfContentTermsClient;
   private final InstanceFormatsClient instanceFormatsClient;
+  private final IdentifierTypeClient identifierTypeClient;
 
 
   @Cacheable(cacheNames = "instanceStatusNames")
@@ -70,6 +80,19 @@ public class InstanceReferenceService {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Instance format was not found by id: [%s]", instanceFormatId)), args.getFileName());
       return instanceFormatId;
     }
+  }
+
+  @Cacheable(cacheNames = "typeOfIdentifiersIds")
+  public String getTypeOfIdentifiersIdByName(String identifierName) {
+    if (StringUtils.isEmpty(identifierName)) {
+      return null;
+    }
+    IdentifierTypeReferenceCollection typeOfIdentifiers = identifierTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, identifierName));
+    if (typeOfIdentifiers.getIdentifierTypes().isEmpty()) {
+      log.error("Identifier type not found by identifierName={}", identifierName);
+      return identifierName;
+    }
+    return typeOfIdentifiers.getIdentifierTypes().get(0).getId();
   }
 
 }

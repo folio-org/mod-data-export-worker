@@ -9,6 +9,7 @@ import org.folio.dew.domain.dto.Instance;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.User;
 import org.junit.jupiter.api.Test;
+import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.test.MetaDataInstanceFactory;
@@ -16,6 +17,7 @@ import org.springframework.batch.test.StepScopeTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.file.Path;
+import java.util.Collections;
 
 class BulkEditProcessorsTest extends BaseBatchTest {
   @Autowired
@@ -61,7 +63,7 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   @SneakyThrows
   void processInstance() {
     var instance = objectMapper.readValue(Path.of("src/test/resources/upload/instance.json").toFile(), Instance.class);
-    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters());
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var instanceFormat = bulkEditInstanceProcessor.process(instance);
 

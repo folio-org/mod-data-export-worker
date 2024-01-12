@@ -13,6 +13,8 @@ import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
 import static org.folio.dew.domain.dto.IdentifierType.HRID;
 import static org.folio.dew.domain.dto.IdentifierType.ID;
 import static org.folio.dew.domain.dto.IdentifierType.USER_NAME;
+import static org.folio.dew.domain.dto.IdentifierType.ISSN;
+import static org.folio.dew.domain.dto.IdentifierType.ISBN;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 import static org.folio.dew.utils.Constants.DATE_WITHOUT_TIME_PATTERN;
 
@@ -53,6 +55,8 @@ public class BulkEditProcessorHelper {
     identifiersMap.put(HOLDINGS_RECORD_ID, "holdingsRecordId");
     identifiersMap.put(USER_NAME, "username");
     identifiersMap.put(EXTERNAL_SYSTEM_ID, "externalSystemId");
+    identifiersMap.put(ISSN, "ISSN");
+    identifiersMap.put(ISBN, "ISBN");
   }
 
   public static String dateToString(Date date) {

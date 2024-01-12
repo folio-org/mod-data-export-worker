@@ -8,6 +8,7 @@ import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.InstanceCollection;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
+import org.folio.dew.service.InstanceReferenceService;
 import org.folio.dew.utils.ExceptionHelper;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -28,6 +29,7 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 @Log4j2
 public class InstanceFetcher implements ItemProcessor<ItemIdentifier, InstanceCollection> {
   private final InventoryInstancesClient inventoryInstancesClient;
+  private final InstanceReferenceService instanceReferenceService;
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
@@ -42,6 +44,11 @@ public class InstanceFetcher implements ItemProcessor<ItemIdentifier, InstanceCo
     identifiersToCheckDuplication.add(itemIdentifier);
     var limit = HOLDINGS_RECORD_ID == IdentifierType.fromValue(identifierType) ? Integer.MAX_VALUE : 1;
     var idType = resolveIdentifier(identifierType);
+    if ("ISSN".equals(idType) || "ISBN".equals(idType)){
+      String typeOfIdentifiersId = instanceReferenceService.getTypeOfIdentifiersIdByName(idType);
+
+      return inventoryInstancesClient.getInstanceByQuery(String.format("(identifiers=/@identifierTypeId=%s %s)", typeOfIdentifiersId, itemIdentifier.getItemId()));
+    }
     try {
       return inventoryInstancesClient.getInstanceByQuery(String.format(getMatchPattern(identifierType), idType, itemIdentifier.getItemId()), limit);
     } catch (DecodeException e) {

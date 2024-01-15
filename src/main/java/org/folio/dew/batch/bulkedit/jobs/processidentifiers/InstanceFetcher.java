@@ -47,7 +47,7 @@ public class InstanceFetcher implements ItemProcessor<ItemIdentifier, InstanceCo
     if ("ISSN".equals(idType) || "ISBN".equals(idType)){
       String typeOfIdentifiersId = instanceReferenceService.getTypeOfIdentifiersIdByName(idType);
 
-      return inventoryInstancesClient.getInstanceByQuery(String.format("(identifiers=/@identifierTypeId=%s %s)", typeOfIdentifiersId, itemIdentifier.getItemId()));
+      return inventoryInstancesClient.getInstanceByQuery(String.format("(identifiers=/@identifierTypeId=%s \"%s\")", typeOfIdentifiersId, itemIdentifier.getItemId()));
     }
     try {
       return inventoryInstancesClient.getInstanceByQuery(String.format(getMatchPattern(identifierType), idType, itemIdentifier.getItemId()), limit);

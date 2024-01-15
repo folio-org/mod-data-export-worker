@@ -68,7 +68,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/instances?query=%28identifiers%3D/%40identifierTypeId%3D913300b2-03ed-469a-8179-c1092c991227%2012345%29"
+        "url": "/inventory/instances?query=%28identifiers%3D/%40identifierTypeId%3D913300b2-03ed-469a-8179-c1092c991227%20%2212345%22%29"
       },
       "response": {
         "status": 200,
@@ -81,7 +81,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/instances?query=%28identifiers%3D/%40identifierTypeId%3D8261054f-be78-422d-bd51-4ed9f33c3422%2012345%29"
+        "url": "/inventory/instances?query=%28identifiers%3D/%40identifierTypeId%3D8261054f-be78-422d-bd51-4ed9f33c3422%20%2212345%22%29"
       },
       "response": {
         "status": 200,

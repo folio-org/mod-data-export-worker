@@ -44,12 +44,11 @@ public class InstanceFetcher implements ItemProcessor<ItemIdentifier, InstanceCo
     identifiersToCheckDuplication.add(itemIdentifier);
     var limit = HOLDINGS_RECORD_ID == IdentifierType.fromValue(identifierType) ? Integer.MAX_VALUE : 1;
     var idType = resolveIdentifier(identifierType);
-    if ("ISSN".equals(idType) || "ISBN".equals(idType)){
-      String typeOfIdentifiersId = instanceReferenceService.getTypeOfIdentifiersIdByName(idType);
-
-      return inventoryInstancesClient.getInstanceByQuery(String.format("(identifiers=/@identifierTypeId=%s \"%s\")", typeOfIdentifiersId, itemIdentifier.getItemId()));
-    }
     try {
+      if ("ISSN".equals(idType) || "ISBN".equals(idType)){
+        String typeOfIdentifiersId = instanceReferenceService.getTypeOfIdentifiersIdByName(idType);
+        return inventoryInstancesClient.getInstanceByQuery(String.format("(identifiers=/@identifierTypeId=%s \"%s\")", typeOfIdentifiersId, itemIdentifier.getItemId()));
+      }
       return inventoryInstancesClient.getInstanceByQuery(String.format(getMatchPattern(identifierType), idType, itemIdentifier.getItemId()), limit);
     } catch (DecodeException e) {
       throw new BulkEditException(ExceptionHelper.fetchMessage(e));

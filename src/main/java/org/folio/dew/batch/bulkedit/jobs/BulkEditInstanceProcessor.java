@@ -55,6 +55,7 @@ public class BulkEditInstanceProcessor implements ItemProcessor<Instance, Instan
   @Override
   public InstanceFormat process(@NotNull Instance instance) {
     String identifierValue = getIdentifier(instance, identifierType);
+    log.info("Identifier type={}, value={}", identifierType, identifierValue);
     var errorServiceArgs = new ErrorServiceArgs(jobId, identifierValue, FilenameUtils.getName(fileName));
 
     var instanceFormat = InstanceFormat.builder()
@@ -72,7 +73,7 @@ public class BulkEditInstanceProcessor implements ItemProcessor<Instance, Instan
       .indexTitle(instance.getIndexTitle())
       .series(fetchSeries(instance.getSeries()))
       .contributors(fetchContributorNames(instance.getContributors()))
-      .editions(isEmpty(instance.getEditions()) ? EMPTY : String.join(ITEM_DELIMITER, new ArrayList<>(instance.getEditions())))
+      .editions(isEmpty(instance.getEditions()) ? EMPTY : String.join(ITEM_DELIMITER_SPACED, new ArrayList<>(instance.getEditions())))
       .physicalDescriptions(isEmpty(instance.getPhysicalDescriptions()) ? EMPTY : String.join(ITEM_DELIMITER_SPACED, instance.getPhysicalDescriptions()))
       .instanceTypeId(instanceReferenceService.getInstanceTypeNameById(instance.getInstanceTypeId(), errorServiceArgs))
       .natureOfContentTermIds(fetchNatureOfContentTerms(instance.getNatureOfContentTermIds(), errorServiceArgs))

@@ -5,13 +5,13 @@ import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
+import org.folio.dew.domain.dto.*;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.Instance;
-import org.folio.dew.domain.dto.InstanceFormat;
-import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.InstanceContributorsInner;
 import org.folio.dew.domain.dto.InstanceIdentifiersInner;
 import org.folio.dew.domain.dto.InstanceSeriesInner;
+import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.InstanceReferenceService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,7 +44,7 @@ import static org.folio.dew.utils.Constants.ITEM_DELIMITER_SPACED;
 public class BulkEditInstanceProcessor implements ItemProcessor<Instance, InstanceFormat> {
 
   private final InstanceReferenceService  instanceReferenceService;
-
+  private final Set<String> identifiersToCheckDuplication = new HashSet<>();
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
@@ -54,6 +55,13 @@ public class BulkEditInstanceProcessor implements ItemProcessor<Instance, Instan
 
   @Override
   public InstanceFormat process(@NotNull Instance instance) {
+    if ("ISSN".equals(identifierType) || "ISBN".equals(identifierType)){
+      if (identifiersToCheckDuplication.contains(instance.getId())) {
+        throw new BulkEditException("Duplicate entry");
+      }
+      identifiersToCheckDuplication.add(instance.getId());
+    }
+
     String identifierValue = getIdentifier(instance, identifierType);
     log.info("Identifier type={}, value={}", identifierType, identifierValue);
     var errorServiceArgs = new ErrorServiceArgs(jobId, identifierValue, FilenameUtils.getName(fileName));

@@ -22,8 +22,8 @@ public class WriterHelper {
   public static String enrichInstancesJson(InstanceFormat item, ObjectMapper objectMapper) {
     var instancesFormatJson = objectMapper.valueToTree(item);
     var instancesJson = (ObjectNode) objectMapper.valueToTree(item.getOriginal());
-    instancesJson.putIfAbsent("issn", instancesFormatJson.get("issn"));
-    instancesJson.putIfAbsent("isbn", instancesFormatJson.get("isbn"));
+    instancesJson.putIfAbsent("ISSN", instancesFormatJson.get("issn"));
+    instancesJson.putIfAbsent("ISBN", instancesFormatJson.get("isbn"));
     return objectMapper.writeValueAsString(instancesJson);
   }
 }

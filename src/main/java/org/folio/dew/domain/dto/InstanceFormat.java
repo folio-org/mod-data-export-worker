@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.folio.dew.domain.dto.IdentifierType;
 
 import java.lang.reflect.Field;
 import java.util.stream.Collectors;
@@ -122,6 +123,23 @@ public class InstanceFormat implements Formatable<org.folio.dew.domain.dto.Insta
     return FieldUtils.getFieldsListWithAnnotation(InstanceFormat.class, CsvBindByName.class).stream()
       .map(field -> field.getAnnotation(CsvBindByName.class).column())
       .collect(Collectors.joining(","));
+  }
+
+  public String getIdentifier(String identifierType) {
+    try {
+      switch (IdentifierType.fromValue(identifierType)) {
+        case HRID:
+          return hrid;
+        case ISBN:
+          return isbn;
+        case ISSN:
+          return issn;
+        default:
+          return id;
+      }
+    } catch (Exception e) {
+      return id;
+    }
   }
 
 }

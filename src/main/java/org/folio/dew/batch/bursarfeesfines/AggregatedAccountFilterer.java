@@ -35,7 +35,7 @@ public class AggregatedAccountFilterer
   private List<AccountWithAncillaryData> filteredAccounts = new ArrayList<>();
 
   @Override
-  public AggregatedAccountsByUser process(
+  public AggregatedAccountsByUser process (
     AggregatedAccountsByUser aggregatedAccounts
   ) {
     if (

@@ -40,22 +40,10 @@ class BursarFilterEvaluatorTest {
 
     BursarExportFilterPass bursarExportFilterPass = new BursarExportFilterPass();
 
-    JsonNullable<BursarExportFilter> jsonNullableFilterPass = JsonNullable.of(
-      bursarExportFilterPass
-    );
-
     assertThat(
       BursarFilterEvaluator.evaluate(
         accountWithAncillaryData,
-        jsonNullableFilterPass
-      ),
-      is(true)
-    );
-
-    assertThat(
-      BursarFilterEvaluator.evaluate(
-        accountWithAncillaryData,
-        JsonNullable.<BursarExportFilter>undefined()
+        bursarExportFilterPass
       ),
       is(true)
     );

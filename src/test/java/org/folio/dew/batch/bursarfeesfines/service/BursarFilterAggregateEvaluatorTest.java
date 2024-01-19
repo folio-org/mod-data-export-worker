@@ -47,22 +47,10 @@ class BursarFilterAggregateEvaluatorTest {
   void testEvaluateJSONNullableExportFilter() {
     BursarExportFilterPass bursarExportFilterPass = new BursarExportFilterPass();
 
-    JsonNullable<BursarExportFilter> jsonNullableFilterPass = JsonNullable.of(
-      bursarExportFilterPass
-    );
-
     assertThat(
       BursarFilterAggregateEvaluator.evaluate(
         aggregatedAccounts,
-        jsonNullableFilterPass
-      ),
-      is(true)
-    );
-
-    assertThat(
-      BursarFilterAggregateEvaluator.evaluate(
-        aggregatedAccounts,
-        JsonNullable.<BursarExportFilter>undefined()
+        bursarExportFilterPass
       ),
       is(true)
     );
@@ -75,22 +63,10 @@ class BursarFilterAggregateEvaluatorTest {
       UUID.fromString("0000-00-00-00-000000")
     );
 
-    JsonNullable<BursarExportFilter> jsonNullableFilterPatronGroup = JsonNullable.of(
-      bursarExportFilterPatronGroup
-    );
-
     assertThat(
       BursarFilterAggregateEvaluator.evaluate(
         aggregatedAccounts,
-        jsonNullableFilterPatronGroup
-      ),
-      is(true)
-    );
-
-    assertThat(
-      BursarFilterAggregateEvaluator.evaluate(
-        aggregatedAccounts,
-        JsonNullable.of(new BursarExportFilterServicePoint())
+        bursarExportFilterPatronGroup
       ),
       is(true)
     );

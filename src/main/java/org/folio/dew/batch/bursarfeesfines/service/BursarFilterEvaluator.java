@@ -28,16 +28,6 @@ public class BursarFilterEvaluator {
 
   public static boolean evaluate(
     AccountWithAncillaryData account,
-    JsonNullable<BursarExportFilter> filter
-  ) {
-    if (filter.isPresent()) {
-      return evaluate(account, filter.get());
-    }
-    return true;
-  }
-
-  public static boolean evaluate(
-    AccountWithAncillaryData account,
     @Nonnull BursarExportFilter filter
   ) {
     if (filter instanceof BursarExportFilterPass) {

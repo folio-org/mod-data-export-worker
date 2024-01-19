@@ -35,9 +35,7 @@ public class AggregatedAccountFilterer
   private List<AccountWithAncillaryData> filteredAccounts = new ArrayList<>();
 
   @Override
-  public AggregatedAccountsByUser process (
-    AggregatedAccountsByUser aggregatedAccounts
-  ) {
+  public AggregatedAccountsByUser process(AggregatedAccountsByUser aggregatedAccounts) {
     if (
       BursarFilterAggregateEvaluator.evaluateAggregate(
         aggregatedAccounts,

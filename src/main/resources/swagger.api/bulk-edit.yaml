@@ -659,6 +659,28 @@ components:
       $ref: '../../../../folio-export-common/schemas/inventory/holdingsRecordsSourceCollection.json#/HoldingsRecordsSourceCollection'
     holdingsContentUpdateCollection:
       $ref: '../../../../folio-export-common/schemas/bulk-edit/holdingsContentUpdateCollection.json#/HoldingsContentUpdateCollection'
+    instance:
+      $ref: '../../../../folio-export-common/schemas/inventory-storage/instance.json#/Instance'
+    instanceCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory-storage/instanceCollection.json#/InstanceCollection'
+    formatOfInstance:
+      $ref: '../../../../folio-export-common/schemas/inventory-storage/formatOfInstance.json#/FormatOfInstance'
+    classificationType:
+      $ref: '../../../../folio-export-common/schemas/inventory-storage/classificationType.json#/ClassificationType'
+    contributorNameType:
+      $ref: '../../../../folio-export-common/schemas/inventory-storage/contributorNameType.json#/ContributorNameType'
+    instanceStatus:
+      $ref: '../../../../folio-export-common/schemas/inventory/instanceStatus.json#/InstanceStatus'
+    issuanceMode:
+      $ref: '../../../../folio-export-common/schemas/inventory/issuanceMode.json#/IssuanceMode'
+    instanceType:
+      $ref: '../../../../folio-export-common/schemas/inventory/instanceType.json#/InstanceType'
+    natureOfContentTerm:
+      $ref: '../../../../folio-export-common/schemas/inventory/natureOfContentTerm.json#/NatureOfContentTerm'
+    identifierTypeReference:
+      $ref: '../../../../folio-export-common/schemas/inventory/identifierTypeReference.json#/IdentifierTypeReference'
+    IdentifierTypeReferenceCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/identifierTypeReferenceCollection.json#/IdentifierTypeReferenceCollection'
   examples:
     errors:
       value:

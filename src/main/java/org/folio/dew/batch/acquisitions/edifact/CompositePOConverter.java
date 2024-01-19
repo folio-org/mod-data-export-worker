@@ -28,7 +28,7 @@ public class CompositePOConverter {
     int messageSegmentCount = 0;
 
     messageSegmentCount++;
-    writePOHeader(ediFileConfig.getFileId(), writer);
+    writePOHeader(compPO, writer);
 
     String rushOrderQualifier = compPO.getCompositePoLines().stream().filter(line -> line.getRush() != null).anyMatch(CompositePoLine::getRush) ? RUSH_ORDER : NOT_RUSH_ORDER;
     messageSegmentCount++;
@@ -78,9 +78,9 @@ public class CompositePOConverter {
   }
 
   // Order header = Start of order; EDIFACT message type - There would be a new UNH for each FOLIO PO in the file
-  private void writePOHeader(String fileId, EDIStreamWriter writer) throws EDIStreamException {
+  private void writePOHeader(CompositePurchaseOrder compPO, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("UNH")
-      .writeElement(fileId)
+      .writeElement(compPO.getPoNumber())
       .writeStartElement()
       .writeComponent("ORDERS")
       .writeComponent("D")

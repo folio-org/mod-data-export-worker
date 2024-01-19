@@ -1,0 +1,17 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/modes-of-issuance/9d18a02f-5897-4c31-9106-c9abb5c7ae8b"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"id\": \"9d18a02f-5897-4c31-9106-c9abb5c7ae8b\",\n    \"name\": \"single unit\",\n    \"source\": \"rdamodeissue\",\n    \"metadata\": {\n        \"createdDate\": \"2024-01-02T13:46:56.260+00:00\",\n        \"updatedDate\": \"2024-01-02T13:46:56.260+00:00\"\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

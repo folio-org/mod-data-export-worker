@@ -85,7 +85,7 @@ public class SFTPObjectStorageRepository {
       return true;
     } catch (Exception e) {
       log.error("Error uploading to SFTP path: {}", remoteAbsPath, e);
-      throw new EdifactException(String.format("Unable to upload to %s:%d/%s. %s", host, port, folder, e.getMessage()));
+      throw new EdifactException(String.format("Unable to upload to sftp %s:%d, folder: %s. %s", host, port, folder, e.getMessage()));
     }
   }
 

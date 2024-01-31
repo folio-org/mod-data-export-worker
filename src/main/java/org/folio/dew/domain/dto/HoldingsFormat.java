@@ -91,7 +91,7 @@ public class HoldingsFormat implements Formatable<org.folio.dew.domain.dto.Holdi
   @CsvBindByPosition(position = 17)
   private String receiptStatus;
 
-  @CsvBindByName(column = "Administrative notes")
+  @CsvBindByName(column = "Administrative note")
   @CsvBindByPosition(position = 18)
   private String administrativeNotes;
 

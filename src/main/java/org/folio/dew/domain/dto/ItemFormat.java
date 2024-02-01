@@ -141,7 +141,7 @@ public class ItemFormat implements Formatable<org.folio.dew.domain.dto.Item> {
   @CsvBindByPosition(position = 29)
   private String itemDamagedStatusDate;
 
-  @CsvBindByName(column = "Administrative Notes")
+  @CsvBindByName(column = "Administrative note")
   @CsvBindByPosition(position = 30)
   private String administrativeNotes;
 

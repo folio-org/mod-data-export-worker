@@ -1,12 +1,13 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import lombok.SneakyThrows;
 import org.folio.dew.BaseBatchTest;
-import org.folio.dew.domain.dto.Instance;
 import org.folio.dew.domain.dto.Item;
+import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.JobParameter;
@@ -62,21 +63,15 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   @Test
   @SneakyThrows
   void processInstance() {
-    var instance = objectMapper.readValue(Path.of("src/test/resources/upload/instance.json").toFile(), Instance.class);
-    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("ID", String.class))));
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
-      var instanceFormat = bulkEditInstanceProcessor.process(instance);
+      var instanceFormats = bulkEditInstanceProcessor.process(new ItemIdentifier("1572796a-b88b-4991-a9f7-2e368217c487"));
 
-      assert instanceFormat != null;
-      assertEquals(EMPTY, instanceFormat.getNatureOfContentTermIds());
-      assertEquals(EMPTY, instanceFormat.getInstanceFormatIds());
-      assertEquals(EMPTY, instanceFormat.getAdministrativeNotes());
+      assertThat(instanceFormats).isNotEmpty();
+      var instanceFormat = instanceFormats.get(0);
 
-      assertEquals("in00000000004", instanceFormat.getHrid());
-      assertEquals("Batch Loaded", instanceFormat.getStatusId());
-      assertEquals("single unit", instanceFormat.getModeOfIssuanceId());
+      assertEquals("inst000000000022", instanceFormat.getHrid());
       assertEquals("unspecified", instanceFormat.getInstanceTypeId());
-      System.out.println(instanceFormat);
       return null;
     });
   }

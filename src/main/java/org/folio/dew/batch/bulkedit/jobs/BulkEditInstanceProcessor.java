@@ -1,49 +1,40 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
-import static org.apache.commons.lang3.ObjectUtils.isEmpty;
+import static org.folio.dew.domain.dto.IdentifierType.ISBN;
+import static org.folio.dew.domain.dto.IdentifierType.ISSN;
+import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
+import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
+import org.folio.dew.client.InventoryInstancesClient;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.Instance;
+import org.folio.dew.domain.dto.InstanceCollection;
 import org.folio.dew.domain.dto.InstanceFormat;
-import org.folio.dew.domain.dto.ErrorServiceArgs;
-import org.folio.dew.domain.dto.InstanceContributorsInner;
-import org.folio.dew.domain.dto.InstanceIdentifiersInner;
-import org.folio.dew.domain.dto.InstanceSeriesInner;
+import org.folio.dew.domain.dto.ItemIdentifier;
+import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.InstanceReferenceService;
-import org.jetbrains.annotations.NotNull;
+import org.folio.dew.service.mapper.InstanceMapper;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.folio.dew.domain.dto.IdentifierType.fromValue;
-
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.folio.dew.domain.dto.eholdings.Identifier.TypeEnum.ISBN;
-import static org.folio.dew.domain.dto.eholdings.Identifier.TypeEnum.ISSN;
-import static org.folio.dew.utils.Constants.ARRAY_DELIMITER_SPACED;
-import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
-import static org.folio.dew.utils.Constants.ITEM_DELIMITER_SPACED;
 
 @Component
 @StepScope
 @RequiredArgsConstructor
 @Log4j2
-public class BulkEditInstanceProcessor implements ItemProcessor<Instance, InstanceFormat> {
-
-  private final InstanceReferenceService  instanceReferenceService;
-
+public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, List<InstanceFormat>> {
+  private final InventoryInstancesClient inventoryInstancesClient;
+  private final InstanceMapper instanceMapper;
+  private final InstanceReferenceService instanceReferenceService;
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
@@ -52,108 +43,49 @@ public class BulkEditInstanceProcessor implements ItemProcessor<Instance, Instan
   @Value("#{jobParameters['fileName']}")
   private String fileName;
 
+  private Set<ItemIdentifier> identifiersToCheckDuplication = new HashSet<>();
+  private Set<String> fetchedInstanceIds = new HashSet<>();
+
   @Override
-  public InstanceFormat process(@NotNull Instance instance) {
-    String identifierValue = getIdentifier(instance, identifierType);
-    var errorServiceArgs = new ErrorServiceArgs(jobId, identifierValue, FilenameUtils.getName(fileName));
+  public List<InstanceFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
+    if (identifiersToCheckDuplication.contains(itemIdentifier)) {
+      throw new BulkEditException("Duplicate entry");
+    }
+    identifiersToCheckDuplication.add(itemIdentifier);
 
-    var instanceFormat = InstanceFormat.builder()
-      .id(instance.getId())
-      .discoverySuppress(isEmpty(instance.getVersion()) ? EMPTY : Boolean.toString(instance.getDiscoverySuppress()))
-      .staffSuppress(isEmpty(instance.getStaffSuppress()) ? EMPTY : Boolean.toString(instance.getStaffSuppress()))
-      .previouslyHeld(isEmpty(instance.getPreviouslyHeld()) ? EMPTY : Boolean.toString(instance.getPreviouslyHeld()))
-      .hrid(instance.getHrid())
-      .source(instance.getSource())
-      .catalogedDate(formatDate(instance.getCatalogedDate()))
-      .statusId(instanceReferenceService.getInstanceStatusNameById(instance.getStatusId(), errorServiceArgs))
-      .modeOfIssuanceId(instanceReferenceService.getModeOfIssuanceNameById(instance.getModeOfIssuanceId(), errorServiceArgs))
-      .administrativeNotes(isEmpty(instance.getAdministrativeNotes()) ? EMPTY : String.join(ITEM_DELIMITER, instance.getAdministrativeNotes()))
-      .title(instance.getTitle())
-      .indexTitle(instance.getIndexTitle())
-      .series(fetchSeries(instance.getSeries()))
-      .contributors(fetchContributorNames(instance.getContributors()))
-      .editions(isEmpty(instance.getEditions()) ? EMPTY : String.join(ITEM_DELIMITER, new ArrayList<>(instance.getEditions())))
-      .physicalDescriptions(isEmpty(instance.getPhysicalDescriptions()) ? EMPTY : String.join(ITEM_DELIMITER, instance.getPhysicalDescriptions()))
-      .instanceTypeId(instanceReferenceService.getInstanceTypeNameById(instance.getInstanceTypeId(), errorServiceArgs))
-      .natureOfContentTermIds(fetchNatureOfContentTerms(instance.getNatureOfContentTermIds(), errorServiceArgs))
-      .instanceFormatIds(fetchInstanceFormats(instance.getInstanceFormatIds(), errorServiceArgs))
-      .languages(isEmpty(instance.getLanguages()) ? EMPTY : String.join(ITEM_DELIMITER, instance.getLanguages()))
-      .publicationFrequency(isEmpty(instance.getPublicationFrequency()) ? EMPTY : String.join(ITEM_DELIMITER, new ArrayList<>(instance.getPublicationFrequency())))
-      .publicationRange(isEmpty(instance.getPublicationRange()) ? EMPTY : String.join(ITEM_DELIMITER, new ArrayList<>(instance.getPublicationRange())))
-      .isbn(IdentifierType.ISBN == fromValue(identifierType) ? identifierValue : null)
-      .issn(IdentifierType.ISSN == fromValue(identifierType) ? identifierValue : null)
-      .build();
-
-
-    return instanceFormat.withOriginal(instance);
-  }
-
-  private String formatDate(String catalogedDateInput) {
-    if (isEmpty(catalogedDateInput)){
-      return EMPTY;
+    var instances = getInstances(itemIdentifier);
+    if (instances.getInstances().isEmpty()) {
+      log.error(NO_MATCH_FOUND_MESSAGE);
+      throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
     }
 
-    var inputFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-    var outputFormatter = new SimpleDateFormat("yyyy-MM-dd");
+    var distinctInstances = instances.getInstances().stream()
+      .filter(instance -> !fetchedInstanceIds.contains(instance.getId()))
+      .toList();
+    fetchedInstanceIds.addAll(distinctInstances.stream().map(Instance::getId).toList());
 
-    Date date;
-    try {
-      date = inputFormatter.parse(catalogedDateInput);
-    } catch (ParseException e) {
-      log.error("Can't parse catalogedDate {}.", catalogedDateInput);
-      return catalogedDateInput;
-    }
-    return outputFormatter.format(date);
+    var isbn = ISBN.equals(IdentifierType.fromValue(identifierType)) ? itemIdentifier.getItemId() : null;
+    var issn = ISSN.equals(IdentifierType.fromValue(identifierType)) ? itemIdentifier.getItemId() : null;
+
+    return distinctInstances.stream()
+      .map(r -> instanceMapper.mapToInstanceFormat(r, itemIdentifier.getItemId(), jobId, FilenameUtils.getName(fileName)).withOriginal(r))
+      .map(instanceFormat -> instanceFormat.withIsbn(isbn))
+      .map(instanceFormat -> instanceFormat.withIssn(issn))
+      .toList();
   }
 
-  private String fetchInstanceFormats(List<String> instanceFormats, ErrorServiceArgs errorServiceArgs) {
-    return isEmpty(instanceFormats) ? EMPTY :
-      instanceFormats.stream()
-        .map(iFormatId -> instanceReferenceService.getFormatOfInstanceNameById(iFormatId, errorServiceArgs))
-        .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
+  private InstanceCollection getInstances(ItemIdentifier itemIdentifier) {
+    return switch (IdentifierType.fromValue(identifierType)) {
+      case ID, HRID ->
+      inventoryInstancesClient.getInstanceByQuery(String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId()), 1);
+      case ISBN -> getInstancesByIdentifierTypeAndValue(ISBN, itemIdentifier.getItemId());
+      case ISSN -> getInstancesByIdentifierTypeAndValue(ISSN, itemIdentifier.getItemId());
+      default -> throw new BulkEditException(String.format("Identifier type \"%s\" is not supported", identifierType));
+    };
   }
 
-  private String fetchNatureOfContentTerms(Set<String> natureOfContentTermIds, ErrorServiceArgs errorServiceArgs) {
-    return isEmpty(natureOfContentTermIds) ? EMPTY :
-      natureOfContentTermIds.stream()
-        .map(natId -> instanceReferenceService.getNatureOfContentTermNameById(natId, errorServiceArgs))
-        .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
-  }
-
-  private String fetchContributorNames(List<InstanceContributorsInner> contributors) {
-    return isEmpty(contributors) ? EMPTY :
-      contributors.stream()
-        .map(InstanceContributorsInner::getName)
-        .collect(Collectors.joining(ARRAY_DELIMITER_SPACED));
-  }
-
-  private String fetchSeries(Set<InstanceSeriesInner> series) {
-    return isEmpty(series) ? EMPTY :
-        series.stream()
-          .map(InstanceSeriesInner::getValue)
-          .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
-  }
-
-
-  private String getIdentifier(Instance instance, String identifierType) {
-    try {
-      return switch (fromValue(identifierType)) {
-        case HRID -> instance.getHrid();
-        case ISSN -> instance.getIdentifiers().stream()
-          .filter(identifier -> instanceReferenceService.getTypeOfIdentifiersIdByName(ISSN.getValue()).equals(identifier.getIdentifierTypeId()))
-          .findFirst()
-          .map(InstanceIdentifiersInner::getValue)
-          .orElse(instance.getId());
-        case ISBN -> instance.getIdentifiers().stream()
-          .filter(identifier -> instanceReferenceService.getTypeOfIdentifiersIdByName(ISBN.getValue()).equals(identifier.getIdentifierTypeId()))
-          .findFirst()
-          .map(InstanceIdentifiersInner::getValue)
-          .orElse(instance.getId());
-
-        default -> instance.getId();
-      };
-    } catch (IllegalArgumentException e) {
-      return instance.getId();
-    }
+  private InstanceCollection getInstancesByIdentifierTypeAndValue(IdentifierType identifierType, String value) {
+    return inventoryInstancesClient.getInstanceByQuery(String.format("(identifiers=/@identifierTypeId=%s \"%s\")",
+      instanceReferenceService.getTypeOfIdentifiersIdByName(identifierType.getValue()), value), Integer.MAX_VALUE);
   }
 }

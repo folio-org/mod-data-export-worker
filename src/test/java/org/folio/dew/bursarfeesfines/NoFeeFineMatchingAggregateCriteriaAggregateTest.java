@@ -23,6 +23,8 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 
 class NoFeeFineMatchingAggregateCriteriaAggregateTest extends BaseBatchTest {
 
@@ -34,6 +36,8 @@ class NoFeeFineMatchingAggregateCriteriaAggregateTest extends BaseBatchTest {
 
   private static final String GET_ITEMS_REQUEST =
     "/inventory/items?query=id%3D%3D%28%28100d10bf-2f06-4aa0-be15-0b95b2d9f9e4%20or%20100d10bf-2f06-4aa0-be15-0b95b2d9f9e3%29%29&limit=50";
+
+  private static final String EXPECTED_ALL_OPEN_ACCOUNTS_JSON_OUTPUT = "src/test/resources/output/bursar_all_open_accounts_json_output.json";
 
   @Test
   @DisplayName(
@@ -48,67 +52,10 @@ class NoFeeFineMatchingAggregateCriteriaAggregateTest extends BaseBatchTest {
             .withStatus(200)
             .withHeader("Content-Type", "application/json")
             .withBody(
-              """
-                {
-                  "accounts": [
-                    {
-                      "amount": 100.0,
-                      "remaining": 100.0,
-                      "status": {
-                        "name": "Open"
-                      },
-                      "paymentStatus": {
-                        "name": "Outstanding"
-                      },
-                      "feeFineType": "Test ff type1",
-                      "feeFineOwner": "Bursar owner",
-                      "dateCreated": "2021-03-30T19:53:50.289+00:00",
-                      "dateUpdated": "2021-03-30T19:53:50.289+00:00",
-                      "metadata": {
-                        "createdDate": "2021-03-30T19:53:50.289+00:00",
-                        "createdByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305",
-                        "updatedDate": "2021-03-30T19:53:50.289+00:00",
-                        "updatedByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305"
-                      },
-                      "userId": "bec20636-fb68-41fd-84ea-2cf910673599",
-                      "itemId": "100d10bf-2f06-4aa0-be15-0b95b2d9f9e3",
-                      "feeFineId": "933336fd-0290-468a-b69f-35815b713265",
-                      "ownerId": "782c9784-cba0-480a-b8c0-1ffba088c9a4",
-                      "id": "807becbc-c3e6-4871-bf38-d140597e41cb"
-                    },
-                    {
-                      "amount": 400.0,
-                      "remaining": 400.0,
-                      "status": {
-                        "name": "Open"
-                      },
-                      "paymentStatus": {
-                        "name": "Outstanding"
-                      },
-                      "feeFineType": "Test ff type1",
-                      "feeFineOwner": "Bursar owner",
-                      "dateCreated": "2021-03-30T19:53:50.289+00:00",
-                      "dateUpdated": "2021-03-30T19:53:50.289+00:00",
-                      "metadata": {
-                        "dateCreated": "2021-03-30T19:53:50.289+00:00",
-                        "createdByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305",
-                        "dateUpdated": "2021-03-30T19:53:50.289+00:00",
-                        "updatedByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305"
-                      },
-                      "userId": "bec20636-fb68-41fd-84ea-2cf910673599",
-                      "itemId": "100d10bf-2f06-4aa0-be15-0b95b2d9f9e4",
-                      "feeFineId": "933336fd-0290-468a-b69f-35815b713265",
-                      "ownerId": "782c9784-cba0-480a-b8c0-1ffba088c9a5",
-                      "id": "707becbc-c3e6-4871-bf38-d140597e41cb"
-                    }
-                  ],
-                  "totalRecords": 2,
-                  "resultInfo": {
-                    "totalRecords": 2,
-                    "facets": [],
-                    "diagnostics": []
-                  }
-                }"""
+              FileUtils.readFileToString(
+                new FileSystemResource(EXPECTED_ALL_OPEN_ACCOUNTS_JSON_OUTPUT).getFile(),
+                "UTF-8"
+              )
             )
         )
     );

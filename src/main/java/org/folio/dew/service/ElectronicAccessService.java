@@ -5,7 +5,6 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER;
-import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_PATTERN;
 
 import lombok.RequiredArgsConstructor;
@@ -32,7 +31,6 @@ import java.util.stream.Collectors;
 public class ElectronicAccessService {
   private final ElectronicAccessRelationshipClient relationshipClient;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
-  private final SpecialCharacterEscaper escaper;
 
   private static final int NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS = 6;
   private static final int ELECTRONIC_ACCESS_URI_INDEX = 0;
@@ -40,15 +38,19 @@ public class ElectronicAccessService {
   private static final int ELECTRONIC_ACCESS_MATERIAL_SPECIFICATION_INDEX = 2;
   private static final int ELECTRONIC_ACCESS_PUBLIC_NOTE_INDEX = 3;
 
+  public static final String HOLDINGS_DELIMETER = "\u001f|";
+
   public String getElectronicAccessesToString(List<ElectronicAccess> electronicAccesses, String formatIdentifier, String jobId, String fileName) {
     var errors = new HashSet<String>();
     var stringOutput = isEmpty(electronicAccesses) ?
       EMPTY :
+      "URL relationship;URI;Link text;Materials specified;URL public note\n" +
       electronicAccesses.stream()
         .filter(Objects::nonNull)
         .map(electronicAccess -> this.electronicAccessToString(electronicAccess, errors))
-        .collect(Collectors.joining(ITEM_DELIMITER));
+        .collect(Collectors.joining(HOLDINGS_DELIMETER));
     errors.forEach(e -> bulkEditProcessingErrorsService.saveErrorInCSV(jobId, formatIdentifier, new BulkEditException(e), fileName));
+
     return stringOutput;
   }
 
@@ -56,18 +58,18 @@ public class ElectronicAccessService {
     var relationshipNameAndId = isEmpty(access.getRelationshipId()) ? ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER : getRelationshipNameAndIdById(access.getRelationshipId());
     if (isNotEmpty(access.getRelationshipId()) && relationshipNameAndId.startsWith(ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER))
       errors.add("Electronic access relationship not found by id=" + access.getRelationshipId());
-    return String.join(ARRAY_DELIMITER,
-      escaper.escape(access.getUri()),
-      escaper.escape(isEmpty(access.getLinkText()) ? EMPTY : access.getLinkText()),
-      escaper.escape(isEmpty(access.getMaterialsSpecification()) ? EMPTY : access.getMaterialsSpecification()),
-      escaper.escape(isEmpty(access.getPublicNote()) ? EMPTY : access.getPublicNote()),
+    return String.join(ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER,
+      access.getUri(),
+      isEmpty(access.getLinkText()) ? EMPTY : access.getLinkText(),
+      isEmpty(access.getMaterialsSpecification()) ? EMPTY : access.getMaterialsSpecification(),
+      isEmpty(access.getPublicNote()) ? EMPTY : access.getPublicNote(),
       relationshipNameAndId);
   }
 
   @Cacheable(cacheNames = "relationships")
   public String getRelationshipNameAndIdById(String id) {
     try {
-      return escaper.escape(relationshipClient.getById(id).getName()) + ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER + id;
+      return relationshipClient.getById(id).getName() + ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER + id;
     } catch (NotFoundException e) {
       return ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER + id;
     }
@@ -95,11 +97,11 @@ public class ElectronicAccessService {
       var tokens = s.split(ARRAY_DELIMITER, -1);
       if (NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS == tokens.length) {
         return new ElectronicAccess()
-          .uri(escaper.restore(tokens[ELECTRONIC_ACCESS_URI_INDEX]))
-          .linkText(escaper.restore(tokens[ELECTRONIC_ACCESS_LINK_TEXT_INDEX]))
-          .materialsSpecification(escaper.restore(tokens[ELECTRONIC_ACCESS_MATERIAL_SPECIFICATION_INDEX]))
-          .publicNote(escaper.restore(tokens[ELECTRONIC_ACCESS_PUBLIC_NOTE_INDEX]))
-          .relationshipId(escaper.restore(tokens[tokens.length - 1]));
+          .uri(tokens[ELECTRONIC_ACCESS_URI_INDEX])
+          .linkText(tokens[ELECTRONIC_ACCESS_LINK_TEXT_INDEX])
+          .materialsSpecification(tokens[ELECTRONIC_ACCESS_MATERIAL_SPECIFICATION_INDEX])
+          .publicNote(tokens[ELECTRONIC_ACCESS_PUBLIC_NOTE_INDEX])
+          .relationshipId(tokens[tokens.length - 1]);
       }
       throw new BulkEditException(String.format("Illegal number of electronic access elements: %d, expected: %d", tokens.length, NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS));
     }

@@ -55,7 +55,7 @@ public class ElectronicAccessService {
   }
 
   private String electronicAccessToString(ElectronicAccess access, Set<String> errors) {
-    var relationshipNameAndId = isEmpty(access.getRelationshipId()) ? ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER : getRelationshipNameAndIdById(access.getRelationshipId());
+    var relationshipNameAndId = isEmpty(access.getRelationshipId()) ? ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER : getRelationshipNameById(access.getRelationshipId());
     if (isNotEmpty(access.getRelationshipId()) && relationshipNameAndId.startsWith(ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER))
       errors.add("Electronic access relationship not found by id=" + access.getRelationshipId());
     return String.join(ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER,
@@ -67,9 +67,9 @@ public class ElectronicAccessService {
   }
 
   @Cacheable(cacheNames = "relationships")
-  public String getRelationshipNameAndIdById(String id) {
+  public String getRelationshipNameById(String id) {
     try {
-      return relationshipClient.getById(id).getName() + ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER + id;
+      return relationshipClient.getById(id).getName();
     } catch (NotFoundException e) {
       return ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER + id;
     }

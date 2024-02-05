@@ -52,7 +52,7 @@ class ElectronicAccessServiceTest {
 
     when(relationshipClient.getById(relationshipId)).thenReturn(electronicAccessRelationship);
 
-    var expected = "URL relationship;URI;Link text;Materials specified;URL public note\nuri\u001F;\u001F;\u001F;\u001F;name\u001F;relationshipId";
+    var expected = "URL relationship;URI;Link text;Materials specified;URL public note\nuri\u001F;\u001F;\u001F;\u001F;name";
     var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), "formatIdentifier", "jobId", "fileName");
 
     assertEquals(expected, actual);
@@ -106,8 +106,8 @@ class ElectronicAccessServiceTest {
 
     when(relationshipClient.getById(id)).thenReturn(electronicAccessRelationship);
 
-    var expected = electronicAccessRelationship.getName() + ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER + electronicAccessRelationship.getId();
-    var actual = electronicAccessService.getRelationshipNameAndIdById(id);
+    var expected = electronicAccessRelationship.getName();
+    var actual = electronicAccessService.getRelationshipNameById(id);
 
     verify(relationshipClient).getById(id);
     assertEquals(expected, actual);
@@ -123,7 +123,7 @@ class ElectronicAccessServiceTest {
     when(relationshipClient.getById(id)).thenThrow(new NotFoundException("error message"));
 
     var expected = EMPTY +  ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER + electronicAccessRelationship.getId();
-    var actual = electronicAccessService.getRelationshipNameAndIdById(id);
+    var actual = electronicAccessService.getRelationshipNameById(id);
 
     assertEquals(expected, actual);
   }

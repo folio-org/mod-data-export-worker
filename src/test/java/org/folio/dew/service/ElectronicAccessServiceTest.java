@@ -1,12 +1,10 @@
 package org.folio.dew.service;
 
 import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import org.folio.dew.client.ElectronicAccessRelationshipClient;
 import org.folio.dew.domain.dto.ElectronicAccess;
 import org.folio.dew.domain.dto.ElectronicAccessRelationship;
 import org.folio.dew.domain.dto.ElectronicAccessRelationshipCollection;
-import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,10 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.folio.dew.utils.Constants.ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -52,8 +48,8 @@ class ElectronicAccessServiceTest {
 
     when(relationshipClient.getById(relationshipId)).thenReturn(electronicAccessRelationship);
 
-    var expected = "uri;;;;name;relationshipId";
-    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), "formatIdentifier", "jobId", "fileName");
+    var expected = "URL relationship;URI;Link text;Materials specified;URL public note\nuri\u001F;\u001F;\u001F;\u001F;name";
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess));
 
     assertEquals(expected, actual);
   }
@@ -77,11 +73,10 @@ class ElectronicAccessServiceTest {
     when(relationshipClient.getById(relationshipId1)).thenThrow(new NotFoundException("error message"));
     when(relationshipClient.getById(relationshipId2)).thenThrow(new NotFoundException("error message"));
 
-    var expected = "uri1;;;;;relationshipId1|uri2;;;;;relationshipId2|uri3;;;;;relationshipId1";
-    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess1, electronicAccess2, electronicAccess3),
-      "formatIdentifier", "jobId", "fileName");
+    var expected = "URL relationship;URI;Link text;Materials specified;URL public note\n" +
+      "uri1\u001F;\u001F;\u001F;\u001F;relationshipId1\u001F|uri2\u001F;\u001F;\u001F;\u001F;relationshipId2\u001F|uri3\u001F;\u001F;\u001F;\u001F;relationshipId1";
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess1, electronicAccess2, electronicAccess3));
 
-    verify(bulkEditProcessingErrorsService, times(2)).saveErrorInCSV(isA(String.class), isA(String.class), isA(BulkEditException.class), isA(String.class));
     assertEquals(expected, actual);
   }
 
@@ -90,9 +85,8 @@ class ElectronicAccessServiceTest {
     var electronicAccess = new ElectronicAccess();
     electronicAccess.setUri("uri");
 
-    var expected = "uri;;;;;";
-    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess),
-      "formatIdentifier", "jobId", "fileName");
+    var expected = "URL relationship;URI;Link text;Materials specified;URL public note\nuri\u001F;\u001F;\u001F;\u001F;";
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess));
 
     assertEquals(expected, actual);
   }
@@ -106,8 +100,8 @@ class ElectronicAccessServiceTest {
 
     when(relationshipClient.getById(id)).thenReturn(electronicAccessRelationship);
 
-    var expected = electronicAccessRelationship.getName() + ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER + electronicAccessRelationship.getId();
-    var actual = electronicAccessService.getRelationshipNameAndIdById(id);
+    var expected = electronicAccessRelationship.getName();
+    var actual = electronicAccessService.getRelationshipNameById(id);
 
     verify(relationshipClient).getById(id);
     assertEquals(expected, actual);
@@ -122,8 +116,8 @@ class ElectronicAccessServiceTest {
 
     when(relationshipClient.getById(id)).thenThrow(new NotFoundException("error message"));
 
-    var expected = EMPTY +  ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER + electronicAccessRelationship.getId();
-    var actual = electronicAccessService.getRelationshipNameAndIdById(id);
+    var expected = electronicAccessRelationship.getId();
+    var actual = electronicAccessService.getRelationshipNameById(id);
 
     assertEquals(expected, actual);
   }

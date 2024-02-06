@@ -19,7 +19,7 @@ public class Constants {
 
   public static final String ARRAY_DELIMITER = ";";
   public static final String ARRAY_DELIMITER_SPACED = "; ";
-  public static final String ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER = ARRAY_DELIMITER;
+  public static final String ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER = "\u001f;";
   public static final String ITEM_DELIMITER = "|";
   public static final String ITEM_DELIMITER_SPACED = " | ";
   public static final String ITEM_DELIMITER_PATTERN = "\\|";

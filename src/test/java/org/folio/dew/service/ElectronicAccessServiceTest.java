@@ -48,7 +48,7 @@ class ElectronicAccessServiceTest {
 
     when(relationshipClient.getById(relationshipId)).thenReturn(electronicAccessRelationship);
 
-    var expected = "URL relationship;URI;Link text;Materials specified;URL public note\nuri\u001F;\u001F;\u001F;\u001F;name";
+    var expected = "URL relationship;URI;Link text;Materials specified;URL public note\nname\u001F;uri\u001F;\u001F;\u001F;";
     var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess));
 
     assertEquals(expected, actual);
@@ -74,7 +74,7 @@ class ElectronicAccessServiceTest {
     when(relationshipClient.getById(relationshipId2)).thenThrow(new NotFoundException("error message"));
 
     var expected = "URL relationship;URI;Link text;Materials specified;URL public note\n" +
-      "uri1\u001F;\u001F;\u001F;\u001F;relationshipId1\u001F|uri2\u001F;\u001F;\u001F;\u001F;relationshipId2\u001F|uri3\u001F;\u001F;\u001F;\u001F;relationshipId1";
+      "relationshipId1\u001F;uri1\u001F;\u001F;\u001F;\u001F|relationshipId2\u001F;uri2\u001F;\u001F;\u001F;\u001F|relationshipId1\u001F;uri3\u001F;\u001F;\u001F;";
     var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess1, electronicAccess2, electronicAccess3));
 
     assertEquals(expected, actual);
@@ -85,7 +85,7 @@ class ElectronicAccessServiceTest {
     var electronicAccess = new ElectronicAccess();
     electronicAccess.setUri("uri");
 
-    var expected = "URL relationship;URI;Link text;Materials specified;URL public note\nuri\u001F;\u001F;\u001F;\u001F;";
+    var expected = "URL relationship;URI;Link text;Materials specified;URL public note\n\u001F;uri\u001F;\u001F;\u001F;";
     var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess));
 
     assertEquals(expected, actual);

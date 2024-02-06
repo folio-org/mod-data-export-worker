@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 @Log4j2
 public class ElectronicAccessService {
   private final ElectronicAccessRelationshipClient relationshipClient;
-  private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
 
   private static final int NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS = 6;
   private static final int ELECTRONIC_ACCESS_URI_INDEX = 0;
@@ -49,13 +48,13 @@ public class ElectronicAccessService {
   }
 
   private String electronicAccessToString(ElectronicAccess access) {
-    var relationshipNameAndId = isEmpty(access.getRelationshipId()) ? EMPTY : getRelationshipNameById(access.getRelationshipId());
+    var relationshipName = isEmpty(access.getRelationshipId()) ? EMPTY : getRelationshipNameById(access.getRelationshipId());
     return String.join(ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER,
-      access.getUri(),
+      isEmpty(relationshipName) ? EMPTY : relationshipName,
+      isEmpty(access.getUri()) ? EMPTY : access.getUri(),
       isEmpty(access.getLinkText()) ? EMPTY : access.getLinkText(),
       isEmpty(access.getMaterialsSpecification()) ? EMPTY : access.getMaterialsSpecification(),
-      isEmpty(access.getPublicNote()) ? EMPTY : access.getPublicNote(),
-      relationshipNameAndId);
+      isEmpty(access.getPublicNote()) ? EMPTY : access.getPublicNote());
   }
 
   @Cacheable(cacheNames = "relationships")

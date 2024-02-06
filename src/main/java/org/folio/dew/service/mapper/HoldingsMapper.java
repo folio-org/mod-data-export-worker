@@ -68,7 +68,7 @@ public class HoldingsMapper {
       .permanentLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getPermanentLocationId()))
       .temporaryLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getTemporaryLocationId()))
       .effectiveLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getEffectiveLocationId()))
-      .electronicAccess((electronicAccessService.getElectronicAccessesToString(holdingsRecord.getElectronicAccess(), identifier, jobId, errorFileName)))
+      .electronicAccess((electronicAccessService.getElectronicAccessesToString(holdingsRecord.getElectronicAccess())))
       .callNumberType(holdingsReferenceService.getCallNumberTypeNameById(holdingsRecord.getCallNumberTypeId(), errorServiceArgs))
       .callNumberPrefix(isEmpty(holdingsRecord.getCallNumberPrefix()) ? EMPTY : holdingsRecord.getCallNumberPrefix())
       .callNumber(isEmpty(holdingsRecord.getCallNumber()) ? EMPTY : holdingsRecord.getCallNumber())

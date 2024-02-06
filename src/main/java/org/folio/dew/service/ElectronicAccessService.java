@@ -19,10 +19,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,24 +38,18 @@ public class ElectronicAccessService {
 
   public static final String HOLDINGS_DELIMETER = "\u001f|";
 
-  public String getElectronicAccessesToString(List<ElectronicAccess> electronicAccesses, String formatIdentifier, String jobId, String fileName) {
-    var errors = new HashSet<String>();
-    var stringOutput = isEmpty(electronicAccesses) ?
+  public String getElectronicAccessesToString(List<ElectronicAccess> electronicAccesses) {
+    return isEmpty(electronicAccesses) ?
       EMPTY :
       "URL relationship;URI;Link text;Materials specified;URL public note\n" +
       electronicAccesses.stream()
         .filter(Objects::nonNull)
-        .map(electronicAccess -> this.electronicAccessToString(electronicAccess, errors))
+        .map(this::electronicAccessToString)
         .collect(Collectors.joining(HOLDINGS_DELIMETER));
-    errors.forEach(e -> bulkEditProcessingErrorsService.saveErrorInCSV(jobId, formatIdentifier, new BulkEditException(e), fileName));
-
-    return stringOutput;
   }
 
-  private String electronicAccessToString(ElectronicAccess access, Set<String> errors) {
-    var relationshipNameAndId = isEmpty(access.getRelationshipId()) ? ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER : getRelationshipNameById(access.getRelationshipId());
-    if (isNotEmpty(access.getRelationshipId()) && relationshipNameAndId.startsWith(ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER))
-      errors.add("Electronic access relationship not found by id=" + access.getRelationshipId());
+  private String electronicAccessToString(ElectronicAccess access) {
+    var relationshipNameAndId = isEmpty(access.getRelationshipId()) ? EMPTY : getRelationshipNameById(access.getRelationshipId());
     return String.join(ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER,
       access.getUri(),
       isEmpty(access.getLinkText()) ? EMPTY : access.getLinkText(),
@@ -71,7 +63,7 @@ public class ElectronicAccessService {
     try {
       return relationshipClient.getById(id).getName();
     } catch (NotFoundException e) {
-      return ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER + id;
+      return id;
     }
   }
 

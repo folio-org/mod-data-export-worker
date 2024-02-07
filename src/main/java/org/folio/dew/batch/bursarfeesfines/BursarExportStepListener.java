@@ -17,19 +17,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class BursarExportStepListener extends BaseStepListener {
 
-  public BursarExportStepListener(
-    RemoteFilesStorage remoteFilesStorage,
-    LocalFilesStorage localFilesStorage
-  ) {
+  public BursarExportStepListener(RemoteFilesStorage remoteFilesStorage, LocalFilesStorage localFilesStorage) {
     super(remoteFilesStorage, localFilesStorage);
   }
 
   @Override
   public ExitStatus afterStepExecution(StepExecution stepExecution) {
     // this method should only apply for the main export step
-    if (
-      stepExecution.getStepName().equals(BursarExportUtils.GET_FILENAME_STEP)
-    ) {
+    if (stepExecution.getStepName()
+      .equals(BursarExportUtils.GET_FILENAME_STEP)) {
       return stepExecution.getExitStatus();
     }
 
@@ -38,15 +34,10 @@ public class BursarExportStepListener extends BaseStepListener {
     var remoteFilesStorage = super.getRemoteFilesStorage();
 
     var jobExecution = stepExecution.getJobExecution();
-    String downloadFilename = jobExecution
-      .getExecutionContext()
+    String downloadFilename = jobExecution.getExecutionContext()
       .getString("filename");
-    String filename =
-      jobExecution
-        .getJobParameters()
-        .getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) +
-      '_' +
-      downloadFilename;
+    String filename = jobExecution.getJobParameters()
+      .getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + '_' + downloadFilename;
     if (localFilesStorage.notExists(filename)) {
       log.error("Can't find {}.", filename);
       return ExitStatus.FAILED;
@@ -54,38 +45,18 @@ public class BursarExportStepListener extends BaseStepListener {
 
     String url;
     try {
-      url =
-        remoteFilesStorage.objectToPresignedObjectUrl(
-          remoteFilesStorage.uploadObject(
-            FilenameUtils.getName(filename),
-            filename,
-            downloadFilename,
-            MediaType.TEXT_MARKDOWN_VALUE,
-            true
-          )
-        );
+      url = remoteFilesStorage.objectToPresignedObjectUrl(remoteFilesStorage.uploadObject(FilenameUtils.getName(filename), filename,
+          downloadFilename, MediaType.TEXT_MARKDOWN_VALUE, true));
     } catch (Exception e) {
       log.error(e.toString(), e);
       jobExecution.addFailureException(e);
       return ExitStatus.FAILED;
     }
 
-    ExecutionContextUtils.addToJobExecutionContext(
-      stepExecution,
-      JobParameterNames.OUTPUT_FILES_IN_STORAGE,
-      url,
-      ";"
-    );
+    ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, url, ";");
 
-    ExecutionContextUtils.addToJobExecutionContext(
-      stepExecution,
-      JobParameterNames.JOB_DESCRIPTION,
-      String.format(
-        BursarExportUtils.getJobDescriptionPart(),
-        stepExecution.getWriteCount()
-      ),
-      "\n"
-    );
+    ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.JOB_DESCRIPTION,
+        String.format(BursarExportUtils.getJobDescriptionPart(), stepExecution.getWriteCount()), "\n");
 
     return exitStatus;
   }

@@ -219,5 +219,4 @@ public class JobCommandsReceiverService {
   public void updateJobCommand(JobCommand jobCommand) {
     jobCommandRepository.save(jobCommand);
   }
-
 }

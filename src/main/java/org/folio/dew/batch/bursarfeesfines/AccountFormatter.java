@@ -17,8 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @RequiredArgsConstructor
-public class AccountFormatter
-  implements ItemProcessor<AccountWithAncillaryData, String> {
+public class AccountFormatter implements ItemProcessor<AccountWithAncillaryData, String> {
 
   @Value("#{stepExecution}")
   private StepExecution stepExecution;
@@ -39,15 +38,13 @@ public class AccountFormatter
     }
 
     // Update job total amount
-    currentTotalFeeAmount =
-      currentTotalFeeAmount.add(item.getAccount().getAmount());
-    stepExecution
-      .getJobExecution()
+    currentTotalFeeAmount = currentTotalFeeAmount.add(item.getAccount()
+      .getAmount());
+    stepExecution.getJobExecution()
       .getExecutionContext()
       .put("totalAmount", currentTotalFeeAmount);
 
-    return jobConfig
-      .getData()
+    return jobConfig.getData()
       .stream()
       .map(token -> BursarTokenFormatter.formatDataToken(token, item))
       .collect(Collectors.joining());

@@ -2,12 +2,7 @@ package org.folio.dew.helpers.bursarfeesfines;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import lombok.experimental.UtilityClass;
+
 import org.folio.dew.domain.dto.BursarExportDataToken;
 import org.folio.dew.domain.dto.BursarExportFilterAggregate;
 import org.folio.dew.domain.dto.BursarExportFilterAmount;
@@ -35,26 +30,29 @@ import org.folio.dew.domain.dto.JobParameterNames;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+import lombok.experimental.UtilityClass;
+
 @UtilityClass
 public class BursarFeesFinesTestUtils {
 
   public static final String USERS_ENDPOINT_PATH = "/users";
   public static final String ITEMS_ENDPOINT_PATH = "/inventory/items";
 
-  public static final String ALL_OPEN_ACCOUNTS_GET_REQUEST =
-    "/accounts?query=remaining%20%3E%200.0&limit=10000";
+  public static final String ALL_OPEN_ACCOUNTS_GET_REQUEST = "/accounts?query=remaining%20%3E%200.0&limit=10000";
   public static final String TRANSFERS_ENDPOINT_PATH = "/transfers";
 
-  public static final String SERVICE_POINTS_GET_REQUEST =
-    "/service-points?query=code%3D%3Dsystem&limit=2";
+  public static final String SERVICE_POINTS_GET_REQUEST = "/service-points?query=code%3D%3Dsystem&limit=2";
 
-  public static final String TRANSFER_ACCOUNTS_ENDPOINT =
-    "/accounts-bulk/transfer";
+  public static final String TRANSFER_ACCOUNTS_ENDPOINT = "/accounts-bulk/transfer";
 
-  public static JobParameters prepareNoFeesFinesJobParameters(
-    String springApplicationName,
-    ObjectMapper objectMapper
-  ) throws JsonProcessingException {
+  public static JobParameters prepareNoFeesFinesJobParameters(String springApplicationName, ObjectMapper objectMapper)
+      throws JsonProcessingException {
     BursarExportJob job = new BursarExportJob();
     List<BursarExportDataToken> dataTokens = new ArrayList<>();
 
@@ -73,9 +71,7 @@ public class BursarFeesFinesTestUtils {
     List<BursarExportTransferCriteriaConditionsInner> transferConditions = new ArrayList<>();
 
     BursarExportTransferCriteriaElse transferInfo = new BursarExportTransferCriteriaElse();
-    transferInfo.setAccount(
-      UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b")
-    );
+    transferInfo.setAccount(UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b"));
 
     transferCriteria.setConditions(transferConditions);
     transferCriteria.setElse(transferInfo);
@@ -83,42 +79,22 @@ public class BursarFeesFinesTestUtils {
     job.setTransferInfo(transferCriteria);
 
     var parametersBuilder = new JobParametersBuilder();
-    parametersBuilder.addString(
-      "bursarFeeFines",
-      objectMapper.writeValueAsString(job)
-    );
+    parametersBuilder.addString("bursarFeeFines", objectMapper.writeValueAsString(job));
 
     String jobId = "00000000-0000-4000-8000-000000000000";
     parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
 
     Date now = new Date();
-    String workDir =
-      System.getProperty("java.io.tmpdir") +
-      File.separator +
-      springApplicationName +
-      File.separator;
-    final String outputFile = String.format(
-      "%s%s_%tF_%tH%tM%tS_%s",
-      workDir,
-      ExportType.BURSAR_FEES_FINES,
-      now,
-      now,
-      now,
-      now,
-      jobId
-    );
-    parametersBuilder.addString(
-      JobParameterNames.TEMP_OUTPUT_FILE_PATH,
-      outputFile
-    );
+    String workDir = System.getProperty("java.io.tmpdir") + File.separator + springApplicationName + File.separator;
+    final String outputFile = String.format("%s%s_%tF_%tH%tM%tS_%s", workDir, ExportType.BURSAR_FEES_FINES, now, now, now, now,
+        jobId);
+    parametersBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFile);
 
     return parametersBuilder.toJobParameters();
   }
 
-  public static JobParameters prepareOneFeeFineMatchingJobParameters(
-    String springApplicationName,
-    ObjectMapper objectMapper
-  ) throws JsonProcessingException {
+  public static JobParameters prepareOneFeeFineMatchingJobParameters(String springApplicationName, ObjectMapper objectMapper)
+      throws JsonProcessingException {
     BursarExportJob job = new BursarExportJob();
 
     BursarExportFilterAmount filterAmount = new BursarExportFilterAmount();
@@ -129,9 +105,7 @@ public class BursarFeesFinesTestUtils {
     BursarExportTokenLengthControl lengthControl = new BursarExportTokenLengthControl();
     lengthControl.setLength(30);
     lengthControl.setCharacter(" ");
-    lengthControl.setDirection(
-      BursarExportTokenLengthControl.DirectionEnum.BACK
-    );
+    lengthControl.setDirection(BursarExportTokenLengthControl.DirectionEnum.BACK);
     lengthControl.setTruncate(true);
 
     List<BursarExportHeaderFooterToken> headerTokens = new ArrayList<>();
@@ -180,9 +154,7 @@ public class BursarFeesFinesTestUtils {
     List<BursarExportTransferCriteriaConditionsInner> transferConditions = new ArrayList<>();
 
     BursarExportTransferCriteriaElse transferInfo = new BursarExportTransferCriteriaElse();
-    transferInfo.setAccount(
-      UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b")
-    );
+    transferInfo.setAccount(UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b"));
 
     transferCriteria.setConditions(transferConditions);
     transferCriteria.setElse(transferInfo);
@@ -190,42 +162,22 @@ public class BursarFeesFinesTestUtils {
     job.setTransferInfo(transferCriteria);
 
     var parametersBuilder = new JobParametersBuilder();
-    parametersBuilder.addString(
-      "bursarFeeFines",
-      objectMapper.writeValueAsString(job)
-    );
+    parametersBuilder.addString("bursarFeeFines", objectMapper.writeValueAsString(job));
 
     String jobId = "00000000-0000-4000-8000-000000000000";
     parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
 
     Date now = new Date();
-    String workDir =
-      System.getProperty("java.io.tmpdir") +
-      File.separator +
-      springApplicationName +
-      File.separator;
-    final String outputFile = String.format(
-      "%s%s_%tF_%tH%tM%tS_%s",
-      workDir,
-      ExportType.BURSAR_FEES_FINES,
-      now,
-      now,
-      now,
-      now,
-      jobId
-    );
-    parametersBuilder.addString(
-      JobParameterNames.TEMP_OUTPUT_FILE_PATH,
-      outputFile
-    );
+    String workDir = System.getProperty("java.io.tmpdir") + File.separator + springApplicationName + File.separator;
+    final String outputFile = String.format("%s%s_%tF_%tH%tM%tS_%s", workDir, ExportType.BURSAR_FEES_FINES, now, now, now, now,
+        jobId);
+    parametersBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFile);
 
     return parametersBuilder.toJobParameters();
   }
 
-  public static JobParameters prepareNoFeeFineMatchingJobParameters(
-    String springApplicationName,
-    ObjectMapper objectMapper
-  ) throws JsonProcessingException {
+  public static JobParameters prepareNoFeeFineMatchingJobParameters(String springApplicationName, ObjectMapper objectMapper)
+      throws JsonProcessingException {
     BursarExportJob job = new BursarExportJob();
 
     BursarExportFilterNegation filterNegation = new BursarExportFilterNegation();
@@ -235,9 +187,7 @@ public class BursarFeesFinesTestUtils {
     BursarExportTokenLengthControl lengthControl = new BursarExportTokenLengthControl();
     lengthControl.setLength(30);
     lengthControl.setCharacter(" ");
-    lengthControl.setDirection(
-      BursarExportTokenLengthControl.DirectionEnum.BACK
-    );
+    lengthControl.setDirection(BursarExportTokenLengthControl.DirectionEnum.BACK);
     lengthControl.setTruncate(true);
 
     List<BursarExportHeaderFooterToken> headerTokens = new ArrayList<>();
@@ -273,9 +223,7 @@ public class BursarFeesFinesTestUtils {
     List<BursarExportTransferCriteriaConditionsInner> transferConditions = new ArrayList<>();
 
     BursarExportTransferCriteriaElse transferInfo = new BursarExportTransferCriteriaElse();
-    transferInfo.setAccount(
-      UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b")
-    );
+    transferInfo.setAccount(UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b"));
 
     transferCriteria.setConditions(transferConditions);
     transferCriteria.setElse(transferInfo);
@@ -283,57 +231,33 @@ public class BursarFeesFinesTestUtils {
     job.setTransferInfo(transferCriteria);
 
     var parametersBuilder = new JobParametersBuilder();
-    parametersBuilder.addString(
-      "bursarFeeFines",
-      objectMapper.writeValueAsString(job)
-    );
+    parametersBuilder.addString("bursarFeeFines", objectMapper.writeValueAsString(job));
 
     String jobId = "00000000-0000-1000-2000-000000000000";
     parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
 
     Date now = new Date();
-    String workDir =
-      System.getProperty("java.io.tmpdir") +
-      File.separator +
-      springApplicationName +
-      File.separator;
-    final String outputFile = String.format(
-      "%s%s_%tF_%tH%tM%tS_%s",
-      workDir,
-      ExportType.BURSAR_FEES_FINES,
-      now,
-      now,
-      now,
-      now,
-      jobId
-    );
-    parametersBuilder.addString(
-      JobParameterNames.TEMP_OUTPUT_FILE_PATH,
-      outputFile
-    );
+    String workDir = System.getProperty("java.io.tmpdir") + File.separator + springApplicationName + File.separator;
+    final String outputFile = String.format("%s%s_%tF_%tH%tM%tS_%s", workDir, ExportType.BURSAR_FEES_FINES, now, now, now, now,
+        jobId);
+    parametersBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFile);
 
     return parametersBuilder.toJobParameters();
   }
 
-  public static JobParameters prepareMultipleFeeFinesMatchingJobParameters(
-    String springApplicationName,
-    ObjectMapper objectMapper
-  ) throws JsonProcessingException {
+  public static JobParameters prepareMultipleFeeFinesMatchingJobParameters(String springApplicationName, ObjectMapper objectMapper)
+      throws JsonProcessingException {
     BursarExportJob job = new BursarExportJob();
 
     BursarExportFilterAmount filterAmount = new BursarExportFilterAmount();
     filterAmount.setAmount(10000);
-    filterAmount.setCondition(
-      BursarExportFilterAmount.ConditionEnum.GREATER_THAN
-    );
+    filterAmount.setCondition(BursarExportFilterAmount.ConditionEnum.GREATER_THAN);
     job.setFilter(filterAmount);
 
     BursarExportTokenLengthControl lengthControl = new BursarExportTokenLengthControl();
     lengthControl.setLength(30);
     lengthControl.setCharacter(" ");
-    lengthControl.setDirection(
-      BursarExportTokenLengthControl.DirectionEnum.BACK
-    );
+    lengthControl.setDirection(BursarExportTokenLengthControl.DirectionEnum.BACK);
     lengthControl.setTruncate(true);
 
     List<BursarExportHeaderFooterToken> headerTokens = new ArrayList<>();
@@ -381,9 +305,7 @@ public class BursarFeesFinesTestUtils {
     List<BursarExportTransferCriteriaConditionsInner> transferConditions = new ArrayList<>();
 
     BursarExportTransferCriteriaElse transferInfo = new BursarExportTransferCriteriaElse();
-    transferInfo.setAccount(
-      UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b")
-    );
+    transferInfo.setAccount(UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b"));
 
     transferCriteria.setConditions(transferConditions);
     transferCriteria.setElse(transferInfo);
@@ -391,42 +313,22 @@ public class BursarFeesFinesTestUtils {
     job.setTransferInfo(transferCriteria);
 
     var parametersBuilder = new JobParametersBuilder();
-    parametersBuilder.addString(
-      "bursarFeeFines",
-      objectMapper.writeValueAsString(job)
-    );
+    parametersBuilder.addString("bursarFeeFines", objectMapper.writeValueAsString(job));
 
     String jobId = "00000000-0000-1000-1000-000000000000";
     parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
 
     Date now = new Date();
-    String workDir =
-      System.getProperty("java.io.tmpdir") +
-      File.separator +
-      springApplicationName +
-      File.separator;
-    final String outputFile = String.format(
-      "%s%s_%tF_%tH%tM%tS_%s",
-      workDir,
-      ExportType.BURSAR_FEES_FINES,
-      now,
-      now,
-      now,
-      now,
-      jobId
-    );
-    parametersBuilder.addString(
-      JobParameterNames.TEMP_OUTPUT_FILE_PATH,
-      outputFile
-    );
+    String workDir = System.getProperty("java.io.tmpdir") + File.separator + springApplicationName + File.separator;
+    final String outputFile = String.format("%s%s_%tF_%tH%tM%tS_%s", workDir, ExportType.BURSAR_FEES_FINES, now, now, now, now,
+        jobId);
+    parametersBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFile);
 
     return parametersBuilder.toJobParameters();
   }
 
-  public static JobParameters prepareUseMostOutputTokensTest(
-    String springApplicationName,
-    ObjectMapper objectMapper
-  ) throws JsonProcessingException {
+  public static JobParameters prepareUseMostOutputTokensTest(String springApplicationName, ObjectMapper objectMapper)
+      throws JsonProcessingException {
     BursarExportJob job = new BursarExportJob();
 
     BursarExportFilterPass filterPass = new BursarExportFilterPass();
@@ -434,15 +336,11 @@ public class BursarFeesFinesTestUtils {
 
     List<BursarExportHeaderFooterToken> headerTokens = new ArrayList<>();
     BursarExportTokenAggregate headerAggregateAmount = new BursarExportTokenAggregate();
-    headerAggregateAmount.setValue(
-      BursarExportTokenAggregate.ValueEnum.TOTAL_AMOUNT
-    );
+    headerAggregateAmount.setValue(BursarExportTokenAggregate.ValueEnum.TOTAL_AMOUNT);
     headerAggregateAmount.setDecimal(true);
     headerTokens.add(headerAggregateAmount);
     BursarExportTokenAggregate headerAggregateNumRows = new BursarExportTokenAggregate();
-    headerAggregateNumRows.setValue(
-      BursarExportTokenAggregate.ValueEnum.NUM_ROWS
-    );
+    headerAggregateNumRows.setValue(BursarExportTokenAggregate.ValueEnum.NUM_ROWS);
     headerAggregateNumRows.setDecimal(true);
     headerTokens.add(headerAggregateNumRows);
     BursarExportTokenConstant newLineToken = new BursarExportTokenConstant();
@@ -480,9 +378,7 @@ public class BursarFeesFinesTestUtils {
     tokenFeeDate.setLengthControl(null);
 
     BursarExportTokenUserDataOptional tokenUserDataOptional = new BursarExportTokenUserDataOptional();
-    tokenUserDataOptional.setValue(
-      BursarExportTokenUserDataOptional.ValueEnum.LAST_NAME
-    );
+    tokenUserDataOptional.setValue(BursarExportTokenUserDataOptional.ValueEnum.LAST_NAME);
 
     BursarExportTokenCurrentDate tokenCurrentDate = new BursarExportTokenCurrentDate();
     tokenCurrentDate.setValue(BursarExportTokenDateType.YEAR_LONG);
@@ -507,9 +403,7 @@ public class BursarFeesFinesTestUtils {
     List<BursarExportTransferCriteriaConditionsInner> transferConditions = new ArrayList<>();
 
     BursarExportTransferCriteriaElse transferInfo = new BursarExportTransferCriteriaElse();
-    transferInfo.setAccount(
-      UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b")
-    );
+    transferInfo.setAccount(UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b"));
 
     transferCriteria.setConditions(transferConditions);
     transferCriteria.setElse(transferInfo);
@@ -517,55 +411,31 @@ public class BursarFeesFinesTestUtils {
     job.setTransferInfo(transferCriteria);
 
     var parametersBuilder = new JobParametersBuilder();
-    parametersBuilder.addString(
-      "bursarFeeFines",
-      objectMapper.writeValueAsString(job)
-    );
+    parametersBuilder.addString("bursarFeeFines", objectMapper.writeValueAsString(job));
 
     String jobId = "00000000-0000-4000-8000-000000000000";
     parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
 
     Date now = new Date();
-    String workDir =
-      System.getProperty("java.io.tmpdir") +
-      File.separator +
-      springApplicationName +
-      File.separator;
-    final String outputFile = String.format(
-      "%s%s_%tF_%tH%tM%tS_%s",
-      workDir,
-      ExportType.BURSAR_FEES_FINES,
-      now,
-      now,
-      now,
-      now,
-      jobId
-    );
-    parametersBuilder.addString(
-      JobParameterNames.TEMP_OUTPUT_FILE_PATH,
-      outputFile
-    );
+    String workDir = System.getProperty("java.io.tmpdir") + File.separator + springApplicationName + File.separator;
+    final String outputFile = String.format("%s%s_%tF_%tH%tM%tS_%s", workDir, ExportType.BURSAR_FEES_FINES, now, now, now, now,
+        jobId);
+    parametersBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFile);
 
     return parametersBuilder.toJobParameters();
   }
 
-  public static JobParameters prepareNoFeeFineMatchingAggregateCriteriaAggregateTest(
-    String springApplicationName,
-    ObjectMapper objectMapper
-  ) throws JsonProcessingException {
+  public static JobParameters prepareNoFeeFineMatchingAggregateCriteriaAggregateTest(String springApplicationName,
+      ObjectMapper objectMapper) throws JsonProcessingException {
     BursarExportJob job = new BursarExportJob();
 
     BursarExportFilterPass filterPass = new BursarExportFilterPass();
     job.setFilter(filterPass);
 
     BursarExportFilterAggregate filterAggregate = new BursarExportFilterAggregate();
-    filterAggregate.setProperty(
-      BursarExportFilterAggregate.PropertyEnum.TOTAL_AMOUNT
-    );
+    filterAggregate.setProperty(BursarExportFilterAggregate.PropertyEnum.TOTAL_AMOUNT);
     filterAggregate.setAmount(100000);
-    filterAggregate.setCondition(
-      BursarExportFilterAggregate.ConditionEnum.GREATER_THAN
-    );
+    filterAggregate.setCondition(BursarExportFilterAggregate.ConditionEnum.GREATER_THAN);
     job.setGroupByPatronFilter(filterAggregate);
 
     List<BursarExportHeaderFooterToken> headerTokens = new ArrayList<>();
@@ -607,9 +477,7 @@ public class BursarFeesFinesTestUtils {
     List<BursarExportTransferCriteriaConditionsInner> transferConditions = new ArrayList<>();
 
     BursarExportTransferCriteriaElse transferInfo = new BursarExportTransferCriteriaElse();
-    transferInfo.setAccount(
-      UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b")
-    );
+    transferInfo.setAccount(UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b"));
 
     transferCriteria.setConditions(transferConditions);
     transferCriteria.setElse(transferInfo);
@@ -617,42 +485,22 @@ public class BursarFeesFinesTestUtils {
     job.setTransferInfo(transferCriteria);
 
     var parametersBuilder = new JobParametersBuilder();
-    parametersBuilder.addString(
-      "bursarFeeFines",
-      objectMapper.writeValueAsString(job)
-    );
+    parametersBuilder.addString("bursarFeeFines", objectMapper.writeValueAsString(job));
 
     String jobId = "00000000-0000-3000-6000-000000000000";
     parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
 
     Date now = new Date();
-    String workDir =
-      System.getProperty("java.io.tmpdir") +
-      File.separator +
-      springApplicationName +
-      File.separator;
-    final String outputFile = String.format(
-      "%s%s_%tF_%tH%tM%tS_%s",
-      workDir,
-      ExportType.BURSAR_FEES_FINES,
-      now,
-      now,
-      now,
-      now,
-      jobId
-    );
-    parametersBuilder.addString(
-      JobParameterNames.TEMP_OUTPUT_FILE_PATH,
-      outputFile
-    );
+    String workDir = System.getProperty("java.io.tmpdir") + File.separator + springApplicationName + File.separator;
+    final String outputFile = String.format("%s%s_%tF_%tH%tM%tS_%s", workDir, ExportType.BURSAR_FEES_FINES, now, now, now, now,
+        jobId);
+    parametersBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFile);
 
     return parametersBuilder.toJobParameters();
   }
 
-  public static JobParameters prepareOneFeeFineOnOneAccountAggregateTest(
-    String springApplicationName,
-    ObjectMapper objectMapper
-  ) throws JsonProcessingException {
+  public static JobParameters prepareOneFeeFineOnOneAccountAggregateTest(String springApplicationName, ObjectMapper objectMapper)
+      throws JsonProcessingException {
     BursarExportJob job = new BursarExportJob();
     BursarExportFilterPass filterPass = new BursarExportFilterPass();
     job.setFilter(filterPass);
@@ -699,9 +547,7 @@ public class BursarFeesFinesTestUtils {
     List<BursarExportTransferCriteriaConditionsInner> transferConditions = new ArrayList<>();
 
     BursarExportTransferCriteriaElse transferInfo = new BursarExportTransferCriteriaElse();
-    transferInfo.setAccount(
-      UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b")
-    );
+    transferInfo.setAccount(UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b"));
 
     transferCriteria.setConditions(transferConditions);
     transferCriteria.setElse(transferInfo);
@@ -709,42 +555,22 @@ public class BursarFeesFinesTestUtils {
     job.setTransferInfo(transferCriteria);
 
     var parametersBuilder = new JobParametersBuilder();
-    parametersBuilder.addString(
-      "bursarFeeFines",
-      objectMapper.writeValueAsString(job)
-    );
+    parametersBuilder.addString("bursarFeeFines", objectMapper.writeValueAsString(job));
 
     String jobId = "00000000-0000-3000-6000-000000000000";
     parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
 
     Date now = new Date();
-    String workDir =
-      System.getProperty("java.io.tmpdir") +
-      File.separator +
-      springApplicationName +
-      File.separator;
-    final String outputFile = String.format(
-      "%s%s_%tF_%tH%tM%tS_%s",
-      workDir,
-      ExportType.BURSAR_FEES_FINES,
-      now,
-      now,
-      now,
-      now,
-      jobId
-    );
-    parametersBuilder.addString(
-      JobParameterNames.TEMP_OUTPUT_FILE_PATH,
-      outputFile
-    );
+    String workDir = System.getProperty("java.io.tmpdir") + File.separator + springApplicationName + File.separator;
+    final String outputFile = String.format("%s%s_%tF_%tH%tM%tS_%s", workDir, ExportType.BURSAR_FEES_FINES, now, now, now, now,
+        jobId);
+    parametersBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFile);
 
     return parametersBuilder.toJobParameters();
   }
 
-  public static JobParameters prepareMultipleFeeFinesAcrossPatronsAggregateTest(
-    String springApplicationName,
-    ObjectMapper objectMapper
-  ) throws JsonProcessingException {
+  public static JobParameters prepareMultipleFeeFinesAcrossPatronsAggregateTest(String springApplicationName,
+      ObjectMapper objectMapper) throws JsonProcessingException {
     BursarExportJob job = new BursarExportJob();
 
     BursarExportFilterPass filterPass = new BursarExportFilterPass();
@@ -776,14 +602,10 @@ public class BursarFeesFinesTestUtils {
     tokenUserData.setValue(BursarExportTokenUserData.ValueEnum.FOLIO_ID);
 
     BursarExportTokenAggregate tokenAggregateAmount = new BursarExportTokenAggregate();
-    tokenAggregateAmount.setValue(
-      BursarExportTokenAggregate.ValueEnum.TOTAL_AMOUNT
-    );
+    tokenAggregateAmount.setValue(BursarExportTokenAggregate.ValueEnum.TOTAL_AMOUNT);
     tokenAggregateAmount.setDecimal(true);
     BursarExportTokenAggregate tokenAggregateNumRows = new BursarExportTokenAggregate();
-    tokenAggregateNumRows.setValue(
-      BursarExportTokenAggregate.ValueEnum.NUM_ROWS
-    );
+    tokenAggregateNumRows.setValue(BursarExportTokenAggregate.ValueEnum.NUM_ROWS);
     tokenAggregateNumRows.setDecimal(false);
 
     dataTokens.add(tokenUserData);
@@ -799,9 +621,7 @@ public class BursarFeesFinesTestUtils {
     List<BursarExportTransferCriteriaConditionsInner> transferConditions = new ArrayList<>();
 
     BursarExportTransferCriteriaElse transferInfo = new BursarExportTransferCriteriaElse();
-    transferInfo.setAccount(
-      UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b")
-    );
+    transferInfo.setAccount(UUID.fromString("998ecb15-9f5d-4674-b288-faad24e44c0b"));
 
     transferCriteria.setConditions(transferConditions);
     transferCriteria.setElse(transferInfo);
@@ -809,34 +629,16 @@ public class BursarFeesFinesTestUtils {
     job.setTransferInfo(transferCriteria);
 
     var parametersBuilder = new JobParametersBuilder();
-    parametersBuilder.addString(
-      "bursarFeeFines",
-      objectMapper.writeValueAsString(job)
-    );
+    parametersBuilder.addString("bursarFeeFines", objectMapper.writeValueAsString(job));
 
     String jobId = "00000000-0000-3000-6000-000000000000";
     parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
 
     Date now = new Date();
-    String workDir =
-      System.getProperty("java.io.tmpdir") +
-      File.separator +
-      springApplicationName +
-      File.separator;
-    final String outputFile = String.format(
-      "%s%s_%tF_%tH%tM%tS_%s",
-      workDir,
-      ExportType.BURSAR_FEES_FINES,
-      now,
-      now,
-      now,
-      now,
-      jobId
-    );
-    parametersBuilder.addString(
-      JobParameterNames.TEMP_OUTPUT_FILE_PATH,
-      outputFile
-    );
+    String workDir = System.getProperty("java.io.tmpdir") + File.separator + springApplicationName + File.separator;
+    final String outputFile = String.format("%s%s_%tF_%tH%tM%tS_%s", workDir, ExportType.BURSAR_FEES_FINES, now, now, now, now,
+        jobId);
+    parametersBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFile);
 
     return parametersBuilder.toJobParameters();
   }

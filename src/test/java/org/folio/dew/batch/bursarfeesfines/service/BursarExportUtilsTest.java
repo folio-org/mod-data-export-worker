@@ -11,8 +11,7 @@ class BursarExportUtilsTest {
 
   @Test
   void testGetFilename() {
-    String regex =
-      "^lib_\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z\\.dat$";
+    String regex = "^lib_\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z\\.dat$";
     Pattern pattern = Pattern.compile(regex);
     assertThat(BursarExportUtils.getFilename(), matchesPattern(pattern));
   }

@@ -6,14 +6,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.client.AccountBulkClient;
 import org.folio.dew.client.AccountClient;
@@ -46,20 +38,20 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.MockBeans;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import lombok.extern.log4j.Log4j2;
+
 @ExtendWith({ MockitoExtension.class })
-@SpringBootTest(
-  classes = { JacksonConfiguration.class, BursarExportServiceImpl.class }
-)
-@MockBeans(
-  {
-    @MockBean(AccountClient.class),
-    @MockBean(InventoryClient.class),
-    @MockBean(UserClient.class),
-    @MockBean(AccountBulkClient.class),
-    @MockBean(TransferClient.class),
-    @MockBean(ServicePointClient.class),
-  }
-)
+@SpringBootTest(classes = { JacksonConfiguration.class, BursarExportServiceImpl.class })
+@MockBeans({ @MockBean(AccountClient.class), @MockBean(InventoryClient.class), @MockBean(UserClient.class),
+    @MockBean(AccountBulkClient.class), @MockBean(TransferClient.class), @MockBean(ServicePointClient.class), })
 @Log4j2
 class BursarExportServiceImplTest {
 
@@ -92,7 +84,9 @@ class BursarExportServiceImplTest {
     account.setAmount(new BigDecimal(100));
     account.setRemaining(new BigDecimal(100));
 
-    accounts.add(AccountWithAncillaryData.builder().account(account).build());
+    accounts.add(AccountWithAncillaryData.builder()
+      .account(account)
+      .build());
 
     BursarExportJob bursarFeeFines = new BursarExportJob();
 
@@ -116,8 +110,7 @@ class BursarExportServiceImplTest {
     TransferdataCollection transferdataCollection = mockTransferDataCollection();
 
     when(servicePointClient.get("code==system", 2)).thenReturn(servicepoints);
-    when(transferClient.get("id==00000000-0000-0000-0000-000000000000", 1))
-      .thenReturn(transferdataCollection);
+    when(transferClient.get("id==00000000-0000-0000-0000-000000000000", 1)).thenReturn(transferdataCollection);
 
     service.transferAccounts(accounts, bursarFeeFines);
 
@@ -133,32 +126,24 @@ class BursarExportServiceImplTest {
 
     service.transferAccounts(accounts, bursarFeeFines);
 
-    verify(transferClient, times(2))
-      .get("id==00000000-0000-0000-0000-000000000000", 1);
+    verify(transferClient, times(2)).get("id==00000000-0000-0000-0000-000000000000", 1);
     verify(servicePointClient, times(2)).get("code==system", 2);
 
     // test exceptions in getSystemServicePoint()
     servicepoints.setTotalRecords(0);
     when(servicePointClient.get("code==system", 2)).thenReturn(servicepoints);
-    Assertions.assertThrows(
-      IllegalStateException.class,
-      () -> service.transferAccounts(accounts, bursarFeeFines)
-    );
+    Assertions.assertThrows(IllegalStateException.class, () -> service.transferAccounts(accounts, bursarFeeFines));
 
     servicepoints.setTotalRecords(2);
     when(servicePointClient.get("code==system", 2)).thenReturn(servicepoints);
-    Assertions.assertThrows(
-      IllegalStateException.class,
-      () -> service.transferAccounts(accounts, bursarFeeFines)
-    );
+    Assertions.assertThrows(IllegalStateException.class, () -> service.transferAccounts(accounts, bursarFeeFines));
 
     // test exceptions in toTransferRequest()
     account.setRemaining(new BigDecimal(0));
-    accounts.add(AccountWithAncillaryData.builder().account(account).build());
-    Assertions.assertThrows(
-      IllegalArgumentException.class,
-      () -> service.transferAccounts(accounts, bursarFeeFines)
-    );
+    accounts.add(AccountWithAncillaryData.builder()
+      .account(account)
+      .build());
+    Assertions.assertThrows(IllegalArgumentException.class, () -> service.transferAccounts(accounts, bursarFeeFines));
   }
 
   @Test
@@ -169,18 +154,17 @@ class BursarExportServiceImplTest {
     users.add(new User());
     userCollection.setUsers(new ArrayList<>());
 
-    when(userClient.getUserByQuery(any(), eq(50L)))
-      .thenAnswer(invocation -> mockUserCollection());
-    Assertions.assertEquals(2, service.getUsers(userIds).size());
+    when(userClient.getUserByQuery(any(), eq(50L))).thenAnswer(invocation -> mockUserCollection());
+    Assertions.assertEquals(2, service.getUsers(userIds)
+      .size());
   }
 
   @Test
   void testGetAllAccounts() {
-    when(accountClient.getAccounts("remaining > 0.0", 10000L))
-      .thenReturn(mockAccountdataCollection(10000));
-    when(accountClient.getAccounts("remaining > 0.0", 10000L, 10000))
-      .thenReturn(mockAccountdataCollection(10000));
-    Assertions.assertEquals(20000, service.getAllAccounts().size());
+    when(accountClient.getAccounts("remaining > 0.0", 10000L)).thenReturn(mockAccountdataCollection(10000));
+    when(accountClient.getAccounts("remaining > 0.0", 10000L, 10000)).thenReturn(mockAccountdataCollection(10000));
+    Assertions.assertEquals(20000, service.getAllAccounts()
+      .size());
   }
 
   private TransferdataCollection mockTransferDataCollection() {
@@ -206,8 +190,7 @@ class BursarExportServiceImplTest {
   }
 
   private Set<String> generateUserIds(int size) {
-    return Stream
-      .generate(UUID::randomUUID)
+    return Stream.generate(UUID::randomUUID)
       .limit(size)
       .map(UUID::toString)
       .collect(Collectors.toSet());
@@ -215,7 +198,8 @@ class BursarExportServiceImplTest {
 
   private UserCollection mockUserCollection() {
     UserCollection userCollection = new UserCollection();
-    User user = new User().id(UUID.randomUUID().toString());
+    User user = new User().id(UUID.randomUUID()
+      .toString());
     userCollection.setUsers(List.of(user));
 
     return userCollection;

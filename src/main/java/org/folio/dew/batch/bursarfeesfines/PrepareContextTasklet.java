@@ -31,20 +31,12 @@ public class PrepareContextTasklet implements Tasklet, StepExecutionListener {
     String filename = BursarExportUtils.getFilename();
     log.info("Will produce output file with name {}", filename);
 
-    ExecutionContextUtils.addToJobExecutionContext(
-      stepExecution,
-      "filename",
-      filename,
-      ""
-    );
+    ExecutionContextUtils.addToJobExecutionContext(stepExecution, "filename", filename, "");
 
     try {
-      BursarExportJob jobConfig = objectMapper.readValue(
-        stepExecution.getJobParameters().getString("bursarFeeFines"),
-        BursarExportJob.class
-      );
-      stepExecution
-        .getJobExecution()
+      BursarExportJob jobConfig = objectMapper.readValue(stepExecution.getJobParameters()
+        .getString("bursarFeeFines"), BursarExportJob.class);
+      stepExecution.getJobExecution()
         .getExecutionContext()
         .put("jobConfig", jobConfig);
 
@@ -55,19 +47,14 @@ public class PrepareContextTasklet implements Tasklet, StepExecutionListener {
   }
 
   @Override
-  public RepeatStatus execute(
-    StepContribution contribution,
-    ChunkContext chunkContext
-  ) {
+  public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     if (!isAggregateJob) {
-      chunkContext
-        .getStepContext()
+      chunkContext.getStepContext()
         .getStepExecution()
         .setExitStatus(new ExitStatus("NOT AGGREGATE"));
     } else {
       log.info("Is aggregate job");
-      chunkContext
-        .getStepContext()
+      chunkContext.getStepContext()
         .getStepExecution()
         .setExitStatus(new ExitStatus("IS AGGREGATE"));
     }

@@ -23,9 +23,7 @@ import org.springframework.core.io.WritableResource;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BursarWriter
-  extends AbstractItemStreamItemWriter<String>
-  implements ResourceAwareItemWriterItemStream<String> {
+public class BursarWriter extends AbstractItemStreamItemWriter<String> implements ResourceAwareItemWriterItemStream<String> {
 
   protected LineAggregator<String> lineAggregator;
   private LocalFilesStorage localFilesStorage;
@@ -41,8 +39,7 @@ public class BursarWriter
   public void write(Chunk<? extends String> items) throws Exception {
     // Build the items into lines to write to file
     // Also aggregate the number of rows
-    BigDecimal aggregateTotalAmount = (BigDecimal) stepExecution
-      .getJobExecution()
+    BigDecimal aggregateTotalAmount = (BigDecimal) stepExecution.getJobExecution()
       .getExecutionContext()
       .get("totalAmount");
 
@@ -51,43 +48,21 @@ public class BursarWriter
       lines.append(item);
     }
     // Get header and footer and convert to string
-    String header = jobConfig
-      .getHeader()
+    String header = jobConfig.getHeader()
       .stream()
-      .map(token ->
-        BursarTokenFormatter.formatHeaderFooterToken(
-          token,
-          items.size(),
-          aggregateTotalAmount
-        )
-      )
+      .map(token -> BursarTokenFormatter.formatHeaderFooterToken(token, items.size(), aggregateTotalAmount))
       .collect(Collectors.joining());
 
-    String footer = jobConfig
-      .getFooter()
+    String footer = jobConfig.getFooter()
       .stream()
-      .map(token ->
-        BursarTokenFormatter.formatHeaderFooterToken(
-          token,
-          items.size(),
-          aggregateTotalAmount
-        )
-      )
+      .map(token -> BursarTokenFormatter.formatHeaderFooterToken(token, items.size(), aggregateTotalAmount))
       .collect(Collectors.joining());
 
-    localFilesStorage.write(
-      resource.getFilename(),
-      header.getBytes(StandardCharsets.UTF_8)
-    );
+    localFilesStorage.write(resource.getFilename(), header.getBytes(StandardCharsets.UTF_8));
 
-    localFilesStorage.append(
-      resource.getFilename(),
-      lines.toString().getBytes(StandardCharsets.UTF_8)
-    );
+    localFilesStorage.append(resource.getFilename(), lines.toString()
+      .getBytes(StandardCharsets.UTF_8));
 
-    localFilesStorage.append(
-      resource.getFilename(),
-      footer.getBytes(StandardCharsets.UTF_8)
-    );
+    localFilesStorage.append(resource.getFilename(), footer.getBytes(StandardCharsets.UTF_8));
   }
 }

@@ -19,8 +19,7 @@ import org.springframework.stereotype.Component;
 @StepScope
 @RequiredArgsConstructor
 @Log4j2
-public class AggregatedAccountFormatter
-  implements ItemProcessor<AggregatedAccountsByUser, String> {
+public class AggregatedAccountFormatter implements ItemProcessor<AggregatedAccountsByUser, String> {
 
   @Value("#{stepExecution}")
   private StepExecution stepExecution;
@@ -42,17 +41,13 @@ public class AggregatedAccountFormatter
 
     // Update job total amount
     currentTotalFeeAmount = currentTotalFeeAmount.add(item.findTotalAmount());
-    stepExecution
-      .getJobExecution()
+    stepExecution.getJobExecution()
       .getExecutionContext()
       .put("totalAmount", currentTotalFeeAmount);
 
-    return jobConfig
-      .getData()
+    return jobConfig.getData()
       .stream()
-      .map(token ->
-        BursarTokenFormatter.formatAggregatedAccountsToken(token, item)
-      )
+      .map(token -> BursarTokenFormatter.formatAggregatedAccountsToken(token, item))
       .collect(Collectors.joining());
   }
 

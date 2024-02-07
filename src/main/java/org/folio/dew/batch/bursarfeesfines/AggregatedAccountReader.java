@@ -28,8 +28,7 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @RequiredArgsConstructor
-public class AggregatedAccountReader
-  implements ItemReader<AggregatedAccountsByUser> {
+public class AggregatedAccountReader implements ItemReader<AggregatedAccountsByUser> {
 
   private final BursarExportService exportService;
 
@@ -45,9 +44,7 @@ public class AggregatedAccountReader
   @Override
   public AggregatedAccountsByUser read() {
     if (nextIndex < aggregatedAccountsByUsersList.size()) {
-      AggregatedAccountsByUser aggregatedAccounts = aggregatedAccountsByUsersList.get(
-        nextIndex
-      );
+      AggregatedAccountsByUser aggregatedAccounts = aggregatedAccountsByUsersList.get(nextIndex);
       ++nextIndex;
       return aggregatedAccounts;
     } else {
@@ -63,52 +60,40 @@ public class AggregatedAccountReader
     // grabbing accounts before users/items because, with a relatively
     // frequent transfer process, there will be less accounts than users
     accounts = exportService.getAllAccounts();
-    stepExecution.getExecutionContext().put("accounts", accounts);
+    stepExecution.getExecutionContext()
+      .put("accounts", accounts);
 
-    Set<String> userIds = new HashSet<>(
-      accounts.stream().map(Account::getUserId).toList()
-    );
-    Set<String> itemIds = new HashSet<>(
-      accounts.stream().map(Account::getItemId).toList()
-    );
+    Set<String> userIds = new HashSet<>(accounts.stream()
+      .map(Account::getUserId)
+      .toList());
+    Set<String> itemIds = new HashSet<>(accounts.stream()
+      .map(Account::getItemId)
+      .toList());
 
     userMap = exportService.getUsers(userIds);
     itemMap = exportService.getItems(itemIds);
 
-    aggregatedAccountsByUsersList =
-      createAggregatedAccountsList(accounts, userMap, itemMap, jobConfig);
+    aggregatedAccountsByUsersList = createAggregatedAccountsList(accounts, userMap, itemMap, jobConfig);
 
-    stepExecution
-      .getJobExecution()
+    stepExecution.getJobExecution()
       .getExecutionContext()
       .put("itemMap", itemMap);
 
-    stepExecution
-      .getJobExecution()
+    stepExecution.getJobExecution()
       .getExecutionContext()
       .put("totalAmount", new BigDecimal(0));
   }
 
-  public static List<AggregatedAccountsByUser> createAggregatedAccountsList(
-    List<Account> accounts,
-    Map<String, User> userMap,
-    Map<String, Item> itemMap,
-    BursarExportJob jobConfig
-  ) {
+  public static List<AggregatedAccountsByUser> createAggregatedAccountsList(List<Account> accounts, Map<String, User> userMap,
+      Map<String, Item> itemMap, BursarExportJob jobConfig) {
     List<AccountWithAncillaryData> accountsWithAncillaryData = new ArrayList<>();
     for (Account account : accounts) {
-      AccountWithAncillaryData accountWithAncillaryData = AccountWithAncillaryData
-        .builder()
+      AccountWithAncillaryData accountWithAncillaryData = AccountWithAncillaryData.builder()
         .account(account)
         .user(userMap.get(account.getUserId()))
         .item(itemMap.getOrDefault(account.getItemId(), null))
         .build();
-      if (
-        BursarFilterEvaluator.evaluate(
-          accountWithAncillaryData,
-          jobConfig.getFilter()
-        )
-      ) {
+      if (BursarFilterEvaluator.evaluate(accountWithAncillaryData, jobConfig.getFilter())) {
         accountsWithAncillaryData.add(accountWithAncillaryData);
       }
     }
@@ -118,21 +103,16 @@ public class AggregatedAccountReader
       User user = accountWithAncillaryData.getUser();
       Account account = accountWithAncillaryData.getAccount();
 
-      userToAccountsListMap
-        .computeIfAbsent(user, (User key) -> new ArrayList<Account>())
+      userToAccountsListMap.computeIfAbsent(user, (User key) -> new ArrayList<Account>())
         .add(account);
     }
 
     List<AggregatedAccountsByUser> aggregatedAccountsByUsersList = new ArrayList<>();
-    userToAccountsListMap.forEach((User user, List<Account> accountsList) ->
-      aggregatedAccountsByUsersList.add(
-        AggregatedAccountsByUser
-          .builder()
+    userToAccountsListMap.forEach((User user,
+        List<Account> accountsList) -> aggregatedAccountsByUsersList.add(AggregatedAccountsByUser.builder()
           .user(user)
           .accounts(accountsList)
-          .build()
-      )
-    );
+          .build()));
 
     return aggregatedAccountsByUsersList;
   }

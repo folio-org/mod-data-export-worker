@@ -19,8 +19,7 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @RequiredArgsConstructor
-public class AccountFilterer
-  implements ItemProcessor<AccountWithAncillaryData, AccountWithAncillaryData> {
+public class AccountFilterer implements ItemProcessor<AccountWithAncillaryData, AccountWithAncillaryData> {
 
   private List<AccountWithAncillaryData> filteredAccounts = new ArrayList<>();
 
@@ -42,12 +41,9 @@ public class AccountFilterer
     if (filteredAccounts.isEmpty()) {
       log.error("No accounts matched the criteria");
       stepExecution.setExitStatus(ExitStatus.FAILED);
-      stepExecution.addFailureException(
-        new IllegalStateException("No accounts matched the criteria")
-      );
+      stepExecution.addFailureException(new IllegalStateException("No accounts matched the criteria"));
     }
-    stepExecution
-      .getJobExecution()
+    stepExecution.getJobExecution()
       .getExecutionContext()
       .put("filteredAccounts", filteredAccounts);
   }

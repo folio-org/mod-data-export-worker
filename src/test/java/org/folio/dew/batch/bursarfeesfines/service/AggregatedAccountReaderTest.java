@@ -4,12 +4,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.bursarfeesfines.AggregatedAccountReader;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.BursarExportFilterAmount;
@@ -21,6 +15,12 @@ import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUser;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 class AggregatedAccountReaderTest {
 
@@ -73,8 +73,7 @@ class AggregatedAccountReaderTest {
         account.setAmount(new BigDecimal(0));
         accounts.add(account);
       }
-      AggregatedAccountsByUser aggregatedAccounts = AggregatedAccountsByUser
-        .builder()
+      AggregatedAccountsByUser aggregatedAccounts = AggregatedAccountsByUser.builder()
         .accounts(accounts)
         .user(userMap.get(String.format("user_%d", i)))
         .build();
@@ -83,12 +82,8 @@ class AggregatedAccountReaderTest {
 
     BursarExportFilterPass filterTrue = new BursarExportFilterPass();
     jobConfig.setFilter(filterTrue);
-    List<AggregatedAccountsByUser> resultList = AggregatedAccountReader.createAggregatedAccountsList(
-      accounts,
-      userMap,
-      itemMap,
-      jobConfig
-    );
+    List<AggregatedAccountsByUser> resultList = AggregatedAccountReader.createAggregatedAccountsList(accounts, userMap, itemMap,
+        jobConfig);
     assertThat(resultList.size(), is(3));
     assertThat(resultList, containsInAnyOrder(expectedList.toArray()));
 
@@ -96,17 +91,8 @@ class AggregatedAccountReaderTest {
     filterFalse.setAmount(10);
     filterFalse.setCondition(ConditionEnum.GREATER_THAN);
     jobConfig.setFilter(filterFalse);
-    resultList =
-      AggregatedAccountReader.createAggregatedAccountsList(
-        accounts,
-        userMap,
-        itemMap,
-        jobConfig
-      );
+    resultList = AggregatedAccountReader.createAggregatedAccountsList(accounts, userMap, itemMap, jobConfig);
     assertThat(resultList.size(), is(0));
-    assertThat(
-      resultList,
-      containsInAnyOrder(new AggregatedAccountsByUser[] {})
-    );
+    assertThat(resultList, containsInAnyOrder(new AggregatedAccountsByUser[] {}));
   }
 }

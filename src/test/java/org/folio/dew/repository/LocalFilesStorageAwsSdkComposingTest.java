@@ -1,16 +1,5 @@
 package org.folio.dew.repository;
 
-import static java.util.stream.Collectors.toList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import io.minio.ObjectWriteArgs;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.concurrent.ThreadLocalRandom;
-import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ArrayUtils;
 import org.folio.dew.config.properties.LocalFilesStorageProperties;
 import org.junit.jupiter.api.DisplayName;
@@ -21,9 +10,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.concurrent.ThreadLocalRandom;
+
+import io.minio.ObjectWriteArgs;
+import lombok.extern.log4j.Log4j2;
+
+import static java.util.stream.Collectors.toList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 @Log4j2
-@SpringBootTest(classes = {LocalFilesStorageProperties.class, LocalFilesStorage.class},
-  properties = {"application.minio-local.compose-with-aws-sdk = true"})
+@SpringBootTest(classes = { LocalFilesStorageProperties.class, LocalFilesStorage.class }, properties = {
+    "application.minio-local.compose-with-aws-sdk = true" })
 @EnableConfigurationProperties
 class LocalFilesStorageAwsSdkComposingTest {
 
@@ -42,12 +44,12 @@ class LocalFilesStorageAwsSdkComposingTest {
     assertTrue(localFilesStorage.exists(remoteFilePath));
 
     assertTrue(Objects.deepEquals(localFilesStorage.readAllBytes(remoteFilePath), original));
-    assertTrue(Objects.deepEquals(localFilesStorage.lines(remoteFilePath).collect(toList()), localFilesStorage.readAllLines(remoteFilePath)));
+    assertTrue(Objects.deepEquals(localFilesStorage.lines(remoteFilePath)
+      .collect(toList()), localFilesStorage.readAllLines(remoteFilePath)));
 
     localFilesStorage.delete(remoteFilePath);
     assertTrue(localFilesStorage.notExists(remoteFilePath));
   }
-
 
   @Test
   @DisplayName("Append files with using AWS SDK workaround instead of MinIO client composeObject-method")
@@ -57,9 +59,9 @@ class LocalFilesStorageAwsSdkComposingTest {
     byte[] file = getRandomBytes(30000000);
     var size = file.length;
 
-    var first = Arrays.copyOfRange(file, 0, size/3);
-    var second = Arrays.copyOfRange(file, size/3, 2 * size/3);
-    var third = Arrays.copyOfRange(file, 2 * size/3, size);
+    var first = Arrays.copyOfRange(file, 0, size / 3);
+    var second = Arrays.copyOfRange(file, size / 3, 2 * size / 3);
+    var third = Arrays.copyOfRange(file, 2 * size / 3, size);
 
     var expected = ArrayUtils.addAll(ArrayUtils.addAll(first, second), third);
 
@@ -75,10 +77,10 @@ class LocalFilesStorageAwsSdkComposingTest {
 
   }
 
-
   private byte[] getRandomBytes(int size) {
     var original = new byte[size];
-    ThreadLocalRandom.current().nextBytes(original);
+    ThreadLocalRandom.current()
+      .nextBytes(original);
     return original;
   }
 }

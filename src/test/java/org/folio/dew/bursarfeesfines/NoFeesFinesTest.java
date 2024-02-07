@@ -32,85 +32,46 @@ class NoFeesFinesTest extends BaseBatchTest {
   @DisplayName("Run bursar export job with no fees/fines created")
   void testNoFeesFines() throws Exception {
     // stub GET accounts endpoint to return no accounts
-    wireMockServer.stubFor(
-      get(urlEqualTo(BursarFeesFinesTestUtils.ALL_OPEN_ACCOUNTS_GET_REQUEST))
-        .willReturn(
-          aResponse()
-            .withStatus(200)
-            .withHeader("Content-Type", "application/json")
-            .withBody(
-              """
-                {
-                  "accounts": [],
-                  "totalRecords": 0,
-                  "resultInfo": {
-                    "totalRecords": 0,
-                    "facets": [],
-                    "diagnostics": []
-                  }
-                }"""
-            )
-        )
-    );
+    wireMockServer
+      .stubFor(get(urlEqualTo(BursarFeesFinesTestUtils.ALL_OPEN_ACCOUNTS_GET_REQUEST)).willReturn(aResponse().withStatus(200)
+        .withHeader("Content-Type", "application/json")
+        .withBody("""
+            {
+              "accounts": [],
+              "totalRecords": 0,
+              "resultInfo": {
+                "totalRecords": 0,
+                "facets": [],
+                "diagnostics": []
+              }
+            }""")));
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bursarExportJob);
 
-    final JobParameters jobParameters = BursarFeesFinesTestUtils.prepareNoFeesFinesJobParameters(
-      springApplicationName,
-      objectMapper
-    );
+    final JobParameters jobParameters = BursarFeesFinesTestUtils.prepareNoFeesFinesJobParameters(springApplicationName,
+        objectMapper);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     // job status should be FAILED
     assertThat(jobExecution.getExitStatus(), is(ExitStatus.FAILED));
-    assertThat(
-      jobExecution
-        .getAllFailureExceptions()
-        .stream()
-        .map(Throwable::getMessage)
-        .filter(message -> message.contains("No accounts found"))
-        .toList(),
-      hasSize(1)
-    );
+    assertThat(jobExecution.getAllFailureExceptions()
+      .stream()
+      .map(Throwable::getMessage)
+      .filter(message -> message.contains("No accounts found"))
+      .toList(), hasSize(1));
 
     // check that the ACCOUNT_GET_REQUEST endpoint was hit
-    wireMockServer.verify(
-      getRequestedFor(
-        urlEqualTo(BursarFeesFinesTestUtils.ALL_OPEN_ACCOUNTS_GET_REQUEST)
-      )
-    );
+    wireMockServer.verify(getRequestedFor(urlEqualTo(BursarFeesFinesTestUtils.ALL_OPEN_ACCOUNTS_GET_REQUEST)));
 
     // check that user and items endpoints were not hit
-    wireMockServer.verify(
-      0,
-      getRequestedFor(
-        urlPathMatching(BursarFeesFinesTestUtils.USERS_ENDPOINT_PATH)
-      )
-    );
-    wireMockServer.verify(
-      0,
-      getRequestedFor(
-        urlPathMatching(BursarFeesFinesTestUtils.ITEMS_ENDPOINT_PATH)
-      )
-    );
-    wireMockServer.verify(
-      0,
-      postRequestedFor(
-        urlPathMatching(BursarFeesFinesTestUtils.TRANSFERS_ENDPOINT_PATH)
-      )
-    );
-    wireMockServer.verify(
-      0,
-      getRequestedFor(
-        urlEqualTo(BursarFeesFinesTestUtils.SERVICE_POINTS_GET_REQUEST)
-      )
-    );
+    wireMockServer.verify(0, getRequestedFor(urlPathMatching(BursarFeesFinesTestUtils.USERS_ENDPOINT_PATH)));
+    wireMockServer.verify(0, getRequestedFor(urlPathMatching(BursarFeesFinesTestUtils.ITEMS_ENDPOINT_PATH)));
+    wireMockServer.verify(0, postRequestedFor(urlPathMatching(BursarFeesFinesTestUtils.TRANSFERS_ENDPOINT_PATH)));
+    wireMockServer.verify(0, getRequestedFor(urlEqualTo(BursarFeesFinesTestUtils.SERVICE_POINTS_GET_REQUEST)));
 
     // check that no new file was created
     final ExecutionContext executionContext = jobExecution.getExecutionContext();
-    final String filesInStorage = (String) executionContext.get(
-      "outputFilesInStorage"
-    );
+    final String filesInStorage = (String) executionContext.get("outputFilesInStorage");
 
     assertThat(filesInStorage, nullValue());
   }

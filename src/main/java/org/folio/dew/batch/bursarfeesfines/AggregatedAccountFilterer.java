@@ -23,8 +23,7 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @RequiredArgsConstructor
-public class AggregatedAccountFilterer
-  implements ItemProcessor<AggregatedAccountsByUser, AggregatedAccountsByUser> {
+public class AggregatedAccountFilterer implements ItemProcessor<AggregatedAccountsByUser, AggregatedAccountsByUser> {
 
   @Value("#{jobExecutionContext['jobConfig']}")
   private BursarExportJob jobConfig;
@@ -36,22 +35,14 @@ public class AggregatedAccountFilterer
 
   @Override
   public AggregatedAccountsByUser process(AggregatedAccountsByUser aggregatedAccounts) {
-    if (
-      BursarFilterAggregateEvaluator.evaluateAggregate(
-        aggregatedAccounts,
-        jobConfig.getGroupByPatronFilter()
-      )
-    ) {
+    if (BursarFilterAggregateEvaluator.evaluateAggregate(aggregatedAccounts, jobConfig.getGroupByPatronFilter())) {
       // Add all the accounts into aggregated accounts
       for (Account account : aggregatedAccounts.getAccounts()) {
-        filteredAccounts.add(
-          AccountWithAncillaryData
-            .builder()
-            .account(account)
-            .user(aggregatedAccounts.getUser())
-            .item(itemMap.getOrDefault(account.getItemId(), null))
-            .build()
-        );
+        filteredAccounts.add(AccountWithAncillaryData.builder()
+          .account(account)
+          .user(aggregatedAccounts.getUser())
+          .item(itemMap.getOrDefault(account.getItemId(), null))
+          .build());
       }
 
       return aggregatedAccounts;
@@ -65,12 +56,9 @@ public class AggregatedAccountFilterer
     if (filteredAccounts.isEmpty()) {
       log.error("No accounts matched the aggregate criteria");
       stepExecution.setExitStatus(ExitStatus.FAILED);
-      stepExecution.addFailureException(
-        new IllegalStateException("No accounts matched the aggregate criteria")
-      );
+      stepExecution.addFailureException(new IllegalStateException("No accounts matched the aggregate criteria"));
     }
-    stepExecution
-      .getJobExecution()
+    stepExecution.getJobExecution()
       .getExecutionContext()
       .put("filteredAccounts", filteredAccounts);
   }

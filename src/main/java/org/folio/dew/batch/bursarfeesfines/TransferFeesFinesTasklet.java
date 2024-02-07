@@ -21,25 +21,16 @@ public class TransferFeesFinesTasklet implements Tasklet {
   private final BursarExportService exportService;
 
   @Override
-  public RepeatStatus execute(
-    StepContribution contribution,
-    ChunkContext chunkContext
-  ) {
+  public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     // from AccountItemReader
-    List<AccountWithAncillaryData> filteredAccounts = (List<AccountWithAncillaryData>) contribution
-      .getStepExecution()
+    List<AccountWithAncillaryData> filteredAccounts = (List<AccountWithAncillaryData>) contribution.getStepExecution()
       .getJobExecution()
       .getExecutionContext()
       .get("filteredAccounts");
 
     if (filteredAccounts != null && !filteredAccounts.isEmpty()) {
-      exportService.transferAccounts(
-        filteredAccounts,
-        (BursarExportJob) ExecutionContextUtils.getExecutionVariable(
-          contribution.getStepExecution(),
-          "jobConfig"
-        )
-      );
+      exportService.transferAccounts(filteredAccounts,
+          (BursarExportJob) ExecutionContextUtils.getExecutionVariable(contribution.getStepExecution(), "jobConfig"));
     }
 
     return RepeatStatus.FINISHED;

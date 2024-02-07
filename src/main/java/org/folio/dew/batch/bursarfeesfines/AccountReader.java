@@ -37,8 +37,7 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
     if (nextIndex < accounts.size()) {
       Account account = accounts.get(nextIndex);
       nextIndex++;
-      return AccountWithAncillaryData
-        .builder()
+      return AccountWithAncillaryData.builder()
         .account(account)
         .user(userMap.get(account.getUserId()))
         .item(itemMap.getOrDefault(account.getItemId(), null))
@@ -56,29 +55,27 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
     // grabbing accounts before users/items because, with a relatively
     // frequent transfer process, there will be less accounts than users
     accounts = exportService.getAllAccounts();
-    stepExecution.getExecutionContext().put("accounts", accounts);
+    stepExecution.getExecutionContext()
+      .put("accounts", accounts);
 
     if (accounts.isEmpty()) {
       log.error("No accounts found, terminating job...");
-      stepExecution.addFailureException(
-        new IllegalStateException("No accounts found")
-      );
+      stepExecution.addFailureException(new IllegalStateException("No accounts found"));
       return;
     }
 
-    Set<String> userIds = new HashSet<>(
-      accounts.stream().map(Account::getUserId).toList()
-    );
-    Set<String> itemIds = new HashSet<>(
-      accounts.stream().map(Account::getItemId).toList()
-    );
+    Set<String> userIds = new HashSet<>(accounts.stream()
+      .map(Account::getUserId)
+      .toList());
+    Set<String> itemIds = new HashSet<>(accounts.stream()
+      .map(Account::getItemId)
+      .toList());
 
     userMap = exportService.getUsers(userIds);
     itemMap = exportService.getItems(itemIds);
 
     // initializing a totalAmount variable in jobExecutionContext
-    stepExecution
-      .getJobExecution()
+    stepExecution.getJobExecution()
       .getExecutionContext()
       .put("totalAmount", new BigDecimal(0));
   }

@@ -38,29 +38,17 @@ public class BursarExportJobConfig {
   private static final int CHUNK_SIZE = 1000;
 
   @Bean
-  public Job bursarExportJob(
-    Step prepareContext,
-    Step exportStepRegular,
-    Step exportStepAggregate,
-    Step transferStep,
-    JobRepository jobRepository,
-    JobExecutionListener jobCompletionNotificationListener
-  ) {
-    Flow regularFlow = new FlowBuilder<Flow>("mainFlow")
-      .start(exportStepRegular)
+  public Job bursarExportJob(Step prepareContext, Step exportStepRegular, Step exportStepAggregate, Step transferStep,
+      JobRepository jobRepository, JobExecutionListener jobCompletionNotificationListener) {
+    Flow regularFlow = new FlowBuilder<Flow>("mainFlow").start(exportStepRegular)
       .next(transferStep)
       .build();
 
-    Flow aggregateFlow = new FlowBuilder<Flow>("alternateFlow")
-      .start(exportStepAggregate)
+    Flow aggregateFlow = new FlowBuilder<Flow>("alternateFlow").start(exportStepAggregate)
       .next(transferStep)
       .build();
 
-    return new JobBuilder(
-      ExportType.BURSAR_FEES_FINES.toString(),
-      jobRepository
-    )
-      .incrementer(new RunIdIncrementer())
+    return new JobBuilder(ExportType.BURSAR_FEES_FINES.toString(), jobRepository).incrementer(new RunIdIncrementer())
       .listener(jobCompletionNotificationListener)
       .start(prepareContext)
       .on("IS AGGREGATE")
@@ -73,26 +61,17 @@ public class BursarExportJobConfig {
   }
 
   @Bean
-  public Step prepareContext(
-    JobRepository jobRepository,
-    PrepareContextTasklet contextStep,
-    PlatformTransactionManager transactionManager
-  ) {
-    return new StepBuilder(BursarExportUtils.GET_FILENAME_STEP, jobRepository)
-      .tasklet(contextStep, transactionManager)
+  public Step prepareContext(JobRepository jobRepository, PrepareContextTasklet contextStep,
+      PlatformTransactionManager transactionManager) {
+    return new StepBuilder(BursarExportUtils.GET_FILENAME_STEP, jobRepository).tasklet(contextStep, transactionManager)
       .build();
   }
 
   @Bean
-  public Step exportStepRegular(
-    ItemReader<AccountWithAncillaryData> reader,
-    ItemProcessor<AccountWithAncillaryData, AccountWithAncillaryData> filterer,
-    ItemProcessor<AccountWithAncillaryData, String> formatter,
-    @Qualifier("bursarWriter") ItemWriter<String> writer,
-    BursarExportStepListener listener,
-    JobRepository jobRepository,
-    PlatformTransactionManager transactionManager
-  ) {
+  public Step exportStepRegular(ItemReader<AccountWithAncillaryData> reader,
+      ItemProcessor<AccountWithAncillaryData, AccountWithAncillaryData> filterer,
+      ItemProcessor<AccountWithAncillaryData, String> formatter, @Qualifier("bursarWriter") ItemWriter<String> writer,
+      BursarExportStepListener listener, JobRepository jobRepository, PlatformTransactionManager transactionManager) {
     log.info("Starting regular (non-aggregate) bursar export flow");
     CompositeItemProcessor<AccountWithAncillaryData, String> compositeProcessor = new CompositeItemProcessor<>();
     compositeProcessor.setDelegates(Arrays.asList(filterer, formatter));
@@ -111,15 +90,10 @@ public class BursarExportJobConfig {
   }
 
   @Bean
-  public Step exportStepAggregate(
-    ItemReader<AggregatedAccountsByUser> reader,
-    ItemProcessor<AggregatedAccountsByUser, AggregatedAccountsByUser> filterer,
-    ItemProcessor<AggregatedAccountsByUser, String> formatter,
-    @Qualifier("bursarWriter") ItemWriter<String> writer,
-    BursarExportStepListener listener,
-    JobRepository jobRepository,
-    PlatformTransactionManager transactionManager
-  ) {
+  public Step exportStepAggregate(ItemReader<AggregatedAccountsByUser> reader,
+      ItemProcessor<AggregatedAccountsByUser, AggregatedAccountsByUser> filterer,
+      ItemProcessor<AggregatedAccountsByUser, String> formatter, @Qualifier("bursarWriter") ItemWriter<String> writer,
+      BursarExportStepListener listener, JobRepository jobRepository, PlatformTransactionManager transactionManager) {
     log.info("Starting aggregate bursar export flow");
     CompositeItemProcessor<AggregatedAccountsByUser, String> compositeProcessor = new CompositeItemProcessor<>();
     compositeProcessor.setDelegates(Arrays.asList(filterer, formatter));
@@ -138,13 +112,9 @@ public class BursarExportJobConfig {
   }
 
   @Bean
-  public Step transferStep(
-    JobRepository jobRepository,
-    TransferFeesFinesTasklet tasklet,
-    PlatformTransactionManager transactionManager
-  ) {
-    return new StepBuilder("transferStep", jobRepository)
-      .tasklet(tasklet, transactionManager)
+  public Step transferStep(JobRepository jobRepository, TransferFeesFinesTasklet tasklet,
+      PlatformTransactionManager transactionManager) {
+    return new StepBuilder("transferStep", jobRepository).tasklet(tasklet, transactionManager)
       .build();
   }
 
@@ -157,23 +127,16 @@ public class BursarExportJobConfig {
 
   @Bean("bursarWriter")
   @StepScope
-  public BursarWriter writer(
-    @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
-    @Value("#{jobExecutionContext['filename']}") String finalFilename,
-    LocalFilesStorage localFilesStorage
-  ) {
+  public BursarWriter writer(@Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
+      @Value("#{jobExecutionContext['filename']}") String finalFilename, LocalFilesStorage localFilesStorage) {
     log.error("BursarExportJobConfig.writer needs updating!!");
 
     String filename = tempOutputFilePath + '_' + finalFilename;
-    WritableResource exportFileResource = new S3CompatibleResource<>(
-      filename,
-      localFilesStorage
-    );
+    WritableResource exportFileResource = new S3CompatibleResource<>(filename, localFilesStorage);
 
     log.info("Creating file {}.", filename);
 
-    BursarWriter writer = BursarWriter
-      .builder()
+    BursarWriter writer = BursarWriter.builder()
       .resource(exportFileResource)
       .localFilesStorage(localFilesStorage)
       .build();

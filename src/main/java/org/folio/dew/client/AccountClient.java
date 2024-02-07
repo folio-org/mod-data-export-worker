@@ -9,15 +9,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "accounts")
 public interface AccountClient {
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  AccountdataCollection getAccounts(
-    @RequestParam String query,
-    @RequestParam long limit
-  );
+  AccountdataCollection getAccounts(@RequestParam String query, @RequestParam long limit);
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  AccountdataCollection getAccounts(
-    @RequestParam String query,
-    @RequestParam long limit,
-    @RequestParam long offset
-  );
+  AccountdataCollection getAccounts(@RequestParam String query, @RequestParam long limit, @RequestParam long offset);
 }

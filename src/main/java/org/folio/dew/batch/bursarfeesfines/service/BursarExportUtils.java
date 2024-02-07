@@ -13,7 +13,8 @@ public class BursarExportUtils {
   private static final String DESCRIPTION_PATTERN = "# of accounts: %d";
 
   public static String getFilename() {
-    return String.format(FILE_PATTERN, Instant.now().toString());
+    return String.format(FILE_PATTERN, Instant.now()
+      .toString());
   }
 
   public static String getJobDescriptionPart() {

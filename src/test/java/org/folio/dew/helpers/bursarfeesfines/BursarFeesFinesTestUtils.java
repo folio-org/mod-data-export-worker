@@ -13,7 +13,7 @@ import org.folio.dew.domain.dto.BursarExportFilterAggregate;
 import org.folio.dew.domain.dto.BursarExportFilterAmount;
 import org.folio.dew.domain.dto.BursarExportFilterNegation;
 import org.folio.dew.domain.dto.BursarExportFilterPass;
-import org.folio.dew.domain.dto.BursarExportHeaderFooter;
+import org.folio.dew.domain.dto.BursarExportHeaderFooterToken;
 import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.domain.dto.BursarExportTokenAggregate;
 import org.folio.dew.domain.dto.BursarExportTokenConditional;
@@ -134,7 +134,7 @@ public class BursarFeesFinesTestUtils {
     );
     lengthControl.setTruncate(true);
 
-    List<BursarExportHeaderFooter> headerTokens = new ArrayList<>();
+    List<BursarExportHeaderFooterToken> headerTokens = new ArrayList<>();
     BursarExportTokenAggregate headerAggregate = new BursarExportTokenAggregate();
     headerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.TOTAL_AMOUNT);
     headerAggregate.setDecimal(true);
@@ -146,7 +146,7 @@ public class BursarFeesFinesTestUtils {
 
     job.setHeader(headerTokens);
 
-    List<BursarExportHeaderFooter> footerTokens = new ArrayList<>();
+    List<BursarExportHeaderFooterToken> footerTokens = new ArrayList<>();
     BursarExportTokenAggregate footerAggregate = new BursarExportTokenAggregate();
     footerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.NUM_ROWS);
     footerAggregate.setDecimal(false);
@@ -240,7 +240,7 @@ public class BursarFeesFinesTestUtils {
     );
     lengthControl.setTruncate(true);
 
-    List<BursarExportHeaderFooter> headerTokens = new ArrayList<>();
+    List<BursarExportHeaderFooterToken> headerTokens = new ArrayList<>();
     BursarExportTokenAggregate headerAggregate = new BursarExportTokenAggregate();
     headerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.TOTAL_AMOUNT);
     headerAggregate.setDecimal(true);
@@ -251,7 +251,7 @@ public class BursarFeesFinesTestUtils {
 
     job.setHeader(headerTokens);
 
-    List<BursarExportHeaderFooter> footerTokens = new ArrayList<>();
+    List<BursarExportHeaderFooterToken> footerTokens = new ArrayList<>();
     BursarExportTokenAggregate footerAggregate = new BursarExportTokenAggregate();
     footerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.NUM_ROWS);
     footerAggregate.setDecimal(false);
@@ -336,7 +336,7 @@ public class BursarFeesFinesTestUtils {
     );
     lengthControl.setTruncate(true);
 
-    List<BursarExportHeaderFooter> headerTokens = new ArrayList<>();
+    List<BursarExportHeaderFooterToken> headerTokens = new ArrayList<>();
     BursarExportTokenAggregate headerAggregate = new BursarExportTokenAggregate();
     headerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.TOTAL_AMOUNT);
     headerAggregate.setDecimal(true);
@@ -347,7 +347,7 @@ public class BursarFeesFinesTestUtils {
 
     job.setHeader(headerTokens);
 
-    List<BursarExportHeaderFooter> footerTokens = new ArrayList<>();
+    List<BursarExportHeaderFooterToken> footerTokens = new ArrayList<>();
     BursarExportTokenAggregate footerAggregate = new BursarExportTokenAggregate();
     footerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.NUM_ROWS);
     footerAggregate.setDecimal(false);
@@ -432,7 +432,7 @@ public class BursarFeesFinesTestUtils {
     BursarExportFilterPass filterPass = new BursarExportFilterPass();
     job.setFilter(filterPass);
 
-    List<BursarExportHeaderFooter> headerTokens = new ArrayList<>();
+    List<BursarExportHeaderFooterToken> headerTokens = new ArrayList<>();
     BursarExportTokenAggregate headerAggregateAmount = new BursarExportTokenAggregate();
     headerAggregateAmount.setValue(
       BursarExportTokenAggregate.ValueEnum.TOTAL_AMOUNT
@@ -451,7 +451,7 @@ public class BursarFeesFinesTestUtils {
 
     job.setHeader(headerTokens);
 
-    List<BursarExportHeaderFooter> footerTokens = new ArrayList<>();
+    List<BursarExportHeaderFooterToken> footerTokens = new ArrayList<>();
     footerTokens.add(headerAggregateAmount);
     footerTokens.add(headerAggregateNumRows);
     footerTokens.add(newLineToken);
@@ -568,7 +568,7 @@ public class BursarFeesFinesTestUtils {
     );
     job.setGroupByPatronFilter(filterAggregate);
 
-    List<BursarExportHeaderFooter> headerTokens = new ArrayList<>();
+    List<BursarExportHeaderFooterToken> headerTokens = new ArrayList<>();
     BursarExportTokenAggregate headerAggregate = new BursarExportTokenAggregate();
     headerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.TOTAL_AMOUNT);
     headerAggregate.setDecimal(true);
@@ -579,7 +579,7 @@ public class BursarFeesFinesTestUtils {
 
     job.setHeader(headerTokens);
 
-    List<BursarExportHeaderFooter> footerTokens = new ArrayList<>();
+    List<BursarExportHeaderFooterToken> footerTokens = new ArrayList<>();
     BursarExportTokenAggregate footerAggregate = new BursarExportTokenAggregate();
     footerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.NUM_ROWS);
     footerAggregate.setDecimal(false);
@@ -658,7 +658,7 @@ public class BursarFeesFinesTestUtils {
     job.setFilter(filterPass);
     job.setGroupByPatronFilter(null);
 
-    List<BursarExportHeaderFooter> headerTokens = new ArrayList<>();
+    List<BursarExportHeaderFooterToken> headerTokens = new ArrayList<>();
     BursarExportTokenAggregate headerAggregate = new BursarExportTokenAggregate();
     headerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.TOTAL_AMOUNT);
     headerAggregate.setDecimal(true);
@@ -669,7 +669,7 @@ public class BursarFeesFinesTestUtils {
 
     job.setHeader(headerTokens);
 
-    List<BursarExportHeaderFooter> footerTokens = new ArrayList<>();
+    List<BursarExportHeaderFooterToken> footerTokens = new ArrayList<>();
     BursarExportTokenAggregate footerAggregate = new BursarExportTokenAggregate();
     footerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.NUM_ROWS);
     footerAggregate.setDecimal(false);
@@ -751,7 +751,7 @@ public class BursarFeesFinesTestUtils {
     job.setFilter(filterPass);
     job.setGroupByPatronFilter(null);
 
-    List<BursarExportHeaderFooter> headerTokens = new ArrayList<>();
+    List<BursarExportHeaderFooterToken> headerTokens = new ArrayList<>();
     BursarExportTokenAggregate headerAggregate = new BursarExportTokenAggregate();
     headerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.TOTAL_AMOUNT);
     headerAggregate.setDecimal(true);
@@ -762,7 +762,7 @@ public class BursarFeesFinesTestUtils {
 
     job.setHeader(headerTokens);
 
-    List<BursarExportHeaderFooter> footerTokens = new ArrayList<>();
+    List<BursarExportHeaderFooterToken> footerTokens = new ArrayList<>();
     BursarExportTokenAggregate footerAggregate = new BursarExportTokenAggregate();
     footerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.NUM_ROWS);
     footerAggregate.setDecimal(false);

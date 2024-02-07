@@ -14,7 +14,7 @@ import javax.annotation.CheckForNull;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.BursarExportDataToken;
-import org.folio.dew.domain.dto.BursarExportHeaderFooter;
+import org.folio.dew.domain.dto.BursarExportHeaderFooterToken;
 import org.folio.dew.domain.dto.BursarExportTokenAggregate;
 import org.folio.dew.domain.dto.BursarExportTokenConditional;
 import org.folio.dew.domain.dto.BursarExportTokenConditionalConditionsInner;
@@ -40,7 +40,7 @@ public class BursarTokenFormatter {
   public static final int NUM_DAYS_IN_WEEK = 7;
 
   public static String formatHeaderFooterToken(
-    BursarExportHeaderFooter token,
+    BursarExportHeaderFooterToken token,
     int aggregateNumRows,
     BigDecimal aggregateTotalAmount
   ) {

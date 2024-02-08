@@ -346,8 +346,11 @@ class MultipleFeeFinesAcrossPatronsAggregateTest extends BaseBatchTest {
       .withRequestBody(matchingJsonPath("$.paymentMethod", equalTo("Transfer2bursar")))
       .withRequestBody(matchingJsonPath("$.notifyPatron", equalTo("false")))
       .withRequestBody(matchingJsonPath("$.userName", equalTo("System")))
-      .withRequestBody(matchingJsonPath("$.accountIds", equalTo(
-          "[ \"807becbc-c3e6-4871-bf38-d140597e41cb\", \"3d68adf3-abae-4792-a865-aa4a077ba909\", \"707becbc-c3e6-4871-bf38-d140597e41cb\", \"3a632e3e-53f9-4380-bc0b-f8a7804d8746\" ]"))));
+      .withRequestBody(matchingJsonPath("$.accountIds.length()", equalTo("4")))
+      .withRequestBody(matchingJsonPath("$.accountIds[?(@ == '807becbc-c3e6-4871-bf38-d140597e41cb')]"))
+      .withRequestBody(matchingJsonPath("$.accountIds[?(@ == '3d68adf3-abae-4792-a865-aa4a077ba909')]"))
+      .withRequestBody(matchingJsonPath("$.accountIds[?(@ == '707becbc-c3e6-4871-bf38-d140597e41cb')]"))
+      .withRequestBody(matchingJsonPath("$.accountIds[?(@ == '3a632e3e-53f9-4380-bc0b-f8a7804d8746')]")));
 
     // check file content
     final ExecutionContext executionContext = jobExecution.getExecutionContext();

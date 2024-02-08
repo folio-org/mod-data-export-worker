@@ -256,8 +256,9 @@ class UseMostOuputTokensTest extends BaseBatchTest {
       .withRequestBody(matchingJsonPath("$.paymentMethod", equalTo("Transfer2bursar")))
       .withRequestBody(matchingJsonPath("$.notifyPatron", equalTo("false")))
       .withRequestBody(matchingJsonPath("$.userName", equalTo("System")))
-      .withRequestBody(matchingJsonPath("$.accountIds",
-          equalTo("[ \"807becbc-c3e6-4871-bf38-d140597e41cb\", \"707becbc-c3e6-4871-bf38-d140597e41cb\" ]"))));
+      .withRequestBody(matchingJsonPath("$.accountIds.length()", equalTo("2")))
+      .withRequestBody(matchingJsonPath("$.accountIds[?(@ == '807becbc-c3e6-4871-bf38-d140597e41cb')]"))
+      .withRequestBody(matchingJsonPath("$.accountIds[?(@ == '707becbc-c3e6-4871-bf38-d140597e41cb')]")));
 
     // check file content
     final ExecutionContext executionContext = jobExecution.getExecutionContext();

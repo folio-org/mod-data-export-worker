@@ -2,6 +2,8 @@ package org.folio.dew.batch.bursarfeesfines;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.domain.dto.BursarExportJob;
@@ -23,12 +25,13 @@ public class TransferFeesFinesTasklet implements Tasklet {
   @Override
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     // from AccountItemReader
+    @SuppressWarnings("unchecked")
     List<AccountWithAncillaryData> filteredAccounts = (List<AccountWithAncillaryData>) contribution.getStepExecution()
       .getJobExecution()
       .getExecutionContext()
       .get("filteredAccounts");
 
-    if (filteredAccounts != null && !filteredAccounts.isEmpty()) {
+    if (CollectionUtils.isNotEmpty(filteredAccounts)) {
       exportService.transferAccounts(filteredAccounts,
           (BursarExportJob) ExecutionContextUtils.getExecutionVariable(contribution.getStepExecution(), "jobConfig"));
     }

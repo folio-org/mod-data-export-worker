@@ -69,6 +69,7 @@
         <marc4j.version>2.9.1</marc4j.version>
         <testcontainers.version>1.17.6</testcontainers.version>
         <aws.sdk.version>2.20.0</aws.sdk.version>
+        <hamcrest-all.version>1.3</hamcrest-all.version>
         <mockito-inline.version>5.2.0</mockito-inline.version>
 
       <!--Plugin properties-->
@@ -291,6 +292,11 @@
             </exclusions>
         </dependency>
         <dependency>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest-all</artifactId>
+          <version>${hamcrest-all.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.batch</groupId>
             <artifactId>spring-batch-test</artifactId>
             <scope>test</scope>
@@ -363,7 +369,7 @@
                         </goals>
                         <configuration>
                             <sources>
-                                <source>${project.build.directory}/generated-sources</source>
+                                <source>${project.build.directory}/generated-sources/src/main/java</source>
                             </sources>
                         </configuration>
                     </execution>
@@ -530,6 +536,7 @@
                         <dateLibrary>java</dateLibrary>
                         <interfaceOnly>true</interfaceOnly>
                         <useSpringBoot3>true</useSpringBoot3>
+                        <serializableModel>true</serializableModel>
                       </configOptions>
                     </configuration>
                   </execution>

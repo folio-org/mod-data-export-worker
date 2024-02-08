@@ -1,140 +1,220 @@
 package org.folio.dew.batch.bursarfeesfines.service.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.client.AccountBulkClient;
 import org.folio.dew.client.AccountClient;
-import org.folio.dew.client.FeefineactionsClient;
+import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.ServicePointClient;
 import org.folio.dew.client.TransferClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.config.JacksonConfiguration;
 import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.AccountdataCollection;
-import org.folio.dew.domain.dto.Feefineaction;
-import org.folio.dew.domain.dto.FeefineactionCollection;
+import org.folio.dew.domain.dto.BursarExportFilterNegation;
+import org.folio.dew.domain.dto.BursarExportFilterPass;
+import org.folio.dew.domain.dto.BursarExportJob;
+import org.folio.dew.domain.dto.BursarExportTransferCriteria;
+import org.folio.dew.domain.dto.BursarExportTransferCriteriaConditionsInner;
+import org.folio.dew.domain.dto.BursarExportTransferCriteriaElse;
+import org.folio.dew.domain.dto.ServicePoint;
+import org.folio.dew.domain.dto.Servicepoints;
+import org.folio.dew.domain.dto.Transfer;
+import org.folio.dew.domain.dto.TransferdataCollection;
 import org.folio.dew.domain.dto.User;
-import org.junit.jupiter.api.DisplayName;
+import org.folio.dew.domain.dto.UserCollection;
+import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.MockBeans;
 
-@SpringBootTest(classes = {JacksonConfiguration.class, BursarExportServiceImpl.class})
-@MockBeans({
-  @MockBean(UserClient.class),
-  @MockBean(AccountBulkClient.class),
-  @MockBean(TransferClient.class),
-  @MockBean(ServicePointClient.class)
-})
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import lombok.extern.log4j.Log4j2;
+
+@ExtendWith({ MockitoExtension.class })
+@SpringBootTest(classes = { JacksonConfiguration.class, BursarExportServiceImpl.class })
+@MockBeans({ @MockBean(AccountClient.class), @MockBean(InventoryClient.class), @MockBean(UserClient.class),
+    @MockBean(AccountBulkClient.class), @MockBean(TransferClient.class), @MockBean(ServicePointClient.class), })
+@Log4j2
 class BursarExportServiceImplTest {
+
   @Autowired
-  private BursarExportServiceImpl bursarExportService;
+  private BursarExportService service;
+
   @MockBean
-  private AccountClient client;
+  private UserClient userClient;
+
   @MockBean
-  private FeefineactionsClient feefineactionsClient;
+  private TransferClient transferClient;
+
+  @MockBean
+  private ServicePointClient servicePointClient;
+
+  @MockBean
+  private AccountClient accountClient;
+
+  @MockBean
+  private AccountBulkClient bulkClient;
+
+  @MockBean
+  private InventoryClient inventoryClient;
 
   @Test
-  @DisplayName("Find accounts should return empty list for not defined outStanding days")
-  void findAccountsEmptyTest() {
-    final List<User> users = generateUsers(100);
-    final List<Account> accounts = bursarExportService.findAccounts(null, users);
+  void testBursarExportService() {
+    List<AccountWithAncillaryData> accounts = new ArrayList<>();
+    Account account = new Account();
+    account.setId("1111-11-11-11-111111");
+    account.setAmount(new BigDecimal(100));
+    account.setRemaining(new BigDecimal(100));
 
-    assertTrue(accounts.isEmpty());
+    accounts.add(AccountWithAncillaryData.builder()
+      .account(account)
+      .build());
+
+    BursarExportJob bursarFeeFines = new BursarExportJob();
+
+    BursarExportTransferCriteria transferCriteria = new BursarExportTransferCriteria();
+    List<BursarExportTransferCriteriaConditionsInner> conditions = new ArrayList<>();
+    BursarExportTransferCriteriaConditionsInner condition = new BursarExportTransferCriteriaConditionsInner();
+    condition.setCondition(new BursarExportFilterPass());
+    condition.setAccount(UUID.fromString("0000-00-00-00-000000"));
+    conditions.add(condition);
+    transferCriteria.setElse(null);
+
+    transferCriteria.setConditions(conditions);
+    bursarFeeFines.setFilter(new BursarExportFilterPass());
+    bursarFeeFines.setTransferInfo(transferCriteria);
+
+    List<ServicePoint> servicePointsList = mockServicePointsList();
+    Servicepoints servicepoints = new Servicepoints();
+    servicepoints.setServicepoints(servicePointsList);
+    servicepoints.setTotalRecords(1);
+
+    TransferdataCollection transferdataCollection = mockTransferDataCollection();
+
+    when(servicePointClient.get("code==system", 2)).thenReturn(servicepoints);
+    when(transferClient.get("id==00000000-0000-0000-0000-000000000000", 1)).thenReturn(transferdataCollection);
+
+    service.transferAccounts(accounts, bursarFeeFines);
+
+    BursarExportFilterNegation filterNegation = new BursarExportFilterNegation();
+    filterNegation.setCriteria(new BursarExportFilterPass());
+    condition.setCondition(filterNegation);
+    condition.setAccount(UUID.fromString("0000-00-00-00-000000"));
+    conditions.clear();
+    conditions.add(condition);
+    BursarExportTransferCriteriaElse transferCriteriaElse = new BursarExportTransferCriteriaElse();
+    transferCriteriaElse.setAccount(UUID.fromString("0000-00-00-00-000000"));
+    transferCriteria.setElse(transferCriteriaElse);
+
+    service.transferAccounts(accounts, bursarFeeFines);
+
+    verify(transferClient, times(2)).get("id==00000000-0000-0000-0000-000000000000", 1);
+    verify(servicePointClient, times(2)).get("code==system", 2);
+
+    // test exceptions in getSystemServicePoint()
+    servicepoints.setTotalRecords(0);
+    when(servicePointClient.get("code==system", 2)).thenReturn(servicepoints);
+    Assertions.assertThrows(IllegalStateException.class, () -> service.transferAccounts(accounts, bursarFeeFines));
+
+    servicepoints.setTotalRecords(2);
+    when(servicePointClient.get("code==system", 2)).thenReturn(servicepoints);
+    Assertions.assertThrows(IllegalStateException.class, () -> service.transferAccounts(accounts, bursarFeeFines));
+
+    // test exceptions in toTransferRequest()
+    account.setRemaining(new BigDecimal(0));
+    accounts.add(AccountWithAncillaryData.builder()
+      .account(account)
+      .build());
+    Assertions.assertThrows(IllegalArgumentException.class, () -> service.transferAccounts(accounts, bursarFeeFines));
   }
 
   @Test
-  @DisplayName("Find accounts should fetch data in several buckets")
-  void findAccountsTest() {
-    when(client.getAccounts(any(), eq(10000L))).thenReturn(mockAccountData());
+  void testFetchDataInBatchMoreThanBucketSize() {
+    Set<String> userIds = generateUserIds(100);
+    UserCollection userCollection = new UserCollection();
+    List<User> users = new ArrayList<>();
+    users.add(new User());
+    userCollection.setUsers(new ArrayList<>());
 
-    final List<User> users = generateUsers(100);
-    final List<Account> accounts = bursarExportService.findAccounts(1L, users);
-
-    assertEquals(2, accounts.size());
+    when(userClient.getUserByQuery(any(), eq(50L))).thenAnswer(invocation -> mockUserCollection());
+    Assertions.assertEquals(2, service.getUsers(userIds)
+      .size());
   }
 
   @Test
-  @DisplayName("Find accounts should fetch data in one call")
-  void findAccountsLessThanBucketSizeTest() {
-    when(client.getAccounts(any(), eq(10000L))).thenReturn(mockAccountData());
-
-    final List<User> users = generateUsers(50);
-    final List<Account> accounts = bursarExportService.findAccounts(1L, users);
-
-    assertEquals(1, accounts.size());
+  void testGetAllAccounts() {
+    when(accountClient.getAccounts("remaining > 0.0", 10000L)).thenReturn(mockAccountdataCollection(10000));
+    when(accountClient.getAccounts("remaining > 0.0", 10000L, 10000)).thenReturn(mockAccountdataCollection(10000));
+    Assertions.assertEquals(20000, service.getAllAccounts()
+      .size());
   }
 
-  @Test
-  @DisplayName("Find FeeFineActions should return empty collection for no accountIds")
-  void findFeeFineActionsEmptyTest() {
-    final List<String> accountIds = Collections.emptyList();
-    final List<Feefineaction> feefineActions = bursarExportService.findRefundedFeefineActions(accountIds);
+  private TransferdataCollection mockTransferDataCollection() {
+    String transferAccountName = "test_name";
 
-    assertTrue(feefineActions.isEmpty());
+    TransferdataCollection transferdataCollection = new TransferdataCollection();
+    List<Transfer> transfers = new ArrayList<>();
+    Transfer transfer = new Transfer();
+    transfer.setAccountName(transferAccountName);
+    transfers.add(transfer);
+    transferdataCollection.setTransfers(transfers);
+
+    return transferdataCollection;
   }
 
-  @Test
-  @DisplayName("Find FeeFineActions should fetch data in several buckets")
-  void findFeeFineActionsTest() {
-    when(feefineactionsClient.getFeefineactions(any(), eq(10000L))).thenReturn(mockFeeFineData());
+  private List<ServicePoint> mockServicePointsList() {
+    List<ServicePoint> servicePointsList = new ArrayList<>();
+    ServicePoint servicePoint = new ServicePoint();
+    servicePoint.setId("00000000-0000-0000-0000-000000000001");
+    servicePointsList.add(servicePoint);
 
-    final List<String> accountIds = generateAccountIds(100);
-    final List<Feefineaction> feefineActions = bursarExportService.findRefundedFeefineActions(accountIds);
-
-    assertEquals(2, feefineActions.size());
+    return servicePointsList;
   }
 
-  @Test
-  @DisplayName("Find FeeFineActions should fetch data in one call")
-  void findFeeFineActionsLessThanBucketSizeTest() {
-    when(feefineactionsClient.getFeefineactions(any(), eq(10000L))).thenReturn(mockFeeFineData());
-
-    final List<String> accountIds = generateAccountIds(50);
-    final List<Feefineaction> feefineActions = bursarExportService.findRefundedFeefineActions(accountIds);
-
-    assertEquals(1, feefineActions.size());
-  }
-
-  private List<User> generateUsers(int size) {
-    return Stream
-      .generate(UUID::randomUUID)
-      .map(UUID::toString)
-      .map(id -> new User().id(id))
+  private Set<String> generateUserIds(int size) {
+    return Stream.generate(UUID::randomUUID)
       .limit(size)
-      .collect(Collectors.toList());
-  }
-
-  private List<String> generateAccountIds(int size) {
-    return Stream
-      .generate(UUID::randomUUID)
       .map(UUID::toString)
-      .limit(size)
-      .collect(Collectors.toList());
+      .collect(Collectors.toSet());
   }
 
-  private AccountdataCollection mockAccountData() {
-    AccountdataCollection accounts = new AccountdataCollection();
-    Account account = new Account().id(UUID.randomUUID().toString());
-    accounts.accounts(List.of(account));
-    return accounts;
+  private UserCollection mockUserCollection() {
+    UserCollection userCollection = new UserCollection();
+    User user = new User().id(UUID.randomUUID()
+      .toString());
+    userCollection.setUsers(List.of(user));
+
+    return userCollection;
   }
 
-  private FeefineactionCollection mockFeeFineData() {
-    FeefineactionCollection collection = new FeefineactionCollection();
-    Feefineaction feefineaction = new Feefineaction().accountId(UUID.randomUUID().toString());
-    collection.feefineactions(List.of(feefineaction));
-    return collection;
+  private AccountdataCollection mockAccountdataCollection(int size) {
+    AccountdataCollection accountdataCollection = new AccountdataCollection();
+    List<Account> accounts = new ArrayList<>();
+    for (int i = 0; i < size; i++) {
+      Account account = new Account();
+      accounts.add(account);
+    }
+    accountdataCollection.setAccounts(accounts);
+    accountdataCollection.setTotalRecords(2 * size);
+
+    return accountdataCollection;
   }
 }

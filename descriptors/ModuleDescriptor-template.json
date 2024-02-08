@@ -7,6 +7,10 @@
       "version": "15.4 16.0"
     },
     {
+      "id": "inventory",
+      "version": "13.0"
+    },
+    {
       "id": "configuration",
       "version": "2.0"
     },
@@ -44,7 +48,7 @@
     },
     {
       "id": "data-export-spring",
-      "version": "1.0"
+      "version": "2.0"
     },
     {
       "id": "electronic-access-relationships",
@@ -129,6 +133,10 @@
     {
       "id": "statistical-codes",
       "version": "1.0"
+    },
+    {
+      "id": "service-points",
+      "version": "3.3"
     }
   ],
   "provides": [
@@ -530,7 +538,6 @@
       "permissionName" : "bulk-edit.errors.collection.get",
       "displayName" : "get errors for preview",
       "description" : "Get errors for preview"
-
     },
     {
       "permissionName" : "refresh-presigned-url.get",

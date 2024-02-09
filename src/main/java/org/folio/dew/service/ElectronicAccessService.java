@@ -12,6 +12,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.ElectronicAccessRelationshipClient;
 import org.folio.dew.domain.dto.ElectronicAccess;
+import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.springframework.cache.annotation.Cacheable;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class ElectronicAccessService {
   private final ElectronicAccessRelationshipClient relationshipClient;
+  private final BulkEditProcessingErrorsService errorsService;
 
   private static final int NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS = 6;
   private static final int ELECTRONIC_ACCESS_URI_INDEX = 0;
@@ -37,18 +39,18 @@ public class ElectronicAccessService {
 
   public static final String HOLDINGS_DELIMETER = "\u001f|";
 
-  public String getElectronicAccessesToString(List<ElectronicAccess> electronicAccesses) {
+  public String getElectronicAccessesToString(List<ElectronicAccess> electronicAccesses, ErrorServiceArgs errorServiceArgs) {
     return isEmpty(electronicAccesses) ?
       EMPTY :
       "URL relationship;URI;Link text;Materials specified;URL public note\n" +
       electronicAccesses.stream()
         .filter(Objects::nonNull)
-        .map(this::electronicAccessToString)
+        .map(ea -> electronicAccessToString(ea, errorServiceArgs))
         .collect(Collectors.joining(HOLDINGS_DELIMETER));
   }
 
-  private String electronicAccessToString(ElectronicAccess access) {
-    var relationshipName = isEmpty(access.getRelationshipId()) ? EMPTY : getRelationshipNameById(access.getRelationshipId());
+  private String electronicAccessToString(ElectronicAccess access, ErrorServiceArgs errorServiceArgs) {
+    var relationshipName = isEmpty(access.getRelationshipId()) ? EMPTY : getRelationshipNameById(access.getRelationshipId(), errorServiceArgs);
     return String.join(ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER,
       isEmpty(relationshipName) ? EMPTY : relationshipName,
       isEmpty(access.getUri()) ? EMPTY : access.getUri(),
@@ -58,10 +60,13 @@ public class ElectronicAccessService {
   }
 
   @Cacheable(cacheNames = "relationships")
-  public String getRelationshipNameById(String id) {
+  public String getRelationshipNameById(String id, ErrorServiceArgs errorServiceArgs) {
     try {
       return relationshipClient.getById(id).getName();
     } catch (NotFoundException e) {
+      var errorMessage = String.format("Electronic access relationship not found by id=%s", id);
+      log.error(errorMessage);
+      errorsService.saveErrorInCSV(errorServiceArgs.getJobId(), errorServiceArgs.getIdentifier(), new BulkEditException(errorMessage), errorServiceArgs.getFileName());
       return id;
     }
   }
@@ -80,7 +85,7 @@ public class ElectronicAccessService {
       Arrays.stream(s.split(ITEM_DELIMITER_PATTERN))
         .map(this::restoreElectronicAccessItem)
         .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private ElectronicAccess restoreElectronicAccessItem(String s) {

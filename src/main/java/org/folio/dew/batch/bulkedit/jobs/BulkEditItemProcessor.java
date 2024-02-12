@@ -10,6 +10,7 @@ import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_SPACED;
 import static org.folio.dew.utils.Constants.STAFF_ONLY;
+import static org.folio.dew.utils.Constants.HOLDINGS_LOCATION_CALL_NUMBER_SEPARATOR;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -63,6 +64,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .formerIds(isEmpty(item.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getFormerIds())))
       .discoverySuppress(booleanToStringNullSafe(item.getDiscoverySuppress()))
       .title(item.getTitle())
+      .effectiveLocationCallNumber(generateHoldingsEffectiveLocationCallNumber(item))
       .contributorNames(fetchContributorNames(item))
       .callNumber(item.getCallNumber())
       .barcode(item.getBarcode())
@@ -107,6 +109,13 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .build();
     itemFormat.setElectronicAccess(electronicAccessService.getElectronicAccessesToString(item.getElectronicAccess()));
     return itemFormat.withOriginal(item);
+  }
+
+  private String generateHoldingsEffectiveLocationCallNumber(Item item) {
+    var effectiveLocationName = isEmpty(item.getEffectiveLocation()) ? EMPTY : item.getEffectiveLocation().getName();
+    var effectiveCallNumber = effectiveCallNumberComponentsToString(item.getEffectiveCallNumberComponents());
+
+    return String.join(effectiveLocationName, HOLDINGS_LOCATION_CALL_NUMBER_SEPARATOR, effectiveCallNumber);
   }
 
 

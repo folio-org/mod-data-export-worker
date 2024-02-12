@@ -295,7 +295,8 @@ public class BulkEditParseService {
       .statisticalCodeIds(restoreStatisticalCodeIds(itemFormat.getStatisticalCodes()))
       .purchaseOrderLineIdentifier(restoreStringValue(itemFormat.getPurchaseOrderLineIdentifier()))
       .tags(isEmpty(itemFormat.getTags()) ? new Tags().tagList(Collections.emptyList()) : new Tags().tagList(restoreListValue(itemFormat.getTags())))
-      .lastCheckIn(restoreLastCheckIn(itemFormat.getLastCheckIn()));
+      .lastCheckIn(restoreLastCheckIn(itemFormat.getLastCheckIn()))
+      .displaySummary(restoreStringValue(itemFormat.getDisplaySummary()));
   }
 
   private String restoreStringValue(String s) {

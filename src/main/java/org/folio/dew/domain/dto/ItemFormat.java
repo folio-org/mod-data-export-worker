@@ -221,7 +221,6 @@ public class ItemFormat implements Formatable<org.folio.dew.domain.dto.Item> {
   @CsvBindByPosition(position = 49)
   private String displaySummary;
 
-
   public static String[] getItemFieldsArray() {
     return FieldUtils.getFieldsListWithAnnotation(ItemFormat.class, CsvBindByName.class).stream()
       .map(Field::getName)

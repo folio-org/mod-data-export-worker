@@ -51,7 +51,7 @@ public class ItemFormat implements Formatable<org.folio.dew.domain.dto.Item> {
 
   @CsvBindByName(column = "Holdings (Location, Call number)")
   @CsvBindByPosition(position = 7)
-  private String effectiveLocationCallNumber;
+  private String holdingsData;
 
   @CsvBindByName(column = "Contributor Names")
   @CsvBindByPosition(position = 8)

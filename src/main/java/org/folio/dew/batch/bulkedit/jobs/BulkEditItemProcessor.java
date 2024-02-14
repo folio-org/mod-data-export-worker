@@ -64,7 +64,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .formerIds(isEmpty(item.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getFormerIds())))
       .discoverySuppress(booleanToStringNullSafe(item.getDiscoverySuppress()))
       .title(item.getTitle())
-      .effectiveLocationCallNumber(generateHoldingsEffectiveLocationCallNumber(item))
+      .holdingsData(generateHoldingsData(item))
       .contributorNames(fetchContributorNames(item))
       .callNumber(item.getCallNumber())
       .barcode(item.getBarcode())
@@ -111,7 +111,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
     return itemFormat.withOriginal(item);
   }
 
-  private String generateHoldingsEffectiveLocationCallNumber(Item item) {
+  private String generateHoldingsData(Item item) {
     var effectiveLocationName = isEmpty(item.getEffectiveLocation()) ? EMPTY : item.getEffectiveLocation().getName();
     var effectiveCallNumber = effectiveCallNumberComponentsToString(item.getEffectiveCallNumberComponents());
 

@@ -3,7 +3,10 @@ package org.folio.dew.service;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.folio.dew.utils.Constants.*;
+import static org.folio.dew.utils.Constants.BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE;
+import static org.folio.dew.utils.Constants.MODULE_NAME;
+import static org.folio.dew.utils.Constants.STATUSES_CONFIG_NAME;
+import static org.folio.dew.utils.Constants.HOLDINGS_LOCATION_CALL_NUMBER_DELIMITER;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -23,13 +26,7 @@ import org.folio.dew.client.MaterialTypeClient;
 import org.folio.dew.client.ServicePointClient;
 import org.folio.dew.client.StatisticalCodeClient;
 import org.folio.dew.client.UserClient;
-import org.folio.dew.domain.dto.ErrorServiceArgs;
-import org.folio.dew.domain.dto.ItemLocation;
-import org.folio.dew.domain.dto.ItemLocationCollection;
-import org.folio.dew.domain.dto.LoanType;
-import org.folio.dew.domain.dto.LoanTypeCollection;
-import org.folio.dew.domain.dto.MaterialType;
-import org.folio.dew.domain.dto.MaterialTypeCollection;
+import org.folio.dew.domain.dto.*;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.ConfigurationException;
 import org.folio.dew.error.NotFoundException;
@@ -47,6 +44,7 @@ public class ItemReferenceService {
   private static final String QUERY_PATTERN_NAME = "name==\"%s\"";
   private static final String QUERY_PATTERN_CODE = "code==\"%s\"";
   private static final String QUERY_PATTERN_USERNAME = "username==\"%s\"";
+  public static final String EFFECTIVE_LOCATION_ID = "effectiveLocationId";
 
   private final CallNumberTypeClient callNumberTypeClient;
   private final DamagedStatusClient damagedStatusClient;
@@ -236,7 +234,7 @@ public class ItemReferenceService {
   @Cacheable(cacheNames = "holdings")
   public String getHoldingEffectiveLocationCodeById(String id) {
     var holdingJson = holdingClient.getHoldingById(id);
-    var effectiveLocationId = isEmpty(holdingJson.get("effectiveLocationId")) ? getHoldingsEffectiveLocation(holdingJson) : holdingJson.get("effectiveLocationId");
+    var effectiveLocationId = isEmpty(holdingJson.get(EFFECTIVE_LOCATION_ID)) ? getHoldingsEffectiveLocation(holdingJson) : holdingJson.get(EFFECTIVE_LOCATION_ID);
     if (nonNull(effectiveLocationId)) {
       var locationJson = locationClient.getLocation(effectiveLocationId.asText());
       return isEmpty(locationJson.get("name")) ? EMPTY : locationJson.get("name").asText();
@@ -265,13 +263,20 @@ public class ItemReferenceService {
     return isEmpty(holdingsJson.get("temporaryLocationId")) ? holdingsJson.get("permanentLocationId") : holdingsJson.get("temporaryLocationId");
   }
 
-  public String getEffectiveLocationCallNumberComponentsForItem(String holdingsRecordId){
+  public String getEffectiveLocationCallNumberComponentsForItem(Item item){
+
+    var holdingsRecordId = item.getHoldingsRecordId();
     if(StringUtils.isEmpty(holdingsRecordId)){
       return EMPTY;
     }
 
+    if(isEmpty(item.getPermanentLocation()) && isEmpty(item.getTemporaryLocation()) && isEmpty(item.getItemLevelCallNumber())&& isEmpty(item.getItemLevelCallNumberPrefix()) && isEmpty(item.getItemLevelCallNumberSuffix()) && isEmpty(item.getItemLevelCallNumberTypeId())){
+      return String.join(HOLDINGS_LOCATION_CALL_NUMBER_DELIMITER, item.getEffectiveLocation().getName(), item.getEffectiveCallNumberComponents().getCallNumber());
+    }
+
+
     var holdingJson = holdingClient.getHoldingById(holdingsRecordId);
-    var effectiveLocationId = isEmpty(holdingJson.get("effectiveLocationId")) ? getHoldingsEffectiveLocation(holdingJson) : holdingJson.get("effectiveLocationId");
+    var effectiveLocationId = isEmpty(holdingJson.get(EFFECTIVE_LOCATION_ID)) ? getHoldingsEffectiveLocation(holdingJson) : holdingJson.get(EFFECTIVE_LOCATION_ID);
     var effectiveLocationName = EMPTY;
     if (nonNull(effectiveLocationId)) {
       var locationJson = locationClient.getLocation(effectiveLocationId.asText());

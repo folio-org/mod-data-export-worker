@@ -3,9 +3,7 @@ package org.folio.dew.service;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.folio.dew.utils.Constants.BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE;
-import static org.folio.dew.utils.Constants.MODULE_NAME;
-import static org.folio.dew.utils.Constants.STATUSES_CONFIG_NAME;
+import static org.folio.dew.utils.Constants.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -265,4 +263,19 @@ public class ItemReferenceService {
   private JsonNode getHoldingsEffectiveLocation(JsonNode holdingsJson) {
     return isEmpty(holdingsJson.get("temporaryLocationId")) ? holdingsJson.get("permanentLocationId") : holdingsJson.get("temporaryLocationId");
   }
+
+  public String getEffectiveLocationCallNumberComponentsForItem(String holdingsRecordId){
+    var holdingJson = holdingClient.getHoldingById(holdingsRecordId);
+    var effectiveLocationId = isEmpty(holdingJson.get("effectiveLocationId")) ? getHoldingsEffectiveLocation(holdingJson) : holdingJson.get("effectiveLocationId");
+    var effectiveLocationName = EMPTY;
+    if (nonNull(effectiveLocationId)) {
+      var locationJson = locationClient.getLocation(effectiveLocationId.asText());
+      effectiveLocationName = isEmpty(locationJson.get("name")) ? EMPTY : locationJson.get("name").asText();
+    }
+
+    var callNumber = isEmpty(holdingJson.get("callNumber")) ? EMPTY : holdingJson.get("callNumber");
+
+    return String.join(HOLDINGS_LOCATION_CALL_NUMBER_DELIMITER, effectiveLocationName, (CharSequence) callNumber);
+  }
+
 }

@@ -1,5 +1,6 @@
 package org.folio.dew.service;
 
+import static com.github.jknack.handlebars.internal.lang3.StringUtils.EMPTY;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -40,5 +41,20 @@ class ItemReferenceServiceTest extends BaseBatchTest {
     Mockito.when(holdingClient.getHoldingById(holdingsId)).thenReturn(objectMapper.readTree(response));
     Mockito.when(locationClient.getLocation("b4c3e3c0-03eb-4861-acc5-55e9c6ff7d34")).thenReturn(objectMapper.readTree("{ \"name\": \"Expected name\" }".getBytes()));
     assertThat(itemReferenceService.getHoldingEffectiveLocationCodeById(holdingsId), equalTo("Expected name"));
+  }
+  @ParameterizedTest
+  @ValueSource(strings = {
+    "{}" ,
+    "{ \"effectiveLocationId\": \"b4c3e3c0-03eb-4861-acc5-55e9c6ff7d34\" }",
+    "{ \"temporaryLocationId\": \"b4c3e3c0-03eb-4861-acc5-55e9c6ff7d34\" }",
+    "{ \"permanentLocationId\": \"b4c3e3c0-03eb-4861-acc5-55e9c6ff7d34\" }"
+  })
+  @SneakyThrows
+  void shouldCalculateEmptyEffectiveLocationCallNumberComponentsForItem(String response) {
+    var holdingsId = UUID.randomUUID().toString();
+    Mockito.when(holdingClient.getHoldingById(holdingsId)).thenReturn(objectMapper.readTree(response));
+    Mockito.when(locationClient.getLocation("b4c3e3c0-03eb-4861-acc5-55e9c6ff7d34")).thenReturn(objectMapper.readTree("{}".getBytes()));
+
+    assertThat(itemReferenceService.getEffectiveLocationCallNumberComponentsForItem(holdingsId), equalTo(EMPTY));
   }
 }

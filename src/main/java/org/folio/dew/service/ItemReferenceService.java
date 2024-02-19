@@ -271,7 +271,12 @@ public class ItemReferenceService {
     }
 
     if(isEmpty(item.getPermanentLocation()) && isEmpty(item.getTemporaryLocation()) && isEmpty(item.getItemLevelCallNumber())&& isEmpty(item.getItemLevelCallNumberPrefix()) && isEmpty(item.getItemLevelCallNumberSuffix()) && isEmpty(item.getItemLevelCallNumberTypeId())){
-      return String.join(HOLDINGS_LOCATION_CALL_NUMBER_DELIMITER, item.getEffectiveLocation().getName(), item.getEffectiveCallNumberComponents().getCallNumber());
+      var effLocationName = isEmpty(item.getEffectiveLocation().getName()) ? EMPTY : item.getEffectiveLocation().getName();
+      var effLocationCallNumber = isEmpty(item.getEffectiveCallNumberComponents().getCallNumber()) ? EMPTY : item.getEffectiveCallNumberComponents().getCallNumber();
+      if(EMPTY.equals(effLocationName) && EMPTY.equals(effLocationCallNumber)){
+        return EMPTY;
+      }
+      return String.join(HOLDINGS_LOCATION_CALL_NUMBER_DELIMITER, effLocationName, effLocationCallNumber);
     }
 
 

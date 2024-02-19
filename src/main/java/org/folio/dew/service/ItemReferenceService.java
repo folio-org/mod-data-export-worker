@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.CallNumberTypeClient;
 import org.folio.dew.client.ConfigurationClient;
 import org.folio.dew.client.DamagedStatusClient;
@@ -265,6 +266,10 @@ public class ItemReferenceService {
   }
 
   public String getEffectiveLocationCallNumberComponentsForItem(String holdingsRecordId){
+    if(StringUtils.isEmpty(holdingsRecordId)){
+      return EMPTY;
+    }
+
     var holdingJson = holdingClient.getHoldingById(holdingsRecordId);
     var effectiveLocationId = isEmpty(holdingJson.get("effectiveLocationId")) ? getHoldingsEffectiveLocation(holdingJson) : holdingJson.get("effectiveLocationId");
     var effectiveLocationName = EMPTY;
@@ -274,6 +279,10 @@ public class ItemReferenceService {
     }
 
     var callNumber = isEmpty(holdingJson.get("callNumber")) ? EMPTY : holdingJson.get("callNumber").asText();
+
+    if(StringUtils.isEmpty(effectiveLocationName) && StringUtils.isEmpty(callNumber)){
+      return EMPTY;
+    }
 
     return String.join(HOLDINGS_LOCATION_CALL_NUMBER_DELIMITER, effectiveLocationName, callNumber);
   }

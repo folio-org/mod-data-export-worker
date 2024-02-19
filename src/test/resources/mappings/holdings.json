@@ -24,6 +24,18 @@
           "Content-Type": "application/json"
         }
       }
+    },    {
+      "request": {
+        "method": "GET",
+        "url": "/holdings-storage/holdings/9f5e359f-3e23-4936-942b-3827f7d5e683"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"id\": \"9f5e359f-3e23-4936-942b-3827f7d5e683\",\n    \"_version\": 1,\n    \"hrid\": \"hold000000000006\",\n    \"formerIds\": [],\n    \"instanceId\": \"f31a36de-fcf8-44f9-87ef-a55d06ad21ae\",\n    \"permanentLocationId\": \"2b8f5c2a-d975-4ebd-bb4d-e5e3668d40a7\",\n    \"effectiveLocationId\": \"2b8f5c2a-d975-4ebd-bb4d-e5e3668d40a7\",\n    \"electronicAccess\": [],\n    \"callNumber\": \"TK5105.88815 . A58 2004 FT MEADE\",\n    \"administrativeNotes\": [],\n    \"notes\": [],\n    \"holdingsStatements\": [\n        {\n            \"statement\": \"Line 1b\"\n        },\n        {\n            \"statement\": \"Line 2b\"\n        }\n    ],\n    \"holdingsStatementsForIndexes\": [],\n    \"holdingsStatementsForSupplements\": [],\n    \"statisticalCodeIds\": [],\n    \"holdingsItems\": [],\n    \"bareHoldingsItems\": [],\n    \"metadata\": {\n        \"createdDate\": \"2022-02-14T03:22:53.457+00:00\",\n        \"updatedDate\": \"2022-02-14T03:22:53.457+00:00\"\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     },
     {
       "request": {

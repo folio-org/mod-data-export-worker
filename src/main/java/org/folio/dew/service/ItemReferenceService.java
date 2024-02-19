@@ -273,9 +273,9 @@ public class ItemReferenceService {
       effectiveLocationName = isEmpty(locationJson.get("name")) ? EMPTY : locationJson.get("name").asText();
     }
 
-    var callNumber = isEmpty(holdingJson.get("callNumber")) ? EMPTY : holdingJson.get("callNumber");
+    var callNumber = isEmpty(holdingJson.get("callNumber")) ? EMPTY : holdingJson.get("callNumber").asText();
 
-    return String.join(HOLDINGS_LOCATION_CALL_NUMBER_DELIMITER, effectiveLocationName, (CharSequence) callNumber);
+    return String.join(HOLDINGS_LOCATION_CALL_NUMBER_DELIMITER, effectiveLocationName, callNumber);
   }
 
 }

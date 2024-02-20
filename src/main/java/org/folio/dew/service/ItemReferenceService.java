@@ -277,15 +277,9 @@ public class ItemReferenceService {
       return EMPTY;
     }
 
-    if(isEmpty(item.getPermanentLocation()) && isEmpty(item.getTemporaryLocation()) && isEmpty(item.getItemLevelCallNumber())&& isEmpty(item.getItemLevelCallNumberPrefix()) && isEmpty(item.getItemLevelCallNumberSuffix()) && isEmpty(item.getItemLevelCallNumberTypeId())){
-      var effLocationName = isEmpty(item.getEffectiveLocation().getName()) ? EMPTY : item.getEffectiveLocation().getName();
-      var effLocationCallNumber = isEmpty(item.getEffectiveCallNumberComponents().getCallNumber()) ? EMPTY : item.getEffectiveCallNumberComponents().getCallNumber();
-      if(EMPTY.equals(effLocationName) && EMPTY.equals(effLocationCallNumber)){
-        return EMPTY;
-      }
-      return String.join(HOLDINGS_LOCATION_CALL_NUMBER_DELIMITER, effLocationName, effLocationCallNumber);
+    if (checkForItemLocationAndCallNumberExists(item)){
+      return composeDataFromItemLocationAndCallNumber(item);
     }
-
 
     var holdingJson = holdingClient.getHoldingById(holdingsRecordId);
     var effectiveLocationId = isEmpty(holdingJson.get(EFFECTIVE_LOCATION_ID)) ? getHoldingsEffectiveLocation(holdingJson) : holdingJson.get(EFFECTIVE_LOCATION_ID);
@@ -302,6 +296,19 @@ public class ItemReferenceService {
     }
 
     return String.join(HOLDINGS_LOCATION_CALL_NUMBER_DELIMITER, effectiveLocationName, callNumber);
+  }
+
+  private String composeDataFromItemLocationAndCallNumber(Item item) {
+    var effLocationName = isEmpty(item.getEffectiveLocation().getName()) ? EMPTY : item.getEffectiveLocation().getName();
+    var effLocationCallNumber = isEmpty(item.getEffectiveCallNumberComponents().getCallNumber()) ? EMPTY : item.getEffectiveCallNumberComponents().getCallNumber();
+    if(EMPTY.equals(effLocationName) && EMPTY.equals(effLocationCallNumber)){
+      return EMPTY;
+    }
+    return String.join(HOLDINGS_LOCATION_CALL_NUMBER_DELIMITER, effLocationName, effLocationCallNumber);
+  }
+
+  private boolean checkForItemLocationAndCallNumberExists(Item item) {
+    return isEmpty(item.getPermanentLocation()) && isEmpty(item.getTemporaryLocation()) && isEmpty(item.getItemLevelCallNumber())&& isEmpty(item.getItemLevelCallNumberPrefix()) && isEmpty(item.getItemLevelCallNumberSuffix()) && isEmpty(item.getItemLevelCallNumberTypeId());
   }
 
 }

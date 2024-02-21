@@ -63,6 +63,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .formerIds(isEmpty(item.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getFormerIds())))
       .discoverySuppress(booleanToStringNullSafe(item.getDiscoverySuppress()))
       .title(item.getTitle())
+      .holdingsData(itemReferenceService.getEffectiveLocationCallNumberComponentsForItem(item))
       .contributorNames(fetchContributorNames(item))
       .callNumber(item.getCallNumber())
       .barcode(item.getBarcode())
@@ -108,7 +109,6 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
     itemFormat.setElectronicAccess(electronicAccessService.getElectronicAccessesToString(item.getElectronicAccess()));
     return itemFormat.withOriginal(item);
   }
-
 
   private String statusToString(Item item) {
     var status = item.getStatus();

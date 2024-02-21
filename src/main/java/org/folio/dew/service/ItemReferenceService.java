@@ -6,6 +6,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.Constants.BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE;
 import static org.folio.dew.utils.Constants.MODULE_NAME;
 import static org.folio.dew.utils.Constants.STATUSES_CONFIG_NAME;
+import static org.folio.dew.utils.Constants.HOLDINGS_LOCATION_CALL_NUMBER_DELIMITER;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -13,6 +14,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.CallNumberTypeClient;
 import org.folio.dew.client.ConfigurationClient;
 import org.folio.dew.client.DamagedStatusClient;
@@ -25,6 +27,7 @@ import org.folio.dew.client.ServicePointClient;
 import org.folio.dew.client.StatisticalCodeClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
+import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemLocation;
 import org.folio.dew.domain.dto.ItemLocationCollection;
 import org.folio.dew.domain.dto.LoanType;
@@ -48,6 +51,7 @@ public class ItemReferenceService {
   private static final String QUERY_PATTERN_NAME = "name==\"%s\"";
   private static final String QUERY_PATTERN_CODE = "code==\"%s\"";
   private static final String QUERY_PATTERN_USERNAME = "username==\"%s\"";
+  public static final String EFFECTIVE_LOCATION_ID = "effectiveLocationId";
 
   private final CallNumberTypeClient callNumberTypeClient;
   private final DamagedStatusClient damagedStatusClient;
@@ -237,7 +241,7 @@ public class ItemReferenceService {
   @Cacheable(cacheNames = "holdings")
   public String getHoldingEffectiveLocationCodeById(String id) {
     var holdingJson = holdingClient.getHoldingById(id);
-    var effectiveLocationId = isEmpty(holdingJson.get("effectiveLocationId")) ? getHoldingsEffectiveLocation(holdingJson) : holdingJson.get("effectiveLocationId");
+    var effectiveLocationId = isEmpty(holdingJson.get(EFFECTIVE_LOCATION_ID)) ? getHoldingsEffectiveLocation(holdingJson) : holdingJson.get(EFFECTIVE_LOCATION_ID);
     if (nonNull(effectiveLocationId)) {
       var locationJson = locationClient.getLocation(effectiveLocationId.asText());
       return isEmpty(locationJson.get("name")) ? EMPTY : locationJson.get("name").asText();
@@ -265,4 +269,46 @@ public class ItemReferenceService {
   private JsonNode getHoldingsEffectiveLocation(JsonNode holdingsJson) {
     return isEmpty(holdingsJson.get("temporaryLocationId")) ? holdingsJson.get("permanentLocationId") : holdingsJson.get("temporaryLocationId");
   }
+
+  public String getEffectiveLocationCallNumberComponentsForItem(Item item){
+
+    var holdingsRecordId = item.getHoldingsRecordId();
+    if(StringUtils.isEmpty(holdingsRecordId)){
+      return EMPTY;
+    }
+
+    if (checkForItemLocationAndCallNumberExists(item)){
+      return composeDataFromItemLocationAndCallNumber(item);
+    }
+
+    var holdingJson = holdingClient.getHoldingById(holdingsRecordId);
+    var effectiveLocationId = isEmpty(holdingJson.get(EFFECTIVE_LOCATION_ID)) ? getHoldingsEffectiveLocation(holdingJson) : holdingJson.get(EFFECTIVE_LOCATION_ID);
+    var effectiveLocationName = EMPTY;
+    if (nonNull(effectiveLocationId)) {
+      var locationJson = locationClient.getLocation(effectiveLocationId.asText());
+      effectiveLocationName = isEmpty(locationJson.get("name")) ? EMPTY : locationJson.get("name").asText();
+    }
+
+    var callNumber = isEmpty(holdingJson.get("callNumber")) ? EMPTY : holdingJson.get("callNumber").asText();
+
+    if(StringUtils.isEmpty(effectiveLocationName) && StringUtils.isEmpty(callNumber)){
+      return EMPTY;
+    }
+
+    return String.join(HOLDINGS_LOCATION_CALL_NUMBER_DELIMITER, effectiveLocationName, callNumber);
+  }
+
+  private String composeDataFromItemLocationAndCallNumber(Item item) {
+    var effLocationName = isEmpty(item.getEffectiveLocation().getName()) ? EMPTY : item.getEffectiveLocation().getName();
+    var effLocationCallNumber = isEmpty(item.getEffectiveCallNumberComponents().getCallNumber()) ? EMPTY : item.getEffectiveCallNumberComponents().getCallNumber();
+    if(EMPTY.equals(effLocationName) && EMPTY.equals(effLocationCallNumber)){
+      return EMPTY;
+    }
+    return String.join(HOLDINGS_LOCATION_CALL_NUMBER_DELIMITER, effLocationName, effLocationCallNumber);
+  }
+
+  private boolean checkForItemLocationAndCallNumberExists(Item item) {
+    return isEmpty(item.getPermanentLocation()) && isEmpty(item.getTemporaryLocation()) && isEmpty(item.getItemLevelCallNumber())&& isEmpty(item.getItemLevelCallNumberPrefix()) && isEmpty(item.getItemLevelCallNumberSuffix()) && isEmpty(item.getItemLevelCallNumberTypeId());
+  }
+
 }

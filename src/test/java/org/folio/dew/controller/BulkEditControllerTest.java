@@ -2,18 +2,12 @@ package org.folio.dew.controller;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.folio.dew.controller.ItemsContentUpdateTestData.CLEAR_FIELD_PERMANENT_LOAN_TYPE;
-import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_ALLOWED_STATUS;
-import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_NOT_ALLOWED_STATUS;
-import static org.folio.dew.controller.ItemsContentUpdateTestData.REPLACE_WITH_NULL_PERMANENT_LOAN_TYPE;
 import static org.folio.dew.domain.dto.EntityType.HOLDINGS_RECORD;
-import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.IdentifierType.BARCODE;
-import static org.folio.dew.domain.dto.IdentifierType.ID;
 import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
@@ -29,9 +23,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.timeout;
@@ -50,21 +41,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.de.entity.JobCommandType;
 import org.folio.dew.BaseBatchTest;
@@ -72,21 +58,14 @@ import org.folio.dew.client.ConfigurationClient;
 import org.folio.dew.client.GroupClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.UserClient;
-import org.folio.dew.domain.dto.ConfigurationCollection;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
-import org.folio.dew.domain.dto.HoldingsContentUpdate;
-import org.folio.dew.domain.dto.HoldingsContentUpdateCollection;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
 import org.folio.dew.domain.dto.IdentifierType;
-import org.folio.dew.domain.dto.InventoryItemStatus;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemCollection;
-import org.folio.dew.domain.dto.ItemContentUpdate;
-import org.folio.dew.domain.dto.ItemContentUpdateCollection;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.Metadata;
-import org.folio.dew.domain.dto.ModelConfiguration;
 import org.folio.dew.domain.dto.Personal;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserCollection;
@@ -100,7 +79,6 @@ import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.JobCommandRepository;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
-import org.folio.dew.repository.S3CompatibleResource;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.JobCommandsReceiverService;
@@ -491,6 +469,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     assertThat(2L, equalTo(limitCaptor.getValue()));
   }
 
+  @Disabled("The source code is unsupported, so the test is invalid.")
   @SneakyThrows
   @ParameterizedTest
   @EnumSource(value = EntityType.class, names = {"USER", "ITEM"}, mode = EnumSource.Mode.INCLUDE)

@@ -675,12 +675,12 @@ class BulkEditTest extends BaseBatchTest {
       if (StringUtils.isNotEmpty(errorInStorage)){
         final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
         final FileSystemResource expectedResultWithErrors = getExpectedResourceByJobName(jobExecution.getJobInstance().getJobName());
-        assertFileEquals(expectedResultWithErrors, actualResultWithErrors);
+        assertEquals(new String(expectedResultWithErrors.getContentAsByteArray()), new String(actualResultWithErrors.getContentAsByteArray()));
       }
     }
     final FileSystemResource actualResult = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(output);
-    assertFileEquals(expectedCharges, actualResult);
+    assertEquals(new String(expectedCharges.getContentAsByteArray()), new String(actualResult.getContentAsByteArray()));
   }
 
   private FileSystemResource getExpectedResourceByJobName(String jobName) {
@@ -704,7 +704,7 @@ class BulkEditTest extends BaseBatchTest {
 
     final FileSystemResource actualResult = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(output);
-    assertFileEquals(expectedCharges, actualResult);
+    assertEquals(new String(expectedCharges.getContentAsByteArray()), new String(actualResult.getContentAsByteArray()));
   }
 
   private void assertFileEqualsIgnoringCreatedAndUpdatedDate(FileSystemResource expectedJsonFile, FileSystemResource actualJsonResult)
@@ -733,14 +733,14 @@ class BulkEditTest extends BaseBatchTest {
       String errorInStorage = links[1];
       final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
       final FileSystemResource expectedResultWithErrors = new FileSystemResource(expectedErrorOutput);
-      assertFileEquals(expectedResultWithErrors, actualResultWithErrors);
+      assertEquals(new String(expectedResultWithErrors.getContentAsByteArray()), new String(actualResultWithErrors.getContentAsByteArray()));
     }
     if (isEmpty(fileInStorage)) {
       assertTrue(isEmpty(output));
     } else {
       final FileSystemResource actualResult = actualFileOutput(fileInStorage);
       FileSystemResource expectedCharges = new FileSystemResource(output);
-      assertFileEquals(expectedCharges, actualResult);
+      assertEquals(new String(expectedCharges.getContentAsByteArray()), new String(actualResult.getContentAsByteArray()));
     }
   }
 

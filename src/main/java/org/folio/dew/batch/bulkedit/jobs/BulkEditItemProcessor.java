@@ -7,10 +7,16 @@ import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.booleanToStringNullSafe;
 import static org.folio.dew.utils.BulkEditProcessorHelper.ofEmptyString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
+import static org.folio.dew.utils.Constants.CALL_NUMBER;
+import static org.folio.dew.utils.Constants.CALL_NUMBER_PREFIX;
+import static org.folio.dew.utils.Constants.CALL_NUMBER_SUFFIX;
+import static org.folio.dew.utils.Constants.HOLDINGS_LOCATION_CALL_NUMBER_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_SPACED;
+import static org.folio.dew.utils.Constants.PERMANENT_LOCATION_ID;
 import static org.folio.dew.utils.Constants.STAFF_ONLY;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
@@ -23,6 +29,7 @@ import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.domain.dto.Title;
 import org.folio.dew.service.ElectronicAccessService;
+import org.folio.dew.service.HoldingsReferenceService;
 import org.folio.dew.service.ItemReferenceService;
 import org.folio.dew.service.SpecialCharacterEscaper;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -35,6 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @StepScope
@@ -42,6 +50,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
   private final ItemReferenceService itemReferenceService;
+  private final HoldingsReferenceService holdingsReferenceService;
   private final ElectronicAccessService electronicAccessService;
   private final SpecialCharacterEscaper escaper;
 
@@ -63,7 +72,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .formerIds(isEmpty(item.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getFormerIds())))
       .discoverySuppress(booleanToStringNullSafe(item.getDiscoverySuppress()))
       .title(item.getTitle())
-      .holdingsData(itemReferenceService.getEffectiveLocationCallNumberComponentsForItem(item))
+      .holdingsData(getHoldingsName(item.getHoldingsRecordId()))
       .contributorNames(fetchContributorNames(item))
       .callNumber(item.getCallNumber())
       .barcode(item.getBarcode())
@@ -215,5 +224,23 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
     } catch (IllegalArgumentException e) {
       return item.getId();
     }
+  }
+
+  private String getHoldingsName(String holdingsId) {
+    if (isEmpty(holdingsId)) {
+      return EMPTY;
+    }
+    var holdingsJson = holdingsReferenceService.getHoldingsJsonById(holdingsId);
+    var locationIdNode = holdingsJson.get(PERMANENT_LOCATION_ID);
+
+    var locationName = isEmpty(locationIdNode) ? EMPTY :
+      holdingsReferenceService.getHoldingsLocationNameById(locationIdNode.asText());
+
+    var callNumber = Stream.of(holdingsJson.get(CALL_NUMBER_PREFIX), holdingsJson.get(CALL_NUMBER), holdingsJson.get(CALL_NUMBER_SUFFIX))
+      .filter(Objects::nonNull)
+      .map(JsonNode::asText)
+      .collect(Collectors.joining(SPACE));
+
+    return String.join(HOLDINGS_LOCATION_CALL_NUMBER_DELIMITER, locationName, callNumber);
   }
 }

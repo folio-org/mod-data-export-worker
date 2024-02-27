@@ -5,6 +5,7 @@ import org.folio.dew.client.ElectronicAccessRelationshipClient;
 import org.folio.dew.domain.dto.ElectronicAccess;
 import org.folio.dew.domain.dto.ElectronicAccessRelationship;
 import org.folio.dew.domain.dto.ElectronicAccessRelationshipCollection;
+import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,7 +50,7 @@ class ElectronicAccessServiceTest {
     when(relationshipClient.getById(relationshipId)).thenReturn(electronicAccessRelationship);
 
     var expected = "URL relationship;URI;Link text;Materials specified;URL public note\nname\u001F;uri\u001F;\u001F;\u001F;";
-    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess));
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), buildErrorServiceArgs());
 
     assertEquals(expected, actual);
   }
@@ -75,7 +76,7 @@ class ElectronicAccessServiceTest {
 
     var expected = "URL relationship;URI;Link text;Materials specified;URL public note\n" +
       "relationshipId1\u001F;uri1\u001F;\u001F;\u001F;\u001F|relationshipId2\u001F;uri2\u001F;\u001F;\u001F;\u001F|relationshipId1\u001F;uri3\u001F;\u001F;\u001F;";
-    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess1, electronicAccess2, electronicAccess3));
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess1, electronicAccess2, electronicAccess3), buildErrorServiceArgs());
 
     assertEquals(expected, actual);
   }
@@ -86,7 +87,7 @@ class ElectronicAccessServiceTest {
     electronicAccess.setUri("uri");
 
     var expected = "URL relationship;URI;Link text;Materials specified;URL public note\n\u001F;uri\u001F;\u001F;\u001F;";
-    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess));
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), buildErrorServiceArgs());
 
     assertEquals(expected, actual);
   }
@@ -101,7 +102,7 @@ class ElectronicAccessServiceTest {
     when(relationshipClient.getById(id)).thenReturn(electronicAccessRelationship);
 
     var expected = electronicAccessRelationship.getName();
-    var actual = electronicAccessService.getRelationshipNameById(id);
+    var actual = electronicAccessService.getRelationshipNameById(id, buildErrorServiceArgs());
 
     verify(relationshipClient).getById(id);
     assertEquals(expected, actual);
@@ -117,7 +118,7 @@ class ElectronicAccessServiceTest {
     when(relationshipClient.getById(id)).thenThrow(new NotFoundException("error message"));
 
     var expected = electronicAccessRelationship.getId();
-    var actual = electronicAccessService.getRelationshipNameById(id);
+    var actual = electronicAccessService.getRelationshipNameById(id, buildErrorServiceArgs());
 
     assertEquals(expected, actual);
   }
@@ -147,5 +148,9 @@ class ElectronicAccessServiceTest {
 
     var actualId = electronicAccessService.getElectronicAccessRelationshipIdByName("name");
     assertEquals(StringUtils.EMPTY, actualId);
+  }
+
+  private ErrorServiceArgs buildErrorServiceArgs() {
+    return new ErrorServiceArgs(UUID.randomUUID().toString(), "identifier", "filename");
   }
 }

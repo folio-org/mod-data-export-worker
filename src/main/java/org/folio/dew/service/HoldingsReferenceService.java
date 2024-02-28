@@ -8,7 +8,9 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.ObjectUtils;
 import org.folio.dew.client.CallNumberTypeClient;
+import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.HoldingsNoteTypeClient;
 import org.folio.dew.client.HoldingsSourceClient;
 import org.folio.dew.client.HoldingsTypeClient;
@@ -42,6 +44,7 @@ public class HoldingsReferenceService {
   private final HoldingsSourceClient sourceClient;
   private final StatisticalCodeClient statisticalCodeClient;
   private final BulkEditProcessingErrorsService errorsService;
+  private final HoldingClient holdingClient;
 
   public String getInstanceIdByHrid(String instanceHrid) {
     var briefInstances = instanceClient.getByQuery(String.format(QUERY_PATTERN_HRID, instanceHrid));
@@ -254,5 +257,20 @@ public class HoldingsReferenceService {
       return name;
     }
     return statisticalCodes.getStatisticalCodes().get(0).getId();
+  }
+
+  @Cacheable(cacheNames = "holdings")
+  public JsonNode getHoldingsJsonById(String holdingsId) {
+    return holdingClient.getHoldingById(holdingsId);
+  }
+
+  @Cacheable(cacheNames = "holdingsLocations")
+  public String getHoldingsLocationNameById(String locationId) {
+    if (ObjectUtils.isEmpty(locationId)) {
+      return EMPTY;
+    }
+    var locationJson = locationClient.getLocation(locationId);
+    var locationNode = locationJson.get("name");
+    return ObjectUtils.isEmpty(locationNode) ? EMPTY : locationNode.asText();
   }
 }

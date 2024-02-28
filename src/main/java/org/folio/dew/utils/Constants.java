@@ -62,6 +62,12 @@ public class Constants {
   public static final String STAFF_ONLY = "(staff only)";
   public static final String HOLDINGS_LOCATION_CALL_NUMBER_DELIMITER = " > ";
 
+  public static final String PERMANENT_LOCATION_ID = "permanentLocationId";
+  public static final String CALL_NUMBER_PREFIX = "callNumberPrefix";
+  public static final String CALL_NUMBER = "callNumber";
+  public static final String CALL_NUMBER_SUFFIX = "callNumberSuffix";
+
+
   public static String getWorkingDirectory(String springApplicationName, String dirName) {
     return springApplicationName + PATH_SEPARATOR + dirName + PATH_SEPARATOR;
   }

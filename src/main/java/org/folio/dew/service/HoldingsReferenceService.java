@@ -6,6 +6,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
@@ -265,12 +266,10 @@ public class HoldingsReferenceService {
   }
 
   @Cacheable(cacheNames = "holdingsLocations")
-  public String getHoldingsLocationNameById(String locationId) {
+  public JsonNode getHoldingsLocationById(String locationId) {
     if (ObjectUtils.isEmpty(locationId)) {
-      return EMPTY;
+      return new ObjectMapper().createObjectNode();
     }
-    var locationJson = locationClient.getLocation(locationId);
-    var locationNode = locationJson.get("name");
-    return ObjectUtils.isEmpty(locationNode) ? EMPTY : locationNode.asText();
+    return locationClient.getLocation(locationId);
   }
 }

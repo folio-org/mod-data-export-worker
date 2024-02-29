@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -37,7 +38,6 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -49,6 +49,9 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 @Log4j2
 public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
+  private static final String IS_ACTIVE = "isActive";
+  private static final String NAME = "name";
+
   private final ItemReferenceService itemReferenceService;
   private final HoldingsReferenceService holdingsReferenceService;
   private final ElectronicAccessService electronicAccessService;
@@ -231,10 +234,12 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       return EMPTY;
     }
     var holdingsJson = holdingsReferenceService.getHoldingsJsonById(holdingsId);
-    var locationIdNode = holdingsJson.get(PERMANENT_LOCATION_ID);
+    var locationId = isNull(holdingsJson.get(PERMANENT_LOCATION_ID)) ? null : holdingsJson.get(PERMANENT_LOCATION_ID).asText();
 
-    var locationName = isEmpty(locationIdNode) ? EMPTY :
-      holdingsReferenceService.getHoldingsLocationNameById(locationIdNode.asText());
+    var locationJson = holdingsReferenceService.getHoldingsLocationById(locationId);
+    var activePrefix = nonNull(locationJson.get(IS_ACTIVE)) && locationJson.get(IS_ACTIVE).asBoolean() ? EMPTY : "Inactive ";
+    var name = isNull(locationJson.get(NAME)) ? EMPTY : locationJson.get(NAME).asText();
+    var locationName = activePrefix + name;
 
     var callNumber = Stream.of(holdingsJson.get(CALL_NUMBER_PREFIX), holdingsJson.get(CALL_NUMBER), holdingsJson.get(CALL_NUMBER_SUFFIX))
       .filter(Objects::nonNull)

@@ -8,6 +8,7 @@ import lombok.SneakyThrows;
 import org.folio.dew.domain.dto.Formatable;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.InstanceFormat;
+import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.utils.WriterHelper;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.json.JacksonJsonObjectMarshaller;
@@ -37,6 +38,8 @@ public class JsonFileWriter<T, U extends Formatable<T>> extends JsonFileItemWrit
         lines.append(enrichHoldingsJson(hf, objectMapper));
       }  else if (item instanceof InstanceFormat instanceFormat) {
         lines.append(WriterHelper.enrichInstancesJson(instanceFormat, objectMapper));
+      } else if (item instanceof ItemFormat itemFormat) {
+        lines.append(WriterHelper.enrichItemsJson(itemFormat, objectMapper));
       } else {
         lines.append(marshaller.marshal(item.getOriginal()));
       }

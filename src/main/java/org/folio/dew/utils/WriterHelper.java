@@ -6,9 +6,18 @@ import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.InstanceFormat;
+import org.folio.dew.domain.dto.ItemFormat;
 
 @UtilityClass
 public class WriterHelper {
+  @SneakyThrows
+  public static String enrichItemsJson(ItemFormat item, ObjectMapper objectMapper) {
+    var itemFormatJson = objectMapper.valueToTree(item);
+    var itemJson = (ObjectNode) objectMapper.valueToTree(item.getOriginal());
+    itemJson.putIfAbsent("holdingsData", itemFormatJson.get("holdingsData"));
+    return objectMapper.writeValueAsString(itemJson);
+  }
+
   @SneakyThrows
   public static String enrichHoldingsJson(HoldingsFormat item, ObjectMapper objectMapper) {
     var holdingsFormatJson = objectMapper.valueToTree(item);

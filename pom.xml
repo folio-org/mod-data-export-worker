@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.4</version>
+        <version>3.2.3</version>
         <relativePath /> <!-- lookup parent from repository -->
     </parent>
 
@@ -49,9 +49,9 @@
           ${project.basedir}/src/main/resources/swagger.api/refresh-presigned-url.yaml
         </refresh-presigned-url.yaml.file>
 
-        <folio-spring-base.version>7.2.0</folio-spring-base.version>
+        <folio-spring-base.version>8.1.0</folio-spring-base.version>
         <folio-service-tools.version>3.1.0</folio-service-tools.version>
-        <folio-spring-cql.version>7.2.0</folio-spring-cql.version>
+        <folio-spring-cql.version>8.1.0</folio-spring-cql.version>
         <commons-io.version>2.11.0</commons-io.version>
         <minio.version>8.5.1</minio.version>
         <openapi-generator.version>6.2.1</openapi-generator.version>
@@ -64,7 +64,7 @@
         <!-- Test properties-->
         <junit-extensions.version>2.4.0</junit-extensions.version>
         <embedded-minio.version>2.3.1</embedded-minio.version>
-        <spring-cloud-starter-bootstrap.version>4.0.0</spring-cloud-starter-bootstrap.version>
+        <spring-cloud-starter-bootstrap.version>4.1.1</spring-cloud-starter-bootstrap.version>
         <wiremock.version>2.27.2</wiremock.version>
         <marc4j.version>2.9.1</marc4j.version>
         <testcontainers.version>1.17.6</testcontainers.version>
@@ -239,6 +239,11 @@
         <groupId>org.hibernate.validator</groupId>
         <artifactId>hibernate-validator</artifactId>
         <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.validation</groupId>
+        <artifactId>jakarta.validation-api</artifactId>
+        <version>3.1.0-M1</version>
       </dependency>
 
         <!-- Test dependencies -->

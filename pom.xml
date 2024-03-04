@@ -56,7 +56,7 @@
         <minio.version>8.5.1</minio.version>
         <openapi-generator.version>6.2.1</openapi-generator.version>
         <commons-collections4.version>4.4</commons-collections4.version>
-        <hypersistence-utils-hibernate-60.version>3.0.1</hypersistence-utils-hibernate-60.version>
+        <hypersistence-utils-hibernate-63.version>3.7.3</hypersistence-utils-hibernate-63.version>
         <opencsv.version>5.7.1</opencsv.version>
         <netty.version>4.1.86.Final</netty.version>
         <feign-jackson.version>12.1</feign-jackson.version>
@@ -207,8 +207,8 @@
 
       <dependency>
         <groupId>io.hypersistence</groupId>
-        <artifactId>hypersistence-utils-hibernate-60</artifactId>
-        <version>${hypersistence-utils-hibernate-60.version}</version>
+        <artifactId>hypersistence-utils-hibernate-63</artifactId>
+        <version>${hypersistence-utils-hibernate-63.version}</version>
       </dependency>
 
       <dependency>

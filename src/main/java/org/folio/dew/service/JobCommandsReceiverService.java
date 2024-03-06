@@ -179,7 +179,7 @@ public class JobCommandsReceiverService {
 
   private void addOrderExportSpecificParameters(JobCommand jobCommand, JobParametersBuilder paramsBuilder) {
     if (jobCommand.getExportType().equals(EDIFACT_ORDERS_EXPORT)) {
-      paramsBuilder.addString(JobParameterNames.JOB_NAME, jobCommand.getName());
+      paramsBuilder.addString(JobParameterNames.JOB_NAME, jobCommand.getName(), JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
     }
   }
 

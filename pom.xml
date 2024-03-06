@@ -56,7 +56,6 @@
         <minio.version>8.5.1</minio.version>
         <openapi-generator.version>6.2.1</openapi-generator.version>
         <commons-collections4.version>4.4</commons-collections4.version>
-        <hypersistence-utils-hibernate-63.version>3.7.3</hypersistence-utils-hibernate-63.version>
         <opencsv.version>5.7.1</opencsv.version>
         <netty.version>4.1.86.Final</netty.version>
         <feign-jackson.version>12.1</feign-jackson.version>
@@ -206,12 +205,6 @@
       </dependency>
 
       <dependency>
-        <groupId>io.hypersistence</groupId>
-        <artifactId>hypersistence-utils-hibernate-63</artifactId>
-        <version>${hypersistence-utils-hibernate-63.version}</version>
-      </dependency>
-
-      <dependency>
         <groupId>io.xlate</groupId>
         <artifactId>staedi</artifactId>
         <version>1.16.0</version>
@@ -309,16 +302,6 @@
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka-test</artifactId>
-            <exclusions>
-              <exclusion>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-core</artifactId>
-              </exclusion>
-              <exclusion>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-classic</artifactId>
-              </exclusion>
-            </exclusions>
             <scope>test</scope>
         </dependency>
         <dependency>

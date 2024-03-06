@@ -117,6 +117,7 @@ public class BulkEditController implements JobIdApi {
 
   private static final String JOB_COMMAND_NOT_FOUND_ERROR = "JobCommand with id %s doesn't exist.";
   private static final String FAILED_TO_READ_FILE_ERROR = "Failed to read %s for job id %s, reason: %s";
+  private static final boolean JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE = false;
 
   private final UserClient userClient;
   private final InventoryClient inventoryClient;
@@ -413,17 +414,17 @@ public class BulkEditController implements JobIdApi {
 
   private void prepareJobParameters(JobCommand jobCommand, String uploadedPath, String tempIdentifiersFile) throws IOException {
     var paramsBuilder = new JobParametersBuilder(jobCommand.getJobParameters());
-    ofNullable(tempIdentifiersFile).ifPresent(path -> paramsBuilder.addString(TEMP_IDENTIFIERS_FILE_NAME, path));
-    paramsBuilder.addString(FILE_NAME, uploadedPath);
-    paramsBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, uploadedPath, isBulkEditUpdate(jobCommand)));
+    ofNullable(tempIdentifiersFile).ifPresent(path -> paramsBuilder.addString(TEMP_IDENTIFIERS_FILE_NAME, path, JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE));
+    paramsBuilder.addString(FILE_NAME, uploadedPath, JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
+    paramsBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, uploadedPath, isBulkEditUpdate(jobCommand)), JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
     var fileName = jobCommand.getId() + PATH_SEPARATOR + (isBulkEditUpdate(jobCommand) ? EMPTY : LocalDate.now() + MATCHED_RECORDS) + FilenameUtils.getBaseName(uploadedPath);
-    paramsBuilder.addString(TEMP_OUTPUT_FILE_PATH, workDir + fileName);
-    paramsBuilder.addString(TEMP_LOCAL_FILE_PATH, getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + fileName);
-    paramsBuilder.addString(EXPORT_TYPE, jobCommand.getExportType().getValue());
+    paramsBuilder.addString(TEMP_OUTPUT_FILE_PATH, workDir + fileName, JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
+    paramsBuilder.addString(TEMP_LOCAL_FILE_PATH, getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + fileName, JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
+    paramsBuilder.addString(EXPORT_TYPE, jobCommand.getExportType().getValue(), JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
     ofNullable(jobCommand.getIdentifierType()).ifPresent(type ->
-      paramsBuilder.addString("identifierType", type.getValue()));
+      paramsBuilder.addString("identifierType", type.getValue(), JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE));
     ofNullable(jobCommand.getEntityType()).ifPresent(type ->
-      paramsBuilder.addString("entityType", type.getValue()));
+      paramsBuilder.addString("entityType", type.getValue(), JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE));
     jobCommand.setJobParameters(paramsBuilder.toJobParameters());
   }
 

@@ -54,6 +54,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Log4j2
 public class JobCommandsReceiverService {
+  private static final boolean JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE = false;
+
   private final FolioModuleMetadata folioModuleMetadata;
 
   private final ExportJobManagerSync exportJobManagerSync;
@@ -155,7 +157,7 @@ public class JobCommandsReceiverService {
           }
           var identifiersUrl = remoteFilesStorage.objectToPresignedObjectUrl(
             remoteFilesStorage.uploadObject(FilenameUtils.getName(tempIdentifiersFileName), tempIdentifiersFileName, null, "text/csv", true));
-          paramsBuilder.addString(FILE_NAME, identifiersUrl);
+          paramsBuilder.addString(FILE_NAME, identifiersUrl, JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
         } catch (Exception e) {
           var msg = String.format("Failed to read %s, reason: %s", FilenameUtils.getBaseName(uploadedFilePath), e.getMessage());
           log.error(msg);
@@ -167,8 +169,8 @@ public class JobCommandsReceiverService {
     var jobId = jobCommand.getId().toString();
     var outputFileName = fileNameResolver.resolve(jobCommand, workDir, jobId);
 
-    paramsBuilder.addString(JobParameterNames.JOB_ID, jobId);
-    paramsBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFileName);
+    paramsBuilder.addString(JobParameterNames.JOB_ID, jobId, JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
+    paramsBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFileName, JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
 
     addOrderExportSpecificParameters(jobCommand, paramsBuilder);
 

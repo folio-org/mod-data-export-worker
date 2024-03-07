@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.hypersistence.utils.hibernate.type.util.ObjectMapperSupplier;
+
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -72,6 +74,8 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
 
     private static final String VALUE_PARAMETER_PROPERTY = "value";
 
+    private static final Map<String, JobParameter> uniqueDeserializedJobParams = new HashMap<>();
+
     public JobParameterDeserializer() {
       this(null);
     }
@@ -101,12 +105,26 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
           default -> node.asText();
         };
 
+        if (identifying){
+          return checkForExisted(value, clazz, identifying);
+        }
+
         return new JobParameter<>(value, clazz, identifying);
       } catch (ClassNotFoundException e) {
         throw new RuntimeException("Cannot create Job parameter with the class " + type, e);
       } catch (ParseException e) {
         throw new RuntimeException("Invalid Date format: " + node.asText(),  e);
       }
+    }
+
+    private JobParameter<?> checkForExisted(Serializable value, Class<Object> clazz, boolean identifying) {
+      var existed = uniqueDeserializedJobParams.get(String.valueOf(value));
+      if (existed == null){
+        var jobParameter = new JobParameter<>(value, clazz, identifying);
+        uniqueDeserializedJobParams.put(String.valueOf(value), jobParameter);
+        return jobParameter;
+      }
+      return existed;
     }
   }
 

@@ -169,7 +169,7 @@ public class JobCommandsReceiverService {
     var jobId = jobCommand.getId().toString();
     var outputFileName = fileNameResolver.resolve(jobCommand, workDir, jobId);
 
-    paramsBuilder.addString(JobParameterNames.JOB_ID, jobId, JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
+    paramsBuilder.addString(JobParameterNames.JOB_ID, jobId);
     paramsBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFileName, JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
 
     addOrderExportSpecificParameters(jobCommand, paramsBuilder);

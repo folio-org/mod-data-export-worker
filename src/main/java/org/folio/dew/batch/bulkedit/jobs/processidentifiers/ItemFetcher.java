@@ -3,6 +3,7 @@ package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 
 import feign.codec.DecodeException;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,11 @@ public class ItemFetcher implements ItemProcessor<ItemIdentifier, ItemCollection
     var idType = resolveIdentifier(identifierType);
     var identifier = "barcode".equals(idType) ? Utils.encode(itemIdentifier.getItemId()) : itemIdentifier.getItemId();
     try {
-      return inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), idType, identifier), limit);
+      var items = inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), idType, identifier), limit);
+      if (items.getTotalRecords() > limit) {
+        throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
+      }
+      return items;
     } catch (DecodeException e) {
       throw new BulkEditException(ExceptionHelper.fetchMessage(e));
     }

@@ -4,6 +4,7 @@ import static org.folio.dew.domain.dto.IdentifierType.INSTANCE_HRID;
 import static org.folio.dew.domain.dto.IdentifierType.ITEM_BARCODE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 
 import lombok.RequiredArgsConstructor;
@@ -76,13 +77,20 @@ public class BulkEditHoldingsProcessor implements ItemProcessor<ItemIdentifier, 
 
   private HoldingsRecordCollection getHoldingsRecords(ItemIdentifier itemIdentifier) {
     return switch (IdentifierType.fromValue(identifierType)) {
-      case ID, HRID -> holdingClient.getHoldingsByQuery(
-        String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId()));
+      case ID, HRID -> checkDuplicates(holdingClient.getHoldingsByQuery(
+        String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId())));
       case INSTANCE_HRID ->
         holdingClient.getHoldingsByQuery("instanceId==" + holdingsReferenceService.getInstanceIdByHrid(itemIdentifier.getItemId()), Integer.MAX_VALUE);
       case ITEM_BARCODE ->
         holdingClient.getHoldingsByQuery("id==" + holdingsReferenceService.getHoldingsIdByItemBarcode(itemIdentifier.getItemId()), 1);
       default -> throw new BulkEditException(String.format("Identifier type \"%s\" is not supported", identifierType));
     };
+  }
+
+  private HoldingsRecordCollection checkDuplicates(HoldingsRecordCollection holdingsRecordCollection) {
+    if (holdingsRecordCollection.getTotalRecords() > 1) {
+      throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
+    }
+    return holdingsRecordCollection;
   }
 }

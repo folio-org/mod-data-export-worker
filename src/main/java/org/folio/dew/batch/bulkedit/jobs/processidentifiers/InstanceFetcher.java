@@ -1,5 +1,10 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
+import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
+import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
+import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
+
 import feign.codec.DecodeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -18,10 +23,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
-import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
-import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 
 @Component
 @StepScope
@@ -49,7 +50,11 @@ public class InstanceFetcher implements ItemProcessor<ItemIdentifier, InstanceCo
         String typeOfIdentifiersId = instanceReferenceService.getTypeOfIdentifiersIdByName(idType);
         return inventoryInstancesClient.getInstanceByQuery(String.format("(identifiers=/@identifierTypeId=%s \"%s\")", typeOfIdentifiersId, itemIdentifier.getItemId()));
       }
-      return inventoryInstancesClient.getInstanceByQuery(String.format(getMatchPattern(identifierType), idType, itemIdentifier.getItemId()), limit);
+      var instances = inventoryInstancesClient.getInstanceByQuery(String.format(getMatchPattern(identifierType), idType, itemIdentifier.getItemId()), limit);
+      if (instances.getTotalRecords() > limit) {
+        throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
+      }
+      return instances;
     } catch (DecodeException e) {
       throw new BulkEditException(ExceptionHelper.fetchMessage(e));
     }

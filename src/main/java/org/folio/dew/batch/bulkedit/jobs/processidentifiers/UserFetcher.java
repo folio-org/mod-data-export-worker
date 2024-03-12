@@ -1,6 +1,7 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 
 import feign.codec.DecodeException;
@@ -37,9 +38,12 @@ public class UserFetcher implements ItemProcessor<ItemIdentifier, User> {
     }
     identifiersToCheckDuplication.add(itemIdentifier);
     try {
-      var userCollection = userClient.getUserByQuery(String.format("%s==\"%s\"", resolveIdentifier(identifierType), itemIdentifier.getItemId()), 1);
+      var limit = 1;
+      var userCollection = userClient.getUserByQuery(String.format("%s==\"%s\"", resolveIdentifier(identifierType), itemIdentifier.getItemId()), limit);
       if (userCollection.getUsers().isEmpty()) {
         throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
+      } else if (userCollection.getTotalRecords() > limit) {
+        throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
       }
       return userCollection.getUsers().get(0);
     } catch (DecodeException e) {

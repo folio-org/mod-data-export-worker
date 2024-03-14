@@ -41,6 +41,7 @@ public class UserFormat implements Formatable<org.folio.dew.domain.dto.User> {
     map.put("dateOfBirth", "Date of birth");
     map.put("addresses", "Addresses");
     map.put("preferredContactTypeId", "Preferred contact type id");
+    map.put("profilePictureLink", "Link to the profile picture");
     map.put("enrollmentDate", "Enrollment date");
     map.put("expirationDate", "Expiration date");
     map.put("tags", "Tags");
@@ -123,20 +124,24 @@ public class UserFormat implements Formatable<org.folio.dew.domain.dto.User> {
   @CsvBindByPosition(position = 18)
   private String preferredContactTypeId;
 
-  @CsvBindByName(column = "Enrollment date")
+  @CsvBindByName(column = "Link to the profile picture")
   @CsvBindByPosition(position = 19)
+  private String profilePictureLink;
+
+  @CsvBindByName(column = "Enrollment date")
+  @CsvBindByPosition(position = 20)
   private String enrollmentDate;
 
   @CsvBindByName(column = "Expiration date")
-  @CsvBindByPosition(position = 20)
+  @CsvBindByPosition(position = 21)
   private String expirationDate;
 
   @CsvBindByName(column = "Tags")
-  @CsvBindByPosition(position = 21)
+  @CsvBindByPosition(position = 22)
   private String tags;
 
   @CsvBindByName(column = "Custom fields")
-  @CsvBindByPosition(position = 22)
+  @CsvBindByPosition(position = 23)
   private String customFields;
 
   public static String getUserColumnHeaders() {

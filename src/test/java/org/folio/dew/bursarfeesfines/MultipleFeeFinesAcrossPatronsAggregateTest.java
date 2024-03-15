@@ -366,6 +366,9 @@ class MultipleFeeFinesAcrossPatronsAggregateTest extends BaseBatchTest {
     final FileSystemResource actualChargeFeesFinesOutput = actualFileOutput(split[0]);
     FileSystemResource expectedCharges = new FileSystemResource(EXPECTED_CHARGE_OUTPUT);
 
+    var actual = new String(actualChargeFeesFinesOutput.getInputStream().readAllBytes());
+    var expected = new String(expectedCharges.getInputStream().readAllBytes());
+
     Assertions.assertThat(expectedCharges.getFile())
       .usingCharset("UTF-8")
       .hasSameTextualContentAs(actualChargeFeesFinesOutput.getFile());

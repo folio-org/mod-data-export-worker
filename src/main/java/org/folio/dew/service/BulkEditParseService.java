@@ -149,7 +149,7 @@ public class BulkEditParseService {
     personal.setDateOfBirth(dateFromString(userFormat.getDateOfBirth()));
     personal.setAddresses(getUserAddresses(userFormat));
     personal.setPreferredContactTypeId(isEmpty(userFormat.getPreferredContactTypeId()) ? null : userFormat.getPreferredContactTypeId());
-    personal.setProfilePictureLink(isEmpty(userFormat.getProfilePictureLink()) ? URI.create("") : URI.create(userFormat.getProfilePictureLink()));
+    personal.setProfilePictureLink(isEmpty(userFormat.getProfilePictureLink()) ? null : URI.create(userFormat.getProfilePictureLink()));
     return personal;
   }
 

@@ -171,7 +171,8 @@ class MultipleFeeFinesMatchingCriteriaTest extends BaseBatchTest {
                   "firstName": "psych",
                   "email": "rick@example.com",
                   "addresses": [],
-                  "preferredContactTypeId": "002"
+                  "preferredContactTypeId": "002",
+                  "profilePictureLink": "http://example.com/picture.jpg"
                 },
                 "enrollmentDate": "2020-10-07T04:00:00.000+00:00",
                 "createdDate": "2021-03-26T11:38:48.485+00:00",
@@ -196,7 +197,8 @@ class MultipleFeeFinesMatchingCriteriaTest extends BaseBatchTest {
                   "firstName": "smith",
                   "email": "john@example.com",
                   "addresses": [],
-                  "preferredContactTypeId": "003"
+                  "preferredContactTypeId": "003",
+                  "profilePictureLink": "http://example.com/picture.jpg"
                 },
                 "enrollmentDate": "2020-11-07T04:00:00.000+00:00",
                 "createdDate": "2021-04-26T11:38:48.485+00:00",

@@ -1,3 +1,44 @@
+## 2024-03-19 v3.2.0
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.1.2...v3.2.0)
+
+### Technical tasks
+* [MODEXPW-462](https://folio-org.atlassian.net/browse/MODEXPW-462) mod-data-export-worker: spring upgrade
+* [MODEXPW-458](https://folio-org.atlassian.net/browse/MODEXPW-458) Handling duplicates in matched records
+* [MODEXPW-456](https://folio-org.atlassian.net/browse/MODEXPW-456) Provide data for Holdings column to Item record preview
+* [MODEXPW-459](https://folio-org.atlassian.net/browse/MODEXPW-459) Add missing fields to instance schema
+* [MODEXPW-457](https://folio-org.atlassian.net/browse/MODEXPW-457) Rendering holdings electronic access properties in .csv file
+* [MODEXPW-452](https://folio-org.atlassian.net/browse/MODEXPW-452) Retrieve instance records for bulk edit
+* [MODEXPW-448](https://folio-org.atlassian.net/browse/MODEXPW-448) Separate circulation notes in different columns
+* [MODEXPW-444](https://folio-org.atlassian.net/browse/MODEXPW-444) Update 'mod-data-export-worker' interface version to 19.0
+* [MODORDERS-1017](https://folio-org.atlassian.net/browse/MODORDERS-1017) Add displaySummary field to the relevant modules
+
+### Bug fixes
+* [MODEXPW-461](https://folio-org.atlassian.net/browse/MODEXPW-461) Non-existent Electronic access Relationship type ID does not fall under Errors accordion
+* [MODBULKOPS-210](https://folio-org.atlassian.net/browse/MODBULKOPS-210) The "Administrative note" option under "Show columns" in the "Actions" button contains a part of the code.
+* [MODEXPW-453](https://folio-org.atlassian.net/browse/MODEXPW-453) EDI Orders : UNH & UNT message reference #s don't match
+
+### Features
+* [UXPROD-3903](https://folio-org.atlassian.net/browse/UXPROD-3903) Update automated transfer process to allow sites to format extract as needed
+
+## 2023-11-08 v3.1.2
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.1.1...v3.1.2)
+
+### Bug fixes
+* [MODEXPW-445](https://issues.folio.org/browse/MODEXPW-445) EDI export fails when vendorDetails value is null
+
+### Technical tasks
+* [MODEXPW-441](https://issues.folio.org/browse/MODEXPW-441) mod-data-export-worker: spring upgrade
+
+## 2023-11-03 v3.1.1
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.1.0...v3.1.1)
+
+### Bug fixes
+* [MODEXPW-446](https://issues.folio.org/browse/MODEXPW-446) Bulk edit holdings by instance hrid: changes are applied to no more than 10 associated holdings
+* [MODEXPW-443](https://issues.folio.org/browse/MODEXPW-443) Unexpected "Optimistic locking" error for Holdings with multiple Items
+
 ## 2023-10-13 v3.1.0
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.0.13...v3.1.0)

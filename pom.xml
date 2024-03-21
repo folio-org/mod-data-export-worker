@@ -58,7 +58,6 @@
         <commons-collections4.version>4.4</commons-collections4.version>
         <hypersistence-utils-hibernate-63.version>3.7.3</hypersistence-utils-hibernate-63.version>
         <opencsv.version>5.7.1</opencsv.version>
-        <netty.version>4.1.86.Final</netty.version>
         <feign-jackson.version>12.1</feign-jackson.version>
 
         <!-- Test properties-->
@@ -68,7 +67,7 @@
         <wiremock.version>2.27.2</wiremock.version>
         <marc4j.version>2.9.1</marc4j.version>
         <testcontainers.version>1.17.6</testcontainers.version>
-        <aws.sdk.version>2.20.0</aws.sdk.version>
+        <aws.sdk.version>2.25.13</aws.sdk.version>
         <hamcrest-all.version>1.3</hamcrest-all.version>
         <mockito-inline.version>5.2.0</mockito-inline.version>
 
@@ -231,7 +230,7 @@
 
       <dependency>
         <groupId>software.amazon.awssdk</groupId>
-        <artifactId>aws-sdk-java</artifactId>
+        <artifactId>s3</artifactId>
         <version>${aws.sdk.version}</version>
       </dependency>
 

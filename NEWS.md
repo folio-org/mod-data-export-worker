@@ -1,3 +1,10 @@
+## 2024-03-25 v3.1.3
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.1.2...v3.1.3)
+
+### Bug fixes
+* [FEXPCMN-21](https://folio-org.atlassian.net/browse/FEXPCMN-21) Unexpected value 'Staff info added'  Error  Prevents Circulation Logs Export
+
 ## 2023-11-08 v3.1.2
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.1.1...v3.1.2)

@@ -8,7 +8,7 @@
       "cost": {
         "currency": "USD"
       },
-      "titleOrPackage": "UNOA special chars need to be escaped are",
+      "titleOrPackage": "UNOA special chars need to be escaped are ?:+'",
       "vendorDetail": {
         "instructions": "",
         "vendorAccount": "",

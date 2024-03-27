@@ -39,8 +39,6 @@ public class CompositePOLineConverter {
   private static final int EAN_IDENTIFIER_LENGTH = 13;
 
   @Autowired
-  private EdifactUnoaEscaper edifactUnoaEscaper;
-  @Autowired
   private IdentifierTypeService identifierTypeService;
   @Autowired
   private MaterialTypeService materialTypeService;
@@ -230,7 +228,7 @@ public class CompositePOLineConverter {
       .writeComponent("")
       .writeComponent("")
       .writeComponent("")
-      .writeComponent(edifactUnoaEscaper.escape(titlePart))
+      .writeComponent(titlePart)
       .endElement()
       .writeEndSegment();
   }

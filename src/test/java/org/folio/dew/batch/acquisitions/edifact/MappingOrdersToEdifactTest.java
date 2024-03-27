@@ -54,7 +54,8 @@ class MappingOrdersToEdifactTest extends BaseBatchTest {
   @MockBean
   private ConfigurationService configurationService;
 
-  @Test void convertOrdersToEdifact() throws Exception {
+  @Test
+  void convertOrdersToEdifact() throws Exception {
     String jobName = "123456789012345";
     String fileIdExpected = "23456789012345";
     List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson();
@@ -97,12 +98,15 @@ class MappingOrdersToEdifactTest extends BaseBatchTest {
 
     CompositePurchaseOrder compPoWithNonEANProductIds = objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_non_ean_product_ids.json"), CompositePurchaseOrder.class);
 
+    CompositePurchaseOrder compPoTitleWithEscapeChars = objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_title_with_escape_chars.json"), CompositePurchaseOrder.class);
+
     List<CompositePurchaseOrder> compPOs = new ArrayList<>();
     compPOs.add(compPo);
     compPOs.add(comprehensiveCompPo);
     compPOs.add(minimalisticCompPo);
     compPOs.add(compPoWithEmptyVendorAccount);
     compPOs.add(compPoWithNonEANProductIds);
+    compPOs.add(compPoTitleWithEscapeChars);
     return compPOs;
   }
 
@@ -120,7 +124,7 @@ class MappingOrdersToEdifactTest extends BaseBatchTest {
     }
   }
 
-  private void serviceMocks(){
+  private void serviceMocks() {
     Mockito.when(identifierTypeService.getIdentifierTypeName("8261054f-be78-422d-bd51-4ed9f33c3422"))
       .thenReturn("ISSN", "ISMN", "ISBN", "ISSN", "ISMN", "ISBN");
     Mockito.when(identifierTypeService.getIdentifierTypeName(not(eq("8261054f-be78-422d-bd51-4ed9f33c3422"))))

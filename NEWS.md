@@ -1,3 +1,11 @@
+## 2024-04-01 v3.2.2
+This release focused on fixing escaping '?' in Edifact message processing 
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.2.1...v3.2.2)
+
+### Bug Fixes
+* [MODEXPS-258](https://folio-org.atlassian.net/browse/MODEXPS-258) Escape '?' during Edifact message processing
+
 ## 2024-03-23 v3.2.1
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.2.0...v3.2.1)

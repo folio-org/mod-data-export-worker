@@ -10,7 +10,6 @@ import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
 import static org.folio.dew.utils.Constants.LINE_BREAK;
 import static org.folio.dew.utils.Constants.LINE_BREAK_REPLACEMENT;
 
-import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -149,7 +148,7 @@ public class BulkEditParseService {
     personal.setDateOfBirth(dateFromString(userFormat.getDateOfBirth()));
     personal.setAddresses(getUserAddresses(userFormat));
     personal.setPreferredContactTypeId(isEmpty(userFormat.getPreferredContactTypeId()) ? null : userFormat.getPreferredContactTypeId());
-    personal.setProfilePictureLink(isEmpty(userFormat.getProfilePictureLink()) ? null : URI.create(userFormat.getProfilePictureLink()));
+    personal.setProfilePictureLink(isEmpty(userFormat.getProfilePictureLink()) ? null : userFormat.getProfilePictureLink());
     return personal;
   }
 

@@ -12,6 +12,7 @@ import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +78,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       .dateOfBirth(dateToStringWithoutTime(personal.getDateOfBirth()))
       .addresses(addressesToString(personal.getAddresses(), errorServiceArgs))
       .preferredContactTypeId(ofNullable(personal.getPreferredContactTypeId()).orElse(EMPTY))
+      .profilePictureLink(ofNullable(personal.getProfilePictureLink()).orElse(URI.create(EMPTY)).toString())
       .enrollmentDate(dateToString(user.getEnrollmentDate()))
       .expirationDate(dateToString(user.getExpirationDate()))
       .tags(nonNull(user.getTags()) ? String.join(ARRAY_DELIMITER, escaper.escape(user.getTags().getTagList())) : EMPTY)

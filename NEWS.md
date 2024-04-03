@@ -1,3 +1,15 @@
+## 2024-04-03 v3.2.3
+This release contains vulnerability fixes and user schema update
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.2.2...v3.2.3)
+
+### Bug Fixes
+* [MODEXPW-472](https://folio-org.atlassian.net/browse/MODEXPW-472) awssdk s3 2.25.13 fixing netty-handler DoS (CVE-2023-34462)
+* [MODEXPW-471](https://folio-org.atlassian.net/browse/MODEXPW-471) Upgrade minio and apache sshd fixing security vulns
+
+### Technical tasks
+* [MODEXPW-463](https://folio-org.atlassian.net/browse/MODEXPW-463) User schema update
+
 ## 2024-04-01 v3.2.2
 This release focused on fixing escaping '?' in Edifact message processing 
 

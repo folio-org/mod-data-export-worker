@@ -204,6 +204,8 @@ public class BulkEditParseService {
     var fieldValue = valuePair.getValue();
     var customField = userReferenceService.getCustomFieldByName(fieldName);
     switch (customField.getType()) {
+    case DATE_PICKER:
+      return Pair.of(customField.getRefId(), fieldValue);
     case SINGLE_CHECKBOX:
       return Pair.of(customField.getRefId(), Boolean.parseBoolean(fieldValue));
     case TEXTBOX_LONG:

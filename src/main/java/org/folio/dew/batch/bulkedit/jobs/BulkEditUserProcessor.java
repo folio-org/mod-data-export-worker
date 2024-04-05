@@ -138,7 +138,7 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
   private String customFieldToString(Map.Entry<String, Object> entry) {
     var customField = userReferenceService.getCustomFieldByRefId(entry.getKey());
     return switch (customField.getType()) {
-    case TEXTBOX_LONG, TEXTBOX_SHORT, SINGLE_CHECKBOX ->
+    case DATE_PICKER, TEXTBOX_LONG, TEXTBOX_SHORT, SINGLE_CHECKBOX ->
       escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + (isNull(entry.getValue()) ? EMPTY : escaper.escape(entry.getValue().toString()));
     case SINGLE_SELECT_DROPDOWN, RADIO_BUTTON ->
       escaper.escape(customField.getName()) + KEY_VALUE_DELIMITER + (isNull(entry.getValue()) ? EMPTY : escaper.escape(extractValueById(customField, entry.getValue().toString())));

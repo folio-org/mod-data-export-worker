@@ -29,12 +29,14 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
+import static org.folio.dew.utils.Constants.PATH_TO_ERRORS;
 import static org.folio.dew.utils.Constants.TEMP_IDENTIFIERS_FILE_NAME;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -105,7 +107,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
         handleProcessingChangedRecords(jobExecution);
       }
       if (isBulkEditUpdateJob(jobExecution)) {
-        String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
+        String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId, jobExecution);
         var isChangedRecordsLinkPresent = jobExecution.getExecutionContext().containsKey(OUTPUT_FILES_IN_STORAGE);
         jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE,
           (isChangedRecordsLinkPresent ? jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE) : EMPTY) +
@@ -150,9 +152,22 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       }
       jobExecutionUpdate.setProgress(progress);
     }
+    populateFileNames(jobExecution, jobExecutionUpdate, jobParameters);
     kafka.send(KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     if (after) {
       log.info("-----------------------------JOB---ENDS-----------------------------");
+    }
+  }
+
+  private void populateFileNames(JobExecution jobExecution, Job jobExecutionUpdate, JobParameters jobParameters) {
+    if (jobExecution.getExecutionContext().containsKey(PATH_TO_ERRORS)) {
+      var fileNames = jobExecutionUpdate.getFileNames();
+      if (isNull(fileNames)) {
+        fileNames = new ArrayList<>();
+        jobExecutionUpdate.setFileNames(fileNames);
+      }
+      fileNames.add(jobExecution.getExecutionContext().getString(PATH_TO_ERRORS));
+      fileNames.add(jobParameters.getString(TEMP_OUTPUT_FILE_PATH));
     }
   }
 
@@ -180,7 +195,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
   }
 
   private void handleProcessingErrors(JobExecution jobExecution, String jobId) {
-    String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
+    String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId, jobExecution);
     jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution, false) + PATHS_DELIMITER + (isNull(downloadErrorLink) ? EMPTY : downloadErrorLink) + PATHS_DELIMITER + saveJsonResult(jobExecution, !isBulkEditUpdateJob(jobExecution)));
   }
 

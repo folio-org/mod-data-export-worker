@@ -30,6 +30,7 @@ import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.PATH_TO_ERRORS;
+import static org.folio.dew.utils.Constants.PATH_TO_MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.TEMP_IDENTIFIERS_FILE_NAME;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 
@@ -160,14 +161,16 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
   }
 
   private void populateFileNames(JobExecution jobExecution, Job jobExecutionUpdate, JobParameters jobParameters) {
+    var fileNames = jobExecutionUpdate.getFileNames();
+    if (isNull(fileNames)) {
+      fileNames = new ArrayList<>();
+      jobExecutionUpdate.setFileNames(fileNames);
+    }
     if (jobExecution.getExecutionContext().containsKey(PATH_TO_ERRORS)) {
-      var fileNames = jobExecutionUpdate.getFileNames();
-      if (isNull(fileNames)) {
-        fileNames = new ArrayList<>();
-        jobExecutionUpdate.setFileNames(fileNames);
-      }
       fileNames.add(jobExecution.getExecutionContext().getString(PATH_TO_ERRORS));
-      fileNames.add(jobParameters.getString(TEMP_OUTPUT_FILE_PATH));
+    }
+    if (jobExecution.getExecutionContext().containsKey(PATH_TO_MATCHED_RECORDS)) {
+      fileNames.add(jobExecution.getExecutionContext().getString(PATH_TO_MATCHED_RECORDS));
     }
   }
 
@@ -311,8 +314,10 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       if (localFilesStorage.notExists(path) && remoteFilesStorage.containsFile(path)) {
         return remoteFilesStorage.objectToPresignedObjectUrl(path);
       }
+      var obj = prepareObject(jobExecution, path);
+      jobExecution.getExecutionContext().putString(PATH_TO_MATCHED_RECORDS, obj);
       return remoteFilesStorage.objectToPresignedObjectUrl(
-        remoteFilesStorage.uploadObject(prepareObject(jobExecution, path), path, prepareDownloadFilename(jobExecution, path), "text/csv", isSourceShouldBeDeleted));
+        remoteFilesStorage.uploadObject(obj, path, prepareDownloadFilename(jobExecution, path), "text/csv", isSourceShouldBeDeleted));
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }

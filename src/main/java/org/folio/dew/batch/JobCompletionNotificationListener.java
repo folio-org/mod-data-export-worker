@@ -9,6 +9,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.dew.batch.ExecutionContextUtils.getFromJobExecutionContext;
 import static org.folio.dew.domain.dto.ExportType.AUTH_HEADINGS_UPDATES;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
 import static org.folio.dew.domain.dto.ExportType.E_HOLDINGS;
@@ -153,7 +154,9 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       }
       jobExecutionUpdate.setProgress(progress);
     }
-    populateFileNames(jobExecution, jobExecutionUpdate, jobParameters);
+    if (isBulkEditJob(jobExecution)) {
+      populateFileNames(jobExecution, jobExecutionUpdate, jobParameters);
+    }
     kafka.send(KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     if (after) {
       log.info("-----------------------------JOB---ENDS-----------------------------");
@@ -303,6 +306,15 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
 
   private boolean isBulkEditContentUpdateJob(JobExecution jobExecution) {
     return nonNull(jobExecution.getJobParameters().getString(UPDATED_FILE_NAME));
+  }
+
+  private boolean isBulkEditQueryJob(JobExecution jobExecution) {
+    return jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_QUERY.getValue());
+  }
+
+  private boolean isBulkEditJob(JobExecution jobExecution) {
+    return isBulkEditContentUpdateJob(jobExecution) || isBulkEditUpdateJob(jobExecution) ||
+      isBulkEditIdentifiersJob(jobExecution) || isBulkEditQueryJob(jobExecution);
   }
 
   private String saveResult(JobExecution jobExecution, boolean isSourceShouldBeDeleted) {

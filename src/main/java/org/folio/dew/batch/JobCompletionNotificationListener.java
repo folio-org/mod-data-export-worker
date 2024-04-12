@@ -34,6 +34,7 @@ import static org.folio.dew.utils.Constants.PATH_TO_ERRORS;
 import static org.folio.dew.utils.Constants.PATH_TO_MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.TEMP_IDENTIFIERS_FILE_NAME;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
+import static org.folio.dew.utils.SystemHelper.validatePath;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -327,6 +328,9 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
         return remoteFilesStorage.objectToPresignedObjectUrl(path);
       }
       var obj = prepareObject(jobExecution, path);
+      if (isBulkEditJob(jobExecution)) {
+        obj = validatePath(obj);
+      }
       jobExecution.getExecutionContext().putString(PATH_TO_MATCHED_RECORDS, obj);
       return remoteFilesStorage.objectToPresignedObjectUrl(
         remoteFilesStorage.uploadObject(obj, path, prepareDownloadFilename(jobExecution, path), "text/csv", isSourceShouldBeDeleted));

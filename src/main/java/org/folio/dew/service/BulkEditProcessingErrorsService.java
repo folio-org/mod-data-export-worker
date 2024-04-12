@@ -6,6 +6,7 @@ import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.PATH_TO_ERRORS;
+import static org.folio.dew.utils.SystemHelper.validatePath;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -112,6 +113,7 @@ public class BulkEditProcessingErrorsService {
         if (csvErrorFile.isPresent()) {
           var filename = csvErrorFile.get();
           var downloadFilename = jobId + PATH_SEPARATOR + FilenameUtils.getName(filename);
+          downloadFilename = validatePath(downloadFilename);
           jobExecution.getExecutionContext().putString(PATH_TO_ERRORS, downloadFilename);
           return saveErrorFile(downloadFilename, filename);
         } else {

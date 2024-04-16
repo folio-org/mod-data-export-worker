@@ -1,3 +1,12 @@
+## 2024-04-16 v3.2.4
+This release contains bug fixes
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.2.3...v3.2.4)
+
+### Bug Fixes
+* [MODEXPW-474](https://folio-org.atlassian.net/browse/MODEXPW-474) "Request has expired" or  "Expired token" errors
+* [MODEXPW-463](https://github.com/folio-org/mod-data-export-worker/commit/863aede16d06d8175bc6bc326f1ccdec0ed4d6b8) Update custom field types
+
 ## 2024-04-03 v3.2.3
 This release contains vulnerability fixes and user schema update
 

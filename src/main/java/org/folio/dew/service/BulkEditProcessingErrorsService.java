@@ -5,6 +5,8 @@ import static java.util.Collections.emptyList;
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
+import static org.folio.dew.utils.Constants.PATH_TO_ERRORS;
+import static org.folio.dew.utils.SystemHelper.validatePath;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -14,6 +16,7 @@ import org.folio.dew.domain.dto.Errors;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -102,7 +105,7 @@ public class BulkEditProcessingErrorsService {
     localFilesStorage.delete("E" + File.separator + BulkEditProcessingErrorsService.STORAGE);
   }
 
-  public String saveErrorFileAndGetDownloadLink(String jobId) {
+  public String saveErrorFileAndGetDownloadLink(String jobId, JobExecution jobExecution) {
     var pathToStorage = getPathToStorage(jobId);
     if (localFilesStorage.exists(pathToStorage)) {
       try (Stream<String> stream = localFilesStorage.walk(pathToStorage)) {
@@ -110,6 +113,8 @@ public class BulkEditProcessingErrorsService {
         if (csvErrorFile.isPresent()) {
           var filename = csvErrorFile.get();
           var downloadFilename = jobId + PATH_SEPARATOR + FilenameUtils.getName(filename);
+          downloadFilename = validatePath(downloadFilename);
+          jobExecution.getExecutionContext().putString(PATH_TO_ERRORS, downloadFilename);
           return saveErrorFile(downloadFilename, filename);
         } else {
           log.error("Download link cannot be created because CSV error file cannot be found at {}", pathToStorage);

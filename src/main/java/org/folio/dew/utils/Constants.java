@@ -67,6 +67,9 @@ public class Constants {
   public static final String CALL_NUMBER_PREFIX = "callNumberPrefix";
   public static final String CALL_NUMBER = "callNumber";
   public static final String CALL_NUMBER_SUFFIX = "callNumberSuffix";
+  public static final String PATH_TO_ERRORS = "PATH_TO_ERRORS";
+  public static final String PATH_TO_MATCHED_RECORDS = "PATH_TO_MATCHED_RECORDS";
+  public static final String CHARACTERS_SHOULD_BE_REPLACED_IN_PATH = "[+]";
 
 
   public static String getWorkingDirectory(String springApplicationName, String dirName) {

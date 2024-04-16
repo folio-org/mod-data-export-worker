@@ -9,6 +9,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.dew.batch.ExecutionContextUtils.getFromJobExecutionContext;
 import static org.folio.dew.domain.dto.ExportType.AUTH_HEADINGS_UPDATES;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
+import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
 import static org.folio.dew.domain.dto.ExportType.E_HOLDINGS;
@@ -29,12 +30,16 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
+import static org.folio.dew.utils.Constants.PATH_TO_ERRORS;
+import static org.folio.dew.utils.Constants.PATH_TO_MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.TEMP_IDENTIFIERS_FILE_NAME;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
+import static org.folio.dew.utils.SystemHelper.validatePath;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -105,7 +110,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
         handleProcessingChangedRecords(jobExecution);
       }
       if (isBulkEditUpdateJob(jobExecution)) {
-        String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
+        String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId, jobExecution);
         var isChangedRecordsLinkPresent = jobExecution.getExecutionContext().containsKey(OUTPUT_FILES_IN_STORAGE);
         jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE,
           (isChangedRecordsLinkPresent ? jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE) : EMPTY) +
@@ -150,9 +155,26 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       }
       jobExecutionUpdate.setProgress(progress);
     }
+    if (isBulkEditJob(jobExecution)) {
+      populateFileNames(jobExecution, jobExecutionUpdate, jobParameters);
+    }
     kafka.send(KafkaService.Topic.JOB_UPDATE, jobExecutionUpdate.getId().toString(), jobExecutionUpdate);
     if (after) {
       log.info("-----------------------------JOB---ENDS-----------------------------");
+    }
+  }
+
+  private void populateFileNames(JobExecution jobExecution, Job jobExecutionUpdate, JobParameters jobParameters) {
+    var fileNames = jobExecutionUpdate.getFileNames();
+    if (isNull(fileNames)) {
+      fileNames = new ArrayList<>();
+      jobExecutionUpdate.setFileNames(fileNames);
+    }
+    if (jobExecution.getExecutionContext().containsKey(PATH_TO_ERRORS)) {
+      fileNames.add(jobExecution.getExecutionContext().getString(PATH_TO_ERRORS));
+    }
+    if (jobExecution.getExecutionContext().containsKey(PATH_TO_MATCHED_RECORDS)) {
+      fileNames.add(jobExecution.getExecutionContext().getString(PATH_TO_MATCHED_RECORDS));
     }
   }
 
@@ -180,7 +202,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
   }
 
   private void handleProcessingErrors(JobExecution jobExecution, String jobId) {
-    String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId);
+    String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId, jobExecution);
     jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution, false) + PATHS_DELIMITER + (isNull(downloadErrorLink) ? EMPTY : downloadErrorLink) + PATHS_DELIMITER + saveJsonResult(jobExecution, !isBulkEditUpdateJob(jobExecution)));
   }
 
@@ -287,6 +309,15 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
     return nonNull(jobExecution.getJobParameters().getString(UPDATED_FILE_NAME));
   }
 
+  private boolean isBulkEditQueryJob(JobExecution jobExecution) {
+    return jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_QUERY.getValue());
+  }
+
+  private boolean isBulkEditJob(JobExecution jobExecution) {
+    return isBulkEditContentUpdateJob(jobExecution) || isBulkEditUpdateJob(jobExecution) ||
+      isBulkEditIdentifiersJob(jobExecution) || isBulkEditQueryJob(jobExecution);
+  }
+
   private String saveResult(JobExecution jobExecution, boolean isSourceShouldBeDeleted) {
     var path = preparePath(jobExecution);
     try {
@@ -296,8 +327,13 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       if (localFilesStorage.notExists(path) && remoteFilesStorage.containsFile(path)) {
         return remoteFilesStorage.objectToPresignedObjectUrl(path);
       }
+      var obj = prepareObject(jobExecution, path);
+      if (isBulkEditJob(jobExecution)) {
+        obj = validatePath(obj);
+      }
+      jobExecution.getExecutionContext().putString(PATH_TO_MATCHED_RECORDS, obj);
       return remoteFilesStorage.objectToPresignedObjectUrl(
-        remoteFilesStorage.uploadObject(prepareObject(jobExecution, path), path, prepareDownloadFilename(jobExecution, path), "text/csv", isSourceShouldBeDeleted));
+        remoteFilesStorage.uploadObject(obj, path, prepareDownloadFilename(jobExecution, path), "text/csv", isSourceShouldBeDeleted));
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }

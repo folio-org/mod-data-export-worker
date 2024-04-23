@@ -45,8 +45,8 @@ spring:
     enabled: true
   servlet:
     multipart:
-      max-file-size: 40MB
-      max-request-size: 40MB
+      max-file-size: ${MAX_UPLOADED_FILE_SIZE:40MB}
+      max-request-size: ${MAX_UPLOADED_FILE_SIZE:40MB}
   cloud:
     openfeign:
       okhttp:

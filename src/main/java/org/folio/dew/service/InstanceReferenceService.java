@@ -100,7 +100,7 @@ public class InstanceReferenceService {
   @Cacheable(cacheNames = "instanceNoteTypes")
   public String getInstanceNoteTypeNameById(String noteTypeId, ErrorServiceArgs args) {
     try {
-      return isEmpty(noteTypeId) ? EMPTY : instanceTypesClient.getById(noteTypeId).getName();
+      return isEmpty(noteTypeId) ? EMPTY : instanceNoteTypesClient.getNoteTypeById(noteTypeId).getName();
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Instance note type was not found by id: [%s]", noteTypeId)), args.getFileName());
       return noteTypeId;

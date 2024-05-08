@@ -2,6 +2,8 @@ package org.folio.dew.service.mapper;
 
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.utils.BulkEditProcessorHelper.booleanToStringNullSafe;
+import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER_SPACED;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_SPACED;
 
@@ -11,6 +13,7 @@ import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.Instance;
 import org.folio.dew.domain.dto.InstanceContributorsInner;
 import org.folio.dew.domain.dto.InstanceFormat;
+import org.folio.dew.domain.dto.InstanceNotesInner;
 import org.folio.dew.domain.dto.InstanceSeriesInner;
 import org.folio.dew.service.InstanceReferenceService;
 import org.springframework.stereotype.Service;
@@ -41,6 +44,7 @@ public class InstanceMapper {
       .catalogedDate(formatDate(instance.getCatalogedDate()))
       .statusId(instanceReferenceService.getInstanceStatusNameById(instance.getStatusId(), errorServiceArgs))
       .modeOfIssuanceId(instanceReferenceService.getModeOfIssuanceNameById(instance.getModeOfIssuanceId(), errorServiceArgs))
+      .notes(fetchNotes(instance.getNotes(), errorServiceArgs))
       .administrativeNotes(isEmpty(instance.getAdministrativeNotes()) ? EMPTY : String.join(ITEM_DELIMITER_SPACED, instance.getAdministrativeNotes()))
       .title(instance.getTitle())
       .indexTitle(instance.getIndexTitle())
@@ -101,5 +105,19 @@ public class InstanceMapper {
         series.stream()
           .map(InstanceSeriesInner::getValue)
           .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
+  }
+
+  private String fetchNotes(List<InstanceNotesInner> notes, ErrorServiceArgs errorServiceArgs) {
+    return isEmpty(notes) ? EMPTY :
+      notes.stream()
+        .map(note -> noteToString(note, errorServiceArgs))
+        .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
+  }
+
+  private String noteToString(InstanceNotesInner note, ErrorServiceArgs errorServiceArgs) {
+    return String.join(ARRAY_DELIMITER,
+      instanceReferenceService.getInstanceNoteTypeNameById(note.getInstanceNoteTypeId(), errorServiceArgs),
+      note.getNote(),
+      booleanToStringNullSafe(note.getStaffOnly()));
   }
 }

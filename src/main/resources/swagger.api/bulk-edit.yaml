@@ -681,6 +681,8 @@ components:
       $ref: '../../../../folio-export-common/schemas/inventory/identifierTypeReference.json#/IdentifierTypeReference'
     IdentifierTypeReferenceCollection:
       $ref: '../../../../folio-export-common/schemas/inventory/identifierTypeReferenceCollection.json#/IdentifierTypeReferenceCollection'
+    InstanceNoteType:
+      $ref: '../../../../folio-export-common/schemas/inventory/instanceNoteType.json#/InstanceNoteType'
   examples:
     errors:
       value:

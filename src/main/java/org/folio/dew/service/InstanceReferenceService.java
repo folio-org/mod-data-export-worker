@@ -4,6 +4,7 @@ package org.folio.dew.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.client.InstanceNoteTypesClient;
 import org.folio.dew.client.InstanceStatusesClient;
 import org.folio.dew.client.InstanceModeOfIssuanceClient;
 import org.folio.dew.client.InstanceTypesClient;
@@ -34,6 +35,7 @@ public class InstanceReferenceService {
   private final NatureOfContentTermsClient natureOfContentTermsClient;
   private final InstanceFormatsClient instanceFormatsClient;
   private final IdentifierTypeClient identifierTypeClient;
+  private final InstanceNoteTypesClient instanceNoteTypesClient;
 
 
   @Cacheable(cacheNames = "instanceStatusNames")
@@ -93,6 +95,16 @@ public class InstanceReferenceService {
       return identifierName;
     }
     return typeOfIdentifiers.getIdentifierTypes().get(0).getId();
+  }
+
+  @Cacheable(cacheNames = "instanceNoteTypes")
+  public String getInstanceNoteTypeNameById(String noteTypeId, ErrorServiceArgs args) {
+    try {
+      return isEmpty(noteTypeId) ? EMPTY : instanceNoteTypesClient.getNoteTypeById(noteTypeId).getName();
+    } catch (NotFoundException e) {
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Instance note type was not found by id: [%s]", noteTypeId)), args.getFileName());
+      return noteTypeId;
+    }
   }
 
 }

@@ -19,7 +19,9 @@ import static org.folio.dew.domain.dto.JobParameterNames.CIRCULATION_LOG_FILE_NA
 import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
+import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_MARC_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
+import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_MARC_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.BulkEditProcessorHelper.convertToDate;
@@ -104,12 +106,11 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
     if (after) {
       if (isBulkEditIdentifiersJob(jobExecution)) {
         moveTemporaryFilesToStorage(jobParameters);
-        handleProcessingErrors(jobExecution, jobId);
+        handleProcessingMatchedRecordsAndErrors(jobExecution, jobId);
+        handleProcessingMarcFile(jobExecution);
       }
       if (isBulkEditUpdateJob(jobExecution)) {
         handleProcessingChangedRecords(jobExecution);
-      }
-      if (isBulkEditUpdateJob(jobExecution)) {
         String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId, jobExecution);
         var isChangedRecordsLinkPresent = jobExecution.getExecutionContext().containsKey(OUTPUT_FILES_IN_STORAGE);
         jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE,
@@ -184,6 +185,10 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       moveFileToStorage(jobParameters.getString(TEMP_OUTPUT_FILE_PATH), tmpFileName);
       moveFileToStorage(jobParameters.getString(TEMP_OUTPUT_FILE_PATH) + ".json", tmpFileName + ".json");
     }
+    var tmpMarcName = jobParameters.getString(TEMP_LOCAL_MARC_PATH);
+    if (nonNull(tmpMarcName)) {
+      moveFileToStorage(jobParameters.getString(TEMP_OUTPUT_MARC_PATH) + ".mrc", tmpMarcName + ".mrc");
+    }
 
     var tmpIdentifiersFileName = jobParameters.getString(TEMP_IDENTIFIERS_FILE_NAME);
     if (nonNull(tmpIdentifiersFileName) && Files.deleteIfExists(Path.of(tmpIdentifiersFileName))) {
@@ -201,9 +206,13 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
     }
   }
 
-  private void handleProcessingErrors(JobExecution jobExecution, String jobId) {
+  private void handleProcessingMatchedRecordsAndErrors(JobExecution jobExecution, String jobId) {
     String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId, jobExecution);
     jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution, false) + PATHS_DELIMITER + (isNull(downloadErrorLink) ? EMPTY : downloadErrorLink) + PATHS_DELIMITER + saveJsonResult(jobExecution, !isBulkEditUpdateJob(jobExecution)));
+  }
+
+  private void handleProcessingMarcFile(JobExecution jobExecution) {
+    jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE) + PATHS_DELIMITER + saveMarcResult(jobExecution, false));
   }
 
   private void handleProcessingChangedRecords(JobExecution jobExecution) {
@@ -355,6 +364,16 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
     }
   }
 
+  private String saveMarcResult(JobExecution jobExecution, boolean isSourceToBeDeleted) {
+    try {
+      var path = jobExecution.getJobParameters().getString(TEMP_OUTPUT_MARC_PATH) + ".mrc";
+      return remoteFilesStorage.objectToPresignedObjectUrl(
+        remoteFilesStorage.uploadObject(prepareMrcObject(jobExecution, path), path, null, "text/plain", isSourceToBeDeleted));
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
   private String preparePath(JobExecution jobExecution) {
     if (isBulkEditContentUpdateJob(jobExecution)) {
       return jobExecution.getJobParameters().getString(UPDATED_FILE_NAME);
@@ -385,6 +404,10 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
 
   private String prepareJsonObject(JobExecution jobExecution, String path) {
     return jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID) + PATH_SEPARATOR + FilenameUtils.getName(path) + (!isBulkEditUpdateJob(jobExecution) ? ".json" : EMPTY);
+  }
+
+  private String prepareMrcObject(JobExecution jobExecution, String path) {
+    return jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID) + PATH_SEPARATOR + FilenameUtils.getName(path);
   }
 
   private String prepareDownloadFilename(JobExecution jobExecution, String path) {

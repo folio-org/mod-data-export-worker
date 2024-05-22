@@ -1,0 +1,66 @@
+package org.folio.dew.batch.bulkedit.jobs;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.folio.dew.client.InventoryInstancesClient;
+import org.folio.dew.client.SrsClient;
+import org.folio.dew.domain.dto.IdentifierType;
+import org.folio.dew.domain.dto.InstanceCollection;
+import org.folio.dew.domain.dto.ItemIdentifier;
+import org.folio.dew.error.BulkEditException;
+import org.folio.dew.service.InstanceReferenceService;
+import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.item.ItemProcessor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.folio.dew.domain.dto.IdentifierType.ISBN;
+import static org.folio.dew.domain.dto.IdentifierType.ISSN;
+import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+
+@Component
+@StepScope
+@RequiredArgsConstructor
+@Log4j2
+public class BulkEditMarcProcessor implements ItemProcessor<ItemIdentifier, List<String>> {
+
+  private static final String EXACT_MATCH_PATTERN_FOR_MARC = "%s==%s AND source==MARC";
+
+  private final InventoryInstancesClient inventoryInstancesClient;
+  private final SrsClient srsClient;
+
+  private final InstanceReferenceService instanceReferenceService;
+
+  @Value("#{jobParameters['identifierType']}")
+  private String identifierType;
+
+  @Override
+  public List<String> process(ItemIdentifier itemIdentifier) throws Exception {
+    var instances = getMarcInstances(itemIdentifier);
+    return instances.getInstances().stream().map(inst -> getMarcContent(inst.getId())).collect(Collectors.toList());
+  }
+
+  private InstanceCollection getMarcInstances(ItemIdentifier itemIdentifier) {
+    return switch (IdentifierType.fromValue(identifierType)) {
+      case ID, HRID ->
+        inventoryInstancesClient.getInstanceByQuery(String.format(EXACT_MATCH_PATTERN_FOR_MARC, resolveIdentifier(identifierType), itemIdentifier.getItemId()), 1);
+      case ISBN -> getInstancesByIdentifierTypeAndValue(ISBN, itemIdentifier.getItemId());
+      case ISSN -> getInstancesByIdentifierTypeAndValue(ISSN, itemIdentifier.getItemId());
+      default -> throw new BulkEditException(String.format("Identifier type \"%s\" is not supported", identifierType));
+    };
+  }
+
+  private InstanceCollection getInstancesByIdentifierTypeAndValue(IdentifierType identifierType, String value) {
+    return inventoryInstancesClient.getInstanceByQuery(String.format("(identifiers=/@identifierTypeId=%s \"%s\" AND source==MARC)",
+      instanceReferenceService.getTypeOfIdentifiersIdByName(identifierType.getValue()), value), Integer.MAX_VALUE);
+  }
+
+  private String getMarcContent(String id) {
+    var srsRecords = srsClient.getMarc(id, "INSTANCE");
+    var marcRecord = srsClient.getMarcContent(srsRecords.getSourceRecords().get(0).getRecordId());
+    return marcRecord.getRawRecord().getContent();
+  }
+}

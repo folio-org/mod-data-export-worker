@@ -14,6 +14,8 @@ import static org.folio.dew.domain.dto.JobParameterNames.PREVIEW_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.QUERY;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
+import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_MARC_PATH;
+import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_MARC_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
@@ -24,6 +26,7 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.FILE_UPLOAD_ERROR;
 import static org.folio.dew.utils.Constants.IDENTIFIER_TYPE;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
+import static org.folio.dew.utils.Constants.MARC_RECORDS;
 import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.TEMP_IDENTIFIERS_FILE_NAME;
@@ -421,6 +424,9 @@ public class BulkEditController implements JobIdApi {
     paramsBuilder.addString(TEMP_OUTPUT_FILE_PATH, workDir + fileName, JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
     paramsBuilder.addString(TEMP_LOCAL_FILE_PATH, getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + fileName, JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
     paramsBuilder.addString(EXPORT_TYPE, jobCommand.getExportType().getValue(), JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
+    var marcFileName = jobCommand.getId() + PATH_SEPARATOR + (isBulkEditUpdate(jobCommand) ? EMPTY : LocalDate.now() + MARC_RECORDS) + FilenameUtils.getBaseName(uploadedPath);
+    paramsBuilder.addString(TEMP_OUTPUT_MARC_PATH, workDir + marcFileName);
+    paramsBuilder.addString(TEMP_LOCAL_MARC_PATH, getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + marcFileName, JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
     ofNullable(jobCommand.getIdentifierType()).ifPresent(type ->
       paramsBuilder.addString("identifierType", type.getValue(), JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE));
     ofNullable(jobCommand.getEntityType()).ifPresent(type ->

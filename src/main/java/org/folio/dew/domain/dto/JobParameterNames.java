@@ -22,5 +22,7 @@ public class JobParameterNames {
   public static final String AUTHORITY_CONTROL_FILE_NAME = "authorityControlFileName";
   public static final String QUERY = "query";
   public static final String EDIFACT_ORDERS_EXPORT = "edifactOrdersExport";
+  public static final String TEMP_OUTPUT_MARC_PATH = "tempOutputMarcPath";
+  public static final String TEMP_LOCAL_MARC_PATH = "tempLocalMarcPath";
 
 }

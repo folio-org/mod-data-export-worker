@@ -68,6 +68,123 @@
     {
       "request": {
         "method": "GET",
+        "url": "/inventory/instances?query=hrid%3D%3Dinst000000000022%20AND%20source%3D%3DMARC&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"instances\": [ ],\"totalRecords\": 0}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/instances?query=hrid%3D%3Dinst000000000003%20AND%20source%3D%3DMARC&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"instances\": [ ],\"totalRecords\": 0}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/instances?query=hrid%3D%3Dinst000000000004%20AND%20source%3D%3DMARC&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"instances\": [ ],\"totalRecords\": 0}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/instances?query=id%3D%3Dinst000000000002%20AND%20source%3D%3DMARC&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"instances\": [ ],\"totalRecords\": 0}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/instances?query=id%3D%3Dinst000000000028%20AND%20source%3D%3DMARC&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"instances\": [ ],\"totalRecords\": 0}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/instances?query=hrid%3D%3Dinst000000000002%20AND%20source%3D%3DMARC&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"instances\": [ ],\"totalRecords\": 0}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/instances?query=hrid%3D%3Dinst000000000028%20AND%20source%3D%3DMARC&limit=1"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"instances\": [ ],\"totalRecords\": 0}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/instances?query=%28identifiers%3D/%40identifierTypeId%3D8261054f-be78-422d-bd51-4ed9f33c3422%20%2212345%22%20AND%20source%3D%3DMARC%29&limit=2147483647"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"instances\": [ ],\"totalRecords\": 0}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/inventory/instances?query=%28identifiers%3D/%40identifierTypeId%3D913300b2-03ed-469a-8179-c1092c991227%20%2212345%22%20AND%20source%3D%3DMARC%29&limit=2147483647"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"instances\": [ ],\"totalRecords\": 0}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
         "url": "/inventory/instances?query=id%3D%3D1572796a-b88b-4991-a9f7-2e368217c487&limit=1"
       },
       "response": {

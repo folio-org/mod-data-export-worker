@@ -537,87 +537,6 @@ class BulkEditTest extends BaseBatchTest {
     }
   }
 
-  @Test
-  @DisplayName("Run holdings records in-app update - successful")
-  @SneakyThrows
-  void shouldRunHoldingsInAppUpdateJob() {
-    var jobId = UUID.randomUUID().toString();
-    var fileName = jobId + PATH_SEPARATOR + FilenameUtils.getName(HOLDINGS_RECORD_IN_APP_UPDATED);
-    remoteFilesStorage.upload(fileName, HOLDINGS_RECORD_IN_APP_UPDATED);
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateHoldingsRecordsJob);
-    var jobParameters = new JobParametersBuilder()
-      .addString(JOB_ID, jobId)
-      .addString(EXPORT_TYPE, BULK_EDIT_UPDATE.getValue())
-      .addString(ENTITY_TYPE, HOLDINGS_RECORD.getValue())
-      .addString(IDENTIFIER_TYPE, ID.getValue())
-      .addString(UPDATED_FILE_NAME, fileName)
-      .toJobParameters();
-
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
-
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-    assertNotNull(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE));
-
-    var request = wireMockServer.getAllServeEvents().get(0).getRequest();
-    assertThat(request.getMethod().getName()).isEqualTo("PUT");
-    assertThat(request.getUrl()).isEqualTo("/holdings-storage/holdings/0b1e3760-f689-493e-a98e-9cc9dadb7e83");
-  }
-
-  @Test
-  @DisplayName("Run holdings records in-app update - errors file shows identifier")
-  @SneakyThrows
-  void shouldRunHoldingsInAppUpdateJobAndShowIdentifierWhenHoldingsFoundByItemBarcode() {
-
-    // Bulk edit identifiers part.
-    var testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
-
-    var jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, ITEM_BARCODE, ITEM_BARCODE_FOR_HOLDINGS_IDENTIFIERS_CSV);
-    var jobExecution = testLauncher.launchJob(jobParameters);
-
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-
-    var jobId = UUID.randomUUID().toString();
-    var fileName = jobId + PATH_SEPARATOR + FilenameUtils.getName(HOLDINGS_RECORD_BY_ITEM_BARCODE_IN_APP_UPDATED_NO_CHANGE);
-    remoteFilesStorage.upload(fileName, HOLDINGS_RECORD_BY_ITEM_BARCODE_IN_APP_UPDATED_NO_CHANGE);
-
-    // Bulk edit update part.
-    testLauncher = createTestLauncher(bulkEditUpdateHoldingsRecordsJob);
-    jobParameters = new JobParametersBuilder()
-      .addString(JOB_ID, jobId)
-      .addString(EXPORT_TYPE, BULK_EDIT_UPDATE.getValue())
-      .addString(ENTITY_TYPE, HOLDINGS_RECORD.getValue())
-      .addString(IDENTIFIER_TYPE, ITEM_BARCODE.getValue())
-      .addString(UPDATED_FILE_NAME, fileName)
-      .addString(FILE_NAME, ITEM_BARCODE_FOR_HOLDINGS_IDENTIFIERS_CSV)
-      .addString(TEMP_OUTPUT_FILE_PATH, fileName.replaceAll(".csv", ""))
-      .toJobParameters();
-
-    JobCommand jobCommand = new JobCommand();
-    jobCommand.setId(UUID.fromString(jobId));
-    jobCommand.setJobParameters(jobParameters);
-
-    // Holdings record has the Annex permanent location, so no change in value needed.
-    bulkEditHoldingsContentUpdateService.process(jobCommand, new HoldingsContentUpdateCollection()
-      .holdingsContentUpdates(List.of(new HoldingsContentUpdate().option(HoldingsContentUpdate.OptionEnum.PERMANENT_LOCATION)
-            .action(HoldingsContentUpdate.ActionEnum.REPLACE_WITH).value("Annex"))));
-
-    jobExecution = testLauncher.launchJob(jobParameters);
-
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-
-    var executionContext = jobExecution.getExecutionContext();
-    var fileInStorage = (String) executionContext.get("outputFilesInStorage");
-    String[] links = fileInStorage.split(";");
-
-    // Make sure there is a link to error file.
-    assertThat(links).hasSize(2);
-
-    var actualResult = actualFileOutput(links[1]);
-    var expectedResult = new FileSystemResource(ERROR_HOLDINGS_BY_ITEM_BARCODE_NO_CHANGE);
-
-    assertFileEquals(expectedResult, actualResult);
-  }
-
   @Disabled
   // TODO uncomment when resolved
   @Test
@@ -644,24 +563,6 @@ class BulkEditTest extends BaseBatchTest {
     verifyFilesOutput(jobExecution, EXPECTED_BULK_EDIT_ITEM_OUTPUT_ESCAPED);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-  }
-
-  @Test
-  @DisplayName("_version field should be absent in holdings record PUT body if its value is empty")
-  @SneakyThrows
-  void emptyVersionFieldShouldBeAbsentInHoldingsUpdateRequestBody() {
-    var fileName = FilenameUtils.getName(HOLDINGS_RECORD_NO_VERSION);
-    remoteFilesStorage.upload(fileName, HOLDINGS_RECORD_NO_VERSION);
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateHoldingsRecordsJob);
-    final JobParameters jobParameters = new JobParametersBuilder()
-      .addString(JOB_ID, UUID.randomUUID().toString())
-      .addString(UPDATED_FILE_NAME, fileName)
-      .toJobParameters();
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
-
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-    assertThat(wireMockServer.getAllServeEvents().get(0).getRequest().getMethod().getName()).isEqualTo("PUT");
-    assertFalse(wireMockServer.getAllServeEvents().get(0).getRequest().getBodyAsString().contains("_version"));
   }
 
   @SneakyThrows

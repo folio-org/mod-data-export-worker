@@ -1,12 +1,22 @@
 package org.folio.dew.service.mapper;
 
+import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.folio.dew.service.mapper.MapperHelper.restoreStringValue;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.booleanToStringNullSafe;
+import static org.folio.dew.utils.Constants.ACTION_NOTE;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
+import static org.folio.dew.utils.Constants.BINDING;
+import static org.folio.dew.utils.Constants.COPY_NOTE;
+import static org.folio.dew.utils.Constants.ELECTRONIC_BOOKPLATE;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_PATTERN;
+import static org.folio.dew.utils.Constants.ITEM_DELIMITER_SPACED;
+import static org.folio.dew.utils.Constants.NOTE;
+import static org.folio.dew.utils.Constants.PROVENANCE;
+import static org.folio.dew.utils.Constants.REPRODUCTION;
+import static org.folio.dew.utils.Constants.STAFF_ONLY;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -60,49 +70,42 @@ public class HoldingsMapper {
     var errorServiceArgs = new ErrorServiceArgs(jobId, identifier, errorFileName);
     return HoldingsFormat.builder()
       .id(holdingsRecord.getId())
-      .version(isEmpty(holdingsRecord.getVersion()) ? EMPTY : Integer.toString(holdingsRecord.getVersion()))
+      .instanceTitle(isEmpty(holdingsRecord.getInstanceId()) ? EMPTY : holdingsReferenceService.getInstanceTitleById(holdingsRecord.getInstanceId()))
+      .discoverySuppress(booleanToStringNullSafe(holdingsRecord.getDiscoverySuppress()))
       .hrid(isEmpty(holdingsRecord.getHrid()) ? EMPTY : holdingsRecord.getHrid())
-      .holdingsType(holdingsReferenceService.getHoldingsTypeNameById(holdingsRecord.getHoldingsTypeId(), errorServiceArgs))
+      .source(holdingsReferenceService.getSourceNameById(holdingsRecord.getSourceId(), errorServiceArgs))
       .formerIds(isEmpty(holdingsRecord.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(holdingsRecord.getFormerIds())))
-      .instance(isEmpty(holdingsRecord.getInstanceId()) ? EMPTY : holdingsReferenceService.getInstanceTitleById(holdingsRecord.getInstanceId()))
+      .holdingsType(holdingsReferenceService.getHoldingsTypeNameById(holdingsRecord.getHoldingsTypeId(), errorServiceArgs))
+      .statisticalCodes(getStatisticalCodeNames(holdingsRecord.getStatisticalCodeIds(), errorServiceArgs))
+      .administrativeNotes(isEmpty(holdingsRecord.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(holdingsRecord.getAdministrativeNotes())))
       .permanentLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getPermanentLocationId()))
       .temporaryLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getTemporaryLocationId()))
-      .effectiveLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getEffectiveLocationId()))
-      .electronicAccess((electronicAccessService.getElectronicAccessesToString(holdingsRecord.getElectronicAccess(), errorServiceArgs)))
+      .shelvingTitle(isEmpty(holdingsRecord.getShelvingTitle()) ? EMPTY : holdingsRecord.getShelvingTitle())
+      .copyNumber(isEmpty(holdingsRecord.getCopyNumber()) ? EMPTY : holdingsRecord.getCopyNumber())
       .callNumberType(holdingsReferenceService.getCallNumberTypeNameById(holdingsRecord.getCallNumberTypeId(), errorServiceArgs))
       .callNumberPrefix(isEmpty(holdingsRecord.getCallNumberPrefix()) ? EMPTY : holdingsRecord.getCallNumberPrefix())
       .callNumber(isEmpty(holdingsRecord.getCallNumber()) ? EMPTY : holdingsRecord.getCallNumber())
       .callNumberSuffix(isEmpty(holdingsRecord.getCallNumberSuffix()) ? EMPTY : holdingsRecord.getCallNumberSuffix())
-      .shelvingTitle(isEmpty(holdingsRecord.getShelvingTitle()) ? EMPTY : holdingsRecord.getShelvingTitle())
-      .acquisitionFormat(isEmpty(holdingsRecord.getAcquisitionFormat()) ? EMPTY : holdingsRecord.getAcquisitionFormat())
-      .acquisitionMethod(isEmpty(holdingsRecord.getAcquisitionMethod()) ? EMPTY : holdingsRecord.getAcquisitionMethod())
-      .receiptStatus(isEmpty(holdingsRecord.getReceiptStatus()) ? EMPTY : holdingsRecord.getReceiptStatus())
-      .notes(notesToString(holdingsRecord.getNotes(), errorServiceArgs))
-      .administrativeNotes(isEmpty(holdingsRecord.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(holdingsRecord.getAdministrativeNotes())))
-      .illPolicy(holdingsReferenceService.getIllPolicyNameById(holdingsRecord.getIllPolicyId(), errorServiceArgs))
-      .retentionPolicy(isEmpty(holdingsRecord.getRetentionPolicy()) ? EMPTY : holdingsRecord.getRetentionPolicy())
-      .digitizationPolicy(isEmpty(holdingsRecord.getDigitizationPolicy()) ? EMPTY : holdingsRecord.getDigitizationPolicy())
-      .holdingsStatements(holdingsStatementsToString(holdingsRecord.getHoldingsStatements()))
-      .holdingsStatementsForIndexes(holdingsStatementsToString(holdingsRecord.getHoldingsStatementsForIndexes()))
-      .holdingsStatementsForSupplements(holdingsStatementsToString(holdingsRecord.getHoldingsStatementsForSupplements()))
-      .copyNumber(isEmpty(holdingsRecord.getCopyNumber()) ? EMPTY : holdingsRecord.getCopyNumber())
       .numberOfItems(isEmpty(holdingsRecord.getNumberOfItems()) ? EMPTY : holdingsRecord.getNumberOfItems())
-      .receivingHistory(receivingHistoryToString(holdingsRecord.getReceivingHistory()))
-      .discoverySuppress(booleanToStringNullSafe(holdingsRecord.getDiscoverySuppress()))
-      .statisticalCodes(getStatisticalCodeNames(holdingsRecord.getStatisticalCodeIds(), errorServiceArgs))
+      .holdingsStatements(holdingsStatementsToString(holdingsRecord.getHoldingsStatements()))
+      .holdingsStatementsForSupplements(holdingsStatementsToString(holdingsRecord.getHoldingsStatementsForSupplements()))
+      .holdingsStatementsForIndexes(holdingsStatementsToString(holdingsRecord.getHoldingsStatementsForIndexes()))
+      .illPolicy(holdingsReferenceService.getIllPolicyNameById(holdingsRecord.getIllPolicyId(), errorServiceArgs))
+      .digitizationPolicy(isEmpty(holdingsRecord.getDigitizationPolicy()) ? EMPTY : holdingsRecord.getDigitizationPolicy())
+      .retentionPolicy(isEmpty(holdingsRecord.getRetentionPolicy()) ? EMPTY : holdingsRecord.getRetentionPolicy())
+      .actionNote(fetchNotesByTypeName(holdingsRecord.getNotes(), ACTION_NOTE))
+      .bindingNote(fetchNotesByTypeName(holdingsRecord.getNotes(), BINDING))
+      .copyNote(fetchNotesByTypeName(holdingsRecord.getNotes(), COPY_NOTE))
+      .electronicBookplateNote(fetchNotesByTypeName(holdingsRecord.getNotes(), ELECTRONIC_BOOKPLATE))
+      .note(fetchNotesByTypeName(holdingsRecord.getNotes(), NOTE))
+      .provenanceNote(fetchNotesByTypeName(holdingsRecord.getNotes(), PROVENANCE))
+      .reproductionNote(fetchNotesByTypeName(holdingsRecord.getNotes(), REPRODUCTION))
+      .electronicAccess(electronicAccessService.getElectronicAccessesToString(holdingsRecord.getElectronicAccess(), errorServiceArgs))
+      .acquisitionMethod(isEmpty(holdingsRecord.getAcquisitionMethod()) ? EMPTY : holdingsRecord.getAcquisitionMethod())
+      .acquisitionFormat(isEmpty(holdingsRecord.getAcquisitionFormat()) ? EMPTY : holdingsRecord.getAcquisitionFormat())
       .tags(tagsToString(holdingsRecord.getTags()))
-      .source(holdingsReferenceService.getSourceNameById(holdingsRecord.getSourceId(), errorServiceArgs))
+      .receiptStatus(isEmpty(holdingsRecord.getReceiptStatus()) ? EMPTY : holdingsRecord.getReceiptStatus())
       .build();
-  }
-
-  private String notesToString(List<HoldingsNote> notes, ErrorServiceArgs args) {
-    return isEmpty(notes) ? EMPTY : notes.stream()
-      .filter(Objects::nonNull)
-      .map(note -> String.join(ARRAY_DELIMITER,
-        escaper.escape(holdingsReferenceService.getNoteTypeNameById(note.getHoldingsNoteTypeId(), args)),
-        escaper.escape(note.getNote()),
-        booleanToStringNullSafe(note.getStaffOnly())))
-      .collect(Collectors.joining(ITEM_DELIMITER));
   }
 
   private String holdingsStatementsToString(List<HoldingsStatement> statements) {
@@ -111,25 +114,6 @@ public class HoldingsMapper {
       .map(statement -> String.join(ARRAY_DELIMITER, escaper.escape(statement.getStatement()),
         escaper.escape(statement.getNote()), escaper.escape(statement.getStaffNote())))
       .collect(Collectors.joining(ITEM_DELIMITER));
-  }
-
-  private String receivingHistoryToString(ReceivingHistoryEntries receivingHistoryEntries) {
-    if (isEmpty(receivingHistoryEntries)) {
-      return EMPTY;
-    }
-    var displayType = isEmpty(receivingHistoryEntries.getDisplayType()) ? EMPTY : receivingHistoryEntries.getDisplayType();
-    var entriesString = isEmpty(receivingHistoryEntries.getEntries()) ? EMPTY : receivingHistoryEntries.getEntries().stream()
-      .filter(Objects::nonNull)
-      .map(this::receivingHistoryEntryToString)
-      .collect(Collectors.joining(ITEM_DELIMITER));
-    return String.join(ITEM_DELIMITER, displayType, entriesString);
-  }
-
-  private String receivingHistoryEntryToString(ReceivingHistoryEntry entry) {
-    return String.join(ARRAY_DELIMITER,
-      booleanToStringNullSafe(entry.getPublicDisplay()),
-      isEmpty(entry.getEnumeration()) ? EMPTY : escaper.escape(entry.getEnumeration()),
-      isEmpty(entry.getChronology()) ? EMPTY : escaper.escape(entry.getChronology()));
   }
 
   private String getStatisticalCodeNames(List<String> codeIds, ErrorServiceArgs args) {
@@ -147,41 +131,26 @@ public class HoldingsMapper {
     return isEmpty(tags.getTagList()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(tags.getTagList()));
   }
 
+  private String fetchNotesByTypeName(List<HoldingsNote> notes, String noteType) {
+    if (!isEmpty(notes)) {
+      var type = holdingsReferenceService.getHoldingsNoteTypes().get(noteType);
+      return isNull(type) ?
+        EMPTY :
+        notes.stream()
+          .filter(note -> type.equals(note.getHoldingsNoteTypeId()))
+          .map(this::holdingsNoteToString)
+          .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
+    }
+    return EMPTY;
+  }
+
+  private String holdingsNoteToString(HoldingsNote holdingsNote) {
+    return holdingsNote.getNote() + (Boolean.TRUE.equals(holdingsNote.getStaffOnly()) ?
+      SPACE + STAFF_ONLY : EMPTY);
+  }
+
   public HoldingsRecord mapToHoldingsRecord(HoldingsFormat holdingsFormat) {
-    return new HoldingsRecord()
-      .id(holdingsFormat.getId())
-      .version(isEmpty(holdingsFormat.getVersion()) ? null : Integer.parseInt(holdingsFormat.getVersion()))
-      .hrid(holdingsFormat.getHrid())
-      .holdingsTypeId(holdingsReferenceService.getHoldingsTypeIdByName(holdingsFormat.getHoldingsType()))
-      .formerIds(restoreListValue(holdingsFormat.getFormerIds()))
-      .instanceId(restoreInstanceId(holdingsFormat.getInstance()))
-      .permanentLocationId(holdingsReferenceService.getLocationByName(holdingsFormat.getPermanentLocation()).getId())
-      .temporaryLocationId(isEmpty(holdingsFormat.getTemporaryLocation()) ? null : holdingsReferenceService.getLocationByName(holdingsFormat.getTemporaryLocation()).getId())
-      .effectiveLocationId(isEmpty(holdingsFormat.getEffectiveLocation()) ? null : holdingsReferenceService.getLocationByName(holdingsFormat.getEffectiveLocation()).getId())
-      .electronicAccess(isEmpty(holdingsFormat.getElectronicAccess()) ? Collections.emptyList() : electronicAccessService.restoreElectronicAccess(holdingsFormat.getElectronicAccess()))
-      .callNumberTypeId(isEmpty(holdingsFormat.getCallNumberType()) ? null : holdingsReferenceService.getCallNumberTypeIdByName(holdingsFormat.getCallNumberType()))
-      .callNumberPrefix(restoreStringValue(holdingsFormat.getCallNumberPrefix()))
-      .callNumber(restoreStringValue(holdingsFormat.getCallNumber()))
-      .callNumberSuffix(restoreStringValue(holdingsFormat.getCallNumberSuffix()))
-      .shelvingTitle(restoreStringValue(holdingsFormat.getShelvingTitle()))
-      .acquisitionFormat(restoreStringValue(holdingsFormat.getAcquisitionFormat()))
-      .acquisitionMethod(restoreStringValue(holdingsFormat.getAcquisitionMethod()))
-      .receiptStatus(restoreStringValue(holdingsFormat.getReceiptStatus()))
-      .administrativeNotes(restoreListValue(holdingsFormat.getAdministrativeNotes()))
-      .notes(restoreHoldingsNotes(holdingsFormat.getNotes()))
-      .illPolicyId(holdingsReferenceService.getIllPolicyIdByName(holdingsFormat.getIllPolicy()))
-      .retentionPolicy(restoreStringValue(holdingsFormat.getRetentionPolicy()))
-      .digitizationPolicy(restoreStringValue(holdingsFormat.getDigitizationPolicy()))
-      .holdingsStatements(restoreHoldingsStatements(holdingsFormat.getHoldingsStatements()))
-      .holdingsStatementsForIndexes(restoreHoldingsStatements(holdingsFormat.getHoldingsStatementsForIndexes()))
-      .holdingsStatementsForSupplements(restoreHoldingsStatements(holdingsFormat.getHoldingsStatementsForSupplements()))
-      .copyNumber(restoreStringValue(holdingsFormat.getCopyNumber()))
-      .numberOfItems(restoreStringValue(holdingsFormat.getNumberOfItems()))
-      .receivingHistory(restoreReceivingHistory(holdingsFormat.getReceivingHistory()))
-      .discoverySuppress(isEmpty(holdingsFormat.getDiscoverySuppress()) ? null : Boolean.parseBoolean(holdingsFormat.getDiscoverySuppress()))
-      .statisticalCodeIds(restoreStatisticalCodeIds(holdingsFormat.getStatisticalCodes()))
-      .tags(isEmpty(holdingsFormat.getTags()) ? null : new Tags().tagList(restoreListValue(holdingsFormat.getTags())))
-      .sourceId(isEmpty(holdingsFormat.getSource()) ? null : holdingsReferenceService.getSourceIdByName(holdingsFormat.getSource()));
+    return new HoldingsRecord();
   }
 
   private String restoreInstanceId(String instanceString) {

@@ -113,7 +113,8 @@ public class BulkEditInstanceIdentifiersJobConfig {
   @StepScope
   public ItemWriter<List<String>> marcItemWriter(@Value("#{jobParameters['" + TEMP_LOCAL_MARC_PATH + "']}") String outputFileName) {
     var writer = new FlatFileItemWriterBuilder<List<String>>().name("marcItemWriter")
-      .resource(new FileSystemResource(outputFileName + ".mrc")).lineSeparator(EMPTY).lineAggregator(new MrcFileLineAggregator()).build();
+      .resource(new FileSystemResource(outputFileName + ".mrc")).lineSeparator(EMPTY).lineAggregator(new MrcFileLineAggregator())
+      .shouldDeleteIfEmpty(true).build();
     writer.open(new ExecutionContext());
     return writer;
   }

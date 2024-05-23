@@ -187,7 +187,10 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
     }
     var tmpMarcName = jobParameters.getString(TEMP_LOCAL_MARC_PATH);
     if (nonNull(tmpMarcName)) {
-      moveFileToStorage(jobParameters.getString(TEMP_OUTPUT_MARC_PATH) + ".mrc", tmpMarcName + ".mrc");
+      tmpMarcName += ".mrc";
+      if (Files.exists(Path.of(tmpMarcName))) {
+        moveFileToStorage(jobParameters.getString(TEMP_OUTPUT_MARC_PATH) + ".mrc", tmpMarcName);
+      }
     }
 
     var tmpIdentifiersFileName = jobParameters.getString(TEMP_IDENTIFIERS_FILE_NAME);
@@ -365,8 +368,11 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
   }
 
   private String saveMarcResult(JobExecution jobExecution, boolean isSourceToBeDeleted) {
+    var path = jobExecution.getJobParameters().getString(TEMP_OUTPUT_MARC_PATH) + ".mrc";
     try {
-      var path = jobExecution.getJobParameters().getString(TEMP_OUTPUT_MARC_PATH) + ".mrc";
+      if (localFilesStorage.notExists(path)) {
+        return EMPTY; // To prevent downloading empty file.
+      }
       return remoteFilesStorage.objectToPresignedObjectUrl(
         remoteFilesStorage.uploadObject(prepareMrcObject(jobExecution, path), path, null, "text/plain", isSourceToBeDeleted));
     } catch (Exception e) {

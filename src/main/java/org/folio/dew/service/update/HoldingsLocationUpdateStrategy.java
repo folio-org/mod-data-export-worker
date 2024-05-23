@@ -1,6 +1,5 @@
 package org.folio.dew.service.update;
 
-import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import org.folio.dew.domain.dto.HoldingsContentUpdate;

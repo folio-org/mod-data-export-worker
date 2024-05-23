@@ -11,7 +11,6 @@ import static org.folio.dew.utils.Constants.BINDING;
 import static org.folio.dew.utils.Constants.COPY_NOTE;
 import static org.folio.dew.utils.Constants.ELECTRONIC_BOOKPLATE;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
-import static org.folio.dew.utils.Constants.ITEM_DELIMITER_PATTERN;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_SPACED;
 import static org.folio.dew.utils.Constants.NOTE;
 import static org.folio.dew.utils.Constants.PROVENANCE;
@@ -20,23 +19,17 @@ import static org.folio.dew.utils.Constants.STAFF_ONLY;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsNote;
 import org.folio.dew.domain.dto.HoldingsRecord;
 import org.folio.dew.domain.dto.HoldingsStatement;
-import org.folio.dew.domain.dto.ReceivingHistoryEntries;
-import org.folio.dew.domain.dto.ReceivingHistoryEntry;
 import org.folio.dew.domain.dto.Tags;
-import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.ElectronicAccessService;
 import org.folio.dew.service.HoldingsReferenceService;
 import org.folio.dew.service.SpecialCharacterEscaper;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -153,97 +146,4 @@ public class HoldingsMapper {
     return new HoldingsRecord();
   }
 
-  private String restoreInstanceId(String instanceString) {
-    var tokens = instanceString.split(ARRAY_DELIMITER);
-    return tokens[tokens.length - 1];
-  }
-
-  private List<HoldingsNote> restoreHoldingsNotes(String notesString) {
-    return isEmpty(notesString) ?
-      Collections.emptyList() :
-      Arrays.stream(notesString.split(ITEM_DELIMITER_PATTERN))
-        .map(this::restoreHoldingsNote)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-  }
-
-  private HoldingsNote restoreHoldingsNote(String noteString) {
-    if (isEmpty(noteString)) {
-      return null;
-    }
-    var tokens = noteString.split(ARRAY_DELIMITER, -1);
-    if (tokens.length < NUMBER_OF_HOLDINGS_NOTE_ELEMENTS) {
-      throw new BulkEditException(String.format("Illegal number of holdings note elements: %d, expected: %d", tokens.length,
-        NUMBER_OF_HOLDINGS_NOTE_ELEMENTS));
-    }
-    return new HoldingsNote()
-      .holdingsNoteTypeId(holdingsReferenceService.getNoteTypeIdByName(escaper.restore(tokens[HOLDINGS_NOTE_NOTE_TYPE_INDEX])))
-      .note(escaper.restore(tokens[HOLDINGS_NOTE_NOTE_INDEX]))
-      .staffOnly(isEmpty(tokens[HOLDINGS_NOTE_STAFF_ONLY_INDEX]) ? null : Boolean.parseBoolean(tokens[HOLDINGS_NOTE_STAFF_ONLY_INDEX]));
-  }
-
-  private List<HoldingsStatement> restoreHoldingsStatements(String statements) {
-    return isEmpty(statements) ?
-      Collections.emptyList() :
-      Arrays.stream(statements.split(ITEM_DELIMITER_PATTERN))
-        .map(this::restoreHoldingsStatement)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-  }
-
-  private HoldingsStatement restoreHoldingsStatement(String statementString) {
-    if (isEmpty(statementString)) {
-      return null;
-    }
-    var tokens = statementString.split(ARRAY_DELIMITER, -1);
-    if (tokens.length < NUMBER_OF_HOLDINGS_STATEMENT_ELEMENTS) {
-      throw new BulkEditException(String.format("Illegal number of holdings statement elements: %d, expected: %d", tokens.length, NUMBER_OF_HOLDINGS_STATEMENT_ELEMENTS));
-    }
-    return new HoldingsStatement()
-      .statement(escaper.restore(tokens[HOLDINGS_STATEMENT_STATEMENT_INDEX]))
-      .note(escaper.restore(tokens[HOLDINGS_STATEMENT_NOTE_INDEX]))
-      .staffNote(escaper.restore(tokens[HOLDINGS_STATEMENT_STAFF_NOTE_INDEX]));
-  }
-
-  private ReceivingHistoryEntries restoreReceivingHistory(String historyString) {
-    if (isEmpty(historyString)) {
-      return null;
-    }
-    var tokens = historyString.split(ITEM_DELIMITER_PATTERN);
-    if (tokens.length > 1) {
-      return new ReceivingHistoryEntries()
-        .displayType(isEmpty(tokens[0]) ? null : tokens[0])
-        .entries(Arrays.stream(tokens)
-          .skip(1)
-          .map(this::restoreReceivingHistoryEntry)
-          .collect(Collectors.toList()));
-    }
-    throw new BulkEditException("Invalid number of tokens in receiving history entries");
-  }
-
-  private ReceivingHistoryEntry restoreReceivingHistoryEntry(String entryString) {
-    var tokens = entryString.split(ARRAY_DELIMITER);
-    if (tokens.length == NUMBER_OF_RECEIVING_HISTORY_ENTRY_ELEMENTS) {
-      return new ReceivingHistoryEntry()
-        .publicDisplay(isEmpty(tokens[RECEIVING_HISTORY_ENTRY_PUBLIC_DISPLAY_INDEX]) ? null : Boolean.parseBoolean(tokens[RECEIVING_HISTORY_ENTRY_PUBLIC_DISPLAY_INDEX]))
-        .enumeration(escaper.restore(tokens[RECEIVING_HISTORY_ENTRY_ENUMERATION_INDEX]))
-        .chronology(escaper.restore(tokens[RECEIVING_HISTORY_ENTRY_CHRONOLOGY_INDEX]));
-    }
-    throw new BulkEditException(String.format("Invalid number of tokens in receiving history entry: %d, expected %d", tokens.length, NUMBER_OF_RECEIVING_HISTORY_ENTRY_ELEMENTS));
-  }
-
-  private List<String> restoreStatisticalCodeIds(String codesString) {
-    return isEmpty(codesString) ?
-      Collections.emptyList() :
-      Arrays.stream(codesString.split(ARRAY_DELIMITER))
-        .map(escaper::restore)
-        .map(holdingsReferenceService::getStatisticalCodeIdByName)
-        .collect(Collectors.toList());
-  }
-
-  private List<String> restoreListValue(String s) {
-    return StringUtils.isEmpty(s) ?
-      Collections.emptyList() :
-      escaper.restore(Arrays.asList(s.split(ARRAY_DELIMITER)));
-  }
 }

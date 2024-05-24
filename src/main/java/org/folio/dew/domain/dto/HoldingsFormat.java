@@ -17,146 +17,154 @@ import java.util.stream.Collectors;
 @With
 @NoArgsConstructor
 @AllArgsConstructor
-public class HoldingsFormat implements Formatable<org.folio.dew.domain.dto.HoldingsRecord> {
-  private org.folio.dew.domain.dto.HoldingsRecord original;
-  @CsvBindByName(column = "Holdings record id")
+public class HoldingsFormat implements Formatable<HoldingsRecord> {
+  private HoldingsRecord original;
+
+  @CsvBindByName(column = "Holdings UUID")
   @CsvBindByPosition(position = 0)
   private String id;
 
-  @CsvBindByName(column = "Version")
+  @CsvBindByName(column = "Instance (Title, Publisher, Publication date)")
   @CsvBindByPosition(position = 1)
-  private String version;
+  private String instanceTitle;
 
-  @CsvBindByName(column = "HRID")
+  @CsvBindByName(column = "Suppress from discovery")
   @CsvBindByPosition(position = 2)
+  private String discoverySuppress;
+
+  @CsvBindByName(column = "Holdings HRID")
+  @CsvBindByPosition(position = 3)
   private String hrid;
 
-  @CsvBindByName(column = "Holdings type")
-  @CsvBindByPosition(position = 3)
-  private String holdingsType;
-
-  @CsvBindByName(column = "Former ids")
+  @CsvBindByName(column = "Source")
   @CsvBindByPosition(position = 4)
+  private String source;
+
+  @CsvBindByName(column = "Former holdings Id")
+  @CsvBindByPosition(position = 5)
   private String formerIds;
 
-  @CsvBindByName(column = "\"Instance (Title, Publisher, Publication date)\"")
-  @CsvBindByPosition(position = 5)
-  private String instance;
-
-  @CsvBindByName(column = "Permanent location")
+  @CsvBindByName(column = "Holdings type")
   @CsvBindByPosition(position = 6)
+  private String holdingsType;
+
+  @CsvBindByName(column = "Statistical codes")
+  @CsvBindByPosition(position = 7)
+  private String statisticalCodes;
+
+  @CsvBindByName(column = "Administrative note")
+  @CsvBindByPosition(position = 8)
+  private String administrativeNotes;
+
+  @CsvBindByName(column = "Holdings permanent location")
+  @CsvBindByPosition(position = 9)
   private String permanentLocation;
 
   @CsvBindByName(column = "Temporary location")
-  @CsvBindByPosition(position = 7)
+  @CsvBindByPosition(position = 10)
   private String temporaryLocation;
 
-  @CsvBindByName(column = "Effective location")
-  @CsvBindByPosition(position = 8)
-  private String effectiveLocation;
-
-  @CsvBindByName(column = "Electronic access")
-  @CsvBindByPosition(position = 9)
-  private String electronicAccess;
-
-  @CsvBindByName(column = "Call number type")
-  @CsvBindByPosition(position = 10)
-  private String callNumberType;
-
-  @CsvBindByName(column = "Call number prefix")
-  @CsvBindByPosition(position = 11)
-  private String callNumberPrefix;
-
-  @CsvBindByName(column = "Call number")
-  @CsvBindByPosition(position = 12)
-  private String callNumber;
-
-  @CsvBindByName(column = "Call number suffix")
-  @CsvBindByPosition(position = 13)
-  private String callNumberSuffix;
-
   @CsvBindByName(column = "Shelving title")
-  @CsvBindByPosition(position = 14)
+  @CsvBindByPosition(position = 11)
   private String shelvingTitle;
 
-  @CsvBindByName(column = "Acquisition format")
+  @CsvBindByName(column = "Holdings copy number")
+  @CsvBindByPosition(position = 12)
+  private String copyNumber;
+
+  @CsvBindByName(column = "Holdings level call number type")
+  @CsvBindByPosition(position = 13)
+  private String callNumberType;
+
+  @CsvBindByName(column = "Holdings level call number prefix")
+  @CsvBindByPosition(position = 14)
+  private String callNumberPrefix;
+
+  @CsvBindByName(column = "Holdings level call number")
   @CsvBindByPosition(position = 15)
-  private String acquisitionFormat;
+  private String callNumber;
 
-  @CsvBindByName(column = "Acquisition method")
+  @CsvBindByName(column = "Holdings level call number suffix")
   @CsvBindByPosition(position = 16)
-  private String acquisitionMethod;
+  private String callNumberSuffix;
 
-  @CsvBindByName(column = "Receipt status")
+  @CsvBindByName(column = "Number of items")
   @CsvBindByPosition(position = 17)
-  private String receiptStatus;
+  private String numberOfItems;
 
-  @CsvBindByName(column = "Administrative note")
+  @CsvBindByName(column = "Holdings statements")
   @CsvBindByPosition(position = 18)
-  private String administrativeNotes;
+  private String holdingsStatements;
 
-  @CsvBindByName(column = "Notes")
+  @CsvBindByName(column = "Holdings statements for supplements")
   @CsvBindByPosition(position = 19)
-  private String notes;
+  private String holdingsStatementsForSupplements;
+
+  @CsvBindByName(column = "Holdings statements for indexes")
+  @CsvBindByPosition(position = 20)
+  private String holdingsStatementsForIndexes;
 
   @CsvBindByName(column = "Ill policy")
-  @CsvBindByPosition(position = 20)
-  private String illPolicy;
-
-  @CsvBindByName(column = "Retention policy")
   @CsvBindByPosition(position = 21)
-  private String retentionPolicy;
+  private String illPolicy;
 
   @CsvBindByName(column = "Digitization policy")
   @CsvBindByPosition(position = 22)
   private String digitizationPolicy;
 
-  @CsvBindByName(column = "Holdings statements")
+  @CsvBindByName(column = "Retention policy")
   @CsvBindByPosition(position = 23)
-  private String holdingsStatements;
+  private String retentionPolicy;
 
-  @CsvBindByName(column = "Holdings statements for indexes")
+  @CsvBindByName(column = "Action note")
   @CsvBindByPosition(position = 24)
-  private String holdingsStatementsForIndexes;
+  private String actionNote;
 
-  @CsvBindByName(column = "Holdings statements for supplements")
+  @CsvBindByName(column = "Binding note")
   @CsvBindByPosition(position = 25)
-  private String holdingsStatementsForSupplements;
+  private String bindingNote;
 
-  @CsvBindByName(column = "Copy number")
+  @CsvBindByName(column = "Copy note")
   @CsvBindByPosition(position = 26)
-  private String copyNumber;
+  private String copyNote;
 
-  @CsvBindByName(column = "Number of items")
+  @CsvBindByName(column = "Electronic bookplate note")
   @CsvBindByPosition(position = 27)
-  private String numberOfItems;
+  private String electronicBookplateNote;
 
-  @CsvBindByName(column = "Receiving history")
+  @CsvBindByName(column = "Note")
   @CsvBindByPosition(position = 28)
-  private String receivingHistory;
+  private String note;
 
-  @CsvBindByName(column = "Discovery suppress")
+  @CsvBindByName(column = "Provenance note")
   @CsvBindByPosition(position = 29)
-  private String discoverySuppress;
+  private String provenanceNote;
 
-  @CsvBindByName(column = "Statistical codes")
+  @CsvBindByName(column = "Reproduction note")
   @CsvBindByPosition(position = 30)
-  private String statisticalCodes;
+  private String reproductionNote;
+
+  @CsvBindByName(column = "Electronic access")
+  @CsvBindByPosition(position = 31)
+  private String electronicAccess;
+
+  @CsvBindByName(column = "Acquisition method")
+  @CsvBindByPosition(position = 32)
+  private String acquisitionMethod;
+
+  @CsvBindByName(column = "Acquisition format")
+  @CsvBindByPosition(position = 33)
+  private String acquisitionFormat;
 
   @CsvBindByName(column = "Tags")
-  @CsvBindByPosition(position = 31)
+  @CsvBindByPosition(position = 34)
   private String tags;
 
-  @CsvBindByName(column = "Source")
-  @CsvBindByPosition(position = 32)
-  private String source;
+  @CsvBindByName(column = "Receipt status")
+  @CsvBindByPosition(position = 35)
+  private String receiptStatus;
 
-  @CsvBindByName(column = "Instance HRID")
-  @CsvBindByPosition(position = 33)
   private String instanceHrid;
-
-  @CsvBindByName(column = "Item barcode")
-  @CsvBindByPosition(position = 34)
   private String itemBarcode;
 
   public static String[] getHoldingsFieldsArray() {
@@ -173,7 +181,7 @@ public class HoldingsFormat implements Formatable<org.folio.dew.domain.dto.Holdi
 
   public String getIdentifier(String identifierType) {
     try {
-      switch (org.folio.dew.domain.dto.IdentifierType.fromValue(identifierType)) {
+      switch (IdentifierType.fromValue(identifierType)) {
       case HRID:
         return hrid;
       case INSTANCE_HRID:

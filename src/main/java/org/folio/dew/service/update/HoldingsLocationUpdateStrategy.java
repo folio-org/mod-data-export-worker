@@ -1,6 +1,5 @@
 package org.folio.dew.service.update;
 
-import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import org.folio.dew.domain.dto.HoldingsContentUpdate;
@@ -26,12 +25,10 @@ public class HoldingsLocationUpdateStrategy implements UpdateStrategy<HoldingsFo
     switch (update.getOption()) {
       case PERMANENT_LOCATION:
         return holdingsFormat
-          .withPermanentLocation(newLocation)
-          .withEffectiveLocation(isEmpty(holdingsFormat.getTemporaryLocation()) ? newLocation : holdingsFormat.getTemporaryLocation());
+          .withPermanentLocation(newLocation);
       case TEMPORARY_LOCATION:
         return holdingsFormat
-          .withTemporaryLocation(newLocation)
-          .withEffectiveLocation(newLocation);
+          .withTemporaryLocation(newLocation);
       default:
         return holdingsFormat;
     }
@@ -39,7 +36,6 @@ public class HoldingsLocationUpdateStrategy implements UpdateStrategy<HoldingsFo
 
   private HoldingsFormat clearLocation(HoldingsFormat holdingsFormat) {
     return holdingsFormat
-      .withTemporaryLocation(EMPTY)
-      .withEffectiveLocation(holdingsFormat.getPermanentLocation());
+      .withTemporaryLocation(EMPTY);
   }
 }

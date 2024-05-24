@@ -72,6 +72,14 @@ public class Constants {
   public static final String PATH_TO_MATCHED_RECORDS = "PATH_TO_MATCHED_RECORDS";
   public static final String CHARACTERS_SHOULD_BE_REPLACED_IN_PATH = "[+]";
 
+  public static final String ACTION_NOTE = "Action note";
+  public static final String BINDING = "Binding";
+  public static final String COPY_NOTE = "Copy note";
+  public static final String ELECTRONIC_BOOKPLATE = "Electronic bookplate";
+  public static final String NOTE = "Note";
+  public static final String PROVENANCE = "Provenance";
+  public static final String REPRODUCTION = "Reproduction";
+
 
   public static String getWorkingDirectory(String springApplicationName, String dirName) {
     return springApplicationName + PATH_SEPARATOR + dirName + PATH_SEPARATOR;

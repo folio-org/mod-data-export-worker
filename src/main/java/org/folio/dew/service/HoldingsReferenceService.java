@@ -21,11 +21,15 @@ import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.LocationClient;
 import org.folio.dew.client.StatisticalCodeClient;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
+import org.folio.dew.domain.dto.HoldingsNoteType;
 import org.folio.dew.domain.dto.ItemLocation;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -188,6 +192,12 @@ public class HoldingsReferenceService {
       return name;
     }
     return noteTypes.getHoldingsNoteTypes().get(0).getId();
+  }
+
+  @Cacheable(cacheNames = "listHoldingsNoteTypes")
+  public Map<String, String> getHoldingsNoteTypes() {
+    return holdingsNoteTypeClient.getNoteTypes(Integer.MAX_VALUE).getHoldingsNoteTypes().stream()
+      .collect(Collectors.toMap(HoldingsNoteType::getName, HoldingsNoteType::getId, (existing, replacement) -> existing));
   }
 
   @Cacheable(cacheNames = "illPolicyNames")

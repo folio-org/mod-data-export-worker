@@ -50,6 +50,19 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/holdings-note-types?limit=2147483647"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"holdingsNoteTypes\": [\n        {\n            \"id\": \"88914775-f677-4759-b57b-1a33b90b24e0\",\n            \"name\": \"Electronic bookplate\",\n            \"source\": \"folio\",\n            \"metadata\": {\n                \"createdDate\": \"2024-05-07T08:52:55.393+00:00\",\n                \"createdByUserId\": \"7c6a865c-74c2-4a7b-b719-e3f142e61e1b\",\n                \"updatedDate\": \"2024-05-07T08:52:55.393+00:00\",\n                \"updatedByUserId\": \"7c6a865c-74c2-4a7b-b719-e3f142e61e1b\"\n            }\n        },\n        {\n            \"id\": \"6a41b714-8574-4084-8d64-a9373c3fbb59\",\n            \"name\": \"Reproduction\",\n            \"source\": \"folio\",\n            \"metadata\": {\n                \"createdDate\": \"2024-05-07T08:52:55.408+00:00\",\n                \"createdByUserId\": \"7c6a865c-74c2-4a7b-b719-e3f142e61e1b\",\n                \"updatedDate\": \"2024-05-07T08:52:55.408+00:00\",\n                \"updatedByUserId\": \"7c6a865c-74c2-4a7b-b719-e3f142e61e1b\"\n            }\n        },\n        {\n            \"id\": \"d6510242-5ec3-42ed-b593-3585d2e48fd6\",\n            \"name\": \"Action note\",\n            \"source\": \"folio\",\n            \"metadata\": {\n                \"createdDate\": \"2024-05-07T08:52:55.397+00:00\",\n                \"createdByUserId\": \"7c6a865c-74c2-4a7b-b719-e3f142e61e1b\",\n                \"updatedDate\": \"2024-05-07T08:52:55.397+00:00\",\n                \"updatedByUserId\": \"7c6a865c-74c2-4a7b-b719-e3f142e61e1b\"\n            }\n        },\n        {\n            \"id\": \"e19eabab-a85c-4aef-a7b2-33bd9acef24e\",\n            \"name\": \"Binding\",\n            \"source\": \"folio\",\n            \"metadata\": {\n                \"createdDate\": \"2024-05-07T08:52:55.402+00:00\",\n                \"createdByUserId\": \"7c6a865c-74c2-4a7b-b719-e3f142e61e1b\",\n                \"updatedDate\": \"2024-05-07T08:52:55.402+00:00\",\n                \"updatedByUserId\": \"7c6a865c-74c2-4a7b-b719-e3f142e61e1b\"\n            }\n        },\n        {\n            \"id\": \"db9b4787-95f0-4e78-becf-26748ce6bdeb\",\n            \"name\": \"Provenance\",\n            \"source\": \"folio\",\n            \"metadata\": {\n                \"createdDate\": \"2024-05-07T08:52:55.404+00:00\",\n                \"createdByUserId\": \"7c6a865c-74c2-4a7b-b719-e3f142e61e1b\",\n                \"updatedDate\": \"2024-05-07T08:52:55.404+00:00\",\n                \"updatedByUserId\": \"7c6a865c-74c2-4a7b-b719-e3f142e61e1b\"\n            }\n        },\n        {\n            \"id\": \"c4407cc7-d79f-4609-95bd-1cefb2e2b5c5\",\n            \"name\": \"Copy note\",\n            \"source\": \"folio\",\n            \"metadata\": {\n                \"createdDate\": \"2024-05-07T08:52:55.394+00:00\",\n                \"createdByUserId\": \"7c6a865c-74c2-4a7b-b719-e3f142e61e1b\",\n                \"updatedDate\": \"2024-05-07T08:52:55.394+00:00\",\n                \"updatedByUserId\": \"7c6a865c-74c2-4a7b-b719-e3f142e61e1b\"\n            }\n        },\n        {\n            \"id\": \"b160f13a-ddba-4053-b9c4-60ec5ea45d56\",\n            \"name\": \"Note\",\n            \"source\": \"folio\",\n            \"metadata\": {\n                \"createdDate\": \"2024-05-07T08:52:55.409+00:00\",\n                \"createdByUserId\": \"7c6a865c-74c2-4a7b-b719-e3f142e61e1b\",\n                \"updatedDate\": \"2024-05-07T08:52:55.409+00:00\",\n                \"updatedByUserId\": \"7c6a865c-74c2-4a7b-b719-e3f142e61e1b\"\n            }\n        }\n    ],\n    \"totalRecords\": 7\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

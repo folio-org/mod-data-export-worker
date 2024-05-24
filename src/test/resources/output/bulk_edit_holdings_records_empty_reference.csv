@@ -1,6 +1,6 @@
-Holdings record id,Version,HRID,Holdings type,Former ids,"Instance (Title, Publisher, Publication date)",Permanent location,Temporary location,Effective location,Electronic access,Call number type,Call number prefix,Call number,Call number suffix,Shelving title,Acquisition format,Acquisition method,Receipt status,Administrative note,Notes,Ill policy,Retention policy,Digitization policy,Holdings statements,Holdings statements for indexes,Holdings statements for supplements,Copy number,Number of items,Receiving history,Discovery suppress,Statistical codes,Tags,Source,Instance HRID,Item barcode
-855d4693-4087-4339-8c14-c25c350e5e59,1,ho14,,,Sample instance;123,Main Library,,Main Library,,,,,,,,,,,,,,,,,,,,,,,,FOLIO,,
-ae4288c6-4999-492a-82f4-eceb3a6e1ec6,1,ho14,,,Sample instance;123,Main Library,,Main Library,,,,,,,,,,,,,,,,,,,,,,,,FOLIO,,
-59b36165-fcf2-49d2-bf7f-25fedbc07e44,1,ho14,,,Sample instance;123,Main Library,,Main Library,,,,,,,,,,,;a note;false,,,,,,,,,,,,,FOLIO,,
-b431e730-f711-41bc-9860-96cab69dd313,1,ho14,,,Sample instance;123,Main Library,,Main Library,,,,,,,,,,,,,,,,,,,,,,,,FOLIO,,
-7f788fa2-3d25-4c00-ae9c-57b28c803da4,1,ho14,,,Sample instance;123,Main Library,,Main Library,,,,,,,,,,,,,,,,,,,,,,,,,,
+Holdings UUID,Instance (Title, Publisher, Publication date),Suppress from discovery,Holdings HRID,Source,Former holdings Id,Holdings type,Statistical codes,Administrative note,Holdings permanent location,Temporary location,Shelving title,Holdings copy number,Holdings level call number type,Holdings level call number prefix,Holdings level call number,Holdings level call number suffix,Number of items,Holdings statements,Holdings statements for supplements,Holdings statements for indexes,Ill policy,Digitization policy,Retention policy,Action note,Binding note,Copy note,Electronic bookplate note,Note,Provenance note,Reproduction note,Electronic access,Acquisition method,Acquisition format,Tags,Receipt status
+855d4693-4087-4339-8c14-c25c350e5e59,Sample instance;123,,ho14,FOLIO,,,,,Main Library,,,,,,,,,,,,,,,,,,,,,,,,,,
+ae4288c6-4999-492a-82f4-eceb3a6e1ec6,Sample instance;123,,ho14,FOLIO,,,,,Main Library,,,,,,,,,,,,,,,,,,,,,,,,,,
+59b36165-fcf2-49d2-bf7f-25fedbc07e44,Sample instance;123,,ho14,FOLIO,,,,,Main Library,,,,,,,,,,,,,,,,,,,,,,,,,,
+b431e730-f711-41bc-9860-96cab69dd313,Sample instance;123,,ho14,FOLIO,,,,,Main Library,,,,,,,,,,,,,,,,,,,,,,,,,,
+7f788fa2-3d25-4c00-ae9c-57b28c803da4,Sample instance;123,,ho14,,,,,,Main Library,,,,,,,,,,,,,,,,,,,,,,,,,,

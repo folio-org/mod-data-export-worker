@@ -39,6 +39,7 @@ public class BulkEditMarcProcessor implements ItemProcessor<ItemIdentifier, List
   @Override
   public List<String> process(ItemIdentifier itemIdentifier) throws Exception {
     var instances = getMarcInstances(itemIdentifier);
+    log.info("MARC instances found: {}", instances.getTotalRecords());
     return instances.getInstances().stream().map(inst -> getMarcContent(inst.getId())).filter(Objects::nonNull).toList();
   }
 
@@ -60,9 +61,12 @@ public class BulkEditMarcProcessor implements ItemProcessor<ItemIdentifier, List
   private String getMarcContent(String id) {
     var srsRecords = srsClient.getMarc(id, "INSTANCE");
     if (srsRecords.getSourceRecords().isEmpty()) {
+      log.warn("No SRS records found by instanceId = {}", id);
       return null;
     }
-    var marcRecord = srsClient.getMarcContent(srsRecords.getSourceRecords().get(0).getRecordId());
+    var recordId = srsRecords.getSourceRecords().get(0).getRecordId();
+    var marcRecord = srsClient.getMarcContent(recordId);
+    log.info("MARC record found by recordId = {}", recordId);
     return marcRecord.getRawRecord().getContent();
   }
 }

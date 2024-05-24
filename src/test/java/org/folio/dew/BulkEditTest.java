@@ -2,6 +2,7 @@ package org.folio.dew;
 
 import lombok.SneakyThrows;
 import org.apache.commons.compress.utils.FileNameUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.config.kafka.KafkaService;
@@ -67,7 +68,6 @@ import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_MARC_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_MARC_PATH;
-import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
 import static org.folio.dew.utils.Constants.ENTITY_TYPE;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;

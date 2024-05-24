@@ -371,6 +371,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
     var path = jobExecution.getJobParameters().getString(TEMP_OUTPUT_MARC_PATH) + ".mrc";
     try {
       if (localFilesStorage.notExists(path)) {
+        log.info("No MARC records found.");
         return EMPTY; // To prevent downloading empty file.
       }
       return remoteFilesStorage.objectToPresignedObjectUrl(

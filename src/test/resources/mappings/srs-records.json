@@ -1,0 +1,17 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/source-storage/source-records?instanceId=6662796a-b88b-4991-a9f7-2e368217c487&idType=INSTANCE"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"sourceRecords\": [\n    {\n    \"recordId\": \"666fad9e-7f8e-4d8e-9a71-00d251817866\" }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

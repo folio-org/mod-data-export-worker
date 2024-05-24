@@ -40,7 +40,7 @@ public class BulkEditMarcProcessor implements ItemProcessor<ItemIdentifier, List
   @Override
   public List<String> process(ItemIdentifier itemIdentifier) throws Exception {
     var instances = getMarcInstances(itemIdentifier);
-    return instances.getInstances().stream().map(inst -> getMarcContent(inst.getId())).filter(cont -> nonNull(cont)).collect(Collectors.toList());
+    return instances.getInstances().stream().map(inst -> getMarcContent(inst.getId())).filter(cont -> nonNull(cont)).toList();
   }
 
   private InstanceCollection getMarcInstances(ItemIdentifier itemIdentifier) {

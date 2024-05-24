@@ -6,8 +6,8 @@ import java.util.List;
 
 public class MrcFileLineAggregator implements LineAggregator<List<String>> {
 
-  private final static String GS = Character.toString(29);
-  private final static String RS = Character.toString(30);
+  private static final String GS = Character.toString(29);
+  private static final String RS = Character.toString(30);
 
   @Override
   public String aggregate(List<String> item) {

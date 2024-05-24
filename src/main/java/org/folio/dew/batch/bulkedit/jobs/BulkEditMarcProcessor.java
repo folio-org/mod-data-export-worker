@@ -7,7 +7,6 @@ import org.folio.dew.client.SrsClient;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.InstanceCollection;
 import org.folio.dew.domain.dto.ItemIdentifier;
-import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.InstanceReferenceService;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
@@ -17,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.nonNull;
 import static org.folio.dew.domain.dto.IdentifierType.ISBN;
 import static org.folio.dew.domain.dto.IdentifierType.ISSN;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
@@ -40,7 +40,7 @@ public class BulkEditMarcProcessor implements ItemProcessor<ItemIdentifier, List
   @Override
   public List<String> process(ItemIdentifier itemIdentifier) throws Exception {
     var instances = getMarcInstances(itemIdentifier);
-    return instances.getInstances().stream().map(inst -> getMarcContent(inst.getId())).collect(Collectors.toList());
+    return instances.getInstances().stream().map(inst -> getMarcContent(inst.getId())).filter(cont -> nonNull(cont)).collect(Collectors.toList());
   }
 
   private InstanceCollection getMarcInstances(ItemIdentifier itemIdentifier) {
@@ -49,7 +49,7 @@ public class BulkEditMarcProcessor implements ItemProcessor<ItemIdentifier, List
         inventoryInstancesClient.getInstanceByQuery(String.format(EXACT_MATCH_PATTERN_FOR_MARC, resolveIdentifier(identifierType), itemIdentifier.getItemId()), 1);
       case ISBN -> getInstancesByIdentifierTypeAndValue(ISBN, itemIdentifier.getItemId());
       case ISSN -> getInstancesByIdentifierTypeAndValue(ISSN, itemIdentifier.getItemId());
-      default -> throw new BulkEditException(String.format("Identifier type \"%s\" is not supported", identifierType));
+      default -> new InstanceCollection(); // Exception was thrown in the first step (bulkEditInstanceStep).
     };
   }
 
@@ -60,6 +60,9 @@ public class BulkEditMarcProcessor implements ItemProcessor<ItemIdentifier, List
 
   private String getMarcContent(String id) {
     var srsRecords = srsClient.getMarc(id, "INSTANCE");
+    if (srsRecords.getSourceRecords().isEmpty()) {
+      return null;
+    }
     var marcRecord = srsClient.getMarcContent(srsRecords.getSourceRecords().get(0).getRecordId());
     return marcRecord.getRawRecord().getContent();
   }

@@ -14,9 +14,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
-import static java.util.Objects.nonNull;
 import static org.folio.dew.domain.dto.IdentifierType.ISBN;
 import static org.folio.dew.domain.dto.IdentifierType.ISSN;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
@@ -40,7 +39,7 @@ public class BulkEditMarcProcessor implements ItemProcessor<ItemIdentifier, List
   @Override
   public List<String> process(ItemIdentifier itemIdentifier) throws Exception {
     var instances = getMarcInstances(itemIdentifier);
-    return instances.getInstances().stream().map(inst -> getMarcContent(inst.getId())).filter(cont -> nonNull(cont)).toList();
+    return instances.getInstances().stream().map(inst -> getMarcContent(inst.getId())).filter(Objects::nonNull).toList();
   }
 
   private InstanceCollection getMarcInstances(ItemIdentifier itemIdentifier) {

@@ -310,7 +310,8 @@ class BulkEditTest extends BaseBatchTest {
       fail(e.getMessage());
     }
     Path of = Path.of(path);
-    var file = getWorkingDirectory("mod-data-export-worker", BULKEDIT_DIR_NAME) + FileNameUtils.getBaseName(path) + "E" + FileNameUtils.getExtension(path);
+    var file = getWorkingDirectory("mod-data-export-worker", BULKEDIT_DIR_NAME) +
+      FilenameUtils.removeExtension((new File(path)).getName()) + "E" + FilenameUtils.getExtension(path);
     parametersBuilder.addString(FILE_NAME, file);
     localFilesStorage.write(file, Files.readAllBytes(of));
     parametersBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, file, false), false);

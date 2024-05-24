@@ -256,7 +256,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
 
     var outputFilesInStorage = getFromJobExecutionContext(jobExecution, OUTPUT_FILES_IN_STORAGE);
     if (StringUtils.isNotBlank(outputFilesInStorage)) {
-      result.setFiles(Arrays.asList(outputFilesInStorage.split(PATHS_DELIMITER)));
+      result.setFiles(Arrays.asList(outputFilesInStorage.split(PATHS_DELIMITER, 4)));
     }
 
     var jobName = jobExecution.getJobInstance().getJobName();

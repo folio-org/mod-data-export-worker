@@ -8,6 +8,7 @@ import org.folio.dew.domain.dto.Instance;
 import org.folio.dew.domain.dto.InstanceNoteType;
 import org.folio.dew.domain.dto.InstanceNotesInner;
 import org.folio.dew.service.InstanceReferenceService;
+import org.folio.dew.service.SpecialCharacterEscaper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,7 +34,7 @@ class InstanceMapperTest {
         .instanceNoteTypeId(noteTypeId)
         .note("test note")
         .staffOnly(true)));
-    var mapper = new InstanceMapper(instanceReferenceService);
+    var mapper = new InstanceMapper(instanceReferenceService, new SpecialCharacterEscaper());
     when(instanceNoteTypesClient.getNoteTypeById(noteTypeId))
       .thenReturn(new InstanceNoteType().name("note type"));
 

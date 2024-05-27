@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
@@ -18,7 +19,7 @@ public class SpecialCharacterEscaper {
   private static final String[] escapedValues = {"%7C", "%3B", "%3A"};
 
   public String escape(String initial) {
-    if (StringUtils.isEmpty(initial)) return initial;
+    if (StringUtils.isEmpty(initial)) return EMPTY;
     for (int i = 0; i < specialCharacters.length; i++) {
       initial = initial.replace(specialCharacters[i], escapedValues[i]);
     }

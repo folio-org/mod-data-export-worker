@@ -36,7 +36,7 @@ public class CsvListFileWriter<T, U extends Formatable<T>> extends FlatFileItemW
   public void write(Chunk<? extends List<U>> items) throws Exception {
     delegate.write(new Chunk<>(items.getItems().stream().flatMap(List::stream).toList()));
     if (nonNull(marcDelegate)) {
-      marcDelegate.write(new Chunk(items.getItems().stream().flatMap(List::stream)
+      marcDelegate.write(new Chunk<List<String>>(items.getItems().stream().flatMap(List::stream)
         .filter(itm -> itm.isInstanceFormat() && itm.isSourceMarc()).map(marc -> getMarcContent(marc.getId()))
         .filter(Objects::nonNull).toList()));
     }

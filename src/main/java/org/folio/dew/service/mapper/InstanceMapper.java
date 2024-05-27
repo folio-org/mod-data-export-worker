@@ -16,6 +16,7 @@ import org.folio.dew.domain.dto.InstanceFormat;
 import org.folio.dew.domain.dto.InstanceNotesInner;
 import org.folio.dew.domain.dto.InstanceSeriesInner;
 import org.folio.dew.service.InstanceReferenceService;
+import org.folio.dew.service.SpecialCharacterEscaper;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class InstanceMapper {
   private final InstanceReferenceService instanceReferenceService;
+  private final SpecialCharacterEscaper specialCharacterEscaper;
 
   public InstanceFormat mapToInstanceFormat(Instance instance, String identifier, String jobId, String errorFileName) {
     var errorServiceArgs = new ErrorServiceArgs(jobId, identifier, errorFileName);
@@ -115,9 +117,9 @@ public class InstanceMapper {
   }
 
   private String noteToString(InstanceNotesInner note, ErrorServiceArgs errorServiceArgs) {
-    return String.join(ARRAY_DELIMITER,
-      instanceReferenceService.getInstanceNoteTypeNameById(note.getInstanceNoteTypeId(), errorServiceArgs),
-      note.getNote(),
-      booleanToStringNullSafe(note.getStaffOnly()));
+    return (String.join(ARRAY_DELIMITER,
+      specialCharacterEscaper.escape(instanceReferenceService.getInstanceNoteTypeNameById(note.getInstanceNoteTypeId(), errorServiceArgs)),
+      specialCharacterEscaper.escape(note.getNote()),
+      booleanToStringNullSafe(note.getStaffOnly())));
   }
 }

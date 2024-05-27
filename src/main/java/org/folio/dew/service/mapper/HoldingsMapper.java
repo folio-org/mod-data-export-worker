@@ -42,23 +42,6 @@ public class HoldingsMapper {
   private final ElectronicAccessService electronicAccessService;
   private final SpecialCharacterEscaper escaper;
 
-  private static final int NUMBER_OF_HOLDINGS_NOTE_ELEMENTS = 3;
-  private static final int HOLDINGS_NOTE_NOTE_TYPE_INDEX = 0;
-  private static final int HOLDINGS_NOTE_NOTE_INDEX = 1;
-  private static final int HOLDINGS_NOTE_STAFF_ONLY_INDEX = 2;
-
-  private static final int NUMBER_OF_HOLDINGS_STATEMENT_ELEMENTS = 3;
-  private static final int HOLDINGS_STATEMENT_STATEMENT_INDEX = 0;
-  private static final int HOLDINGS_STATEMENT_NOTE_INDEX = 1;
-  private static final int HOLDINGS_STATEMENT_STAFF_NOTE_INDEX = 2;
-
-  private static final int NUMBER_OF_RECEIVING_HISTORY_ENTRY_ELEMENTS = 3;
-  private static final int RECEIVING_HISTORY_ENTRY_PUBLIC_DISPLAY_INDEX = 0;
-  private static final int RECEIVING_HISTORY_ENTRY_ENUMERATION_INDEX = 1;
-  private static final int RECEIVING_HISTORY_ENTRY_CHRONOLOGY_INDEX = 2;
-
-
-
   public HoldingsFormat mapToHoldingsFormat(HoldingsRecord holdingsRecord, String identifier, String jobId, String errorFileName) {
     var errorServiceArgs = new ErrorServiceArgs(jobId, identifier, errorFileName);
     return HoldingsFormat.builder()

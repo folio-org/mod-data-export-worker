@@ -27,18 +27,19 @@ public class CsvListFileWriter<T, U extends Formatable<T>> extends FlatFileItemW
   }
 
   public CsvListFileWriter(String tempOutputFilePath, String tempOutputMarcPath, SrsClient srsClient, String columnHeaders, String[] extractedFieldNames, FieldProcessor fieldProcessor) {
-    delegate = new CsvFileWriter<>(tempOutputFilePath, columnHeaders, extractedFieldNames, fieldProcessor);
-    marcDelegate = new MarcAsStringWriter(tempOutputMarcPath);
+    this(tempOutputFilePath, columnHeaders, extractedFieldNames, fieldProcessor);
     this.srsClient = srsClient;
-    setResource(new FileSystemResource(tempOutputFilePath));
+    this.marcDelegate = new MarcAsStringWriter(tempOutputMarcPath);
   }
 
   @Override
   public void write(Chunk<? extends List<U>> items) throws Exception {
     delegate.write(new Chunk<>(items.getItems().stream().flatMap(List::stream).toList()));
-    marcDelegate.write(new Chunk<List<String>>(items.getItems().stream().flatMap(List::stream)
-      .filter(itm -> itm.isInstanceFormat() && itm.isSourceMarc()).map(marc -> getMarcContent(marc.getId()))
-      .filter(Objects::nonNull).toList()));
+    if (nonNull(marcDelegate)) {
+      marcDelegate.write(new Chunk<List<String>>(items.getItems().stream().flatMap(List::stream)
+        .filter(itm -> itm.isInstanceFormat() && itm.isSourceMarc()).map(marc -> getMarcContent(marc.getId()))
+        .filter(Objects::nonNull).toList()));
+    }
   }
 
   @Override

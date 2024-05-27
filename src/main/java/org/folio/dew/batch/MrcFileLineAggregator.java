@@ -4,13 +4,12 @@ import org.springframework.batch.item.file.transform.LineAggregator;
 
 import java.util.List;
 
-public class MrcFileLineAggregator implements LineAggregator<List<String>> {
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-  private static final String GS = Character.toString(29);
-  private static final String RS = Character.toString(30);
+public class MrcFileLineAggregator implements LineAggregator<List<String>> {
 
   @Override
   public String aggregate(List<String> item) {
-    return String.join(RS + GS, item);
+    return String.join(EMPTY, item);
   }
 }

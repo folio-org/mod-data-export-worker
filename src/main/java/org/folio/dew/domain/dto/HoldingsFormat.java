@@ -195,4 +195,14 @@ public class HoldingsFormat implements Formatable<HoldingsRecord> {
       return id;
     }
   }
+
+  @Override
+  public boolean isInstanceFormat() {
+    return false;
+  }
+
+  @Override
+  public boolean isSourceMarc() {
+    return source.equals("MARC");
+  }
 }

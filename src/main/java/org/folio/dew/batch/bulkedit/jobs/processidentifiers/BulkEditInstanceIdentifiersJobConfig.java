@@ -3,14 +3,13 @@ package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
 import lombok.RequiredArgsConstructor;
 import org.folio.dew.batch.CsvListFileWriter;
-import org.folio.dew.batch.JsonListFileWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
-import org.folio.dew.batch.MarcAsStringWriter;
+import org.folio.dew.batch.JsonListFileWriter;
 import org.folio.dew.batch.bulkedit.jobs.BulkEditInstanceProcessor;
-import org.folio.dew.batch.bulkedit.jobs.BulkEditMarcProcessor;
+import org.folio.dew.client.SrsClient;
 import org.folio.dew.domain.dto.ExportType;
-import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.InstanceFormat;
+import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.BulkEditSkipListener;
 import org.springframework.batch.core.Job;
@@ -20,12 +19,8 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.support.CompositeItemWriter;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,16 +41,15 @@ import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 public class BulkEditInstanceIdentifiersJobConfig {
   private final BulkEditInstanceProcessor bulkEditInstanceProcessor;
   private final BulkEditSkipListener bulkEditSkipListener;
-  private final BulkEditMarcProcessor bulkEditMarcProcessor;
+  private final SrsClient srsClient;
 
   @Bean
   public Job bulkEditProcessInstanceIdentifiersJob(JobCompletionNotificationListener listener, Step bulkEditInstanceStep,
-    Step bulkEditMarcStep, JobRepository jobRepository) {
+    JobRepository jobRepository) {
     return new JobBuilder(ExportType.BULK_EDIT_IDENTIFIERS + JOB_NAME_POSTFIX_SEPARATOR + INSTANCE.getValue(), jobRepository)
       .incrementer(new RunIdIncrementer())
       .listener(listener)
       .flow(bulkEditInstanceStep)
-      .next(bulkEditMarcStep)
       .end()
       .build();
   }
@@ -80,32 +74,12 @@ public class BulkEditInstanceIdentifiersJobConfig {
   }
 
   @Bean
-  public Step bulkEditMarcStep(ItemReader<ItemIdentifier> csvItemIdentifierReader,
-                               @Qualifier("marcItemWriter") ItemWriter<List<String>> marcItemWriter,
-                               ListIdentifiersWriteListener<List<String>> listIdentifiersWriteListener, JobRepository jobRepository,
-                               PlatformTransactionManager transactionManager) {
-    return new StepBuilder("bulkEditMarcStep", jobRepository)
-      .<ItemIdentifier, List<String>> chunk(CHUNKS, transactionManager)
-      .reader(csvItemIdentifierReader)
-      .processor(bulkEditMarcProcessor)
-      .faultTolerant()
-      .writer(marcItemWriter)
-      .listener(listIdentifiersWriteListener)
-      .build();
-  }
-
-  @Bean
   @StepScope
-  public CompositeItemWriter<List<InstanceFormat>> compositeInstanceListWriter(@Value("#{jobParameters['" + TEMP_LOCAL_FILE_PATH + "']}") String outputFileName) {
+  public CompositeItemWriter<List<InstanceFormat>> compositeInstanceListWriter(@Value("#{jobParameters['" + TEMP_LOCAL_FILE_PATH + "']}") String outputFileName,
+                                                                               @Value("#{jobParameters['" + TEMP_LOCAL_MARC_PATH + "']}") String outputMarcName) {
     var writer = new CompositeItemWriter<List<InstanceFormat>>();
-    writer.setDelegates(Arrays.asList(new CsvListFileWriter<>(outputFileName, InstanceFormat.getInstanceColumnHeaders(), InstanceFormat.getInstanceFieldsArray(), (field, i) -> field),
+    writer.setDelegates(Arrays.asList(new CsvListFileWriter<>(outputFileName, outputMarcName, srsClient, InstanceFormat.getInstanceColumnHeaders(), InstanceFormat.getInstanceFieldsArray(), (field, i) -> field),
       new JsonListFileWriter<>(new FileSystemResource(outputFileName + ".json"))));
     return writer;
-  }
-
-  @Bean
-  @StepScope
-  public FlatFileItemWriter<List<String>> marcItemWriter(@Value("#{jobParameters['" + TEMP_LOCAL_MARC_PATH + "']}") String outputFileName) {
-    return new MarcAsStringWriter(outputFileName);
   }
 }

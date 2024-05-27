@@ -24,7 +24,7 @@ public class HoldingsFormat implements Formatable<HoldingsRecord> {
   @CsvBindByPosition(position = 0)
   private String id;
 
-  @CsvBindByName(column = "Instance (Title, Publisher, Publication date)")
+  @CsvBindByName(column = "\"Instance (Title, Publisher, Publication date)\"")
   @CsvBindByPosition(position = 1)
   private String instanceTitle;
 

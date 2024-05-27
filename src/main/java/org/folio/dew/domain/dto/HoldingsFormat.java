@@ -24,7 +24,7 @@ public class HoldingsFormat implements Formatable<HoldingsRecord> {
   @CsvBindByPosition(position = 0)
   private String id;
 
-  @CsvBindByName(column = "Instance (Title, Publisher, Publication date)")
+  @CsvBindByName(column = "\"Instance (Title, Publisher, Publication date)\"")
   @CsvBindByPosition(position = 1)
   private String instanceTitle;
 
@@ -60,7 +60,7 @@ public class HoldingsFormat implements Formatable<HoldingsRecord> {
   @CsvBindByPosition(position = 9)
   private String permanentLocation;
 
-  @CsvBindByName(column = "Temporary location")
+  @CsvBindByName(column = "Holdings temporary location")
   @CsvBindByPosition(position = 10)
   private String temporaryLocation;
 
@@ -104,7 +104,7 @@ public class HoldingsFormat implements Formatable<HoldingsRecord> {
   @CsvBindByPosition(position = 20)
   private String holdingsStatementsForIndexes;
 
-  @CsvBindByName(column = "Ill policy")
+  @CsvBindByName(column = "ILL policy")
   @CsvBindByPosition(position = 21)
   private String illPolicy;
 
@@ -152,17 +152,17 @@ public class HoldingsFormat implements Formatable<HoldingsRecord> {
   @CsvBindByPosition(position = 32)
   private String acquisitionMethod;
 
-  @CsvBindByName(column = "Acquisition format")
+  @CsvBindByName(column = "Order format")
   @CsvBindByPosition(position = 33)
   private String acquisitionFormat;
 
-  @CsvBindByName(column = "Tags")
-  @CsvBindByPosition(position = 34)
-  private String tags;
-
   @CsvBindByName(column = "Receipt status")
-  @CsvBindByPosition(position = 35)
+  @CsvBindByPosition(position = 34)
   private String receiptStatus;
+
+  @CsvBindByName(column = "Tags")
+  @CsvBindByPosition(position = 35)
+  private String tags;
 
   private String instanceHrid;
   private String itemBarcode;

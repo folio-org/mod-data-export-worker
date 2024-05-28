@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.folio.dew.batch.CsvListFileWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
 import org.folio.dew.batch.JsonListFileWriter;
+import org.folio.dew.batch.MarcAsListStringsWriter;
 import org.folio.dew.batch.bulkedit.jobs.BulkEditInstanceProcessor;
 import org.folio.dew.client.SrsClient;
 import org.folio.dew.domain.dto.ExportType;
@@ -78,8 +79,8 @@ public class BulkEditInstanceIdentifiersJobConfig {
   public CompositeItemWriter<List<InstanceFormat>> compositeInstanceListWriter(@Value("#{jobParameters['" + TEMP_LOCAL_FILE_PATH + "']}") String outputFileName,
                                                                                @Value("#{jobParameters['" + TEMP_LOCAL_MARC_PATH + "']}") String outputMarcName) {
     var writer = new CompositeItemWriter<List<InstanceFormat>>();
-    writer.setDelegates(Arrays.asList(new CsvListFileWriter<>(outputFileName, outputMarcName, srsClient, InstanceFormat.getInstanceColumnHeaders(), InstanceFormat.getInstanceFieldsArray(), (field, i) -> field),
-      new JsonListFileWriter<>(new FileSystemResource(outputFileName + ".json"))));
+    writer.setDelegates(Arrays.asList(new CsvListFileWriter<>(outputFileName, InstanceFormat.getInstanceColumnHeaders(), InstanceFormat.getInstanceFieldsArray(), (field, i) -> field),
+      new JsonListFileWriter<>(new FileSystemResource(outputFileName + ".json")), new MarcAsListStringsWriter(outputMarcName, srsClient)));
     return writer;
   }
 }

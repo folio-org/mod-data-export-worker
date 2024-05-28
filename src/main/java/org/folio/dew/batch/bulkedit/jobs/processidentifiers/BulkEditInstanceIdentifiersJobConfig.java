@@ -80,7 +80,7 @@ public class BulkEditInstanceIdentifiersJobConfig {
                                                                                @Value("#{jobParameters['" + TEMP_LOCAL_MARC_PATH + "']}") String outputMarcName) {
     var writer = new CompositeItemWriter<List<InstanceFormat>>();
     writer.setDelegates(Arrays.asList(new CsvListFileWriter<>(outputFileName, InstanceFormat.getInstanceColumnHeaders(), InstanceFormat.getInstanceFieldsArray(), (field, i) -> field),
-      new JsonListFileWriter<>(new FileSystemResource(outputFileName + ".json")), new MarcAsListStringsWriter(outputMarcName, srsClient)));
+      new JsonListFileWriter<>(new FileSystemResource(outputFileName + ".json")), new MarcAsListStringsWriter<>(outputMarcName, srsClient)));
     return writer;
   }
 }

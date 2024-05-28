@@ -3,7 +3,6 @@ package org.folio.dew.batch;
 import static java.util.Objects.nonNull;
 
 import lombok.extern.log4j.Log4j2;
-import org.folio.dew.client.SrsClient;
 import org.folio.dew.domain.dto.Formatable;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ExecutionContext;
@@ -13,7 +12,6 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.util.Assert;
 
 import java.util.List;
-import java.util.Objects;
 
 @Log4j2
 public class CsvListFileWriter<T, U extends Formatable<T>> extends FlatFileItemWriter<List<U>> {

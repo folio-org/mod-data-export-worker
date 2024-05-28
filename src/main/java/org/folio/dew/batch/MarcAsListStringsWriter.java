@@ -17,47 +17,46 @@ import static java.util.Objects.nonNull;
 
 @Log4j2
 @StepScope
-public class MarcAsListStringsWriter<T, U extends Formatable<T>> extends FlatFileItemWriter<List<U>>
-{
+public class MarcAsListStringsWriter<T, U extends Formatable<T>> extends FlatFileItemWriter<List<U>> {
 
   private SrsClient srsClient;
-  private MarcAsStringWriter<String> delegate;
+  private MarcAsStringWriter<String> delegateToStringWriter;
 
   public MarcAsListStringsWriter(String outputFileName, SrsClient srsClient) {
     super();
     this.srsClient = srsClient;
-    delegate = new MarcAsStringWriter(outputFileName);
+    delegateToStringWriter = new MarcAsStringWriter<>(outputFileName);
   }
 
   @Override
   public void write(Chunk<? extends List<U>> items) throws Exception {
-    delegate.write(new Chunk<>(items.getItems().stream().flatMap(List::stream).filter(itm -> itm.isInstanceFormat() && itm.isSourceMarc()).map(marc -> getMarcContent(marc.getId()))
+    delegateToStringWriter.write(new Chunk<>(items.getItems().stream().flatMap(List::stream).filter(itm -> itm.isInstanceFormat() && itm.isSourceMarc()).map(marc -> getMarcContent(marc.getId()))
       .filter(Objects::nonNull).toList()));
   }
 
   @Override
   public void afterPropertiesSet() {
-    Assert.notNull(delegate, "Delegate was not set");
+    Assert.notNull(delegateToStringWriter, "Delegate was not set");
   }
 
   @Override
   public void open(ExecutionContext executionContext) {
-    if (nonNull(delegate)) {
-      ((ItemStream) delegate).open(executionContext);
+    if (nonNull(delegateToStringWriter)) {
+      ((ItemStream) delegateToStringWriter).open(executionContext);
     }
   }
 
   @Override
   public void update(ExecutionContext executionContext) {
-    if (nonNull(delegate)) {
-      ((ItemStream) delegate).update(executionContext);
+    if (nonNull(delegateToStringWriter)) {
+      ((ItemStream) delegateToStringWriter).update(executionContext);
     }
   }
 
   @Override
   public void close() {
-    if (nonNull(delegate)) {
-      ((ItemStream) delegate).close();
+    if (nonNull(delegateToStringWriter)) {
+      ((ItemStream) delegateToStringWriter).close();
     }
   }
 

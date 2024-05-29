@@ -1,0 +1,17 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/source-storage/records/666fad9e-7f8e-4d8e-9a71-00d251817866"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"rawRecord\": {\n    \"content\": \"marc content\" }\n   \n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

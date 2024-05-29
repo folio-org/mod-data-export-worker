@@ -3,12 +3,14 @@ package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
 import lombok.RequiredArgsConstructor;
 import org.folio.dew.batch.CsvListFileWriter;
-import org.folio.dew.batch.JsonListFileWriter;
 import org.folio.dew.batch.JobCompletionNotificationListener;
+import org.folio.dew.batch.JsonListFileWriter;
+import org.folio.dew.batch.MarcAsListStringsWriter;
 import org.folio.dew.batch.bulkedit.jobs.BulkEditInstanceProcessor;
+import org.folio.dew.client.SrsClient;
 import org.folio.dew.domain.dto.ExportType;
-import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.InstanceFormat;
+import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.BulkEditSkipListener;
 import org.springframework.batch.core.Job;
@@ -31,6 +33,7 @@ import java.util.List;
 
 import static org.folio.dew.domain.dto.EntityType.INSTANCE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
+import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_MARC_PATH;
 import static org.folio.dew.utils.Constants.CHUNKS;
 import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
@@ -39,6 +42,7 @@ import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 public class BulkEditInstanceIdentifiersJobConfig {
   private final BulkEditInstanceProcessor bulkEditInstanceProcessor;
   private final BulkEditSkipListener bulkEditSkipListener;
+  private final SrsClient srsClient;
 
   @Bean
   public Job bulkEditProcessInstanceIdentifiersJob(JobCompletionNotificationListener listener, Step bulkEditInstanceStep,
@@ -72,10 +76,11 @@ public class BulkEditInstanceIdentifiersJobConfig {
 
   @Bean
   @StepScope
-  public CompositeItemWriter<List<InstanceFormat>> compositeInstanceListWriter(@Value("#{jobParameters['" + TEMP_LOCAL_FILE_PATH + "']}") String outputFileName) {
+  public CompositeItemWriter<List<InstanceFormat>> compositeInstanceListWriter(@Value("#{jobParameters['" + TEMP_LOCAL_FILE_PATH + "']}") String outputFileName,
+                                                                               @Value("#{jobParameters['" + TEMP_LOCAL_MARC_PATH + "']}") String outputMarcName) {
     var writer = new CompositeItemWriter<List<InstanceFormat>>();
     writer.setDelegates(Arrays.asList(new CsvListFileWriter<>(outputFileName, InstanceFormat.getInstanceColumnHeaders(), InstanceFormat.getInstanceFieldsArray(), (field, i) -> field),
-      new JsonListFileWriter<>(new FileSystemResource(outputFileName + ".json"))));
+      new JsonListFileWriter<>(new FileSystemResource(outputFileName + ".json")), new MarcAsListStringsWriter<>(outputMarcName, srsClient)));
     return writer;
   }
 }

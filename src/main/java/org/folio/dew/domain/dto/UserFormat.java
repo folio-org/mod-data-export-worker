@@ -168,5 +168,15 @@ public class UserFormat implements Formatable<org.folio.dew.domain.dto.User> {
       return id;
     }
   }
+
+  @Override
+  public boolean isInstanceFormat() {
+    return false;
+  }
+
+  @Override
+  public boolean isSourceMarc() {
+    return false;
+  }
 }
 

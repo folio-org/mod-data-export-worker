@@ -146,4 +146,13 @@ public class InstanceFormat implements Formatable<org.folio.dew.domain.dto.Insta
     }
   }
 
+  @Override
+  public boolean isInstanceFormat() {
+    return true;
+  }
+
+  @Override
+  public boolean isSourceMarc() {
+    return source.equals("MARC");
+  }
 }

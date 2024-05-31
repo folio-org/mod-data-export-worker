@@ -83,7 +83,7 @@ public class MarcAsListStringsWriter<T, U extends Formatable<T>> extends FlatFil
     for (var jsonNodeIterator = srsRecords.elements(); jsonNodeIterator.hasNext();) {
       var srsRec = jsonNodeIterator.next();
       var parsedRec = srsRec.get("parsedRecord");
-      var content = parsedRec.get("content").asText();
+      var content = parsedRec.get("content").toString();
       mrcRecords.add(jsonToMarcConverter.convertJsonRecordToMarcRecord(content));
     }
     return mrcRecords;

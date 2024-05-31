@@ -12,6 +12,7 @@ import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -65,19 +66,19 @@ public class MarcAsListStringsWriter<T, U extends Formatable<T>> extends FlatFil
     }
   }
 
-  private List<String> getMarcContent(String id) {
-    var srsRecords = srsClient.getMarc(id, "INSTANCE");
-    if (srsRecords.getSourceRecords().isEmpty()) {
+  private List<String> getMarcContent(String id) throws IOException {
+    List<String> mrcRecords = new ArrayList<>();
+    var srsRecords = srsClient.getMarc(id, "INSTANCE").get("sourceRecords");
+    if (srsRecords.isEmpty()) {
       log.warn("No SRS records found by instanceId = {}", id);
-      return null;
+      return mrcRecords;
     }
-    return srsRecords.getSourceRecords().stream().map(rec -> {
-      try {
-        return jsonToMarcConverter.convertJsonRecordToMarcRecord(rec.getParsedRecord().getContent());
-      } catch (IOException e) {
-        log.error(e);
-        throw new RuntimeException(e);
-      }
-    }).toList();
+    for (var jsonNodeIterator = srsRecords.elements(); jsonNodeIterator.hasNext();) {
+      var srsRec = jsonNodeIterator.next();
+      var parsedRec = srsRec.get("parsedRecord");
+      var content = parsedRec.get("content").asText();
+      mrcRecords.add(jsonToMarcConverter.convertJsonRecordToMarcRecord(content));
+    }
+    return mrcRecords;
   }
 }

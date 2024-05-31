@@ -36,7 +36,14 @@ public class MarcAsListStringsWriter<T, U extends Formatable<T>> extends FlatFil
   @Override
   public void write(Chunk<? extends List<U>> items) throws Exception {
     delegateToStringWriter.write(new Chunk<>(items.getItems().stream().flatMap(List::stream)
-      .filter(itm -> itm.isInstanceFormat() && itm.isSourceMarc()).map(marc -> getMarcContent(marc.getId()))
+      .filter(itm -> itm.isInstanceFormat() && itm.isSourceMarc()).map(marc -> {
+        try {
+          return getMarcContent(marc.getId());
+        } catch (IOException e) {
+          log.error(e);
+          throw new RuntimeException(e);
+        }
+      })
       .flatMap(List::stream).filter(Objects::nonNull).toList()));
   }
 

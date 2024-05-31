@@ -683,12 +683,6 @@ components:
       $ref: '../../../../folio-export-common/schemas/inventory/identifierTypeReferenceCollection.json#/IdentifierTypeReferenceCollection'
     InstanceNoteType:
       $ref: '../../../../folio-export-common/schemas/inventory/instanceNoteType.json#/InstanceNoteType'
-    ParsedRecord:
-      $ref: '../../../../folio-export-common/schemas/srs/parsedRecord.json#/ParsedRecord'
-    SrsRecord:
-      $ref: '../../../../folio-export-common/schemas/srs/srsRecord.json#/SrsRecord'
-    SrsRecordCollection:
-      $ref: '../../../../folio-export-common/schemas/srs/srsRecordCollection.json#/SrsRecordCollection'
   examples:
     errors:
       value:

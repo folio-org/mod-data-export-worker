@@ -683,10 +683,8 @@ components:
       $ref: '../../../../folio-export-common/schemas/inventory/identifierTypeReferenceCollection.json#/IdentifierTypeReferenceCollection'
     InstanceNoteType:
       $ref: '../../../../folio-export-common/schemas/inventory/instanceNoteType.json#/InstanceNoteType'
-    RawRecord:
-      $ref: '../../../../folio-export-common/schemas/srs/rawRecord.json#/RawRecord'
-    MarcRecord:
-      $ref: '../../../../folio-export-common/schemas/srs/marcRecord.json#/MarcRecord'
+    ParsedRecord:
+      $ref: '../../../../folio-export-common/schemas/srs/parsedRecord.json#/ParsedRecord'
     SrsRecord:
       $ref: '../../../../folio-export-common/schemas/srs/srsRecord.json#/SrsRecord'
     SrsRecordCollection:

@@ -3,6 +3,7 @@ package org.folio.dew.batch;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.SrsClient;
 import org.folio.dew.domain.dto.Formatable;
+import org.folio.dew.service.JsonToMarcConverter;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ExecutionContext;
@@ -10,6 +11,7 @@ import org.springframework.batch.item.ItemStream;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.util.Assert;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
@@ -21,17 +23,20 @@ public class MarcAsListStringsWriter<T, U extends Formatable<T>> extends FlatFil
 
   private SrsClient srsClient;
   private MarcAsStringWriter<String> delegateToStringWriter;
+  private JsonToMarcConverter jsonToMarcConverter;
 
-  public MarcAsListStringsWriter(String outputFileName, SrsClient srsClient) {
+  public MarcAsListStringsWriter(String outputFileName, SrsClient srsClient, JsonToMarcConverter jsonToMarcConverter) {
     super();
     this.srsClient = srsClient;
+    this.jsonToMarcConverter = jsonToMarcConverter;
     delegateToStringWriter = new MarcAsStringWriter<>(outputFileName);
   }
 
   @Override
   public void write(Chunk<? extends List<U>> items) throws Exception {
-    delegateToStringWriter.write(new Chunk<>(items.getItems().stream().flatMap(List::stream).filter(itm -> itm.isInstanceFormat() && itm.isSourceMarc()).map(marc -> getMarcContent(marc.getId()))
-      .filter(Objects::nonNull).toList()));
+    delegateToStringWriter.write(new Chunk<>(items.getItems().stream().flatMap(List::stream)
+      .filter(itm -> itm.isInstanceFormat() && itm.isSourceMarc()).map(marc -> getMarcContent(marc.getId()))
+      .flatMap(List::stream).filter(Objects::nonNull).toList()));
   }
 
   @Override
@@ -60,15 +65,19 @@ public class MarcAsListStringsWriter<T, U extends Formatable<T>> extends FlatFil
     }
   }
 
-  private String getMarcContent(String id) {
+  private List<String> getMarcContent(String id) {
     var srsRecords = srsClient.getMarc(id, "INSTANCE");
     if (srsRecords.getSourceRecords().isEmpty()) {
       log.warn("No SRS records found by instanceId = {}", id);
       return null;
     }
-    var recordId = srsRecords.getSourceRecords().get(0).getRecordId();
-    var marcRecord = srsClient.getMarcContent(recordId);
-    log.info("MARC record found by recordId = {}", recordId);
-    return marcRecord.getRawRecord().getContent();
+    return srsRecords.getSourceRecords().stream().map(rec -> {
+      try {
+        return jsonToMarcConverter.convertJsonRecordToMarcRecord(rec.getParsedRecord().getContent());
+      } catch (IOException e) {
+        log.error(e);
+        throw new RuntimeException(e);
+      }
+    }).toList();
   }
 }

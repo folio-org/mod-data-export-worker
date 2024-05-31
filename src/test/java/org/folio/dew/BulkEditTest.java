@@ -324,7 +324,7 @@ class BulkEditTest extends BaseBatchTest {
 
     final FileSystemResource actualResult = actualFileOutput(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE).split(";")[3]);
 
-    assertEquals("marc content", new String(actualResult.getContentAsByteArray()));
+    assertEquals("00026nam a2200025 a 4500\u001E\u001D", new String(actualResult.getContentAsByteArray()));
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 

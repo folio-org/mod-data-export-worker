@@ -3,6 +3,7 @@ package org.folio.dew.batch;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.SrsClient;
 import org.folio.dew.domain.dto.Formatable;
+import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.JsonToMarcConverter;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.Chunk;
@@ -16,7 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static java.lang.String.format;
 import static java.util.Objects.nonNull;
+import static org.folio.dew.utils.Constants.NO_MARC_CONTENT;
 
 @Log4j2
 @StepScope
@@ -41,7 +44,7 @@ public class MarcAsListStringsWriter<T, U extends Formatable<T>> extends FlatFil
           return getMarcContent(marc.getId());
         } catch (Exception e) {
           log.error(e);
-          throw new RuntimeException(e);
+          throw new BulkEditException(format(NO_MARC_CONTENT, marc.getId(), e.getMessage()));
         }
       })
       .flatMap(List::stream).filter(Objects::nonNull).toList()));

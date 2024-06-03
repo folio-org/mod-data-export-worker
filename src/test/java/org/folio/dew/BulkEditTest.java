@@ -377,7 +377,7 @@ class BulkEditTest extends BaseBatchTest {
     final FileSystemResource actualResult = actualFileOutput(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE).split(";")[3]);
 
     assertEquals("", new String(actualResult.getContentAsByteArray()).trim());
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.FAILED);
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 
   @ParameterizedTest

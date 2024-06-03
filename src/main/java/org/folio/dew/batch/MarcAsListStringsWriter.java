@@ -39,7 +39,7 @@ public class MarcAsListStringsWriter<T, U extends Formatable<T>> extends FlatFil
       .filter(itm -> itm.isInstanceFormat() && itm.isSourceMarc()).map(marc -> {
         try {
           return getMarcContent(marc.getId());
-        } catch (IOException e) {
+        } catch (Exception e) {
           log.error(e);
           throw new RuntimeException(e);
         }
@@ -73,7 +73,7 @@ public class MarcAsListStringsWriter<T, U extends Formatable<T>> extends FlatFil
     }
   }
 
-  private List<String> getMarcContent(String id) throws IOException {
+  private List<String> getMarcContent(String id) throws Exception {
     List<String> mrcRecords = new ArrayList<>();
     var srsRecords = srsClient.getMarc(id, "INSTANCE").get("sourceRecords");
     if (srsRecords.isEmpty()) {

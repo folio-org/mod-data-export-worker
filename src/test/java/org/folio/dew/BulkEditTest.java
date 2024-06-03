@@ -109,6 +109,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String ITEM_BARCODES_CSV = "src/test/resources/upload/item_barcodes.csv";
   private static final String INSTANCE_HRIDS_CSV = "src/test/resources/upload/instance_hrids.csv";
   private static final String MARC_INSTANCE_ID_CSV = "src/test/resources/upload/marc_instance_id.csv";
+  private static final String MARC_INSTANCE_ID_INVALID_CONTENT_CSV = "src/test/resources/upload/marc_instance_id_invalid_content.csv";
   private static final String MARC_INSTANCE_HRID_CSV = "src/test/resources/upload/marc_instance_hrid.csv";
   private static final String INSTANCE_ISSN_ISBN_CSV = "src/test/resources/upload/instance_ISSN_ISBN.csv";
   private static final String ITEM_BARCODES_DOUBLE_QOUTES_CSV = "src/test/resources/upload/item_barcodes_double_qoutes.csv";
@@ -326,6 +327,57 @@ class BulkEditTest extends BaseBatchTest {
 
     assertEquals("00026nam a2200025 a 4500\u001E\u001D", new String(actualResult.getContentAsByteArray()));
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  @Test
+  void uploadMarcInstanceIdentifiersInvalidContentJobTest() throws Exception {
+
+    var path = MARC_INSTANCE_ID_INVALID_CONTENT_CSV;
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessInstanceIdentifiersJob);
+
+    var parametersBuilder = new JobParametersBuilder();
+    String jobId = UUID.randomUUID().toString();
+    String workDir = getWorkingDirectory(springApplicationName, BULKEDIT_DIR_NAME);
+    parametersBuilder.addString(TEMP_OUTPUT_MARC_PATH, workDir + jobId + "/" + "marc_instance_id");
+    parametersBuilder.addString(TEMP_LOCAL_MARC_PATH,
+      getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + jobId + PATH_SEPARATOR + "marc_instance_id");
+    parametersBuilder.addString(TEMP_LOCAL_FILE_PATH,
+      getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + jobId + PATH_SEPARATOR + "out");
+    parametersBuilder.addString(TEMP_OUTPUT_FILE_PATH, workDir + jobId + "/" + "out");
+    try {
+      localFilesStorage.write(workDir + "marc_instance_id", new byte[32]);
+      localFilesStorage.write(workDir+ jobId + "/marc_instance_id.mrc", new byte[32]);
+      localFilesStorage.write(workDir + "out", new byte[0]);
+      localFilesStorage.write(workDir + "out.csv", new byte[0]);
+    } catch (Exception e) {
+      fail(e.getMessage());
+    }
+    Path of = Path.of(path);
+    var file = getWorkingDirectory("mod-data-export-worker", BULKEDIT_DIR_NAME) +
+      FilenameUtils.removeExtension((new File(path)).getName()) + "E" + FilenameUtils.getExtension(path);
+    parametersBuilder.addString(FILE_NAME, file);
+    localFilesStorage.write(file, Files.readAllBytes(of));
+    parametersBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, file, false), false);
+
+    var tempDir = getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + jobId;
+    var tempFile = tempDir + PATH_SEPARATOR + of.getFileName();
+    Files.createDirectories(Path.of(tempDir));
+    Files.write(Path.of(tempFile), Files.readAllBytes(of));
+    parametersBuilder.addString(TEMP_IDENTIFIERS_FILE_NAME, tempFile);
+
+    parametersBuilder.addString(JobParameterNames.JOB_ID, jobId);
+    parametersBuilder.addString(EXPORT_TYPE, BULK_EDIT_IDENTIFIERS.getValue());
+    parametersBuilder.addString(ENTITY_TYPE, INSTANCE.getValue());
+    parametersBuilder.addString(IDENTIFIER_TYPE, "ID");
+
+    final JobParameters jobParameters = parametersBuilder.toJobParameters();
+
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    final FileSystemResource actualResult = actualFileOutput(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE).split(";")[3]);
+
+    assertEquals("", new String(actualResult.getContentAsByteArray()).trim());
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.FAILED);
   }
 
   @ParameterizedTest

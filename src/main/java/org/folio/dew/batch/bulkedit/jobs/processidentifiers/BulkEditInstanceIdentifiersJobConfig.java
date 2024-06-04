@@ -13,6 +13,7 @@ import org.folio.dew.domain.dto.InstanceFormat;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.BulkEditSkipListener;
+import org.folio.dew.service.JsonToMarcConverter;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -43,6 +44,7 @@ public class BulkEditInstanceIdentifiersJobConfig {
   private final BulkEditInstanceProcessor bulkEditInstanceProcessor;
   private final BulkEditSkipListener bulkEditSkipListener;
   private final SrsClient srsClient;
+  private final JsonToMarcConverter jsonToMarcConverter;
 
   @Bean
   public Job bulkEditProcessInstanceIdentifiersJob(JobCompletionNotificationListener listener, Step bulkEditInstanceStep,
@@ -80,7 +82,7 @@ public class BulkEditInstanceIdentifiersJobConfig {
                                                                                @Value("#{jobParameters['" + TEMP_LOCAL_MARC_PATH + "']}") String outputMarcName) {
     var writer = new CompositeItemWriter<List<InstanceFormat>>();
     writer.setDelegates(Arrays.asList(new CsvListFileWriter<>(outputFileName, InstanceFormat.getInstanceColumnHeaders(), InstanceFormat.getInstanceFieldsArray(), (field, i) -> field),
-      new JsonListFileWriter<>(new FileSystemResource(outputFileName + ".json")), new MarcAsListStringsWriter<>(outputMarcName, srsClient)));
+      new JsonListFileWriter<>(new FileSystemResource(outputFileName + ".json")), new MarcAsListStringsWriter<>(outputMarcName, srsClient, jsonToMarcConverter)));
     return writer;
   }
 }

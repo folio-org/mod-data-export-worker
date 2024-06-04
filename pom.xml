@@ -59,6 +59,7 @@
         <hypersistence-utils-hibernate-63.version>3.7.3</hypersistence-utils-hibernate-63.version>
         <opencsv.version>5.7.1</opencsv.version>
         <feign-jackson.version>12.1</feign-jackson.version>
+        <marc4j.version>2.9.2</marc4j.version>
 
         <!-- Test properties-->
         <junit-extensions.version>2.4.0</junit-extensions.version>
@@ -238,6 +239,12 @@
         <groupId>jakarta.validation</groupId>
         <artifactId>jakarta.validation-api</artifactId>
         <version>3.1.0-M1</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.marc4j</groupId>
+        <artifactId>marc4j</artifactId>
+        <version>${marc4j.version}</version>
       </dependency>
 
         <!-- Test dependencies -->

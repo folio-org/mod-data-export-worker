@@ -7,7 +7,7 @@
       },
       "response": {
         "status": 200,
-        "body": "{\n    \"sourceRecords\": [\n    {\n    \"recordId\": \"666fad9e-7f8e-4d8e-9a71-00d251817866\" }\n    ],\n    \"totalRecords\": 1\n}",
+        "body": "{\n    \"sourceRecords\": [\n {\n    \"recordId\": \"666fad9e-7f8e-4d8e-9a71-00d251817866\", \"parsedRecord\": {\n                \"id\": \"8e5ea07d-0c06-4a3b-ab34-f4fc3f76bc09\",\n                \"content\": {\"000\": \"marc content\"} }\n }\n ],\n    \"totalRecords\": 1\n}",
         "headers": {
           "Content-Type": "application/json"
         }

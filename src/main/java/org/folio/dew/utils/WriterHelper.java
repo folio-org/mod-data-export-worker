@@ -24,7 +24,7 @@ public class WriterHelper {
     var holdingsJson = (ObjectNode) objectMapper.valueToTree(item.getOriginal());
     holdingsJson.putIfAbsent("instanceHrid", holdingsFormatJson.get("instanceHrid"));
     holdingsJson.putIfAbsent("itemBarcode", holdingsFormatJson.get("itemBarcode"));
-    holdingsJson.putIfAbsent("instanceTitle", holdingsFormatJson.get("instance"));
+    holdingsJson.putIfAbsent("instanceTitle", holdingsFormatJson.get("instanceTitle"));
     return objectMapper.writeValueAsString(holdingsJson);
   }
   @SneakyThrows

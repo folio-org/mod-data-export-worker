@@ -1,21 +1,10 @@
 package org.folio.dew.service.mapper;
 
-import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.booleanToStringNullSafe;
-import static org.folio.dew.utils.Constants.ACTION_NOTE;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
-import static org.folio.dew.utils.Constants.BINDING;
-import static org.folio.dew.utils.Constants.COPY_NOTE;
-import static org.folio.dew.utils.Constants.ELECTRONIC_BOOKPLATE;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
-import static org.folio.dew.utils.Constants.ITEM_DELIMITER_SPACED;
-import static org.folio.dew.utils.Constants.NOTE;
-import static org.folio.dew.utils.Constants.PROVENANCE;
-import static org.folio.dew.utils.Constants.REPRODUCTION;
-import static org.folio.dew.utils.Constants.STAFF_ONLY;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -69,19 +58,23 @@ public class HoldingsMapper {
       .illPolicy(holdingsReferenceService.getIllPolicyNameById(holdingsRecord.getIllPolicyId(), errorServiceArgs))
       .digitizationPolicy(isEmpty(holdingsRecord.getDigitizationPolicy()) ? EMPTY : holdingsRecord.getDigitizationPolicy())
       .retentionPolicy(isEmpty(holdingsRecord.getRetentionPolicy()) ? EMPTY : holdingsRecord.getRetentionPolicy())
-      .actionNote(fetchNotesByTypeName(holdingsRecord.getNotes(), ACTION_NOTE))
-      .bindingNote(fetchNotesByTypeName(holdingsRecord.getNotes(), BINDING))
-      .copyNote(fetchNotesByTypeName(holdingsRecord.getNotes(), COPY_NOTE))
-      .electronicBookplateNote(fetchNotesByTypeName(holdingsRecord.getNotes(), ELECTRONIC_BOOKPLATE))
-      .note(fetchNotesByTypeName(holdingsRecord.getNotes(), NOTE))
-      .provenanceNote(fetchNotesByTypeName(holdingsRecord.getNotes(), PROVENANCE))
-      .reproductionNote(fetchNotesByTypeName(holdingsRecord.getNotes(), REPRODUCTION))
+      .notes(notesToString(holdingsRecord.getNotes(), errorServiceArgs))
       .electronicAccess(electronicAccessService.getElectronicAccessesToString(holdingsRecord.getElectronicAccess(), errorServiceArgs))
       .acquisitionMethod(isEmpty(holdingsRecord.getAcquisitionMethod()) ? EMPTY : holdingsRecord.getAcquisitionMethod())
       .acquisitionFormat(isEmpty(holdingsRecord.getAcquisitionFormat()) ? EMPTY : holdingsRecord.getAcquisitionFormat())
       .tags(tagsToString(holdingsRecord.getTags()))
       .receiptStatus(isEmpty(holdingsRecord.getReceiptStatus()) ? EMPTY : holdingsRecord.getReceiptStatus())
       .build();
+  }
+
+  private String notesToString(List<HoldingsNote> notes, ErrorServiceArgs args) {
+    return isEmpty(notes) ? EMPTY : notes.stream()
+      .filter(Objects::nonNull)
+      .map(note -> String.join(ARRAY_DELIMITER,
+        escaper.escape(holdingsReferenceService.getNoteTypeNameById(note.getHoldingsNoteTypeId(), args)),
+        escaper.escape(note.getNote()),
+        booleanToStringNullSafe(note.getStaffOnly())))
+      .collect(Collectors.joining(ITEM_DELIMITER));
   }
 
   private String holdingsStatementsToString(List<HoldingsStatement> statements) {
@@ -107,23 +100,6 @@ public class HoldingsMapper {
     return isEmpty(tags.getTagList()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(tags.getTagList()));
   }
 
-  private String fetchNotesByTypeName(List<HoldingsNote> notes, String noteType) {
-    if (!isEmpty(notes)) {
-      var type = holdingsReferenceService.getHoldingsNoteTypes().get(noteType);
-      return isNull(type) ?
-        EMPTY :
-        notes.stream()
-          .filter(note -> type.equals(note.getHoldingsNoteTypeId()))
-          .map(this::holdingsNoteToString)
-          .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
-    }
-    return EMPTY;
-  }
-
-  private String holdingsNoteToString(HoldingsNote holdingsNote) {
-    return holdingsNote.getNote() + (Boolean.TRUE.equals(holdingsNote.getStaffOnly()) ?
-      SPACE + STAFF_ONLY : EMPTY);
-  }
 
   public HoldingsRecord mapToHoldingsRecord(HoldingsFormat holdingsFormat) {
     return new HoldingsRecord();

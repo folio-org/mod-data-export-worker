@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class HoldingsFormat implements Formatable<HoldingsRecord> {
   private HoldingsRecord original;
+  private String tenantId;
 
   @CsvBindByName(column = "Holdings UUID")
   @CsvBindByPosition(position = 0)

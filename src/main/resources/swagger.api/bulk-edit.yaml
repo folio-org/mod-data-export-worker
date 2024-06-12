@@ -683,6 +683,26 @@ components:
       $ref: '../../../../folio-export-common/schemas/inventory/identifierTypeReferenceCollection.json#/IdentifierTypeReferenceCollection'
     InstanceNoteType:
       $ref: '../../../../folio-export-common/schemas/inventory/instanceNoteType.json#/InstanceNoteType'
+    ConsortiumItemCollection:
+      $ref: '../../../../folio-export-common/schemas/search/consortiumItemCollection.json#/ConsortiumItemCollection'
+    ConsortiumItem:
+      $ref: '../../../../folio-export-common/schemas/search/consortiumItem.json#/ConsortiumItem'
+    ConsortiumHoldingCollection:
+      $ref: '../../../../folio-export-common/schemas/search/consortiumHoldingCollection.json#/ConsortiumHoldingCollection'
+    ConsortiumHolding:
+      $ref: '../../../../folio-export-common/schemas/search/consortiumHolding.json#/ConsortiumHolding'
+    BatchIdsDto:
+      $ref: '../../../../folio-export-common/schemas/search/batchIds.json#/BatchIdsDto'
+    ExtendedItem:
+      $ref: '../../../../folio-export-common/schemas/inventory/extendedItem.json#/ExtendedItem'
+    ExtendedHoldingsRecord:
+      $ref: '../../../../folio-export-common/schemas/inventory/extendedHoldingsRecord.json#/ExtendedHoldingsRecord'
+    ExtendedInstance:
+      $ref: '../../../../folio-export-common/schemas/inventory-storage/extendedInstance.json#/ExtendedInstance'
+    UserTenant:
+      $ref: '../../../../folio-export-common/schemas/consortia/userTenant.json#/UserTenant'
+    UserTenantCollection:
+      $ref: '../../../../folio-export-common/schemas/consortia/userTenantCollection.json#/UserTenantCollection'
   examples:
     errors:
       value:

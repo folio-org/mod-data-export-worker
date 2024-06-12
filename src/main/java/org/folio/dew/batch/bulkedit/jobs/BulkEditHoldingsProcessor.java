@@ -10,13 +10,18 @@ import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.HoldingClient;
+import org.folio.dew.client.SearchClient;
+import org.folio.dew.domain.dto.BatchIdsDto;
+import org.folio.dew.domain.dto.ConsortiumHolding;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsRecord;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
+import org.folio.dew.service.ConsortiaService;
 import org.folio.dew.service.HoldingsReferenceService;
 import org.folio.dew.service.mapper.HoldingsMapper;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -24,9 +29,14 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @StepScope
@@ -36,6 +46,8 @@ public class BulkEditHoldingsProcessor implements ItemProcessor<ItemIdentifier, 
   private final HoldingClient holdingClient;
   private final HoldingsMapper holdingsMapper;
   private final HoldingsReferenceService holdingsReferenceService;
+  private final SearchClient searchClient;
+  private final ConsortiaService consortiaService;
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
@@ -68,11 +80,34 @@ public class BulkEditHoldingsProcessor implements ItemProcessor<ItemIdentifier, 
     var instanceHrid = INSTANCE_HRID == IdentifierType.fromValue(identifierType) ? itemIdentifier.getItemId() : null;
     var itemBarcode = ITEM_BARCODE == IdentifierType.fromValue(identifierType) ? itemIdentifier.getItemId() : null;
 
+    Map<String, String> holdingIdTenantIdMap = getHoldingIdTenantIdMap(fetchedHoldingsIds);
+
+
     return distinctHoldings.stream()
       .map(r -> holdingsMapper.mapToHoldingsFormat(r, itemIdentifier.getItemId(), jobId, FilenameUtils.getName(fileName)).withOriginal(r))
       .map(holdingsFormat -> holdingsFormat.withInstanceHrid(instanceHrid))
       .map(holdingsFormat -> holdingsFormat.withItemBarcode(itemBarcode))
+      .map(holdingsFormat -> holdingsFormat.withTenantId(holdingIdTenantIdMap.get(holdingsFormat.getId())))
       .toList();
+  }
+
+  private Map<String, String> getHoldingIdTenantIdMap(Set<String> fetchedHoldingsIds) {
+    Map<String, String> holdingIdTenantIdMap = new HashMap<>();
+
+    if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
+      var batchIdsDto = new BatchIdsDto().ids(new ArrayList<>(fetchedHoldingsIds));
+
+      var consortiumHoldingCollectionResponse = searchClient.getConsortiumHoldingCollection(batchIdsDto);
+      var consortiumHoldingCollection = consortiumHoldingCollectionResponse.getBody();
+
+
+      if (Objects.nonNull(consortiumHoldingCollection) && Objects.nonNull(consortiumHoldingCollection.getConsortiumHoldingRecords())) {
+        holdingIdTenantIdMap = consortiumHoldingCollection.getConsortiumHoldingRecords().stream()
+          .collect(Collectors.toMap(ConsortiumHolding::getId, ConsortiumHolding::getTenantId));
+      }
+
+    }
+    return holdingIdTenantIdMap;
   }
 
   private HoldingsRecordCollection getHoldingsRecords(ItemIdentifier itemIdentifier) {

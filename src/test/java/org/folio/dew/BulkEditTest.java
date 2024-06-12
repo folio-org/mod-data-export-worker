@@ -37,6 +37,8 @@ import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatusCode;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -82,6 +84,7 @@ import static org.folio.dew.utils.CsvHelper.countLines;
 import static org.folio.dew.utils.SystemHelper.getTempDirWithSeparatorSuffix;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
 class BulkEditTest extends BaseBatchTest {
@@ -225,7 +228,7 @@ class BulkEditTest extends BaseBatchTest {
     var jobCaptor = ArgumentCaptor.forClass(org.folio.de.entity.Job.class);
 
     // expected 4 events: 1st - job started, 2nd, 3rd - updates after each chunk (100 identifiers), 4th - job completed
-    Mockito.verify(kafkaService, Mockito.times(4)).send(Mockito.any(), Mockito.any(), jobCaptor.capture());
+    Mockito.verify(kafkaService, Mockito.times(4)).send(any(), any(), jobCaptor.capture());
 
     verifyJobProgressUpdates(jobCaptor);
   }
@@ -242,7 +245,7 @@ class BulkEditTest extends BaseBatchTest {
     var jobCaptor = ArgumentCaptor.forClass(org.folio.de.entity.Job.class);
 
     // expected 4 events: 1st - job started, 2nd, 3rd - updates after each chunk (100 identifiers), 4th - job completed
-    Mockito.verify(kafkaService, Mockito.times(4)).send(Mockito.any(), Mockito.any(), jobCaptor.capture());
+    Mockito.verify(kafkaService, Mockito.times(4)).send(any(), any(), jobCaptor.capture());
 
     verifyJobProgressUpdates(jobCaptor);
   }

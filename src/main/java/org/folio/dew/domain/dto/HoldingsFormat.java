@@ -93,15 +93,15 @@ public class HoldingsFormat implements Formatable<HoldingsRecord> {
   @CsvBindByPosition(position = 17)
   private String numberOfItems;
 
-  @CsvBindByName(column = "Holdings statements")
+  @CsvBindByName(column = "Holdings statement")
   @CsvBindByPosition(position = 18)
   private String holdingsStatements;
 
-  @CsvBindByName(column = "Holdings statements for supplements")
+  @CsvBindByName(column = "Holdings statement for supplements")
   @CsvBindByPosition(position = 19)
   private String holdingsStatementsForSupplements;
 
-  @CsvBindByName(column = "Holdings statements for indexes")
+  @CsvBindByName(column = "Holdings statement for indexes")
   @CsvBindByPosition(position = 20)
   private String holdingsStatementsForIndexes;
 
@@ -117,52 +117,28 @@ public class HoldingsFormat implements Formatable<HoldingsRecord> {
   @CsvBindByPosition(position = 23)
   private String retentionPolicy;
 
-  @CsvBindByName(column = "Action note")
+  @CsvBindByName(column = "Notes")
   @CsvBindByPosition(position = 24)
-  private String actionNote;
-
-  @CsvBindByName(column = "Binding note")
-  @CsvBindByPosition(position = 25)
-  private String bindingNote;
-
-  @CsvBindByName(column = "Copy note")
-  @CsvBindByPosition(position = 26)
-  private String copyNote;
-
-  @CsvBindByName(column = "Electronic bookplate note")
-  @CsvBindByPosition(position = 27)
-  private String electronicBookplateNote;
-
-  @CsvBindByName(column = "Note")
-  @CsvBindByPosition(position = 28)
-  private String note;
-
-  @CsvBindByName(column = "Provenance note")
-  @CsvBindByPosition(position = 29)
-  private String provenanceNote;
-
-  @CsvBindByName(column = "Reproduction note")
-  @CsvBindByPosition(position = 30)
-  private String reproductionNote;
+  private String notes;
 
   @CsvBindByName(column = "Electronic access")
-  @CsvBindByPosition(position = 31)
+  @CsvBindByPosition(position = 25)
   private String electronicAccess;
 
   @CsvBindByName(column = "Acquisition method")
-  @CsvBindByPosition(position = 32)
+  @CsvBindByPosition(position = 26)
   private String acquisitionMethod;
 
   @CsvBindByName(column = "Order format")
-  @CsvBindByPosition(position = 33)
+  @CsvBindByPosition(position = 27)
   private String acquisitionFormat;
 
   @CsvBindByName(column = "Receipt status")
-  @CsvBindByPosition(position = 34)
+  @CsvBindByPosition(position = 28)
   private String receiptStatus;
 
   @CsvBindByName(column = "Tags")
-  @CsvBindByPosition(position = 35)
+  @CsvBindByPosition(position = 29)
   private String tags;
 
   private String instanceHrid;

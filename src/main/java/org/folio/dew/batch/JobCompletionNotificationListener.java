@@ -333,21 +333,26 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
 
   private String saveResult(JobExecution jobExecution, boolean isSourceShouldBeDeleted) {
     var path = preparePath(jobExecution);
+    log.info("saveResultt: {}, {}", path, jobExecution.getJobParameters());
     try {
       if (isEmpty(path) || noRecordsFound(path)) {
+        log.info("empty path");
         return EMPTY; // To prevent downloading empty file.
       }
       if (localFilesStorage.notExists(path) && remoteFilesStorage.containsFile(path)) {
+        log.info("presigned url");
         return remoteFilesStorage.objectToPresignedObjectUrl(path);
       }
       var obj = prepareObject(jobExecution, path);
       if (isBulkEditJob(jobExecution)) {
         obj = validatePath(obj);
       }
+      log.info("obj: {}", obj);
       jobExecution.getExecutionContext().putString(PATH_TO_MATCHED_RECORDS, obj);
       return remoteFilesStorage.objectToPresignedObjectUrl(
         remoteFilesStorage.uploadObject(obj, path, prepareDownloadFilename(jobExecution, path), "text/csv", isSourceShouldBeDeleted));
     } catch (Exception e) {
+      e.printStackTrace();
       throw new IllegalStateException(e);
     }
   }

@@ -45,7 +45,7 @@ public class BulkEditItemListProcessor implements ItemProcessor<ItemCollection, 
         if (Objects.nonNull(item) && !itemIdTenantIdMap.isEmpty()) {
           return item.withTenantId(itemIdTenantIdMap.get(item.getId()));
         }
-        return null;
+        return item;
       })
       .toList();
   }

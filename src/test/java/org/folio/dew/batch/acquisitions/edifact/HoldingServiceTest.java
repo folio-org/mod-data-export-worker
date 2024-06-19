@@ -29,4 +29,12 @@ class HoldingServiceTest extends BaseBatchTest {
     String locationId = holdingService.getPermanentLocationByHoldingId("65032151-39a5-4cef-8810-5350eb316300");
     assertEquals("b241764c-1466-4e1d-a028-1a3684a5da87", locationId);
   }
+
+  @Test
+  void getInstanceIdByHolding() throws JsonProcessingException {
+    var holdingJson = objectMapper.readTree("{\"instanceId\": \"123\"}");
+    doReturn(holdingJson).when(client).getHoldingById(anyString());
+    String actual = holdingService.getInstanceIdByHolding(holdingJson);
+    assertEquals("123", actual);
+  }
 }

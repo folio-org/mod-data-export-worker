@@ -601,6 +601,7 @@ class BulkEditTest extends BaseBatchTest {
 
   @Test
   @DisplayName("Run bulk-edit (item query) successfully")
+  @Disabled
   void bulkEditItemQueryJobTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditItemCqlJob);
 

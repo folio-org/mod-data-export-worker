@@ -1,9 +1,7 @@
 package org.folio.dew.batch.acquisitions.edifact;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
 import org.folio.dew.client.HoldingClient;
@@ -11,7 +9,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 
 
 class HoldingServiceTest extends BaseBatchTest {
@@ -31,10 +32,22 @@ class HoldingServiceTest extends BaseBatchTest {
   }
 
   @Test
-  void getInstanceIdByHolding() throws JsonProcessingException {
+  void getInstanceIdByHoldingShouldReturnCorrectInstanceId() throws JsonProcessingException {
     var holdingJson = objectMapper.readTree("{\"instanceId\": \"123\"}");
-    doReturn(holdingJson).when(client).getHoldingById(anyString());
     String actual = holdingService.getInstanceIdByHolding(holdingJson);
     assertEquals("123", actual);
+  }
+
+  @Test
+  void getInstanceIdByHoldingShouldReturnCorrectEmptyStringWhenNull() throws JsonProcessingException {
+    String actual = holdingService.getInstanceIdByHolding(null);
+    assertTrue(actual.isEmpty());
+  }
+
+  @Test
+  void getInstanceIdByHoldingShouldReturnCorrectEmptyStringWhenHoldingIsEmpty() throws JsonProcessingException {
+    var holdingJson = objectMapper.readTree("");
+    String actual = holdingService.getInstanceIdByHolding(null);
+    assertTrue(actual.isEmpty());
   }
 }

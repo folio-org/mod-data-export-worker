@@ -114,45 +114,37 @@ public class BulkEditHoldingsProcessor implements ItemProcessor<ItemIdentifier, 
   }
 
   private HoldingsRecordCollection getHoldingsRecords(ItemIdentifier itemIdentifier) {
-    HoldingsRecordCollection holdingsRecordCollection;
     var type = IdentifierType.fromValue(identifierType);
 
     if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
       var tenantId = searchClient.getConsortiumHoldingCollection(new BatchIdsDto().ids(List.of(itemIdentifier.getItemId()))).getConsortiumHoldingRecords()
         .stream()
         .map(ConsortiumHolding::getTenantId).findFirst();
-
       if (tenantId.isPresent()) {
         var headers = folioExecutionContext.getAllHeaders();
         headers.put("x-okapi-tenant", List.of(tenantId.get()));
         try (var context = new FolioExecutionContextSetter(new DefaultFolioExecutionContext(folioExecutionContext.getFolioModuleMetadata(), headers))) {
-          if (ID == type || HRID == type) {
-            holdingsRecordCollection = checkDuplicates(holdingClient.getHoldingsByQuery(
-              String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId())));
-          } else if (INSTANCE_HRID == type) {
-            holdingsRecordCollection = holdingClient.getHoldingsByQuery("instanceId==" + holdingsReferenceService.getInstanceIdByHrid(itemIdentifier.getItemId()), Integer.MAX_VALUE);
-          } else if (ITEM_BARCODE == type) {
-            holdingsRecordCollection = holdingClient.getHoldingsByQuery("id==" + holdingsReferenceService.getHoldingsIdByItemBarcode(itemIdentifier.getItemId()), 1);
-          } else {
-            throw new BulkEditException(String.format("Identifier type \"%s\" is not supported", identifierType));
-          }
+          return getHoldingsRecordCollection(type, itemIdentifier);
         }
       } else {
         throw new BulkEditException("Member tenant cannot be resolved");
       }
     } else {
-      if (ID == type || HRID == type) {
-        holdingsRecordCollection = checkDuplicates(holdingClient.getHoldingsByQuery(
-          String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId())));
-      } else if (INSTANCE_HRID == type) {
-        holdingsRecordCollection = holdingClient.getHoldingsByQuery("instanceId==" + holdingsReferenceService.getInstanceIdByHrid(itemIdentifier.getItemId()), Integer.MAX_VALUE);
-      } else if (ITEM_BARCODE == type) {
-        holdingsRecordCollection = holdingClient.getHoldingsByQuery("id==" + holdingsReferenceService.getHoldingsIdByItemBarcode(itemIdentifier.getItemId()), 1);
-      } else {
-        throw new BulkEditException(String.format("Identifier type \"%s\" is not supported", identifierType));
-      }
+      return getHoldingsRecordCollection(type, itemIdentifier);
     }
-    return holdingsRecordCollection;
+  }
+
+  private HoldingsRecordCollection getHoldingsRecordCollection(IdentifierType type,  ItemIdentifier itemIdentifier) {
+    if (ID == type || HRID == type) {
+      return checkDuplicates(holdingClient.getHoldingsByQuery(
+        String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId())));
+    } else if (INSTANCE_HRID == type) {
+      return holdingClient.getHoldingsByQuery("instanceId==" + holdingsReferenceService.getInstanceIdByHrid(itemIdentifier.getItemId()), Integer.MAX_VALUE);
+    } else if (ITEM_BARCODE == type) {
+      return holdingClient.getHoldingsByQuery("id==" + holdingsReferenceService.getHoldingsIdByItemBarcode(itemIdentifier.getItemId()), 1);
+    } else {
+      throw new BulkEditException(String.format("Identifier type \"%s\" is not supported", identifierType));
+    }
   }
 
   private HoldingsRecordCollection checkDuplicates(HoldingsRecordCollection holdingsRecordCollection) {

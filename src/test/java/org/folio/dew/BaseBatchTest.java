@@ -64,8 +64,6 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.support.TestPropertySourceUtils;
@@ -195,13 +193,13 @@ public abstract class BaseBatchTest {
     when(searchClient.getConsortiumItemCollection(any()))
       .thenAnswer(batchIdsDro -> {
         var items = ((BatchIdsDto) batchIdsDro.getArguments()[0]).getIds().stream().map(id -> new ConsortiumItem().id(id).tenantId("tenant_" + id.charAt(0))).toList();
-        return new ResponseEntity<>(new ConsortiumItemCollection().consortiumItemRecords(items), HttpStatusCode.valueOf(200));
+        return new ConsortiumItemCollection().consortiumItemRecords(items);
       });
 
     when(searchClient.getConsortiumHoldingCollection(any()))
       .thenAnswer(batchIdsDro -> {
         var holdings = ((BatchIdsDto) batchIdsDro.getArguments()[0]).getIds().stream().map(id -> new ConsortiumHolding().id(id).tenantId("tenant_" + id.charAt(0))).toList();
-        return new ResponseEntity<>(new ConsortiumHoldingCollection().consortiumHoldingRecords(holdings), HttpStatusCode.valueOf(200));
+        return new ConsortiumHoldingCollection().consortiumHoldingRecords(holdings);
       });
 
     when(consortiaClient.getUserTenantCollection())

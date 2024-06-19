@@ -20,8 +20,8 @@ public interface SearchClient {
   ResponseEntity<InputStreamResource> getHoldingIds(@RequestParam String query);
 
   @PostMapping(value = "/consortium/batch/items", headers = {"Accept=application/json"})
-  ResponseEntity<ConsortiumItemCollection> getConsortiumItemCollection(@RequestBody BatchIdsDto batchIdsDto);
+  ConsortiumItemCollection getConsortiumItemCollection(@RequestBody BatchIdsDto batchIdsDto);
 
   @PostMapping(value = "/consortium/batch/holdings", headers = {"Accept=application/json"})
-  ResponseEntity<ConsortiumHoldingCollection> getConsortiumHoldingCollection(@RequestBody BatchIdsDto batchIdsDto);
+  ConsortiumHoldingCollection getConsortiumHoldingCollection(@RequestBody BatchIdsDto batchIdsDto);
 }

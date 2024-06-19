@@ -1,5 +1,7 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
+import static org.folio.dew.domain.dto.IdentifierType.HRID;
+import static org.folio.dew.domain.dto.IdentifierType.ID;
 import static org.folio.dew.domain.dto.IdentifierType.INSTANCE_HRID;
 import static org.folio.dew.domain.dto.IdentifierType.ITEM_BARCODE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
@@ -24,6 +26,9 @@ import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.ConsortiaService;
 import org.folio.dew.service.HoldingsReferenceService;
 import org.folio.dew.service.mapper.HoldingsMapper;
+import org.folio.spring.DefaultFolioExecutionContext;
+import org.folio.spring.FolioExecutionContext;
+import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,6 +53,7 @@ public class BulkEditHoldingsProcessor implements ItemProcessor<ItemIdentifier, 
   private final HoldingsReferenceService holdingsReferenceService;
   private final SearchClient searchClient;
   private final ConsortiaService consortiaService;
+  private final FolioExecutionContext folioExecutionContext;
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
@@ -97,10 +103,7 @@ public class BulkEditHoldingsProcessor implements ItemProcessor<ItemIdentifier, 
     if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
       var batchIdsDto = new BatchIdsDto().ids(new ArrayList<>(fetchedHoldingsIds));
 
-      var consortiumHoldingCollectionResponse = searchClient.getConsortiumHoldingCollection(batchIdsDto);
-      var consortiumHoldingCollection = consortiumHoldingCollectionResponse.getBody();
-
-
+      var consortiumHoldingCollection = searchClient.getConsortiumHoldingCollection(batchIdsDto);
       if (Objects.nonNull(consortiumHoldingCollection) && Objects.nonNull(consortiumHoldingCollection.getConsortiumHoldingRecords())) {
         holdingIdTenantIdMap = consortiumHoldingCollection.getConsortiumHoldingRecords().stream()
           .collect(Collectors.toMap(ConsortiumHolding::getId, ConsortiumHolding::getTenantId));
@@ -111,15 +114,45 @@ public class BulkEditHoldingsProcessor implements ItemProcessor<ItemIdentifier, 
   }
 
   private HoldingsRecordCollection getHoldingsRecords(ItemIdentifier itemIdentifier) {
-    return switch (IdentifierType.fromValue(identifierType)) {
-      case ID, HRID -> checkDuplicates(holdingClient.getHoldingsByQuery(
-        String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId())));
-      case INSTANCE_HRID ->
-        holdingClient.getHoldingsByQuery("instanceId==" + holdingsReferenceService.getInstanceIdByHrid(itemIdentifier.getItemId()), Integer.MAX_VALUE);
-      case ITEM_BARCODE ->
-        holdingClient.getHoldingsByQuery("id==" + holdingsReferenceService.getHoldingsIdByItemBarcode(itemIdentifier.getItemId()), 1);
-      default -> throw new BulkEditException(String.format("Identifier type \"%s\" is not supported", identifierType));
-    };
+    HoldingsRecordCollection holdingsRecordCollection;
+    var type = IdentifierType.fromValue(identifierType);
+
+    if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
+      var tenantId = searchClient.getConsortiumHoldingCollection(new BatchIdsDto().ids(List.of(itemIdentifier.getItemId()))).getConsortiumHoldingRecords()
+        .stream()
+        .map(ConsortiumHolding::getTenantId).findFirst();
+
+      if (tenantId.isPresent()) {
+        var headers = folioExecutionContext.getAllHeaders();
+        headers.put("x-okapi-tenant", List.of(tenantId.get()));
+        try (var context = new FolioExecutionContextSetter(new DefaultFolioExecutionContext(folioExecutionContext.getFolioModuleMetadata(), headers))) {
+          if (ID == type || HRID == type) {
+            holdingsRecordCollection = checkDuplicates(holdingClient.getHoldingsByQuery(
+              String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId())));
+          } else if (INSTANCE_HRID == type) {
+            holdingsRecordCollection = holdingClient.getHoldingsByQuery("instanceId==" + holdingsReferenceService.getInstanceIdByHrid(itemIdentifier.getItemId()), Integer.MAX_VALUE);
+          } else if (ITEM_BARCODE == type) {
+            holdingsRecordCollection = holdingClient.getHoldingsByQuery("id==" + holdingsReferenceService.getHoldingsIdByItemBarcode(itemIdentifier.getItemId()), 1);
+          } else {
+            throw new BulkEditException(String.format("Identifier type \"%s\" is not supported", identifierType));
+          }
+        }
+      } else {
+        throw new BulkEditException("Member tenant cannot be resolved");
+      }
+    } else {
+      if (ID == type || HRID == type) {
+        holdingsRecordCollection = checkDuplicates(holdingClient.getHoldingsByQuery(
+          String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId())));
+      } else if (INSTANCE_HRID == type) {
+        holdingsRecordCollection = holdingClient.getHoldingsByQuery("instanceId==" + holdingsReferenceService.getInstanceIdByHrid(itemIdentifier.getItemId()), Integer.MAX_VALUE);
+      } else if (ITEM_BARCODE == type) {
+        holdingsRecordCollection = holdingClient.getHoldingsByQuery("id==" + holdingsReferenceService.getHoldingsIdByItemBarcode(itemIdentifier.getItemId()), 1);
+      } else {
+        throw new BulkEditException(String.format("Identifier type \"%s\" is not supported", identifierType));
+      }
+    }
+    return holdingsRecordCollection;
   }
 
   private HoldingsRecordCollection checkDuplicates(HoldingsRecordCollection holdingsRecordCollection) {

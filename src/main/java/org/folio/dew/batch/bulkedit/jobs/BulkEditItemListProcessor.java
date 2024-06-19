@@ -55,8 +55,7 @@ public class BulkEditItemListProcessor implements ItemProcessor<ItemCollection, 
     if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
       var ids = items.getItems().stream().map(Item::getId).toList();
       var batchIdsDto = new BatchIdsDto().ids(ids);
-      var consortiumItemCollectionResponse = searchClient.getConsortiumItemCollection(batchIdsDto);
-      var consortiumItemCollection = consortiumItemCollectionResponse.getBody();
+      var consortiumItemCollection = searchClient.getConsortiumItemCollection(batchIdsDto);
       if (Objects.nonNull(consortiumItemCollection) && Objects.nonNull(consortiumItemCollection.getConsortiumItemRecords())) {
         itemIdTenantIdMap = consortiumItemCollection.getConsortiumItemRecords().stream()
           .collect(Collectors.toMap(ConsortiumItem::getId, ConsortiumItem::getTenantId));

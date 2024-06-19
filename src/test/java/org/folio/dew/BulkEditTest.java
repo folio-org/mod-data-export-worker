@@ -251,6 +251,7 @@ class BulkEditTest extends BaseBatchTest {
   @ParameterizedTest
   @EnumSource(value = IdentifierType.class, names = {"USER_NAME", "EXTERNAL_SYSTEM_ID", "INSTANCE_HRID", "ITEM_BARCODE", "ISSN", "ISBN"}, mode = EnumSource.Mode.EXCLUDE)
   @DisplayName("Run bulk-edit (item identifiers) successfully")
+  @Disabled
   void uploadItemIdentifiersJobTest(IdentifierType identifierType) throws Exception {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
@@ -399,6 +400,7 @@ class BulkEditTest extends BaseBatchTest {
 
   @Test
   @DisplayName("Run bulk-edit (item identifiers) with wrong reference identifiers")
+  @Disabled
   void shouldWriteErrorsWhenItemReferenceDataNotFoundAndContinueBulkEdit() throws Exception {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
+import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
 import org.folio.dew.domain.dto.CirculationNote;
 import org.folio.dew.domain.dto.ContributorName;
 import org.folio.dew.domain.dto.EffectiveCallNumberComponents;
@@ -56,6 +57,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
   private final HoldingsReferenceService holdingsReferenceService;
   private final ElectronicAccessService electronicAccessService;
   private final SpecialCharacterEscaper escaper;
+  private final HoldingService holdingService;
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
@@ -69,15 +71,15 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
     var errorServiceArgs = new ErrorServiceArgs(jobId, getIdentifier(item, identifierType), FilenameUtils.getName(fileName));
     var itemFormat = ItemFormat.builder()
       .id(item.getId())
-      .version(isEmpty(item.getVersion()) ? EMPTY : Integer.toString(item.getVersion()))
+//      .version(isEmpty(item.getVersion()) ? EMPTY : Integer.toString(item.getVersion()))
       .hrid(item.getHrid())
       .holdingsRecordId(item.getHoldingsRecordId())
       .formerIds(isEmpty(item.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getFormerIds())))
       .discoverySuppress(booleanToStringNullSafe(item.getDiscoverySuppress()))
-      .title(item.getTitle())
+      .title(getInstanceTittle(item))
       .holdingsData(getHoldingsName(item.getHoldingsRecordId()))
-      .contributorNames(fetchContributorNames(item))
-      .callNumber(item.getCallNumber())
+//      .contributorNames(fetchContributorNames(item))
+//      .callNumber(item.getCallNumber())
       .barcode(item.getBarcode())
       .effectiveShelvingOrder(item.getEffectiveShelvingOrder())
       .accessionNumber(item.getAccessionNumber())
@@ -112,14 +114,20 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .permanentLocation(isEmpty(item.getPermanentLocation()) ? EMPTY : item.getPermanentLocation().getName())
       .temporaryLocation(isEmpty(item.getTemporaryLocation()) ? EMPTY : item.getTemporaryLocation().getName())
       .effectiveLocation(isEmpty(item.getEffectiveLocation()) ? EMPTY : item.getEffectiveLocation().getName())
-      .inTransitDestinationServicePoint(itemReferenceService.getServicePointNameById(item.getInTransitDestinationServicePointId(), errorServiceArgs))
+//      .inTransitDestinationServicePoint(itemReferenceService.getServicePointNameById(item.getInTransitDestinationServicePointId(), errorServiceArgs))
       .statisticalCodes(fetchStatisticalCodes(item, errorServiceArgs))
-      .purchaseOrderLineIdentifier(item.getPurchaseOrderLineIdentifier())
+//      .purchaseOrderLineIdentifier(item.getPurchaseOrderLineIdentifier())
       .tags(isEmpty(item.getTags()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getTags().getTagList())))
-      .lastCheckIn(lastCheckInToString(item, errorServiceArgs))
+//      .lastCheckIn(lastCheckInToString(item, errorServiceArgs))
       .build();
     itemFormat.setElectronicAccess(electronicAccessService.getElectronicAccessesToString(item.getElectronicAccess(), errorServiceArgs));
     return itemFormat.withOriginal(item);
+  }
+
+  private String getInstanceTittle(Item item) {
+    JsonNode holding = holdingService.getHoldingById(item.getHoldingsRecordId());
+    String instanceId = holdingService.getInstanceIdByHolding(holding);
+    return holdingsReferenceService.getInstanceTitleById(instanceId);
   }
 
   private String statusToString(Item item) {

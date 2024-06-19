@@ -26,4 +26,14 @@ public class HoldingService {
 
     return locationId;
   }
+
+  public String getInstanceIdByHolding(JsonNode holding) {
+    String instanceId = "";
+
+    if (holding != null && !holding.isEmpty()) {
+      instanceId = holding.get("instanceId").asText();
+    }
+
+    return instanceId;
+  }
 }

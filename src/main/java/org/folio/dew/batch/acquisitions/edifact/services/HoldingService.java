@@ -1,11 +1,14 @@
 package org.folio.dew.batch.acquisitions.edifact.services;
 
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.HoldingClient;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import lombok.RequiredArgsConstructor;
+
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -28,12 +31,6 @@ public class HoldingService {
   }
 
   public String getInstanceIdByHolding(JsonNode holding) {
-    String instanceId = "";
-
-    if (holding != null && !holding.isEmpty()) {
-      instanceId = holding.get("instanceId").asText();
-    }
-
-    return instanceId;
+    return Objects.isNull(holding) || holding.isEmpty() ? StringUtils.EMPTY : holding.get("instanceId").asText();
   }
 }

@@ -47,7 +47,7 @@ class HoldingServiceTest extends BaseBatchTest {
   @Test
   void getInstanceIdByHoldingShouldReturnCorrectEmptyStringWhenHoldingIsEmpty() throws JsonProcessingException {
     var holdingJson = objectMapper.readTree("");
-    String actual = holdingService.getInstanceIdByHolding(null);
+    String actual = holdingService.getInstanceIdByHolding(holdingJson);
     assertTrue(actual.isEmpty());
   }
 }

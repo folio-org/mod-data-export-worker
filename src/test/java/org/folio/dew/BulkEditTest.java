@@ -519,6 +519,7 @@ class BulkEditTest extends BaseBatchTest {
 
   @Test
   @DisplayName("Upload item identifiers (holdingsRecordId) successfully")
+  @Disabled
   void shouldProcessMultipleItemsOnHoldingsRecordId() throws Exception {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);

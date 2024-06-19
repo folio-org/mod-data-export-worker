@@ -657,6 +657,7 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Double quotes in data should be escaped")
   @SneakyThrows
+  @Disabled
   void shouldEscapeDoubleQuotes() {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 

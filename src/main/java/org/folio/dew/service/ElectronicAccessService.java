@@ -15,6 +15,9 @@ import org.folio.dew.domain.dto.ElectronicAccess;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
+import org.folio.spring.DefaultFolioExecutionContext;
+import org.folio.spring.FolioExecutionContext;
+import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -27,9 +30,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Log4j2
-public class ElectronicAccessService {
+public class ElectronicAccessService extends FolioExecutionContextManager {
   private final ElectronicAccessRelationshipClient relationshipClient;
   private final BulkEditProcessingErrorsService errorsService;
+  private final FolioExecutionContext folioExecutionContext;
 
   private static final int NUMBER_OF_ELECTRONIC_ACCESS_COMPONENTS = 6;
   private static final int ELECTRONIC_ACCESS_URI_INDEX = 0;
@@ -39,18 +43,18 @@ public class ElectronicAccessService {
 
   public static final String HOLDINGS_DELIMETER = "\u001f|";
 
-  public String getElectronicAccessesToString(List<ElectronicAccess> electronicAccesses, ErrorServiceArgs errorServiceArgs) {
+  public String getElectronicAccessesToString(List<ElectronicAccess> electronicAccesses, ErrorServiceArgs errorServiceArgs, String tenantId) {
     return isEmpty(electronicAccesses) ?
       EMPTY :
       "URL relationship;URI;Link text;Materials specified;URL public note\n" +
       electronicAccesses.stream()
         .filter(Objects::nonNull)
-        .map(ea -> electronicAccessToString(ea, errorServiceArgs))
+        .map(ea -> electronicAccessToString(ea, errorServiceArgs, tenantId))
         .collect(Collectors.joining(HOLDINGS_DELIMETER));
   }
 
-  private String electronicAccessToString(ElectronicAccess access, ErrorServiceArgs errorServiceArgs) {
-    var relationshipName = isEmpty(access.getRelationshipId()) ? EMPTY : getRelationshipNameById(access.getRelationshipId(), errorServiceArgs);
+  private String electronicAccessToString(ElectronicAccess access, ErrorServiceArgs errorServiceArgs, String tenantId) {
+    var relationshipName = isEmpty(access.getRelationshipId()) ? EMPTY : getRelationshipNameById(access.getRelationshipId(), errorServiceArgs, tenantId);
     return String.join(ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER,
       isEmpty(relationshipName) ? EMPTY : relationshipName,
       isEmpty(access.getUri()) ? EMPTY : access.getUri(),
@@ -60,9 +64,11 @@ public class ElectronicAccessService {
   }
 
   @Cacheable(cacheNames = "relationships")
-  public String getRelationshipNameById(String id, ErrorServiceArgs errorServiceArgs) {
+  public String getRelationshipNameById(String id, ErrorServiceArgs errorServiceArgs, String tenantId) {
     try {
-      return relationshipClient.getById(id).getName();
+      try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
+        return relationshipClient.getById(id).getName();
+      }
     } catch (NotFoundException e) {
       var errorMessage = String.format("Electronic access relationship not found by id=%s", id);
       log.error(errorMessage);

@@ -25,6 +25,8 @@ import org.folio.dew.domain.dto.HoldingsNoteType;
 import org.folio.dew.domain.dto.ItemLocation;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
+import org.folio.spring.FolioExecutionContext;
+import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +36,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Log4j2
-public class HoldingsReferenceService {
+public class HoldingsReferenceService extends FolioExecutionContextManager {
   private static final String QUERY_PATTERN_NAME = "name==\"%s\"";
   private static final String QUERY_PATTERN_HRID = "hrid==\"%s\"";
   private static final String QUERY_PATTERN_BARCODE = "barcode==\"%s\"";
@@ -50,6 +52,7 @@ public class HoldingsReferenceService {
   private final StatisticalCodeClient statisticalCodeClient;
   private final BulkEditProcessingErrorsService errorsService;
   private final HoldingClient holdingClient;
+  private final FolioExecutionContext folioExecutionContext;
 
   public String getInstanceIdByHrid(String instanceHrid) {
     var briefInstances = instanceClient.getByQuery(String.format(QUERY_PATTERN_HRID, instanceHrid));
@@ -60,11 +63,11 @@ public class HoldingsReferenceService {
     }
   }
 
-  public String getInstanceTitleById(String instanceId) {
+  public String getInstanceTitleById(String instanceId, String tenantId) {
     if (isEmpty(instanceId)) {
       return EMPTY;
     }
-    try {
+    try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
       var instanceJson = instanceClient.getInstanceJsonById(instanceId);
       var title = instanceJson.get("title");
       var publications = instanceJson.get("publication");
@@ -101,11 +104,11 @@ public class HoldingsReferenceService {
   }
 
   @Cacheable(cacheNames = "holdingsTypesNames")
-  public String getHoldingsTypeNameById(String id, ErrorServiceArgs args) {
+  public String getHoldingsTypeNameById(String id, ErrorServiceArgs args, String tenantId) {
     if (isEmpty(id)) {
       return EMPTY;
     }
-    try {
+    try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
       return isEmpty(id) ? EMPTY : holdingsTypeClient.getById(id).getName();
     } catch (NotFoundException e) {
       var msg = "Holdings type not found by id=" + id;
@@ -129,8 +132,8 @@ public class HoldingsReferenceService {
   }
 
   @Cacheable(cacheNames = "holdingsLocationsNames")
-  public String getLocationNameById(String id) {
-    try {
+  public String getLocationNameById(String id, String tenantId) {
+    try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
       return isEmpty(id) ? EMPTY : locationClient.getLocationById(id).getName();
     } catch (NotFoundException e) {
       var msg = "Location not found by id=" + id;
@@ -151,8 +154,8 @@ public class HoldingsReferenceService {
   }
 
   @Cacheable(cacheNames = "holdingsCallNumberTypesNames")
-  public String getCallNumberTypeNameById(String id, ErrorServiceArgs args) {
-    try {
+  public String getCallNumberTypeNameById(String id, ErrorServiceArgs args, String tenantId) {
+    try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
       return isEmpty(id) ? EMPTY : callNumberTypeClient.getById(id).getName();
     } catch (NotFoundException e) {
       var msg = "Call number type not found by id=" + id;
@@ -201,14 +204,14 @@ public class HoldingsReferenceService {
   }
 
   @Cacheable(cacheNames = "illPolicyNames")
-  public String getIllPolicyNameById(String id, ErrorServiceArgs args) {
-    try {
+  public String getIllPolicyNameById(String id, ErrorServiceArgs args, String tenantId) {
+    try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
       return isEmpty(id) ? EMPTY : illPolicyClient.getById(id).getName();
     } catch (NotFoundException e) {
-      var msg = "Ill policy not found by id=" + id;
-      log.error(msg);
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg), args.getFileName());
-      return id;
+        var msg = "Ill policy not found by id=" + id;
+        log.error(msg);
+        errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg), args.getFileName());
+        return id;
     }
   }
 
@@ -226,8 +229,8 @@ public class HoldingsReferenceService {
   }
 
   @Cacheable(cacheNames = "holdingsSourceNames")
-  public String getSourceNameById(String id, ErrorServiceArgs args) {
-    try {
+  public String getSourceNameById(String id, ErrorServiceArgs args, String tenantId) {
+    try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
       return isEmpty(id) ? EMPTY : sourceClient.getById(id).getName();
     } catch (NotFoundException e) {
       var msg = "Holdings record source not found by id=" + id;
@@ -248,8 +251,8 @@ public class HoldingsReferenceService {
   }
 
   @Cacheable(cacheNames = "holdingsStatisticalCodeNames")
-  public String getStatisticalCodeNameById(String id, ErrorServiceArgs args) {
-    try {
+  public String getStatisticalCodeNameById(String id, ErrorServiceArgs args, String tenantId) {
+    try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
       return isEmpty(id) ? EMPTY : statisticalCodeClient.getById(id).getName();
     } catch (NotFoundException e) {
       var msg = "Statistical code not found by id=" + id;
@@ -271,15 +274,19 @@ public class HoldingsReferenceService {
   }
 
   @Cacheable(cacheNames = "holdings")
-  public JsonNode getHoldingsJsonById(String holdingsId) {
-    return holdingClient.getHoldingById(holdingsId);
+  public JsonNode getHoldingsJsonById(String holdingsId, String tenantId) {
+    try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
+      return holdingClient.getHoldingById(holdingsId);
+    }
   }
 
   @Cacheable(cacheNames = "holdingsLocations")
-  public JsonNode getHoldingsLocationById(String locationId) {
+  public JsonNode getHoldingsLocationById(String locationId, String tenantId) {
     if (ObjectUtils.isEmpty(locationId)) {
       return new ObjectMapper().createObjectNode();
     }
-    return locationClient.getLocation(locationId);
+    try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
+      return locationClient.getLocation(locationId);
+    }
   }
 }

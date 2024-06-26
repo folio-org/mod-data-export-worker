@@ -695,6 +695,10 @@ components:
       $ref: '../../../../folio-export-common/schemas/search/batchIds.json#/BatchIdsDto'
     ExtendedItem:
       $ref: '../../../../folio-export-common/schemas/inventory/extendedItem.json#/ExtendedItem'
+    ExtendedItemCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/extendedItemCollection.json#/ExtendedItemCollection'
+    ExtendedHoldingsRecordCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/extendedHoldingsRecordCollection.json#/ExtendedHoldingsRecordCollection'
     ExtendedHoldingsRecord:
       $ref: '../../../../folio-export-common/schemas/inventory/extendedHoldingsRecord.json#/ExtendedHoldingsRecord'
     ExtendedInstance:

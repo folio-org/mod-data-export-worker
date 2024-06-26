@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
+import static java.lang.String.format;
 import static org.folio.dew.domain.dto.IdentifierType.HRID;
 import static org.folio.dew.domain.dto.IdentifierType.ID;
 import static org.folio.dew.domain.dto.IdentifierType.INSTANCE_HRID;
@@ -17,16 +18,17 @@ import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.domain.dto.BatchIdsDto;
 import org.folio.dew.domain.dto.ConsortiumHolding;
+import org.folio.dew.domain.dto.ExtendedHoldingsRecord;
+import org.folio.dew.domain.dto.ExtendedHoldingsRecordCollection;
 import org.folio.dew.domain.dto.HoldingsFormat;
-import org.folio.dew.domain.dto.HoldingsRecord;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.ConsortiaService;
+import org.folio.dew.service.FolioExecutionContextManager;
 import org.folio.dew.service.HoldingsReferenceService;
 import org.folio.dew.service.mapper.HoldingsMapper;
-import org.folio.spring.DefaultFolioExecutionContext;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -34,20 +36,15 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
 @StepScope
 @RequiredArgsConstructor
 @Log4j2
-public class BulkEditHoldingsProcessor implements ItemProcessor<ItemIdentifier, List<HoldingsFormat>> {
+public class BulkEditHoldingsProcessor extends FolioExecutionContextManager implements ItemProcessor<ItemIdentifier, List<HoldingsFormat>> {
   private final HoldingClient holdingClient;
   private final HoldingsMapper holdingsMapper;
   private final HoldingsReferenceService holdingsReferenceService;
@@ -73,77 +70,70 @@ public class BulkEditHoldingsProcessor implements ItemProcessor<ItemIdentifier, 
     identifiersToCheckDuplication.add(itemIdentifier);
 
     var holdings = getHoldingsRecords(itemIdentifier);
-    if (holdings.getHoldingsRecords().isEmpty()) {
+    if (holdings.getExtendedHoldingsRecords().isEmpty()) {
       log.error(NO_MATCH_FOUND_MESSAGE);
       throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
     }
 
-    var distinctHoldings = holdings.getHoldingsRecords().stream()
-      .filter(holdingsRecord -> !fetchedHoldingsIds.contains(holdingsRecord.getId()))
+    var distinctHoldings = holdings.getExtendedHoldingsRecords().stream()
+      .filter(holdingsRecord -> !fetchedHoldingsIds.contains(holdingsRecord.getEntity().getId()))
       .toList();
-    fetchedHoldingsIds.addAll(distinctHoldings.stream().map(HoldingsRecord::getId).toList());
+    fetchedHoldingsIds.addAll(distinctHoldings.stream().map(extendedHoldingsRecord -> extendedHoldingsRecord.getEntity().getId()).toList());
 
     var instanceHrid = INSTANCE_HRID == IdentifierType.fromValue(identifierType) ? itemIdentifier.getItemId() : null;
     var itemBarcode = ITEM_BARCODE == IdentifierType.fromValue(identifierType) ? itemIdentifier.getItemId() : null;
 
-    Map<String, String> holdingIdTenantIdMap = getHoldingIdTenantIdMap(fetchedHoldingsIds);
-
-
     return distinctHoldings.stream()
-      .map(r -> holdingsMapper.mapToHoldingsFormat(r, itemIdentifier.getItemId(), jobId, FilenameUtils.getName(fileName)).withOriginal(r))
+      .map(extendedHoldingsRecord -> holdingsMapper.mapToHoldingsFormat(extendedHoldingsRecord, itemIdentifier.getItemId(), jobId, FilenameUtils.getName(fileName)).withOriginal(extendedHoldingsRecord.getEntity()))
       .map(holdingsFormat -> holdingsFormat.withInstanceHrid(instanceHrid))
       .map(holdingsFormat -> holdingsFormat.withItemBarcode(itemBarcode))
-      .map(holdingsFormat -> holdingsFormat.withTenantId(holdingIdTenantIdMap.get(holdingsFormat.getId())))
       .toList();
   }
 
-  private Map<String, String> getHoldingIdTenantIdMap(Set<String> fetchedHoldingsIds) {
-    Map<String, String> holdingIdTenantIdMap = new HashMap<>();
-
-    if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
-      var batchIdsDto = new BatchIdsDto().ids(new ArrayList<>(fetchedHoldingsIds));
-
-      var consortiumHoldingCollection = searchClient.getConsortiumHoldingCollection(batchIdsDto);
-      if (Objects.nonNull(consortiumHoldingCollection) && Objects.nonNull(consortiumHoldingCollection.getConsortiumHoldingRecords())) {
-        holdingIdTenantIdMap = consortiumHoldingCollection.getConsortiumHoldingRecords().stream()
-          .collect(Collectors.toMap(ConsortiumHolding::getId, ConsortiumHolding::getTenantId));
-      }
-
-    }
-    return holdingIdTenantIdMap;
-  }
-
-  private HoldingsRecordCollection getHoldingsRecords(ItemIdentifier itemIdentifier) {
+  private ExtendedHoldingsRecordCollection getHoldingsRecords(ItemIdentifier itemIdentifier) {
     var type = IdentifierType.fromValue(identifierType);
 
     if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
-      var tenantId = searchClient.getConsortiumHoldingCollection(new BatchIdsDto().ids(List.of(itemIdentifier.getItemId()))).getConsortiumHoldingRecords()
-        .stream()
-        .map(ConsortiumHolding::getTenantId).findFirst();
-      if (tenantId.isPresent()) {
-        var headers = folioExecutionContext.getAllHeaders();
-        headers.put("x-okapi-tenant", List.of(tenantId.get()));
-        try (var context = new FolioExecutionContextSetter(new DefaultFolioExecutionContext(folioExecutionContext.getFolioModuleMetadata(), headers))) {
-          return getHoldingsRecordCollection(type, itemIdentifier);
-        }
+      // Process central tenant
+      var consortiumHoldingsCollection = searchClient.getConsortiumHoldingCollection(new BatchIdsDto().ids(List.of(itemIdentifier.getItemId())));
+      if (consortiumHoldingsCollection.getTotalRecords() > 1) {
+        throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
+      } else if (consortiumHoldingsCollection.getTotalRecords() == 0) {
+        throw new BulkEditException(format("Member tenant cannot be resolved for identifier: %s", itemIdentifier.getItemId()));
       } else {
-        throw new BulkEditException("Member tenant cannot be resolved");
+        var tenantIds = consortiumHoldingsCollection.getHoldings()
+          .stream()
+          .map(ConsortiumHolding::getTenantId).toList();
+        if (tenantIds.size() == 1) {
+          try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantIds.get(0), folioExecutionContext))) {
+            var holdingsRecordCollection = getHoldingsRecordCollection(type, itemIdentifier);
+            return new ExtendedHoldingsRecordCollection().extendedHoldingsRecords(holdingsRecordCollection.getHoldingsRecords().stream()
+               .map(holdingsRecord -> new ExtendedHoldingsRecord().tenantId(tenantIds.get(0)).entity(holdingsRecord)).toList())
+              .totalRecords(holdingsRecordCollection.getTotalRecords());
+          }
+        } else {
+          throw new BulkEditException("Member tenant cannot be resolved");
+        }
       }
     } else {
-      return getHoldingsRecordCollection(type, itemIdentifier);
+      // Set request tenant if it isn't central
+      var holdingsRecordCollection = getHoldingsRecordCollection(type, itemIdentifier);
+      return new ExtendedHoldingsRecordCollection().extendedHoldingsRecords(holdingsRecordCollection.getHoldingsRecords().stream()
+          .map(holdingsRecord -> new ExtendedHoldingsRecord().tenantId(folioExecutionContext.getTenantId()).entity(holdingsRecord)).toList())
+        .totalRecords(holdingsRecordCollection.getTotalRecords());
     }
   }
 
   private HoldingsRecordCollection getHoldingsRecordCollection(IdentifierType type,  ItemIdentifier itemIdentifier) {
     if (ID == type || HRID == type) {
       return checkDuplicates(holdingClient.getHoldingsByQuery(
-        String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId())));
+        format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId())));
     } else if (INSTANCE_HRID == type) {
       return holdingClient.getHoldingsByQuery("instanceId==" + holdingsReferenceService.getInstanceIdByHrid(itemIdentifier.getItemId()), Integer.MAX_VALUE);
     } else if (ITEM_BARCODE == type) {
       return holdingClient.getHoldingsByQuery("id==" + holdingsReferenceService.getHoldingsIdByItemBarcode(itemIdentifier.getItemId()), 1);
     } else {
-      throw new BulkEditException(String.format("Identifier type \"%s\" is not supported", identifierType));
+      throw new BulkEditException(format("Identifier type \"%s\" is not supported", identifierType));
     }
   }
 

@@ -34,6 +34,8 @@ import org.folio.dew.domain.dto.MaterialTypeCollection;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.ConfigurationException;
 import org.folio.dew.error.NotFoundException;
+import org.folio.spring.FolioExecutionContext;
+import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -44,7 +46,7 @@ import java.util.List;
 @Service
 @Log4j2
 @RequiredArgsConstructor
-public class ItemReferenceService {
+public class ItemReferenceService extends FolioExecutionContextManager {
   private static final String QUERY_PATTERN_NAME = "name==\"%s\"";
   private static final String QUERY_PATTERN_CODE = "code==\"%s\"";
   private static final String QUERY_PATTERN_USERNAME = "username==\"%s\"";
@@ -63,10 +65,11 @@ public class ItemReferenceService {
   private final ConfigurationClient configurationClient;
   private final ObjectMapper objectMapper;
   private final BulkEditProcessingErrorsService errorsService;
+  private final FolioExecutionContext folioExecutionContext;
 
   @Cacheable(cacheNames = "callNumberTypeNames")
-  public String getCallNumberTypeNameById(String callNumberTypeId, ErrorServiceArgs args) {
-    try {
+  public String getCallNumberTypeNameById(String callNumberTypeId, ErrorServiceArgs args, String tenantId) {
+    try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
       return isEmpty(callNumberTypeId) ? EMPTY : callNumberTypeClient.getById(callNumberTypeId).getName();
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Call number type was not found by id: [%s]", callNumberTypeId)), args.getFileName());
@@ -87,8 +90,8 @@ public class ItemReferenceService {
   }
 
   @Cacheable(cacheNames = "damagedStatusNames")
-  public String getDamagedStatusNameById(String damagedStatusId, ErrorServiceArgs args) {
-    try {
+  public String getDamagedStatusNameById(String damagedStatusId, ErrorServiceArgs args, String tenantId) {
+    try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
       return isEmpty(damagedStatusId) ? EMPTY : damagedStatusClient.getById(damagedStatusId).getName();
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Damaged status was not found by id: [%s]", damagedStatusId)), args.getFileName());
@@ -131,8 +134,8 @@ public class ItemReferenceService {
   }
 
   @Cacheable(cacheNames = "servicePointNames")
-  public String getServicePointNameById(String servicePointId, ErrorServiceArgs args) {
-    try {
+  public String getServicePointNameById(String servicePointId, ErrorServiceArgs args, String tenantId) {
+    try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
       return isEmpty(servicePointId) ? EMPTY : servicePointClient.getById(servicePointId).getName();
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Service point was not found by id: [%s]", servicePointId)), args.getFileName());

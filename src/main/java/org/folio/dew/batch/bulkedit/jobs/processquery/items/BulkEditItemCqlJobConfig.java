@@ -11,6 +11,7 @@ import org.folio.dew.batch.bulkedit.jobs.BulkEditItemProcessor;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.ExtendedItem;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.repository.RemoteFilesStorage;
@@ -30,6 +31,10 @@ import org.springframework.transaction.PlatformTransactionManager;
 import static org.folio.dew.domain.dto.ItemFormat.getItemColumnHeaders;
 import static org.folio.dew.domain.dto.ItemFormat.getItemFieldsArray;
 
+/**
+ @deprecated  To remove - cql query isn't supported
+ */
+@Deprecated(forRemoval = true)
 @Configuration
 @Log4j2
 @RequiredArgsConstructor
@@ -77,7 +82,7 @@ public class BulkEditItemCqlJobConfig {
     PlatformTransactionManager transactionManager
   ) {
     return new StepBuilder("bulkEditItemCqlPartitionStep", jobRepository)
-      .<Item, ItemFormat>chunk(100, transactionManager)
+      .<ExtendedItem, ItemFormat>chunk(100, transactionManager)
       .reader(bulkEditCqlItemReader)
       .processor(processor)
       .writer(itemWriter)

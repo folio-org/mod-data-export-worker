@@ -3,9 +3,13 @@ package org.folio.dew.batch.bulkedit.jobs.processquery.items;
 import java.util.List;
 import org.folio.dew.batch.CsvItemReader;
 import org.folio.dew.client.InventoryClient;
-import org.folio.dew.domain.dto.Item;
+import org.folio.dew.domain.dto.ExtendedItem;
 
-public class BulkEditCqlItemReader extends CsvItemReader<Item> {
+/**
+ @deprecated  To remove - cql query isn't supported
+ */
+@Deprecated(forRemoval = true)
+public class BulkEditCqlItemReader extends CsvItemReader<ExtendedItem> {
 
   private static final int QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST = 100;
 
@@ -20,8 +24,9 @@ public class BulkEditCqlItemReader extends CsvItemReader<Item> {
   }
 
   @Override
-  protected List<Item> getItems(int offset, int limit) {
-    return inventoryClient.getItemByQuery(query, offset, limit).getItems();
+  @Deprecated
+  protected List<ExtendedItem> getItems(int offset, int limit) {
+    return inventoryClient.getItemByQuery(query, offset, limit).getItems().stream().map(item -> new ExtendedItem().entity(item).tenantId(null)).toList();
   }
 
 }

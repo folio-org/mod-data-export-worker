@@ -43,17 +43,18 @@ public class BursarExportStepListener extends BaseStepListener {
       return ExitStatus.FAILED;
     }
 
-    String url;
+    String key;
     try {
-      url = remoteFilesStorage.objectToPresignedObjectUrl(remoteFilesStorage.uploadObject(FilenameUtils.getName(filename), filename,
-          downloadFilename, MediaType.TEXT_MARKDOWN_VALUE, true));
+      key = remoteFilesStorage.uploadObject(FilenameUtils.getName(filename), filename,
+          downloadFilename, MediaType.TEXT_MARKDOWN_VALUE, true);
+      log.info("Bursar key to S3: {}", key);
     } catch (Exception e) {
       log.error(e.toString(), e);
       jobExecution.addFailureException(e);
       return ExitStatus.FAILED;
     }
 
-    ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, url, ";");
+    ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, key, ";");
 
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.JOB_DESCRIPTION,
         String.format(BursarExportUtils.getJobDescriptionPart(), stepExecution.getWriteCount()), "\n");

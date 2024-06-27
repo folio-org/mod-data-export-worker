@@ -55,6 +55,7 @@ public class BursarExportStepListener extends BaseStepListener {
     }
 
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, key, ";");
+    ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.BURSAR_FEES_FINES_FILE_NAME, key, ";");
 
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.JOB_DESCRIPTION,
         String.format(BursarExportUtils.getJobDescriptionPart(), stepExecution.getWriteCount()), "\n");

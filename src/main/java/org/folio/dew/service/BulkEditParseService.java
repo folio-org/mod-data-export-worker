@@ -49,7 +49,7 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 @Log4j2
-public class BulkEditParseService {//NOSONAR
+public class BulkEditParseService {
 
   private final UserReferenceService userReferenceService;
   private final ItemReferenceService itemReferenceService;
@@ -253,7 +253,7 @@ public class BulkEditParseService {//NOSONAR
     }
   }
 
-  public Item mapItemFormatToItem(ItemFormat itemFormat) {
+  public Item mapItemFormatToItem(ItemFormat itemFormat) {//NOSONAR
     return new Item()
       .id(itemFormat.getId())
       .hrid(itemFormat.getHrid())

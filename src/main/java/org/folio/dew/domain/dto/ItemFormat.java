@@ -197,31 +197,6 @@ public class ItemFormat implements Formatable<org.folio.dew.domain.dto.Item> {
   @CsvBindByPosition(position = 43)
   private String holdingsRecordId;
 
-  //TODO: is necessary ?
-  @CsvBindByName(column = "Version")
-  @CsvBindByPosition(position = 44)
-  private String version;
-
-  @CsvBindByName(column = "Contributor Names")
-  @CsvBindByPosition(position = 45)
-  private String contributorNames;
-
-  @CsvBindByName(column = "Call Number")
-  @CsvBindByPosition(position = 46)
-  private String callNumber;
-
-  @CsvBindByName(column = "In Transit Destination Service Point")
-  @CsvBindByPosition(position = 47)
-  private String inTransitDestinationServicePoint;
-
-  @CsvBindByName(column = "Purchase Order LineIdentifier")
-  @CsvBindByPosition(position = 48)
-  private String purchaseOrderLineIdentifier;
-
-  @CsvBindByName(column = "Last CheckIn")
-  @CsvBindByPosition(position = 49)
-  private String lastCheckIn;
-
   public static String[] getItemFieldsArray() {
     return FieldUtils.getFieldsListWithAnnotation(ItemFormat.class, CsvBindByName.class).stream()
       .map(Field::getName)

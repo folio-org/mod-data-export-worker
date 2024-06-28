@@ -163,10 +163,7 @@ class BulkEditTest extends BaseBatchTest {
   private final static String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_INST_HRID = "src/test/resources/output/bulk_edit_holdings_records_errors_output_inst_hrid.csv";
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_ITEM_BARCODE = "src/test/resources/output/bulk_edit_holdings_records_errors_output_item_barcode.csv";
   private final static String EXPECTED_BULK_EDIT_ITEM_IDENTIFIERS_HOLDINGS_ERRORS_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_holdings_errors_output.csv";
-//  private final static String ITEM_NO_VERSION = "src/test/resources/upload/bulk_edit_item_record_no_version.csv";
-//  private final static String HOLDINGS_RECORD_NO_VERSION = "src/test/resources/upload/bulk_edit_holdings_record_no_version.csv";
-//  private final static String HOLDINGS_RECORD_BY_ITEM_BARCODE_IN_APP_UPDATED_NO_CHANGE = "src/test/resources/upload/bulk_edit_holdings_record_by_item_barcode_in_app_updated_no_change.csv";
-//  private final static String ERROR_HOLDINGS_BY_ITEM_BARCODE_NO_CHANGE = "src/test/resources/output/expected_error_holdings_by_item_barcode_no_change.csv";
+
 
   @Autowired
   private Job bulkEditProcessUserIdentifiersJob;

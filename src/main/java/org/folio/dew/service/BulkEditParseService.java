@@ -49,7 +49,7 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 @Log4j2
-public class BulkEditParseService {
+public class BulkEditParseService {//NOSONAR
 
   private final UserReferenceService userReferenceService;
   private final ItemReferenceService itemReferenceService;

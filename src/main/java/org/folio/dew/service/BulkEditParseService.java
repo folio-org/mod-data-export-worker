@@ -253,7 +253,7 @@ public class BulkEditParseService {
     }
   }
 
-  public Item mapItemFormatToItem(ItemFormat itemFormat) {//NOSONAR
+  public Item mapItemFormatToItem(ItemFormat itemFormat) {
     return new Item()
       .id(itemFormat.getId())
       .hrid(itemFormat.getHrid())

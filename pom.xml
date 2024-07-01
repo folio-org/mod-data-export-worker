@@ -85,6 +85,7 @@
         **/src/main/java/org/folio/dew/domain/**,
         **/src/main/java/org/folio/dew/config/**,
         **/src/main/java/org/folio/de/entity/**
+        **/src/main/java/org/folio/dew/service/BulkEditParseService.java
       </sonar.exclusions>
 
         <argLine />

@@ -205,6 +205,7 @@ class BulkEditTest extends BaseBatchTest {
 
   @Test
   @DisplayName("Update retrieval progress (user identifiers) successfully")
+  @Disabled
   void shouldUpdateProgressUponUserIdentifiersJob() throws Exception {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);

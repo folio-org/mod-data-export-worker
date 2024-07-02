@@ -11,10 +11,12 @@ import static org.folio.dew.domain.dto.ExportType.AUTH_HEADINGS_UPDATES;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
+import static org.folio.dew.domain.dto.ExportType.BURSAR_FEES_FINES;
 import static org.folio.dew.domain.dto.ExportType.CIRCULATION_LOG;
 import static org.folio.dew.domain.dto.ExportType.E_HOLDINGS;
 import static org.folio.dew.domain.dto.ExportType.FAILED_LINKED_BIB_UPDATES;
 import static org.folio.dew.domain.dto.JobParameterNames.AUTHORITY_CONTROL_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.BURSAR_FEES_FINES_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.CIRCULATION_LOG_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
@@ -281,6 +283,13 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       }
     }
 
+    if (jobName.contains(BURSAR_FEES_FINES.getValue())) {
+      String fileName = getFromJobExecutionContext(jobExecution, BURSAR_FEES_FINES_FILE_NAME);
+      if (StringUtils.isNotBlank(fileName)) {
+        result.setFileNames(singletonList(fileName));
+      }
+    }
+
     result.setStartTime(convertToDate(jobExecution.getStartTime()));
     result.setCreatedDate(convertToDate(jobExecution.getCreateTime()));
     result.setEndTime(convertToDate(jobExecution.getEndTime()));
@@ -330,6 +339,10 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       isBulkEditIdentifiersJob(jobExecution) || isBulkEditQueryJob(jobExecution);
   }
 
+  private boolean isBursarFeesFinesJob(JobExecution jobExecution) {
+    return jobExecution.getJobInstance().getJobName().contains(BURSAR_FEES_FINES.getValue());
+  }
+
   private String saveResult(JobExecution jobExecution, boolean isSourceShouldBeDeleted) {
     var path = preparePath(jobExecution);
     try {
@@ -340,7 +353,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
         return remoteFilesStorage.objectToPresignedObjectUrl(path);
       }
       var obj = prepareObject(jobExecution, path);
-      if (isBulkEditJob(jobExecution)) {
+      if (isBulkEditJob(jobExecution) || isBursarFeesFinesJob(jobExecution)) {
         obj = validatePath(obj);
       }
       jobExecution.getExecutionContext().putString(PATH_TO_MATCHED_RECORDS, obj);

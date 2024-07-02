@@ -88,7 +88,6 @@ class BulkEditTest extends BaseBatchTest {
 
   private static final String HOLDINGS_IDENTIFIERS_CSV = "src/test/resources/upload/holdings_identifiers.csv";
   private static final String HOLDINGS_IDENTIFIERS_BAD_REFERENCE_IDS_CSV = "src/test/resources/upload/holdings_identifiers_for_bad_reference_ids.csv";
-//  private static final String ITEM_BARCODE_FOR_HOLDINGS_IDENTIFIERS_CSV = "src/test/resources/upload/item_barcode_for_holdings_identifiers.csv";
   private static final String EXPECTED_HOLDINGS_OUTPUT_BAD_REFERENCE_CSV = "src/test/resources/output/bulk_edit_holdings_records_reference_not_found.csv";
   private static final String HOLDINGS_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV = "src/test/resources/upload/holdings_identifiers_empty_reference_ids.csv";
   private static final String HOLDINGS_IDENTIFIERS_ITEM_BARCODE_CSV = "src/test/resources/upload/holdings_identifiers_item_barcode.csv";

@@ -222,7 +222,6 @@ class BulkEditTest extends BaseBatchTest {
 
   @Test
   @DisplayName("Update retrieval progress (item identifiers) successfully")
-  @Disabled
   void shouldUpdateProgressUponItemIdentifiersJob() throws Exception {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
@@ -241,7 +240,6 @@ class BulkEditTest extends BaseBatchTest {
   @ParameterizedTest
   @EnumSource(value = IdentifierType.class, names = {"USER_NAME", "EXTERNAL_SYSTEM_ID", "INSTANCE_HRID", "ITEM_BARCODE", "ISSN", "ISBN"}, mode = EnumSource.Mode.EXCLUDE)
   @DisplayName("Run bulk-edit (item identifiers) successfully")
-  @Disabled
   void uploadItemIdentifiersJobTest(IdentifierType identifierType) throws Exception {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
@@ -390,7 +388,6 @@ class BulkEditTest extends BaseBatchTest {
 
   @Test
   @DisplayName("Run bulk-edit (item identifiers) with wrong reference identifiers")
-  @Disabled
   void shouldWriteErrorsWhenItemReferenceDataNotFoundAndContinueBulkEdit() throws Exception {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
@@ -512,7 +509,6 @@ class BulkEditTest extends BaseBatchTest {
 
   @Test
   @DisplayName("Upload item identifiers (holdingsRecordId) successfully")
-  @Disabled
   void shouldProcessMultipleItemsOnHoldingsRecordId() throws Exception {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
@@ -541,7 +537,6 @@ class BulkEditTest extends BaseBatchTest {
 
   @Test
   @DisplayName("Run bulk-edit (item identifiers) with errors")
-  @Disabled
   void bulkEditItemJobTestWithErrors() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
@@ -595,7 +590,6 @@ class BulkEditTest extends BaseBatchTest {
 
   @Test
   @DisplayName("Run bulk-edit (item query) successfully")
-  @Disabled
   void bulkEditItemQueryJobTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditItemCqlJob);
 
@@ -651,7 +645,6 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Double quotes in data should be escaped")
   @SneakyThrows
-  @Disabled
   void shouldEscapeDoubleQuotes() {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 

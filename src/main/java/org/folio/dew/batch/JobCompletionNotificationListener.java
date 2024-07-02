@@ -339,6 +339,10 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       isBulkEditIdentifiersJob(jobExecution) || isBulkEditQueryJob(jobExecution);
   }
 
+  private boolean isBursarFeesFinesJob(JobExecution jobExecution) {
+    return jobExecution.getJobInstance().getJobName().contains(BURSAR_FEES_FINES.getValue());
+  }
+
   private String saveResult(JobExecution jobExecution, boolean isSourceShouldBeDeleted) {
     var path = preparePath(jobExecution);
     try {
@@ -349,7 +353,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
         return remoteFilesStorage.objectToPresignedObjectUrl(path);
       }
       var obj = prepareObject(jobExecution, path);
-      if (isBulkEditJob(jobExecution)) {
+      if (isBulkEditJob(jobExecution) || isBursarFeesFinesJob(jobExecution)) {
         obj = validatePath(obj);
       }
       jobExecution.getExecutionContext().putString(PATH_TO_MATCHED_RECORDS, obj);

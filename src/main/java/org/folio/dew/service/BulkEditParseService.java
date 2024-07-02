@@ -256,14 +256,11 @@ public class BulkEditParseService {
   public Item mapItemFormatToItem(ItemFormat itemFormat) {
     return new Item()
       .id(itemFormat.getId())
-      .version(isEmpty(itemFormat.getVersion()) ? null : Integer.parseInt(itemFormat.getVersion()))
       .hrid(itemFormat.getHrid())
       .holdingsRecordId(itemFormat.getHoldingsRecordId())
       .formerIds(restoreListValue(itemFormat.getFormerIds()))
       .discoverySuppress(isEmpty(itemFormat.getDiscoverySuppress()) ? null : Boolean.valueOf(itemFormat.getDiscoverySuppress()))
       .title(itemFormat.getTitle())
-      .contributorNames(restoreContributorNames(itemFormat.getContributorNames()))
-      .callNumber(restoreStringValue(itemFormat.getCallNumber()))
       .barcode(restoreStringValue(itemFormat.getBarcode()))
       .effectiveShelvingOrder(restoreStringValue(itemFormat.getEffectiveShelvingOrder()))
       .accessionNumber(restoreStringValue(itemFormat.getAccessionNumber()))
@@ -295,11 +292,8 @@ public class BulkEditParseService {
       .temporaryLocation(restoreLocation(itemFormat.getTemporaryLocation()))
       .effectiveLocation(restoreLocation(itemFormat.getEffectiveLocation()))
       .electronicAccess(electronicAccessService.restoreElectronicAccess(itemFormat.getElectronicAccess()))
-      .inTransitDestinationServicePointId(restoreServicePointId(itemFormat.getInTransitDestinationServicePoint()))
       .statisticalCodeIds(restoreStatisticalCodeIds(itemFormat.getStatisticalCodes()))
-      .purchaseOrderLineIdentifier(restoreStringValue(itemFormat.getPurchaseOrderLineIdentifier()))
-      .tags(isEmpty(itemFormat.getTags()) ? new Tags().tagList(Collections.emptyList()) : new Tags().tagList(restoreListValue(itemFormat.getTags())))
-      .lastCheckIn(restoreLastCheckIn(itemFormat.getLastCheckIn()));
+      .tags(isEmpty(itemFormat.getTags()) ? new Tags().tagList(Collections.emptyList()) : new Tags().tagList(restoreListValue(itemFormat.getTags())));
   }
 
   private String restoreStringValue(String s) {

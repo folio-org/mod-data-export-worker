@@ -21,205 +21,181 @@ public class ItemFormat implements Formatable<org.folio.dew.domain.dto.Item> {
 
   private org.folio.dew.domain.dto.Item original;
 
-  @CsvBindByName(column = "Item id")
+  @CsvBindByName(column = "Item UUID")
   @CsvBindByPosition(position = 0)
   private String id;
 
-  @CsvBindByName(column = "Version")
+  @CsvBindByName(column = "\"Instance (Title, Publisher, Publication date)\"")
   @CsvBindByPosition(position = 1)
-  private String version;
-
-  @CsvBindByName(column = "Item HRID")
-  @CsvBindByPosition(position = 2)
-  private String hrid;
-
-  @CsvBindByName(column = "Holdings Record Id")
-  @CsvBindByPosition(position = 3)
-  private String holdingsRecordId;
-
-  @CsvBindByName(column = "Former Ids")
-  @CsvBindByPosition(position = 4)
-  private String formerIds;
-
-  @CsvBindByName(column = "Discovery Suppress")
-  @CsvBindByPosition(position = 5)
-  private String discoverySuppress;
-
-  @CsvBindByName(column = "Title")
-  @CsvBindByPosition(position = 6)
   private String title;
 
   @CsvBindByName(column = "\"Holdings (Location, Call number)\"")
-  @CsvBindByPosition(position = 7)
+  @CsvBindByPosition(position = 2)
   private String holdingsData;
 
-  @CsvBindByName(column = "Contributor Names")
-  @CsvBindByPosition(position = 8)
-  private String contributorNames;
+  @CsvBindByName(column = "Item effective location")
+  @CsvBindByPosition(position = 3)
+  private String effectiveLocation;
 
-  @CsvBindByName(column = "Call Number")
-  @CsvBindByPosition(position = 9)
-  private String callNumber;
+  @CsvBindByName(column = "Effective call number")
+  @CsvBindByPosition(position = 4)
+  private String effectiveCallNumberComponents;
+
+  @CsvBindByName(column = "Suppress from discovery")
+  @CsvBindByPosition(position = 5)
+  private String discoverySuppress;
+
+  @CsvBindByName(column = "Item HRID")
+  @CsvBindByPosition(position = 6)
+  private String hrid;
 
   @CsvBindByName(column = "Barcode")
-  @CsvBindByPosition(position = 10)
+  @CsvBindByPosition(position = 7)
   private String barcode;
 
-  @CsvBindByName(column = "Effective Shelving Order")
-  @CsvBindByPosition(position = 11)
-  private String effectiveShelvingOrder;
-
-  @CsvBindByName(column = "Accession Number")
-  @CsvBindByPosition(position = 12)
+  @CsvBindByName(column = "Accession number")
+  @CsvBindByPosition(position = 8)
   private String accessionNumber;
 
-  @CsvBindByName(column = "Item Level Call Number")
+  @CsvBindByName(column = "Item identifier")
+  @CsvBindByPosition(position = 9)
+  private String itemIdentifier;
+
+  @CsvBindByName(column = "Former identifier")
+  @CsvBindByPosition(position = 10)
+  private String formerIds;
+
+  @CsvBindByName(column = "Statistical codes")
+  @CsvBindByPosition(position = 11)
+  private String statisticalCodes;
+
+  @CsvBindByName(column = "Administrative note")
+  @CsvBindByPosition(position = 12)
+  private String administrativeNotes;
+
+  @CsvBindByName(column = "Material type")
   @CsvBindByPosition(position = 13)
-  private String itemLevelCallNumber;
+  private String materialType;
 
-  @CsvBindByName(column = "Item Level Call Number Prefix")
+  @CsvBindByName(column = "Copy number")
   @CsvBindByPosition(position = 14)
-  private String itemLevelCallNumberPrefix;
+  private String copyNumber;
 
-  @CsvBindByName(column = "Item Level Call Number Suffix")
+  @CsvBindByName(column = "Shelving order")
   @CsvBindByPosition(position = 15)
-  private String itemLevelCallNumberSuffix;
+  private String effectiveShelvingOrder;
 
-  @CsvBindByName(column = "Item Level Call Number Type")
+  @CsvBindByName(column = "Item level call number type")
   @CsvBindByPosition(position = 16)
   private String itemLevelCallNumberType;
 
-  @CsvBindByName(column = "Effective Call Number Components")
+  @CsvBindByName(column = "Item level call number prefix")
   @CsvBindByPosition(position = 17)
-  private String effectiveCallNumberComponents;
+  private String itemLevelCallNumberPrefix;
 
-  @CsvBindByName(column = "Volume")
+  @CsvBindByName(column = "Item level call number")
   @CsvBindByPosition(position = 18)
-  private String volume;
+  private String itemLevelCallNumber;
+
+  @CsvBindByName(column = "Item level call number suffix")
+  @CsvBindByPosition(position = 19)
+  private String itemLevelCallNumberSuffix;
+
+  @CsvBindByName(column = "Number of pieces")
+  @CsvBindByPosition(position = 20)
+  private String numberOfPieces;
+
+  @CsvBindByName(column = "Description of pieces")
+  @CsvBindByPosition(position = 21)
+  private String descriptionOfPieces;
 
   @CsvBindByName(column = "Enumeration")
-  @CsvBindByPosition(position = 19)
+  @CsvBindByPosition(position = 22)
   private String enumeration;
 
   @CsvBindByName(column = "Chronology")
-  @CsvBindByPosition(position = 20)
+  @CsvBindByPosition(position = 23)
   private String chronology;
 
-  @CsvBindByName(column = "Year Caption")
-  @CsvBindByPosition(position = 21)
+  @CsvBindByName(column = "Volume")
+  @CsvBindByPosition(position = 24)
+  private String volume;
+
+  @CsvBindByName(column = "Year, caption")
+  @CsvBindByPosition(position = 25)
   private String yearCaption;
 
-  @CsvBindByName(column = "Item Identifier")
-  @CsvBindByPosition(position = 22)
-  private String itemIdentifier;
-
-  @CsvBindByName(column = "Copy Number")
-  @CsvBindByPosition(position = 23)
-  private String copyNumber;
-
-  @CsvBindByName(column = "Number Of Pieces")
-  @CsvBindByPosition(position = 24)
-  private String numberOfPieces;
-
-  @CsvBindByName(column = "Description Of Pieces")
-  @CsvBindByPosition(position = 25)
-  private String descriptionOfPieces;
-
-  @CsvBindByName(column = "Number Of Missing Pieces")
+  @CsvBindByName(column = "Number of missing pieces")
   @CsvBindByPosition(position = 26)
   private String numberOfMissingPieces;
 
-  @CsvBindByName(column = "Missing Pieces")
+  @CsvBindByName(column = "Missing pieces")
   @CsvBindByPosition(position = 27)
   private String missingPieces;
 
-  @CsvBindByName(column = "Missing Pieces Date")
+  @CsvBindByName(column = "Missing pieces date")
   @CsvBindByPosition(position = 28)
   private String missingPiecesDate;
 
-  @CsvBindByName(column = "Item Damaged Status")
+  @CsvBindByName(column = "Item damaged status")
   @CsvBindByPosition(position = 29)
   private String itemDamagedStatus;
 
-  @CsvBindByName(column = "Item Damaged Status Date")
+  @CsvBindByName(column = "Item damaged status date")
   @CsvBindByPosition(position = 30)
   private String itemDamagedStatusDate;
 
-  @CsvBindByName(column = "Administrative note")
-  @CsvBindByPosition(position = 31)
-  private String administrativeNotes;
-
   @CsvBindByName(column = "Notes")
-  @CsvBindByPosition(position = 32)
+  @CsvBindByPosition(position = 31)
   private String notes;
 
-  @CsvBindByName(column = "Check In Notes")
-  @CsvBindByPosition(position = 33)
-  private String checkInNotes;
-
-  @CsvBindByName(column = "Check Out Notes")
-  @CsvBindByPosition(position = 34)
-  private String checkOutNotes;
-
-  @CsvBindByName(column = "Status")
-  @CsvBindByPosition(position = 35)
-  private String status;
-
-  @CsvBindByName(column = "Material Type")
-  @CsvBindByPosition(position = 36)
-  private String materialType;
-
-  @CsvBindByName(column = "Is Bound With")
-  @CsvBindByPosition(position = 37)
-  private String isBoundWith;
-
-  @CsvBindByName(column = "Bound With Titles")
-  @CsvBindByPosition(position = 38)
-  private String boundWithTitles;
-
-  @CsvBindByName(column = "Permanent Loan Type")
-  @CsvBindByPosition(position = 39)
+  @CsvBindByName(column = "Permanent loan type")
+  @CsvBindByPosition(position = 32)
   private String permanentLoanType;
 
-  @CsvBindByName(column = "Temporary Loan Type")
-  @CsvBindByPosition(position = 40)
+  @CsvBindByName(column = "Temporary loan type")
+  @CsvBindByPosition(position = 33)
   private String temporaryLoanType;
 
-  @CsvBindByName(column = "Permanent Location")
-  @CsvBindByPosition(position = 41)
+  @CsvBindByName(column = "Status")
+  @CsvBindByPosition(position = 34)
+  private String status;
+
+  @CsvBindByName(column = "Check in note")
+  @CsvBindByPosition(position = 35)
+  private String checkInNotes;
+
+  @CsvBindByName(column = "Check out note")
+  @CsvBindByPosition(position = 36)
+  private String checkOutNotes;
+
+  @CsvBindByName(column = "Item permanent location")
+  @CsvBindByPosition(position = 37)
   private String permanentLocation;
 
-  @CsvBindByName(column = "Temporary Location")
-  @CsvBindByPosition(position = 42)
+  @CsvBindByName(column = "Item temporary location")
+  @CsvBindByPosition(position = 38)
   private String temporaryLocation;
 
-  @CsvBindByName(column = "Effective Location")
-  @CsvBindByPosition(position = 43)
-  private String effectiveLocation;
-
-  @CsvBindByName(column = "Electronic Access")
-  @CsvBindByPosition(position = 44)
+  @CsvBindByName(column = "Electronic access")
+  @CsvBindByPosition(position = 39)
   private String electronicAccess;
 
-  @CsvBindByName(column = "In Transit Destination Service Point")
-  @CsvBindByPosition(position = 45)
-  private String inTransitDestinationServicePoint;
+  @CsvBindByName(column = "Is bound with")
+  @CsvBindByPosition(position = 40)
+  private String isBoundWith;
 
-  @CsvBindByName(column = "Statistical Codes")
-  @CsvBindByPosition(position = 46)
-  private String statisticalCodes;
-
-  @CsvBindByName(column = "Purchase Order LineIdentifier")
-  @CsvBindByPosition(position = 47)
-  private String purchaseOrderLineIdentifier;
+  @CsvBindByName(column = "Bound with titles")
+  @CsvBindByPosition(position = 41)
+  private String boundWithTitles;
 
   @CsvBindByName(column = "Tags")
-  @CsvBindByPosition(position = 48)
+  @CsvBindByPosition(position = 42)
   private String tags;
 
-  @CsvBindByName(column = "Last CheckIn")
-  @CsvBindByPosition(position = 49)
-  private String lastCheckIn;
+  @CsvBindByName(column = "Holdings UUID")
+  @CsvBindByPosition(position = 43)
+  private String holdingsRecordId;
 
   public static String[] getItemFieldsArray() {
     return FieldUtils.getFieldsListWithAnnotation(ItemFormat.class, CsvBindByName.class).stream()

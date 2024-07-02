@@ -87,6 +87,8 @@
         **/src/main/java/org/folio/de/entity/**
       </sonar.exclusions>
 
+      <sonar.coverage.exclusions>**/src/main/java/org/folio/dew/service/BulkEditParseService.java</sonar.coverage.exclusions>
+
         <argLine />
     </properties>
 

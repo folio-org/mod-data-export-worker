@@ -1,10 +1,13 @@
 package org.folio.dew;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.client.InstanceClient;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
@@ -82,6 +85,8 @@ import static org.folio.dew.utils.CsvHelper.countLines;
 import static org.folio.dew.utils.SystemHelper.getTempDirWithSeparatorSuffix;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BulkEditTest extends BaseBatchTest {
@@ -182,10 +187,10 @@ class BulkEditTest extends BaseBatchTest {
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   @Autowired
   private LocalFilesStorage localFilesStorage;
-
   @Autowired
   private BulkEditHoldingsContentUpdateService bulkEditHoldingsContentUpdateService;
-
+  @MockBean
+  private InstanceClient instanceClient;
   @MockBean
   private KafkaService kafkaService;
 
@@ -223,9 +228,12 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Update retrieval progress (item identifiers) successfully")
   void shouldUpdateProgressUponItemIdentifiersJob() throws Exception {
 
+    mockInstanceClient();
+
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, BARCODES_FOR_PROGRESS_CSV);
+
     testLauncher.launchJob(jobParameters);
 
     var jobCaptor = ArgumentCaptor.forClass(org.folio.de.entity.Job.class);
@@ -234,6 +242,14 @@ class BulkEditTest extends BaseBatchTest {
     Mockito.verify(kafkaService, Mockito.times(4)).send(Mockito.any(), Mockito.any(), jobCaptor.capture());
 
     verifyJobProgressUpdates(jobCaptor);
+  }
+
+  private void mockInstanceClient() throws JsonProcessingException {
+    var mapper = new ObjectMapper();
+
+    var resultJson = mapper.readTree("{\"title\": \"title\"}");
+
+    when(instanceClient.getInstanceJsonById(anyString())).thenReturn(resultJson);
   }
 
   @ParameterizedTest

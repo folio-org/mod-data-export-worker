@@ -417,7 +417,6 @@ class BulkEditTest extends BaseBatchTest {
 
   @Test
   @DisplayName("Run bulk-edit (item identifiers) with empty reference identifiers")
-  @Disabled
   void shouldSkipEmptyItemReferenceData() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
@@ -553,6 +552,8 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (item identifiers) with errors")
   void bulkEditItemJobTestWithErrors() throws Exception {
+    mockInstanceClient();
+
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, ITEM_BARCODES_SOME_NOT_FOUND);

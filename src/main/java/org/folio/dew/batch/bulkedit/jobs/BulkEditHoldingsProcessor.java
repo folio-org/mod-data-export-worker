@@ -9,6 +9,7 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
+import static org.folio.dew.utils.SearchIdentifierTypeResolver.getSearchIdentifierType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -95,7 +96,9 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
 
     if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
       // Process central tenant
-      var consortiumHoldingsCollection = searchClient.getConsortiumHoldingCollection(new BatchIdsDto().ids(List.of(itemIdentifier.getItemId())));
+      var consortiumHoldingsCollection = searchClient.getConsortiumHoldingCollection(new BatchIdsDto()
+          .identifierType(getSearchIdentifierType(type))
+        .identifierValues(List.of(itemIdentifier.getItemId())));
       if (consortiumHoldingsCollection.getTotalRecords() > 1) {
         throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
       } else if (consortiumHoldingsCollection.getTotalRecords() == 0) {

@@ -4,6 +4,7 @@ import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
+import static org.folio.dew.utils.SearchIdentifierTypeResolver.getSearchIdentifierType;
 
 import feign.codec.DecodeException;
 import lombok.RequiredArgsConstructor;
@@ -56,13 +57,16 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
       throw new BulkEditException("Duplicate entry");
     }
     identifiersToCheckDuplication.add(itemIdentifier);
-    var limit = HOLDINGS_RECORD_ID == IdentifierType.fromValue(identifierType) ? Integer.MAX_VALUE : 1;
+    var type = IdentifierType.fromValue(identifierType);
+    var limit = HOLDINGS_RECORD_ID == type ? Integer.MAX_VALUE : 1;
     var idType = resolveIdentifier(identifierType);
     var identifier = "barcode".equals(idType) ? Utils.encode(itemIdentifier.getItemId()) : itemIdentifier.getItemId();
     try {
       final ExtendedItemCollection extendedItems = new ExtendedItemCollection();
       if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
-        var batchIdsDto = new BatchIdsDto().ids(List.of(itemIdentifier.getItemId()));
+        var batchIdsDto = new BatchIdsDto()
+          .identifierType(getSearchIdentifierType(type))
+          .identifierValues(List.of(itemIdentifier.getItemId()));
         var consortiumItemCollection = searchClient.getConsortiumItemCollection(batchIdsDto);
         if (consortiumItemCollection.getTotalRecords() > 1) {
           throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);

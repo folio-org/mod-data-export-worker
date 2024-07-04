@@ -664,6 +664,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Double quotes in data should be escaped")
   @SneakyThrows
   void shouldEscapeDoubleQuotes() {
+    mockInstanceClient();
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, ITEM_BARCODES_DOUBLE_QOUTES_CSV);

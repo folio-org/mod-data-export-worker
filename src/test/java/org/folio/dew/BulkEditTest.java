@@ -607,6 +607,8 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (item query) successfully")
   void bulkEditItemQueryJobTest() throws Exception {
+    mockInstanceClient();
+
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditItemCqlJob);
 
     final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, ITEM, BARCODE, ITEMS_QUERY_FILE_PATH);

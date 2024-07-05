@@ -498,6 +498,8 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (holdings records identifiers) with empty reference identifiers")
   void shouldSkipEmptyHoldingsReferenceData() throws Exception {
+    mockInstanceClient();
+
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, ID, HOLDINGS_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV);

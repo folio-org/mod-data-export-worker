@@ -511,6 +511,8 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (holdings records by item barcode) with duplicated holdings")
   void shouldSkipDuplicatedHoldingsOnItemBarcodes() throws Exception {
+    mockInstanceClient();
+
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, ITEM_BARCODE, HOLDINGS_IDENTIFIERS_ITEM_BARCODE_CSV);

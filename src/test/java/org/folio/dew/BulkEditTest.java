@@ -9,6 +9,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.InstanceClient;
 import org.folio.dew.config.kafka.KafkaService;
+import org.folio.dew.domain.dto.BriefInstance;
+import org.folio.dew.domain.dto.BriefInstanceCollection;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.IdentifierType;
@@ -48,6 +50,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -242,14 +246,6 @@ class BulkEditTest extends BaseBatchTest {
     Mockito.verify(kafkaService, Mockito.times(4)).send(Mockito.any(), Mockito.any(), jobCaptor.capture());
 
     verifyJobProgressUpdates(jobCaptor);
-  }
-
-  private void mockInstanceClient() throws JsonProcessingException {
-    var mapper = new ObjectMapper();
-
-    var resultJson = mapper.readTree("{\"title\": \"title\"}");
-
-    when(instanceClient.getInstanceJsonById(anyString())).thenReturn(resultJson);
   }
 
   @ParameterizedTest
@@ -463,6 +459,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run bulk-edit (holdings records identifiers) successfully")
   void uploadHoldingsIdentifiersJobTest(IdentifierType identifierType) throws Exception {
     mockInstanceClient();
+    mockInstanceClientForHrid();
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
 
@@ -837,6 +834,26 @@ class BulkEditTest extends BaseBatchTest {
     assertThat(job.getProgress().getProgress()).isEqualTo(100);
     assertThat(job.getProgress().getSuccess()).isEqualTo(144);
     assertThat(job.getProgress().getErrors()).isEqualTo(35);
+  }
+
+  private void mockInstanceClient() throws JsonProcessingException {
+    var mapper = new ObjectMapper();
+
+    var titleJson = mapper.readTree("{\"title\": \"title\"}");
+
+    when(instanceClient.getInstanceJsonById(anyString())).thenReturn(titleJson);
+  }
+
+  private void mockInstanceClientForHrid() {
+    BriefInstanceCollection briefInstanceCollection = new BriefInstanceCollection();
+    BriefInstance briefInstance = new BriefInstance();
+    briefInstance.setId("a957c437-65a5-4789-a1a9-769c0ae22dd9");
+    briefInstanceCollection.setInstances(List.of(briefInstance));
+    when(instanceClient.getByQuery(String.format("hrid==\"%s\"", "123"))).thenReturn(briefInstanceCollection);
+    BriefInstanceCollection briefInstanceCollection1 = new BriefInstanceCollection();
+    briefInstanceCollection1.setInstances(Collections.emptyList());
+    when(instanceClient.getByQuery(String.format("hrid==\"%s\"", "456"))).thenReturn(briefInstanceCollection1);
+    when(instanceClient.getByQuery(String.format("hrid==\"%s\"", "789"))).thenReturn(briefInstanceCollection1);
   }
 
 }

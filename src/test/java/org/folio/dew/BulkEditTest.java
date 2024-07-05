@@ -462,6 +462,7 @@ class BulkEditTest extends BaseBatchTest {
   @EnumSource(value = IdentifierType.class, names = {"ID", "HRID", "INSTANCE_HRID", "ITEM_BARCODE"}, mode = EnumSource.Mode.INCLUDE)
   @DisplayName("Run bulk-edit (holdings records identifiers) successfully")
   void uploadHoldingsIdentifiersJobTest(IdentifierType identifierType) throws Exception {
+    mockInstanceClient();
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
 

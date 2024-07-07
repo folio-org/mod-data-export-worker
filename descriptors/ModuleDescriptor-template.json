@@ -206,7 +206,8 @@
             "inventory-storage.instance-note-types.item.get",
             "source-storage.sourceRecords.get",
             "user-tenants.collection.get",
-            "consortium-search.holdings.collection.get"
+            "consortium-search.holdings.collection.get",
+            "consortium-search.items.collection.get"
           ]
         },
         {

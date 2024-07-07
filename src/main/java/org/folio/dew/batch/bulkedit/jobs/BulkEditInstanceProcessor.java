@@ -18,6 +18,7 @@ import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.InstanceReferenceService;
 import org.folio.dew.service.mapper.InstanceMapper;
+import org.folio.spring.FolioExecutionContext;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +36,7 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
   private final InventoryInstancesClient inventoryInstancesClient;
   private final InstanceMapper instanceMapper;
   private final InstanceReferenceService instanceReferenceService;
+  private final FolioExecutionContext folioExecutionContext;
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
@@ -67,10 +69,13 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
     var isbn = ISBN.equals(IdentifierType.fromValue(identifierType)) ? itemIdentifier.getItemId() : null;
     var issn = ISSN.equals(IdentifierType.fromValue(identifierType)) ? itemIdentifier.getItemId() : null;
 
+    var tenantId = folioExecutionContext.getTenantId();
+
     return distinctInstances.stream()
       .map(r -> instanceMapper.mapToInstanceFormat(r, itemIdentifier.getItemId(), jobId, FilenameUtils.getName(fileName)).withOriginal(r))
       .map(instanceFormat -> instanceFormat.withIsbn(isbn))
       .map(instanceFormat -> instanceFormat.withIssn(issn))
+      .map(instanceFormat -> instanceFormat.withTenantId(tenantId))
       .toList();
   }
 

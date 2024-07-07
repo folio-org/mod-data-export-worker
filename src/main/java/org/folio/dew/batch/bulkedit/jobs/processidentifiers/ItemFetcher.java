@@ -76,9 +76,9 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
             .stream()
             .map(ConsortiumItem::getTenantId).toList();
           try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantIds.get(0), folioExecutionContext))) {
-            var items = inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), idType, identifier), limit);
-            extendedItems.setExtendedItems(items.getItems().stream().map(item -> new ExtendedItem().tenantId(tenantIds.get(0)).entity(item)).toList());
-            extendedItems.setTotalRecords(items.getTotalRecords());
+            var itemCollection = inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), idType, identifier), limit);
+            extendedItems.setExtendedItems(itemCollection.getItems().stream().map(item -> new ExtendedItem().tenantId(tenantIds.get(0)).entity(item)).toList());
+            extendedItems.setTotalRecords(itemCollection.getTotalRecords());
           }
         } else {
           throw new BulkEditException("Member tenant cannot be resolved: search response doesn't contain tenant");

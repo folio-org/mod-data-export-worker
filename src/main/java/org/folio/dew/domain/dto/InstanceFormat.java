@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 public class InstanceFormat implements Formatable<org.folio.dew.domain.dto.Instance> {
 
   private org.folio.dew.domain.dto.Instance original;
-  // Field shouldn't be processed - it's only added for unification with items/holdings and should be null
   private String tenantId;
 
   @CsvBindByName(column = "Instance UUID")

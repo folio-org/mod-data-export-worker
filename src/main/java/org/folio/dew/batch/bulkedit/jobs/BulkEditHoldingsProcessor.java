@@ -8,15 +8,18 @@ import static org.folio.dew.domain.dto.IdentifierType.ITEM_BARCODE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
+import static org.folio.dew.utils.Constants.NO_AFFILIATION;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 import static org.folio.dew.utils.SearchIdentifierTypeResolver.getSearchIdentifierType;
 
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.SearchClient;
+import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.BatchIdsDto;
 import org.folio.dew.domain.dto.ConsortiumHolding;
 import org.folio.dew.domain.dto.ExtendedHoldingsRecord;
@@ -52,6 +55,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
   private final SearchClient searchClient;
   private final ConsortiaService consortiaService;
   private final FolioExecutionContext folioExecutionContext;
+  private final UserClient userClient;
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
@@ -92,35 +96,37 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
   }
 
   private ExtendedHoldingsRecordCollection getHoldingsRecords(ItemIdentifier itemIdentifier) {
-    var type = IdentifierType.fromValue(identifierType);
+    var idType = IdentifierType.fromValue(identifierType);
+    var identifier = itemIdentifier.getItemId();
 
     if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
       // Process central tenant
       var consortiumHoldingsCollection = searchClient.getConsortiumHoldingCollection(new BatchIdsDto()
-          .identifierType(getSearchIdentifierType(type))
-        .identifierValues(List.of(itemIdentifier.getItemId())));
-      if (consortiumHoldingsCollection.getTotalRecords() > 1) {
-        throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
-      } else if (consortiumHoldingsCollection.getTotalRecords() == 0) {
-        throw new BulkEditException(format("Member tenant cannot be resolved for identifier: %s", itemIdentifier.getItemId()));
-      } else {
+          .identifierType(getSearchIdentifierType(idType))
+        .identifierValues(List.of(identifier)));
+      if (consortiumHoldingsCollection.getTotalRecords() > 0) {
         var tenantIds = consortiumHoldingsCollection.getHoldings()
           .stream()
           .map(ConsortiumHolding::getTenantId).toList();
-        if (tenantIds.size() == 1) {
           try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantIds.get(0), folioExecutionContext))) {
-            var holdingsRecordCollection = getHoldingsRecordCollection(type, itemIdentifier);
+            var holdingsRecordCollection = getHoldingsRecordCollection(idType, itemIdentifier);
             return new ExtendedHoldingsRecordCollection().extendedHoldingsRecords(holdingsRecordCollection.getHoldingsRecords().stream()
-               .map(holdingsRecord -> new ExtendedHoldingsRecord().tenantId(tenantIds.get(0)).entity(holdingsRecord)).toList())
+                .map(holdingsRecord -> new ExtendedHoldingsRecord().tenantId(tenantIds.get(0)).entity(holdingsRecord)).toList())
               .totalRecords(holdingsRecordCollection.getTotalRecords());
+          } catch (Exception e) {
+            if (e instanceof FeignException && ((FeignException) e).status() == 401) {
+              var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
+              throw new BulkEditException(format(NO_AFFILIATION, user.getUsername(), idType + "=" + identifier, folioExecutionContext.getUserId()));
+            } else {
+              throw e;
+            }
           }
-        } else {
-          throw new BulkEditException("Member tenant cannot be resolved");
-        }
+      } else {
+        throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
       }
     } else {
-      // Set request tenant if it isn't central
-      var holdingsRecordCollection = getHoldingsRecordCollection(type, itemIdentifier);
+      // Set request tenant if tenant is local
+      var holdingsRecordCollection = getHoldingsRecordCollection(idType, itemIdentifier);
       return new ExtendedHoldingsRecordCollection().extendedHoldingsRecords(holdingsRecordCollection.getHoldingsRecords().stream()
           .map(holdingsRecord -> new ExtendedHoldingsRecord().tenantId(folioExecutionContext.getTenantId()).entity(holdingsRecord)).toList())
         .totalRecords(holdingsRecordCollection.getTotalRecords());

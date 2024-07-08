@@ -1,17 +1,20 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
+import static java.lang.String.format;
 import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
-import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
+import static org.folio.dew.utils.Constants.*;
 import static org.folio.dew.utils.SearchIdentifierTypeResolver.getSearchIdentifierType;
 
+import feign.FeignException;
 import feign.codec.DecodeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.SearchClient;
+import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.BatchIdsDto;
 import org.folio.dew.domain.dto.ConsortiumItem;
 import org.folio.dew.domain.dto.ExtendedItem;
@@ -32,7 +35,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @Component
@@ -43,6 +45,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
   private final InventoryClient inventoryClient;
   private final ConsortiaService consortiaService;
   private final SearchClient searchClient;
+  private final UserClient userClient;
   private final FolioExecutionContext folioExecutionContext;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
 
@@ -68,25 +71,37 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
           .identifierType(getSearchIdentifierType(type))
           .identifierValues(List.of(itemIdentifier.getItemId()));
         var consortiumItemCollection = searchClient.getConsortiumItemCollection(batchIdsDto);
-        if (consortiumItemCollection.getTotalRecords() > 1) {
-          throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
-        } else if (consortiumItemCollection.getTotalRecords() == 1) {
-          var tenantIds = Optional.of(consortiumItemCollection.getItems())
-            .orElseThrow(() -> new BulkEditException("Member tenant cannot be resolved from search response"))
+        if (consortiumItemCollection.getTotalRecords() > 0) {
+          var tenantIds = consortiumItemCollection.getItems()
             .stream()
             .map(ConsortiumItem::getTenantId).toList();
-          try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantIds.get(0), folioExecutionContext))) {
-            var itemCollection = inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), idType, identifier), limit);
-            extendedItems.setExtendedItems(itemCollection.getItems().stream().map(item -> new ExtendedItem().tenantId(tenantIds.get(0)).entity(item)).toList());
-            extendedItems.setTotalRecords(itemCollection.getTotalRecords());
-          }
+          tenantIds.forEach(tenantId -> {
+            try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantIds.get(0), folioExecutionContext))) {
+              var itemCollection = inventoryClient.getItemByQuery(format(getMatchPattern(identifierType), idType, identifier), limit);
+              if (itemCollection.getTotalRecords() > limit) {
+                throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
+              }
+              extendedItems.setExtendedItems(itemCollection.getItems().stream().map(item -> new ExtendedItem().tenantId(tenantIds.get(0)).entity(item)).toList());
+              extendedItems.setTotalRecords(itemCollection.getTotalRecords());
+            } catch (Exception e) {
+              if (e instanceof FeignException && ((FeignException) e).status() == 401) {
+                var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
+                throw new BulkEditException(format(NO_AFFILIATION, user.getUsername(), idType + "=" + identifier, folioExecutionContext.getUserId()));
+              } else {
+                throw e;
+              }
+            }
+          });
         } else {
-          throw new BulkEditException("Member tenant cannot be resolved: search response doesn't contain tenant");
+          throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
         }
       } else {
-        var items =  inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), idType, identifier), limit);
-        extendedItems.setExtendedItems(items.getItems().stream().map(item -> new ExtendedItem().tenantId(folioExecutionContext.getTenantId()).entity(item)).toList());
-        extendedItems.setTotalRecords(items.getTotalRecords());
+        var itemCollection =  inventoryClient.getItemByQuery(format(getMatchPattern(identifierType), idType, identifier), limit);
+        if (itemCollection.getTotalRecords() > limit) {
+          throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
+        }
+        extendedItems.setExtendedItems(itemCollection.getItems().stream().map(item -> new ExtendedItem().tenantId(folioExecutionContext.getTenantId()).entity(item)).toList());
+        extendedItems.setTotalRecords(itemCollection.getTotalRecords());
       }
       if (extendedItems.getTotalRecords() > limit) {
         throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);

@@ -4,7 +4,9 @@ import static java.lang.String.format;
 import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
-import static org.folio.dew.utils.Constants.*;
+import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
+import static org.folio.dew.utils.Constants.NO_ITEM_AFFILIATION;
+import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 import static org.folio.dew.utils.SearchIdentifierTypeResolver.getSearchIdentifierType;
 
 import feign.FeignException;
@@ -33,6 +35,7 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -65,7 +68,9 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
     var idType = resolveIdentifier(identifierType);
     var identifier = "barcode".equals(idType) ? Utils.encode(itemIdentifier.getItemId()) : itemIdentifier.getItemId();
     try {
-      final ExtendedItemCollection extendedItems = new ExtendedItemCollection();
+      final ExtendedItemCollection extendedItemCollection = new ExtendedItemCollection()
+        .extendedItems(new ArrayList<>())
+        .totalRecords(0);
       if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
         var batchIdsDto = new BatchIdsDto()
           .identifierType(getSearchIdentifierType(type))
@@ -81,8 +86,10 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
               if (itemCollection.getTotalRecords() > limit) {
                 throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
               }
-              extendedItems.setExtendedItems(itemCollection.getItems().stream().map(item -> new ExtendedItem().tenantId(tenantIds.get(0)).entity(item)).toList());
-              extendedItems.setTotalRecords(itemCollection.getTotalRecords());
+              extendedItemCollection.getExtendedItems().addAll(
+                itemCollection.getItems().stream().map(item -> new ExtendedItem().tenantId(tenantIds.get(0)).entity(item)).toList()
+              );
+              extendedItemCollection.setTotalRecords(extendedItemCollection.getTotalRecords() + itemCollection.getTotalRecords());
             } catch (Exception e) {
               if (e instanceof FeignException && ((FeignException) e).status() == 401) {
                 var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
@@ -96,17 +103,19 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
           throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
         }
       } else {
+        // Process local tenant case
         var itemCollection =  inventoryClient.getItemByQuery(format(getMatchPattern(identifierType), idType, identifier), limit);
         if (itemCollection.getTotalRecords() > limit) {
           throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
         }
-        extendedItems.setExtendedItems(itemCollection.getItems().stream().map(item -> new ExtendedItem().tenantId(folioExecutionContext.getTenantId()).entity(item)).toList());
-        extendedItems.setTotalRecords(itemCollection.getTotalRecords());
+        extendedItemCollection.setExtendedItems(itemCollection.getItems().stream()
+          .map(item -> new ExtendedItem().tenantId(folioExecutionContext.getTenantId()).entity(item)).toList());
+        extendedItemCollection.setTotalRecords(itemCollection.getTotalRecords());
       }
-      if (extendedItems.getTotalRecords() > limit) {
+      if (extendedItemCollection.getTotalRecords() > limit) {
         throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
       }
-      return extendedItems;
+      return extendedItemCollection;
     } catch (DecodeException e) {
       throw new BulkEditException(ExceptionHelper.fetchMessage(e));
     }

@@ -53,7 +53,9 @@ public class Constants {
   public static final String STATUS_VALUE_NOT_ALLOWED = "New status value \"%s\" is not allowed";
   public static final String MULTIPLE_MATCHES_MESSAGE = "Multiple matches for the same identifier.";
   public static final String NO_MARC_CONTENT = "Cannot get marc content for record with id = %s, reason: %s";
-  public static final String NO_AFFILIATION = "User %s does not have required affiliation to edit the item record - %s on the tenant %s";
+  public static final String NO_ITEM_AFFILIATION = "User %s does not have required affiliation to edit the item record - %s on the tenant %s";
+  public static final String NO_HOLDING_AFFILIATION = "User %s does not have required affiliation to edit the holdi record - %s on the tenant %s";
+
 
   public static final String MODULE_NAME = "BULKEDIT";
   public static final String BULKEDIT_DIR_NAME = "bulk_edit";

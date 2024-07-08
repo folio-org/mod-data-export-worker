@@ -7,9 +7,7 @@ import static org.folio.dew.domain.dto.IdentifierType.INSTANCE_HRID;
 import static org.folio.dew.domain.dto.IdentifierType.ITEM_BARCODE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
-import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
-import static org.folio.dew.utils.Constants.NO_AFFILIATION;
-import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
+import static org.folio.dew.utils.Constants.*;
 import static org.folio.dew.utils.SearchIdentifierTypeResolver.getSearchIdentifierType;
 
 import feign.FeignException;
@@ -116,7 +114,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
           } catch (Exception e) {
             if (e instanceof FeignException && ((FeignException) e).status() == 401) {
               var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-              throw new BulkEditException(format(NO_AFFILIATION, user.getUsername(), idType + "=" + identifier, folioExecutionContext.getUserId()));
+              throw new BulkEditException(format(NO_HOLDING_AFFILIATION, user.getUsername(), idType + "=" + identifier, folioExecutionContext.getTenantId()));
             } else {
               throw e;
             }

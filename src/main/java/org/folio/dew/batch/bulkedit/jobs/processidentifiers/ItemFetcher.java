@@ -86,7 +86,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
             } catch (Exception e) {
               if (e instanceof FeignException && ((FeignException) e).status() == 401) {
                 var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-                throw new BulkEditException(format(NO_AFFILIATION, user.getUsername(), idType + "=" + identifier, folioExecutionContext.getUserId()));
+                throw new BulkEditException(format(NO_ITEM_AFFILIATION, user.getUsername(), idType + "=" + identifier, folioExecutionContext.getTenantId()));
               } else {
                 throw e;
               }

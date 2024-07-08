@@ -78,8 +78,8 @@ public class BulkEditItemProcessor implements ItemProcessor<ExtendedItem, ItemFo
       .holdingsRecordId(item.getHoldingsRecordId())
       .formerIds(isEmpty(item.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getFormerIds())))
       .discoverySuppress(booleanToStringNullSafe(item.getDiscoverySuppress()))
-      .title(getInstanceTitle(item))
-      .holdingsData(getHoldingsName(item.getHoldingsRecordId()))
+      .title(getInstanceTitle(item, tenantId))
+      .holdingsData(getHoldingsName(item.getHoldingsRecordId(), tenantId))
       .barcode(item.getBarcode())
       .effectiveShelvingOrder(item.getEffectiveShelvingOrder())
       .accessionNumber(item.getAccessionNumber())
@@ -121,10 +121,10 @@ public class BulkEditItemProcessor implements ItemProcessor<ExtendedItem, ItemFo
     return itemFormat.withOriginal(item).withTenantId(tenantId);
   }
 
-  private String getInstanceTitle(Item item) {
+  private String getInstanceTitle(Item item, String tenantId) {
     JsonNode holding = holdingService.getHoldingById(item.getHoldingsRecordId());
     String instanceId = holdingService.getInstanceIdByHolding(holding);
-    return holdingsReferenceService.getInstanceTitleById(instanceId);
+    return holdingsReferenceService.getInstanceTitleById(instanceId, tenantId);
   }
 
   private String statusToString(Item item) {

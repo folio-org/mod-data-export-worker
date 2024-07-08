@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -113,6 +114,7 @@ public class BulkEditParseService {
     user.setExpirationDate(dateFromString(userFormat.getExpirationDate()));
     user.setTags(getTags(userFormat));
     user.setCustomFields(getCustomFields(userFormat));
+    user.setPreferredEmailCommunication(getPreferredEmailCommunication(userFormat));
   }
 
   private boolean getIsActive(UserFormat userFormat) {
@@ -196,6 +198,15 @@ public class BulkEditParseService {
         .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
     }
     return Collections.emptyMap();
+  }
+
+  private Set<User.PreferredEmailCommunicationEnum> getPreferredEmailCommunication(UserFormat userFormat) {
+    if (isNotEmpty(userFormat.getPreferredEmailCommunication())) {
+      return Arrays.stream(userFormat.getPreferredEmailCommunication().split(ARRAY_DELIMITER))
+        .map(User.PreferredEmailCommunicationEnum::fromValue)
+        .collect(Collectors.toSet());
+    }
+    return Collections.emptySet();
   }
 
   private Pair<String, Object> restoreCustomFieldValue(String s) {

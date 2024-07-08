@@ -144,6 +144,10 @@ public class UserFormat implements Formatable<org.folio.dew.domain.dto.User> {
   @CsvBindByPosition(position = 23)
   private String customFields;
 
+  @CsvBindByName(column = "Preferred email communication")
+  @CsvBindByPosition(position = 24)
+  private String preferredEmailCommunication;
+
   public static String getUserColumnHeaders() {
     return String.join(",", map.values());
   }

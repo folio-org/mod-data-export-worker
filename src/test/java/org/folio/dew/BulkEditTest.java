@@ -1,11 +1,16 @@
 package org.folio.dew;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.client.InstanceClient;
 import org.folio.dew.config.kafka.KafkaService;
+import org.folio.dew.domain.dto.BriefInstance;
+import org.folio.dew.domain.dto.BriefInstanceCollection;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.IdentifierType;
@@ -45,6 +50,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -82,13 +89,14 @@ import static org.folio.dew.utils.CsvHelper.countLines;
 import static org.folio.dew.utils.SystemHelper.getTempDirWithSeparatorSuffix;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BulkEditTest extends BaseBatchTest {
 
   private static final String HOLDINGS_IDENTIFIERS_CSV = "src/test/resources/upload/holdings_identifiers.csv";
   private static final String HOLDINGS_IDENTIFIERS_BAD_REFERENCE_IDS_CSV = "src/test/resources/upload/holdings_identifiers_for_bad_reference_ids.csv";
-  private static final String ITEM_BARCODE_FOR_HOLDINGS_IDENTIFIERS_CSV = "src/test/resources/upload/item_barcode_for_holdings_identifiers.csv";
   private static final String EXPECTED_HOLDINGS_OUTPUT_BAD_REFERENCE_CSV = "src/test/resources/output/bulk_edit_holdings_records_reference_not_found.csv";
   private static final String HOLDINGS_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV = "src/test/resources/upload/holdings_identifiers_empty_reference_ids.csv";
   private static final String HOLDINGS_IDENTIFIERS_ITEM_BARCODE_CSV = "src/test/resources/upload/holdings_identifiers_item_barcode.csv";
@@ -115,17 +123,10 @@ class BulkEditTest extends BaseBatchTest {
   private static final String ITEM_BARCODES_DOUBLE_QOUTES_CSV = "src/test/resources/upload/item_barcodes_double_qoutes.csv";
   private static final String ITEM_HOLDINGS_CSV = "src/test/resources/upload/item_holdings.csv";
   private static final String USER_RECORD_CSV = "src/test/resources/upload/bulk_edit_user_record.csv";
-  private static final String ITEM_RECORD_CSV = "src/test/resources/upload/bulk_edit_item_record.csv";
   private static final String USER_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_user_record_not_found.csv";
-  private static final String ITEM_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_item_record_not_found.csv";
   private static final String USER_RECORD_CSV_BAD_CONTENT = "src/test/resources/upload/bulk_edit_user_record_bad_content.csv";
   private static final String USER_RECORD_CSV_BAD_CUSTOM_FIELD = "src/test/resources/upload/bulk_edit_user_record_bad_custom_field.csv";
   private static final String USER_RECORD_CSV_EMPTY_PATRON_GROUP = "src/test/resources/upload/bulk_edit_user_record_empty_patron_group.csv";
-  private static final String ITEM_RECORD_CSV_INVALID_NOTES = "src/test/resources/upload/bulk_edit_item_record_invalid_notes.csv";
-  private static final String ITEM_RECORD_CSV_INVALID_CIRCULATION_NOTES = "src/test/resources/upload/bulk_edit_item_record_invalid_circulation_notes.csv";
-  private static final String ITEM_RECORD_IN_APP_UPDATED = "src/test/resources/upload/bulk_edit_item_record_in_app_updated.csv";
-  private static final String ITEM_RECORD_IN_APP_UPDATED_COPY = "storage/bulk_edit_item_record_in_app_updated.csv";
-  private static final String HOLDINGS_RECORD_IN_APP_UPDATED = "src/test/resources/upload/bulk_edit_holdings_record_in_app_updated.csv";
   private static final String USER_RECORD_ROLLBACK_CSV = "test-directory/bulk_edit_rollback.csv";
   private static final String BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/barcodesSomeNotFound.csv";
   private static final String ITEM_BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/item_barcodes_some_not_found.csv";
@@ -163,10 +164,7 @@ class BulkEditTest extends BaseBatchTest {
   private final static String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_INST_HRID = "src/test/resources/output/bulk_edit_holdings_records_errors_output_inst_hrid.csv";
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_ITEM_BARCODE = "src/test/resources/output/bulk_edit_holdings_records_errors_output_item_barcode.csv";
   private final static String EXPECTED_BULK_EDIT_ITEM_IDENTIFIERS_HOLDINGS_ERRORS_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_holdings_errors_output.csv";
-  private final static String ITEM_NO_VERSION = "src/test/resources/upload/bulk_edit_item_record_no_version.csv";
-  private final static String HOLDINGS_RECORD_NO_VERSION = "src/test/resources/upload/bulk_edit_holdings_record_no_version.csv";
-  private final static String HOLDINGS_RECORD_BY_ITEM_BARCODE_IN_APP_UPDATED_NO_CHANGE = "src/test/resources/upload/bulk_edit_holdings_record_by_item_barcode_in_app_updated_no_change.csv";
-  private final static String ERROR_HOLDINGS_BY_ITEM_BARCODE_NO_CHANGE = "src/test/resources/output/expected_error_holdings_by_item_barcode_no_change.csv";
+
 
   @Autowired
   private Job bulkEditProcessUserIdentifiersJob;
@@ -193,10 +191,10 @@ class BulkEditTest extends BaseBatchTest {
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   @Autowired
   private LocalFilesStorage localFilesStorage;
-
   @Autowired
   private BulkEditHoldingsContentUpdateService bulkEditHoldingsContentUpdateService;
-
+  @MockBean
+  private InstanceClient instanceClient;
   @MockBean
   private KafkaService kafkaService;
 
@@ -234,9 +232,12 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Update retrieval progress (item identifiers) successfully")
   void shouldUpdateProgressUponItemIdentifiersJob() throws Exception {
 
+    mockInstanceClient();
+
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, BARCODES_FOR_PROGRESS_CSV);
+
     testLauncher.launchJob(jobParameters);
 
     var jobCaptor = ArgumentCaptor.forClass(org.folio.de.entity.Job.class);
@@ -251,6 +252,7 @@ class BulkEditTest extends BaseBatchTest {
   @EnumSource(value = IdentifierType.class, names = {"USER_NAME", "EXTERNAL_SYSTEM_ID", "INSTANCE_HRID", "ITEM_BARCODE", "ISSN", "ISBN"}, mode = EnumSource.Mode.EXCLUDE)
   @DisplayName("Run bulk-edit (item identifiers) successfully")
   void uploadItemIdentifiersJobTest(IdentifierType identifierType) throws Exception {
+    mockInstanceClient();
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
@@ -399,6 +401,7 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (item identifiers) with wrong reference identifiers")
   void shouldWriteErrorsWhenItemReferenceDataNotFoundAndContinueBulkEdit() throws Exception {
+    mockInstanceClient();
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
@@ -413,6 +416,8 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (item identifiers) with empty reference identifiers")
   void shouldSkipEmptyItemReferenceData() throws Exception {
+    mockInstanceClient();
+
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, ITEM_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV);
@@ -454,6 +459,8 @@ class BulkEditTest extends BaseBatchTest {
   @EnumSource(value = IdentifierType.class, names = {"ID", "HRID", "INSTANCE_HRID", "ITEM_BARCODE"}, mode = EnumSource.Mode.INCLUDE)
   @DisplayName("Run bulk-edit (holdings records identifiers) successfully")
   void uploadHoldingsIdentifiersJobTest(IdentifierType identifierType) throws Exception {
+    mockInstanceClient();
+    mockInstanceClientForHrid();
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
 
@@ -479,6 +486,7 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (holdings records identifiers) with wrong reference identifiers")
   void shouldWriteErrorsWhenHoldingsReferenceDataNotFoundAndContinueBulkEdit() throws Exception {
+    mockInstanceClient();
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
 
@@ -493,6 +501,8 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (holdings records identifiers) with empty reference identifiers")
   void shouldSkipEmptyHoldingsReferenceData() throws Exception {
+    mockInstanceClient();
+
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, ID, HOLDINGS_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV);
@@ -506,6 +516,8 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (holdings records by item barcode) with duplicated holdings")
   void shouldSkipDuplicatedHoldingsOnItemBarcodes() throws Exception {
+    mockInstanceClient();
+
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, ITEM_BARCODE, HOLDINGS_IDENTIFIERS_ITEM_BARCODE_CSV);
@@ -519,6 +531,7 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Upload item identifiers (holdingsRecordId) successfully")
   void shouldProcessMultipleItemsOnHoldingsRecordId() throws Exception {
+    mockInstanceClient();
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
@@ -547,6 +560,8 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (item identifiers) with errors")
   void bulkEditItemJobTestWithErrors() throws Exception {
+    mockInstanceClient();
+
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, ITEM_BARCODES_SOME_NOT_FOUND);
@@ -600,6 +615,8 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (item query) successfully")
   void bulkEditItemQueryJobTest() throws Exception {
+    mockInstanceClient();
+
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditItemCqlJob);
 
     final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, ITEM, BARCODE, ITEMS_QUERY_FILE_PATH);
@@ -655,6 +672,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Double quotes in data should be escaped")
   @SneakyThrows
   void shouldEscapeDoubleQuotes() {
+    mockInstanceClient();
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, ITEM_BARCODES_DOUBLE_QOUTES_CSV);
@@ -817,6 +835,26 @@ class BulkEditTest extends BaseBatchTest {
     assertThat(job.getProgress().getProgress()).isEqualTo(100);
     assertThat(job.getProgress().getSuccess()).isEqualTo(144);
     assertThat(job.getProgress().getErrors()).isEqualTo(35);
+  }
+
+  private void mockInstanceClient() throws JsonProcessingException {
+    var mapper = new ObjectMapper();
+
+    var titleJson = mapper.readTree("{\"title\": \"title\"}");
+
+    when(instanceClient.getInstanceJsonById(anyString())).thenReturn(titleJson);
+  }
+
+  private void mockInstanceClientForHrid() {
+    BriefInstanceCollection briefInstanceCollection = new BriefInstanceCollection();
+    BriefInstance briefInstance = new BriefInstance();
+    briefInstance.setId("a957c437-65a5-4789-a1a9-769c0ae22dd9");
+    briefInstanceCollection.setInstances(List.of(briefInstance));
+    when(instanceClient.getByQuery(String.format("hrid==\"%s\"", "123"))).thenReturn(briefInstanceCollection);
+    BriefInstanceCollection briefInstanceCollection1 = new BriefInstanceCollection();
+    briefInstanceCollection1.setInstances(Collections.emptyList());
+    when(instanceClient.getByQuery(String.format("hrid==\"%s\"", "456"))).thenReturn(briefInstanceCollection1);
+    when(instanceClient.getByQuery(String.format("hrid==\"%s\"", "789"))).thenReturn(briefInstanceCollection1);
   }
 
 }

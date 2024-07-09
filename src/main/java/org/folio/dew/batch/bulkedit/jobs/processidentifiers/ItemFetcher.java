@@ -90,7 +90,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
           }
           tenantIds.forEach(tenantId -> {
             try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-              var itemCollection = inventoryClient.getItemByQuery(format(getMatchPattern(identifierType), type.getValue().toLowerCase(), identifier), limit);
+              var itemCollection = inventoryClient.getItemByQuery(format(getMatchPattern(identifierType), idType, identifier), limit);
               if (itemCollection.getTotalRecords() > limit) {
                 throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
               }

@@ -130,7 +130,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
           } catch (Exception e) {
             if (e instanceof FeignException && ((FeignException) e).status() == 401) {
               var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-              throw new BulkEditException(format(NO_HOLDING_AFFILIATION, user.getUsername(), type.getValue().toLowerCase() + "=" + identifier, tenantId));
+              throw new BulkEditException(format(NO_HOLDING_AFFILIATION, user.getUsername(), resolveIdentifier(identifierType) + "=" + identifier, tenantId));
             } else {
               throw e;
             }

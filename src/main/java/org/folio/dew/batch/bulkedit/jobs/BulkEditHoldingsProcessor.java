@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @StepScope
@@ -114,7 +115,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
           .totalRecords(0);
         var tenantIds = consortiumHoldingsCollection.getHoldings()
           .stream()
-          .map(ConsortiumHolding::getTenantId).toList();
+          .map(ConsortiumHolding::getTenantId).collect(Collectors.toSet());
         if (INSTANCEHRID != identifierTypeEnum && tenantIds.size() > 1) {
           throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
         }

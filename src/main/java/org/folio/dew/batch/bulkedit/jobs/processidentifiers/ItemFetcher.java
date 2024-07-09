@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @StepScope
@@ -83,7 +84,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
         if (consortiumItemCollection.getTotalRecords() > 0) {
           var tenantIds = consortiumItemCollection.getItems()
             .stream()
-            .map(ConsortiumItem::getTenantId).toList();
+            .map(ConsortiumItem::getTenantId).collect(Collectors.toSet());
           if (HOLDINGSRECORDID != identifierTypeEnum && tenantIds.size() > 1) {
             throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
           }

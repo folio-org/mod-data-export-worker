@@ -1,4 +1,4 @@
-User name,User id,External system id,Barcode,Active,Type,Patron group,Departments,Proxy for,Last name,First name,Middle name,Preferred first name,Email,Phone,Mobile phone,Date of birth,Addresses,Preferred contact type id,Link to the profile picture,Enrollment date,Expiration date,Tags,Custom fields
-morty,bec20636-fb68-41fd-84ea-2cf910673599,,emptyAddressType,true,,staff,Departments,,morty,panic,,,morty@example.com,,,,;;add1;add2;city;;;;,002,,2020-10-07 04:00:00.000Z,,,
-morty,bec20636-fb68-41fd-84ea-2cf910673599,,emptyPreferredContactTypeId,true,,staff,Departments,,morty,panic,,,morty@example.com,,,,;;add1;add2;city;;;;Home,,,2020-10-07 04:00:00.000Z,,,
-morty,bec20636-fb68-41fd-84ea-2cf910673599,,emptyDepartments,true,,staff,,,morty,panic,,,morty@example.com,,,,;;add1;add2;city;;;;Home,002,,2020-10-07 04:00:00.000Z,,,
+User name,User id,External system id,Barcode,Active,Type,Patron group,Departments,Proxy for,Last name,First name,Middle name,Preferred first name,Email,Phone,Mobile phone,Date of birth,Addresses,Preferred contact type id,Link to the profile picture,Enrollment date,Expiration date,Tags,Custom fields,Preferred email communication
+morty,bec20636-fb68-41fd-84ea-2cf910673599,,emptyAddressType,true,,staff,Departments,,morty,panic,,,morty@example.com,,,,;;add1;add2;city;;;;,002,,2020-10-07 04:00:00.000Z,,,,Programs
+morty,bec20636-fb68-41fd-84ea-2cf910673599,,emptyPreferredContactTypeId,true,,staff,Departments,,morty,panic,,,morty@example.com,,,,;;add1;add2;city;;;;Home,,,2020-10-07 04:00:00.000Z,,,,Programs
+morty,bec20636-fb68-41fd-84ea-2cf910673599,,emptyDepartments,true,,staff,,,morty,panic,,,morty@example.com,,,,;;add1;add2;city;;;;Home,002,,2020-10-07 04:00:00.000Z,,,,Programs

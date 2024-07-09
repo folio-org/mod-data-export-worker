@@ -100,14 +100,14 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
   }
 
   private ExtendedHoldingsRecordCollection getHoldingsRecords(ItemIdentifier itemIdentifier) {
-    var idType = IdentifierType.fromValue(identifierType);
+    var type = IdentifierType.fromValue(identifierType);
     var identifier = itemIdentifier.getItemId();
 
     if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
       // Process central tenant
-      var identifierTypeEnum = getSearchIdentifierType(idType);
+      var identifierTypeEnum = getSearchIdentifierType(type);
       var consortiumHoldingsCollection = searchClient.getConsortiumHoldingCollection(new BatchIdsDto()
-          .identifierType(getSearchIdentifierType(idType))
+          .identifierType(getSearchIdentifierType(type))
         .identifierValues(List.of(identifier)));
       if (consortiumHoldingsCollection.getTotalRecords() > 0) {
         var extendedHoldingsRecordCollection = new ExtendedHoldingsRecordCollection()
@@ -121,7 +121,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
         }
         tenantIds.forEach(tenantId -> {
           try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-            var holdingsRecordCollection = getHoldingsRecordCollection(idType, itemIdentifier);
+            var holdingsRecordCollection = getHoldingsRecordCollection(type, itemIdentifier);
             extendedHoldingsRecordCollection.getExtendedHoldingsRecords().addAll(
               holdingsRecordCollection.getHoldingsRecords().stream()
                 .map(holdingsRecord -> new ExtendedHoldingsRecord().tenantId(tenantId).entity(holdingsRecord)).toList()
@@ -130,7 +130,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
           } catch (Exception e) {
             if (e instanceof FeignException && ((FeignException) e).status() == 401) {
               var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-              throw new BulkEditException(format(NO_HOLDING_AFFILIATION, user.getUsername(), idType + "=" + identifier, folioExecutionContext.getTenantId()));
+              throw new BulkEditException(format(NO_HOLDING_AFFILIATION, user.getUsername(), type.getValue().toLowerCase() + "=" + identifier, tenantId));
             } else {
               throw e;
             }
@@ -142,7 +142,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
       }
     } else {
       // Process local tenant case
-      var holdingsRecordCollection = getHoldingsRecordCollection(idType, itemIdentifier);
+      var holdingsRecordCollection = getHoldingsRecordCollection(type, itemIdentifier);
       return new ExtendedHoldingsRecordCollection().extendedHoldingsRecords(holdingsRecordCollection.getHoldingsRecords().stream()
           .map(holdingsRecord -> new ExtendedHoldingsRecord().tenantId(folioExecutionContext.getTenantId()).entity(holdingsRecord)).toList())
         .totalRecords(holdingsRecordCollection.getTotalRecords());

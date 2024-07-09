@@ -90,7 +90,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
           }
           tenantIds.forEach(tenantId -> {
             try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-              var itemCollection = inventoryClient.getItemByQuery(format(getMatchPattern(identifierType), idType, identifier), limit);
+              var itemCollection = inventoryClient.getItemByQuery(format(getMatchPattern(identifierType), type.getValue().toLowerCase(), identifier), limit);
               if (itemCollection.getTotalRecords() > limit) {
                 throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
               }
@@ -101,7 +101,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
             } catch (Exception e) {
               if (e instanceof FeignException && ((FeignException) e).status() == 401) {
                 var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-                throw new BulkEditException(format(NO_ITEM_AFFILIATION, user.getUsername(), idType + "=" + identifier, folioExecutionContext.getTenantId()));
+                throw new BulkEditException(format(NO_ITEM_AFFILIATION, user.getUsername(), idType + "=" + identifier, tenantId));
               } else {
                 throw e;
               }

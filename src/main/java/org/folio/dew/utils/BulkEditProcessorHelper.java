@@ -12,6 +12,8 @@ import static org.folio.dew.domain.dto.IdentifierType.FORMER_IDS;
 import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
 import static org.folio.dew.domain.dto.IdentifierType.HRID;
 import static org.folio.dew.domain.dto.IdentifierType.ID;
+import static org.folio.dew.domain.dto.IdentifierType.INSTANCE_HRID;
+import static org.folio.dew.domain.dto.IdentifierType.ITEM_BARCODE;
 import static org.folio.dew.domain.dto.IdentifierType.USER_NAME;
 import static org.folio.dew.domain.dto.IdentifierType.ISSN;
 import static org.folio.dew.domain.dto.IdentifierType.ISBN;
@@ -51,6 +53,8 @@ public class BulkEditProcessorHelper {
     identifiersMap.put(BARCODE, "barcode");
     identifiersMap.put(HRID, "hrid");
     identifiersMap.put(FORMER_IDS, "formerIds");
+    identifiersMap.put(INSTANCE_HRID, "instanceHrid");
+    identifiersMap.put(ITEM_BARCODE, "itemBarcode");
     identifiersMap.put(ACCESSION_NUMBER, "accessionNumber");
     identifiersMap.put(HOLDINGS_RECORD_ID, "holdingsRecordId");
     identifiersMap.put(USER_NAME, "username");

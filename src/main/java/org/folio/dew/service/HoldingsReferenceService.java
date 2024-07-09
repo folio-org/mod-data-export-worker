@@ -22,6 +22,7 @@ import org.folio.dew.client.LocationClient;
 import org.folio.dew.client.StatisticalCodeClient;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.HoldingsNoteType;
+import org.folio.dew.domain.dto.HoldingsRecord;
 import org.folio.dew.domain.dto.ItemLocation;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
@@ -53,6 +54,16 @@ public class HoldingsReferenceService extends FolioExecutionContextManager {
   private final BulkEditProcessingErrorsService errorsService;
   private final HoldingClient holdingClient;
   private final FolioExecutionContext folioExecutionContext;
+
+  public HoldingsRecord getHoldingById(String id, String tenantId) {
+    try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
+      return holdingClient.getHoldingsRecordById(id);
+    } catch (Exception e) {
+      var msg = "Holding not found by id=" + id;
+      log.error(msg);
+      return null;
+    }
+  }
 
   public String getInstanceIdByHrid(String instanceHrid) {
     var briefInstances = instanceClient.getByQuery(String.format(QUERY_PATTERN_HRID, instanceHrid));

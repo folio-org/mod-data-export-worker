@@ -1,9 +1,11 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
 import static java.lang.String.format;
+import static org.folio.dew.domain.dto.BatchIdsDto.IdentifierTypeEnum.HOLDINGSRECORDID;
 import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.DUPLICATES_ACROSS_TENANTS;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 import static org.folio.dew.utils.Constants.NO_ITEM_AFFILIATION;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
@@ -72,22 +74,27 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
         .extendedItems(new ArrayList<>())
         .totalRecords(0);
       if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
+        // Assuming item is requested by only one identifier not a collection of identifiers
+        var identifierTypeEnum = getSearchIdentifierType(type);
         var batchIdsDto = new BatchIdsDto()
-          .identifierType(getSearchIdentifierType(type))
+          .identifierType(identifierTypeEnum)
           .identifierValues(List.of(itemIdentifier.getItemId()));
         var consortiumItemCollection = searchClient.getConsortiumItemCollection(batchIdsDto);
         if (consortiumItemCollection.getTotalRecords() > 0) {
           var tenantIds = consortiumItemCollection.getItems()
             .stream()
             .map(ConsortiumItem::getTenantId).toList();
+          if (HOLDINGSRECORDID != identifierTypeEnum && tenantIds.size() > 1) {
+            throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
+          }
           tenantIds.forEach(tenantId -> {
-            try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantIds.get(0), folioExecutionContext))) {
+            try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
               var itemCollection = inventoryClient.getItemByQuery(format(getMatchPattern(identifierType), idType, identifier), limit);
               if (itemCollection.getTotalRecords() > limit) {
                 throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
               }
               extendedItemCollection.getExtendedItems().addAll(
-                itemCollection.getItems().stream().map(item -> new ExtendedItem().tenantId(tenantIds.get(0)).entity(item)).toList()
+                itemCollection.getItems().stream().map(item -> new ExtendedItem().tenantId(tenantId).entity(item)).toList()
               );
               extendedItemCollection.setTotalRecords(extendedItemCollection.getTotalRecords() + itemCollection.getTotalRecords());
             } catch (Exception e) {

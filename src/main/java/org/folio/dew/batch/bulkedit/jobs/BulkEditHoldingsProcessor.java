@@ -1,12 +1,14 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
 import static java.lang.String.format;
+import static org.folio.dew.domain.dto.BatchIdsDto.IdentifierTypeEnum.INSTANCEHRID;
 import static org.folio.dew.domain.dto.IdentifierType.HRID;
 import static org.folio.dew.domain.dto.IdentifierType.ID;
 import static org.folio.dew.domain.dto.IdentifierType.INSTANCE_HRID;
 import static org.folio.dew.domain.dto.IdentifierType.ITEM_BARCODE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.DUPLICATES_ACROSS_TENANTS;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 import static org.folio.dew.utils.Constants.NO_HOLDING_AFFILIATION;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
@@ -102,6 +104,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
 
     if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
       // Process central tenant
+      var identifierTypeEnum = getSearchIdentifierType(idType);
       var consortiumHoldingsCollection = searchClient.getConsortiumHoldingCollection(new BatchIdsDto()
           .identifierType(getSearchIdentifierType(idType))
         .identifierValues(List.of(identifier)));
@@ -112,12 +115,15 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
         var tenantIds = consortiumHoldingsCollection.getHoldings()
           .stream()
           .map(ConsortiumHolding::getTenantId).toList();
+        if (INSTANCEHRID != identifierTypeEnum && tenantIds.size() > 1) {
+          throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
+        }
         tenantIds.forEach(tenantId -> {
-          try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantIds.get(0), folioExecutionContext))) {
+          try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
             var holdingsRecordCollection = getHoldingsRecordCollection(idType, itemIdentifier);
             extendedHoldingsRecordCollection.getExtendedHoldingsRecords().addAll(
               holdingsRecordCollection.getHoldingsRecords().stream()
-                .map(holdingsRecord -> new ExtendedHoldingsRecord().tenantId(tenantIds.get(0)).entity(holdingsRecord)).toList()
+                .map(holdingsRecord -> new ExtendedHoldingsRecord().tenantId(tenantId).entity(holdingsRecord)).toList()
             );
             extendedHoldingsRecordCollection.setTotalRecords(extendedHoldingsRecordCollection.getTotalRecords() + holdingsRecordCollection.getTotalRecords());
           } catch (Exception e) {

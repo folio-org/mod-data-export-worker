@@ -122,9 +122,11 @@ public class BulkEditItemProcessor implements ItemProcessor<ExtendedItem, ItemFo
   }
 
   private String getInstanceTitle(Item item, String tenantId) {
-    JsonNode holding = holdingService.getHoldingById(item.getHoldingsRecordId());
-    String instanceId = holdingService.getInstanceIdByHolding(holding);
-    return holdingsReferenceService.getInstanceTitleById(instanceId, tenantId);
+    var holding = holdingsReferenceService.getHoldingById(item.getHoldingsRecordId(), tenantId);
+    if (nonNull(holding)) {
+      return holdingsReferenceService.getInstanceTitleById(holding.getInstanceId(), tenantId);
+    }
+    return EMPTY;
   }
 
   private String statusToString(Item item) {

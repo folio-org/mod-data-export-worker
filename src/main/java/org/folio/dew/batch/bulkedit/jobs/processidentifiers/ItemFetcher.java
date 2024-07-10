@@ -79,10 +79,10 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
         var identifierTypeEnum = getSearchIdentifierType(type);
         var batchIdsDto = new BatchIdsDto()
           .identifierType(identifierTypeEnum)
-          .identifierValues(List.of(itemIdentifier.getItemId()));
+          .ids(List.of(itemIdentifier.getItemId()));
         var consortiumItemCollection = searchClient.getConsortiumItemCollection(batchIdsDto);
         if (consortiumItemCollection.getTotalRecords() > 0) {
-          var tenantIds = consortiumItemCollection.getItems()
+          var tenantIds = consortiumItemCollection.getConsortiumItemRecords()
             .stream()
             .map(ConsortiumItem::getTenantId).collect(Collectors.toSet());
           if (HOLDINGSRECORDID != identifierTypeEnum && tenantIds.size() > 1) {

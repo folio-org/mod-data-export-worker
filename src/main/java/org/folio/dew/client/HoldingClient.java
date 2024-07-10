@@ -20,6 +20,9 @@ public interface HoldingClient {
   @GetMapping(value = "/{holdingsRecordId}", produces = MediaType.APPLICATION_JSON_VALUE)
   JsonNode getHoldingById(@PathVariable String holdingsRecordId);
 
+  @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+  HoldingsRecord getHoldingsRecordById(@PathVariable String id);
+
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   BriefHoldingsRecordCollection getBriefHoldingsByQuery(@RequestParam String query);
 

@@ -7,6 +7,7 @@ import org.folio.dew.domain.dto.ElectronicAccessRelationship;
 import org.folio.dew.domain.dto.ElectronicAccessRelationshipCollection;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.NotFoundException;
+import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,8 +17,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import static org.folio.dew.service.FolioExecutionContextManager.X_OKAPI_TENANT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
@@ -30,6 +33,8 @@ class ElectronicAccessServiceTest {
   private ElectronicAccessRelationshipClient relationshipClient;
   @Mock
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
+  @Mock
+  private FolioExecutionContext folioExecutionContext;
   @Spy
   private SpecialCharacterEscaper escaper;
 
@@ -50,7 +55,7 @@ class ElectronicAccessServiceTest {
     when(relationshipClient.getById(relationshipId)).thenReturn(electronicAccessRelationship);
 
     var expected = "URL relationship;URI;Link text;Materials specified;URL public note\nname\u001F;uri\u001F;\u001F;\u001F;";
-    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), buildErrorServiceArgs());
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), buildErrorServiceArgs(), "tenant");
 
     assertEquals(expected, actual);
   }
@@ -76,7 +81,7 @@ class ElectronicAccessServiceTest {
 
     var expected = "URL relationship;URI;Link text;Materials specified;URL public note\n" +
       "relationshipId1\u001F;uri1\u001F;\u001F;\u001F;\u001F|relationshipId2\u001F;uri2\u001F;\u001F;\u001F;\u001F|relationshipId1\u001F;uri3\u001F;\u001F;\u001F;";
-    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess1, electronicAccess2, electronicAccess3), buildErrorServiceArgs());
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess1, electronicAccess2, electronicAccess3), buildErrorServiceArgs(), "tenant");
 
     assertEquals(expected, actual);
   }
@@ -87,7 +92,7 @@ class ElectronicAccessServiceTest {
     electronicAccess.setUri("uri");
 
     var expected = "URL relationship;URI;Link text;Materials specified;URL public note\n\u001F;uri\u001F;\u001F;\u001F;";
-    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), buildErrorServiceArgs());
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), buildErrorServiceArgs(), "tenant");
 
     assertEquals(expected, actual);
   }
@@ -102,7 +107,7 @@ class ElectronicAccessServiceTest {
     when(relationshipClient.getById(id)).thenReturn(electronicAccessRelationship);
 
     var expected = electronicAccessRelationship.getName();
-    var actual = electronicAccessService.getRelationshipNameById(id, buildErrorServiceArgs());
+    var actual = electronicAccessService.getRelationshipNameById(id, buildErrorServiceArgs(), "tenant");
 
     verify(relationshipClient).getById(id);
     assertEquals(expected, actual);
@@ -110,6 +115,7 @@ class ElectronicAccessServiceTest {
 
   @Test
   void getRelationshipNameAndIdByIdNotFoundExceptionTest() {
+    when(folioExecutionContext.getAllHeaders()).thenReturn(Map.of(X_OKAPI_TENANT, List.of("original")));
     var id = UUID.randomUUID().toString();
     var electronicAccessRelationship = new ElectronicAccessRelationship();
     electronicAccessRelationship.setId(id);
@@ -118,7 +124,7 @@ class ElectronicAccessServiceTest {
     when(relationshipClient.getById(id)).thenThrow(new NotFoundException("error message"));
 
     var expected = electronicAccessRelationship.getId();
-    var actual = electronicAccessService.getRelationshipNameById(id, buildErrorServiceArgs());
+    var actual = electronicAccessService.getRelationshipNameById(id, buildErrorServiceArgs(), "tenant");
 
     assertEquals(expected, actual);
   }

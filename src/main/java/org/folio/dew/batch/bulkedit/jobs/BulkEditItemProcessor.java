@@ -26,6 +26,7 @@ import org.folio.dew.domain.dto.CirculationNote;
 import org.folio.dew.domain.dto.ContributorName;
 import org.folio.dew.domain.dto.EffectiveCallNumberComponents;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
+import org.folio.dew.domain.dto.ExtendedItem;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemFormat;
@@ -49,7 +50,7 @@ import java.util.stream.Stream;
 @StepScope
 @RequiredArgsConstructor
 @Log4j2
-public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
+public class BulkEditItemProcessor implements ItemProcessor<ExtendedItem, ItemFormat> {
   private static final String IS_ACTIVE = "isActive";
   private static final String NAME = "name";
 
@@ -67,7 +68,9 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
   private String fileName;
 
   @Override
-  public ItemFormat process(Item item) {
+  public ItemFormat process(ExtendedItem extendedItem) {
+    var item = extendedItem.getEntity();
+    var tenantId = extendedItem.getTenantId();
     var errorServiceArgs = new ErrorServiceArgs(jobId, getIdentifier(item, identifierType), FilenameUtils.getName(fileName));
     var itemFormat = ItemFormat.builder()
       .id(item.getId())
@@ -75,15 +78,15 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .holdingsRecordId(item.getHoldingsRecordId())
       .formerIds(isEmpty(item.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getFormerIds())))
       .discoverySuppress(booleanToStringNullSafe(item.getDiscoverySuppress()))
-      .title(getInstanceTitle(item))
-      .holdingsData(getHoldingsName(item.getHoldingsRecordId()))
+      .title(getInstanceTitle(item, tenantId))
+      .holdingsData(getHoldingsName(item.getHoldingsRecordId(), tenantId))
       .barcode(item.getBarcode())
       .effectiveShelvingOrder(item.getEffectiveShelvingOrder())
       .accessionNumber(item.getAccessionNumber())
       .itemLevelCallNumber(item.getItemLevelCallNumber())
       .itemLevelCallNumberPrefix(item.getItemLevelCallNumberPrefix())
       .itemLevelCallNumberSuffix(item.getItemLevelCallNumberSuffix())
-      .itemLevelCallNumberType(itemReferenceService.getCallNumberTypeNameById(item.getItemLevelCallNumberTypeId(), errorServiceArgs))
+      .itemLevelCallNumberType(itemReferenceService.getCallNumberTypeNameById(item.getItemLevelCallNumberTypeId(), errorServiceArgs, tenantId))
       .effectiveCallNumberComponents(effectiveCallNumberComponentsToString(item.getEffectiveCallNumberComponents()))
       .volume(item.getVolume())
       .enumeration(item.getEnumeration())
@@ -96,7 +99,7 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .numberOfMissingPieces(item.getNumberOfMissingPieces())
       .missingPieces(item.getMissingPieces())
       .missingPiecesDate(item.getMissingPiecesDate())
-      .itemDamagedStatus(itemReferenceService.getDamagedStatusNameById(item.getItemDamagedStatusId(), errorServiceArgs))
+      .itemDamagedStatus(itemReferenceService.getDamagedStatusNameById(item.getItemDamagedStatusId(), errorServiceArgs, tenantId))
       .itemDamagedStatusDate(item.getItemDamagedStatusDate())
       .administrativeNotes(isEmpty(item.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getAdministrativeNotes())))
       .notes(fetchNotes(item, errorServiceArgs))
@@ -114,14 +117,16 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
       .statisticalCodes(fetchStatisticalCodes(item, errorServiceArgs))
       .tags(isEmpty(item.getTags()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getTags().getTagList())))
       .build();
-    itemFormat.setElectronicAccess(electronicAccessService.getElectronicAccessesToString(item.getElectronicAccess(), errorServiceArgs));
-    return itemFormat.withOriginal(item);
+    itemFormat.setElectronicAccess(electronicAccessService.getElectronicAccessesToString(item.getElectronicAccess(), errorServiceArgs, tenantId));
+    return itemFormat.withOriginal(item).withTenantId(tenantId);
   }
 
-  private String getInstanceTitle(Item item) {
-    JsonNode holding = holdingService.getHoldingById(item.getHoldingsRecordId());
-    String instanceId = holdingService.getInstanceIdByHolding(holding);
-    return holdingsReferenceService.getInstanceTitleById(instanceId);
+  private String getInstanceTitle(Item item, String tenantId) {
+    var holding = holdingsReferenceService.getHoldingById(item.getHoldingsRecordId(), tenantId);
+    if (nonNull(holding)) {
+      return holdingsReferenceService.getInstanceTitleById(holding.getInstanceId(), tenantId);
+    }
+    return EMPTY;
   }
 
   private String statusToString(Item item) {
@@ -205,13 +210,13 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
         .collect(Collectors.joining(ARRAY_DELIMITER));
   }
 
-  private String lastCheckInToString(Item item, ErrorServiceArgs args) {
+  private String lastCheckInToString(Item item, ErrorServiceArgs args, String tenantId) {
     var lastCheckIn = item.getLastCheckIn();
     if (isEmpty(lastCheckIn)) {
       return EMPTY;
     }
     return String.join(ARRAY_DELIMITER,
-      escaper.escape(itemReferenceService.getServicePointNameById(lastCheckIn.getServicePointId(), args)),
+      escaper.escape(itemReferenceService.getServicePointNameById(lastCheckIn.getServicePointId(), args, tenantId)),
       escaper.escape(itemReferenceService.getUserNameById(lastCheckIn.getStaffMemberId(), args)),
       lastCheckIn.getDateTime());
   }
@@ -231,14 +236,14 @@ public class BulkEditItemProcessor implements ItemProcessor<Item, ItemFormat> {
     }
   }
 
-  private String getHoldingsName(String holdingsId) {
+  private String getHoldingsName(String holdingsId, String tenantId) {
     if (isEmpty(holdingsId)) {
       return EMPTY;
     }
-    var holdingsJson = holdingsReferenceService.getHoldingsJsonById(holdingsId);
+    var holdingsJson = holdingsReferenceService.getHoldingsJsonById(holdingsId, tenantId);
     var locationId = isNull(holdingsJson.get(PERMANENT_LOCATION_ID)) ? null : holdingsJson.get(PERMANENT_LOCATION_ID).asText();
 
-    var locationJson = holdingsReferenceService.getHoldingsLocationById(locationId);
+    var locationJson = holdingsReferenceService.getHoldingsLocationById(locationId, tenantId);
     var activePrefix = nonNull(locationJson.get(IS_ACTIVE)) && locationJson.get(IS_ACTIVE).asBoolean() ? EMPTY : "Inactive ";
     var name = isNull(locationJson.get(NAME)) ? EMPTY : locationJson.get(NAME).asText();
     var locationName = activePrefix + name;

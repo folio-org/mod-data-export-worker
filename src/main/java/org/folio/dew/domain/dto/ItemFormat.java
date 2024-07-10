@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 public class ItemFormat implements Formatable<org.folio.dew.domain.dto.Item> {
 
   private org.folio.dew.domain.dto.Item original;
+  private String tenantId;
 
   @CsvBindByName(column = "Item UUID")
   @CsvBindByPosition(position = 0)

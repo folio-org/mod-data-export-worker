@@ -113,6 +113,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String USER_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV = "src/test/resources/upload/user_identifiers_empty_reference.csv";
   private static final String EXPECTED_USER_OUTPUT_EMPTY_REFERENCE_CSV = "src/test/resources/output/bulk_edit_users_empty_reference.csv";
   private static final String BARCODES_CSV = "src/test/resources/upload/barcodes.csv";
+  private static final String USERNAMES_CSV = "src/test/resources/upload/usernames.csv";
   private static final String BARCODES_FOR_PROGRESS_CSV = "src/test/resources/upload/barcodes_for_progress.csv";
   private static final String ITEM_BARCODES_CSV = "src/test/resources/upload/item_barcodes.csv";
   private static final String INSTANCE_HRIDS_CSV = "src/test/resources/upload/instance_hrids.csv";
@@ -198,13 +199,14 @@ class BulkEditTest extends BaseBatchTest {
   @MockBean
   private KafkaService kafkaService;
 
-  @Test
+  @ParameterizedTest
+  @CsvSource({"BARCODE," + BARCODES_CSV, "USER_NAME," + USERNAMES_CSV})
   @DisplayName("Run bulk-edit (user identifiers) successfully")
-  void uploadUserIdentifiersJobTest() throws Exception {
+  void uploadUserIdentifiersJobTest(IdentifierType identifierType, String inputFile) throws Exception {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
 
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, BARCODES_CSV);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, identifierType, inputFile);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_USER_OUTPUT, EXPECTED_BULK_EDIT_USER_JSON_OUTPUT);

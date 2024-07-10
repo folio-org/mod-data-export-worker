@@ -329,7 +329,7 @@ class MultipleFeeFinesMatchingCriteriaTest extends BaseBatchTest {
       .withRequestBody(matchingJsonPath("$.notifyPatron", equalTo("false")))
       .withRequestBody(matchingJsonPath("$.userName", equalTo("System")))
       .withRequestBody(matchingJsonPath("$.accountIds",
-          equalTo("[ \"807becbc-c3e6-4871-bf38-d140597e41cb\", \"3d68adf3-abae-4792-a865-aa4a077ba909\" ]"))));
+          equalTo("[ \"3d68adf3-abae-4792-a865-aa4a077ba909\", \"807becbc-c3e6-4871-bf38-d140597e41cb\" ]"))));
 
     // check file content
     final ExecutionContext executionContext = jobExecution.getExecutionContext();

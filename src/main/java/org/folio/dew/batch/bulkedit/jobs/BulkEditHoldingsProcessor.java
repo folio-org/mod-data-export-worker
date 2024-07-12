@@ -114,7 +114,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
         var tenantIds = consortiumHoldingsCollection.getConsortiumHoldingRecords()
           .stream()
           .map(ConsortiumHolding::getTenantId).collect(Collectors.toSet());
-        if ("instanceHrid".equals(identifierTypeEnum) && tenantIds.size() > 1) {
+        if (!"instanceHrid".equals(identifierTypeEnum) && tenantIds.size() > 1) {
           throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
         }
         tenantIds.forEach(tenantId -> {

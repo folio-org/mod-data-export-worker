@@ -17,6 +17,7 @@ import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
+import org.folio.dew.service.ConsortiaService;
 import org.folio.dew.service.update.BulkEditHoldingsContentUpdateService;
 import org.folio.dew.utils.Constants;
 import org.folio.spring.FolioExecutionContext;
@@ -95,6 +96,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -202,6 +204,8 @@ class BulkEditTest extends BaseBatchTest {
   private InstanceClient instanceClient;
   @MockBean
   private KafkaService kafkaService;
+  @MockBean
+  private ConsortiaService consortiaService;
 
   @Mock
   private FolioExecutionContext folioExecutionContext;
@@ -261,6 +265,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run bulk-edit (item identifiers) successfully")
   void uploadItemIdentifiersJobTest(IdentifierType identifierType) throws Exception {
     mockInstanceClient();
+    when(consortiaService.isCurrentTenantCentralTenant(isA(String.class))).thenReturn(true);
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 

@@ -103,7 +103,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
     var type = IdentifierType.fromValue(identifierType);
     var identifier = itemIdentifier.getItemId();
 
-    if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
+    if (consortiaService.isCurrentTenantCentralTenant(folioExecutionContext.getTenantId())) {
       // Process central tenant
       var identifierTypeEnum = getSearchIdentifierType(type);
       var consortiumHoldingsCollection = searchClient.getConsortiumHoldingCollection(new BatchIdsDto()

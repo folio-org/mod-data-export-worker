@@ -74,7 +74,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
       final ExtendedItemCollection extendedItemCollection = new ExtendedItemCollection()
         .extendedItems(new ArrayList<>())
         .totalRecords(0);
-      if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
+      if (consortiaService.isCurrentTenantCentralTenant(folioExecutionContext.getTenantId())) {
         // Assuming item is requested by only one identifier not a collection of identifiers
         var identifierTypeEnum = getSearchIdentifierType(type);
         var batchIdsDto = new BatchIdsDto()

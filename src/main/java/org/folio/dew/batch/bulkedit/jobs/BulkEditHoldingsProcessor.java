@@ -17,6 +17,7 @@ import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.client.UserClient;
@@ -103,9 +104,9 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
 
     if (consortiaService.isCurrentTenantCentralTenant(folioExecutionContext.getTenantId())) {
       // Process central tenant
-      var identifierTypeEnum = getSearchIdentifierType(type);
+      var searchIdentifierType = getSearchIdentifierType(type);
       var consortiumHoldingsCollection = searchClient.getConsortiumHoldingCollection(SearchBatchIdsDto.builder()
-          .identifierType(getSearchIdentifierType(type))
+          .identifierType(searchIdentifierType)
         .ids(List.of(identifier)).build());
       if (consortiumHoldingsCollection.getTotalRecords() > 0) {
         var extendedHoldingsRecordCollection = new ExtendedHoldingsRecordCollection()
@@ -114,7 +115,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
         var tenantIds = consortiumHoldingsCollection.getConsortiumHoldingRecords()
           .stream()
           .map(ConsortiumHolding::getTenantId).collect(Collectors.toSet());
-        if (!"instanceHrid".equals(identifierTypeEnum) && tenantIds.size() > 1) {
+        if (!"instanceHrid".equals(searchIdentifierType) && tenantIds.size() > 1) {
           throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
         }
         tenantIds.forEach(tenantId -> {

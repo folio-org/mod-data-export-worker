@@ -33,6 +33,7 @@ import org.folio.dew.domain.dto.ConsortiumHolding;
 import org.folio.dew.domain.dto.ConsortiumHoldingCollection;
 import org.folio.dew.domain.dto.ConsortiumItem;
 import org.folio.dew.domain.dto.ConsortiumItemCollection;
+import org.folio.dew.domain.dto.SearchBatchIdsDto;
 import org.folio.dew.domain.dto.UserTenant;
 import org.folio.dew.domain.dto.UserTenantCollection;
 import org.folio.dew.repository.RemoteFilesStorage;
@@ -192,13 +193,13 @@ public abstract class BaseBatchTest {
 
     when(searchClient.getConsortiumItemCollection(any()))
       .thenAnswer(batchIdsDro -> {
-        var items = ((BatchIdsDto) batchIdsDro.getArguments()[0]).getIds().stream().map(id -> new ConsortiumItem().id(id).tenantId("tenant_" + id.charAt(0))).toList();
+        var items = ((SearchBatchIdsDto) batchIdsDro.getArguments()[0]).getIds().stream().map(id -> new ConsortiumItem().id(id).tenantId("tenant_" + id.charAt(0))).toList();
         return new ConsortiumItemCollection().consortiumItemRecords(items).totalRecords(items.size());
       });
 
     when(searchClient.getConsortiumHoldingCollection(any()))
       .thenAnswer(batchIdsDro -> {
-        var holdings = ((BatchIdsDto) batchIdsDro.getArguments()[0]).getIds().stream().map(id -> new ConsortiumHolding().id(id).tenantId("tenant_" + id.charAt(0))).toList();
+        var holdings = ((SearchBatchIdsDto) batchIdsDro.getArguments()[0]).getIds().stream().map(id -> new ConsortiumHolding().id(id).tenantId("tenant_" + id.charAt(0))).toList();
         return new ConsortiumHoldingCollection().consortiumHoldingRecords(holdings).totalRecords(holdings.size());
       });
 

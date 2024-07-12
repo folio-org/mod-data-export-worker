@@ -1,7 +1,6 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
 import static java.lang.String.format;
-import static org.folio.dew.domain.dto.BatchIdsDto.IdentifierTypeEnum.INSTANCEHRID;
 import static org.folio.dew.domain.dto.IdentifierType.HRID;
 import static org.folio.dew.domain.dto.IdentifierType.ID;
 import static org.folio.dew.domain.dto.IdentifierType.INSTANCE_HRID;
@@ -18,11 +17,9 @@ import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.client.UserClient;
-import org.folio.dew.domain.dto.BatchIdsDto;
 import org.folio.dew.domain.dto.ConsortiumHolding;
 import org.folio.dew.domain.dto.ExtendedHoldingsRecord;
 import org.folio.dew.domain.dto.ExtendedHoldingsRecordCollection;
@@ -30,6 +27,7 @@ import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.ItemIdentifier;
+import org.folio.dew.domain.dto.SearchBatchIdsDto;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.ConsortiaService;
 import org.folio.dew.service.FolioExecutionContextManager;
@@ -106,9 +104,9 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
     if (consortiaService.isCurrentTenantCentralTenant(folioExecutionContext.getTenantId())) {
       // Process central tenant
       var identifierTypeEnum = getSearchIdentifierType(type);
-      var consortiumHoldingsCollection = searchClient.getConsortiumHoldingCollection(new BatchIdsDto()
+      var consortiumHoldingsCollection = searchClient.getConsortiumHoldingCollection(SearchBatchIdsDto.builder()
           .identifierType(getSearchIdentifierType(type))
-        .ids(List.of(identifier)));
+        .ids(List.of(identifier)).build());
       if (consortiumHoldingsCollection.getTotalRecords() > 0) {
         var extendedHoldingsRecordCollection = new ExtendedHoldingsRecordCollection()
           .extendedHoldingsRecords(new ArrayList<>())
@@ -116,7 +114,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
         var tenantIds = consortiumHoldingsCollection.getConsortiumHoldingRecords()
           .stream()
           .map(ConsortiumHolding::getTenantId).collect(Collectors.toSet());
-        if (INSTANCEHRID != identifierTypeEnum && tenantIds.size() > 1) {
+        if ("instanceHrid".equals(identifierTypeEnum) && tenantIds.size() > 1) {
           throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
         }
         tenantIds.forEach(tenantId -> {

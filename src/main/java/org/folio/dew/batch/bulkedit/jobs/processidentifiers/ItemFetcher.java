@@ -1,7 +1,6 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
 import static java.lang.String.format;
-import static org.folio.dew.domain.dto.BatchIdsDto.IdentifierTypeEnum.HOLDINGSRECORDID;
 import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
@@ -15,16 +14,15 @@ import feign.FeignException;
 import feign.codec.DecodeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.client.UserClient;
-import org.folio.dew.domain.dto.BatchIdsDto;
 import org.folio.dew.domain.dto.ConsortiumItem;
 import org.folio.dew.domain.dto.ExtendedItem;
 import org.folio.dew.domain.dto.ExtendedItemCollection;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.ItemIdentifier;
+import org.folio.dew.domain.dto.SearchBatchIdsDto;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.ConsortiaService;
@@ -76,16 +74,14 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
         .totalRecords(0);
       if (consortiaService.isCurrentTenantCentralTenant(folioExecutionContext.getTenantId())) {
         // Assuming item is requested by only one identifier not a collection of identifiers
-        var identifierTypeEnum = getSearchIdentifierType(type);
-        var batchIdsDto = new BatchIdsDto()
-          .identifierType(identifierTypeEnum)
-          .ids(List.of(itemIdentifier.getItemId()));
+        var searchIdentifierType = getSearchIdentifierType(type);
+        var batchIdsDto = SearchBatchIdsDto.builder().identifierType(searchIdentifierType).ids(List.of(itemIdentifier.getItemId())).build();
         var consortiumItemCollection = searchClient.getConsortiumItemCollection(batchIdsDto);
         if (consortiumItemCollection.getTotalRecords() > 0) {
           var tenantIds = consortiumItemCollection.getConsortiumItemRecords()
             .stream()
             .map(ConsortiumItem::getTenantId).collect(Collectors.toSet());
-          if (HOLDINGSRECORDID != identifierTypeEnum && tenantIds.size() > 1) {
+          if (!"holdingsRecordId".equals(searchIdentifierType) && tenantIds.size() > 1) {
             throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
           }
           tenantIds.forEach(tenantId -> {

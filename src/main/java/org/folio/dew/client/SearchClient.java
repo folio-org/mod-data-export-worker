@@ -3,6 +3,7 @@ package org.folio.dew.client;
 import org.folio.dew.domain.dto.BatchIdsDto;
 import org.folio.dew.domain.dto.ConsortiumHoldingCollection;
 import org.folio.dew.domain.dto.ConsortiumItemCollection;
+import org.folio.dew.domain.dto.SearchBatchIdsDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +21,8 @@ public interface SearchClient {
   ResponseEntity<InputStreamResource> getHoldingIds(@RequestParam String query);
 
   @PostMapping(value = "/consortium/batch/items", headers = {"Accept=application/json"})
-  ConsortiumItemCollection getConsortiumItemCollection(@RequestBody BatchIdsDto batchIdsDto);
+  ConsortiumItemCollection getConsortiumItemCollection(@RequestBody SearchBatchIdsDto batchIdsDto);
 
   @PostMapping(value = "/consortium/batch/holdings", headers = {"Accept=application/json"})
-  ConsortiumHoldingCollection getConsortiumHoldingCollection(@RequestBody BatchIdsDto batchIdsDto);
+  ConsortiumHoldingCollection getConsortiumHoldingCollection(@RequestBody SearchBatchIdsDto batchIdsDto);
 }

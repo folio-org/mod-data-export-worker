@@ -7,16 +7,16 @@ import org.folio.dew.domain.dto.IdentifierType;
 @UtilityClass
 public class SearchIdentifierTypeResolver {
 
-  public static BatchIdsDto.IdentifierTypeEnum getSearchIdentifierType(IdentifierType identifierType) {
+  public static String getSearchIdentifierType(IdentifierType identifierType) {
     return switch (identifierType) {
-      case ID -> BatchIdsDto.IdentifierTypeEnum.ID;
-      case HRID -> BatchIdsDto.IdentifierTypeEnum.HRID;
-      case BARCODE -> BatchIdsDto.IdentifierTypeEnum.BARCODE;
-      case HOLDINGS_RECORD_ID -> BatchIdsDto.IdentifierTypeEnum.HOLDINGSRECORDID;
-      case ACCESSION_NUMBER -> BatchIdsDto.IdentifierTypeEnum.ACCESSIONNUMBER;
-      case FORMER_IDS -> BatchIdsDto.IdentifierTypeEnum.FORMERIDS;
-      case INSTANCE_HRID -> BatchIdsDto.IdentifierTypeEnum.INSTANCEHRID;
-      case ITEM_BARCODE -> BatchIdsDto.IdentifierTypeEnum.ITEMBARCODE;
+      case ID -> "id";
+      case HRID -> "hrid";
+      case BARCODE -> "barcode";
+      case HOLDINGS_RECORD_ID -> "holdingsRecordId";
+      case ACCESSION_NUMBER -> "accessionNumber";
+      case FORMER_IDS ->  "formerIds";
+      case INSTANCE_HRID -> "instanceHrid";
+      case ITEM_BARCODE -> "itemBarcode";
       default -> throw new IllegalArgumentException("Identifier type doesn't supported");
     };
   }

@@ -474,7 +474,7 @@ class BulkEditTest extends BaseBatchTest {
   void uploadHoldingsIdentifiersJobTest(IdentifierType identifierType) throws Exception {
     mockInstanceClient();
     mockInstanceClientForHrid();
-
+    when(consortiaService.isCurrentTenantCentralTenant(isA(String.class))).thenReturn(true);
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, identifierType, HOLDINGS_IDENTIFIERS_CSV);

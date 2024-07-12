@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static org.folio.dew.domain.dto.EntityType.HOLDINGS_RECORD;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
@@ -50,7 +51,7 @@ class ElectronicAccessServiceTest {
     when(relationshipClient.getById(relationshipId)).thenReturn(electronicAccessRelationship);
 
     var expected = "URL relationship;URI;Link text;Materials specified;URL public note\nname\u001F;uri\u001F;\u001F;\u001F;";
-    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), buildErrorServiceArgs());
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), buildErrorServiceArgs(), HOLDINGS_RECORD);
 
     assertEquals(expected, actual);
   }
@@ -76,7 +77,7 @@ class ElectronicAccessServiceTest {
 
     var expected = "URL relationship;URI;Link text;Materials specified;URL public note\n" +
       "relationshipId1\u001F;uri1\u001F;\u001F;\u001F;\u001F|relationshipId2\u001F;uri2\u001F;\u001F;\u001F;\u001F|relationshipId1\u001F;uri3\u001F;\u001F;\u001F;";
-    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess1, electronicAccess2, electronicAccess3), buildErrorServiceArgs());
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess1, electronicAccess2, electronicAccess3), buildErrorServiceArgs(), HOLDINGS_RECORD);
 
     assertEquals(expected, actual);
   }
@@ -87,7 +88,7 @@ class ElectronicAccessServiceTest {
     electronicAccess.setUri("uri");
 
     var expected = "URL relationship;URI;Link text;Materials specified;URL public note\n\u001F;uri\u001F;\u001F;\u001F;";
-    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), buildErrorServiceArgs());
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), buildErrorServiceArgs(), HOLDINGS_RECORD);
 
     assertEquals(expected, actual);
   }

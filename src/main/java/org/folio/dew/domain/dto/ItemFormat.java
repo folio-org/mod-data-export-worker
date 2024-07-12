@@ -121,7 +121,7 @@ public class ItemFormat implements Formatable<org.folio.dew.domain.dto.Item> {
   @CsvBindByPosition(position = 24)
   private String volume;
 
-  @CsvBindByName(column = "Year, caption")
+  @CsvBindByName(column = "\"Year, caption\"")
   @CsvBindByPosition(position = 25)
   private String yearCaption;
 

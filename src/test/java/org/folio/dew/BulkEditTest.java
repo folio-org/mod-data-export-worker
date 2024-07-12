@@ -73,6 +73,7 @@ import static org.folio.dew.domain.dto.IdentifierType.ID;
 import static org.folio.dew.domain.dto.IdentifierType.INSTANCE_HRID;
 import static org.folio.dew.domain.dto.IdentifierType.ITEM_BARCODE;
 import static org.folio.dew.domain.dto.IdentifierType.HRID;
+import static org.folio.dew.domain.dto.IdentifierType.USER_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_MARC_PATH;
@@ -118,6 +119,8 @@ class BulkEditTest extends BaseBatchTest {
   private static final String USER_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV = "src/test/resources/upload/user_identifiers_empty_reference.csv";
   private static final String EXPECTED_USER_OUTPUT_EMPTY_REFERENCE_CSV = "src/test/resources/output/bulk_edit_users_empty_reference.csv";
   private static final String BARCODES_CSV = "src/test/resources/upload/barcodes.csv";
+  private static final String USERNAMES_CSV = "src/test/resources/upload/usernames.csv";
+  private static final String USERNAME_PREFERRED_EMAIL_CSV = "src/test/resources/upload/username_preferred_email.csv";
   private static final String BARCODES_FOR_PROGRESS_CSV = "src/test/resources/upload/barcodes_for_progress.csv";
   private static final String ITEM_BARCODES_CSV = "src/test/resources/upload/item_barcodes.csv";
   private static final String INSTANCE_HRIDS_CSV = "src/test/resources/upload/instance_hrids.csv";
@@ -140,7 +143,9 @@ class BulkEditTest extends BaseBatchTest {
   private static final String ITEMS_QUERY_FILE_PATH = "src/test/resources/upload/items_by_barcode.cql";
   private static final String QUERY_NO_GROUP_FILE_PATH = "src/test/resources/upload/active_no_group.cql";
   private static final String EXPECTED_BULK_EDIT_USER_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_output.csv";
+  private static final String EXPECTED_BULK_EDIT_USER_PREFERRED_EMAIL_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_preferred_email_output.csv";
   private static final String EXPECTED_BULK_EDIT_USER_JSON_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_json_output.json";
+  private static final String EXPECTED_BULK_EDIT_USER_PREFERRED_EMAIL_JSON_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_preferred_email_json_output.json";
   private static final String EXPECTED_BULK_EDIT_ITEM_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_output.csv";
   private static final String EXPECTED_BULK_EDIT_ITEM_JSON_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_json_output.json";
   private static final String EXPECTED_BULK_EDIT_INSTANCE_OUTPUT = "src/test/resources/output/bulk_edit_instance_identifiers_output.csv";
@@ -202,20 +207,33 @@ class BulkEditTest extends BaseBatchTest {
   private InstanceClient instanceClient;
   @MockBean
   private KafkaService kafkaService;
-
   @Mock
   private FolioExecutionContext folioExecutionContext;
 
-  @Test
+  @ParameterizedTest
+  @CsvSource({"BARCODE," + BARCODES_CSV, "USER_NAME," + USERNAMES_CSV})
   @DisplayName("Run bulk-edit (user identifiers) successfully")
-  void uploadUserIdentifiersJobTest() throws Exception {
+  void uploadUserIdentifiersJobTest(IdentifierType identifierType, String inputFile) throws Exception {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
 
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, BARCODES_CSV);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, identifierType, inputFile);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_USER_OUTPUT, EXPECTED_BULK_EDIT_USER_JSON_OUTPUT);
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  @Test
+  @DisplayName("Run bulk-edit (user identifiers) to test preferred email communication successfully")
+  void uploadUserIdentifiers_preferredEmailCommunicationTest() throws Exception {
+
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
+
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, USER_NAME, USERNAME_PREFERRED_EMAIL_CSV);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_USER_PREFERRED_EMAIL_OUTPUT, EXPECTED_BULK_EDIT_USER_PREFERRED_EMAIL_JSON_OUTPUT);
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 

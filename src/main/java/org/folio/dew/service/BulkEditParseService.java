@@ -114,7 +114,7 @@ public class BulkEditParseService {
     user.setExpirationDate(dateFromString(userFormat.getExpirationDate()));
     user.setTags(getTags(userFormat));
     user.setCustomFields(getCustomFields(userFormat));
-    user.setPreferredEmailCommunication(getPreferredEmailCommunication(userFormat));
+    user.setPreferredEmailCommunications(getPreferredEmailCommunications(userFormat));
   }
 
   private boolean getIsActive(UserFormat userFormat) {
@@ -200,10 +200,10 @@ public class BulkEditParseService {
     return Collections.emptyMap();
   }
 
-  private Set<User.PreferredEmailCommunicationEnum> getPreferredEmailCommunication(UserFormat userFormat) {
-    if (isNotEmpty(userFormat.getPreferredEmailCommunication())) {
-      return Arrays.stream(userFormat.getPreferredEmailCommunication().split(ARRAY_DELIMITER))
-        .map(User.PreferredEmailCommunicationEnum::fromValue)
+  private Set<User.PreferredEmailCommunicationsEnum> getPreferredEmailCommunications(UserFormat userFormat) {
+    if (isNotEmpty(userFormat.getPreferredEmailCommunications())) {
+      return Arrays.stream(userFormat.getPreferredEmailCommunications().split(ARRAY_DELIMITER))
+        .map(User.PreferredEmailCommunicationsEnum::fromValue)
         .collect(Collectors.toSet());
     }
     return Collections.emptySet();

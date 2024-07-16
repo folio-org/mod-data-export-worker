@@ -181,7 +181,7 @@ class MultipleFeeFinesAcrossPatronsAggregateTest extends BaseBatchTest {
                   "updatedByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305"
                 },
                 "customFields": {},
-                "preferredEmailCommunications": []
+                "preferredEmailCommunication": []
               },
               {
                 "username": "rick",
@@ -208,7 +208,7 @@ class MultipleFeeFinesAcrossPatronsAggregateTest extends BaseBatchTest {
                   "updatedByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305"
                 },
                 "customFields": {},
-                "preferredEmailCommunications": []
+                "preferredEmailCommunication": []
               },
               {
                 "username": "john",
@@ -235,7 +235,7 @@ class MultipleFeeFinesAcrossPatronsAggregateTest extends BaseBatchTest {
                   "updatedByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305"
                 },
                 "customFields": {},
-                "preferredEmailCommunications": []
+                "preferredEmailCommunication": []
               }
             ],
             "totalRecords": 3,

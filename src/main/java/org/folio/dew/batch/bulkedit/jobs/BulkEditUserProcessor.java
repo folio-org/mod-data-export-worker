@@ -83,8 +83,8 @@ public class BulkEditUserProcessor implements ItemProcessor<User, UserFormat> {
       .expirationDate(dateToString(user.getExpirationDate()))
       .tags(nonNull(user.getTags()) ? String.join(ARRAY_DELIMITER, escaper.escape(user.getTags().getTagList())) : EMPTY)
       .customFields(nonNull(user.getCustomFields()) ? customFieldsToString(user.getCustomFields()) : EMPTY)
-      .preferredEmailCommunications(nonNull(user.getPreferredEmailCommunications()) ? String.join(ARRAY_DELIMITER,
-        user.getPreferredEmailCommunications().stream().map(User.PreferredEmailCommunicationsEnum::getValue).toList()) : EMPTY)
+      .preferredEmailCommunication(nonNull(user.getPreferredEmailCommunication()) ? String.join(ARRAY_DELIMITER,
+        user.getPreferredEmailCommunication().stream().map(User.PreferredEmailCommunicationEnum::getValue).toList()) : EMPTY)
       .build().withOriginal(user);
   }
 

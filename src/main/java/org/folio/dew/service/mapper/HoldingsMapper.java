@@ -9,7 +9,6 @@ import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.ExtendedHoldingsRecord;
 import org.folio.dew.domain.dto.HoldingsFormat;

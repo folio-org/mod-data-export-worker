@@ -102,7 +102,7 @@ public class BulkEditItemProcessor implements ItemProcessor<ExtendedItem, ItemFo
       .numberOfMissingPieces(item.getNumberOfMissingPieces())
       .missingPieces(item.getMissingPieces())
       .missingPiecesDate(formatDate(item.getMissingPiecesDate()))
-      .itemDamagedStatus(itemReferenceService.getDamagedStatusNameById(item.getItemDamagedStatusId(), errorServiceArgs))
+      .itemDamagedStatus(itemReferenceService.getDamagedStatusNameById(item.getItemDamagedStatusId(), errorServiceArgs, tenantId))
       .itemDamagedStatusDate(formatDate(item.getItemDamagedStatusDate()))
       .missingPiecesDate(item.getMissingPiecesDate())
       .itemDamagedStatus(itemReferenceService.getDamagedStatusNameById(item.getItemDamagedStatusId(), errorServiceArgs, tenantId))
@@ -123,7 +123,7 @@ public class BulkEditItemProcessor implements ItemProcessor<ExtendedItem, ItemFo
       .statisticalCodes(fetchStatisticalCodes(item, errorServiceArgs))
       .tags(isEmpty(item.getTags()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getTags().getTagList())))
       .build();
-    itemFormat.setElectronicAccess(electronicAccessService.getElectronicAccessesToString(item.getElectronicAccess(), errorServiceArgs, tenantId));
+    itemFormat.setElectronicAccess(electronicAccessService.getElectronicAccessesToString(item.getElectronicAccess(), errorServiceArgs, ITEM, tenantId));
     return itemFormat.withOriginal(item).withTenantId(tenantId);
   }
 

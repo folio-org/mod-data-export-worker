@@ -225,7 +225,7 @@ class BulkEditTest extends BaseBatchTest {
   }
 
   @Test
-  @DisplayName("Run bulk-edit (user identifiers) to test preferred email communication successfully")
+  @DisplayName("Run bulk-edit (user identifiers) to test preferred email communications successfully")
   void uploadUserIdentifiers_preferredEmailCommunicationsTest() throws Exception {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);

@@ -46,7 +46,7 @@ public class UserFormat implements Formatable<org.folio.dew.domain.dto.User> {
     map.put("expirationDate", "Expiration date");
     map.put("tags", "Tags");
     map.put("customFields", "Custom fields");
-    map.put("preferredEmailCommunications", "Preferred email communications");
+    map.put("preferredEmailCommunication", "Preferred email communications");
   }
 
   @CsvBindByName(column = "User name")

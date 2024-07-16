@@ -7,6 +7,7 @@ import org.folio.dew.domain.dto.ElectronicAccessRelationship;
 import org.folio.dew.domain.dto.ElectronicAccessRelationshipCollection;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.NotFoundException;
+import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,8 +17,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import static org.folio.dew.service.FolioExecutionContextManager.X_OKAPI_TENANT;
 import static org.folio.dew.domain.dto.EntityType.HOLDINGS_RECORD;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.isA;
@@ -31,6 +34,8 @@ class ElectronicAccessServiceTest {
   private ElectronicAccessRelationshipClient relationshipClient;
   @Mock
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
+  @Mock
+  private FolioExecutionContext folioExecutionContext;
   @Spy
   private SpecialCharacterEscaper escaper;
 
@@ -51,7 +56,7 @@ class ElectronicAccessServiceTest {
     when(relationshipClient.getById(relationshipId)).thenReturn(electronicAccessRelationship);
 
     var expected = "URL relationship;URI;Link text;Materials specified;URL public note\nname\u001F;uri\u001F;\u001F;\u001F;";
-    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), buildErrorServiceArgs(), HOLDINGS_RECORD);
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), buildErrorServiceArgs());
 
     assertEquals(expected, actual);
   }
@@ -77,7 +82,7 @@ class ElectronicAccessServiceTest {
 
     var expected = "URL relationship;URI;Link text;Materials specified;URL public note\n" +
       "relationshipId1\u001F;uri1\u001F;\u001F;\u001F;\u001F|relationshipId2\u001F;uri2\u001F;\u001F;\u001F;\u001F|relationshipId1\u001F;uri3\u001F;\u001F;\u001F;";
-    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess1, electronicAccess2, electronicAccess3), buildErrorServiceArgs(), HOLDINGS_RECORD);
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess1, electronicAccess2, electronicAccess3), buildErrorServiceArgs());
 
     assertEquals(expected, actual);
   }
@@ -88,7 +93,7 @@ class ElectronicAccessServiceTest {
     electronicAccess.setUri("uri");
 
     var expected = "URL relationship;URI;Link text;Materials specified;URL public note\n\u001F;uri\u001F;\u001F;\u001F;";
-    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), buildErrorServiceArgs(), HOLDINGS_RECORD);
+    var actual = electronicAccessService.getElectronicAccessesToString(List.of(electronicAccess), buildErrorServiceArgs());
 
     assertEquals(expected, actual);
   }

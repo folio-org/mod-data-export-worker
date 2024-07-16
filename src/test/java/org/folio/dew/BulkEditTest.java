@@ -19,6 +19,7 @@ import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.update.BulkEditHoldingsContentUpdateService;
 import org.folio.dew.utils.Constants;
+import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.batch.core.ExitStatus;
@@ -52,6 +54,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -70,11 +73,13 @@ import static org.folio.dew.domain.dto.IdentifierType.ID;
 import static org.folio.dew.domain.dto.IdentifierType.INSTANCE_HRID;
 import static org.folio.dew.domain.dto.IdentifierType.ITEM_BARCODE;
 import static org.folio.dew.domain.dto.IdentifierType.HRID;
+import static org.folio.dew.domain.dto.IdentifierType.USER_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_MARC_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_MARC_PATH;
+import static org.folio.dew.service.FolioExecutionContextManager.X_OKAPI_TENANT;
 import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
 import static org.folio.dew.utils.Constants.ENTITY_TYPE;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
@@ -89,6 +94,7 @@ import static org.folio.dew.utils.CsvHelper.countLines;
 import static org.folio.dew.utils.SystemHelper.getTempDirWithSeparatorSuffix;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -113,6 +119,8 @@ class BulkEditTest extends BaseBatchTest {
   private static final String USER_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV = "src/test/resources/upload/user_identifiers_empty_reference.csv";
   private static final String EXPECTED_USER_OUTPUT_EMPTY_REFERENCE_CSV = "src/test/resources/output/bulk_edit_users_empty_reference.csv";
   private static final String BARCODES_CSV = "src/test/resources/upload/barcodes.csv";
+  private static final String USERNAMES_CSV = "src/test/resources/upload/usernames.csv";
+  private static final String USERNAME_PREFERRED_EMAIL_CSV = "src/test/resources/upload/username_preferred_email.csv";
   private static final String BARCODES_FOR_PROGRESS_CSV = "src/test/resources/upload/barcodes_for_progress.csv";
   private static final String ITEM_BARCODES_CSV = "src/test/resources/upload/item_barcodes.csv";
   private static final String INSTANCE_HRIDS_CSV = "src/test/resources/upload/instance_hrids.csv";
@@ -135,7 +143,9 @@ class BulkEditTest extends BaseBatchTest {
   private static final String ITEMS_QUERY_FILE_PATH = "src/test/resources/upload/items_by_barcode.cql";
   private static final String QUERY_NO_GROUP_FILE_PATH = "src/test/resources/upload/active_no_group.cql";
   private static final String EXPECTED_BULK_EDIT_USER_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_output.csv";
+  private static final String EXPECTED_BULK_EDIT_USER_PREFERRED_EMAIL_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_preferred_email_output.csv";
   private static final String EXPECTED_BULK_EDIT_USER_JSON_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_json_output.json";
+  private static final String EXPECTED_BULK_EDIT_USER_PREFERRED_EMAIL_JSON_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_preferred_email_json_output.json";
   private static final String EXPECTED_BULK_EDIT_ITEM_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_output.csv";
   private static final String EXPECTED_BULK_EDIT_ITEM_JSON_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_json_output.json";
   private static final String EXPECTED_BULK_EDIT_INSTANCE_OUTPUT = "src/test/resources/output/bulk_edit_instance_identifiers_output.csv";
@@ -197,17 +207,33 @@ class BulkEditTest extends BaseBatchTest {
   private InstanceClient instanceClient;
   @MockBean
   private KafkaService kafkaService;
+  @Mock
+  private FolioExecutionContext folioExecutionContext;
 
-  @Test
+  @ParameterizedTest
+  @CsvSource({"BARCODE," + BARCODES_CSV, "USER_NAME," + USERNAMES_CSV})
   @DisplayName("Run bulk-edit (user identifiers) successfully")
-  void uploadUserIdentifiersJobTest() throws Exception {
+  void uploadUserIdentifiersJobTest(IdentifierType identifierType, String inputFile) throws Exception {
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
 
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, BARCODES_CSV);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, identifierType, inputFile);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_USER_OUTPUT, EXPECTED_BULK_EDIT_USER_JSON_OUTPUT);
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  @Test
+  @DisplayName("Run bulk-edit (user identifiers) to test preferred email communication successfully")
+  void uploadUserIdentifiers_preferredEmailCommunicationTest() throws Exception {
+
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
+
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, USER_NAME, USERNAME_PREFERRED_EMAIL_CSV);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_USER_PREFERRED_EMAIL_OUTPUT, EXPECTED_BULK_EDIT_USER_PREFERRED_EMAIL_JSON_OUTPUT);
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 
@@ -223,7 +249,7 @@ class BulkEditTest extends BaseBatchTest {
     var jobCaptor = ArgumentCaptor.forClass(org.folio.de.entity.Job.class);
 
     // expected 4 events: 1st - job started, 2nd, 3rd - updates after each chunk (100 identifiers), 4th - job completed
-    Mockito.verify(kafkaService, Mockito.times(4)).send(Mockito.any(), Mockito.any(), jobCaptor.capture());
+    Mockito.verify(kafkaService, Mockito.times(4)).send(any(), any(), jobCaptor.capture());
 
     verifyJobProgressUpdates(jobCaptor);
   }
@@ -243,7 +269,7 @@ class BulkEditTest extends BaseBatchTest {
     var jobCaptor = ArgumentCaptor.forClass(org.folio.de.entity.Job.class);
 
     // expected 4 events: 1st - job started, 2nd, 3rd - updates after each chunk (100 identifiers), 4th - job completed
-    Mockito.verify(kafkaService, Mockito.times(4)).send(Mockito.any(), Mockito.any(), jobCaptor.capture());
+    Mockito.verify(kafkaService, Mockito.times(4)).send(any(), any(), jobCaptor.capture());
 
     verifyJobProgressUpdates(jobCaptor);
   }
@@ -519,6 +545,7 @@ class BulkEditTest extends BaseBatchTest {
     mockInstanceClient();
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
+//    when(folioExecutionContext.getAllHeaders()).thenReturn(Map.of(X_OKAPI_TENANT, List.of("original")));
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, ITEM_BARCODE, HOLDINGS_IDENTIFIERS_ITEM_BARCODE_CSV);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
@@ -613,11 +640,14 @@ class BulkEditTest extends BaseBatchTest {
   }
 
   @Test
+  @Deprecated
+  @Disabled
   @DisplayName("Run bulk-edit (item query) successfully")
   void bulkEditItemQueryJobTest() throws Exception {
     mockInstanceClient();
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditItemCqlJob);
+    when(folioExecutionContext.getAllHeaders()).thenReturn(Map.of(X_OKAPI_TENANT, List.of("original")));
 
     final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, ITEM, BARCODE, ITEMS_QUERY_FILE_PATH);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);

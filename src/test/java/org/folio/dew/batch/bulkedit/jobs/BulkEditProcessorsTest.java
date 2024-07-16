@@ -17,6 +17,7 @@ import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.InventoryInstancesClient;
 import org.folio.dew.client.UserClient;
+import org.folio.dew.domain.dto.ExtendedItem;
 import org.folio.dew.domain.dto.HoldingsRecord;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
 import org.folio.dew.domain.dto.InstanceCollection;
@@ -67,7 +68,7 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   @Test
   @SneakyThrows
   void shouldIgnoreListsWithNullsAndNullObjectsForItems() {
-    var item = objectMapper.readValue(Path.of("src/test/resources/upload/item_with_nulls.json").toFile(), Item.class);
+    var item = new ExtendedItem().tenantId("tenant").entity(objectMapper.readValue(Path.of("src/test/resources/upload/item_with_nulls.json").toFile(), Item.class));
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters());
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var itemFormat = bulkEditItemProcessor.process(item);

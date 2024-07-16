@@ -1,5 +1,7 @@
 package org.folio.dew;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -24,6 +26,15 @@ import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.ExportJobManagerSync;
+import org.folio.dew.client.ConsortiaClient;
+import org.folio.dew.client.SearchClient;
+import org.folio.dew.domain.dto.BatchIdsDto;
+import org.folio.dew.domain.dto.ConsortiumHolding;
+import org.folio.dew.domain.dto.ConsortiumHoldingCollection;
+import org.folio.dew.domain.dto.ConsortiumItem;
+import org.folio.dew.domain.dto.ConsortiumItemCollection;
+import org.folio.dew.domain.dto.UserTenant;
+import org.folio.dew.domain.dto.UserTenantCollection;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.spring.DefaultFolioExecutionContext;
@@ -100,6 +111,10 @@ public abstract class BaseBatchTest {
   protected ExportJobManagerSync exportJobManagerSync;
   @Value("${spring.application.name}")
   protected String springApplicationName;
+  @MockBean
+  private SearchClient searchClient;
+  @MockBean
+  private ConsortiaClient consortiaClient;
 
   static {
     postgreDBContainer.start();
@@ -174,6 +189,21 @@ public abstract class BaseBatchTest {
     folioExecutionContextSetter = new FolioExecutionContextSetter(defaultFolioExecutionContext);
 
     remoteFilesStorage.createBucketIfNotExists();
+
+    when(searchClient.getConsortiumItemCollection(any()))
+      .thenAnswer(batchIdsDro -> {
+        var items = ((BatchIdsDto) batchIdsDro.getArguments()[0]).getIds().stream().map(id -> new ConsortiumItem().id(id).tenantId("tenant_" + id.charAt(0))).toList();
+        return new ConsortiumItemCollection().consortiumItemRecords(items).totalRecords(items.size());
+      });
+
+    when(searchClient.getConsortiumHoldingCollection(any()))
+      .thenAnswer(batchIdsDro -> {
+        var holdings = ((BatchIdsDto) batchIdsDro.getArguments()[0]).getIds().stream().map(id -> new ConsortiumHolding().id(id).tenantId("tenant_" + id.charAt(0))).toList();
+        return new ConsortiumHoldingCollection().consortiumHoldingRecords(holdings).totalRecords(holdings.size());
+      });
+
+    when(consortiaClient.getUserTenantCollection())
+      .thenReturn(new UserTenantCollection().userTenants(List.of(new UserTenant().tenantId("member").centralTenantId("central"))));
   }
 
   @AfterEach

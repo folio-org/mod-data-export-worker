@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
+import org.folio.dew.domain.dto.ExtendedHoldingsRecord;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsNote;
 import org.folio.dew.domain.dto.HoldingsRecord;
@@ -33,23 +34,26 @@ public class HoldingsMapper {
   private final ElectronicAccessService electronicAccessService;
   private final SpecialCharacterEscaper escaper;
 
-  public HoldingsFormat mapToHoldingsFormat(HoldingsRecord holdingsRecord, String identifier, String jobId, String errorFileName) {
+  public HoldingsFormat mapToHoldingsFormat(ExtendedHoldingsRecord extendedHoldingsRecord, String identifier, String jobId, String errorFileName) {
+    var tenantId = extendedHoldingsRecord.getTenantId();
+    var holdingsRecord = extendedHoldingsRecord.getEntity();
     var errorServiceArgs = new ErrorServiceArgs(jobId, identifier, errorFileName);
     return HoldingsFormat.builder()
       .id(holdingsRecord.getId())
-      .instanceTitle(isEmpty(holdingsRecord.getInstanceId()) ? EMPTY : holdingsReferenceService.getInstanceTitleById(holdingsRecord.getInstanceId()))
+      .tenantId(tenantId)
+      .instanceTitle(isEmpty(holdingsRecord.getInstanceId()) ? EMPTY : holdingsReferenceService.getInstanceTitleById(holdingsRecord.getInstanceId(), tenantId))
       .discoverySuppress(booleanToStringNullSafe(holdingsRecord.getDiscoverySuppress()))
       .hrid(isEmpty(holdingsRecord.getHrid()) ? EMPTY : holdingsRecord.getHrid())
-      .source(holdingsReferenceService.getSourceNameById(holdingsRecord.getSourceId(), errorServiceArgs))
+      .source(holdingsReferenceService.getSourceNameById(holdingsRecord.getSourceId(), errorServiceArgs, tenantId))
       .formerIds(isEmpty(holdingsRecord.getFormerIds()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(holdingsRecord.getFormerIds())))
-      .holdingsType(holdingsReferenceService.getHoldingsTypeNameById(holdingsRecord.getHoldingsTypeId(), errorServiceArgs))
-      .statisticalCodes(getStatisticalCodeNames(holdingsRecord.getStatisticalCodeIds(), errorServiceArgs))
+      .holdingsType(holdingsReferenceService.getHoldingsTypeNameById(holdingsRecord.getHoldingsTypeId(), errorServiceArgs, tenantId))
+      .statisticalCodes(getStatisticalCodeNames(holdingsRecord.getStatisticalCodeIds(), errorServiceArgs, tenantId))
       .administrativeNotes(isEmpty(holdingsRecord.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(holdingsRecord.getAdministrativeNotes())))
-      .permanentLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getPermanentLocationId()))
-      .temporaryLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getTemporaryLocationId()))
+      .permanentLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getPermanentLocationId(), tenantId))
+      .temporaryLocation(holdingsReferenceService.getLocationNameById(holdingsRecord.getTemporaryLocationId(), tenantId))
       .shelvingTitle(isEmpty(holdingsRecord.getShelvingTitle()) ? EMPTY : holdingsRecord.getShelvingTitle())
       .copyNumber(isEmpty(holdingsRecord.getCopyNumber()) ? EMPTY : holdingsRecord.getCopyNumber())
-      .callNumberType(holdingsReferenceService.getCallNumberTypeNameById(holdingsRecord.getCallNumberTypeId(), errorServiceArgs))
+      .callNumberType(holdingsReferenceService.getCallNumberTypeNameById(holdingsRecord.getCallNumberTypeId(), errorServiceArgs, tenantId))
       .callNumberPrefix(isEmpty(holdingsRecord.getCallNumberPrefix()) ? EMPTY : holdingsRecord.getCallNumberPrefix())
       .callNumber(isEmpty(holdingsRecord.getCallNumber()) ? EMPTY : holdingsRecord.getCallNumber())
       .callNumberSuffix(isEmpty(holdingsRecord.getCallNumberSuffix()) ? EMPTY : holdingsRecord.getCallNumberSuffix())
@@ -57,11 +61,11 @@ public class HoldingsMapper {
       .holdingsStatements(holdingsStatementsToString(holdingsRecord.getHoldingsStatements()))
       .holdingsStatementsForSupplements(holdingsStatementsToString(holdingsRecord.getHoldingsStatementsForSupplements()))
       .holdingsStatementsForIndexes(holdingsStatementsToString(holdingsRecord.getHoldingsStatementsForIndexes()))
-      .illPolicy(holdingsReferenceService.getIllPolicyNameById(holdingsRecord.getIllPolicyId(), errorServiceArgs))
+      .illPolicy(holdingsReferenceService.getIllPolicyNameById(holdingsRecord.getIllPolicyId(), errorServiceArgs, tenantId))
       .digitizationPolicy(isEmpty(holdingsRecord.getDigitizationPolicy()) ? EMPTY : holdingsRecord.getDigitizationPolicy())
       .retentionPolicy(isEmpty(holdingsRecord.getRetentionPolicy()) ? EMPTY : holdingsRecord.getRetentionPolicy())
       .notes(notesToString(holdingsRecord.getNotes(), errorServiceArgs))
-      .electronicAccess(electronicAccessService.getElectronicAccessesToString(holdingsRecord.getElectronicAccess(), errorServiceArgs, HOLDINGS_RECORD))
+      .electronicAccess(electronicAccessService.getElectronicAccessesToString(holdingsRecord.getElectronicAccess(), errorServiceArgs,HOLDINGS_RECORD, tenantId))
       .acquisitionMethod(isEmpty(holdingsRecord.getAcquisitionMethod()) ? EMPTY : holdingsRecord.getAcquisitionMethod())
       .acquisitionFormat(isEmpty(holdingsRecord.getAcquisitionFormat()) ? EMPTY : holdingsRecord.getAcquisitionFormat())
       .tags(tagsToString(holdingsRecord.getTags()))
@@ -87,10 +91,10 @@ public class HoldingsMapper {
       .collect(Collectors.joining(ITEM_DELIMITER));
   }
 
-  private String getStatisticalCodeNames(List<String> codeIds, ErrorServiceArgs args) {
+  private String getStatisticalCodeNames(List<String> codeIds, ErrorServiceArgs args, String tenantId) {
     return isEmpty(codeIds) ? EMPTY : codeIds.stream()
       .filter(Objects::nonNull)
-      .map(id -> holdingsReferenceService.getStatisticalCodeNameById(id, args))
+      .map(id -> holdingsReferenceService.getStatisticalCodeNameById(id, args, tenantId))
       .map(escaper::escape)
       .collect(Collectors.joining(ARRAY_DELIMITER));
   }

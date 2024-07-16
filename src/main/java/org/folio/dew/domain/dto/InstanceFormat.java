@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 public class InstanceFormat implements Formatable<org.folio.dew.domain.dto.Instance> {
 
   private org.folio.dew.domain.dto.Instance original;
+  private String tenantId;
 
   @CsvBindByName(column = "Instance UUID")
   @CsvBindByPosition(position = 0)

@@ -192,14 +192,14 @@ public abstract class BaseBatchTest {
 
     when(searchClient.getConsortiumItemCollection(any()))
       .thenAnswer(batchIdsDro -> {
-        var items = ((BatchIdsDto) batchIdsDro.getArguments()[0]).getIds().stream().map(id -> new ConsortiumItem().id(id).tenantId("tenant_" + id.charAt(0))).toList();
-        return new ConsortiumItemCollection().consortiumItemRecords(items).totalRecords(items.size());
+        var items = ((BatchIdsDto) batchIdsDro.getArguments()[0]).getIdentifierValues().stream().map(id -> new ConsortiumItem().id(id).tenantId("tenant_" + id.charAt(0))).toList();
+        return new ConsortiumItemCollection().items(items).totalRecords(items.size());
       });
 
     when(searchClient.getConsortiumHoldingCollection(any()))
       .thenAnswer(batchIdsDro -> {
-        var holdings = ((BatchIdsDto) batchIdsDro.getArguments()[0]).getIds().stream().map(id -> new ConsortiumHolding().id(id).tenantId("tenant_" + id.charAt(0))).toList();
-        return new ConsortiumHoldingCollection().consortiumHoldingRecords(holdings).totalRecords(holdings.size());
+        var holdings = ((BatchIdsDto) batchIdsDro.getArguments()[0]).getIdentifierValues().stream().map(id -> new ConsortiumHolding().id(id).tenantId("tenant_" + id.charAt(0))).toList();
+        return new ConsortiumHoldingCollection().holdings(holdings).totalRecords(holdings.size());
       });
 
     when(consortiaClient.getUserTenantCollection())

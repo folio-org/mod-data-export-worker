@@ -108,12 +108,12 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
       var identifierTypeEnum = getSearchIdentifierType(type);
       var consortiumHoldingsCollection = searchClient.getConsortiumHoldingCollection(new BatchIdsDto()
           .identifierType(getSearchIdentifierType(type))
-        .ids(List.of(identifier)));
+        .identifierValues(List.of(identifier)));
       if (consortiumHoldingsCollection.getTotalRecords() > 0) {
         var extendedHoldingsRecordCollection = new ExtendedHoldingsRecordCollection()
           .extendedHoldingsRecords(new ArrayList<>())
           .totalRecords(0);
-        var tenantIds = consortiumHoldingsCollection.getConsortiumHoldingRecords()
+        var tenantIds = consortiumHoldingsCollection.getHoldings()
           .stream()
           .map(ConsortiumHolding::getTenantId).collect(Collectors.toSet());
         if (INSTANCEHRID != identifierTypeEnum && tenantIds.size() > 1) {

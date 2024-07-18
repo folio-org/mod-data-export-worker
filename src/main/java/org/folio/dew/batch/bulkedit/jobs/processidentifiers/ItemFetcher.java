@@ -75,7 +75,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
         .extendedItems(new ArrayList<>())
         .totalRecords(0);
       var centralTenantId = consortiaService.getCentralTenantId();
-      if (StringUtils.isNotEmpty(centralTenantId) && centralTenantId.equals(folioExecutionContext.getTenantId())) {
+      if (isCurrentTenantCentral(centralTenantId)) {
         // Assuming item is requested by only one identifier not a collection of identifiers
         var identifierTypeEnum = getSearchIdentifierType(type);
         var batchIdsDto = new BatchIdsDto()
@@ -102,7 +102,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
             } catch (Exception e) {
               if (e instanceof FeignException && ((FeignException) e).status() == 401) {
                 var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-                throw new BulkEditException(format(NO_ITEM_AFFILIATION, user.getUsername(), idType + "=" + identifier, tenantId));
+                throw new BulkEditException(format(NO_ITEM_AFFILIATION, user.getUsername(), idType, identifier, tenantId));
               } else {
                 throw e;
               }
@@ -128,5 +128,9 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
     } catch (DecodeException e) {
       throw new BulkEditException(ExceptionHelper.fetchMessage(e));
     }
+  }
+
+  private boolean isCurrentTenantCentral(String centralTenantId) {
+    return StringUtils.isNotEmpty(centralTenantId) && centralTenantId.equals(folioExecutionContext.getTenantId());
   }
 }

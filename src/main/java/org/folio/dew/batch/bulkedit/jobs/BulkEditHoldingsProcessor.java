@@ -104,7 +104,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
     var identifier = itemIdentifier.getItemId();
 
     var centralTenantId = consortiaService.getCentralTenantId();
-    if (StringUtils.isNotEmpty(centralTenantId) && centralTenantId.equals(folioExecutionContext.getTenantId())) {
+    if (isCurrentTenantCentral(centralTenantId)) {
       // Process central tenant
       var identifierTypeEnum = getSearchIdentifierType(type);
       var consortiumHoldingsCollection = searchClient.getConsortiumHoldingCollection(new BatchIdsDto()
@@ -131,7 +131,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
           } catch (Exception e) {
             if (e instanceof FeignException && ((FeignException) e).status() == 401) {
               var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-              throw new BulkEditException(format(NO_HOLDING_AFFILIATION, user.getUsername(), resolveIdentifier(identifierType) + "=" + identifier, tenantId));
+              throw new BulkEditException(format(NO_HOLDING_AFFILIATION, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId));
             } else {
               throw e;
             }
@@ -148,6 +148,10 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
           .map(holdingsRecord -> new ExtendedHoldingsRecord().tenantId(folioExecutionContext.getTenantId()).entity(holdingsRecord)).toList())
         .totalRecords(holdingsRecordCollection.getTotalRecords());
     }
+  }
+
+  private boolean isCurrentTenantCentral(String centralTenantId) {
+    return StringUtils.isNotEmpty(centralTenantId) && centralTenantId.equals(folioExecutionContext.getTenantId());
   }
 
   private HoldingsRecordCollection getHoldingsRecordCollection(IdentifierType type,  ItemIdentifier itemIdentifier) {

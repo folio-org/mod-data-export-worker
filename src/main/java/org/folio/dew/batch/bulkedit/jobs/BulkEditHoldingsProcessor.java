@@ -103,17 +103,18 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
     var type = IdentifierType.fromValue(identifierType);
     var identifier = itemIdentifier.getItemId();
 
-    if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
+    var centralTenantId = consortiaService.getCentralTenantId();
+    if (isCurrentTenantCentral(centralTenantId)) {
       // Process central tenant
       var identifierTypeEnum = getSearchIdentifierType(type);
       var consortiumHoldingsCollection = searchClient.getConsortiumHoldingCollection(new BatchIdsDto()
           .identifierType(getSearchIdentifierType(type))
-        .ids(List.of(identifier)));
+        .identifierValues(List.of(identifier)));
       if (consortiumHoldingsCollection.getTotalRecords() > 0) {
         var extendedHoldingsRecordCollection = new ExtendedHoldingsRecordCollection()
           .extendedHoldingsRecords(new ArrayList<>())
           .totalRecords(0);
-        var tenantIds = consortiumHoldingsCollection.getConsortiumHoldingRecords()
+        var tenantIds = consortiumHoldingsCollection.getHoldings()
           .stream()
           .map(ConsortiumHolding::getTenantId).collect(Collectors.toSet());
         if (INSTANCEHRID != identifierTypeEnum && tenantIds.size() > 1) {
@@ -130,7 +131,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
           } catch (Exception e) {
             if (e instanceof FeignException && ((FeignException) e).status() == 401) {
               var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-              throw new BulkEditException(format(NO_HOLDING_AFFILIATION, user.getUsername(), resolveIdentifier(identifierType) + "=" + identifier, tenantId));
+              throw new BulkEditException(format(NO_HOLDING_AFFILIATION, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId));
             } else {
               throw e;
             }
@@ -147,6 +148,10 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
           .map(holdingsRecord -> new ExtendedHoldingsRecord().tenantId(folioExecutionContext.getTenantId()).entity(holdingsRecord)).toList())
         .totalRecords(holdingsRecordCollection.getTotalRecords());
     }
+  }
+
+  private boolean isCurrentTenantCentral(String centralTenantId) {
+    return StringUtils.isNotEmpty(centralTenantId) && centralTenantId.equals(folioExecutionContext.getTenantId());
   }
 
   private HoldingsRecordCollection getHoldingsRecordCollection(IdentifierType type,  ItemIdentifier itemIdentifier) {

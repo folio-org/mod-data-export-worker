@@ -74,15 +74,16 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
       final ExtendedItemCollection extendedItemCollection = new ExtendedItemCollection()
         .extendedItems(new ArrayList<>())
         .totalRecords(0);
-      if (StringUtils.isNotEmpty(consortiaService.getCentralTenantId())) {
+      var centralTenantId = consortiaService.getCentralTenantId();
+      if (isCurrentTenantCentral(centralTenantId)) {
         // Assuming item is requested by only one identifier not a collection of identifiers
         var identifierTypeEnum = getSearchIdentifierType(type);
         var batchIdsDto = new BatchIdsDto()
           .identifierType(identifierTypeEnum)
-          .ids(List.of(itemIdentifier.getItemId()));
+          .identifierValues(List.of(itemIdentifier.getItemId()));
         var consortiumItemCollection = searchClient.getConsortiumItemCollection(batchIdsDto);
         if (consortiumItemCollection.getTotalRecords() > 0) {
-          var tenantIds = consortiumItemCollection.getConsortiumItemRecords()
+          var tenantIds = consortiumItemCollection.getItems()
             .stream()
             .map(ConsortiumItem::getTenantId).collect(Collectors.toSet());
           if (HOLDINGSRECORDID != identifierTypeEnum && tenantIds.size() > 1) {
@@ -101,7 +102,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
             } catch (Exception e) {
               if (e instanceof FeignException && ((FeignException) e).status() == 401) {
                 var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-                throw new BulkEditException(format(NO_ITEM_AFFILIATION, user.getUsername(), idType + "=" + identifier, tenantId));
+                throw new BulkEditException(format(NO_ITEM_AFFILIATION, user.getUsername(), idType, identifier, tenantId));
               } else {
                 throw e;
               }
@@ -127,5 +128,9 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
     } catch (DecodeException e) {
       throw new BulkEditException(ExceptionHelper.fetchMessage(e));
     }
+  }
+
+  private boolean isCurrentTenantCentral(String centralTenantId) {
+    return StringUtils.isNotEmpty(centralTenantId) && centralTenantId.equals(folioExecutionContext.getTenantId());
   }
 }

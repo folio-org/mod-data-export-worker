@@ -1,15 +1,19 @@
 package org.folio.dew.utils;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.ExtendedHoldingsRecord;
 import org.folio.dew.domain.dto.ExtendedInstance;
 import org.folio.dew.domain.dto.ExtendedItem;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.InstanceFormat;
 import org.folio.dew.domain.dto.ItemFormat;
+
+import java.util.Objects;
 
 @UtilityClass
 public class WriterHelper {
@@ -23,6 +27,7 @@ public class WriterHelper {
     var extendedItemJson = (ObjectNode) objectMapper.valueToTree(extendedItemObject);
     var itemFormatJson = objectMapper.valueToTree(item);
     ((ObjectNode) extendedItemJson.get(ENTITY)).putIfAbsent("holdingsData", itemFormatJson.get("holdingsData"));
+    ((ObjectNode) extendedItemJson.get(ENTITY)).set("title", itemFormatJson.get("title"));
     return objectMapper.writeValueAsString(extendedItemJson);
   }
 
@@ -33,7 +38,7 @@ public class WriterHelper {
     var holdingsFormatJson = objectMapper.valueToTree(item);
     ((ObjectNode) extendedHoldingsRecordJson.get(ENTITY)).putIfAbsent("instanceHrid", holdingsFormatJson.get("instanceHrid"));
     ((ObjectNode) extendedHoldingsRecordJson.get(ENTITY)).putIfAbsent("itemBarcode", holdingsFormatJson.get("itemBarcode"));
-    ((ObjectNode) extendedHoldingsRecordJson.get(ENTITY)).putIfAbsent("instanceTitle", holdingsFormatJson.get("instance"));
+    ((ObjectNode) extendedHoldingsRecordJson.get(ENTITY)).putIfAbsent("instanceTitle", holdingsFormatJson.get("instanceTitle"));
     return objectMapper.writeValueAsString(extendedHoldingsRecordJson);
   }
   @SneakyThrows

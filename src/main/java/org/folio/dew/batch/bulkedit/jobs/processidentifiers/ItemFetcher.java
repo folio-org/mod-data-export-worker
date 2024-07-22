@@ -4,6 +4,7 @@ import static java.lang.String.format;
 import static org.folio.dew.domain.dto.BatchIdsDto.IdentifierTypeEnum.HOLDINGSRECORDID;
 import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
+import static org.folio.dew.utils.BulkEditProcessorHelper.getResponseAsString;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.DUPLICATES_ACROSS_TENANTS;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
@@ -26,7 +27,6 @@ import org.folio.dew.domain.dto.ExtendedItemCollection;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
-import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.ConsortiaService;
 import org.folio.dew.service.FolioExecutionContextManager;
 import org.folio.dew.utils.ExceptionHelper;
@@ -53,7 +53,6 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
   private final SearchClient searchClient;
   private final UserClient userClient;
   private final FolioExecutionContext folioExecutionContext;
-  private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
@@ -91,8 +90,10 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
           }
           tenantIds.forEach(tenantId -> {
             try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-              var itemCollection = inventoryClient.getItemByQuery(format(getMatchPattern(identifierType), idType, identifier), limit);
+              var url = format(getMatchPattern(identifierType), idType, identifier);
+              var itemCollection = inventoryClient.getItemByQuery(url, limit);
               if (itemCollection.getTotalRecords() > limit) {
+                log.error("Central tenant case: response from {} for tenant {}: {}", url, tenantId, getResponseAsString(itemCollection));
                 throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
               }
               extendedItemCollection.getExtendedItems().addAll(
@@ -113,8 +114,11 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
         }
       } else {
         // Process local tenant case
-        var itemCollection =  inventoryClient.getItemByQuery(format(getMatchPattern(identifierType), idType, identifier), limit);
+        var url = format(getMatchPattern(identifierType), idType, identifier);
+        var currentTenantId = folioExecutionContext.getTenantId();
+        var itemCollection =  inventoryClient.getItemByQuery(url, limit);
         if (itemCollection.getTotalRecords() > limit) {
+          log.error("Member/local tenant case: response from {} for tenant {}: {}", url, currentTenantId, getResponseAsString(itemCollection));
           throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
         }
         extendedItemCollection.setExtendedItems(itemCollection.getItems().stream()

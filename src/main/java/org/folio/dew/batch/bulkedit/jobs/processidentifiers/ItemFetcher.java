@@ -121,9 +121,6 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
           .map(item -> new ExtendedItem().tenantId(folioExecutionContext.getTenantId()).entity(item)).toList());
         extendedItemCollection.setTotalRecords(itemCollection.getTotalRecords());
       }
-      if (extendedItemCollection.getTotalRecords() > limit) {
-        throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
-      }
       return extendedItemCollection;
     } catch (DecodeException e) {
       throw new BulkEditException(ExceptionHelper.fetchMessage(e));

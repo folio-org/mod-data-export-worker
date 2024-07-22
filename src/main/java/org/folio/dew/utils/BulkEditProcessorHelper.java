@@ -30,6 +30,7 @@ import java.util.EnumMap;
 import java.util.Optional;
 import java.util.TimeZone;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.IdentifierType;
 
@@ -42,6 +43,7 @@ public class BulkEditProcessorHelper {
   private static final DateFormat dateFormat;
   private static final DateFormat dateWithoutTimeFormat;
   private static final EnumMap<IdentifierType, String> identifiersMap = new EnumMap<>(IdentifierType.class);
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   static {
     dateFormat = new SimpleDateFormat(DATE_TIME_PATTERN);
@@ -97,5 +99,15 @@ public class BulkEditProcessorHelper {
 
   public static String booleanToStringNullSafe(Boolean b) {
     return isEmpty(b) ? EMPTY : b.toString();
+  }
+
+  public static String getResponseAsString(Object obj) {
+    String response;
+    try {
+      response = OBJECT_MAPPER.writeValueAsString(obj);
+    } catch (Exception e) {
+      response = "Cannot be parsed";
+    }
+    return response;
   }
 }

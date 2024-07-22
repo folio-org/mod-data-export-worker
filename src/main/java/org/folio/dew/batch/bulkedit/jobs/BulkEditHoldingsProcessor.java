@@ -7,6 +7,7 @@ import static org.folio.dew.domain.dto.IdentifierType.ID;
 import static org.folio.dew.domain.dto.IdentifierType.INSTANCE_HRID;
 import static org.folio.dew.domain.dto.IdentifierType.ITEM_BARCODE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
+import static org.folio.dew.utils.BulkEditProcessorHelper.getResponseAsString;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.DUPLICATES_ACROSS_TENANTS;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
@@ -156,8 +157,13 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
 
   private HoldingsRecordCollection getHoldingsRecordCollection(IdentifierType type,  ItemIdentifier itemIdentifier) {
     if (ID == type || HRID == type) {
-      return checkDuplicates(holdingClient.getHoldingsByQuery(
-        format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId())));
+      var url = format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId());
+      var holdingsRecordCollection = holdingClient.getHoldingsByQuery(url);
+      if (holdingsRecordCollection.getTotalRecords() > 1) {
+        log.error("Response from {} for tenant {}: {}", url, folioExecutionContext.getTenantId(), getResponseAsString(holdingsRecordCollection));
+        throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
+      }
+      return holdingsRecordCollection;
     } else if (INSTANCE_HRID == type) {
       return holdingClient.getHoldingsByQuery("instanceId==" + holdingsReferenceService.getInstanceIdByHrid(itemIdentifier.getItemId()), Integer.MAX_VALUE);
     } else if (ITEM_BARCODE == type) {
@@ -167,10 +173,4 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
     }
   }
 
-  private HoldingsRecordCollection checkDuplicates(HoldingsRecordCollection holdingsRecordCollection) {
-    if (holdingsRecordCollection.getTotalRecords() > 1) {
-      throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
-    }
-    return holdingsRecordCollection;
-  }
 }

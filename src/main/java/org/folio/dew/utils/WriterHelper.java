@@ -1,19 +1,15 @@
 package org.folio.dew.utils;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
-import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.ExtendedHoldingsRecord;
 import org.folio.dew.domain.dto.ExtendedInstance;
 import org.folio.dew.domain.dto.ExtendedItem;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.InstanceFormat;
 import org.folio.dew.domain.dto.ItemFormat;
-
-import java.util.Objects;
 
 @UtilityClass
 public class WriterHelper {

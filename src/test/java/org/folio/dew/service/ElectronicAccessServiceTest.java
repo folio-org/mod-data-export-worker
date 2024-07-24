@@ -5,7 +5,6 @@ import org.folio.dew.client.ElectronicAccessRelationshipClient;
 import org.folio.dew.domain.dto.ElectronicAccess;
 import org.folio.dew.domain.dto.ElectronicAccessRelationship;
 import org.folio.dew.domain.dto.ElectronicAccessRelationshipCollection;
-import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.NotFoundException;
 import org.folio.spring.FolioExecutionContext;

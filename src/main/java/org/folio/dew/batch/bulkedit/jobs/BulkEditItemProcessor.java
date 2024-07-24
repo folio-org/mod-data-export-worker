@@ -27,7 +27,6 @@ import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
 import org.folio.dew.domain.dto.CirculationNote;
 import org.folio.dew.domain.dto.ContributorName;
 import org.folio.dew.domain.dto.EffectiveCallNumberComponents;
-import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.ExtendedItem;
 import org.folio.dew.domain.dto.IdentifierType;
@@ -104,9 +103,6 @@ public class BulkEditItemProcessor implements ItemProcessor<ExtendedItem, ItemFo
       .missingPiecesDate(formatDate(item.getMissingPiecesDate()))
       .itemDamagedStatus(itemReferenceService.getDamagedStatusNameById(item.getItemDamagedStatusId(), errorServiceArgs, tenantId))
       .itemDamagedStatusDate(formatDate(item.getItemDamagedStatusDate()))
-      .missingPiecesDate(item.getMissingPiecesDate())
-      .itemDamagedStatus(itemReferenceService.getDamagedStatusNameById(item.getItemDamagedStatusId(), errorServiceArgs, tenantId))
-      .itemDamagedStatusDate(item.getItemDamagedStatusDate())
       .administrativeNotes(isEmpty(item.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getAdministrativeNotes())))
       .notes(fetchNotes(item, errorServiceArgs))
       .checkInNotes(fetchCirculationNotes(item, CirculationNote.NoteTypeEnum.IN))

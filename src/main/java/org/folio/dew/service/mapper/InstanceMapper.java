@@ -6,6 +6,7 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.booleanToStringNullSaf
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER_SPACED;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_SPACED;
+import static org.folio.dew.utils.DateTimeHelper.formatDate;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -19,10 +20,7 @@ import org.folio.dew.service.InstanceReferenceService;
 import org.folio.dew.service.SpecialCharacterEscaper;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -61,24 +59,6 @@ public class InstanceMapper {
       .publicationFrequency(isEmpty(instance.getPublicationFrequency()) ? EMPTY : String.join(ITEM_DELIMITER_SPACED, new ArrayList<>(instance.getPublicationFrequency())))
       .publicationRange(isEmpty(instance.getPublicationRange()) ? EMPTY : String.join(ITEM_DELIMITER_SPACED, new ArrayList<>(instance.getPublicationRange())))
       .build();
-  }
-
-  private String formatDate(String catalogedDateInput) {
-    if (isEmpty(catalogedDateInput)){
-      return EMPTY;
-    }
-
-    var inputFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-    var outputFormatter = new SimpleDateFormat("yyyy-MM-dd");
-
-    Date date;
-    try {
-      date = inputFormatter.parse(catalogedDateInput);
-    } catch (ParseException e) {
-      log.error("Can't parse catalogedDate {}.", catalogedDateInput);
-      return catalogedDateInput;
-    }
-    return outputFormatter.format(date);
   }
 
   private String fetchInstanceFormats(List<String> instanceFormats, ErrorServiceArgs errorServiceArgs) {

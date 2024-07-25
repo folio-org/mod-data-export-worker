@@ -5,6 +5,7 @@ import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.utils.BulkEditProcessorHelper.booleanToStringNullSafe;
 import static org.folio.dew.utils.BulkEditProcessorHelper.ofEmptyString;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
@@ -16,6 +17,7 @@ import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_SPACED;
 import static org.folio.dew.utils.Constants.PERMANENT_LOCATION_ID;
 import static org.folio.dew.utils.Constants.STAFF_ONLY;
+import static org.folio.dew.utils.DateTimeHelper.formatDate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
@@ -98,9 +100,9 @@ public class BulkEditItemProcessor implements ItemProcessor<ExtendedItem, ItemFo
       .descriptionOfPieces(item.getDescriptionOfPieces())
       .numberOfMissingPieces(item.getNumberOfMissingPieces())
       .missingPieces(item.getMissingPieces())
-      .missingPiecesDate(item.getMissingPiecesDate())
+      .missingPiecesDate(formatDate(item.getMissingPiecesDate()))
       .itemDamagedStatus(itemReferenceService.getDamagedStatusNameById(item.getItemDamagedStatusId(), errorServiceArgs, tenantId))
-      .itemDamagedStatusDate(item.getItemDamagedStatusDate())
+      .itemDamagedStatusDate(formatDate(item.getItemDamagedStatusDate()))
       .administrativeNotes(isEmpty(item.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getAdministrativeNotes())))
       .notes(fetchNotes(item, errorServiceArgs))
       .checkInNotes(fetchCirculationNotes(item, CirculationNote.NoteTypeEnum.IN))
@@ -117,7 +119,7 @@ public class BulkEditItemProcessor implements ItemProcessor<ExtendedItem, ItemFo
       .statisticalCodes(fetchStatisticalCodes(item, errorServiceArgs))
       .tags(isEmpty(item.getTags()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getTags().getTagList())))
       .build();
-    itemFormat.setElectronicAccess(electronicAccessService.getElectronicAccessesToString(item.getElectronicAccess(), errorServiceArgs, tenantId));
+    itemFormat.setElectronicAccess(electronicAccessService.getElectronicAccessesToString(item.getElectronicAccess(), errorServiceArgs, ITEM, tenantId));
     return itemFormat.withOriginal(item).withTenantId(tenantId);
   }
 

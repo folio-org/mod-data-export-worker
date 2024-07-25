@@ -4,7 +4,8 @@ import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
-import static org.folio.dew.utils.Constants.ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER;
+import static org.folio.dew.utils.Constants.ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DATA_DELIMITER;
+import static org.folio.dew.utils.Constants.ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_PATTERN;
 
 import lombok.RequiredArgsConstructor;
@@ -12,10 +13,10 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.ElectronicAccessRelationshipClient;
 import org.folio.dew.domain.dto.ElectronicAccess;
+import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
-import org.folio.spring.DefaultFolioExecutionContext;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.springframework.cache.annotation.Cacheable;
@@ -41,21 +42,20 @@ public class ElectronicAccessService extends FolioExecutionContextManager {
   private static final int ELECTRONIC_ACCESS_MATERIAL_SPECIFICATION_INDEX = 2;
   private static final int ELECTRONIC_ACCESS_PUBLIC_NOTE_INDEX = 3;
 
-  public static final String HOLDINGS_DELIMETER = "\u001f|";
 
-  public String getElectronicAccessesToString(List<ElectronicAccess> electronicAccesses, ErrorServiceArgs errorServiceArgs, String tenantId) {
+  public String getElectronicAccessesToString(List<ElectronicAccess> electronicAccesses, ErrorServiceArgs errorServiceArgs, EntityType entityType, String tenantId) {
     return isEmpty(electronicAccesses) ?
       EMPTY :
       "URL relationship;URI;Link text;Materials specified;URL public note\n" +
       electronicAccesses.stream()
         .filter(Objects::nonNull)
-        .map(ea -> electronicAccessToString(ea, errorServiceArgs, tenantId))
-        .collect(Collectors.joining(HOLDINGS_DELIMETER));
+        .map(ea -> electronicAccessToString(ea, errorServiceArgs, entityType, tenantId))
+        .collect(Collectors.joining(ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DELIMITER.get(entityType)));
   }
 
-  private String electronicAccessToString(ElectronicAccess access, ErrorServiceArgs errorServiceArgs, String tenantId) {
-    var relationshipName = isEmpty(access.getRelationshipId()) ? EMPTY : getRelationshipNameById(access.getRelationshipId(), errorServiceArgs, tenantId);
-    return String.join(ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER,
+  private String electronicAccessToString(ElectronicAccess access, ErrorServiceArgs errorServiceArgs, EntityType entityType, String tenantId) {
+    var relationshipName = isEmpty(access.getRelationshipId()) ? EMPTY : getRelationshipNameById(access.getRelationshipId(), errorServiceArgs,tenantId);
+    return String.join(ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DATA_DELIMITER.get(entityType),
       isEmpty(relationshipName) ? EMPTY : relationshipName,
       isEmpty(access.getUri()) ? EMPTY : access.getUri(),
       isEmpty(access.getLinkText()) ? EMPTY : access.getLinkText(),

@@ -112,8 +112,8 @@ public class ItemReferenceService extends FolioExecutionContextManager {
   }
 
   @Cacheable(cacheNames = "noteTypeNames")
-  public String getNoteTypeNameById(String noteTypeId, ErrorServiceArgs args) {
-    try {
+  public String getNoteTypeNameById(String noteTypeId, ErrorServiceArgs args, String tenantId) {
+    try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
       return isEmpty(noteTypeId) ? EMPTY : itemNoteTypeClient.getById(noteTypeId).getName();
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Note type was not found by id: [%s]", noteTypeId)), args.getFileName());
@@ -133,16 +133,6 @@ public class ItemReferenceService extends FolioExecutionContextManager {
     return response.getItemNoteTypes().get(0).getId();
   }
 
-  @Cacheable(cacheNames = "servicePointNames")
-  public String getServicePointNameById(String servicePointId, ErrorServiceArgs args, String tenantId) {
-    try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-      return isEmpty(servicePointId) ? EMPTY : servicePointClient.getById(servicePointId).getName();
-    } catch (NotFoundException e) {
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Service point was not found by id: [%s]", servicePointId)), args.getFileName());
-      return servicePointId;
-    }
-  }
-
   @Cacheable(cacheNames = "servicePointIds")
   public String getServicePointIdByName(String name) {
     if (isEmpty(name)) {
@@ -156,8 +146,8 @@ public class ItemReferenceService extends FolioExecutionContextManager {
   }
 
   @Cacheable(cacheNames = "statisticalCodeNames")
-  public String getStatisticalCodeById(String statisticalCodeId, ErrorServiceArgs args) {
-    try {
+  public String getStatisticalCodeById(String statisticalCodeId, ErrorServiceArgs args, String tenantId) {
+    try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
       return isEmpty(statisticalCodeId) ? EMPTY : statisticalCodeClient.getById(statisticalCodeId).getCode();
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Statistical code was not found by id: [%s]", statisticalCodeId)), args.getFileName());
@@ -175,16 +165,6 @@ public class ItemReferenceService extends FolioExecutionContextManager {
       return code;
     }
     return response.getStatisticalCodes().get(0).getId();
-  }
-
-  @Cacheable(cacheNames = "userNames")
-  public String getUserNameById(String userId, ErrorServiceArgs args) {
-    try {
-      return isEmpty(userId) ? EMPTY : userClient.getUserById(userId).getUsername();
-    } catch (NotFoundException e) {
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("User name was not found by id: [%s]", userId)), args.getFileName());
-      return userId;
-    }
   }
 
   @Cacheable(cacheNames = "userIds")

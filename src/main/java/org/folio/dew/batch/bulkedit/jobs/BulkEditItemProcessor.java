@@ -23,7 +23,6 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
 import org.folio.dew.domain.dto.CirculationNote;
-import org.folio.dew.domain.dto.ContributorName;
 import org.folio.dew.domain.dto.EffectiveCallNumberComponents;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.ExtendedItem;
@@ -102,7 +101,7 @@ public class BulkEditItemProcessor implements ItemProcessor<ExtendedItem, ItemFo
       .itemDamagedStatus(itemReferenceService.getDamagedStatusNameById(item.getItemDamagedStatusId(), errorServiceArgs, tenantId))
       .itemDamagedStatusDate(item.getItemDamagedStatusDate())
       .administrativeNotes(isEmpty(item.getAdministrativeNotes()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getAdministrativeNotes())))
-      .notes(fetchNotes(item, errorServiceArgs))
+      .notes(fetchNotes(item, errorServiceArgs, tenantId))
       .checkInNotes(fetchCirculationNotes(item, CirculationNote.NoteTypeEnum.IN))
       .checkOutNotes(fetchCirculationNotes(item, CirculationNote.NoteTypeEnum.OUT))
       .status(statusToString(item))
@@ -114,7 +113,7 @@ public class BulkEditItemProcessor implements ItemProcessor<ExtendedItem, ItemFo
       .permanentLocation(isEmpty(item.getPermanentLocation()) ? EMPTY : item.getPermanentLocation().getName())
       .temporaryLocation(isEmpty(item.getTemporaryLocation()) ? EMPTY : item.getTemporaryLocation().getName())
       .effectiveLocation(isEmpty(item.getEffectiveLocation()) ? EMPTY : item.getEffectiveLocation().getName())
-      .statisticalCodes(fetchStatisticalCodes(item, errorServiceArgs))
+      .statisticalCodes(fetchStatisticalCodes(item, errorServiceArgs, tenantId))
       .tags(isEmpty(item.getTags()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(item.getTags().getTagList())))
       .build();
     itemFormat.setElectronicAccess(electronicAccessService.getElectronicAccessesToString(item.getElectronicAccess(), errorServiceArgs, tenantId));
@@ -137,16 +136,6 @@ public class BulkEditItemProcessor implements ItemProcessor<ExtendedItem, ItemFo
     return EMPTY;
   }
 
-  private String fetchContributorNames(Item item) {
-    return isEmpty(item.getContributorNames()) ?
-      EMPTY :
-      item.getContributorNames().stream()
-        .filter(Objects::nonNull)
-        .map(ContributorName::getName)
-        .map(escaper::escape)
-        .collect(Collectors.joining(ARRAY_DELIMITER));
-  }
-
   private String effectiveCallNumberComponentsToString(EffectiveCallNumberComponents components) {
     if (isEmpty(components)) {
       return EMPTY;
@@ -158,13 +147,13 @@ public class BulkEditItemProcessor implements ItemProcessor<ExtendedItem, ItemFo
     return String.join(SPACE, entries);
   }
 
-  private String fetchNotes(Item item, ErrorServiceArgs args) {
+  private String fetchNotes(Item item, ErrorServiceArgs args, String tenantId) {
     return isEmpty(item.getNotes()) ?
       EMPTY :
       item.getNotes().stream()
         .filter(Objects::nonNull)
         .map(itemNote -> String.join(ARRAY_DELIMITER,
-          escaper.escape(itemReferenceService.getNoteTypeNameById(itemNote.getItemNoteTypeId(), args)),
+          escaper.escape(itemReferenceService.getNoteTypeNameById(itemNote.getItemNoteTypeId(), args, tenantId)),
           escaper.escape(itemNote.getNote()),
           escaper.escape(booleanToStringNullSafe(itemNote.getStaffOnly()))))
         .collect(Collectors.joining(ITEM_DELIMITER));
@@ -200,25 +189,14 @@ public class BulkEditItemProcessor implements ItemProcessor<ExtendedItem, ItemFo
       escaper.escape(isEmpty(title.getBriefInstance()) ? EMPTY : title.getBriefInstance().getTitle()));
   }
 
-  private String fetchStatisticalCodes(Item item, ErrorServiceArgs args) {
+  private String fetchStatisticalCodes(Item item, ErrorServiceArgs args, String tenantId) {
     return isEmpty(item.getStatisticalCodeIds()) ?
       EMPTY :
       item.getStatisticalCodeIds().stream()
         .filter(Objects::nonNull)
-        .map(id -> itemReferenceService.getStatisticalCodeById(id, args))
+        .map(id -> itemReferenceService.getStatisticalCodeById(id, args, tenantId))
         .map(escaper::escape)
         .collect(Collectors.joining(ARRAY_DELIMITER));
-  }
-
-  private String lastCheckInToString(Item item, ErrorServiceArgs args, String tenantId) {
-    var lastCheckIn = item.getLastCheckIn();
-    if (isEmpty(lastCheckIn)) {
-      return EMPTY;
-    }
-    return String.join(ARRAY_DELIMITER,
-      escaper.escape(itemReferenceService.getServicePointNameById(lastCheckIn.getServicePointId(), args, tenantId)),
-      escaper.escape(itemReferenceService.getUserNameById(lastCheckIn.getStaffMemberId(), args)),
-      lastCheckIn.getDateTime());
   }
 
   private String getIdentifier(Item item, String identifierType) {

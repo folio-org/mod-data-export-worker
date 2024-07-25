@@ -62,7 +62,7 @@ public class HoldingsMapper {
       .illPolicy(holdingsReferenceService.getIllPolicyNameById(holdingsRecord.getIllPolicyId(), errorServiceArgs, tenantId))
       .digitizationPolicy(isEmpty(holdingsRecord.getDigitizationPolicy()) ? EMPTY : holdingsRecord.getDigitizationPolicy())
       .retentionPolicy(isEmpty(holdingsRecord.getRetentionPolicy()) ? EMPTY : holdingsRecord.getRetentionPolicy())
-      .notes(notesToString(holdingsRecord.getNotes(), errorServiceArgs))
+      .notes(notesToString(holdingsRecord.getNotes(), errorServiceArgs, tenantId))
       .electronicAccess(electronicAccessService.getElectronicAccessesToString(holdingsRecord.getElectronicAccess(), errorServiceArgs, tenantId))
       .acquisitionMethod(isEmpty(holdingsRecord.getAcquisitionMethod()) ? EMPTY : holdingsRecord.getAcquisitionMethod())
       .acquisitionFormat(isEmpty(holdingsRecord.getAcquisitionFormat()) ? EMPTY : holdingsRecord.getAcquisitionFormat())
@@ -71,11 +71,11 @@ public class HoldingsMapper {
       .build();
   }
 
-  private String notesToString(List<HoldingsNote> notes, ErrorServiceArgs args) {
+  private String notesToString(List<HoldingsNote> notes, ErrorServiceArgs args, String tenantId) {
     return isEmpty(notes) ? EMPTY : notes.stream()
       .filter(Objects::nonNull)
       .map(note -> String.join(ARRAY_DELIMITER,
-        escaper.escape(holdingsReferenceService.getNoteTypeNameById(note.getHoldingsNoteTypeId(), args)),
+        escaper.escape(holdingsReferenceService.getNoteTypeNameById(note.getHoldingsNoteTypeId(), args, tenantId)),
         escaper.escape(note.getNote()),
         booleanToStringNullSafe(note.getStaffOnly())))
       .collect(Collectors.joining(ITEM_DELIMITER));

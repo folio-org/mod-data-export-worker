@@ -23,6 +23,7 @@ public class WriterHelper {
     var extendedItemJson = (ObjectNode) objectMapper.valueToTree(extendedItemObject);
     var itemFormatJson = objectMapper.valueToTree(item);
     ((ObjectNode) extendedItemJson.get(ENTITY)).putIfAbsent("holdingsData", itemFormatJson.get("holdingsData"));
+    ((ObjectNode) extendedItemJson.get(ENTITY)).set("title", itemFormatJson.get("title"));
     return objectMapper.writeValueAsString(extendedItemJson);
   }
 
@@ -33,7 +34,7 @@ public class WriterHelper {
     var holdingsFormatJson = objectMapper.valueToTree(item);
     ((ObjectNode) extendedHoldingsRecordJson.get(ENTITY)).putIfAbsent("instanceHrid", holdingsFormatJson.get("instanceHrid"));
     ((ObjectNode) extendedHoldingsRecordJson.get(ENTITY)).putIfAbsent("itemBarcode", holdingsFormatJson.get("itemBarcode"));
-    ((ObjectNode) extendedHoldingsRecordJson.get(ENTITY)).putIfAbsent("instanceTitle", holdingsFormatJson.get("instance"));
+    ((ObjectNode) extendedHoldingsRecordJson.get(ENTITY)).putIfAbsent("instanceTitle", holdingsFormatJson.get("instanceTitle"));
     return objectMapper.writeValueAsString(extendedHoldingsRecordJson);
   }
   @SneakyThrows

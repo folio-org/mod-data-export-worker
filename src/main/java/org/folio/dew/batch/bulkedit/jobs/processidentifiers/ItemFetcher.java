@@ -116,31 +116,8 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
         }
       } else {
         // Process local tenant case
-        var url = "formerIds=80163455604dhdtk3245789b654837860"; //format(getMatchPattern(identifierType), idType, identifier);
+        var url = format(getMatchPattern(identifierType), idType, identifier);
         var currentTenantId = folioExecutionContext.getTenantId();
-
-        var headers = new HashMap<>(folioExecutionContext.getAllHeaders());
-        headers.replace(X_OKAPI_TENANT, List.of("cs00000int_0001"));
-        headers.replace("x-okapi-token", List.of("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJlY3NfYWRtaW4iLCJ0eXBlIjoibGVnYWN5LWFjY2VzcyIsInVzZXJfaWQiOiI1MmQyMTdkYS01OGFjLTQwNjAtOTg1Ny0yMTQ0YTdmOGI0OWMiLCJpYXQiOjE3MjE3MjYyMjYsInRlbmFudCI6ImNzMDAwMDBpbnRfMDAwMSJ9.MLVh4LnQEUwlpm121g1vr4iRrV5pKq2jPOr6fgMBUHY"));
-        headers.replace("x-okapi-url", List.of("https://folio-testing-ecs-snapshot-okapi.ci.folio.org"));
-        headers.replace("x-okapi-user-id", List.of("52d217da-58ac-4060-9857-2144a7f8b49c"));
-
-
-
-
-        try (var context = new FolioExecutionContextSetter(new DefaultFolioExecutionContext(folioExecutionContext.getFolioModuleMetadata(), headers))) {
-          var itemCollection =  inventoryClient.getItemByQuery(url, limit);
-          if (itemCollection.getTotalRecords() > limit) {
-            log.error("Member/local tenant case: response from {} for tenant {}: {}", url, currentTenantId, getResponseAsString(itemCollection));
-            throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
-          }
-        } catch (Exception e) {
-          System.out.println();
-        }
-
-
-
-
         var itemCollection =  inventoryClient.getItemByQuery(url, limit);
         if (itemCollection.getTotalRecords() > limit) {
           log.error("Member/local tenant case: response from {} for tenant {}: {}", url, currentTenantId, getResponseAsString(itemCollection));

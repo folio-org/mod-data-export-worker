@@ -106,6 +106,11 @@ public class CompositePOLineConverter {
       writePrice(poLine.getCost().getPoLineEstimatedPrice(), writer);
     }
 
+    if (poLine.getCost().getListUnitPrice() != null) {
+      messageSegmentCount++;
+      writeUnitPrice(poLine.getCost().getListUnitPrice(), writer);
+    }
+
     messageSegmentCount++;
     writePoLineCurrency(poLine, writer);
 
@@ -286,6 +291,15 @@ public class CompositePOLineConverter {
     writer.writeStartSegment("PRI")
       .writeStartElement()
       .writeComponent("AAF")
+      .writeComponent(String.valueOf(price))
+      .endElement()
+      .writeEndSegment();
+  }
+
+  private void writeUnitPrice(BigDecimal price, EDIStreamWriter writer) throws EDIStreamException {
+    writer.writeStartSegment("PRI")
+      .writeStartElement()
+      .writeComponent("AAB")
       .writeComponent(String.valueOf(price))
       .endElement()
       .writeEndSegment();

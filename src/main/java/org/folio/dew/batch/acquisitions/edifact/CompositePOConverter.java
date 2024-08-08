@@ -37,8 +37,9 @@ public class CompositePOConverter {
     messageSegmentCount++;
     writeOrderDate(compPO, writer);
 
+    String shipToAddress = configurationService.getAddressConfig(compPO.getShipTo().toString()  );
     messageSegmentCount++;
-    writeLibrary(ediFileConfig, writer);
+    writeLibrary(ediFileConfig, shipToAddress, writer);
 
     messageSegmentCount++;
     writeVendor(ediFileConfig, writer);
@@ -50,9 +51,13 @@ public class CompositePOConverter {
       writeAccountNumber(compPO.getCompositePoLines().get(0).getVendorDetail().getVendorAccount(), writer);
     }
 
-    messageSegmentCount++;
-    String currency = configurationService.getSystemCurrency();
-    writeCurrency(currency, writer);
+    if (!compPO.getCompositePoLines().isEmpty()
+      && compPO.getCompositePoLines().get(0).getCost() != null
+      && StringUtils.isNotBlank(compPO.getCompositePoLines().get(0).getCost().getCurrency())) {
+      messageSegmentCount++;
+      String currency = compPO.getCompositePoLines().get(0).getCost().getCurrency();
+      writeCurrency(currency, writer);
+    }
 
     // Order lines
     int totalQuantity = 0;
@@ -113,13 +118,16 @@ public class CompositePOConverter {
   }
 
   // Library ID and ID type
-  private void writeLibrary(EdiFileConfig ediFileConfig, EDIStreamWriter writer) throws EDIStreamException {
+  private void writeLibrary(EdiFileConfig ediFileConfig, String shipToAddress, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("NAD")
       .writeElement("BY")
       .writeStartElement()
       .writeComponent(ediFileConfig.getLibEdiCode())
       .writeComponent("")
       .writeComponent(ediFileConfig.getLibEdiType())
+      .endElement()
+      .writeStartElement()
+      .writeComponent(shipToAddress)
       .endElement()
       .writeEndSegment();
   }

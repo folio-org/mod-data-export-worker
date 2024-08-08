@@ -1,5 +1,7 @@
 package org.folio.dew.batch.acquisitions.edifact.services;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.logging.log4j.LogManager;
@@ -45,12 +47,12 @@ public class ConfigurationService {
     return String.valueOf(jsonObject.get("currency"));
   }
 
-  public String getAddressConfig(String configId) {
+  public String getAddressConfig(UUID configId) {
     if (configId == null) {
       return "";
     }
 
-    var addressConfig = getConfigById(configId);
+    var addressConfig = getConfigById(configId.toString());
     var configValue = addressConfig.getValue();
     try {
       JSONObject jsonObject = new JSONObject(configValue);

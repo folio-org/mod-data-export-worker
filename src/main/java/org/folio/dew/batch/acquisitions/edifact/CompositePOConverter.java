@@ -37,7 +37,7 @@ public class CompositePOConverter {
     messageSegmentCount++;
     writeOrderDate(compPO, writer);
 
-    String shipToAddress = configurationService.getAddressConfig(compPO.getShipTo().toString()  );
+    String shipToAddress = configurationService.getAddressConfig(compPO.getShipTo());
     messageSegmentCount++;
     writeLibrary(ediFileConfig, shipToAddress, writer);
 

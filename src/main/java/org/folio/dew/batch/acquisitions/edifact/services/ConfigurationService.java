@@ -56,7 +56,8 @@ public class ConfigurationService {
     var configValue = addressConfig.getValue();
     try {
       JSONObject jsonObject = new JSONObject(configValue);
-      return jsonObject.optString("address", "");
+      String address = jsonObject.optString("address", "");
+      return address != null ? address : "";
     } catch (JSONException e) {
       logger.error("getAddressConfig:: Couldn't convert configValue: {} to json", configValue);
       return "";

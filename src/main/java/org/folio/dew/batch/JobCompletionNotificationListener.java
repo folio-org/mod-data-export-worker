@@ -28,6 +28,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.BulkEditProcessorHelper.convertToDate;
 import static org.folio.dew.utils.Constants.CHANGED_RECORDS;
+import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
@@ -390,11 +391,11 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
   }
 
   private String prepareObject(JobExecution jobExecution, String path) {
-    return jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID) + PATH_SEPARATOR + FilenameUtils.getName(path);
+    return jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID) + PATH_SEPARATOR + FilenameUtils.getName(path) + CSV_EXTENSION;
   }
 
   private String prepareJsonObject(JobExecution jobExecution, String path) {
-    return jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID) + PATH_SEPARATOR + FilenameUtils.getName(path);
+    return jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID) + PATH_SEPARATOR + FilenameUtils.getName(path) + ".json";
   }
 
   private String prepareMrcObject(JobExecution jobExecution, String path) {

@@ -1,9 +1,5 @@
 package org.folio.dew.batch.acquisitions.edifact;
 
-import javax.money.CurrencyUnit;
-import javax.money.Monetary;
-import javax.money.MonetaryAmount;
-
 import io.xlate.edi.stream.EDIStreamException;
 import io.xlate.edi.stream.EDIStreamWriter;
 import liquibase.util.StringUtil;
@@ -14,13 +10,10 @@ import org.folio.dew.batch.acquisitions.edifact.services.LocationService;
 import org.folio.dew.batch.acquisitions.edifact.services.MaterialTypeService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.Contributor;
-import org.folio.dew.domain.dto.Cost;
 import org.folio.dew.domain.dto.FundDistribution;
 import org.folio.dew.domain.dto.Location;
 import org.folio.dew.domain.dto.ProductIdentifier;
 import org.folio.dew.domain.dto.ReferenceNumberItem;
-import org.javamoney.moneta.Money;
-import org.javamoney.moneta.function.MonetaryOperators;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
@@ -113,10 +106,9 @@ public class CompositePOLineConverter {
       writePrice(poLine.getCost().getPoLineEstimatedPrice(), writer);
     }
 
-    if (poLine.getCost().getListUnitPrice() != null || poLine.getCost().getListUnitPriceElectronic() != null) {
+    if (poLine.getCost().getListUnitPrice() != null) {
       messageSegmentCount++;
-      BigDecimal totalUnitPrice = calculateCostUnitsTotal(poLine.getCost());
-      writeUnitPrice(totalUnitPrice, writer);
+      writeUnitPrice(poLine.getCost().getListUnitPrice(), writer);
     }
 
     messageSegmentCount++;
@@ -473,38 +465,5 @@ public class CompositePOLineConverter {
       return locationService.getLocationCodeById(locationId);
     }
     return "";
-  }
-
-  private BigDecimal calculateCostUnitsTotal(Cost cost) {
-    CurrencyUnit currency = Monetary.getCurrency(cost.getCurrency());
-    MonetaryAmount total = Money.of(0, currency);
-
-    // Physical resources price
-    if (cost.getListUnitPrice() != null && cost.getQuantityPhysical() != null) {
-      MonetaryAmount pPrice = Money.of(cost.getListUnitPrice(), currency)
-        .multiply(cost.getQuantityPhysical());
-      total = total.add(pPrice);
-    }
-    // Electronic resources price
-    if (cost.getListUnitPriceElectronic() != null && cost.getQuantityElectronic() != null) {
-      MonetaryAmount ePrice = Money.of(cost.getListUnitPriceElectronic(), currency)
-        .multiply(cost.getQuantityElectronic());
-      total = total.add(ePrice);
-    }
-    // Discount amount
-    if (cost.getDiscount() != null) {
-      MonetaryAmount discount;
-      if (Cost.DiscountTypeEnum.AMOUNT == cost.getDiscountType()) {
-        discount = Money.of(cost.getDiscount(), currency);
-      } else {
-        discount = total.with(MonetaryOperators.percent(cost.getDiscount()));
-      }
-      total = total.subtract(discount);
-    }
-    // Additional cost
-    if (cost.getAdditionalCost() != null) {
-      total = total.add(Money.of(cost.getAdditionalCost(), currency));
-    }
-    return total.getNumber().numberValue(BigDecimal.class);
   }
 }

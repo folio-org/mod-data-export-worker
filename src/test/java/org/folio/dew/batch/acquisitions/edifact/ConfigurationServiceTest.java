@@ -15,7 +15,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 
 class ConfigurationServiceTest extends BaseBatchTest {
-  private static final String addressConfigId = "db5bb2a2-8909-4dce-8b10-59fda5231459";
+
   @Autowired
   private ConfigurationService configurationService;
   @MockBean
@@ -23,6 +23,7 @@ class ConfigurationServiceTest extends BaseBatchTest {
 
   @Test
   void getAddress() {
+    String addressConfigId = UUID.randomUUID().toString();
     var addressConfiguration = new ModelConfiguration()
       .id(addressConfigId)
       .configName("tenant.addresses")
@@ -31,6 +32,7 @@ class ConfigurationServiceTest extends BaseBatchTest {
 
     String addressFirst = configurationService.getAddressConfig(UUID.fromString(addressConfigId));
     assertEquals("Address 123", addressFirst);
+
     // fetching from cache
     String addressSecond = configurationService.getAddressConfig(UUID.fromString(addressConfigId));
     assertEquals("Address 123", addressSecond);

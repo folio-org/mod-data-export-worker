@@ -20,7 +20,33 @@
       },
       "response": {
         "status": 200,
-        "body": "{\n  \"id\": \"8ea92aa2-7b11-4f0e-9ed2-ab8fe281f37f\",\n  \"module\": \"TENANT\",\n  \"configName\": \"tenant.addresses\",\n  \"code\": \"ADDRESS_1723093000876\",\n  \"enabled\": true,\n  \"value\": \"{\\\"name\\\":\\\"Name 1\\\",\\\"address\\\":\\\"Address 123\\\"}\",\n  \"metadata\": {\n    \"createdDate\": \"2024-08-08T04:56:41.232+00:00\",\n    \"createdByUserId\": \"0c79340d-ad6e-4c9a-8384-bac681d24f8c\",\n    \"updatedDate\": \"2024-08-08T04:56:51.654+00:00\",\n    \"updatedByUserId\": \"0c79340d-ad6e-4c9a-8384-bac681d24f8c\"\n  }\n}\n",
+        "body": "{\n  \"id\": \"1947e709-8d60-42e2-8dde-7566ae446d24\",\n  \"module\": \"TENANT\",\n  \"configName\": \"tenant.addresses\",\n  \"code\": \"ADDRESS_1723093000876\",\n  \"enabled\": true,\n  \"value\": \"{\\\"name\\\":\\\"Name 1\\\",\\\"address\\\":\\\"Address 123\\\"}\",\n  \"metadata\": {\n    \"createdDate\": \"2024-08-08T04:56:41.232+00:00\",\n    \"createdByUserId\": \"0c79340d-ad6e-4c9a-8384-bac681d24f8c\",\n    \"updatedDate\": \"2024-08-08T04:56:51.654+00:00\",\n    \"updatedByUserId\": \"0c79340d-ad6e-4c9a-8384-bac681d24f8c\"\n  }\n}\n",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/configurations/entries/116a38c2-cac3-4f08-816b-afebfebe453d"
+      },
+      "response": {
+        "status": 200,
+        "body": "{}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/configurations/entries/8ea92aa2-7b11-4f0e-9ed2-ab8fe281f37f"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n  \"id\": \"1947e709-8d60-42e2-8dde-7566ae446d24\",\n  \"module\": \"TENANT\",\n  \"configName\": \"tenant.addresses\",\n  \"code\": \"ADDRESS_1723093000876\",\n  \"enabled\": true,\n  \"value\": \"{\\\"name\\\":\\\"Name 1\\\"}\",\n  \"metadata\": {\n    \"createdDate\": \"2024-08-08T04:56:41.232+00:00\",\n    \"createdByUserId\": \"0c79340d-ad6e-4c9a-8384-bac681d24f8c\",\n    \"updatedDate\": \"2024-08-08T04:56:51.654+00:00\",\n    \"updatedByUserId\": \"0c79340d-ad6e-4c9a-8384-bac681d24f8c\"\n  }\n}\n",
         "headers": {
           "Content-Type": "application/json"
         }

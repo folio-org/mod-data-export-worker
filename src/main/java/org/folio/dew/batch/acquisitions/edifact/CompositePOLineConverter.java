@@ -20,7 +20,6 @@ import org.folio.dew.domain.dto.Location;
 import org.folio.dew.domain.dto.ProductIdentifier;
 import org.folio.dew.domain.dto.ReferenceNumberItem;
 import org.javamoney.moneta.Money;
-import org.javamoney.moneta.function.MonetaryOperators;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
@@ -115,7 +114,7 @@ public class CompositePOLineConverter {
 
     if (poLine.getCost().getListUnitPrice() != null || poLine.getCost().getListUnitPriceElectronic() != null) {
       messageSegmentCount++;
-      BigDecimal totalUnitPrice = calculateCostUnitsTotal(poLine.getCost());
+      String totalUnitPrice = calculateCostUnitsTotal(poLine.getCost());
       writeUnitPrice(totalUnitPrice, writer);
     }
 
@@ -304,11 +303,11 @@ public class CompositePOLineConverter {
       .writeEndSegment();
   }
 
-  private void writeUnitPrice(BigDecimal price, EDIStreamWriter writer) throws EDIStreamException {
+  private void writeUnitPrice(String price, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("PRI")
       .writeStartElement()
       .writeComponent("AAB")
-      .writeComponent(String.valueOf(price))
+      .writeComponent(price)
       .endElement()
       .writeEndSegment();
   }
@@ -475,7 +474,7 @@ public class CompositePOLineConverter {
     return "";
   }
 
-  private BigDecimal calculateCostUnitsTotal(Cost cost) {
+  private String calculateCostUnitsTotal(Cost cost) {
     CurrencyUnit currency = Monetary.getCurrency(cost.getCurrency());
     MonetaryAmount total = Money.of(0, currency);
 
@@ -485,26 +484,14 @@ public class CompositePOLineConverter {
         .multiply(cost.getQuantityPhysical());
       total = total.add(pPrice);
     }
+
     // Electronic resources price
     if (cost.getListUnitPriceElectronic() != null && cost.getQuantityElectronic() != null) {
       MonetaryAmount ePrice = Money.of(cost.getListUnitPriceElectronic(), currency)
         .multiply(cost.getQuantityElectronic());
       total = total.add(ePrice);
     }
-    // Discount amount
-    if (cost.getDiscount() != null) {
-      MonetaryAmount discount;
-      if (Cost.DiscountTypeEnum.AMOUNT == cost.getDiscountType()) {
-        discount = Money.of(cost.getDiscount(), currency);
-      } else {
-        discount = total.with(MonetaryOperators.percent(cost.getDiscount()));
-      }
-      total = total.subtract(discount);
-    }
-    // Additional cost
-    if (cost.getAdditionalCost() != null) {
-      total = total.add(Money.of(cost.getAdditionalCost(), currency));
-    }
-    return total.getNumber().numberValue(BigDecimal.class);
+
+    return total.toString();
   }
 }

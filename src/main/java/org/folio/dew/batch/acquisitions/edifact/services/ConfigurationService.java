@@ -32,11 +32,15 @@ public class ConfigurationService {
     }
 
     var addressConfig = getConfigById(shipToConfigId.toString());
+    if (addressConfig.getValue() == null) {
+      logger.warn("getAddressConfig:: 'address config with id '{}' is not found", shipToConfigId);
+      return "";
+    }
     try {
       var valueJsonObject = new JSONObject(addressConfig.getValue());
       return valueJsonObject.has("address") ? valueJsonObject.get("address").toString() : "";
     } catch (JSONException e) {
-      logger.error("getAddressConfig:: Couldn't convert configValue: {} to json", addressConfig);
+      logger.error("getAddressConfig:: Couldn't convert configValue: {} to json", addressConfig, e);
       return "";
     }
   }

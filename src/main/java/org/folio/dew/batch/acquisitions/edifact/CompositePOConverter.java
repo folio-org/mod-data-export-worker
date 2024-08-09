@@ -127,6 +127,9 @@ public class CompositePOConverter {
       .writeComponent(ediFileConfig.getLibEdiType())
       .endElement()
       .writeStartElement()
+      .writeComponent("")
+      .endElement()
+      .writeStartElement()
       .writeComponent(shipToAddress)
       .endElement()
       .writeEndSegment();

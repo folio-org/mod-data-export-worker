@@ -9,11 +9,13 @@ import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
 import org.folio.dew.client.ConfigurationClient;
 import org.folio.dew.domain.dto.ModelConfiguration;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-
+@ExtendWith(MockitoExtension.class)
 class ConfigurationServiceTest extends BaseBatchTest {
 
   @Autowired

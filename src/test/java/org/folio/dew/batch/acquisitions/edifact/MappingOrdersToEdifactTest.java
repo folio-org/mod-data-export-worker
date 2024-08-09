@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.AdditionalMatchers.not;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 
@@ -137,8 +138,8 @@ class MappingOrdersToEdifactTest extends BaseBatchTest {
       .thenReturn("KU/CC/DI/M");
     Mockito.when(holdingService.getPermanentLocationByHoldingId(anyString()))
       .thenReturn("fcd64ce1-6995-48f0-840e-89ffa2288371");
-    Mockito.when(configurationService.getSystemCurrency())
-      .thenReturn("GBP");
+    Mockito.when(configurationService.getAddressConfig(any()))
+      .thenReturn("Bockenheimer Landstr. 134-13");
   }
 
   private void validateEdifactOrders(String ediOrder, String fileId) throws IOException {

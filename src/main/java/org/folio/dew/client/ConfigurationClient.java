@@ -17,7 +17,7 @@ public interface ConfigurationClient {
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   ConfigurationCollection getConfigurations(@RequestParam("query") String query);
 
-  @GetMapping(path = "/{entryId}")
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{entryId}")
   ModelConfiguration getConfigById(@PathVariable String entryId);
 
   @PostMapping

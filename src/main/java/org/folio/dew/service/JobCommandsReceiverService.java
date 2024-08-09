@@ -136,35 +136,6 @@ public class JobCommandsReceiverService {
   private void prepareJobParameters(JobCommand jobCommand) {
     var paramsBuilder = new JobParametersBuilder(jobCommand.getJobParameters());
 
-    // TODO enrich exportType.json with value MARC_EXPORT
-    if ("MARC_EXPORT".equals(jobCommand.getExportType().getValue())) {
-      var uploadedFilePath = jobCommand.getJobParameters().getString(FILE_NAME);
-      if (nonNull(uploadedFilePath) && FilenameUtils.isExtension(uploadedFilePath, "cql")) {
-        var tempIdentifiersFileName = workDir + FilenameUtils.getBaseName(uploadedFilePath) + CSV_EXTENSION;
-        try (var lines = localFilesStorage.lines(uploadedFilePath);
-             var outputStream = new FileOutputStream(tempIdentifiersFileName)) {
-          var query = lines.collect(Collectors.joining());
-          // TODO enrich entityType.json with values INSTANCE, HOLDINGS
-          InputStreamResource resource = null;
-          if ("INSTANCE".equals(jobCommand.getEntityType().getValue())) {
-            resource = searchClient.getInstanceIds(query).getBody();
-          } else if ("HOLDINGS".equals(jobCommand.getEntityType().getValue())) {
-            resource = searchClient.getHoldingIds(query).getBody();
-          }
-          if (nonNull(resource)) {
-            resource.getInputStream().transferTo(outputStream);
-          }
-          var identifiersUrl = remoteFilesStorage.objectToPresignedObjectUrl(
-            remoteFilesStorage.uploadObject(FilenameUtils.getName(tempIdentifiersFileName), tempIdentifiersFileName, null, "text/csv", true));
-          paramsBuilder.addString(FILE_NAME, identifiersUrl, JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
-        } catch (Exception e) {
-          var msg = String.format("Failed to read %s, reason: %s", FilenameUtils.getBaseName(uploadedFilePath), e.getMessage());
-          log.error(msg);
-          throw new FileOperationException(msg);
-        }
-      }
-    }
-
     var jobId = jobCommand.getId().toString();
     var outputFileName = fileNameResolver.resolve(jobCommand, workDir, jobId);
 

@@ -1,7 +1,6 @@
 package org.folio.dew.controller;
 
 import static java.lang.String.format;
-import static org.awaitility.Awaitility.await;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
@@ -12,7 +11,6 @@ import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -38,12 +36,9 @@ import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.IdentifierType;
-import org.folio.dew.domain.dto.Item;
-import org.folio.dew.domain.dto.ItemCollection;
 import org.folio.dew.domain.dto.Metadata;
 import org.folio.dew.domain.dto.Personal;
 import org.folio.dew.domain.dto.User;
-import org.folio.dew.domain.dto.UserCollection;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.service.JobCommandsReceiverService;
@@ -90,10 +85,9 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andReturn();
 
     assertThat(result.getResponse().getContentAsString(), equalTo("3"));
-    await().untilAsserted(() -> verify(exportJobManagerSync, times(1)).launchJob(any()));
     // Lets wait for async invocation to complete
-//    Thread.sleep(3000);
-//    verify(exportJobManagerSync, times(1)).launchJob(any());
+    Thread.sleep(3000);
+    verify(exportJobManagerSync, times(1)).launchJob(any());
   }
 
   @Test
@@ -211,57 +205,4 @@ class BulkEditControllerTest extends BaseBatchTest {
     return jobCommand;
   }
 
-  private UserCollection buildUserCollection() {
-    return new UserCollection()
-      .addUsersItem(new User().barcode("123").patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b"))
-      .addUsersItem(new User().barcode("456").patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b"))
-      .addUsersItem(new User().barcode("789").patronGroup("3684a786-6671-4268-8ed0-9db82ebca60b"))
-      .totalRecords(3);
-  }
-
-  private ItemCollection buildItemCollection() {
-    return new ItemCollection()
-      .addItemsItem(new Item().barcode("123"))
-      .addItemsItem(new Item().barcode("456"))
-      .addItemsItem(new Item().barcode("789"))
-      .totalRecords(3);
-  }
-
-  private void verifyLocationUpdate(ItemCollection expectedItems, ItemCollection actualItems) {
-    assertThat(expectedItems.getItems(), hasSize(actualItems.getItems().size()));
-    for (int i = 0; i < expectedItems.getItems().size(); i++) {
-      assertThat(expectedItems.getItems().get(i).getId(), equalTo(actualItems.getItems().get(i).getId()));
-      assertThat(expectedItems.getItems().get(i).getPermanentLocation(), equalTo(actualItems.getItems().get(i).getPermanentLocation()));
-      assertThat(expectedItems.getItems().get(i).getTemporaryLocation(), equalTo(actualItems.getItems().get(i).getTemporaryLocation()));
-      assertThat(expectedItems.getItems().get(i).getEffectiveLocation(), equalTo(actualItems.getItems().get(i).getEffectiveLocation()));
-    }
-  }
-
-  private void verifyLoanTypeUpdate(ItemCollection expectedItems, ItemCollection actualItems) {
-    assertThat(expectedItems.getItems(), hasSize(actualItems.getItems().size()));
-    for (int i = 0; i < expectedItems.getItems().size(); i++) {
-      assertThat(expectedItems.getItems().get(i).getId(), equalTo(actualItems.getItems().get(i).getId()));
-      assertThat(expectedItems.getItems().get(i).getPermanentLoanType(), equalTo(actualItems.getItems().get(i).getPermanentLoanType()));
-      assertThat(expectedItems.getItems().get(i).getTemporaryLoanType(), equalTo(actualItems.getItems().get(i).getTemporaryLoanType()));
-    }
-  }
-
-  private String getIdentifier(IdentifierType identifierType) {
-    switch (identifierType) {
-      case ID:
-        return "b7a9718a-0c26-4d43-ace9-52234ff74ad8";
-      case HRID:
-        return "it00000000002";
-      case HOLDINGS_RECORD_ID:
-        return "4929e3d5-8de5-4bb2-8818-3c23695e7505";
-      case BARCODE:
-        return "0001";
-      case FORMER_IDS:
-        return "former_id";
-      case ACCESSION_NUMBER:
-        return "accession_number";
-      default:
-        return null;
-    }
-  }
 }

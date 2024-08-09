@@ -103,12 +103,12 @@ class BulkEditTest extends BaseBatchTest {
   private static final String EXPECTED_HOLDINGS_OUTPUT_BY_ITEM_BARCODE_CSV = "src/test/resources/output/bulk_edit_holdings_records_by_item_barcode.csv";
   private static final String ITEM_IDENTIFIERS_BAD_REFERENCE_IDS_CSV = "src/test/resources/upload/item_identifiers_bad_reference.csv";
   private static final String EXPECTED_ITEMS_OUTPUT_BAD_REFERENCE_CSV = "src/test/resources/output/bulk_edit_items_reference_not_found.csv";
-  private final static String EXPECTED_ITEM_OUTPUT_BAD_REFERENCE_ERRORS = "src/test/resources/output/bulk_edit_items_bad_reference_errors.csv";
+  private static final String EXPECTED_ITEM_OUTPUT_BAD_REFERENCE_ERRORS = "src/test/resources/output/bulk_edit_items_bad_reference_errors.csv";
   private static final String ITEM_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV = "src/test/resources/upload/item_identifiers_empty_reference.csv";
   private static final String EXPECTED_ITEM_OUTPUT_EMPTY_REFERENCE_CSV = "src/test/resources/output/bulk_edit_items_empty_reference.csv";
   private static final String USER_IDENTIFIERS_BAD_REFERENCE_IDS_CSV = "src/test/resources/upload/user_identifiers_bad_reference.csv";
   private static final String EXPECTED_USER_OUTPUT_BAD_REFERENCE_CSV = "src/test/resources/output/bulk_edit_users_reference_not_found.csv";
-  private final static String EXPECTED_USER_OUTPUT_BAD_REFERENCE_ERRORS = "src/test/resources/output/bulk_edit_users_bad_reference_errors.csv";
+  private static final String EXPECTED_USER_OUTPUT_BAD_REFERENCE_ERRORS = "src/test/resources/output/bulk_edit_users_bad_reference_errors.csv";
   private static final String USER_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV = "src/test/resources/upload/user_identifiers_empty_reference.csv";
   private static final String EXPECTED_USER_OUTPUT_EMPTY_REFERENCE_CSV = "src/test/resources/output/bulk_edit_users_empty_reference.csv";
   private static final String BARCODES_CSV = "src/test/resources/upload/barcodes.csv";
@@ -123,17 +123,9 @@ class BulkEditTest extends BaseBatchTest {
   private static final String INSTANCE_ISSN_ISBN_CSV = "src/test/resources/upload/instance_ISSN_ISBN.csv";
   private static final String ITEM_BARCODES_DOUBLE_QOUTES_CSV = "src/test/resources/upload/item_barcodes_double_qoutes.csv";
   private static final String ITEM_HOLDINGS_CSV = "src/test/resources/upload/item_holdings.csv";
-  private static final String USER_RECORD_CSV = "src/test/resources/upload/bulk_edit_user_record.csv";
-  private static final String USER_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_user_record_not_found.csv";
-  private static final String USER_RECORD_CSV_BAD_CONTENT = "src/test/resources/upload/bulk_edit_user_record_bad_content.csv";
-  private static final String USER_RECORD_CSV_BAD_CUSTOM_FIELD = "src/test/resources/upload/bulk_edit_user_record_bad_custom_field.csv";
-  private static final String USER_RECORD_CSV_EMPTY_PATRON_GROUP = "src/test/resources/upload/bulk_edit_user_record_empty_patron_group.csv";
-  private static final String USER_RECORD_ROLLBACK_CSV = "test-directory/bulk_edit_rollback.csv";
   private static final String BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/barcodesSomeNotFound.csv";
   private static final String ITEM_BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/item_barcodes_some_not_found.csv";
   private static final String INSTANCE_HRIDS_SOME_NOT_FOUND = "src/test/resources/upload/instance_hrids_some_not_found.csv";
-  private static final String USERS_QUERY_FILE_PATH = "src/test/resources/upload/users_by_group.cql";
-  private static final String ITEMS_QUERY_FILE_PATH = "src/test/resources/upload/items_by_barcode.cql";
   private static final String QUERY_NO_GROUP_FILE_PATH = "src/test/resources/upload/active_no_group.cql";
   private static final String EXPECTED_BULK_EDIT_USER_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_output.csv";
   private static final String EXPECTED_BULK_EDIT_USER_PREFERRED_EMAIL_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_preferred_email_output.csv";
@@ -146,7 +138,6 @@ class BulkEditTest extends BaseBatchTest {
   private static final String EXPECTED_BULK_EDIT_INSTANCE_JSON_OUTPUT = "src/test/resources/output/bulk_edit_instance_identifiers_json_output.json";
   private static final String EXPECTED_BULK_EDIT_INSTANCE_BY_ISSN_JSON_OUTPUT = "src/test/resources/output/bulk_edit_instance_by_issn_json_output.json";
   private static final String EXPECTED_BULK_EDIT_INSTANCE_BY_ISBN_JSON_OUTPUT = "src/test/resources/output/bulk_edit_instance_by_isbn_json_output.json";
-  private static final String EXPECTED_BULK_EDIT_ITEM_QUERY_JSON_OUTPUT = "src/test/resources/output/bulk_edit_item_query_json_output.json";
 
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT = "src/test/resources/output/bulk_edit_holdings_records_output.csv";
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_JSON_OUTPUT = "src/test/resources/output/bulk_edit_holdings_records_json_output.json";
@@ -155,18 +146,17 @@ class BulkEditTest extends BaseBatchTest {
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT_ITEM_BARCODE = "src/test/resources/output/bulk_edit_holdings_records_output_item_barcode.csv";
   private static final String EXPECTED_BULK_EDIT_ITEM_OUTPUT_ESCAPED = "src/test/resources/output/bulk_edit_item_identifiers_output_escaped.csv";
   private static final String EXPECTED_NO_GROUP_OUTPUT = "src/test/resources/output/bulk_edit_no_group_output.csv";
-  private static final String EXPECTED_ITEMS_QUERY_OUTPUT = "src/test/resources/output/bulk_edit_item_query_output.csv";
-  private final static String EXPECTED_BULK_EDIT_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_user_identifiers_output_some_not_found.csv";
-  private final static String EXPECTED_BULK_EDIT_ITEM_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_item_identifiers_output_some_not_found.csv";
-  private final static String EXPECTED_BULK_EDIT_INSTANCE_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_instance_identifiers_output_some_not_found.csv";
-  private final static String EXPECTED_BULK_EDIT_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_user_identifiers_errors_output.csv";
-  private final static String EXPECTED_BULK_EDIT_ITEM_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_item_identifiers_errors_output.csv";
-  private final static String EXPECTED_BULK_EDIT_INSTANCE_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_instance_identifiers_errors_output.csv";
-  private final static String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS = "src/test/resources/output/bulk_edit_holdings_records_errors_output.csv";
-  private final static String EXPECTED_BULK_EDIT_HOLDINGS_BAD_REFERENCE_IDS_ERRORS = "src/test/resources/output/bulk_edit_holdings_records_bad_reference_ids_errors_output.csv";
-  private final static String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_INST_HRID = "src/test/resources/output/bulk_edit_holdings_records_errors_output_inst_hrid.csv";
+  private static final String EXPECTED_BULK_EDIT_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_user_identifiers_output_some_not_found.csv";
+  private static final String EXPECTED_BULK_EDIT_ITEM_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_item_identifiers_output_some_not_found.csv";
+  private static final String EXPECTED_BULK_EDIT_INSTANCE_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_instance_identifiers_output_some_not_found.csv";
+  private static final String EXPECTED_BULK_EDIT_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_user_identifiers_errors_output.csv";
+  private static final String EXPECTED_BULK_EDIT_ITEM_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_item_identifiers_errors_output.csv";
+  private static final String EXPECTED_BULK_EDIT_INSTANCE_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_instance_identifiers_errors_output.csv";
+  private static final String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS = "src/test/resources/output/bulk_edit_holdings_records_errors_output.csv";
+  private static final String EXPECTED_BULK_EDIT_HOLDINGS_BAD_REFERENCE_IDS_ERRORS = "src/test/resources/output/bulk_edit_holdings_records_bad_reference_ids_errors_output.csv";
+  private static final String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_INST_HRID = "src/test/resources/output/bulk_edit_holdings_records_errors_output_inst_hrid.csv";
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_ITEM_BARCODE = "src/test/resources/output/bulk_edit_holdings_records_errors_output_item_barcode.csv";
-  private final static String EXPECTED_BULK_EDIT_ITEM_IDENTIFIERS_HOLDINGS_ERRORS_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_holdings_errors_output.csv";
+  private static final String EXPECTED_BULK_EDIT_ITEM_IDENTIFIERS_HOLDINGS_ERRORS_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_holdings_errors_output.csv";
 
 
   @Autowired

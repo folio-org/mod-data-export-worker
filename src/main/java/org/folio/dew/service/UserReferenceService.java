@@ -94,34 +94,12 @@ public class UserReferenceService {
     }
   }
 
-  @Cacheable(cacheNames = "patronGroupIds")
-  public String getPatronGroupIdByName(String name) {
-    if (isEmpty(name)) {
-      throw new BulkEditException("Patron group can not be empty");
-    }
-    var response = groupClient.getGroupByQuery(String.format("group==\"%s\"", name));
-    if (response.getUsergroups().isEmpty()) {
-      var msg = "Invalid patron group value: " + name;
-      log.error(msg);
-      throw new BulkEditException(msg);
-    }
-    return response.getUsergroups().get(0).getId();
-  }
-
   @Cacheable(cacheNames = "customFields")
   public CustomField getCustomFieldByRefId(String refId) {
     return customFieldsClient.getCustomFieldsByQuery(getModuleId(MOD_USERS),String.format("refId==\"%s\"", refId))
     .getCustomFields().stream().filter(customField -> customField.getRefId().equals(refId))
       .findFirst()
       .orElseThrow(() -> new BulkEditException(format("Custom field with refId=%s not found", refId)));
-  }
-
-  @Cacheable(cacheNames = "customFields")
-  public CustomField getCustomFieldByName(String name) {
-    return customFieldsClient.getCustomFieldsByQuery(getModuleId(MOD_USERS), String.format("name==\"%s\"", name))
-      .getCustomFields().stream().filter(customField -> customField.getName().equals(name))
-      .findFirst()
-      .orElseThrow(() -> new BulkEditException(format("Custom field with name=%s not found", name)));
   }
 
   @Cacheable(cacheNames = "moduleIds")

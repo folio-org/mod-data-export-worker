@@ -25,11 +25,8 @@ import org.folio.dew.client.ServicePointClient;
 import org.folio.dew.client.StatisticalCodeClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
-import org.folio.dew.domain.dto.ItemLocation;
 import org.folio.dew.domain.dto.ItemLocationCollection;
-import org.folio.dew.domain.dto.LoanType;
 import org.folio.dew.domain.dto.LoanTypeCollection;
-import org.folio.dew.domain.dto.MaterialType;
 import org.folio.dew.domain.dto.MaterialTypeCollection;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.ConfigurationException;
@@ -48,16 +45,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemReferenceService extends FolioExecutionContextManager {
   private static final String QUERY_PATTERN_NAME = "name==\"%s\"";
-  private static final String QUERY_PATTERN_CODE = "code==\"%s\"";
-  private static final String QUERY_PATTERN_USERNAME = "username==\"%s\"";
   public static final String EFFECTIVE_LOCATION_ID = "effectiveLocationId";
 
   private final CallNumberTypeClient callNumberTypeClient;
   private final DamagedStatusClient damagedStatusClient;
   private final ItemNoteTypeClient itemNoteTypeClient;
-  private final ServicePointClient servicePointClient;
   private final StatisticalCodeClient statisticalCodeClient;
-  private final UserClient userClient;
   private final LocationClient locationClient;
   private final MaterialTypeClient materialTypeClient;
   private final HoldingClient holdingClient;
@@ -77,18 +70,6 @@ public class ItemReferenceService extends FolioExecutionContextManager {
     }
   }
 
-  @Cacheable(cacheNames = "callNumberTypeIds")
-  public String getCallNumberTypeIdByName(String name) {
-    if (isEmpty(name)) {
-      return null;
-    }
-    var response = callNumberTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
-    if (response.getCallNumberTypes().isEmpty()) {
-      return name;
-    }
-    return response.getCallNumberTypes().get(0).getId();
-  }
-
   @Cacheable(cacheNames = "damagedStatusNames")
   public String getDamagedStatusNameById(String damagedStatusId, ErrorServiceArgs args, String tenantId) {
     try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
@@ -97,18 +78,6 @@ public class ItemReferenceService extends FolioExecutionContextManager {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Damaged status was not found by id: [%s]", damagedStatusId)), args.getFileName());
       return damagedStatusId;
     }
-  }
-
-  @Cacheable(cacheNames = "damagedStatusIds")
-  public String getDamagedStatusIdByName(String name) {
-    if (isEmpty(name)) {
-      return null;
-    }
-    var response = damagedStatusClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
-    if (response.getItemDamageStatuses().isEmpty()) {
-      return name;
-    }
-    return response.getItemDamageStatuses().get(0).getId();
   }
 
   @Cacheable(cacheNames = "noteTypeNames")
@@ -121,30 +90,6 @@ public class ItemReferenceService extends FolioExecutionContextManager {
     }
   }
 
-  @Cacheable(cacheNames = "noteTypeIds")
-  public String getNoteTypeIdByName(String name) {
-    if (isEmpty(name)) {
-      return null;
-    }
-    var response = itemNoteTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
-    if (response.getItemNoteTypes().isEmpty()) {
-      return name;
-    }
-    return response.getItemNoteTypes().get(0).getId();
-  }
-
-  @Cacheable(cacheNames = "servicePointIds")
-  public String getServicePointIdByName(String name) {
-    if (isEmpty(name)) {
-      return null;
-    }
-    var response = servicePointClient.get(String.format(QUERY_PATTERN_NAME, name), 1L);
-    if (response.getServicepoints().isEmpty()) {
-      return name;
-    }
-    return response.getServicepoints().get(0).getId();
-  }
-
   @Cacheable(cacheNames = "statisticalCodeNames")
   public String getStatisticalCodeById(String statisticalCodeId, ErrorServiceArgs args, String tenantId) {
     try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
@@ -155,41 +100,9 @@ public class ItemReferenceService extends FolioExecutionContextManager {
     }
   }
 
-  @Cacheable(cacheNames = "statisticalCodeIds")
-  public String getStatisticalCodeIdByCode(String code) {
-    if (isEmpty(code)) {
-      return null;
-    }
-    var response = statisticalCodeClient.getByQuery(String.format(QUERY_PATTERN_CODE, code));
-    if (response.getStatisticalCodes().isEmpty()) {
-      return code;
-    }
-    return response.getStatisticalCodes().get(0).getId();
-  }
-
-  @Cacheable(cacheNames = "userIds")
-  public String getUserIdByUserName(String name) {
-    if (isEmpty(name)) {
-      return null;
-    }
-    var response = userClient.getUserByQuery(String.format(QUERY_PATTERN_USERNAME, name));
-    if (response.getUsers().isEmpty()) {
-      return name;
-    }
-    return response.getUsers().get(0).getId();
-  }
-
   @Cacheable(cacheNames = "locations")
   public ItemLocationCollection getItemLocationsByName(String name) {
     return locationClient.getLocationByQuery(String.format(QUERY_PATTERN_NAME, name));
-  }
-
-  public ItemLocation getLocationByName(String name) {
-    var locations = getItemLocationsByName(name);
-    if (locations.getLocations().isEmpty()) {
-      throw new BulkEditException("Location not found: " + name);
-    }
-    return locations.getLocations().get(0);
   }
 
   @Cacheable(cacheNames = "materialTypes")
@@ -197,25 +110,9 @@ public class ItemReferenceService extends FolioExecutionContextManager {
     return materialTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
   }
 
-  public MaterialType getMaterialTypeByName(String name) {
-    var types = getMaterialTypesByName(name);
-    if (types.getMtypes().isEmpty()) {
-      throw new BulkEditException("Material type not found: " + name);
-    }
-    return types.getMtypes().get(0);
-  }
-
   @Cacheable(cacheNames = "loanTypes")
   public LoanTypeCollection getLoanTypesByName(String name) {
     return loanTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
-  }
-
-  public LoanType getLoanTypeByName(String name) {
-    var loanTypes = getLoanTypesByName(name);
-    if (loanTypes.getLoantypes().isEmpty()) {
-      throw new BulkEditException("Loan type not found: " + name);
-    }
-    return loanTypes.getLoantypes().get(0);
   }
 
   @Cacheable(cacheNames = "holdings")

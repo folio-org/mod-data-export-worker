@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class ConfigurationService {
-
   private static final Logger logger = LogManager.getLogger();
 
   private final ConfigurationClient configurationClient;

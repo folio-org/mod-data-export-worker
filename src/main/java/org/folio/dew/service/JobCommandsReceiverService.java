@@ -3,7 +3,6 @@ package org.folio.dew.service;
 import static java.util.Objects.nonNull;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
@@ -107,9 +106,9 @@ public class JobCommandsReceiverService {
 
         prepareJobParameters(jobCommand);
 
-        if (Set.of(BULK_EDIT_IDENTIFIERS, BULK_EDIT_QUERY, BULK_EDIT_UPDATE).contains(jobCommand.getExportType())) {
+        if (Set.of(BULK_EDIT_IDENTIFIERS, BULK_EDIT_QUERY).contains(jobCommand.getExportType())) {
           addBulkEditJobCommand(jobCommand);
-          if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
+          if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())) {
             return;
           }
         }

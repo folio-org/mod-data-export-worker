@@ -28,7 +28,6 @@ import static org.folio.dew.domain.dto.JobParameterNames.TOTAL_RECORDS;
 import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.BulkEditProcessorHelper.convertToDate;
 import static org.folio.dew.utils.Constants.CHANGED_RECORDS;
-import static org.folio.dew.utils.Constants.CSV_EXTENSION;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.INITIAL_PREFIX;
@@ -62,7 +61,6 @@ import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
-import org.folio.dew.service.BulkEditChangedRecordsService;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.BulkEditStatisticService;
 import org.folio.dew.utils.CsvHelper;
@@ -83,7 +81,6 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
   private final LocalFilesStorage localFilesStorage;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   private final BulkEditStatisticService bulkEditStatisticService;
-  private final BulkEditChangedRecordsService changedRecordsService;
 
   @Override
   public void beforeJob(JobExecution jobExecution) {
@@ -111,15 +108,6 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
         handleProcessingMatchedRecordsAndErrors(jobExecution, jobId);
         handleProcessingMarcFile(jobExecution);
       }
-      if (isBulkEditUpdateJob(jobExecution)) {
-        handleProcessingChangedRecords(jobExecution);
-        String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId, jobExecution);
-        var isChangedRecordsLinkPresent = jobExecution.getExecutionContext().containsKey(OUTPUT_FILES_IN_STORAGE);
-        jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE,
-          (isChangedRecordsLinkPresent ? jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE) : EMPTY) +
-            PATHS_DELIMITER + (StringUtils.isNotBlank(downloadErrorLink) ? downloadErrorLink : EMPTY));
-
-      }
       processJobAfter(jobId, jobParameters);
     } else {
       if (jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue())) {
@@ -142,7 +130,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
     }
 
     var jobExecutionUpdate = createJobExecutionUpdate(jobId, jobExecution);
-    if (jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue()) || jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_IDENTIFIERS.getValue())) {
+    if (jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_IDENTIFIERS.getValue())) {
       var progress = new Progress();
       if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
         var fileName = FilenameUtils.getName(jobParameters.getString(FILE_NAME));
@@ -213,15 +201,11 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
 
   private void handleProcessingMatchedRecordsAndErrors(JobExecution jobExecution, String jobId) {
     String downloadErrorLink = bulkEditProcessingErrorsService.saveErrorFileAndGetDownloadLink(jobId, jobExecution);
-    jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution, false) + PATHS_DELIMITER + (isNull(downloadErrorLink) ? EMPTY : downloadErrorLink) + PATHS_DELIMITER + saveJsonResult(jobExecution, !isBulkEditUpdateJob(jobExecution)));
+    jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution, false) + PATHS_DELIMITER + (isNull(downloadErrorLink) ? EMPTY : downloadErrorLink) + PATHS_DELIMITER + saveJsonResult(jobExecution, true));
   }
 
   private void handleProcessingMarcFile(JobExecution jobExecution) {
     jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE) + PATHS_DELIMITER + saveMarcResult(jobExecution, false));
-  }
-
-  private void handleProcessingChangedRecords(JobExecution jobExecution) {
-    jobExecution.getExecutionContext().putString(OUTPUT_FILES_IN_STORAGE, saveResult(jobExecution, !isBulkEditUpdateJob(jobExecution)));
   }
 
   private void processJobAfter(String jobId, JobParameters jobParameters) {
@@ -322,21 +306,12 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
     return jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_IDENTIFIERS.getValue());
   }
 
-  private boolean isBulkEditUpdateJob(JobExecution jobExecution) {
-    return jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue());
-  }
-
-  private boolean isBulkEditContentUpdateJob(JobExecution jobExecution) {
-    return nonNull(jobExecution.getJobParameters().getString(UPDATED_FILE_NAME));
-  }
-
   private boolean isBulkEditQueryJob(JobExecution jobExecution) {
     return jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_QUERY.getValue());
   }
 
   private boolean isBulkEditJob(JobExecution jobExecution) {
-    return isBulkEditContentUpdateJob(jobExecution) || isBulkEditUpdateJob(jobExecution) ||
-      isBulkEditIdentifiersJob(jobExecution) || isBulkEditQueryJob(jobExecution);
+    return isBulkEditIdentifiersJob(jobExecution) || isBulkEditQueryJob(jobExecution);
   }
 
   private boolean isBursarFeesFinesJob(JobExecution jobExecution) {
@@ -395,13 +370,9 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
   }
 
   private String preparePath(JobExecution jobExecution) {
-    if (isBulkEditContentUpdateJob(jobExecution)) {
-      return jobExecution.getJobParameters().getString(UPDATED_FILE_NAME);
-    } else if (isBulkEditUpdateJob(jobExecution)) {
-      return prepareChangedUsersFile(jobExecution.getJobParameters().getString(FILE_NAME), jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID));
-    }
     return jobExecution.getJobParameters().getString(TEMP_OUTPUT_FILE_PATH);
   }
+
   private boolean noRecordsFound(String path) throws Exception {
     if (localFilesStorage.notExists(path) && !remoteFilesStorage.containsFile(path)) {
       log.error("Path to found records does not exist: {}", path);
@@ -419,11 +390,11 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
   }
 
   private String prepareObject(JobExecution jobExecution, String path) {
-    return jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID) + PATH_SEPARATOR + FilenameUtils.getName(path) + (!isBulkEditUpdateJob(jobExecution) ? CSV_EXTENSION : EMPTY);
+    return jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID) + PATH_SEPARATOR + FilenameUtils.getName(path);
   }
 
   private String prepareJsonObject(JobExecution jobExecution, String path) {
-    return jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID) + PATH_SEPARATOR + FilenameUtils.getName(path) + (!isBulkEditUpdateJob(jobExecution) ? ".json" : EMPTY);
+    return jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID) + PATH_SEPARATOR + FilenameUtils.getName(path);
   }
 
   private String prepareMrcObject(JobExecution jobExecution, String path) {
@@ -448,23 +419,6 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       .replace(MATCHED_RECORDS, CHANGED_RECORDS)
       .replace(UPDATED_PREFIX, EMPTY)
       .replace(INITIAL_PREFIX, EMPTY);
-  }
-
-  private String prepareChangedUsersFile(String path, String jobId) {
-    var updatedIds = changedRecordsService.fetchChangedUserIds(jobId);
-    if (isNull(updatedIds) || updatedIds.isEmpty()) {
-      return EMPTY;
-    }
-    try {
-      var updatedUserFormats = CsvHelper.readRecordsFromStorage(localFilesStorage, path, UserFormat.class, true)
-        .stream()
-        .filter(userFormat -> updatedIds.contains(userFormat.getId()))
-        .collect(Collectors.toList());
-      CsvHelper.saveRecordsToStorage(localFilesStorage, updatedUserFormats, UserFormat.class, path);
-    } catch (Exception e) {
-      log.error("Error processing file {}: {}", path, e.getMessage());
-    }
-    return path;
   }
 
 }

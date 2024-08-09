@@ -16,18 +16,13 @@ import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.repository.LocalFilesStorage;
-import org.folio.dew.service.BulkEditProcessingErrorsService;
-import org.folio.dew.service.update.BulkEditHoldingsContentUpdateService;
-import org.folio.dew.utils.Constants;
 import org.folio.spring.FolioExecutionContext;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -54,7 +49,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -79,7 +73,6 @@ import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_MARC_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_MARC_PATH;
-import static org.folio.dew.service.FolioExecutionContextManager.X_OKAPI_TENANT;
 import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
 import static org.folio.dew.utils.Constants.ENTITY_TYPE;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
@@ -190,19 +183,7 @@ class BulkEditTest extends BaseBatchTest {
   @Autowired
   private Job bulkEditItemCqlJob;
   @Autowired
-  private Job bulkEditUpdateUserRecordsJob;
-  @Autowired
-  private Job bulkEditUpdateItemRecordsJob;
-  @Autowired
-  private Job bulkEditRollBackJob;
-  @Autowired
-  private Job bulkEditUpdateHoldingsRecordsJob;
-  @Autowired
-  private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
-  @Autowired
   private LocalFilesStorage localFilesStorage;
-  @Autowired
-  private BulkEditHoldingsContentUpdateService bulkEditHoldingsContentUpdateService;
   @MockBean
   private InstanceClient instanceClient;
   @MockBean
@@ -334,7 +315,7 @@ class BulkEditTest extends BaseBatchTest {
       FilenameUtils.removeExtension((new File(path)).getName()) + "E" + FilenameUtils.getExtension(path);
     parametersBuilder.addString(FILE_NAME, file);
     localFilesStorage.write(file, Files.readAllBytes(of));
-    parametersBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, file, false), false);
+    parametersBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, file), false);
 
     var tempDir = getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + jobId;
     var tempFile = tempDir + PATH_SEPARATOR + of.getFileName();
@@ -385,7 +366,7 @@ class BulkEditTest extends BaseBatchTest {
       FilenameUtils.removeExtension((new File(path)).getName()) + "E" + FilenameUtils.getExtension(path);
     parametersBuilder.addString(FILE_NAME, file);
     localFilesStorage.write(file, Files.readAllBytes(of));
-    parametersBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, file, false), false);
+    parametersBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, file), false);
 
     var tempDir = getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + jobId;
     var tempFile = tempDir + PATH_SEPARATOR + of.getFileName();
@@ -614,19 +595,6 @@ class BulkEditTest extends BaseBatchTest {
   }
 
   @Test
-  @DisplayName("Run bulk-edit (user query) successfully")
-  void bulkEditUserQueryJobTest() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUserCqlJob);
-
-    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, USER, BARCODE, USERS_QUERY_FILE_PATH);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
-
-    verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_USER_OUTPUT, EXPECTED_BULK_EDIT_USER_JSON_OUTPUT);
-
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-  }
-
-  @Test
   @DisplayName("Process users without patron group id successfully")
   void shouldProcessUsersWithoutPatronGroupIdSuccessfully() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUserCqlJob);
@@ -636,65 +604,6 @@ class BulkEditTest extends BaseBatchTest {
 
     verifyFilesOutput(jobExecution, EXPECTED_NO_GROUP_OUTPUT);
 
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-  }
-
-  @Test
-  @Deprecated
-  @Disabled
-  @DisplayName("Run bulk-edit (item query) successfully")
-  void bulkEditItemQueryJobTest() throws Exception {
-    mockInstanceClient();
-
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditItemCqlJob);
-    when(folioExecutionContext.getAllHeaders()).thenReturn(Map.of(X_OKAPI_TENANT, List.of("original")));
-
-    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, ITEM, BARCODE, ITEMS_QUERY_FILE_PATH);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
-
-    verifyCsvAndJsonOutput(jobExecution, EXPECTED_ITEMS_QUERY_OUTPUT, EXPECTED_BULK_EDIT_ITEM_QUERY_JSON_OUTPUT);
-
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-  }
-
-  @Disabled
-  // TODO uncomment when resolved
-  @ParameterizedTest
-  @ValueSource(strings = {USER_RECORD_CSV, USER_RECORD_CSV_NOT_FOUND, USER_RECORD_CSV_BAD_CONTENT, USER_RECORD_CSV_BAD_CUSTOM_FIELD, USER_RECORD_CSV_EMPTY_PATRON_GROUP})
-  @DisplayName("Run update user records w/ and w/o errors")
-  void uploadUserRecordsJobTest(String csvFileName) throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateUserRecordsJob);
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, USER, BARCODE, csvFileName);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
-
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-
-    var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobExecution.getJobParameters().getString("jobId"), csvFileName, 10);
-
-    if (!USER_RECORD_CSV.equals(csvFileName)) {
-      if (USER_RECORD_CSV_BAD_CUSTOM_FIELD.equals(csvFileName)) {
-        assertThat(errors.getErrors()).hasSize(2);
-      } else {
-        assertThat(errors.getErrors()).hasSize(1);
-      }
-      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
-    } else {
-      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
-      assertThat(errors.getErrors()).isEmpty();
-    }
-  }
-
-  @Disabled
-  // TODO uncomment when resolved
-  @Test
-  @DisplayName("Run rollback user records successfully")
-  void rollBackUserRecordsJobTest() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditRollBackJob);
-    localFilesStorage.write(USER_RECORD_ROLLBACK_CSV, Files.readAllBytes(new File(USER_RECORD_CSV).toPath()));
-    var parametersBuilder = new JobParametersBuilder();
-    parametersBuilder.addString(Constants.JOB_ID, "74914e57-3406-4757-938b-9a3f718d0ee6");
-    parametersBuilder.addString(FILE_NAME, USER_RECORD_ROLLBACK_CSV);
-    JobExecution jobExecution = testLauncher.launchJob(parametersBuilder.toJobParameters());
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 
@@ -820,7 +729,7 @@ class BulkEditTest extends BaseBatchTest {
       var file = getWorkingDirectory("mod-data-export-worker", BULKEDIT_DIR_NAME)  +  FileNameUtils.getBaseName(path) + "E" + FileNameUtils.getExtension(path);
       parametersBuilder.addString(FILE_NAME, file);
       localFilesStorage.write(file, Files.readAllBytes(of));
-      parametersBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, file, false), false);
+      parametersBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, file), false);
     }
 
     var tempDir = getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + jobId;

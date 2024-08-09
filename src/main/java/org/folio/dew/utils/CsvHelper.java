@@ -82,9 +82,9 @@ public class CsvHelper {
     }
   }
 
-  public static <R extends BaseFilesStorage>  long countLines(R storage, String path, boolean skipHeaders) throws IOException {
+  public static <R extends BaseFilesStorage> long countLines(R storage, String path) throws IOException {
     try (var lines = storage.lines(path)) {
-      return skipHeaders ? lines.count() - 1 : lines.count();
+      return lines.count();
     }
   }
 }

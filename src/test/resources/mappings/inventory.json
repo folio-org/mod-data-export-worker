@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3D%2290000%22&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%2290000%22&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -29,7 +29,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=formerIds%3D90000&limit=1"
+        "url": "/inventory/items?query=formerIds%3D90000&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -42,7 +42,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3D%2212345%22&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%2212345%22&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -55,7 +55,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3D%22invalid_date%22&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%22invalid_date%22&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -68,7 +68,7 @@
     {
       "request": {
         "method": "GET",
-        "urlPattern": "/inventory/items\\?query=barcode%3D%3D%22bar\\d*%22&limit=1"
+        "urlPattern": "/inventory/items\\?query=barcode%3D%3D%22bar\\d*%22&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -81,7 +81,7 @@
     {
       "request": {
         "method": "GET",
-        "urlPattern": "/inventory/items\\?query=barcode%3D%3D%22foo\\d*%22&limit=1"
+        "urlPattern": "/inventory/items\\?query=barcode%3D%3D%22foo\\d*%22&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -107,7 +107,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3D%2210101%22&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%2210101%22&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -120,7 +120,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=formerIds%3D10101&limit=1"
+        "url": "/inventory/items?query=formerIds%3D10101&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -133,7 +133,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3D%22double_quote%22&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%22double_quote%22&limit=2147483647"
       },
       "response": {
         "status": 200,

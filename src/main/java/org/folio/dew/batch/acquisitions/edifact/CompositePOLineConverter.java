@@ -474,6 +474,14 @@ public class CompositePOLineConverter {
     return "";
   }
 
+
+  /**
+   * The method is using calculation that similar to calculation in mod-order (HelperUtils -> calculateCostUnitsTotal),
+   * Calculation don't include additional cost and discount.
+   *
+   * @param cost Cost object of ComPoLine
+   * @return unit price without discount and additional cost
+   */
   private String calculateCostUnitsTotal(Cost cost) {
     CurrencyUnit currency = Monetary.getCurrency(cost.getCurrency());
     MonetaryAmount total = Money.of(0, currency);

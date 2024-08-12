@@ -477,7 +477,7 @@ public class CompositePOLineConverter {
 
   /**
    * The method is using calculation that similar to calculation in mod-order (HelperUtils -> calculateCostUnitsTotal),
-   * Calculation don't include additional cost and discount.
+   * but without additional cost and discount.
    *
    * @param cost Cost object of ComPoLine
    * @return unit price without discount and additional cost

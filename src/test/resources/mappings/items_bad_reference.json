@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3D%22badCallNumberType%22&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%22badCallNumberType%22&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3D%22badDamagedStatus%22&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%22badDamagedStatus%22&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -29,7 +29,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3D%22badNoteType%22&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%22badNoteType%22&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -42,7 +42,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3D%22badStatisticalCode%22&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%22badStatisticalCode%22&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -55,7 +55,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3D%22badServicePoint%22&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%22badServicePoint%22&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -68,7 +68,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3D%22badUserName%22&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%22badUserName%22&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -81,7 +81,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3D%22emptyCallNumberType%22&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%22emptyCallNumberType%22&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -94,7 +94,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3D%22emptyDamagedStatus%22&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%22emptyDamagedStatus%22&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -107,7 +107,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3D%22emptyNoteType%22&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%22emptyNoteType%22&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -120,7 +120,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3D%22emptyServicePoint%22&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%22emptyServicePoint%22&limit=2147483647"
       },
       "response": {
         "status": 200,
@@ -133,7 +133,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/inventory/items?query=barcode%3D%3D%22emptyUserName%22&limit=1"
+        "url": "/inventory/items?query=barcode%3D%3D%22emptyUserName%22&limit=2147483647"
       },
       "response": {
         "status": 200,

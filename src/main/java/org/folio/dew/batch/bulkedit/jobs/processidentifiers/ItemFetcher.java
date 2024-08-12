@@ -93,8 +93,8 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
           tenantIds.forEach(tenantId -> {
             try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
               var url = format(getMatchPattern(identifierType), idType, identifier);
-              var itemCollection = inventoryClient.getItemByQuery(url, limit);
-              if (itemCollection.getTotalRecords() > limit) {
+              var itemCollection = inventoryClient.getItemByQuery(url, Integer.MAX_VALUE);
+              if (itemCollection.getItems().size() > limit) {
                 log.error("Central tenant case: response from {} for tenant {}: {}", url, tenantId, getResponseAsString(itemCollection));
                 throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
               }
@@ -118,8 +118,8 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
         // Process local tenant case
         var url = format(getMatchPattern(identifierType), idType, identifier);
         var currentTenantId = folioExecutionContext.getTenantId();
-        var itemCollection =  inventoryClient.getItemByQuery(url, limit);
-        if (itemCollection.getTotalRecords() > limit) {
+        var itemCollection =  inventoryClient.getItemByQuery(url, Integer.MAX_VALUE);
+        if (itemCollection.getItems().size() > limit) {
           log.error("Member/local tenant case: response from {} for tenant {}: {}", url, currentTenantId, getResponseAsString(itemCollection));
           throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
         }

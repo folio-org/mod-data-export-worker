@@ -2,13 +2,15 @@ package org.folio.dew.batch.acquisitions.edifact.services;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dew.client.ConfigurationClient;
 import org.folio.dew.domain.dto.ModelConfiguration;
-import org.springframework.boot.configurationprocessor.json.JSONException;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,7 @@ public class ConfigurationService {
   private static final Logger logger = LogManager.getLogger();
 
   private final ConfigurationClient configurationClient;
+  private final ObjectMapper objectMapper;
 
   private ModelConfiguration getConfigById(String configId) {
     return configurationClient.getConfigById(configId);
@@ -37,9 +40,9 @@ public class ConfigurationService {
       return "";
     }
     try {
-      var valueJsonObject = new JSONObject(addressConfig.getValue());
-      return valueJsonObject.has("address") ? valueJsonObject.get("address").toString() : "";
-    } catch (JSONException e) {
+      JsonNode valueJsonObject = objectMapper.readTree(addressConfig.getValue());
+      return valueJsonObject.has("address") ? valueJsonObject.get("address").asText() : "";
+    } catch (JsonProcessingException e) {
       logger.error("getAddressConfig:: Couldn't convert configValue: {} to json", addressConfig, e);
       return "";
     }

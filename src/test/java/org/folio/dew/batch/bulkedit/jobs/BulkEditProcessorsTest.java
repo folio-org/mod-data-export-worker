@@ -40,6 +40,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 
 class BulkEditProcessorsTest extends BaseBatchTest {
   @Autowired
@@ -127,8 +128,8 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   @ValueSource(strings = {"ID", "HRID", "BARCODE", "FORMER_IDS", "ACCESSION_NUMBER"})
   @SneakyThrows
   void shouldNotIncludeDuplicatedItems(String identifierType) {
-    when(inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), "duplicateIdentifier"), 1)).thenReturn(new ItemCollection().items(Collections.singletonList(new Item())).totalRecords(2));
-    when(inventoryClient.getItemByQuery("barcode==\"duplicateIdentifier\"", 1)).thenReturn(new ItemCollection().items(Collections.singletonList(new Item())).totalRecords(2));
+    when(inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), "duplicateIdentifier"), Integer.MAX_VALUE)).thenReturn(new ItemCollection().items(List.of(new Item(), new Item())).totalRecords(2));
+    when(inventoryClient.getItemByQuery("barcode==\"duplicateIdentifier\"", Integer.MAX_VALUE)).thenReturn(new ItemCollection().items(List.of(new Item(), new Item())).totalRecords(2));
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var identifier = new ItemIdentifier("duplicateIdentifier");

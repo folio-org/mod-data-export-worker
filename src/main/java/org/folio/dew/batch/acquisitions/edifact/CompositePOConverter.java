@@ -8,6 +8,7 @@ import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.acquisitions.edifact.EdiFileConfig;
+import org.folio.dew.error.NotFoundException;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -44,14 +45,18 @@ public class CompositePOConverter {
     messageSegmentCount++;
     writeVendor(ediFileConfig, writer);
 
-    if (!compPO.getCompositePoLines().isEmpty()
-        && compPO.getCompositePoLines().get(0).getVendorDetail() != null
-        && StringUtils.isNotBlank(compPO.getCompositePoLines().get(0).getVendorDetail().getVendorAccount())){
+    if (!compPO.getCompositePoLines().isEmpty()) {
+      String errMsg = String.format("CompositePoLines is not found for CompositeOrder '%s'", compPO.getId());
+      throw new NotFoundException(errMsg);
+    }
+
+    var comPoLine = compPO.getCompositePoLines().get(0);
+    if (comPoLine.getVendorDetail() != null && StringUtils.isNotBlank(comPoLine.getVendorDetail().getVendorAccount())){
       messageSegmentCount++;
       writeAccountNumber(compPO.getCompositePoLines().get(0).getVendorDetail().getVendorAccount(), writer);
     }
 
-    if (!compPO.getCompositePoLines().isEmpty() && compPO.getCompositePoLines().get(0).getCost() != null) {
+    if (comPoLine.getCost() != null && StringUtils.isNotBlank(comPoLine.getCost().getCurrency())) {
       messageSegmentCount++;
       String currency = compPO.getCompositePoLines().get(0).getCost().getCurrency();
       writeCurrency(currency, writer);

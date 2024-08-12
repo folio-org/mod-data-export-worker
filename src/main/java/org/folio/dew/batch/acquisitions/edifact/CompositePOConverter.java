@@ -51,7 +51,8 @@ public class CompositePOConverter {
       writeAccountNumber(compPO.getCompositePoLines().get(0).getVendorDetail().getVendorAccount(), writer);
     }
 
-    if (!compPO.getCompositePoLines().isEmpty()) {
+    boolean isPoLineCostExists = !compPO.getCompositePoLines().isEmpty() && compPO.getCompositePoLines().get(0).getCost() != null;
+    if (isPoLineCostExists) {
       messageSegmentCount++;
       String currency = compPO.getCompositePoLines().get(0).getCost().getCurrency();
       writeCurrency(currency, writer);

@@ -1,5 +1,9 @@
 package org.folio.dew.batch.acquisitions.edifact;
 
+import javax.money.CurrencyUnit;
+import javax.money.Monetary;
+import javax.money.MonetaryAmount;
+
 import io.xlate.edi.stream.EDIStreamException;
 import io.xlate.edi.stream.EDIStreamWriter;
 import liquibase.util.StringUtil;
@@ -10,10 +14,12 @@ import org.folio.dew.batch.acquisitions.edifact.services.LocationService;
 import org.folio.dew.batch.acquisitions.edifact.services.MaterialTypeService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.Contributor;
+import org.folio.dew.domain.dto.Cost;
 import org.folio.dew.domain.dto.FundDistribution;
 import org.folio.dew.domain.dto.Location;
 import org.folio.dew.domain.dto.ProductIdentifier;
 import org.folio.dew.domain.dto.ReferenceNumberItem;
+import org.javamoney.moneta.Money;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
@@ -104,6 +110,12 @@ public class CompositePOLineConverter {
     if (poLine.getCost().getPoLineEstimatedPrice() != null) {
       messageSegmentCount++;
       writePrice(poLine.getCost().getPoLineEstimatedPrice(), writer);
+    }
+
+    if (poLine.getCost().getListUnitPrice() != null || poLine.getCost().getListUnitPriceElectronic() != null) {
+      messageSegmentCount++;
+      String totalUnitPrice = calculateCostUnitsTotal(poLine.getCost());
+      writeUnitPrice(totalUnitPrice, writer);
     }
 
     messageSegmentCount++;
@@ -291,6 +303,15 @@ public class CompositePOLineConverter {
       .writeEndSegment();
   }
 
+  private void writeUnitPrice(String price, EDIStreamWriter writer) throws EDIStreamException {
+    writer.writeStartSegment("PRI")
+      .writeStartElement()
+      .writeComponent("AAB")
+      .writeComponent(price)
+      .endElement()
+      .writeEndSegment();
+  }
+
   private void writePoLineCurrency(CompositePoLine poLine, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("CUX")
       .writeStartElement()
@@ -451,5 +472,34 @@ public class CompositePOLineConverter {
       return locationService.getLocationCodeById(locationId);
     }
     return "";
+  }
+
+
+  /**
+   * The method is using calculation that similar to calculation in mod-order (HelperUtils -> calculateCostUnitsTotal),
+   * but without additional cost and discount.
+   *
+   * @param cost Cost object of ComPoLine
+   * @return unit price without discount and additional cost
+   */
+  private String calculateCostUnitsTotal(Cost cost) {
+    CurrencyUnit currency = Monetary.getCurrency(cost.getCurrency());
+    MonetaryAmount total = Money.of(0, currency);
+
+    // Physical resources price
+    if (cost.getListUnitPrice() != null && cost.getQuantityPhysical() != null) {
+      MonetaryAmount pPrice = Money.of(cost.getListUnitPrice(), currency)
+        .multiply(cost.getQuantityPhysical());
+      total = total.add(pPrice);
+    }
+
+    // Electronic resources price
+    if (cost.getListUnitPriceElectronic() != null && cost.getQuantityElectronic() != null) {
+      MonetaryAmount ePrice = Money.of(cost.getListUnitPriceElectronic(), currency)
+        .multiply(cost.getQuantityElectronic());
+      total = total.add(ePrice);
+    }
+
+    return total.toString();
   }
 }

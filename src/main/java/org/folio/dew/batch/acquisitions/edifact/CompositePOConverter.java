@@ -8,6 +8,7 @@ import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.acquisitions.edifact.EdiFileConfig;
+import org.folio.dew.error.NotFoundException;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -37,21 +38,26 @@ public class CompositePOConverter {
     messageSegmentCount++;
     writeOrderDate(compPO, writer);
 
+    String shipToAddress = configurationService.getAddressConfig(compPO.getShipTo());
     messageSegmentCount++;
-    writeLibrary(ediFileConfig, writer);
+    writeLibrary(ediFileConfig, shipToAddress, writer);
 
     messageSegmentCount++;
     writeVendor(ediFileConfig, writer);
 
-    if (!compPO.getCompositePoLines().isEmpty()
-        && compPO.getCompositePoLines().get(0).getVendorDetail() != null
-        && StringUtils.isNotBlank(compPO.getCompositePoLines().get(0).getVendorDetail().getVendorAccount())){
+    if (compPO.getCompositePoLines().isEmpty()) {
+      String errMsg = String.format("CompositePoLines is not found for CompositeOrder '%s'", compPO.getId());
+      throw new NotFoundException(errMsg);
+    }
+
+    var comPoLine = compPO.getCompositePoLines().get(0);
+    if (comPoLine.getVendorDetail() != null && StringUtils.isNotBlank(comPoLine.getVendorDetail().getVendorAccount())){
       messageSegmentCount++;
-      writeAccountNumber(compPO.getCompositePoLines().get(0).getVendorDetail().getVendorAccount(), writer);
+      writeAccountNumber(comPoLine.getVendorDetail().getVendorAccount(), writer);
     }
 
     messageSegmentCount++;
-    String currency = configurationService.getSystemCurrency();
+    String currency = comPoLine.getCost().getCurrency();
     writeCurrency(currency, writer);
 
     // Order lines
@@ -113,13 +119,19 @@ public class CompositePOConverter {
   }
 
   // Library ID and ID type
-  private void writeLibrary(EdiFileConfig ediFileConfig, EDIStreamWriter writer) throws EDIStreamException {
+  private void writeLibrary(EdiFileConfig ediFileConfig, String shipToAddress, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("NAD")
       .writeElement("BY")
       .writeStartElement()
       .writeComponent(ediFileConfig.getLibEdiCode())
       .writeComponent("")
       .writeComponent(ediFileConfig.getLibEdiType())
+      .endElement()
+      .writeStartElement()
+      .writeComponent("")
+      .endElement()
+      .writeStartElement()
+      .writeComponent(shipToAddress)
       .endElement()
       .writeEndSegment();
   }

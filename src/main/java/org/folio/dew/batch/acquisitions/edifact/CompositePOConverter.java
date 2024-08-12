@@ -53,14 +53,12 @@ public class CompositePOConverter {
     var comPoLine = compPO.getCompositePoLines().get(0);
     if (comPoLine.getVendorDetail() != null && StringUtils.isNotBlank(comPoLine.getVendorDetail().getVendorAccount())){
       messageSegmentCount++;
-      writeAccountNumber(compPO.getCompositePoLines().get(0).getVendorDetail().getVendorAccount(), writer);
+      writeAccountNumber(comPoLine.getVendorDetail().getVendorAccount(), writer);
     }
 
-    if (comPoLine.getCost() != null && StringUtils.isNotBlank(comPoLine.getCost().getCurrency())) {
-      messageSegmentCount++;
-      String currency = compPO.getCompositePoLines().get(0).getCost().getCurrency();
-      writeCurrency(currency, writer);
-    }
+    messageSegmentCount++;
+    String currency = comPoLine.getCost().getCurrency();
+    writeCurrency(currency, writer);
 
     // Order lines
     int totalQuantity = 0;

@@ -45,7 +45,7 @@ public class CompositePOConverter {
     messageSegmentCount++;
     writeVendor(ediFileConfig, writer);
 
-    if (!compPO.getCompositePoLines().isEmpty()) {
+    if (compPO.getCompositePoLines().isEmpty()) {
       String errMsg = String.format("CompositePoLines is not found for CompositeOrder '%s'", compPO.getId());
       throw new NotFoundException(errMsg);
     }

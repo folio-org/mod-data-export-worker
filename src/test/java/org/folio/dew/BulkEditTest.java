@@ -16,18 +16,13 @@ import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.repository.LocalFilesStorage;
-import org.folio.dew.service.BulkEditProcessingErrorsService;
-import org.folio.dew.service.update.BulkEditHoldingsContentUpdateService;
-import org.folio.dew.utils.Constants;
 import org.folio.spring.FolioExecutionContext;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -54,7 +49,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -79,7 +73,6 @@ import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_MARC_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_OUTPUT_MARC_PATH;
-import static org.folio.dew.service.FolioExecutionContextManager.X_OKAPI_TENANT;
 import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
 import static org.folio.dew.utils.Constants.ENTITY_TYPE;
 import static org.folio.dew.utils.Constants.EXPORT_TYPE;
@@ -110,12 +103,12 @@ class BulkEditTest extends BaseBatchTest {
   private static final String EXPECTED_HOLDINGS_OUTPUT_BY_ITEM_BARCODE_CSV = "src/test/resources/output/bulk_edit_holdings_records_by_item_barcode.csv";
   private static final String ITEM_IDENTIFIERS_BAD_REFERENCE_IDS_CSV = "src/test/resources/upload/item_identifiers_bad_reference.csv";
   private static final String EXPECTED_ITEMS_OUTPUT_BAD_REFERENCE_CSV = "src/test/resources/output/bulk_edit_items_reference_not_found.csv";
-  private final static String EXPECTED_ITEM_OUTPUT_BAD_REFERENCE_ERRORS = "src/test/resources/output/bulk_edit_items_bad_reference_errors.csv";
+  private static final String EXPECTED_ITEM_OUTPUT_BAD_REFERENCE_ERRORS = "src/test/resources/output/bulk_edit_items_bad_reference_errors.csv";
   private static final String ITEM_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV = "src/test/resources/upload/item_identifiers_empty_reference.csv";
   private static final String EXPECTED_ITEM_OUTPUT_EMPTY_REFERENCE_CSV = "src/test/resources/output/bulk_edit_items_empty_reference.csv";
   private static final String USER_IDENTIFIERS_BAD_REFERENCE_IDS_CSV = "src/test/resources/upload/user_identifiers_bad_reference.csv";
   private static final String EXPECTED_USER_OUTPUT_BAD_REFERENCE_CSV = "src/test/resources/output/bulk_edit_users_reference_not_found.csv";
-  private final static String EXPECTED_USER_OUTPUT_BAD_REFERENCE_ERRORS = "src/test/resources/output/bulk_edit_users_bad_reference_errors.csv";
+  private static final String EXPECTED_USER_OUTPUT_BAD_REFERENCE_ERRORS = "src/test/resources/output/bulk_edit_users_bad_reference_errors.csv";
   private static final String USER_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV = "src/test/resources/upload/user_identifiers_empty_reference.csv";
   private static final String EXPECTED_USER_OUTPUT_EMPTY_REFERENCE_CSV = "src/test/resources/output/bulk_edit_users_empty_reference.csv";
   private static final String BARCODES_CSV = "src/test/resources/upload/barcodes.csv";
@@ -130,17 +123,9 @@ class BulkEditTest extends BaseBatchTest {
   private static final String INSTANCE_ISSN_ISBN_CSV = "src/test/resources/upload/instance_ISSN_ISBN.csv";
   private static final String ITEM_BARCODES_DOUBLE_QOUTES_CSV = "src/test/resources/upload/item_barcodes_double_qoutes.csv";
   private static final String ITEM_HOLDINGS_CSV = "src/test/resources/upload/item_holdings.csv";
-  private static final String USER_RECORD_CSV = "src/test/resources/upload/bulk_edit_user_record.csv";
-  private static final String USER_RECORD_CSV_NOT_FOUND = "src/test/resources/upload/bulk_edit_user_record_not_found.csv";
-  private static final String USER_RECORD_CSV_BAD_CONTENT = "src/test/resources/upload/bulk_edit_user_record_bad_content.csv";
-  private static final String USER_RECORD_CSV_BAD_CUSTOM_FIELD = "src/test/resources/upload/bulk_edit_user_record_bad_custom_field.csv";
-  private static final String USER_RECORD_CSV_EMPTY_PATRON_GROUP = "src/test/resources/upload/bulk_edit_user_record_empty_patron_group.csv";
-  private static final String USER_RECORD_ROLLBACK_CSV = "test-directory/bulk_edit_rollback.csv";
   private static final String BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/barcodesSomeNotFound.csv";
   private static final String ITEM_BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/item_barcodes_some_not_found.csv";
   private static final String INSTANCE_HRIDS_SOME_NOT_FOUND = "src/test/resources/upload/instance_hrids_some_not_found.csv";
-  private static final String USERS_QUERY_FILE_PATH = "src/test/resources/upload/users_by_group.cql";
-  private static final String ITEMS_QUERY_FILE_PATH = "src/test/resources/upload/items_by_barcode.cql";
   private static final String QUERY_NO_GROUP_FILE_PATH = "src/test/resources/upload/active_no_group.cql";
   private static final String EXPECTED_BULK_EDIT_USER_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_output.csv";
   private static final String EXPECTED_BULK_EDIT_USER_PREFERRED_EMAIL_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_preferred_email_output.csv";
@@ -153,7 +138,6 @@ class BulkEditTest extends BaseBatchTest {
   private static final String EXPECTED_BULK_EDIT_INSTANCE_JSON_OUTPUT = "src/test/resources/output/bulk_edit_instance_identifiers_json_output.json";
   private static final String EXPECTED_BULK_EDIT_INSTANCE_BY_ISSN_JSON_OUTPUT = "src/test/resources/output/bulk_edit_instance_by_issn_json_output.json";
   private static final String EXPECTED_BULK_EDIT_INSTANCE_BY_ISBN_JSON_OUTPUT = "src/test/resources/output/bulk_edit_instance_by_isbn_json_output.json";
-  private static final String EXPECTED_BULK_EDIT_ITEM_QUERY_JSON_OUTPUT = "src/test/resources/output/bulk_edit_item_query_json_output.json";
 
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT = "src/test/resources/output/bulk_edit_holdings_records_output.csv";
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_JSON_OUTPUT = "src/test/resources/output/bulk_edit_holdings_records_json_output.json";
@@ -162,18 +146,17 @@ class BulkEditTest extends BaseBatchTest {
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT_ITEM_BARCODE = "src/test/resources/output/bulk_edit_holdings_records_output_item_barcode.csv";
   private static final String EXPECTED_BULK_EDIT_ITEM_OUTPUT_ESCAPED = "src/test/resources/output/bulk_edit_item_identifiers_output_escaped.csv";
   private static final String EXPECTED_NO_GROUP_OUTPUT = "src/test/resources/output/bulk_edit_no_group_output.csv";
-  private static final String EXPECTED_ITEMS_QUERY_OUTPUT = "src/test/resources/output/bulk_edit_item_query_output.csv";
-  private final static String EXPECTED_BULK_EDIT_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_user_identifiers_output_some_not_found.csv";
-  private final static String EXPECTED_BULK_EDIT_ITEM_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_item_identifiers_output_some_not_found.csv";
-  private final static String EXPECTED_BULK_EDIT_INSTANCE_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_instance_identifiers_output_some_not_found.csv";
-  private final static String EXPECTED_BULK_EDIT_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_user_identifiers_errors_output.csv";
-  private final static String EXPECTED_BULK_EDIT_ITEM_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_item_identifiers_errors_output.csv";
-  private final static String EXPECTED_BULK_EDIT_INSTANCE_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_instance_identifiers_errors_output.csv";
-  private final static String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS = "src/test/resources/output/bulk_edit_holdings_records_errors_output.csv";
-  private final static String EXPECTED_BULK_EDIT_HOLDINGS_BAD_REFERENCE_IDS_ERRORS = "src/test/resources/output/bulk_edit_holdings_records_bad_reference_ids_errors_output.csv";
-  private final static String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_INST_HRID = "src/test/resources/output/bulk_edit_holdings_records_errors_output_inst_hrid.csv";
+  private static final String EXPECTED_BULK_EDIT_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_user_identifiers_output_some_not_found.csv";
+  private static final String EXPECTED_BULK_EDIT_ITEM_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_item_identifiers_output_some_not_found.csv";
+  private static final String EXPECTED_BULK_EDIT_INSTANCE_OUTPUT_SOME_NOT_FOUND = "src/test/resources/output/bulk_edit_instance_identifiers_output_some_not_found.csv";
+  private static final String EXPECTED_BULK_EDIT_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_user_identifiers_errors_output.csv";
+  private static final String EXPECTED_BULK_EDIT_ITEM_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_item_identifiers_errors_output.csv";
+  private static final String EXPECTED_BULK_EDIT_INSTANCE_OUTPUT_ERRORS = "src/test/resources/output/bulk_edit_instance_identifiers_errors_output.csv";
+  private static final String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS = "src/test/resources/output/bulk_edit_holdings_records_errors_output.csv";
+  private static final String EXPECTED_BULK_EDIT_HOLDINGS_BAD_REFERENCE_IDS_ERRORS = "src/test/resources/output/bulk_edit_holdings_records_bad_reference_ids_errors_output.csv";
+  private static final String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_INST_HRID = "src/test/resources/output/bulk_edit_holdings_records_errors_output_inst_hrid.csv";
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_ERRORS_ITEM_BARCODE = "src/test/resources/output/bulk_edit_holdings_records_errors_output_item_barcode.csv";
-  private final static String EXPECTED_BULK_EDIT_ITEM_IDENTIFIERS_HOLDINGS_ERRORS_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_holdings_errors_output.csv";
+  private static final String EXPECTED_BULK_EDIT_ITEM_IDENTIFIERS_HOLDINGS_ERRORS_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_holdings_errors_output.csv";
 
 
   @Autowired
@@ -190,19 +173,7 @@ class BulkEditTest extends BaseBatchTest {
   @Autowired
   private Job bulkEditItemCqlJob;
   @Autowired
-  private Job bulkEditUpdateUserRecordsJob;
-  @Autowired
-  private Job bulkEditUpdateItemRecordsJob;
-  @Autowired
-  private Job bulkEditRollBackJob;
-  @Autowired
-  private Job bulkEditUpdateHoldingsRecordsJob;
-  @Autowired
-  private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
-  @Autowired
   private LocalFilesStorage localFilesStorage;
-  @Autowired
-  private BulkEditHoldingsContentUpdateService bulkEditHoldingsContentUpdateService;
   @MockBean
   private InstanceClient instanceClient;
   @MockBean
@@ -334,7 +305,7 @@ class BulkEditTest extends BaseBatchTest {
       FilenameUtils.removeExtension((new File(path)).getName()) + "E" + FilenameUtils.getExtension(path);
     parametersBuilder.addString(FILE_NAME, file);
     localFilesStorage.write(file, Files.readAllBytes(of));
-    parametersBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, file, false), false);
+    parametersBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, file), false);
 
     var tempDir = getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + jobId;
     var tempFile = tempDir + PATH_SEPARATOR + of.getFileName();
@@ -385,7 +356,7 @@ class BulkEditTest extends BaseBatchTest {
       FilenameUtils.removeExtension((new File(path)).getName()) + "E" + FilenameUtils.getExtension(path);
     parametersBuilder.addString(FILE_NAME, file);
     localFilesStorage.write(file, Files.readAllBytes(of));
-    parametersBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, file, false), false);
+    parametersBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, file), false);
 
     var tempDir = getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + jobId;
     var tempFile = tempDir + PATH_SEPARATOR + of.getFileName();
@@ -614,19 +585,6 @@ class BulkEditTest extends BaseBatchTest {
   }
 
   @Test
-  @DisplayName("Run bulk-edit (user query) successfully")
-  void bulkEditUserQueryJobTest() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUserCqlJob);
-
-    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, USER, BARCODE, USERS_QUERY_FILE_PATH);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
-
-    verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_USER_OUTPUT, EXPECTED_BULK_EDIT_USER_JSON_OUTPUT);
-
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-  }
-
-  @Test
   @DisplayName("Process users without patron group id successfully")
   void shouldProcessUsersWithoutPatronGroupIdSuccessfully() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUserCqlJob);
@@ -636,65 +594,6 @@ class BulkEditTest extends BaseBatchTest {
 
     verifyFilesOutput(jobExecution, EXPECTED_NO_GROUP_OUTPUT);
 
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-  }
-
-  @Test
-  @Deprecated
-  @Disabled
-  @DisplayName("Run bulk-edit (item query) successfully")
-  void bulkEditItemQueryJobTest() throws Exception {
-    mockInstanceClient();
-
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditItemCqlJob);
-    when(folioExecutionContext.getAllHeaders()).thenReturn(Map.of(X_OKAPI_TENANT, List.of("original")));
-
-    final JobParameters jobParameters = prepareJobParameters(ExportType.BULK_EDIT_QUERY, ITEM, BARCODE, ITEMS_QUERY_FILE_PATH);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
-
-    verifyCsvAndJsonOutput(jobExecution, EXPECTED_ITEMS_QUERY_OUTPUT, EXPECTED_BULK_EDIT_ITEM_QUERY_JSON_OUTPUT);
-
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-  }
-
-  @Disabled
-  // TODO uncomment when resolved
-  @ParameterizedTest
-  @ValueSource(strings = {USER_RECORD_CSV, USER_RECORD_CSV_NOT_FOUND, USER_RECORD_CSV_BAD_CONTENT, USER_RECORD_CSV_BAD_CUSTOM_FIELD, USER_RECORD_CSV_EMPTY_PATRON_GROUP})
-  @DisplayName("Run update user records w/ and w/o errors")
-  void uploadUserRecordsJobTest(String csvFileName) throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditUpdateUserRecordsJob);
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_UPDATE, USER, BARCODE, csvFileName);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
-
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-
-    var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobExecution.getJobParameters().getString("jobId"), csvFileName, 10);
-
-    if (!USER_RECORD_CSV.equals(csvFileName)) {
-      if (USER_RECORD_CSV_BAD_CUSTOM_FIELD.equals(csvFileName)) {
-        assertThat(errors.getErrors()).hasSize(2);
-      } else {
-        assertThat(errors.getErrors()).hasSize(1);
-      }
-      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
-    } else {
-      assertThat(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE)).isNotEmpty();
-      assertThat(errors.getErrors()).isEmpty();
-    }
-  }
-
-  @Disabled
-  // TODO uncomment when resolved
-  @Test
-  @DisplayName("Run rollback user records successfully")
-  void rollBackUserRecordsJobTest() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditRollBackJob);
-    localFilesStorage.write(USER_RECORD_ROLLBACK_CSV, Files.readAllBytes(new File(USER_RECORD_CSV).toPath()));
-    var parametersBuilder = new JobParametersBuilder();
-    parametersBuilder.addString(Constants.JOB_ID, "74914e57-3406-4757-938b-9a3f718d0ee6");
-    parametersBuilder.addString(FILE_NAME, USER_RECORD_ROLLBACK_CSV);
-    JobExecution jobExecution = testLauncher.launchJob(parametersBuilder.toJobParameters());
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 
@@ -820,7 +719,7 @@ class BulkEditTest extends BaseBatchTest {
       var file = getWorkingDirectory("mod-data-export-worker", BULKEDIT_DIR_NAME)  +  FileNameUtils.getBaseName(path) + "E" + FileNameUtils.getExtension(path);
       parametersBuilder.addString(FILE_NAME, file);
       localFilesStorage.write(file, Files.readAllBytes(of));
-      parametersBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, file, false), false);
+      parametersBuilder.addLong(TOTAL_CSV_LINES, countLines(localFilesStorage, file), false);
     }
 
     var tempDir = getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + jobId;

@@ -89,6 +89,46 @@ paths:
                 $ref: "#/components/examples/errors"
               schema:
                 $ref: "#/components/schemas/errors"
+  /{jobId}/errors:
+    get:
+      description: Get a list of errors for preview
+      operationId: getErrorsPreviewByJobId
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: UUID of the JobCommand
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+          description: The numbers of users to return
+      responses:
+        '200':
+          description: Collection of users for preview
+          content:
+            application/json:
+              example:
+                $ref: "#/components/examples/errors"
+              schema:
+                $ref: "#/components/schemas/errors"
+        '404':
+          description: No found
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Job not found
+        '500':
+          description: Internal server errors, e.g. due to misconfiguration
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Internal server error
 components:
   schemas:
     UUID:

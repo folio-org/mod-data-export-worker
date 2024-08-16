@@ -20,7 +20,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.config.properties.MinioClientProperties;
 import org.folio.dew.error.FileOperationException;
@@ -76,6 +75,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     final String bucketName = properties.getBucket();
     final String secretKey = properties.getSecretKey();
     isComposeWithAwsSdk = properties.isComposeWithAwsSdk();
+    final boolean isForcePathStyle = properties.isForcePathStyle();
     log.info("Creating MinIO client endpoint {},region {},bucket {},accessKey {},secretKey {}, isComposedWithAwsSdk {}.", endpoint, regionName, bucketName,
       StringUtils.isNotBlank(accessKey) ? "<set>" : "<not set>", StringUtils.isNotBlank(secretKey) ? "<set>" : "<not set>", isComposeWithAwsSdk);
 
@@ -111,6 +111,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
       }
 
       s3Client = S3Client.builder()
+        .forcePathStyle(isForcePathStyle)
         .endpointOverride(URI.create(endpoint))
         .region(Region.of(regionName))
         .credentialsProvider(credentialsProvider)

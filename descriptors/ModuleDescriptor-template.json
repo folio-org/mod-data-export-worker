@@ -264,6 +264,12 @@
         },
         {
           "methods": [ "GET" ],
+          "pathPattern": "/bulk-edit/{jobId}/errors",
+          "permissionsRequired": [ "bulk-edit.errors.collection.get" ],
+          "modulePermissions": []
+        },
+        {
+          "methods": [ "GET" ],
           "pathPattern": "/refresh-presigned-url",
           "permissionsRequired": [ "refresh-presigned-url.get" ],
           "modulePermissions": []
@@ -328,6 +334,11 @@
       "description": "Start update items"
     },
     {
+      "permissionName" : "bulk-edit.errors.collection.get",
+      "displayName" : "get errors for preview",
+      "description" : "Get errors for preview"
+    },
+    {
       "permissionName" : "refresh-presigned-url.get",
       "displayName" : "Get refreshed presigned url for export file",
       "description" : "Get refreshed presigned url for export file"
@@ -338,7 +349,8 @@
       "description" : "All permissions for bulk-edit module",
       "subPermissions" : [
         "bulk-edit.item.post",
-        "bulk-edit.start.item.post"
+        "bulk-edit.start.item.post",
+        "bulk-edit.errors.collection.get"
       ]
     },
     {

@@ -22,6 +22,7 @@ import static org.folio.dew.utils.CsvHelper.countLines;
 import static org.folio.dew.utils.SystemHelper.getTempDirWithSeparatorSuffix;
 import static org.folio.spring.scope.FolioExecutionScopeExecutionContextManager.getRunnableWithCurrentFolioContext;
 
+import io.swagger.annotations.ApiParam;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,13 +30,18 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.ExportJobManagerSync;
+import org.folio.dew.domain.dto.Errors;
 import org.folio.dew.error.NotFoundException;
 import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
@@ -47,7 +53,9 @@ import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -65,6 +73,7 @@ public class BulkEditController implements JobIdApi {
   private final ExportJobManagerSync exportJobManagerSync;
   private final List<Job> jobs;
   private final LocalFilesStorage localFilesStorage;
+  private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   private final FolioModuleMetadata folioModuleMetadata;
   private final FolioExecutionContext folioExecutionContext;
 
@@ -150,6 +159,16 @@ public class BulkEditController implements JobIdApi {
       return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
     }
     return new ResponseEntity<>(HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<Errors> getErrorsPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId, @NotNull @ApiParam(value = "The numbers of users to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
+    var jobCommand = getJobCommandById(jobId.toString());
+    var fileName = jobCommand.getId() + PATH_SEPARATOR + FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME));
+    log.info("downloadHoldingsPreviewByJobId:: fileName={}", fileName);
+
+    var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobId.toString(), fileName, limit);
+    return new ResponseEntity<>(errors, HttpStatus.OK);
   }
 
   private Job getBulkEditJob(JobCommand jobCommand) {

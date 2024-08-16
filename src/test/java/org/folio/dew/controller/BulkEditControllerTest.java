@@ -10,12 +10,17 @@ import static org.folio.dew.domain.dto.JobParameterNames.UPDATED_FILE_NAME;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.UPDATED_PREFIX;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.FileInputStream;
@@ -34,13 +39,16 @@ import org.folio.de.entity.JobCommandType;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.Errors;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.Metadata;
 import org.folio.dew.domain.dto.Personal;
 import org.folio.dew.domain.dto.User;
+import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,9 +59,11 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 
 class BulkEditControllerTest extends BaseBatchTest {
+  private static final String ERRORS_URL_TEMPLATE = "/bulk-edit/%s/errors";
   private static final String UPLOAD_URL_TEMPLATE = "/bulk-edit/%s/upload";
   private static final String USER_DATA = "src/test/resources/upload/user_data.csv";
   private static final String ITEM_DATA = "src/test/resources/upload/item_data.csv";
+  public static final String LIMIT = "limit";
   private static final UUID JOB_ID = UUID.randomUUID();
 
   @MockBean
@@ -64,6 +74,73 @@ class BulkEditControllerTest extends BaseBatchTest {
 
   @Autowired
   private LocalFilesStorage localFilesStorage;
+
+  @Autowired
+  private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
+
+  @Test
+  void shouldReturnErrorsPreview() throws Exception {
+
+    var jobId = JOB_ID;
+    var jobCommand = createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
+    int numOfErrorLines = 3;
+    int errorsPreviewLimit = 2;
+    var reasonForError = new BulkEditException("Record not found");
+    var fileName = "barcodes.csv";
+    for (int i = 0; i < numOfErrorLines; i++) {
+      bulkEditProcessingErrorsService.saveErrorInCSV(jobId.toString(), String.valueOf(i), reasonForError, fileName);
+    }
+    var headers = defaultHeaders();
+
+    var response = mockMvc.perform(get(format(ERRORS_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(errorsPreviewLimit)))
+      .andExpect(status().isOk());
+
+    var errors = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), Errors.class);
+
+    assertThat(errors.getErrors(), hasSize(errorsPreviewLimit));
+    assertThat(errors.getTotalRecords(), is(errorsPreviewLimit));
+
+    bulkEditProcessingErrorsService.removeTemporaryErrorStorage();
+  }
+
+  @Test
+  void shouldReturnEmptyErrorsForErrorsPreview() throws Exception {
+
+    var jobId = JOB_ID;
+    var jobCommand = createBulkEditJobRequest(jobId, BULK_EDIT_IDENTIFIERS, USER, BARCODE);
+    when(jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString())).thenReturn(Optional.of(jobCommand));
+
+    var headers = defaultHeaders();
+
+    var response = mockMvc.perform(get(format(ERRORS_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(2)))
+      .andExpect(status().isOk());
+
+    var errors = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), Errors.class);
+
+    assertThat(errors.getErrors(), empty());
+    assertThat(errors.getTotalRecords(), is(0));
+  }
+
+  @Test
+  void shouldReturnErrorsFileNotFoundErrorForErrorsPreview() throws Exception {
+
+    var jobId = JOB_ID;
+    var expectedJson = String.format("{\"errors\":[{\"message\":\"JobCommand with id %s doesn't exist.\",\"type\":\"-1\",\"code\":\"Not found\",\"parameters\":null}],\"total_records\":1}", jobId);
+
+    var headers = defaultHeaders();
+
+    mockMvc.perform(get(format(ERRORS_URL_TEMPLATE, jobId))
+        .headers(headers)
+        .queryParam(LIMIT, String.valueOf(2)))
+      .andExpect(status().isNotFound())
+      .andExpect(content().json(expectedJson));
+  }
 
   @Test
   @DisplayName("Launch job on upload file with identifiers successfully")

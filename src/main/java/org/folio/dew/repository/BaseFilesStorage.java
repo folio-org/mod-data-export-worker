@@ -558,6 +558,9 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     if (StringUtils.isBlank(folder) || StringUtils.startsWith(path, folder + PATH_SEPARATOR)) {
       return path;
     }
+    if (path.startsWith(PATH_SEPARATOR)) {
+      return folder + path;
+    }
     return folder + PATH_SEPARATOR + path;
   }
 }

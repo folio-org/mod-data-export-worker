@@ -34,7 +34,7 @@ application:
     accessKey: ${S3_ACCESS_KEY_ID:AKIAIOSFODNN7EXAMPLE}
     secretKey: ${S3_SECRET_ACCESS_KEY:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}
     composeWithAwsSdk: ${COMPOSE_WITH_AWS_SDK:false}
-    folder: ${S3_FOLDER:mod-data-export-worker-remote}
+    folder: ${S3_FOLDER:}
     url-expiration-time-in-seconds: ${URL_EXPIRATION_TIME:604800} # 7 days
   minio-local:
     endpoint: http://${embedded.minio.host}:${embedded.minio.port}/
@@ -43,7 +43,7 @@ application:
     accessKey: ${S3_ACCESS_KEY_ID:AKIAIOSFODNN7EXAMPLE}
     secretKey: ${S3_SECRET_ACCESS_KEY:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}
     composeWithAwsSdk: ${COMPOSE_WITH_AWS_SDK:false}
-    folder: ${S3_LOCAL_FOLDER:mod-data-export-worker-remote}
+    folder: ${S3_LOCAL_FOLDER:}
     url-expiration-time-in-seconds: ${URL_EXPIRATION_TIME:604800} # 7 days
   e-holdings-batch:
     job-chunk-size: 2

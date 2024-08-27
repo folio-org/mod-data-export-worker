@@ -78,7 +78,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     final String secretKey = properties.getSecretKey();
     subPath = properties.getSubPath();
     isComposeWithAwsSdk = properties.isComposeWithAwsSdk();
-    log.info("Creating MinIO client endpoint {},region {},bucket {},accessKey {},secretKey {}, folder {}, isComposedWithAwsSdk {}.", endpoint, regionName, bucketName,
+    log.info("Creating MinIO client endpoint {},region {},bucket {},accessKey {},secretKey {}, subPath {}, isComposedWithAwsSdk {}.", endpoint, regionName, bucketName,
       StringUtils.isNotBlank(accessKey) ? "<set>" : "<not set>", StringUtils.isNotBlank(secretKey) ? "<set>" : "<not set>",
       StringUtils.isNotBlank(subPath) ? "<set>" : "<not set>", isComposeWithAwsSdk);
 

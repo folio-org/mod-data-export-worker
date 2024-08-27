@@ -35,7 +35,7 @@ public class MinioClientProperties {
   private boolean composeWithAwsSdk;
 
   /**
-   * Folder in s3 bucket.
+   * Path in s3 bucket.
    */
   private String subPath;
 

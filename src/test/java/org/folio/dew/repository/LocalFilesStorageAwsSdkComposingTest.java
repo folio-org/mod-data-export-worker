@@ -42,7 +42,7 @@ class LocalFilesStorageAwsSdkComposingTest {
 
     byte[] original = getRandomBytes(size);
     var remoteFilePath = "CSV_Data.csv";
-    var expectedS3Path = localFilesStorageProperties + PATH_SEPARATOR + remoteFilePath;
+    var expectedS3Path = localFilesStorageProperties.getSubPath() + PATH_SEPARATOR + remoteFilePath;
 
     assertThat(localFilesStorage.write(remoteFilePath, original), is(expectedS3Path));
     assertTrue(localFilesStorage.exists(remoteFilePath));

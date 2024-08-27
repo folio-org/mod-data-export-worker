@@ -108,7 +108,7 @@ public class RemoteFilesStorage extends BaseFilesStorage {
     log.info("Deleting objects [{}].", StringUtils.join(objects, ","));
     return client.removeObjects(RemoveObjectsArgs.builder()
         .bucket(bucket)
-        .objects(objects.stream().map(this::getS3Path).map(DeleteObject::new).collect(Collectors.toList()))
+        .objects(objects.stream().map(this::getS3Path).map(DeleteObject::new).toList())
         .build());
   }
 

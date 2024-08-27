@@ -85,7 +85,7 @@ application:
     accessKey: ${S3_ACCESS_KEY_ID:}
     secretKey: ${S3_SECRET_ACCESS_KEY:}
     composeWithAwsSdk: ${COMPOSE_WITH_AWS_SDK:false}
-    subPath: ${S3_SUB_PATH:mod-data-export-worker-remote}
+    subPath: ${S3_SUB_PATH:mod-data-export-worker/remote}
     url-expiration-time-in-seconds: ${URL_EXPIRATION_TIME:604800} # 7 days
   minio-local:
     endpoint: ${S3_URL:http://127.0.0.1:9000/}
@@ -94,7 +94,7 @@ application:
     accessKey: ${S3_ACCESS_KEY_ID:}
     secretKey: ${S3_SECRET_ACCESS_KEY:}
     composeWithAwsSdk: ${COMPOSE_WITH_AWS_SDK:false}
-    subPath: ${S3_LOCAL_SUB_PATH:mod-data-export-worker-local}
+    subPath: ${S3_LOCAL_SUB_PATH:mod-data-export-worker/local}
     url-expiration-time-in-seconds: ${URL_EXPIRATION_TIME:604800} # 7 days
   ftp:
     bufferSize: 1048576 #that 1024 * 1024

@@ -37,7 +37,7 @@ public class MinioClientProperties {
   /**
    * Folder in s3 bucket.
    */
-  private String folder;
+  private String subPath;
 
   /**
    * Presigned url expiration time (in seconds).

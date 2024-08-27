@@ -78,6 +78,7 @@ public class RemoteFilesStorage extends BaseFilesStorage {
   public boolean containsFile(String fileName)
     throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException,
     InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+    fileName = getS3Path(fileName);
     for (Result<Item> itemResult : client.listObjects(ListObjectsArgs.builder().bucket(bucket).prefix(getS3Path(fileName)).build())) {
       if (fileName.equals(itemResult.get().objectName())) {
         return true;

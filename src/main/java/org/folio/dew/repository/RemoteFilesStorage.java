@@ -75,16 +75,10 @@ public class RemoteFilesStorage extends BaseFilesStorage {
     return result;
   }
 
-  public void downloadObject(String objectToGet, String fileToSave) throws IOException, InvalidKeyException,
-    InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,
-    InternalException, XmlParserException, ErrorResponseException {
-    localFilesStorage.write(fileToSave, client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectToGet).build()).readAllBytes());
-  }
-
   public boolean containsFile(String fileName)
     throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException,
     InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-    for (Result<Item> itemResult : client.listObjects(ListObjectsArgs.builder().bucket(bucket).prefix(fileName).build())) {
+    for (Result<Item> itemResult : client.listObjects(ListObjectsArgs.builder().bucket(bucket).prefix(getS3Path(fileName)).build())) {
       if (fileName.equals(itemResult.get().objectName())) {
         return true;
       }
@@ -114,7 +108,7 @@ public class RemoteFilesStorage extends BaseFilesStorage {
     log.info("Deleting objects [{}].", StringUtils.join(objects, ","));
     return client.removeObjects(RemoveObjectsArgs.builder()
         .bucket(bucket)
-        .objects(objects.stream().map(DeleteObject::new).collect(Collectors.toList()))
+        .objects(objects.stream().map(this::getS3Path).map(DeleteObject::new).collect(Collectors.toList()))
         .build());
   }
 

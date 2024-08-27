@@ -62,6 +62,8 @@ import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 @Log4j2
 public class BaseFilesStorage implements S3CompatibleStorage {
 
+  private static final String SET_VALUE = "<set>";
+  private static final String NOT_SET_VALUE = "<not set>";
   private final MinioClient client;
   private S3Client s3Client;
   private final String bucket;
@@ -79,8 +81,8 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     subPath = properties.getSubPath();
     isComposeWithAwsSdk = properties.isComposeWithAwsSdk();
     log.info("Creating MinIO client endpoint {},region {},bucket {},accessKey {},secretKey {}, subPath {}, isComposedWithAwsSdk {}.", endpoint, regionName, bucketName,
-      StringUtils.isNotBlank(accessKey) ? "<set>" : "<not set>", StringUtils.isNotBlank(secretKey) ? "<set>" : "<not set>",
-      StringUtils.isNotBlank(subPath) ? "<set>" : "<not set>", isComposeWithAwsSdk);
+      StringUtils.isNotBlank(accessKey) ? SET_VALUE : NOT_SET_VALUE, StringUtils.isNotBlank(secretKey) ? SET_VALUE : NOT_SET_VALUE,
+      StringUtils.isNotBlank(subPath) ? SET_VALUE : NOT_SET_VALUE, isComposeWithAwsSdk);
 
     var builder = MinioClient.builder().endpoint(endpoint);
     if (StringUtils.isNotBlank(regionName)) {

@@ -52,6 +52,7 @@
         <folio-spring-base.version>8.1.0</folio-spring-base.version>
         <folio-service-tools.version>3.1.0</folio-service-tools.version>
         <folio-spring-cql.version>8.1.0</folio-spring-cql.version>
+        <folio-s3-client.version>2.2.0-SNAPSHOT</folio-s3-client.version>
         <commons-io.version>2.11.0</commons-io.version>
         <minio.version>8.5.9</minio.version>
         <openapi-generator.version>6.2.1</openapi-generator.version>
@@ -107,6 +108,11 @@
         <groupId>org.folio</groupId>
         <artifactId>folio-spring-cql</artifactId>
         <version>${folio-spring-cql.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.folio</groupId>
+        <artifactId>folio-s3-client</artifactId>
+        <version>${folio-s3-client.version}</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.datatype</groupId>

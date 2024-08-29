@@ -33,7 +33,7 @@ application:
     bucket: ${S3_BUCKET:files-test}
     accessKey: ${S3_ACCESS_KEY_ID:AKIAIOSFODNN7EXAMPLE}
     secretKey: ${S3_SECRET_ACCESS_KEY:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}
-    composeWithAwsSdk: ${COMPOSE_WITH_AWS_SDK:false}
+    composeWithAwsSdk: ${S3_IS_AWS:false}
     subPath: ${S3_SUB_PATH:remote}
     url-expiration-time-in-seconds: ${URL_EXPIRATION_TIME:604800} # 7 days
   minio-local:
@@ -42,7 +42,7 @@ application:
     bucket: ${S3_BUCKET:files-test}
     accessKey: ${S3_ACCESS_KEY_ID:AKIAIOSFODNN7EXAMPLE}
     secretKey: ${S3_SECRET_ACCESS_KEY:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}
-    composeWithAwsSdk: ${COMPOSE_WITH_AWS_SDK:false}
+    composeWithAwsSdk: ${S3_IS_AWS:false}
     subPath: ${S3_LOCAL_SUB_PATH:local}
     url-expiration-time-in-seconds: ${URL_EXPIRATION_TIME:604800} # 7 days
   e-holdings-batch:

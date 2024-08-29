@@ -9,8 +9,6 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.repository.BaseFilesStorage;
-import org.folio.dew.repository.LocalFilesStorage;
-import org.folio.dew.repository.S3CompatibleStorage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -47,7 +45,7 @@ public class CsvHelper {
     }
   }
 
-  public static <T> void saveRecordsToStorage(LocalFilesStorage storage, List<T> beans, Class<T> clazz, String fileName)
+  public static <T, R extends BaseFilesStorage> void saveRecordsToStorage(R storage, List<T> beans, Class<T> clazz, String fileName)
     throws CsvRequiredFieldEmptyException, CsvDataTypeMismatchException, IOException {
     var strategy = new RecordColumnMappingStrategy<T>();
     strategy.setType(clazz);
@@ -84,7 +82,7 @@ public class CsvHelper {
     }
   }
 
-  public static long countLines(LocalFilesStorage storage, String path) throws IOException {
+  public static <R extends BaseFilesStorage> long countLines(R storage, String path) throws IOException {
     try (var lines = storage.lines(path)) {
       return lines.count();
     }

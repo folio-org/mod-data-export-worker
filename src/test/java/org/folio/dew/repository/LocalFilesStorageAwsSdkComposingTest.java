@@ -1,7 +1,6 @@
 package org.folio.dew.repository;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.folio.dew.BaseBatchTest;
 import org.folio.dew.config.properties.LocalFilesStorageProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,13 +19,19 @@ import io.minio.ObjectWriteArgs;
 import lombok.extern.log4j.Log4j2;
 
 import static java.util.stream.Collectors.toList;
+import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Log4j2
-class LocalFilesStorageAwsSdkComposingTest extends BaseBatchTest  {
+@SpringBootTest(classes = { LocalFilesStorageProperties.class, LocalFilesStorage.class }, properties = {
+    "application.minio-local.compose-with-aws-sdk = true" })
+@EnableConfigurationProperties
+class LocalFilesStorageAwsSdkComposingTest {
 
+  @Autowired
+  private LocalFilesStorageProperties localFilesStorageProperties;
   @Autowired
   private LocalFilesStorage localFilesStorage;
 
@@ -37,8 +42,9 @@ class LocalFilesStorageAwsSdkComposingTest extends BaseBatchTest  {
 
     byte[] original = getRandomBytes(size);
     var remoteFilePath = "CSV_Data.csv";
+    var expectedS3Path = localFilesStorageProperties.getSubPath() + PATH_SEPARATOR + remoteFilePath;
 
-    assertThat(localFilesStorage.write(remoteFilePath, original), is(remoteFilePath));
+    assertThat(localFilesStorage.write(remoteFilePath, original), is(expectedS3Path));
     assertTrue(localFilesStorage.exists(remoteFilePath));
 
     assertTrue(Objects.deepEquals(localFilesStorage.readAllBytes(remoteFilePath), original));

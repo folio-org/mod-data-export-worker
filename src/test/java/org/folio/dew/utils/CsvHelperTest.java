@@ -4,18 +4,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
-import org.folio.dew.BaseBatchTest;
+import org.folio.dew.config.properties.LocalFilesStorageProperties;
 import org.folio.dew.domain.dto.ItemFormat;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-class CsvHelperTest extends BaseBatchTest {
+@SpringBootTest(classes = { LocalFilesStorageProperties.class, LocalFilesStorage.class })
+@EnableConfigurationProperties
+class CsvHelperTest {
   private static final String OUT_PATH = "test-dir/out.csv";
   @Autowired
   private LocalFilesStorage localFilesStorage;

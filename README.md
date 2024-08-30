@@ -34,7 +34,7 @@ Any S3-compatible storage (AWS S3, Minio Server) supported by the Minio Client c
 AWS configuration (AWS_URL, AWS_REGION, AWS_BUCKET, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) of the permanent storage, 
 one need to configure the environment settings for s3 subpathes (S3_SUB_PATH, S3_LOCAL_SUB_PATH). 
 Typically, these options must specify a separate pathes.
-It is also necessary to specify variable COMPOSE_WITH_AWS_SDK to determine if AWS S3 is used as files storage. By default this variable is `false` and means that MinIO server is used as files storage.
+It is also necessary to specify variable S3_IS_AWS to determine if AWS S3 is used as files storage. By default this variable is `false` and means that MinIO server is used as files storage.
 This value should be `true` if AWS S3 is used as storage.
 
 | Name                                              | Default value                 | Description                                                                                                                                                                                           |

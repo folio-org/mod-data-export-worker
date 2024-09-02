@@ -73,7 +73,7 @@ class BulkEditProcessorsTest extends BaseBatchTest {
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters());
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var itemFormat = bulkEditItemProcessor.process(item);
-      assertEquals("0e40884c-3523-4c6d-8187-d578e3d2794e;note;|0e40884c-3523-4c6d-8187-d578e3d2794e;note;false", itemFormat.getNotes());
+      assertEquals("0e40884c-3523-4c6d-8187-d578e3d2794e;note;;tenant;0e40884c-3523-4c6d-8187-d578e3d2794e|0e40884c-3523-4c6d-8187-d578e3d2794e;note;false;tenant;0e40884c-3523-4c6d-8187-d578e3d2794e", itemFormat.getNotes());
       assertEquals("check in (staff only) | check in", itemFormat.getCheckInNotes());
       assertEquals("books;be53b4c9-6eb8-4bdf-a785-904cccd04146", itemFormat.getStatisticalCodes());
       assertEquals("hrid;hrid;title|;;", itemFormat.getBoundWithTitles());

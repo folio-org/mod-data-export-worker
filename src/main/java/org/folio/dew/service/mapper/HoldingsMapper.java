@@ -73,7 +73,7 @@ public class HoldingsMapper {
   }
 
   private String notesToString(List<HoldingsNote> notes, ErrorServiceArgs args, String tenantId) {
-    var res = isEmpty(notes) ? EMPTY : notes.stream()
+    return isEmpty(notes) ? EMPTY : notes.stream()
       .filter(Objects::nonNull)
       .map(note -> String.join(ARRAY_DELIMITER,
         escaper.escape(holdingsReferenceService.getNoteTypeNameById(note.getHoldingsNoteTypeId(), args, tenantId)),
@@ -82,7 +82,6 @@ public class HoldingsMapper {
         tenantId,
         note.getHoldingsNoteTypeId()))
       .collect(Collectors.joining(ITEM_DELIMITER));
-    return res;
   }
 
   private String holdingsStatementsToString(List<HoldingsStatement> statements) {

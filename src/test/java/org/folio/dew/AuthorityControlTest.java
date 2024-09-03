@@ -50,7 +50,7 @@ class AuthorityControlTest extends BaseBatchTest {
     "src/test/resources/output/authority_control/auth_heading_update.csv";
   private static final String EXPECTED_AUTH_HEADING_UPDATE_EMPTY_OUTPUT =
     "src/test/resources/output/authority_control/auth_heading_update_empty.csv";
-  private static final String FILE_PATH = "mod-data-export-worker/authority_control_export/diku/";
+  private static final String EXPECTED_S3_FILE_PATH = "remote/mod-data-export-worker/authority_control_export/diku/";
   @Autowired
   private Job getAuthHeadingJob;
   @Autowired
@@ -129,7 +129,7 @@ class AuthorityControlTest extends BaseBatchTest {
     final String fileInStorage = executionContext.getString(OUTPUT_FILES_IN_STORAGE);
     final String fileName = executionContext.getString(AUTHORITY_CONTROL_FILE_NAME);
 
-    assertEquals(FILE_PATH + fileName, fileInStorage);
+    assertEquals(EXPECTED_S3_FILE_PATH + fileName, fileInStorage);
     verifyFileOutput(fileInStorage, expectedFile);
   }
 
@@ -148,7 +148,7 @@ class AuthorityControlTest extends BaseBatchTest {
     final String filePath = job.getFiles().get(0);
     final String fileName = job.getFileNames().get(0);
 
-    assertEquals(FILE_PATH + fileName, filePath);
+    assertEquals(EXPECTED_S3_FILE_PATH + fileName, filePath);
   }
 
   @SneakyThrows

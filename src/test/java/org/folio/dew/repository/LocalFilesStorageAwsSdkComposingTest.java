@@ -19,6 +19,7 @@ import io.minio.ObjectWriteArgs;
 import lombok.extern.log4j.Log4j2;
 
 import static java.util.stream.Collectors.toList;
+import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class LocalFilesStorageAwsSdkComposingTest {
 
   @Autowired
+  private LocalFilesStorageProperties localFilesStorageProperties;
+  @Autowired
   private LocalFilesStorage localFilesStorage;
 
   @ParameterizedTest
@@ -39,8 +42,9 @@ class LocalFilesStorageAwsSdkComposingTest {
 
     byte[] original = getRandomBytes(size);
     var remoteFilePath = "CSV_Data.csv";
+    var expectedS3Path = localFilesStorageProperties.getSubPath() + PATH_SEPARATOR + remoteFilePath;
 
-    assertThat(localFilesStorage.write(remoteFilePath, original), is(remoteFilePath));
+    assertThat(localFilesStorage.write(remoteFilePath, original), is(expectedS3Path));
     assertTrue(localFilesStorage.exists(remoteFilePath));
 
     assertTrue(Objects.deepEquals(localFilesStorage.readAllBytes(remoteFilePath), original));

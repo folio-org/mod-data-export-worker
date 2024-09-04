@@ -146,7 +146,7 @@
   "provides": [
     {
       "id": "bulk-edit",
-      "version": "4.0",
+      "version": "4.1",
       "handlers": [
         {
           "methods": [ "POST" ],
@@ -273,6 +273,18 @@
           "pathPattern": "/refresh-presigned-url",
           "permissionsRequired": [ "refresh-presigned-url.get" ],
           "modulePermissions": []
+        },
+        {
+          "methods": [ "GET" ],
+          "pathPattern": "/permissions-self-check",
+          "permissionsRequired": [ "permissions-self-check.get" ],
+          "permissionsDesired": [
+            "ui-inventory.instance.view",
+            "ui-inventory.holdings.create",
+            "ui-inventory.holdings.edit",
+            "ui-inventory.holdings.delete"
+          ],
+          "modulePermissions": []
         }
       ]
     },
@@ -344,13 +356,19 @@
       "description" : "Get refreshed presigned url for export file"
     },
     {
+      "permissionName" : "permissions-self-check.get",
+      "displayName" : "Set of desired permissions",
+      "description" : "Set of desired permissions"
+    },
+    {
       "permissionName" : "bulk-edit.all",
       "displayName" : "bulk-edit all",
       "description" : "All permissions for bulk-edit module",
       "subPermissions" : [
         "bulk-edit.item.post",
         "bulk-edit.start.item.post",
-        "bulk-edit.errors.collection.get"
+        "bulk-edit.errors.collection.get",
+        "permissions-self-check.get"
       ]
     },
     {

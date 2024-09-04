@@ -78,7 +78,9 @@ public class HoldingsMapper {
       .map(note -> String.join(ARRAY_DELIMITER,
         escaper.escape(holdingsReferenceService.getNoteTypeNameById(note.getHoldingsNoteTypeId(), args, tenantId)),
         escaper.escape(note.getNote()),
-        booleanToStringNullSafe(note.getStaffOnly())))
+        booleanToStringNullSafe(note.getStaffOnly()),
+        tenantId,
+        note.getHoldingsNoteTypeId()))
       .collect(Collectors.joining(ITEM_DELIMITER));
   }
 

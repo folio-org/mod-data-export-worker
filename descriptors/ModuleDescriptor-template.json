@@ -280,9 +280,9 @@
           "permissionsRequired": [ "permissions-self-check.get" ],
           "permissionsDesired": [
             "ui-inventory.instance.view",
-            "ui-inventory.holdings.create",
             "ui-inventory.holdings.edit",
-            "ui-inventory.holdings.delete"
+            "ui-inventory.item.edit",
+            "ui-users.view"
           ],
           "modulePermissions": []
         }

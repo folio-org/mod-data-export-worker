@@ -1,7 +1,6 @@
 package org.folio.dew.controller;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.openapitools.api.PermissionsSelfCheckApi;
@@ -15,7 +14,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping
-@Log4j2
 @RequiredArgsConstructor
 public class PermissionsSelfCheckController implements PermissionsSelfCheckApi {
 

@@ -107,7 +107,9 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   @ValueSource(strings = {"ID", "HRID"})
   @SneakyThrows
   void shouldNotIncludeDuplicatedInstances(String identifierType) {
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
     when(inventoryInstancesClient.getInstanceByQuery(String.format("%s==duplicateIdentifier", resolveIdentifier(identifierType)), 1)).thenReturn(new InstanceCollection().instances(Collections.emptyList()).totalRecords(2));
+
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var identifier = new ItemIdentifier("duplicateIdentifier");
@@ -140,7 +142,9 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   @ValueSource(strings = {"ID", "HRID", "EXTERNAL_SYSTEM_ID", "USER_NAME"})
   @SneakyThrows
   void shouldNotIncludeDuplicatedUsers(String identifierType) {
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.USER))).thenReturn(true);
     when(userClient.getUserByQuery(String.format("%s==\"duplicateIdentifier\"", resolveIdentifier(identifierType)), 1)).thenReturn(new UserCollection().users(Collections.singletonList(new User())).totalRecords(2));
+
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var identifier = new ItemIdentifier("duplicateIdentifier");

@@ -6,10 +6,14 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.when;
 
 import lombok.SneakyThrows;
 import org.folio.dew.BaseBatchTest;
+import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
 import org.folio.dew.batch.bulkedit.jobs.processidentifiers.InstanceFetcher;
 import org.folio.dew.batch.bulkedit.jobs.processidentifiers.ItemFetcher;
 import org.folio.dew.batch.bulkedit.jobs.processidentifiers.UserFetcher;
@@ -17,6 +21,7 @@ import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.InventoryInstancesClient;
 import org.folio.dew.client.UserClient;
+import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExtendedItem;
 import org.folio.dew.domain.dto.HoldingsRecord;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
@@ -65,6 +70,8 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   private BulkEditHoldingsProcessor holdingsProcessor;
   @MockBean
   private HoldingClient holdingClient;
+  @MockBean
+  private PermissionsValidator permissionsValidator;
 
   @Test
   @SneakyThrows
@@ -106,6 +113,25 @@ class BulkEditProcessorsTest extends BaseBatchTest {
       var identifier = new ItemIdentifier("duplicateIdentifier");
       var throwable = assertThrows(BulkEditException.class, () -> instanceFetcher.process(identifier));
       assertEquals(MULTIPLE_MATCHES_MESSAGE, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldProvideBulkEditExceptionWithNoInstanceViewPermissionMessage() {
+    var user = new User();
+    user.setUsername("userName");
+
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.HOLDINGS_RECORD))).thenReturn(false);
+    when(userClient.getUserById(any())).thenReturn(user);
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
+    var expectedErrorMessage = "User userName does not have required permission to view the instance record - hrid=hrid on the tenant diku";
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("hrid");
+      var throwable = assertThrows(BulkEditException.class, () -> instanceFetcher.process(identifier));
+      assertEquals(expectedErrorMessage, throwable.getMessage());
       return null;
     });
   }

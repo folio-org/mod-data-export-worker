@@ -50,7 +50,7 @@ public class InstanceFetcher implements ItemProcessor<ItemIdentifier, InstanceCo
   public InstanceCollection process(@NotNull ItemIdentifier itemIdentifier) throws BulkEditException {
     if (!permissionsValidator.isBulkEditReadPermissionExists(folioExecutionContext.getTenantId(), EntityType.INSTANCE)) {
       var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-      throw new BulkEditException(format(NO_INSTANCE_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier, folioExecutionContext.getTenantId()));
+      throw new BulkEditException(format(NO_INSTANCE_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()));
     }
     if (identifiersToCheckDuplication.contains(itemIdentifier)) {
       throw new BulkEditException("Duplicate entry");

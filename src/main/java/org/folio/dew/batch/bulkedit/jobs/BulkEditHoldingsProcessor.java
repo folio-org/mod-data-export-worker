@@ -12,6 +12,7 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.DUPLICATES_ACROSS_TENANTS;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 import static org.folio.dew.utils.Constants.NO_HOLDING_AFFILIATION;
+import static org.folio.dew.utils.Constants.NO_HOLDING_VIEW_PERMISSIONS;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 import static org.folio.dew.utils.SearchIdentifierTypeResolver.getSearchIdentifierType;
 
@@ -20,11 +21,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
 import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.BatchIdsDto;
 import org.folio.dew.domain.dto.ConsortiumHolding;
+import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExtendedHoldingsRecord;
 import org.folio.dew.domain.dto.ExtendedHoldingsRecordCollection;
 import org.folio.dew.domain.dto.HoldingsFormat;
@@ -61,6 +64,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
   private final ConsortiaService consortiaService;
   private final FolioExecutionContext folioExecutionContext;
   private final UserClient userClient;
+  private final PermissionsValidator permissionsValidator;
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
@@ -122,6 +126,10 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
           throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
         }
         tenantIds.forEach(tenantId -> {
+          if (!permissionsValidator.isBulkEditReadPermissionExists(tenantId, EntityType.HOLDINGS_RECORD)) {
+            var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
+            throw new BulkEditException(format(NO_HOLDING_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId));
+          }
           try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
             var holdingsRecordCollection = getHoldingsRecordCollection(type, itemIdentifier);
             extendedHoldingsRecordCollection.getExtendedHoldingsRecords().addAll(

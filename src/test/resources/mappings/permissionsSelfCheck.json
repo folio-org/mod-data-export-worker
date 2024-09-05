@@ -1,0 +1,17 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/permissions-self-check"
+      },
+      "response": {
+        "status": 200,
+        "body": "[\"ui-inventory.instance.view\", \"ui-inventory.holdings.edit\", \"ui-inventory.item.edit\", \"ui-users.view\"]",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

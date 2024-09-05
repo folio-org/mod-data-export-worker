@@ -9,6 +9,7 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.DUPLICATES_ACROSS_TENANTS;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 import static org.folio.dew.utils.Constants.NO_ITEM_AFFILIATION;
+import static org.folio.dew.utils.Constants.NO_ITEM_VIEW_PERMISSIONS;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 import static org.folio.dew.utils.SearchIdentifierTypeResolver.getSearchIdentifierType;
 
@@ -17,11 +18,13 @@ import feign.codec.DecodeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.BatchIdsDto;
 import org.folio.dew.domain.dto.ConsortiumItem;
+import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExtendedItem;
 import org.folio.dew.domain.dto.ExtendedItemCollection;
 import org.folio.dew.domain.dto.IdentifierType;
@@ -30,7 +33,6 @@ import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.ConsortiaService;
 import org.folio.dew.service.FolioExecutionContextManager;
 import org.folio.dew.utils.ExceptionHelper;
-import org.folio.spring.DefaultFolioExecutionContext;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -39,7 +41,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -54,6 +55,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
   private final ConsortiaService consortiaService;
   private final SearchClient searchClient;
   private final UserClient userClient;
+  private final PermissionsValidator permissionsValidator;
   private final FolioExecutionContext folioExecutionContext;
 
   @Value("#{jobParameters['identifierType']}")
@@ -91,6 +93,10 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
             throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
           }
           tenantIds.forEach(tenantId -> {
+            if (!permissionsValidator.isBulkEditReadPermissionExists(tenantId, EntityType.ITEM)) {
+              var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
+              throw new BulkEditException(format(NO_ITEM_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId));
+            }
             try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
               var url = format(getMatchPattern(identifierType), idType, identifier);
               var itemCollection = inventoryClient.getItemByQuery(url, Integer.MAX_VALUE);

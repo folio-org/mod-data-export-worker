@@ -15,7 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class PermissionsSelfCheckControllerTest extends BaseBatchTest {
 
   @Autowired
-  protected MockMvc mockMvc;
+  private MockMvc mockMvc;
 
   @Test
   void shouldReturnDesiredPermissions() throws Exception {

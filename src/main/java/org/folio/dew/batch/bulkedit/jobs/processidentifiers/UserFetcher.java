@@ -3,7 +3,6 @@ package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 import static java.lang.String.format;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
-import static org.folio.dew.utils.Constants.NO_INSTANCE_VIEW_PERMISSIONS;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 import static org.folio.dew.utils.Constants.NO_USER_VIEW_PERMISSIONS;
 

@@ -93,10 +93,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
             throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
           }
           tenantIds.forEach(tenantId -> {
-            if (!permissionsValidator.isBulkEditReadPermissionExists(tenantId, EntityType.ITEM)) {
-              var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-              throw new BulkEditException(format(NO_ITEM_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId));
-            }
+            checkReadPermissions(tenantId, identifier);
             try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
               var url = format(getMatchPattern(identifierType), idType, identifier);
               var itemCollection = inventoryClient.getItemByQuery(url, Integer.MAX_VALUE);
@@ -136,6 +133,13 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
       return extendedItemCollection;
     } catch (DecodeException e) {
       throw new BulkEditException(ExceptionHelper.fetchMessage(e));
+    }
+  }
+
+  private void checkReadPermissions(String tenantId, String identifier) {
+    if (!permissionsValidator.isBulkEditReadPermissionExists(tenantId, EntityType.ITEM)) {
+      var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
+      throw new BulkEditException(format(NO_ITEM_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId));
     }
   }
 

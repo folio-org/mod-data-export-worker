@@ -126,10 +126,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
           throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
         }
         tenantIds.forEach(tenantId -> {
-          if (!permissionsValidator.isBulkEditReadPermissionExists(tenantId, EntityType.HOLDINGS_RECORD)) {
-            var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-            throw new BulkEditException(format(NO_HOLDING_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId));
-          }
+          checkReadPermissions(tenantId, identifier);
           try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
             var holdingsRecordCollection = getHoldingsRecordCollection(type, itemIdentifier);
             extendedHoldingsRecordCollection.getExtendedHoldingsRecords().addAll(
@@ -156,6 +153,13 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
       return new ExtendedHoldingsRecordCollection().extendedHoldingsRecords(holdingsRecordCollection.getHoldingsRecords().stream()
           .map(holdingsRecord -> new ExtendedHoldingsRecord().tenantId(folioExecutionContext.getTenantId()).entity(holdingsRecord)).toList())
         .totalRecords(holdingsRecordCollection.getTotalRecords());
+    }
+  }
+
+  private void checkReadPermissions(String tenantId, String identifier) {
+    if (!permissionsValidator.isBulkEditReadPermissionExists(tenantId, EntityType.HOLDINGS_RECORD)) {
+      var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
+      throw new BulkEditException(format(NO_HOLDING_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId));
     }
   }
 

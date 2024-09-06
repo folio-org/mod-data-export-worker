@@ -20,7 +20,13 @@ import org.folio.dew.batch.bulkedit.jobs.processidentifiers.UserFetcher;
 import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.InventoryInstancesClient;
+import org.folio.dew.client.SearchClient;
 import org.folio.dew.client.UserClient;
+import org.folio.dew.domain.dto.BatchIdsDto;
+import org.folio.dew.domain.dto.ConsortiumHolding;
+import org.folio.dew.domain.dto.ConsortiumHoldingCollection;
+import org.folio.dew.domain.dto.ConsortiumItem;
+import org.folio.dew.domain.dto.ConsortiumItemCollection;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExtendedItem;
 import org.folio.dew.domain.dto.HoldingsRecord;
@@ -32,6 +38,8 @@ import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserCollection;
 import org.folio.dew.error.BulkEditException;
+import org.folio.dew.service.ConsortiaService;
+import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -42,6 +50,7 @@ import org.springframework.batch.test.MetaDataInstanceFactory;
 import org.springframework.batch.test.StepScopeTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import java.nio.file.Path;
 import java.util.Collections;
@@ -72,6 +81,12 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   private HoldingClient holdingClient;
   @MockBean
   private PermissionsValidator permissionsValidator;
+  @SpyBean
+  private ConsortiaService consortiaService;
+  @SpyBean
+  private SearchClient searchClient;
+  @SpyBean
+  private FolioExecutionContext folioExecutionContext;
 
   @Test
   @SneakyThrows
@@ -119,25 +134,6 @@ class BulkEditProcessorsTest extends BaseBatchTest {
     });
   }
 
-  @Test
-  @SneakyThrows
-  void shouldProvideBulkEditExceptionWithNoInstanceViewPermissionMessage() {
-    var user = new User();
-    user.setUsername("userName");
-
-    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.HOLDINGS_RECORD))).thenReturn(false);
-    when(userClient.getUserById(any())).thenReturn(user);
-
-    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
-    var expectedErrorMessage = "User userName does not have required permission to view the instance record - hrid=hrid on the tenant diku";
-    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
-      var identifier = new ItemIdentifier("hrid");
-      var throwable = assertThrows(BulkEditException.class, () -> instanceFetcher.process(identifier));
-      assertEquals(expectedErrorMessage, throwable.getMessage());
-      return null;
-    });
-  }
-
   @ParameterizedTest
   @ValueSource(strings = {"ID", "HRID", "EXTERNAL_SYSTEM_ID", "USER_NAME"})
   @SneakyThrows
@@ -179,6 +175,84 @@ class BulkEditProcessorsTest extends BaseBatchTest {
       var identifier = new ItemIdentifier("duplicateIdentifier");
       var throwable = assertThrows(BulkEditException.class, () -> holdingsProcessor.process(identifier));
       assertEquals(MULTIPLE_MATCHES_MESSAGE, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldProvideBulkEditExceptionWithNoInstanceViewPermissionMessage() {
+    var user = new User();
+    user.setUsername("userName");
+
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.HOLDINGS_RECORD))).thenReturn(false);
+    when(userClient.getUserById(any())).thenReturn(user);
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
+    var expectedErrorMessage = "User userName does not have required permission to view the instance record - hrid=hrid on the tenant diku";
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("hrid");
+      var throwable = assertThrows(BulkEditException.class, () -> instanceFetcher.process(identifier));
+      assertEquals(expectedErrorMessage, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldProvideBulkEditExceptionWithNoUserViewPermissionMessage() {
+    var user = new User();
+    user.setUsername("userName");
+
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.USER))).thenReturn(false);
+    when(userClient.getUserById(any())).thenReturn(user);
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
+    var expectedErrorMessage = "User userName does not have required permission to view the user record - hrid=hrid on the tenant diku";
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("hrid");
+      var throwable = assertThrows(BulkEditException.class, () -> userFetcher.process(identifier));
+      assertEquals(expectedErrorMessage, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldProvideBulkEditExceptionWithNoItemViewPermissionMessage() {
+    var user = new User();
+    user.setUsername("userName");
+
+    when(permissionsValidator.isBulkEditReadPermissionExists("tenant_h", EntityType.ITEM)).thenReturn(false);
+    when(userClient.getUserById(any())).thenReturn(user);
+    when(folioExecutionContext.getTenantId()).thenReturn("central");
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
+    var expectedErrorMessage = "User userName does not have required permission to view the item record - hrid=hrid on the tenant tenant_h";
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("hrid");
+      var throwable = assertThrows(BulkEditException.class, () -> itemFetcher.process(identifier));
+      assertEquals(expectedErrorMessage, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldProvideBulkEditExceptionWithNoHoldingsViewPermissionMessage() {
+    var user = new User();
+    user.setUsername("userName");
+
+    when(permissionsValidator.isBulkEditReadPermissionExists("tenant_h", EntityType.HOLDINGS_RECORD)).thenReturn(false);
+    when(userClient.getUserById(any())).thenReturn(user);
+    when(folioExecutionContext.getTenantId()).thenReturn("central");
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
+    var expectedErrorMessage = "User userName does not have required permission to view the holdings record - hrid=hrid on the tenant tenant_h";
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("hrid");
+      var throwable = assertThrows(BulkEditException.class, () -> holdingsProcessor.process(identifier));
+      assertEquals(expectedErrorMessage, throwable.getMessage());
       return null;
     });
   }

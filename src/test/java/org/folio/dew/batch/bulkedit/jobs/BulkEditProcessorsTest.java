@@ -20,13 +20,7 @@ import org.folio.dew.batch.bulkedit.jobs.processidentifiers.UserFetcher;
 import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.InventoryInstancesClient;
-import org.folio.dew.client.SearchClient;
 import org.folio.dew.client.UserClient;
-import org.folio.dew.domain.dto.BatchIdsDto;
-import org.folio.dew.domain.dto.ConsortiumHolding;
-import org.folio.dew.domain.dto.ConsortiumHoldingCollection;
-import org.folio.dew.domain.dto.ConsortiumItem;
-import org.folio.dew.domain.dto.ConsortiumItemCollection;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExtendedItem;
 import org.folio.dew.domain.dto.HoldingsRecord;
@@ -38,7 +32,6 @@ import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserCollection;
 import org.folio.dew.error.BulkEditException;
-import org.folio.dew.service.ConsortiaService;
 import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -81,10 +74,6 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   private HoldingClient holdingClient;
   @MockBean
   private PermissionsValidator permissionsValidator;
-  @SpyBean
-  private ConsortiaService consortiaService;
-  @SpyBean
-  private SearchClient searchClient;
   @SpyBean
   private FolioExecutionContext folioExecutionContext;
 

@@ -259,7 +259,8 @@
             "inventory-storage.ill-policies.item.get",
             "inventory-storage.holdings-sources.collection.get",
             "inventory-storage.holdings-sources.item.get",
-            "inventory-storage.holdings.item.put"
+            "inventory-storage.holdings.item.put",
+            "permissions-self-check.get"
           ]
         },
         {
@@ -367,8 +368,7 @@
       "subPermissions" : [
         "bulk-edit.item.post",
         "bulk-edit.start.item.post",
-        "bulk-edit.errors.collection.get",
-        "permissions-self-check.get"
+        "bulk-edit.errors.collection.get"
       ]
     },
     {

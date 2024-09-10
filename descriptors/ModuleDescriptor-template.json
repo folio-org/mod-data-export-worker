@@ -207,7 +207,8 @@
             "source-storage.sourceRecords.get",
             "user-tenants.collection.get",
             "consortium-search.holdings.collection.get",
-            "consortium-search.items.collection.get"
+            "consortium-search.items.collection.get",
+            "permissions-self-check.get"
           ]
         },
         {
@@ -368,7 +369,8 @@
       "subPermissions" : [
         "bulk-edit.item.post",
         "bulk-edit.start.item.post",
-        "bulk-edit.errors.collection.get"
+        "bulk-edit.errors.collection.get",
+        "permissions-self-check.get"
       ]
     },
     {

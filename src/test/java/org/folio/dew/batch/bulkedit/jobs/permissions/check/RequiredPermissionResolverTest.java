@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class RequiredPermissionResolverTest {
 
   @Test
-  void getReadPermissionTest() {
+  void testGetReadPermission() {
     var requiredPermissionResolver = new RequiredPermissionResolver();
     assertEquals("ui-users.view",  requiredPermissionResolver.getReadPermission(EntityType.USER));
     assertEquals("ui-inventory.item.edit",  requiredPermissionResolver.getReadPermission(EntityType.ITEM));

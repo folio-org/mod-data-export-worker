@@ -25,7 +25,7 @@ class PermissionsValidatorTest {
   private PermissionsValidator permissionsValidator;
 
   @Test
-  void isBulkEditReadPermissionExistsTest() {
+  void testIsBulkEditReadPermissionExists() {
     when(permissionsProvider.getDesiredPermissions("tenant1")).thenReturn(List.of("read_permission"));
     when(permissionsProvider.getDesiredPermissions("tenant2")).thenReturn(List.of("not_read_permission"));
     when(requiredPermissionResolver.getReadPermission(EntityType.ITEM)).thenReturn("read_permission");

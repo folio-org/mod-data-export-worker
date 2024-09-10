@@ -1,6 +1,7 @@
 package org.folio.dew.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.bulkedit.jobs.permissions.check.DesiredPermissionsUtil;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.integration.XOkapiHeaders;
@@ -15,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping
 @RequiredArgsConstructor
+@Log4j2
 public class PermissionsSelfCheckController implements PermissionsSelfCheckApi {
 
   private final FolioExecutionContext folioExecutionContext;
@@ -23,6 +25,7 @@ public class PermissionsSelfCheckController implements PermissionsSelfCheckApi {
   public ResponseEntity<List<String>> getDesiredPermissions() {
     var okapiHeaders = folioExecutionContext.getOkapiHeaders();
     var permissionsAsStr = okapiHeaders.get(XOkapiHeaders.PERMISSIONS).stream().findFirst();
+    log.info(permissionsAsStr);
     return permissionsAsStr.map(s -> new ResponseEntity<>(DesiredPermissionsUtil.convertPermissionsToList(s), HttpStatus.OK))
       .orElseGet(() -> new ResponseEntity<>(List.of(), HttpStatus.OK));
   }

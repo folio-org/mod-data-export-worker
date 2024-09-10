@@ -149,6 +149,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
       }
     } else {
       // Process local tenant case
+      checkReadPermissions(folioExecutionContext.getTenantId(), identifier);
       var holdingsRecordCollection = getHoldingsRecordCollection(type, itemIdentifier);
       return new ExtendedHoldingsRecordCollection().extendedHoldingsRecords(holdingsRecordCollection.getHoldingsRecords().stream()
           .map(holdingsRecord -> new ExtendedHoldingsRecord().tenantId(folioExecutionContext.getTenantId()).entity(holdingsRecord)).toList())

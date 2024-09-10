@@ -119,6 +119,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
         }
       } else {
         // Process local tenant case
+        checkReadPermissions(folioExecutionContext.getTenantId(), identifier);
         var url = format(getMatchPattern(identifierType), idType, identifier);
         var currentTenantId = folioExecutionContext.getTenantId();
         var itemCollection =  inventoryClient.getItemByQuery(url, Integer.MAX_VALUE);

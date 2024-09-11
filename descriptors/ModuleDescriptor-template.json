@@ -281,10 +281,19 @@
           "pathPattern": "/permissions-self-check",
           "permissionsRequired": [ "permissions-self-check.get" ],
           "permissionsDesired": [
+            "ui-inventory.instance.create",
             "ui-inventory.instance.view",
+            "ui-inventory.instance.edit",
+            "ui-quick-marc.quick-marc-editor.view",
+            "ui-quick-marc.quick-marc-editor.all",
             "ui-inventory.holdings.edit",
+            "ui-inventory.holdings.create",
+            "ui-inventory.holdings.delete",
             "ui-inventory.item.edit",
-            "ui-users.view"
+            "ui-inventory.item.create",
+            "ui-inventory.item.delete",
+            "ui-users.view",
+            "ui-users.edit"
           ],
           "modulePermissions": []
         }

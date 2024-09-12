@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -623,12 +624,18 @@ class BulkEditTest extends BaseBatchTest {
       if (StringUtils.isNotEmpty(errorInStorage)){
         final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
         final FileSystemResource expectedResultWithErrors = getExpectedResourceByJobName(jobExecution.getJobInstance().getJobName());
-        assertEquals(new String(expectedResultWithErrors.getContentAsByteArray()), new String(actualResultWithErrors.getContentAsByteArray()));
+        assertEquals(getSortedOutput(expectedResultWithErrors), getSortedOutput(actualResultWithErrors));
       }
     }
     final FileSystemResource actualResult = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(output);
     assertEquals(new String(expectedCharges.getContentAsByteArray()), new String(actualResult.getContentAsByteArray()));
+  }
+
+  private String getSortedOutput(FileSystemResource resource) throws IOException {
+    var lines = Files.readAllLines(Path.of(resource.getPath()));
+    Collections.sort(lines);
+    return lines.toString();
   }
 
   private FileSystemResource getExpectedResourceByJobName(String jobName) {
@@ -660,7 +667,9 @@ class BulkEditTest extends BaseBatchTest {
     var expectedContent = IOUtils.toString(expectedJsonFile.getInputStream(), Charset.forName("UTF-8"));
     var actualContent = IOUtils.toString(actualJsonResult.getInputStream(), Charset.forName("UTF-8"));
     String actualUpdated = "";
-    for (String json : actualContent.split("\n")) {
+    var jsons = actualContent.split("\n");
+    Arrays.sort(jsons);
+    for (String json : jsons) {
       var actualJsonItem = new JSONObject(json);
       actualJsonItem.remove("createdDate");
       actualJsonItem.remove("updatedDate");

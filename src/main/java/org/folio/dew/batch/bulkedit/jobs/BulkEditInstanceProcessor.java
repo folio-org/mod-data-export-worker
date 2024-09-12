@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @StepScope
@@ -45,8 +46,8 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
   @Value("#{jobParameters['fileName']}")
   private String fileName;
 
-  private Set<ItemIdentifier> identifiersToCheckDuplication = new HashSet<>();
-  private Set<String> fetchedInstanceIds = new HashSet<>();
+  private Set<ItemIdentifier> identifiersToCheckDuplication = ConcurrentHashMap.newKeySet();
+  private Set<String> fetchedInstanceIds = ConcurrentHashMap.newKeySet();
 
   @Override
   public List<InstanceFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {

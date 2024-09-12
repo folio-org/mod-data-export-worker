@@ -30,13 +30,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
-@StepScope // to StepScope
+@StepScope
 @RequiredArgsConstructor
 @Log4j2
 public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
   private final KafkaService kafka;
 
-  @Value("#{stepExecution.jobExecution}") // to stepExecution.jobExecution
+  @Value("#{stepExecution.jobExecution}")
   private JobExecution jobExecution;
 
   private AtomicInteger processedRecords = new AtomicInteger();

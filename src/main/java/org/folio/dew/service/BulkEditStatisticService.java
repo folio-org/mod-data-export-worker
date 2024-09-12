@@ -1,23 +1,26 @@
 package org.folio.dew.service;
 
 import org.springframework.batch.core.configuration.annotation.JobScope;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Service;
 
-@JobScope
+import java.util.concurrent.atomic.AtomicInteger;
+
+//@StepScope // remove
 @Service
 public class BulkEditStatisticService {
 
-  private BulkEditStatistic statistic = new BulkEditStatistic();
-
-  public void incrementSuccess() {
-      statistic.setSuccess(statistic.getSuccess() + 1);
-  }
+  private AtomicInteger success = new AtomicInteger();
 
   public void incrementSuccess(int value) {
-    statistic.setSuccess(statistic.getSuccess() + value);
+    success.set(success.get() + value);
   }
 
-  public BulkEditStatistic getStatistic() {
-    return statistic;
+  public int getSuccess() {
+    return success.get();
+  }
+
+  public void reset() {
+    success.set(0);
   }
 }

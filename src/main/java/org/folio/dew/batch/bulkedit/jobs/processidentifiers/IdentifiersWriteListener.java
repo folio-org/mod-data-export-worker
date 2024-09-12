@@ -19,6 +19,7 @@ import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.configuration.annotation.JobScope;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.Chunk;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -29,13 +30,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
-@JobScope
+@StepScope // to StepScope
 @RequiredArgsConstructor
 @Log4j2
 public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
   private final KafkaService kafka;
 
-  @Value("#{jobExecution}")
+  @Value("#{stepExecution.jobExecution}") // to stepExecution.jobExecution
   private JobExecution jobExecution;
 
   private AtomicInteger processedRecords = new AtomicInteger();
@@ -69,7 +70,7 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
     progress.setTotal(isNull(totalCsvLines) ? 0 : totalCsvLines.intValue());
     progress.setProcessed((int) processed);
     progress.setProgress(isNull(totalCsvLines) ? 0 : calculateProgress(processed, totalCsvLines));
-    progress.setSuccess(bulkEditStatisticService.getStatistic().getSuccess());
+    progress.setSuccess(bulkEditStatisticService.getSuccess());
     job.setProgress(progress);
 
     jobExecution.getExecutionContext().putLong(NUMBER_OF_WRITTEN_RECORDS, processedRecords.longValue());

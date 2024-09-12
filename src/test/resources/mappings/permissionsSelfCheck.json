@@ -7,7 +7,7 @@
       },
       "response": {
         "status": 200,
-        "body": "[\"ui-inventory.instance.view\", \"ui-inventory.holdings.edit\", \"ui-inventory.item.edit\", \"ui-users.view\"]",
+        "body": "[\"bulk-edit.users.get\", \"bulk-edit.items.get\", \"bulk-edit.holdings.get\", \"bulk-edit.instances.get\"]",
         "headers": {
           "Content-Type": "application/json"
         }

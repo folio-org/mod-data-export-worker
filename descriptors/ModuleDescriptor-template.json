@@ -281,19 +281,10 @@
           "pathPattern": "/permissions-self-check",
           "permissionsRequired": [ "permissions-self-check.get" ],
           "permissionsDesired": [
-            "ui-inventory.instance.create",
-            "ui-inventory.instance.view",
-            "ui-inventory.instance.edit",
-            "ui-quick-marc.quick-marc-editor.view",
-            "ui-quick-marc.quick-marc-editor.all",
-            "ui-inventory.holdings.edit",
-            "ui-inventory.holdings.create",
-            "ui-inventory.holdings.delete",
-            "ui-inventory.item.edit",
-            "ui-inventory.item.create",
-            "ui-inventory.item.delete",
-            "ui-users.view",
-            "ui-users.edit"
+            "bulk-edit.users.get",
+            "bulk-edit.items.get",
+            "bulk-edit.holdings.get",
+            "bulk-edit.instances.get"
           ],
           "modulePermissions": []
         }
@@ -370,6 +361,26 @@
       "permissionName" : "permissions-self-check.get",
       "displayName" : "Set of desired permissions",
       "description" : "Set of desired permissions"
+    },
+    {
+      "permissionName" : "bulk-edit.users.get",
+      "displayName" : "Bulk edit users read permissions",
+      "description" : "Bulk edit users read permissions"
+    },
+    {
+      "permissionName" : "bulk-edit.items.get",
+      "displayName" : "Bulk edit items read permissions",
+      "description" : "Bulk edit items read permissions"
+    },
+    {
+      "permissionName" : "bulk-edit.holdings.get",
+      "displayName" : "Bulk edit holdings read permissions",
+      "description" : "Bulk edit holdings read permissions"
+    },
+    {
+      "permissionName" : "bulk-edit.instances.get",
+      "displayName" : "Bulk edit instances read permissions",
+      "description" : "Bulk edit instances read permissions"
     },
     {
       "permissionName" : "bulk-edit.all",

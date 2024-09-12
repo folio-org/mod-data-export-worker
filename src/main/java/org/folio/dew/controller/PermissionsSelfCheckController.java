@@ -25,7 +25,7 @@ public class PermissionsSelfCheckController implements PermissionsSelfCheckApi {
   public ResponseEntity<List<String>> getDesiredPermissions() {
     var okapiHeaders = folioExecutionContext.getOkapiHeaders();
     var permissionsAsStr = okapiHeaders.get(XOkapiHeaders.PERMISSIONS).stream().findFirst();
-    log.debug("getDesiredPermissions:: {}", permissionsAsStr);
+    log.info("getDesiredPermissions:: {}", permissionsAsStr);
     return permissionsAsStr.map(s -> new ResponseEntity<>(DesiredPermissionsUtil.convertPermissionsToList(s), HttpStatus.OK))
       .orElseGet(() -> new ResponseEntity<>(List.of(), HttpStatus.OK));
   }

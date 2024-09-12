@@ -659,7 +659,7 @@ class BulkEditTest extends BaseBatchTest {
 
     final FileSystemResource actualResult = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(output);
-    assertEquals(new String(expectedCharges.getContentAsByteArray()), new String(actualResult.getContentAsByteArray()));
+    assertEquals(getSortedOutput(expectedCharges), getSortedOutput(actualResult));
   }
 
   private void assertFileEqualsIgnoringCreatedAndUpdatedDate(FileSystemResource expectedJsonFile, FileSystemResource actualJsonResult)

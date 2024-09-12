@@ -13,7 +13,7 @@ public class BulkEditStatisticService {
   private AtomicInteger success = new AtomicInteger();
 
   public void incrementSuccess(int value) {
-    success.set(success.get() + value);
+    success.addAndGet(value);
   }
 
   public int getSuccess() {

@@ -43,9 +43,7 @@ public class JsonListFileWriter<T, U extends Formatable<T>> extends JsonFileItem
       } else {
         lines.append(marshaller.marshal(item.getOriginal()));
       }
-      if(iterator.hasNext()) {
-        lines.append('\n');
-      }
+      lines.append('\n');
     }
     return lines.toString();
   }

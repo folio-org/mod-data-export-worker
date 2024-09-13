@@ -1,5 +1,6 @@
 package org.folio.dew.controller;
 
+import lombok.SneakyThrows;
 import org.folio.dew.BaseBatchTest;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,8 @@ class PermissionsSelfCheckControllerTest extends BaseBatchTest {
   private MockMvc mockMvc;
 
   @Test
-  void shouldReturnDesiredPermissions() throws Exception {
+  @SneakyThrows
+  void shouldReturnDesiredPermissions() {
     var headers = defaultHeaders();
     headers.put(XOkapiHeaders.PERMISSIONS, List.of("[\"desired-permission\",\"desired-permission-2\"]"));
     var result = mockMvc.perform(get("/permissions-self-check")

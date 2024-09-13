@@ -25,6 +25,7 @@ import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.support.CompositeItemWriter;
+import org.springframework.batch.item.support.SynchronizedItemStreamReader;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -56,10 +57,10 @@ public class BulkEditHoldingsIdentifiersJobConfig {
   }
 
   @Bean
-  public Step bulkEditHoldingsStep(FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader,
-    CompositeItemWriter<List<HoldingsFormat>> compositeHoldingsListWriter,
-    ListIdentifiersWriteListener<HoldingsFormat> listIdentifiersWriteListener, JobRepository jobRepository,
-    PlatformTransactionManager transactionManager, @Qualifier("asyncTaskExecutor") TaskExecutor taskExecutor) {
+  public Step bulkEditHoldingsStep(SynchronizedItemStreamReader<ItemIdentifier> csvItemIdentifierReader,
+                                   CompositeItemWriter<List<HoldingsFormat>> compositeHoldingsListWriter,
+                                   ListIdentifiersWriteListener<HoldingsFormat> listIdentifiersWriteListener, JobRepository jobRepository,
+                                   PlatformTransactionManager transactionManager, @Qualifier("asyncTaskExecutor") TaskExecutor taskExecutor) {
     return new StepBuilder("bulkEditHoldingsStep", jobRepository)
       .<ItemIdentifier, List<HoldingsFormat>> chunk(CHUNKS, transactionManager)
       .reader(csvItemIdentifierReader)

@@ -27,7 +27,7 @@ public class CsvFileAssembler implements StepExecutionAggregator {
         .collect(Collectors.toList());
     var destCsvObject = FilenameUtils.getName(
         stepExecution.getJobExecution().getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + ".csv");
-
+    destCsvObject = remoteFilesStorage.getS3Path(destCsvObject);
     try {
       if ("CIRCULATION_LOG".equals(stepExecution.getJobExecution().getJobInstance().getJobName())) {
         var csvUrl = remoteFilesStorage.composeObject(destCsvObject, csvFilePartObjectNames, null, TEXT_CSV);

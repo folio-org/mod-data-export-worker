@@ -73,7 +73,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
   private Set<String> fetchedHoldingsIds = ConcurrentHashMap.newKeySet();
 
   @Override
-  public synchronized List<HoldingsFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
+  public List<HoldingsFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
     if (identifiersToCheckDuplication.contains(itemIdentifier)) {
       throw new BulkEditException("Duplicate entry");
     }

@@ -157,7 +157,9 @@ public class BulkEditItemProcessor implements ItemProcessor<ExtendedItem, ItemFo
         .map(itemNote -> String.join(ARRAY_DELIMITER,
           escaper.escape(itemReferenceService.getNoteTypeNameById(itemNote.getItemNoteTypeId(), args, tenantId)),
           escaper.escape(itemNote.getNote()),
-          escaper.escape(booleanToStringNullSafe(itemNote.getStaffOnly()))))
+          escaper.escape(booleanToStringNullSafe(itemNote.getStaffOnly())),
+          tenantId,
+          itemNote.getItemNoteTypeId()))
         .collect(Collectors.joining(ITEM_DELIMITER));
   }
 

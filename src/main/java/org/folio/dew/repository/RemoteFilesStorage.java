@@ -116,6 +116,10 @@ public class RemoteFilesStorage extends BaseFilesStorage {
   public String objectToPresignedObjectUrl(String object)
     throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
     ServerException, InternalException, XmlParserException, ErrorResponseException {
+    var s3Path = getS3Path(StringUtils.EMPTY);
+    if (!StringUtils.contains(object, s3Path)) {
+      object = getS3Path(object);
+    }
     String result = client.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
       .method(Method.GET)
       .bucket(bucket)

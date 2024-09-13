@@ -91,6 +91,7 @@ public class RemoteFilesStorage extends BaseFilesStorage {
       String contentType)
       throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
       ServerException, InternalException, XmlParserException, ErrorResponseException {
+    destObject = getS3Path(destObject);
     List<ComposeSource> sources = sourceObjects.stream()
         .map(so -> ComposeSource.builder().bucket(bucket).object(getS3Path(so)).build())
         .collect(Collectors.toList());

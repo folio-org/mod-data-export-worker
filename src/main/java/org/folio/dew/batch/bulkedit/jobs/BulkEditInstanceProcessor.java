@@ -50,7 +50,7 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
   private Set<String> fetchedInstanceIds = ConcurrentHashMap.newKeySet();
 
   @Override
-  public List<InstanceFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
+  public synchronized List<InstanceFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
     if (identifiersToCheckDuplication.contains(itemIdentifier)) {
       throw new BulkEditException("Duplicate entry");
     }

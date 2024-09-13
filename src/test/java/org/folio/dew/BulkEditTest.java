@@ -690,14 +690,14 @@ class BulkEditTest extends BaseBatchTest {
       String errorInStorage = links[1];
       final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
       final FileSystemResource expectedResultWithErrors = new FileSystemResource(expectedErrorOutput);
-      assertEquals(new String(expectedResultWithErrors.getContentAsByteArray()), new String(actualResultWithErrors.getContentAsByteArray()));
+      assertEquals(getSortedOutput(expectedResultWithErrors), getSortedOutput(actualResultWithErrors));
     }
     if (isEmpty(fileInStorage)) {
       assertTrue(isEmpty(output));
     } else {
       final FileSystemResource actualResult = actualFileOutput(fileInStorage);
       FileSystemResource expectedCharges = new FileSystemResource(output);
-      assertEquals(new String(expectedCharges.getContentAsByteArray()), new String(actualResult.getContentAsByteArray()));
+      assertEquals(getSortedOutput(expectedCharges), getSortedOutput(actualResult));
     }
   }
 

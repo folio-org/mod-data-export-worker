@@ -25,6 +25,7 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.batch.item.support.CompositeItemWriter;
+import org.springframework.batch.item.support.SynchronizedItemStreamReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -53,10 +54,10 @@ public class BulkEditItemIdentifiersJobConfig {
   }
 
   @Bean
-  public Step bulkEditItemStep(FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader,
-    CompositeItemWriter<List<ItemFormat>> compositeItemListWriter,
-    ListIdentifiersWriteListener<ItemFormat> listIdentifiersWriteListener, JobRepository jobRepository,
-    PlatformTransactionManager transactionManager) {
+  public Step bulkEditItemStep(SynchronizedItemStreamReader<ItemIdentifier> csvItemIdentifierReader,
+                               CompositeItemWriter<List<ItemFormat>> compositeItemListWriter,
+                               ListIdentifiersWriteListener<ItemFormat> listIdentifiersWriteListener, JobRepository jobRepository,
+                               PlatformTransactionManager transactionManager) {
     return new StepBuilder("bulkEditItemStep", jobRepository)
       .<ItemIdentifier, List<ItemFormat>> chunk(CHUNKS, transactionManager)
       .reader(csvItemIdentifierReader)

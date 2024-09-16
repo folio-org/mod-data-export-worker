@@ -220,8 +220,8 @@ class BulkEditTest extends BaseBatchTest {
 
     var jobCaptor = ArgumentCaptor.forClass(org.folio.de.entity.Job.class);
 
-    // expected 4 events: 1st - job started, 2nd, 3rd - updates after each chunk (100 identifiers), 4th - job completed
-    Mockito.verify(kafkaService, Mockito.times(4)).send(any(), any(), jobCaptor.capture());
+    // expected 4 events: 1st - job started, 2nd, 3rd, 4th, 5th - updates after each chunk (100 identifiers) from more than 1 thread, 6th - job completed
+    Mockito.verify(kafkaService, Mockito.times(6)).send(any(), any(), jobCaptor.capture());
 
     verifyJobProgressUpdates(jobCaptor);
   }

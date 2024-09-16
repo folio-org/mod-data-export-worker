@@ -23,7 +23,7 @@ class PermissionsSelfCheckControllerTest extends BaseBatchTest {
   void shouldReturnDesiredPermissions() {
     var headers = defaultHeaders();
     headers.put(XOkapiHeaders.PERMISSIONS, List.of("[\"desired-permission\",\"desired-permission-2\"]"));
-    var result = mockMvc.perform(get("/permissions-self-check")
+    var result = mockMvc.perform(get("/bulk-edit/permissions-self-check")
         .headers(headers)).andExpect(status().isOk()).andReturn();
 
     assertEquals("[\"desired-permission\",\"desired-permission-2\"]", result.getResponse().getContentAsString());

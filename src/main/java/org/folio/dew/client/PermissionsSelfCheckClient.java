@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 
-@FeignClient(name = "permissions-self-check", configuration = FeignClientConfiguration.class)
+@FeignClient(name = "bulk-edit", configuration = FeignClientConfiguration.class)
 public interface PermissionsSelfCheckClient {
 
-  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/permissions-self-check", produces = MediaType.APPLICATION_JSON_VALUE)
   List<String> getDesiredPermissions();
 }

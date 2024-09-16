@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/permissions-self-check"
+        "url": "/bulk-edit/permissions-self-check"
       },
       "response": {
         "status": 200,

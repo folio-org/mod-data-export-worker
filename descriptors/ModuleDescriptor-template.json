@@ -208,7 +208,7 @@
             "user-tenants.collection.get",
             "consortium-search.holdings.collection.get",
             "consortium-search.items.collection.get",
-            "permissions-self-check.get"
+            "bulk-edit.permissions-self-check.get"
           ]
         },
         {
@@ -261,7 +261,7 @@
             "inventory-storage.holdings-sources.collection.get",
             "inventory-storage.holdings-sources.item.get",
             "inventory-storage.holdings.item.put",
-            "permissions-self-check.get"
+            "bulk-edit.permissions-self-check.get"
           ]
         },
         {
@@ -272,20 +272,20 @@
         },
         {
           "methods": [ "GET" ],
-          "pathPattern": "/refresh-presigned-url",
-          "permissionsRequired": [ "refresh-presigned-url.get" ],
-          "modulePermissions": []
-        },
-        {
-          "methods": [ "GET" ],
-          "pathPattern": "/permissions-self-check",
-          "permissionsRequired": [ "permissions-self-check.get" ],
+          "pathPattern": "/bulk-edit/permissions-self-check",
+          "permissionsRequired": [ "bulk-edit.permissions-self-check.get" ],
           "permissionsDesired": [
             "bulk-edit.users.get",
             "bulk-edit.items.get",
             "bulk-edit.holdings.get",
             "bulk-edit.instances.get"
           ],
+          "modulePermissions": []
+        },
+        {
+          "methods": [ "GET" ],
+          "pathPattern": "/refresh-presigned-url",
+          "permissionsRequired": [ "refresh-presigned-url.get" ],
           "modulePermissions": []
         }
       ]
@@ -353,14 +353,14 @@
       "description" : "Get errors for preview"
     },
     {
+      "permissionName" : "bulk-edit.permissions-self-check.get",
+      "displayName" : "Set of desired permissions",
+      "description" : "Set of desired permissions"
+    },
+    {
       "permissionName" : "refresh-presigned-url.get",
       "displayName" : "Get refreshed presigned url for export file",
       "description" : "Get refreshed presigned url for export file"
-    },
-    {
-      "permissionName" : "permissions-self-check.get",
-      "displayName" : "Set of desired permissions",
-      "description" : "Set of desired permissions"
     },
     {
       "permissionName" : "bulk-edit.users.get",
@@ -390,7 +390,7 @@
         "bulk-edit.item.post",
         "bulk-edit.start.item.post",
         "bulk-edit.errors.collection.get",
-        "permissions-self-check.get"
+        "bulk-edit.permissions-self-check.get"
       ]
     },
     {

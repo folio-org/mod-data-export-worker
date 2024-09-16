@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping
+@RequestMapping("/bulk-edit")
 @RequiredArgsConstructor
 @Log4j2
 public class PermissionsSelfCheckController implements PermissionsSelfCheckApi {

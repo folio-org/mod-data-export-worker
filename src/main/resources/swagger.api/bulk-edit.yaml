@@ -129,8 +129,37 @@ paths:
               schema:
                 type: string
                 example: Internal server error
+  /permissions-self-check:
+    get:
+      description: Get bulk edit desired permissions
+      operationId: getDesiredPermissions
+      responses:
+        '200':
+          description:  List of actual desired permissions for current tenant
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/desiredPermission"
+        '404':
+          description: No found
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Desired permissions not found
+        '500':
+          description: Internal server errors, e.g. due to misconfiguration
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Internal server error
 components:
   schemas:
+    desiredPermission:
+      type: string
     UUID:
       type: string
       format: uuid

@@ -52,9 +52,9 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
 
   @Override
   public void afterWrite(Chunk<? extends T> list) {
-    bulkEditStatisticService.incrementSuccess(list.size());
     var job = new Job();
     job.setId(UUID.fromString(jobExecution.getJobParameters().getString(JOB_ID)));
+    bulkEditStatisticService.incrementSuccess(job.getId().toString(), list.size());
     job.setType(ExportType.BULK_EDIT_IDENTIFIERS);
     job.setEntityType(EntityType.fromValue(jobExecution.getJobInstance().getJobName().split("-")[1]));
     job.setBatchStatus(BatchStatus.STARTED);
@@ -71,7 +71,7 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
     progress.setTotal(isNull(totalCsvLines) ? 0 : totalCsvLines.intValue());
     progress.setProcessed((int) processed);
     progress.setProgress(isNull(totalCsvLines) ? 0 : calculateProgress(processed, totalCsvLines));
-    progress.setSuccess(bulkEditStatisticService.getSuccess());
+    progress.setSuccess(bulkEditStatisticService.getSuccess(job.getId().toString()));
     job.setProgress(progress);
 
     jobExecution.getExecutionContext().putLong(NUMBER_OF_WRITTEN_RECORDS, processedRecords.longValue());

@@ -275,6 +275,8 @@
           "pathPattern": "/bulk-edit/permissions-self-check",
           "permissionsRequired": [ "bulk-edit.permissions-self-check.get" ],
           "permissionsDesired": [
+            "inventory.instances.item.get",
+            "inventory.instances.collection.get",
             "bulk-edit.users.get",
             "bulk-edit.items.get",
             "bulk-edit.holdings.get",

@@ -4,19 +4,19 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.LongAdder;
 
 @Service
 public class BulkEditStatisticService {
 
-  private Map<String, AtomicInteger> success = new ConcurrentHashMap<>();
+  private Map<String, LongAdder> success = new ConcurrentHashMap<>();
 
   public void incrementSuccess(String jobId, int value) {
-    success.get(jobId).addAndGet(value);
+    success.computeIfAbsent(jobId, val -> new LongAdder()).add(value);
   }
 
   public int getSuccess(String jobId) {
-    return success.get(jobId).get();
+    return success.get(jobId).intValue();
   }
 
   public void reset(String jobId) {

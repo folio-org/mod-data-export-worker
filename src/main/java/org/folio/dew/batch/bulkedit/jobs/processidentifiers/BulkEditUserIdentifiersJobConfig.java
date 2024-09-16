@@ -24,14 +24,15 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.batch.item.support.CompositeItemWriter;
 import org.springframework.batch.item.support.SynchronizedItemStreamReader;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.Arrays;
@@ -58,7 +59,7 @@ public class BulkEditUserIdentifiersJobConfig {
   public Step bulkEditUserStep(SynchronizedItemStreamReader<ItemIdentifier> csvItemIdentifierReader,
                                CompositeItemWriter<UserFormat> compositeItemWriter,
                                IdentifiersWriteListener<UserFormat> identifiersWriteListener, JobRepository jobRepository,
-                               PlatformTransactionManager transactionManager) {
+                               PlatformTransactionManager transactionManager, @Qualifier("asyncTaskExecutorBulkEdit") TaskExecutor taskExecutor) {
     return new StepBuilder("bulkEditUserStep", jobRepository)
       .<ItemIdentifier, UserFormat> chunk(CHUNKS, transactionManager)
       .reader(csvItemIdentifierReader)
@@ -70,6 +71,7 @@ public class BulkEditUserIdentifiersJobConfig {
       .listener(bulkEditSkipListener)
       .writer(compositeItemWriter)
       .listener(identifiersWriteListener)
+      .taskExecutor(taskExecutor)
       .build();
   }
 

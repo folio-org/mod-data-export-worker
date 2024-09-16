@@ -10,7 +10,7 @@ import static org.folio.dew.domain.dto.EntityType.ITEM;
 
 @UtilityClass
 public class Constants {
-  public static final int CHUNKS = 100;
+  public static final int CHUNKS = Integer.parseInt(System.getenv("CHUNKS"));
   public static final String ROLLBACK_FILE = "rollBackFile";
   public static final String TMP_DIR_PROPERTY = "java.io.tmpdir";
   public static final String PATH_SEPARATOR = "/";

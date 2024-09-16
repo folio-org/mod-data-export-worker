@@ -23,7 +23,6 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.support.CompositeItemWriter;
 import org.springframework.batch.item.support.SynchronizedItemStreamReader;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -60,7 +59,7 @@ public class BulkEditHoldingsIdentifiersJobConfig {
   public Step bulkEditHoldingsStep(SynchronizedItemStreamReader<ItemIdentifier> csvItemIdentifierReader,
                                    CompositeItemWriter<List<HoldingsFormat>> compositeHoldingsListWriter,
                                    ListIdentifiersWriteListener<HoldingsFormat> listIdentifiersWriteListener, JobRepository jobRepository,
-                                   PlatformTransactionManager transactionManager, @Qualifier("asyncTaskExecutor") TaskExecutor taskExecutor) {
+                                   PlatformTransactionManager transactionManager, @Qualifier("asyncTaskExecutorBulkEdit") TaskExecutor taskExecutor) {
     return new StepBuilder("bulkEditHoldingsStep", jobRepository)
       .<ItemIdentifier, List<HoldingsFormat>> chunk(CHUNKS, transactionManager)
       .reader(csvItemIdentifierReader)

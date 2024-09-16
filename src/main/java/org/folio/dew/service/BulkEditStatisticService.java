@@ -1,12 +1,9 @@
 package org.folio.dew.service;
 
-import org.springframework.batch.core.configuration.annotation.JobScope;
-import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-//@StepScope // remove
 @Service
 public class BulkEditStatisticService {
 

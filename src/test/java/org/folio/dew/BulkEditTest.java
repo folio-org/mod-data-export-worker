@@ -240,8 +240,8 @@ class BulkEditTest extends BaseBatchTest {
 
     var jobCaptor = ArgumentCaptor.forClass(org.folio.de.entity.Job.class);
 
-    // expected 4 events: 1st - job started, 2nd, 3rd - updates after each chunk (100 identifiers), 4th - job completed
-    Mockito.verify(kafkaService, Mockito.times(4)).send(any(), any(), jobCaptor.capture());
+    // expected 4 events: 1st - job started, 2nd, 3rd, 4th, 5th - updates after each chunk (100 identifiers) from more than 1 thread, 6th - job completed
+    Mockito.verify(kafkaService, Mockito.times(6)).send(any(), any(), jobCaptor.capture());
 
     verifyJobProgressUpdates(jobCaptor);
   }
@@ -629,7 +629,7 @@ class BulkEditTest extends BaseBatchTest {
     }
     final FileSystemResource actualResult = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(output);
-    assertEquals(new String(expectedCharges.getContentAsByteArray()), new String(actualResult.getContentAsByteArray()));
+    assertEquals(getSortedOutput(expectedCharges), getSortedOutput(actualResult));
   }
 
   private String getSortedOutput(FileSystemResource resource) throws IOException {
@@ -753,21 +753,7 @@ class BulkEditTest extends BaseBatchTest {
   }
 
   private void verifyJobProgressUpdates(ArgumentCaptor<org.folio.de.entity.Job> jobCaptor) {
-    var job = jobCaptor.getAllValues().get(1);
-    assertThat(job.getProgress().getTotal()).isEqualTo(179);
-    assertThat(job.getProgress().getProcessed()).isEqualTo(100);
-    assertThat(job.getProgress().getProgress()).isEqualTo(45);
-    assertThat(job.getProgress().getSuccess()).isEqualTo(80);
-    assertThat(job.getProgress().getErrors()).isZero();
-
-    job = jobCaptor.getAllValues().get(2);
-    assertThat(job.getProgress().getTotal()).isEqualTo(179);
-    assertThat(job.getProgress().getProcessed()).isEqualTo(179);
-    assertThat(job.getProgress().getProgress()).isEqualTo(90);
-    assertThat(job.getProgress().getSuccess()).isEqualTo(144);
-    assertThat(job.getProgress().getErrors()).isZero();
-
-    job = jobCaptor.getAllValues().get(3);
+    var job = jobCaptor.getAllValues().get(5);
     assertThat(job.getProgress().getTotal()).isEqualTo(179);
     assertThat(job.getProgress().getProcessed()).isEqualTo(179);
     assertThat(job.getProgress().getProgress()).isEqualTo(100);

@@ -2,7 +2,6 @@ package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
 import static org.folio.dew.domain.dto.EntityType.HOLDINGS_RECORD;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
-import static org.folio.dew.utils.Constants.CHUNKS;
 import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
 import lombok.RequiredArgsConstructor;
@@ -43,6 +42,9 @@ public class BulkEditHoldingsIdentifiersJobConfig {
   private final BulkEditSkipListener bulkEditSkipListener;
   private final LocalFilesStorage localFilesStorage;
 
+  @Value("${application.chunks}")
+  private int chunks;
+
   @Bean
   public Job bulkEditProcessHoldingsIdentifiersJob(JobCompletionNotificationListener listener,
                                                    JobRepository jobRepository,
@@ -61,7 +63,7 @@ public class BulkEditHoldingsIdentifiersJobConfig {
                                    ListIdentifiersWriteListener<HoldingsFormat> listIdentifiersWriteListener, JobRepository jobRepository,
                                    PlatformTransactionManager transactionManager, @Qualifier("asyncTaskExecutorBulkEdit") TaskExecutor taskExecutor) {
     return new StepBuilder("bulkEditHoldingsStep", jobRepository)
-      .<ItemIdentifier, List<HoldingsFormat>> chunk(CHUNKS, transactionManager)
+      .<ItemIdentifier, List<HoldingsFormat>> chunk(chunks, transactionManager)
       .reader(csvItemIdentifierReader)
       .processor(bulkEditHoldingsProcessor)
       .faultTolerant()

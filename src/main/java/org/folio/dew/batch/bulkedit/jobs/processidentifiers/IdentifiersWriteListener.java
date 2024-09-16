@@ -3,7 +3,6 @@ package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
-import static org.folio.dew.utils.Constants.CHUNKS;
 import static org.folio.dew.utils.Constants.NUMBER_OF_WRITTEN_RECORDS;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 
@@ -18,7 +17,6 @@ import org.folio.dew.service.BulkEditStatisticService;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.Chunk;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,6 +36,9 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
 
   @Value("#{stepExecution.jobExecution}")
   private JobExecution jobExecution;
+
+  @Value("${application.chunks}")
+  private int chunks;
 
   private AtomicInteger processedRecords = new AtomicInteger();
   private AtomicLong processedIdentifiers = new AtomicLong();
@@ -62,7 +63,7 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
     log.info("afterWrite:: update job by id {} after write for identifiers", job.getId());
 
     var totalCsvLines = jobExecution.getJobParameters().getLong(TOTAL_CSV_LINES);
-    var processed = processedIdentifiers.addAndGet(CHUNKS);
+    var processed = processedIdentifiers.addAndGet(chunks);
     if (nonNull(totalCsvLines) && processed > totalCsvLines) {
       processed = totalCsvLines;
     }
@@ -79,7 +80,7 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
   }
 
   private int calculateProgress(long processed, long total) {
-    if (total <= CHUNKS) {
+    if (total <= chunks) {
       return 90;
     }
     var res = (double) processed / total * 100;

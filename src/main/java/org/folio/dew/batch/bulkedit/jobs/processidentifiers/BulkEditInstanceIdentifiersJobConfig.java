@@ -37,7 +37,6 @@ import java.util.List;
 import static org.folio.dew.domain.dto.EntityType.INSTANCE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_MARC_PATH;
-import static org.folio.dew.utils.Constants.CHUNKS;
 import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
 @Configuration
@@ -47,6 +46,9 @@ public class BulkEditInstanceIdentifiersJobConfig {
   private final BulkEditSkipListener bulkEditSkipListener;
   private final SrsClient srsClient;
   private final JsonToMarcConverter jsonToMarcConverter;
+
+  @Value("${application.chunks}")
+  private int chunks;
 
   @Bean
   public Job bulkEditProcessInstanceIdentifiersJob(JobCompletionNotificationListener listener, Step bulkEditInstanceStep,
@@ -65,7 +67,7 @@ public class BulkEditInstanceIdentifiersJobConfig {
                                    ListIdentifiersWriteListener<InstanceFormat> listIdentifiersWriteListener, JobRepository jobRepository,
                                    PlatformTransactionManager transactionManager, @Qualifier("asyncTaskExecutorBulkEdit") TaskExecutor taskExecutor) {
     return new StepBuilder("bulkEditInstanceStep", jobRepository)
-      .<ItemIdentifier, List<InstanceFormat>> chunk(CHUNKS, transactionManager)
+      .<ItemIdentifier, List<InstanceFormat>> chunk(chunks, transactionManager)
       .reader(csvItemIdentifierReader)
       .processor(bulkEditInstanceProcessor)
       .faultTolerant()

@@ -4,7 +4,6 @@ import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
 import static org.folio.dew.domain.dto.UserFormat.getUserColumnHeaders;
 import static org.folio.dew.domain.dto.UserFormat.getUserFieldsArray;
-import static org.folio.dew.utils.Constants.CHUNKS;
 import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
 import lombok.RequiredArgsConstructor;
@@ -44,6 +43,9 @@ public class BulkEditUserIdentifiersJobConfig {
   private final UserFetcher userFetcher;
   private final BulkEditSkipListener bulkEditSkipListener;
 
+  @Value("${application.chunks}")
+  private int chunks;
+
   @Bean
   public Job bulkEditProcessUserIdentifiersJob(JobCompletionNotificationListener listener, Step bulkEditUserStep,
                                                JobRepository jobRepository) {
@@ -61,7 +63,7 @@ public class BulkEditUserIdentifiersJobConfig {
                                IdentifiersWriteListener<UserFormat> identifiersWriteListener, JobRepository jobRepository,
                                PlatformTransactionManager transactionManager, @Qualifier("asyncTaskExecutorBulkEdit") TaskExecutor taskExecutor) {
     return new StepBuilder("bulkEditUserStep", jobRepository)
-      .<ItemIdentifier, UserFormat> chunk(CHUNKS, transactionManager)
+      .<ItemIdentifier, UserFormat> chunk(chunks, transactionManager)
       .reader(csvItemIdentifierReader)
       .processor(identifierUserProcessor())
       .faultTolerant()

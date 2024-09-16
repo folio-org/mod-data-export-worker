@@ -48,9 +48,6 @@
         <refresh-presigned-url.yaml.file>
           ${project.basedir}/src/main/resources/swagger.api/refresh-presigned-url.yaml
         </refresh-presigned-url.yaml.file>
-        <permissions-self-check.yaml.file>
-          ${project.basedir}/src/main/resources/swagger.api/permissions-self-check.yaml
-        </permissions-self-check.yaml.file>
         <folio-spring-base.version>8.1.0</folio-spring-base.version>
         <folio-service-tools.version>3.1.0</folio-service-tools.version>
         <folio-spring-cql.version>8.1.0</folio-spring-cql.version>

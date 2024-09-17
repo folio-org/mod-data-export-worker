@@ -9,7 +9,11 @@ import java.util.concurrent.atomic.LongAdder;
 @Service
 public class BulkEditStatisticService {
 
-  private final Map<String, LongAdder> success = new ConcurrentHashMap<>();
+  private final Map<String, LongAdder> success;
+
+  public BulkEditStatisticService() {
+    success = new ConcurrentHashMap<>();
+  }
 
   public void incrementSuccess(String jobId, int value) {
     success.computeIfAbsent(jobId, val -> new LongAdder()).add(value);

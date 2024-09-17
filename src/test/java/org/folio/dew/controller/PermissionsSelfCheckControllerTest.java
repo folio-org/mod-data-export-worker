@@ -21,8 +21,6 @@ class PermissionsSelfCheckControllerTest extends BaseBatchTest {
 
   @MockBean
   private UserPermissionsClient userPermissionsClient;
-  @Autowired
-  private MockMvc mockMvc;
 
   @Test
   @SneakyThrows

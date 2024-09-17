@@ -3,11 +3,7 @@ package org.folio.dew.controller;
 import lombok.SneakyThrows;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.bulkedit.jobs.permissions.check.UserPermissions;
-import org.folio.dew.client.UserPermissionsClient;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
@@ -18,9 +14,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class PermissionsSelfCheckControllerTest extends BaseBatchTest {
-
-  @MockBean
-  private UserPermissionsClient userPermissionsClient;
 
   @Test
   @SneakyThrows

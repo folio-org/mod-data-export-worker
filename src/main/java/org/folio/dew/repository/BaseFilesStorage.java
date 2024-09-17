@@ -41,6 +41,7 @@ import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -177,16 +178,23 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @throws IOException - if an I/O error occurs
    */
   public String write(String path, byte[] bytes, Map<String, String> headers) throws IOException {
+    byte[] bom = {(byte)0xEF, (byte)0xBB, (byte)0xBF};
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    outputStream.write(bom);
+    outputStream.write(bytes);
+    byte[] bytesWithBom = outputStream.toByteArray();
+
     path = getS3Path(path);
     if (isComposeWithAwsSdk) {
       log.info("Writing with using AWS SDK client");
       s3Client.putObject(PutObjectRequest.builder().bucket(bucket)
           .key(path).build(),
-        RequestBody.fromBytes(bytes));
+        RequestBody.fromBytes(bytesWithBom));
       return path;
     } else {
       log.info("Writing with using Minio client");
-      try(var is = new ByteArrayInputStream(bytes)) {
+      try (var is = new ByteArrayInputStream(bytesWithBom)) {
         return client.putObject(PutObjectArgs.builder()
             .bucket(bucket)
             .region(region)

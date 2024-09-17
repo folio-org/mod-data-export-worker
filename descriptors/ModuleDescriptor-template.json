@@ -274,7 +274,6 @@
           "methods": [ "GET" ],
           "pathPattern": "/bulk-edit/permissions-self-check",
           "permissionsRequired": ["bulk-edit.permissions-self-check.get"],
-          "permissionsDesired": [],
           "modulePermissions": ["perms.users.get"]
         },
         {

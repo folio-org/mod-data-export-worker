@@ -19,7 +19,8 @@ public class PermissionsValidator {
     var readPermissionForEntity = requiredPermissionResolver.getReadPermission(entityType);
     var userPermissions = permissionsProvider.getUserPermissions(tenantId);
     var isReadPermissionsExist = userPermissions.contains(readPermissionForEntity);
-    log.info("isBulkEditReadPermissionExists:: user {} has read permissions {} for {}", folioExecutionContext.getUserId(), isReadPermissionsExist, entityType);
+    log.info("isBulkEditReadPermissionExists:: user {} has read permissions {} for {} in tenant {}", folioExecutionContext.getUserId(),
+      isReadPermissionsExist, entityType, tenantId);
     return isReadPermissionsExist;
   }
 }

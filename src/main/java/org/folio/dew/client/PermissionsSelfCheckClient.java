@@ -11,5 +11,5 @@ import java.util.List;
 public interface PermissionsSelfCheckClient {
 
   @GetMapping(value = "/permissions-self-check", produces = MediaType.APPLICATION_JSON_VALUE)
-  List<String> getDesiredPermissions();
+  List<String> getUserPermissionsForSelfCheck();
 }

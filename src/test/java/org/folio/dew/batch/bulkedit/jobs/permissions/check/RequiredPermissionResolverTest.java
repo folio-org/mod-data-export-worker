@@ -10,9 +10,9 @@ class RequiredPermissionResolverTest {
   @Test
   void testGetReadPermission() {
     var requiredPermissionResolver = new RequiredPermissionResolver();
-    assertEquals("bulk-edit.users.get",  requiredPermissionResolver.getReadPermission(EntityType.USER));
-    assertEquals("bulk-edit.items.get",  requiredPermissionResolver.getReadPermission(EntityType.ITEM));
-    assertEquals("bulk-edit.holdings.get",  requiredPermissionResolver.getReadPermission(EntityType.HOLDINGS_RECORD));
-    assertEquals("bulk-edit.instances.get",  requiredPermissionResolver.getReadPermission(EntityType.INSTANCE));
+    assertEquals("users.item.get",  requiredPermissionResolver.getReadPermission(EntityType.USER));
+    assertEquals("inventory.items.item.get",  requiredPermissionResolver.getReadPermission(EntityType.ITEM));
+    assertEquals("inventory-storage.holdings.item.get",  requiredPermissionResolver.getReadPermission(EntityType.HOLDINGS_RECORD));
+    assertEquals("inventory.instances.item.get",  requiredPermissionResolver.getReadPermission(EntityType.INSTANCE));
   }
 }

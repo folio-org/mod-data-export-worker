@@ -26,8 +26,8 @@ class PermissionsValidatorTest {
 
   @Test
   void testIsBulkEditReadPermissionExists() {
-    when(permissionsProvider.getDesiredPermissions("tenant1")).thenReturn(List.of("read_permission", "not_read_permission"));
-    when(permissionsProvider.getDesiredPermissions("tenant2")).thenReturn(List.of("not_read_permission"));
+    when(permissionsProvider.getUserPermissions("tenant1")).thenReturn(List.of("read_permission", "not_read_permission"));
+    when(permissionsProvider.getUserPermissions("tenant2")).thenReturn(List.of("not_read_permission"));
     when(requiredPermissionResolver.getReadPermission(EntityType.ITEM)).thenReturn("read_permission");
 
     assertTrue(permissionsValidator.isBulkEditReadPermissionExists("tenant1", EntityType.ITEM));

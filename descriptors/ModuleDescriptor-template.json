@@ -273,16 +273,9 @@
         {
           "methods": [ "GET" ],
           "pathPattern": "/bulk-edit/permissions-self-check",
-          "permissionsRequired": [ "bulk-edit.permissions-self-check.get" ],
-          "permissionsDesired": [
-            "inventory.instances.item.get",
-            "inventory.instances.collection.get",
-            "bulk-edit.users.get",
-            "bulk-edit.items.get",
-            "bulk-edit.holdings.get",
-            "bulk-edit.instances.get"
-          ],
-          "modulePermissions": []
+          "permissionsRequired": ["bulk-edit.permissions-self-check.get"],
+          "permissionsDesired": [],
+          "modulePermissions": ["perms.users.get"]
         },
         {
           "methods": [ "GET" ],
@@ -363,26 +356,6 @@
       "permissionName" : "refresh-presigned-url.get",
       "displayName" : "Get refreshed presigned url for export file",
       "description" : "Get refreshed presigned url for export file"
-    },
-    {
-      "permissionName" : "bulk-edit.users.get",
-      "displayName" : "Bulk edit users read permissions",
-      "description" : "Bulk edit users read permissions"
-    },
-    {
-      "permissionName" : "bulk-edit.items.get",
-      "displayName" : "Bulk edit items read permissions",
-      "description" : "Bulk edit items read permissions"
-    },
-    {
-      "permissionName" : "bulk-edit.holdings.get",
-      "displayName" : "Bulk edit holdings read permissions",
-      "description" : "Bulk edit holdings read permissions"
-    },
-    {
-      "permissionName" : "bulk-edit.instances.get",
-      "displayName" : "Bulk edit instances read permissions",
-      "description" : "Bulk edit instances read permissions"
     },
     {
       "permissionName" : "bulk-edit.all",

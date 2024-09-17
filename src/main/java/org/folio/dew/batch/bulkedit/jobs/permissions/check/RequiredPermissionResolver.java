@@ -8,10 +8,10 @@ public class RequiredPermissionResolver {
 
   public String getReadPermission(EntityType entityType) {
     return switch (entityType) {
-      case USER -> "bulk-edit.users.get";
-      case ITEM -> "bulk-edit.items.get";
-      case HOLDINGS_RECORD -> "bulk-edit.holdings.get";
-      case INSTANCE -> "bulk-edit.instances.get";
+      case USER -> "users.item.get";
+      case ITEM -> "inventory.items.item.get";
+      case HOLDINGS_RECORD -> "inventory-storage.holdings.item.get";
+      case INSTANCE -> "inventory.instances.item.get";
     };
   }
 }

@@ -131,17 +131,17 @@ paths:
                 example: Internal server error
   /permissions-self-check:
     get:
-      description: Get bulk edit desired permissions
-      operationId: getDesiredPermissions
+      description: Get users permissions
+      operationId: getUsersPermissions
       responses:
         '200':
-          description:  List of actual desired permissions for current tenant
+          description:  List of actual users permissions for current tenant
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/desiredPermission"
+                  $ref: "#/components/schemas/userPermission"
         '404':
           description: No found
           content:
@@ -158,7 +158,7 @@ paths:
                 example: Internal server error
 components:
   schemas:
-    desiredPermission:
+    userPermission:
       type: string
     UUID:
       type: string

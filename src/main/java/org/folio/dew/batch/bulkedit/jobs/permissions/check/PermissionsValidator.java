@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Log4j2
 public class PermissionsValidator {
 
-  private static final String BULK_EDIT_ITEM_POST_PERMISSION = "bulk-edit.item.post";
+  public static final String BULK_EDIT_ITEM_POST_PERMISSION = "bulk-operations.item.start.post";
   private final PermissionsProvider permissionsProvider;
   private final RequiredPermissionResolver requiredPermissionResolver;
   private final FolioExecutionContext folioExecutionContext;

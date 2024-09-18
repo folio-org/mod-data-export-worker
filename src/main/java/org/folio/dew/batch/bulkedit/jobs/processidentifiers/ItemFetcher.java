@@ -93,8 +93,8 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
             throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
           }
           tenantIds.forEach(tenantId -> {
-            checkReadPermissions(tenantId, identifier);
             try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
+              checkReadPermissions(tenantId, identifier);
               var url = format(getMatchPattern(identifierType), idType, identifier);
               var itemCollection = inventoryClient.getItemByQuery(url, Integer.MAX_VALUE);
               if (itemCollection.getItems().size() > limit) {

@@ -126,8 +126,8 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
           throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
         }
         tenantIds.forEach(tenantId -> {
-          checkReadPermissions(tenantId, identifier);
           try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
+            checkReadPermissions(tenantId, identifier);
             var holdingsRecordCollection = getHoldingsRecordCollection(type, itemIdentifier);
             extendedHoldingsRecordCollection.getExtendedHoldingsRecords().addAll(
               holdingsRecordCollection.getHoldingsRecords().stream()

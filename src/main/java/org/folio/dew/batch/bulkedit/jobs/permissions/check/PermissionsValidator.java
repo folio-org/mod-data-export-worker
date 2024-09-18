@@ -20,6 +20,7 @@ public class PermissionsValidator {
   public boolean isBulkEditReadPermissionExists(String tenantId, EntityType entityType) {
     var readPermissionForEntity = requiredPermissionResolver.getReadPermission(entityType);
     var userPermissions = permissionsProvider.getUserPermissions(tenantId);
+    log.info(userPermissions);
     var isReadPermissionsExist = userPermissions.contains(readPermissionForEntity) && userPermissions.contains(BULK_EDIT_ITEM_POST_PERMISSION);
     log.info("isBulkEditReadPermissionExists:: user {} has read permissions {} for {} in tenant {}", folioExecutionContext.getUserId(),
       isReadPermissionsExist, entityType, tenantId);

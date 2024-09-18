@@ -146,7 +146,7 @@
   "provides": [
     {
       "id": "bulk-edit",
-      "version": "4.1",
+      "version": "4.0",
       "handlers": [
         {
           "methods": [ "POST" ],

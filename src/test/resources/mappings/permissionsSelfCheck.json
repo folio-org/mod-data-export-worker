@@ -7,7 +7,7 @@
       },
       "response": {
         "status": 200,
-        "body": "[\"users.item.get\", \"inventory.items.item.get\", \"inventory-storage.holdings.item.get\", \"inventory.instances.item.get\"]",
+        "body": "[\"users.item.get\", \"inventory.items.item.get\", \"inventory-storage.holdings.item.get\", \"inventory.instances.item.get\", \"bulk-edit.item.post\"]",
         "headers": {
           "Content-Type": "application/json"
         }

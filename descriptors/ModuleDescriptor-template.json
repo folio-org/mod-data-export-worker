@@ -348,8 +348,8 @@
     },
     {
       "permissionName" : "bulk-edit.permissions-self-check.get",
-      "displayName" : "Set of desired permissions",
-      "description" : "Set of desired permissions"
+      "displayName" : "Set of users permissions for self check",
+      "description" : "Set of users permissions for self check"
     },
     {
       "permissionName" : "refresh-presigned-url.get",

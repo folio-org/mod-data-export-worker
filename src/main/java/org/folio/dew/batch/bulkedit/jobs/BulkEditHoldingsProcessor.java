@@ -35,6 +35,7 @@ import org.folio.dew.domain.dto.HoldingsRecordCollection;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
+import org.folio.dew.exceptions.ReadPermissionDoesNotExist;
 import org.folio.dew.service.ConsortiaService;
 import org.folio.dew.service.FolioExecutionContextManager;
 import org.folio.dew.service.HoldingsReferenceService;
@@ -127,7 +128,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
         }
         tenantIds.forEach(tenantId -> {
           try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-            checkReadPermissions(tenantId, identifier);
+            checkReadPermissions(tenantId);
             var holdingsRecordCollection = getHoldingsRecordCollection(type, itemIdentifier);
             extendedHoldingsRecordCollection.getExtendedHoldingsRecords().addAll(
               holdingsRecordCollection.getHoldingsRecords().stream()
@@ -138,7 +139,10 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
             if (e instanceof FeignException && ((FeignException) e).status() == 401) {
               var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
               throw new BulkEditException(format(NO_HOLDING_AFFILIATION, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId));
-            } else {
+            } else if (e instanceof ReadPermissionDoesNotExist) {
+              var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
+              throw new BulkEditException(format(NO_HOLDING_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId));
+            } else  {
               throw e;
             }
           }
@@ -154,6 +158,12 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
       return new ExtendedHoldingsRecordCollection().extendedHoldingsRecords(holdingsRecordCollection.getHoldingsRecords().stream()
           .map(holdingsRecord -> new ExtendedHoldingsRecord().tenantId(folioExecutionContext.getTenantId()).entity(holdingsRecord)).toList())
         .totalRecords(holdingsRecordCollection.getTotalRecords());
+    }
+  }
+
+  private void checkReadPermissions(String tenantId) {
+    if (!permissionsValidator.isBulkEditReadPermissionExists(tenantId, EntityType.HOLDINGS_RECORD)) {
+      throw new ReadPermissionDoesNotExist();
     }
   }
 

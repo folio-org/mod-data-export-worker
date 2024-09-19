@@ -30,6 +30,7 @@ import org.folio.dew.domain.dto.ExtendedItemCollection;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
+import org.folio.dew.exceptions.ReadPermissionDoesNotExist;
 import org.folio.dew.service.ConsortiaService;
 import org.folio.dew.service.FolioExecutionContextManager;
 import org.folio.dew.utils.ExceptionHelper;
@@ -94,7 +95,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
           }
           tenantIds.forEach(tenantId -> {
             try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-              checkReadPermissions(tenantId, identifier);
+              checkReadPermissions(tenantId);
               var url = format(getMatchPattern(identifierType), idType, identifier);
               var itemCollection = inventoryClient.getItemByQuery(url, Integer.MAX_VALUE);
               if (itemCollection.getItems().size() > limit) {
@@ -109,10 +110,12 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
               if (e instanceof FeignException && ((FeignException) e).status() == 401) {
                 var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
                 throw new BulkEditException(format(NO_ITEM_AFFILIATION, user.getUsername(), idType, identifier, tenantId));
-              } else {
+              } else if (e instanceof ReadPermissionDoesNotExist)  {
+                var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
+                throw new BulkEditException(format(NO_ITEM_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId));
+              }
                 throw e;
               }
-            }
           });
         } else {
           throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
@@ -141,6 +144,12 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
     if (!permissionsValidator.isBulkEditReadPermissionExists(tenantId, EntityType.ITEM)) {
       var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
       throw new BulkEditException(format(NO_ITEM_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId));
+    }
+  }
+
+  private void checkReadPermissions(String tenantId) {
+    if (!permissionsValidator.isBulkEditReadPermissionExists(tenantId, EntityType.ITEM)) {
+      throw new ReadPermissionDoesNotExist();
     }
   }
 

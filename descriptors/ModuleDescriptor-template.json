@@ -347,16 +347,6 @@
       "description" : "Get errors for preview"
     },
     {
-      "permissionName" : "bulk-edit.users.get",
-      "displayName" : "Bulk edit users read permissions",
-      "description" : "Bulk edit users read permissions"
-    },
-    {
-      "permissionName" : "bulk-edit.inventory.get",
-      "displayName" : "Bulk edit inventory read permissions",
-      "description" : "Bulk edit inventory read permissions"
-    },
-    {
       "permissionName" : "bulk-edit.permissions-self-check.get",
       "displayName" : "Set of desired permissions",
       "description" : "Set of desired permissions"

@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 @Log4j2
 public class PermissionsValidator {
 
-  public static final String BULK_EDIT_INVENTORY_VIEW_PERMISSION = "bulk-edit.inventory.get";
-  public static final String BULK_EDIT_USERS_VIEW_PERMISSION = "bulk-edit.users.get";
+  public static final String BULK_EDIT_INVENTORY_VIEW_PERMISSION = "bulk-operations.item.inventory.get";
+  public static final String BULK_EDIT_USERS_VIEW_PERMISSION = "bulk-operations.item.users.get";
 
   private final PermissionsProvider permissionsProvider;
   private final RequiredPermissionResolver requiredPermissionResolver;

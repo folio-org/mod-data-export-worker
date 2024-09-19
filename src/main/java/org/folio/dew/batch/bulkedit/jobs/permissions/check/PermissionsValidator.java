@@ -11,9 +11,8 @@ import org.springframework.stereotype.Component;
 @Log4j2
 public class PermissionsValidator {
 
-  public static final String BULK_EDIT_INVENTORY_VIEW_PERMISSION = "ui-bulk-edit.app-view";
-  public static final String BULK_EDIT_USERS_LOCAL_VIEW_PERMISSION = "ui-bulk-edit.view";
-  public static final String BULK_EDIT_USERS_EDIT_PERMISSION = "ui-bulk-edit.app-edit.users";
+  public static final String BULK_EDIT_INVENTORY_VIEW_PERMISSION = "bulk-edit.inventory.get";
+  public static final String BULK_EDIT_USERS_VIEW_PERMISSION = "bulk-edit.users.get";
 
   private final PermissionsProvider permissionsProvider;
   private final RequiredPermissionResolver requiredPermissionResolver;
@@ -23,11 +22,9 @@ public class PermissionsValidator {
   public boolean isBulkEditReadPermissionExists(String tenantId, EntityType entityType) {
     var readPermissionForEntity = requiredPermissionResolver.getReadPermission(entityType);
     var userPermissions = permissionsProvider.getUserPermissions(tenantId);
-    log.info(userPermissions);
     var isReadPermissionsExist = false;
     if (entityType == EntityType.USER) {
-      isReadPermissionsExist = userPermissions.contains(readPermissionForEntity) && userPermissions.contains(BULK_EDIT_USERS_EDIT_PERMISSION) ||
-        userPermissions.contains(readPermissionForEntity) && userPermissions.contains(BULK_EDIT_USERS_LOCAL_VIEW_PERMISSION);
+      isReadPermissionsExist = userPermissions.contains(readPermissionForEntity) && userPermissions.contains(BULK_EDIT_USERS_VIEW_PERMISSION);
     } else {
       isReadPermissionsExist = userPermissions.contains(readPermissionForEntity) && userPermissions.contains(BULK_EDIT_INVENTORY_VIEW_PERMISSION);
     }

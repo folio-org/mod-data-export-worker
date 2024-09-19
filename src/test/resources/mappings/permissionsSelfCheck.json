@@ -7,7 +7,7 @@
       },
       "response": {
         "status": 200,
-        "body": "[\"users.item.get\", \"inventory.items.item.get\", \"inventory-storage.holdings.item.get\", \"inventory.instances.item.get\", \"ui-bulk-edit.app-view\", \"ui-bulk-edit.app-edit.users\", \"ui-bulk-edit.view\"]",
+        "body": "[\"users.item.get\", \"inventory.items.item.get\", \"inventory-storage.holdings.item.get\", \"inventory.instances.item.get\", \"bulk-edit.inventory.get\", \"bulk-edit.users.get\"]",
         "headers": {
           "Content-Type": "application/json"
         }

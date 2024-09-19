@@ -13,8 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator.BULK_EDIT_INVENTORY_VIEW_PERMISSION;
-import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator.BULK_EDIT_USERS_EDIT_PERMISSION;
-import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator.BULK_EDIT_USERS_LOCAL_VIEW_PERMISSION;
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator.BULK_EDIT_USERS_VIEW_PERMISSION;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -45,14 +44,12 @@ class PermissionsValidatorTest {
 
   @Test
   void testIsBulkEditReadPermissionExistsForUsers() {
-    when(permissionsProvider.getUserPermissions("tenant1")).thenReturn(List.of("read_permission", "not_read_permission", BULK_EDIT_USERS_EDIT_PERMISSION));
-    when(permissionsProvider.getUserPermissions("tenant2")).thenReturn(List.of("read_permission", "not_read_permission", BULK_EDIT_USERS_LOCAL_VIEW_PERMISSION));
-    when(permissionsProvider.getUserPermissions("tenant3")).thenReturn(List.of("not_read_permission"));
+    when(permissionsProvider.getUserPermissions("tenant1")).thenReturn(List.of("read_permission", "not_read_permission", BULK_EDIT_USERS_VIEW_PERMISSION));
+    when(permissionsProvider.getUserPermissions("tenant2")).thenReturn(List.of("not_read_permission"));
     when(requiredPermissionResolver.getReadPermission(EntityType.USER)).thenReturn("read_permission");
     when(folioExecutionContext.getUserId()).thenReturn(UUID.randomUUID());
 
     assertTrue(permissionsValidator.isBulkEditReadPermissionExists("tenant1", EntityType.USER));
-    assertTrue(permissionsValidator.isBulkEditReadPermissionExists("tenant2", EntityType.USER));
-    assertFalse(permissionsValidator.isBulkEditReadPermissionExists("tenant3", EntityType.USER));
+    assertFalse(permissionsValidator.isBulkEditReadPermissionExists("tenant2", EntityType.USER));
   }
 }

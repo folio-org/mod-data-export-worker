@@ -3,6 +3,7 @@ package org.folio.dew.batch.bulkedit.jobs.permissions.check;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.exceptions.ReadPermissionDoesNotExist;
 import org.folio.spring.FolioExecutionContext;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,11 @@ public class PermissionsValidator {
   private final RequiredPermissionResolver requiredPermissionResolver;
   private final FolioExecutionContext folioExecutionContext;
 
+  public void checkBulkEditReadPermissions(String tenantId, EntityType entityType) {
+    if (!isBulkEditReadPermissionExists(tenantId, entityType)) {
+      throw new ReadPermissionDoesNotExist();
+    }
+  }
 
   public boolean isBulkEditReadPermissionExists(String tenantId, EntityType entityType) {
     var readPermissionForEntity = requiredPermissionResolver.getReadPermission(entityType);

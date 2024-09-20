@@ -128,7 +128,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
         }
         tenantIds.forEach(tenantId -> {
           try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-            checkReadPermissions(tenantId);
+            permissionsValidator.checkBulkEditReadPermissions(tenantId, EntityType.HOLDINGS_RECORD);
             var holdingsRecordCollection = getHoldingsRecordCollection(type, itemIdentifier);
             extendedHoldingsRecordCollection.getExtendedHoldingsRecords().addAll(
               holdingsRecordCollection.getHoldingsRecords().stream()
@@ -158,12 +158,6 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
       return new ExtendedHoldingsRecordCollection().extendedHoldingsRecords(holdingsRecordCollection.getHoldingsRecords().stream()
           .map(holdingsRecord -> new ExtendedHoldingsRecord().tenantId(folioExecutionContext.getTenantId()).entity(holdingsRecord)).toList())
         .totalRecords(holdingsRecordCollection.getTotalRecords());
-    }
-  }
-
-  private void checkReadPermissions(String tenantId) {
-    if (!permissionsValidator.isBulkEditReadPermissionExists(tenantId, EntityType.HOLDINGS_RECORD)) {
-      throw new ReadPermissionDoesNotExist();
     }
   }
 

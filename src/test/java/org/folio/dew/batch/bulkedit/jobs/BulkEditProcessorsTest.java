@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 import lombok.SneakyThrows;
@@ -32,6 +33,7 @@ import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserCollection;
 import org.folio.dew.error.BulkEditException;
+import org.folio.dew.exceptions.ReadPermissionDoesNotExist;
 import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -216,7 +218,7 @@ class BulkEditProcessorsTest extends BaseBatchTest {
     var user = new User();
     user.setUsername("userName");
 
-    when(permissionsValidator.isBulkEditReadPermissionExists("tenant_h", EntityType.ITEM)).thenReturn(false);
+    doThrow(new ReadPermissionDoesNotExist()).when(permissionsValidator).checkBulkEditReadPermissions("tenant_h", EntityType.ITEM);
     when(userClient.getUserById(any())).thenReturn(user);
     when(folioExecutionContext.getTenantId()).thenReturn("central");
 
@@ -255,7 +257,7 @@ class BulkEditProcessorsTest extends BaseBatchTest {
     var user = new User();
     user.setUsername("userName");
 
-    when(permissionsValidator.isBulkEditReadPermissionExists("tenant_h", EntityType.HOLDINGS_RECORD)).thenReturn(false);
+    doThrow(new ReadPermissionDoesNotExist()).when(permissionsValidator).checkBulkEditReadPermissions("tenant_h", EntityType.HOLDINGS_RECORD);
     when(userClient.getUserById(any())).thenReturn(user);
     when(folioExecutionContext.getTenantId()).thenReturn("central");
 

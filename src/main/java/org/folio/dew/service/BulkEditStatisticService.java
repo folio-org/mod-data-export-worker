@@ -1,23 +1,29 @@
 package org.folio.dew.service;
 
-import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.stereotype.Service;
 
-@JobScope
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.LongAdder;
+
 @Service
 public class BulkEditStatisticService {
 
-  private BulkEditStatistic statistic = new BulkEditStatistic();
+  private final Map<String, LongAdder> success;
 
-  public void incrementSuccess() {
-      statistic.setSuccess(statistic.getSuccess() + 1);
+  public BulkEditStatisticService() {
+    success = new ConcurrentHashMap<>();
   }
 
-  public void incrementSuccess(int value) {
-    statistic.setSuccess(statistic.getSuccess() + value);
+  public void incrementSuccess(String jobId, int value) {
+    success.computeIfAbsent(jobId, val -> new LongAdder()).add(value);
   }
 
-  public BulkEditStatistic getStatistic() {
-    return statistic;
+  public int getSuccess(String jobId) {
+    return success.get(jobId).intValue();
+  }
+
+  public void reset(String jobId) {
+    success.remove(jobId);
   }
 }

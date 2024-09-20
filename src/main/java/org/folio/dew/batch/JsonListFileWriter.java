@@ -1,6 +1,7 @@
 package org.folio.dew.batch;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.utils.Constants.NEW_LINE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.folio.dew.domain.dto.Formatable;
@@ -43,9 +44,7 @@ public class JsonListFileWriter<T, U extends Formatable<T>> extends JsonFileItem
       } else {
         lines.append(marshaller.marshal(item.getOriginal()));
       }
-      if(iterator.hasNext()) {
-        lines.append('\n');
-      }
+      lines.append(NEW_LINE);
     }
     return lines.toString();
   }

@@ -3,7 +3,6 @@ package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
-import static org.folio.dew.utils.Constants.CHUNKS;
 import static org.folio.dew.utils.Constants.NUMBER_OF_WRITTEN_RECORDS;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 
@@ -18,7 +17,7 @@ import org.folio.dew.service.BulkEditStatisticService;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.configuration.annotation.JobScope;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.Chunk;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -29,14 +28,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
-@JobScope
+@StepScope
 @RequiredArgsConstructor
 @Log4j2
 public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
   private final KafkaService kafka;
 
-  @Value("#{jobExecution}")
+  @Value("#{stepExecution.jobExecution}")
   private JobExecution jobExecution;
+
+  @Value("${application.chunks}")
+  private int chunks;
 
   private AtomicInteger processedRecords = new AtomicInteger();
   private AtomicLong processedIdentifiers = new AtomicLong();
@@ -50,9 +52,9 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
 
   @Override
   public void afterWrite(Chunk<? extends T> list) {
-    bulkEditStatisticService.incrementSuccess(list.size());
     var job = new Job();
     job.setId(UUID.fromString(jobExecution.getJobParameters().getString(JOB_ID)));
+    bulkEditStatisticService.incrementSuccess(job.getId().toString(), list.size());
     job.setType(ExportType.BULK_EDIT_IDENTIFIERS);
     job.setEntityType(EntityType.fromValue(jobExecution.getJobInstance().getJobName().split("-")[1]));
     job.setBatchStatus(BatchStatus.STARTED);
@@ -61,7 +63,7 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
     log.info("afterWrite:: update job by id {} after write for identifiers", job.getId());
 
     var totalCsvLines = jobExecution.getJobParameters().getLong(TOTAL_CSV_LINES);
-    var processed = processedIdentifiers.addAndGet(CHUNKS);
+    var processed = processedIdentifiers.addAndGet(chunks);
     if (nonNull(totalCsvLines) && processed > totalCsvLines) {
       processed = totalCsvLines;
     }
@@ -69,7 +71,7 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
     progress.setTotal(isNull(totalCsvLines) ? 0 : totalCsvLines.intValue());
     progress.setProcessed((int) processed);
     progress.setProgress(isNull(totalCsvLines) ? 0 : calculateProgress(processed, totalCsvLines));
-    progress.setSuccess(bulkEditStatisticService.getStatistic().getSuccess());
+    progress.setSuccess(bulkEditStatisticService.getSuccess(job.getId().toString()));
     job.setProgress(progress);
 
     jobExecution.getExecutionContext().putLong(NUMBER_OF_WRITTEN_RECORDS, processedRecords.longValue());
@@ -78,7 +80,7 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
   }
 
   private int calculateProgress(long processed, long total) {
-    if (total <= CHUNKS) {
+    if (total <= chunks) {
       return 90;
     }
     var res = (double) processed / total * 100;

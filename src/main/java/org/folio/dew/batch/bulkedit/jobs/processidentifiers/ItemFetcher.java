@@ -62,7 +62,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
 
-  private Set<ItemIdentifier> identifiersToCheckDuplication = ConcurrentHashMap.newKeySet();;
+  private Set<ItemIdentifier> identifiersToCheckDuplication = ConcurrentHashMap.newKeySet();
 
   @Override
   public synchronized ExtendedItemCollection process(ItemIdentifier itemIdentifier) throws BulkEditException {

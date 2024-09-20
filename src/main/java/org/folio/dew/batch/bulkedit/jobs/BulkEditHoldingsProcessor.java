@@ -48,9 +48,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Component
@@ -74,11 +74,11 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
   @Value("#{jobParameters['fileName']}")
   private String fileName;
 
-  private Set<ItemIdentifier> identifiersToCheckDuplication = new HashSet<>();
-  private Set<String> fetchedHoldingsIds = new HashSet<>();
+  private Set<ItemIdentifier> identifiersToCheckDuplication = ConcurrentHashMap.newKeySet();
+  private Set<String> fetchedHoldingsIds = ConcurrentHashMap.newKeySet();
 
   @Override
-  public List<HoldingsFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
+  public synchronized List<HoldingsFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
     if (identifiersToCheckDuplication.contains(itemIdentifier)) {
       throw new BulkEditException("Duplicate entry");
     }

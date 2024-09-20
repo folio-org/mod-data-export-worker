@@ -21,12 +21,14 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.support.CompositeItemWriter;
+import org.springframework.batch.item.support.SynchronizedItemStreamReader;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.Arrays;
@@ -35,7 +37,6 @@ import java.util.List;
 import static org.folio.dew.domain.dto.EntityType.INSTANCE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_MARC_PATH;
-import static org.folio.dew.utils.Constants.CHUNKS;
 import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
 
 @Configuration
@@ -45,6 +46,9 @@ public class BulkEditInstanceIdentifiersJobConfig {
   private final BulkEditSkipListener bulkEditSkipListener;
   private final SrsClient srsClient;
   private final JsonToMarcConverter jsonToMarcConverter;
+
+  @Value("${application.chunks}")
+  private int chunks;
 
   @Bean
   public Job bulkEditProcessInstanceIdentifiersJob(JobCompletionNotificationListener listener, Step bulkEditInstanceStep,
@@ -58,12 +62,12 @@ public class BulkEditInstanceIdentifiersJobConfig {
   }
 
   @Bean
-  public Step bulkEditInstanceStep(FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader,
-    CompositeItemWriter<List<InstanceFormat>> compositeInstanceListWriter,
-    ListIdentifiersWriteListener<InstanceFormat> listIdentifiersWriteListener, JobRepository jobRepository,
-    PlatformTransactionManager transactionManager) {
+  public Step bulkEditInstanceStep(SynchronizedItemStreamReader<ItemIdentifier> csvItemIdentifierReader,
+                                   CompositeItemWriter<List<InstanceFormat>> compositeInstanceListWriter,
+                                   ListIdentifiersWriteListener<InstanceFormat> listIdentifiersWriteListener, JobRepository jobRepository,
+                                   PlatformTransactionManager transactionManager, @Qualifier("asyncTaskExecutorBulkEdit") TaskExecutor taskExecutor) {
     return new StepBuilder("bulkEditInstanceStep", jobRepository)
-      .<ItemIdentifier, List<InstanceFormat>> chunk(CHUNKS, transactionManager)
+      .<ItemIdentifier, List<InstanceFormat>> chunk(chunks, transactionManager)
       .reader(csvItemIdentifierReader)
       .processor(bulkEditInstanceProcessor)
       .faultTolerant()
@@ -73,6 +77,7 @@ public class BulkEditInstanceIdentifiersJobConfig {
       .listener(bulkEditSkipListener)
       .writer(compositeInstanceListWriter)
       .listener(listIdentifiersWriteListener)
+      .taskExecutor(taskExecutor)
       .build();
   }
 

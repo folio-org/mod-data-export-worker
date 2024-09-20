@@ -10,7 +10,6 @@ import static org.folio.dew.domain.dto.EntityType.ITEM;
 
 @UtilityClass
 public class Constants {
-  public static final int CHUNKS = 100;
   public static final String ROLLBACK_FILE = "rollBackFile";
   public static final String TMP_DIR_PROPERTY = "java.io.tmpdir";
   public static final String PATH_SEPARATOR = "/";
@@ -55,6 +54,7 @@ public class Constants {
   public static final String COMMA = ",";
   public static final String QUOTE = "\"";
   public static final String QUOTE_REPLACEMENT = "\"\"";
+  public static final char NEW_LINE = '\n';
 
   public static final String NO_MATCH_FOUND_MESSAGE = "No match found";
   public static final String NO_CHANGE_MESSAGE = "No change in value needed";

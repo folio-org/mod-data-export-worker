@@ -51,7 +51,7 @@ public class BulkEditProcessingErrorsService {
 
 
 
-  public void saveErrorInCSV(String jobId, String affectedIdentifier, Throwable reasonForError, String fileName) {
+  public synchronized void saveErrorInCSV(String jobId, String affectedIdentifier, Throwable reasonForError, String fileName) {
     if (isNull(jobId) || isNull(affectedIdentifier) || isNull(reasonForError) || isNull(fileName)) {
       log.error("Some of the parameters is null, jobId: {}, affectedIdentifier: {}, reasonForError: {}, fileName: {}", jobId, affectedIdentifier, reasonForError, fileName);
       return;

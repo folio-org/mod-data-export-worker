@@ -54,6 +54,7 @@ public class Constants {
   public static final String COMMA = ",";
   public static final String QUOTE = "\"";
   public static final String QUOTE_REPLACEMENT = "\"\"";
+  public static final char NEW_LINE = '\n';
 
   public static final String NO_MATCH_FOUND_MESSAGE = "No match found";
   public static final String NO_CHANGE_MESSAGE = "No change in value needed";

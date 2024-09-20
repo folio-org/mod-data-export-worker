@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Component
@@ -62,10 +63,10 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
 
-  private Set<ItemIdentifier> identifiersToCheckDuplication = new HashSet<>();
+  private Set<ItemIdentifier> identifiersToCheckDuplication = ConcurrentHashMap.newKeySet();;
 
   @Override
-  public ExtendedItemCollection process(ItemIdentifier itemIdentifier) throws BulkEditException {
+  public synchronized ExtendedItemCollection process(ItemIdentifier itemIdentifier) throws BulkEditException {
     if (identifiersToCheckDuplication.contains(itemIdentifier)) {
       throw new BulkEditException("Duplicate entry");
     }

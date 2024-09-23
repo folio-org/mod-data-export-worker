@@ -150,7 +150,7 @@
   "provides": [
     {
       "id": "bulk-edit",
-      "version": "4.0",
+      "version": "4.1",
       "handlers": [
         {
           "methods": [ "POST" ],

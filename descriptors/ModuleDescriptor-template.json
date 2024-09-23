@@ -141,6 +141,10 @@
     {
       "id": "instance-note-types",
       "version": "1.0"
+    },
+    {
+      "id": "permissions",
+      "version": "5.6"
     }
   ],
   "provides": [

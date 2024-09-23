@@ -10,7 +10,6 @@ import static org.folio.dew.domain.dto.EntityType.ITEM;
 
 @UtilityClass
 public class Constants {
-  public static final int CHUNKS = 100;
   public static final String ROLLBACK_FILE = "rollBackFile";
   public static final String TMP_DIR_PROPERTY = "java.io.tmpdir";
   public static final String PATH_SEPARATOR = "/";
@@ -55,6 +54,7 @@ public class Constants {
   public static final String COMMA = ",";
   public static final String QUOTE = "\"";
   public static final String QUOTE_REPLACEMENT = "\"\"";
+  public static final char NEW_LINE = '\n';
 
   public static final String NO_MATCH_FOUND_MESSAGE = "No match found";
   public static final String NO_CHANGE_MESSAGE = "No change in value needed";
@@ -63,7 +63,11 @@ public class Constants {
   public static final String MULTIPLE_MATCHES_MESSAGE = "Multiple matches for the same identifier.";
   public static final String NO_MARC_CONTENT = "Cannot get marc content for record with id = %s, reason: %s";
   public static final String NO_ITEM_AFFILIATION = "User %s does not have required affiliation to view the item record - %s=%s on the tenant %s";
+  public static final String NO_ITEM_VIEW_PERMISSIONS = "User %s does not have required permission to view the item record - %s=%s on the tenant %s";
   public static final String NO_HOLDING_AFFILIATION = "User %s does not have required affiliation to view the holdings record - %s=%s on the tenant %s";
+  public static final String NO_HOLDING_VIEW_PERMISSIONS = "User %s does not have required permission to view the holdings record - %s=%s on the tenant %s";
+  public static final String NO_INSTANCE_VIEW_PERMISSIONS = "User %s does not have required permission to view the instance record - %s=%s on the tenant %s";
+  public static final String NO_USER_VIEW_PERMISSIONS = "User %s does not have required permission to view the user record - %s=%s on the tenant %s";
   public static final String DUPLICATES_ACROSS_TENANTS = "Duplicates across tenants";
 
   public static final String MODULE_NAME = "BULKEDIT";

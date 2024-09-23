@@ -1,0 +1,17 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/bulk-edit/permissions-self-check"
+      },
+      "response": {
+        "status": 200,
+        "body": "[\"users.item.get\", \"inventory.items.item.get\", \"inventory-storage.holdings.item.get\", \"inventory.instances.item.get\", \"bulk-operations.item.inventory.get\", \"bulk-operations.item.users.get\"]",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

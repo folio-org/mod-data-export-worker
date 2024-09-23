@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -219,8 +220,8 @@ class BulkEditTest extends BaseBatchTest {
 
     var jobCaptor = ArgumentCaptor.forClass(org.folio.de.entity.Job.class);
 
-    // expected 4 events: 1st - job started, 2nd, 3rd - updates after each chunk (100 identifiers), 4th - job completed
-    Mockito.verify(kafkaService, Mockito.times(4)).send(any(), any(), jobCaptor.capture());
+    // expected 4 events: 1st - job started, 2nd, 3rd, 4th, 5th - updates after each chunk (100 identifiers) from more than 1 thread, 6th - job completed
+    Mockito.verify(kafkaService, Mockito.times(6)).send(any(), any(), jobCaptor.capture());
 
     verifyJobProgressUpdates(jobCaptor);
   }
@@ -239,8 +240,8 @@ class BulkEditTest extends BaseBatchTest {
 
     var jobCaptor = ArgumentCaptor.forClass(org.folio.de.entity.Job.class);
 
-    // expected 4 events: 1st - job started, 2nd, 3rd - updates after each chunk (100 identifiers), 4th - job completed
-    Mockito.verify(kafkaService, Mockito.times(4)).send(any(), any(), jobCaptor.capture());
+    // expected 4 events: 1st - job started, 2nd, 3rd, 4th, 5th - updates after each chunk (100 identifiers) from more than 1 thread, 6th - job completed
+    Mockito.verify(kafkaService, Mockito.times(6)).send(any(), any(), jobCaptor.capture());
 
     verifyJobProgressUpdates(jobCaptor);
   }
@@ -669,12 +670,18 @@ class BulkEditTest extends BaseBatchTest {
       if (StringUtils.isNotEmpty(errorInStorage)){
         final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
         final FileSystemResource expectedResultWithErrors = getExpectedResourceByJobName(jobExecution.getJobInstance().getJobName());
-        assertEquals(new String(expectedResultWithErrors.getContentAsByteArray()), new String(actualResultWithErrors.getContentAsByteArray()));
+        assertEquals(getSortedOutput(expectedResultWithErrors), getSortedOutput(actualResultWithErrors));
       }
     }
     final FileSystemResource actualResult = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(output);
-    assertEquals(new String(expectedCharges.getContentAsByteArray()), new String(actualResult.getContentAsByteArray()));
+    assertEquals(getSortedOutput(expectedCharges), getSortedOutput(actualResult));
+  }
+
+  private String getSortedOutput(FileSystemResource resource) throws IOException {
+    var lines = Files.readAllLines(Path.of(resource.getPath()));
+    Collections.sort(lines);
+    return lines.toString();
   }
 
   private FileSystemResource getExpectedResourceByJobName(String jobName) {
@@ -698,7 +705,7 @@ class BulkEditTest extends BaseBatchTest {
 
     final FileSystemResource actualResult = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(output);
-    assertEquals(new String(expectedCharges.getContentAsByteArray()), new String(actualResult.getContentAsByteArray()));
+    assertEquals(getSortedOutput(expectedCharges), getSortedOutput(actualResult));
   }
 
   private void assertFileEqualsIgnoringCreatedAndUpdatedDate(FileSystemResource expectedJsonFile, FileSystemResource actualJsonResult)
@@ -706,7 +713,9 @@ class BulkEditTest extends BaseBatchTest {
     var expectedContent = IOUtils.toString(expectedJsonFile.getInputStream(), Charset.forName("UTF-8"));
     var actualContent = IOUtils.toString(actualJsonResult.getInputStream(), Charset.forName("UTF-8"));
     String actualUpdated = "";
-    for (String json : actualContent.split("\n")) {
+    var jsons = actualContent.split("\n");
+    Arrays.sort(jsons);
+    for (String json : jsons) {
       var actualJsonItem = new JSONObject(json);
       actualJsonItem.remove("createdDate");
       actualJsonItem.remove("updatedDate");
@@ -727,14 +736,14 @@ class BulkEditTest extends BaseBatchTest {
       String errorInStorage = links[1];
       final FileSystemResource actualResultWithErrors = actualFileOutput(errorInStorage);
       final FileSystemResource expectedResultWithErrors = new FileSystemResource(expectedErrorOutput);
-      assertEquals(new String(expectedResultWithErrors.getContentAsByteArray()), new String(actualResultWithErrors.getContentAsByteArray()));
+      assertEquals(getSortedOutput(expectedResultWithErrors), getSortedOutput(actualResultWithErrors));
     }
     if (isEmpty(fileInStorage)) {
       assertTrue(isEmpty(output));
     } else {
       final FileSystemResource actualResult = actualFileOutput(fileInStorage);
       FileSystemResource expectedCharges = new FileSystemResource(output);
-      assertEquals(new String(expectedCharges.getContentAsByteArray()), new String(actualResult.getContentAsByteArray()));
+      assertEquals(getSortedOutput(expectedCharges), getSortedOutput(actualResult));
     }
   }
 
@@ -790,21 +799,7 @@ class BulkEditTest extends BaseBatchTest {
   }
 
   private void verifyJobProgressUpdates(ArgumentCaptor<org.folio.de.entity.Job> jobCaptor) {
-    var job = jobCaptor.getAllValues().get(1);
-    assertThat(job.getProgress().getTotal()).isEqualTo(179);
-    assertThat(job.getProgress().getProcessed()).isEqualTo(100);
-    assertThat(job.getProgress().getProgress()).isEqualTo(45);
-    assertThat(job.getProgress().getSuccess()).isEqualTo(80);
-    assertThat(job.getProgress().getErrors()).isZero();
-
-    job = jobCaptor.getAllValues().get(2);
-    assertThat(job.getProgress().getTotal()).isEqualTo(179);
-    assertThat(job.getProgress().getProcessed()).isEqualTo(179);
-    assertThat(job.getProgress().getProgress()).isEqualTo(90);
-    assertThat(job.getProgress().getSuccess()).isEqualTo(144);
-    assertThat(job.getProgress().getErrors()).isZero();
-
-    job = jobCaptor.getAllValues().get(3);
+    var job = jobCaptor.getAllValues().get(5);
     assertThat(job.getProgress().getTotal()).isEqualTo(179);
     assertThat(job.getProgress().getProcessed()).isEqualTo(179);
     assertThat(job.getProgress().getProgress()).isEqualTo(100);

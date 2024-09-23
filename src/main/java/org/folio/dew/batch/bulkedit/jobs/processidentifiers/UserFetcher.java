@@ -22,8 +22,8 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @StepScope
@@ -34,7 +34,7 @@ public class UserFetcher implements ItemProcessor<ItemIdentifier, User> {
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
-  private Set<ItemIdentifier> identifiersToCheckDuplication = new HashSet<>();
+  private Set<ItemIdentifier> identifiersToCheckDuplication = ConcurrentHashMap.newKeySet();
   private final FolioExecutionContext folioExecutionContext;
   private final PermissionsValidator permissionsValidator;
 

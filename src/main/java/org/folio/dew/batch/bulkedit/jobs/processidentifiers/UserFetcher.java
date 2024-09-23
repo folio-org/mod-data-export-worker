@@ -39,7 +39,7 @@ public class UserFetcher implements ItemProcessor<ItemIdentifier, User> {
   private final PermissionsValidator permissionsValidator;
 
   @Override
-  public User process(ItemIdentifier itemIdentifier) throws BulkEditException {
+  public synchronized User process(ItemIdentifier itemIdentifier) throws BulkEditException {
     if (!permissionsValidator.isBulkEditReadPermissionExists(folioExecutionContext.getTenantId(), EntityType.USER)) {
       var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
       throw new BulkEditException(format(NO_USER_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()));

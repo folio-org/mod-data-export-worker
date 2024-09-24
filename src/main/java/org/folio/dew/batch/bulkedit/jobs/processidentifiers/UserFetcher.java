@@ -22,8 +22,8 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @StepScope
@@ -34,12 +34,12 @@ public class UserFetcher implements ItemProcessor<ItemIdentifier, User> {
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
-  private Set<ItemIdentifier> identifiersToCheckDuplication = new HashSet<>();
+  private Set<ItemIdentifier> identifiersToCheckDuplication = ConcurrentHashMap.newKeySet();
   private final FolioExecutionContext folioExecutionContext;
   private final PermissionsValidator permissionsValidator;
 
   @Override
-  public User process(ItemIdentifier itemIdentifier) throws BulkEditException {
+  public synchronized User process(ItemIdentifier itemIdentifier) throws BulkEditException {
     if (!permissionsValidator.isBulkEditReadPermissionExists(folioExecutionContext.getTenantId(), EntityType.USER)) {
       var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
       throw new BulkEditException(format(NO_USER_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()));

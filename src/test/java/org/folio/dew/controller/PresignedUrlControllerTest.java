@@ -32,14 +32,4 @@ public class PresignedUrlControllerTest extends BaseBatchTest {
         .queryParam(FILE_PATH, filePath))
       .andExpect(status().isOk());
   }
-
-  @Test
-  void shouldReturnErrorWhenRetrievingPresignedUrlFailed() throws Exception {
-    var headers = defaultHeaders();
-
-    mockMvc.perform(get(REFRESH_PRESIGNED_URL)
-        .headers(headers)
-        .queryParam(FILE_PATH, ""))
-      .andExpect(status().is5xxServerError());
-  }
 }

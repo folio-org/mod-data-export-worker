@@ -208,7 +208,7 @@
             "inventory-storage.nature-of-content-terms.item.get",
             "inventory-storage.instance-formats.item.get",
             "inventory-storage.instance-note-types.item.get",
-            "source-storage.sourceRecords.get",
+            "source-storage.source-records.collection.get",
             "user-tenants.collection.get",
             "consortium-search.holdings.collection.get",
             "consortium-search.items.collection.get",

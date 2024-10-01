@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 public class ItemFormat implements Formatable<org.folio.dew.domain.dto.Item> {
 
   private org.folio.dew.domain.dto.Item original;
-  private String tenantId;
 
   @CsvBindByName(column = "Item UUID")
   @CsvBindByPosition(position = 0)
@@ -197,6 +196,10 @@ public class ItemFormat implements Formatable<org.folio.dew.domain.dto.Item> {
   @CsvBindByName(column = "Holdings UUID")
   @CsvBindByPosition(position = 43)
   private String holdingsRecordId;
+
+  @CsvBindByName(column = "Tenant")
+  @CsvBindByPosition(position = 44)
+  private String tenantId;
 
   public static String[] getItemFieldsArray() {
     return FieldUtils.getFieldsListWithAnnotation(ItemFormat.class, CsvBindByName.class).stream()

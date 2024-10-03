@@ -1,4 +1,4 @@
-User barcode,Item barcode,Object,Circ action,Date,Service point,Source,Description
+﻿User barcode,Item barcode,Object,Circ action,Date,Service point,Source,Description
 ,4539876054383,Fee/Fine,Billed,2021-03-12 19:32,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 5.00. manual
 456,,Fee/Fine,Billed,2021-03-17 00:43,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Fee/Fine owner: Bursar owner. Amount: 100.00. manual
 456,,Fee/Fine,Transferred partially,2021-03-17 00:44,Online,"ADMINISTRATOR, DIKU",Fee/Fine type: Test ff type. Amount: 10.00. Balance: 90.00. Transfer account: Transfer2bursar. Additional information to staff: . Additional information to patron: .

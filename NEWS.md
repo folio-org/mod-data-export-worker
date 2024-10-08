@@ -4,7 +4,7 @@
 
 ### Technical tasks
 ModuleDescriptor: ERM interface version upgrading
-* [MODEXPW-512](https://folio-org.atlassian.net/browse/MODEXPW-512) Update `source-storage-source-records` to `v3.2` and rename module permissions
+* [MODEXPW-512](https://folio-org.atlassian.net/browse/MODEXPW-512) Rename sourceRecords permission
 
 ## 2024-03-19 v3.2.0
 

@@ -40,7 +40,7 @@ public class FolioTenantService extends TenantService {
     try {
       kafkaService.createKafkaTopics();
       kafkaService.restartEventListeners();
-      configurationService.checkBulkEditConfiguration();
+      configurationService.updateBulkEditConfiguration();
     } catch (Exception e) {
       log.error(e.getMessage(), e);
     }

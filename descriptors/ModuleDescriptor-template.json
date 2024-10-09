@@ -211,6 +211,8 @@
             "source-storage.sourceRecords.get",
             "user-tenants.collection.get",
             "consortium-search.holdings.collection.get",
+            "consortium-search.holdings.batch.collection.get",
+            "consortium-search.items.batch.collection.get",
             "consortium-search.items.collection.get",
             "bulk-edit.permissions-self-check.get"
           ]

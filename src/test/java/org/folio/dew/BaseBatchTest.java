@@ -38,7 +38,6 @@ import org.folio.dew.domain.dto.UserTenant;
 import org.folio.dew.domain.dto.UserTenantCollection;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.JobCommandsReceiverService;
-import org.folio.dew.service.UserPermissionsService;
 import org.folio.spring.DefaultFolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.integration.XOkapiHeaders;

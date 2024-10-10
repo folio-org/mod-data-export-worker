@@ -20,10 +20,10 @@ public class UserPermissionsService {
   public static final String BULK_EDIT_INVENTORY_VIEW_PERMISSION = "bulk-operations.item.inventory.get";
   public static final String BULK_EDIT_USERS_VIEW_PERMISSION = "bulk-operations.item.users.get";
 
-  public final static String USER_ITEM_GET_PERMISSION = "users.item.get";
-  public final static String INVENTORY_ITEMS_ITEM_GET_PERMISSION = "inventory.items.item.get";
-  public final static String INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION = "inventory-storage.holdings.item.get";
-  public final static String INVENTORY_INSTANCES_ITEM_GET_PERMISSION = "inventory.instances.item.get";
+  public static final String USER_ITEM_GET_PERMISSION = "users.item.get";
+  public static final String INVENTORY_ITEMS_ITEM_GET_PERMISSION = "inventory.items.item.get";
+  public static final String INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION = "inventory-storage.holdings.item.get";
+  public static final String INVENTORY_INSTANCES_ITEM_GET_PERMISSION = "inventory.instances.item.get";
 
   @Value("${application.eureka.permissions-model}")
   @Setter
@@ -38,7 +38,6 @@ public class UserPermissionsService {
       var desiredPermissions = getDesiredPermissions();
       return eurekaUserPermissionsClient.getPermissions(folioExecutionContext.getUserId().toString(),
         desiredPermissions).getPermissions();
-
     }
     return okapiUserPermissionsClient.getPermissions(folioExecutionContext.getUserId().toString()).getPermissionNames();
   }

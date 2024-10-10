@@ -15,5 +15,4 @@ public interface EurekaUserPermissionsClient {
 
   @GetMapping(value = "/{userId}/permissions", produces = MediaType.APPLICATION_JSON_VALUE)
   UserPermissions getPermissions(@PathVariable String userId, @RequestParam List<String> desiredPermissions);
-
 }

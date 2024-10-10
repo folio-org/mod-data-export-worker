@@ -19,10 +19,6 @@
       "version": "18.0 19.0"
     },
     {
-      "id": "inventory",
-      "version": "13.0"
-    },
-    {
       "id": "holdings-storage",
       "version": "7.0"
     },

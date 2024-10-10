@@ -12,8 +12,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.UUID;
 
-import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator.BULK_EDIT_INVENTORY_VIEW_PERMISSION;
-import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator.BULK_EDIT_USERS_VIEW_PERMISSION;
+import static org.folio.dew.service.UserPermissionsService.BULK_EDIT_INVENTORY_VIEW_PERMISSION;
+import static org.folio.dew.service.UserPermissionsService.BULK_EDIT_USERS_VIEW_PERMISSION;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;

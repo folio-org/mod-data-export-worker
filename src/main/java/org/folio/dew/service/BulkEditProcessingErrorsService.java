@@ -39,8 +39,8 @@ public class BulkEditProcessingErrorsService {
   public static final DateTimeFormatter CSV_NAME_DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
   public static final String STORAGE = "storage";
 
-  private static final String STORAGE_TEMPLATE = "E" + File.separator + STORAGE + File.separator + "%s";
-  private static final String CSV_FILE_TEMPLATE = STORAGE_TEMPLATE + File.separator + "%s";
+  private static final String STORAGE_TEMPLATE = "E" + "/" + STORAGE + "/" + "%s";
+  private static final String CSV_FILE_TEMPLATE = STORAGE_TEMPLATE + "/" + "%s";
   private static final String CONTENT_TYPE = "text/csv";
   public static final String COMMA_SEPARATOR = ",";
   public static final String BULK_EDIT_ERROR_TYPE_NAME = "BULK_EDIT_ERROR";

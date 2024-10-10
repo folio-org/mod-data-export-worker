@@ -7,13 +7,13 @@ import org.folio.dew.exceptions.ReadPermissionDoesNotExist;
 import org.folio.spring.FolioExecutionContext;
 import org.springframework.stereotype.Component;
 
+import static org.folio.dew.service.UserPermissionsService.BULK_EDIT_INVENTORY_VIEW_PERMISSION;
+import static org.folio.dew.service.UserPermissionsService.BULK_EDIT_USERS_VIEW_PERMISSION;
+
 @Component
 @RequiredArgsConstructor
 @Log4j2
 public class PermissionsValidator {
-
-  public static final String BULK_EDIT_INVENTORY_VIEW_PERMISSION = "bulk-operations.item.inventory.get";
-  public static final String BULK_EDIT_USERS_VIEW_PERMISSION = "bulk-operations.item.users.get";
 
   private final PermissionsProvider permissionsProvider;
   private final RequiredPermissionResolver requiredPermissionResolver;

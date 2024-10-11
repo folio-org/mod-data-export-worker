@@ -306,7 +306,8 @@
             "inventory-storage.service-points.collection.get",
             "instance-authority-links.authority-statistics.collection.get",
             "configuration.entries.collection.get",
-            "configuration.entries.item.post"
+            "configuration.entries.item.post",
+            "configuration.entries.item.delete"
           ]
         },
         {

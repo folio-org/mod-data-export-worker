@@ -2,6 +2,7 @@ package org.folio.dew.service;
 
 import static org.folio.dew.domain.dto.InventoryItemStatus.NameEnum.AVAILABLE;
 import static org.folio.dew.domain.dto.InventoryItemStatus.NameEnum.INTELLECTUAL_ITEM;
+import static org.folio.dew.domain.dto.InventoryItemStatus.NameEnum.IN_PROCESS;
 import static org.folio.dew.domain.dto.InventoryItemStatus.NameEnum.IN_PROCESS_NON_REQUESTABLE_;
 import static org.folio.dew.domain.dto.InventoryItemStatus.NameEnum.LONG_MISSING;
 import static org.folio.dew.domain.dto.InventoryItemStatus.NameEnum.MISSING;
@@ -40,6 +41,7 @@ public class BulkEditConfigurationService {
     allowedStatuses.put(AVAILABLE,
       Arrays.asList(MISSING,
         WITHDRAWN,
+        IN_PROCESS,
         IN_PROCESS_NON_REQUESTABLE_,
         INTELLECTUAL_ITEM,
         LONG_MISSING,
@@ -118,14 +120,18 @@ public class BulkEditConfigurationService {
         LONG_MISSING,
         RESTRICTED,
         UNAVAILABLE));
+    allowedStatuses.put(IN_PROCESS,
+      Arrays.asList(MISSING,
+        WITHDRAWN));
   }
 
-  public void checkBulkEditConfiguration() {
+  public void updateBulkEditConfiguration() {
     var configurations = configurationClient.getConfigurations(String.format(BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE, MODULE_NAME, STATUSES_CONFIG_NAME));
-    if (configurations.getConfigs().isEmpty()) {
-      log.info("Bulk-edit configuration was not found, uploading default");
-      configurationClient.postConfiguration(buildDefaultConfig());
+    if (!configurations.getConfigs().isEmpty()) {
+      log.info("Deleting old bulk edit statuses configuration");
+      configurationClient.deleteConfiguration(configurations.getConfigs().get(0).getId());
     }
+    configurationClient.postConfiguration(buildDefaultConfig());
   }
 
   @SneakyThrows

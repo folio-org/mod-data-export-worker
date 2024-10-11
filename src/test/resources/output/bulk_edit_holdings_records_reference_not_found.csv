@@ -1,7 +1,7 @@
-Holdings UUID,"Instance (Title, Publisher, Publication date)",Suppress from discovery,Holdings HRID,Source,Former holdings Id,Holdings type,Statistical codes,Administrative note,Holdings permanent location,Holdings temporary location,Shelving title,Holdings copy number,Holdings level call number type,Holdings level call number prefix,Holdings level call number,Holdings level call number suffix,Number of items,Holdings statement,Holdings statement for supplements,Holdings statement for indexes,ILL policy,Digitization policy,Retention policy,Notes,Electronic access,Acquisition method,Order format,Receipt status,Tags
-855d4693-4087-4339-8c14-c25c350e5e59,title,,ho14,FOLIO,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,,Main Library,,,,,,,,,,,,,,,,,,,,
-f836ca1d-c55a-4689-9b57-bb0de0c4d43d,title,,ho14,FOLIO,,,,,Main Library,,,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,,,,,,,,,,,,,,,
-c10bb70f-b0fd-4623-a8cf-25e5198087ad,title,,ho14,FOLIO,,,,,Main Library,,,,,,,,,,,,,,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3;a note;false;diku;1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,,,,
-e5bfbcfa-1fe5-4aab-8220-0698455875f3,title,,ho14,FOLIO,,,,,Main Library,,,,,,,,,,,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,,,,,,,
-b86cf4ba-3cb4-4e47-8e98-c051146af965,title,,ho14,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,,,,Main Library,,,,,,,,,,,,,,,,,,,,
-53e62b1e-8280-47f3-b640-60d0a4850c36,title,,ho14,FOLIO,,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,Main Library,,,,,,,,,,,,,,,,,,,,
+Holdings UUID,"Instance (Title, Publisher, Publication date)",Suppress from discovery,Holdings HRID,Source,Former holdings Id,Holdings type,Statistical codes,Administrative note,Holdings permanent location,Holdings temporary location,Shelving title,Holdings copy number,Holdings level call number type,Holdings level call number prefix,Holdings level call number,Holdings level call number suffix,Number of items,Holdings statement,Holdings statement for supplements,Holdings statement for indexes,ILL policy,Digitization policy,Retention policy,Notes,Electronic access,Acquisition method,Order format,Receipt status,Tags,Tenant
+855d4693-4087-4339-8c14-c25c350e5e59,title,,ho14,FOLIO,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,,Main Library,,,,,,,,,,,,,,,,,,,,,diku
+f836ca1d-c55a-4689-9b57-bb0de0c4d43d,title,,ho14,FOLIO,,,,,Main Library,,,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,,,,,,,,,,,,,,,,diku
+c10bb70f-b0fd-4623-a8cf-25e5198087ad,title,,ho14,FOLIO,,,,,Main Library,,,,,,,,,,,,,,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3;a note;false;diku;1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,,,,,diku
+e5bfbcfa-1fe5-4aab-8220-0698455875f3,title,,ho14,FOLIO,,,,,Main Library,,,,,,,,,,,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,,,,,,,,diku
+b86cf4ba-3cb4-4e47-8e98-c051146af965,title,,ho14,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,,,,Main Library,,,,,,,,,,,,,,,,,,,,,diku
+53e62b1e-8280-47f3-b640-60d0a4850c36,title,,ho14,FOLIO,,,1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,,Main Library,,,,,,,,,,,,,,,,,,,,,diku

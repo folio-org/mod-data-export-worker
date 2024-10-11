@@ -25,8 +25,8 @@ public class UserPermissionsService {
   public static final String INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION = "inventory-storage.holdings.item.get";
   public static final String INVENTORY_INSTANCES_ITEM_GET_PERMISSION = "inventory.instances.item.get";
 
-  @Value("${application.eureka.permissions-model}")
   @Setter
+  @Value("${application.eureka.permissions-model}")
   private boolean isEurekaPermissionsModel;
 
   private final FolioExecutionContext folioExecutionContext;

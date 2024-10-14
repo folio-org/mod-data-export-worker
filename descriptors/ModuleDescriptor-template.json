@@ -100,7 +100,7 @@
     },
     {
       "id": "notes",
-      "version": "3.0"
+      "version": "4.0"
     },
     {
       "id": "orders-storage.purchase-orders",
@@ -207,6 +207,8 @@
             "source-storage.source-records.collection.get",
             "user-tenants.collection.get",
             "consortium-search.holdings.collection.get",
+            "consortium-search.holdings.batch.collection.get",
+            "consortium-search.items.batch.collection.get",
             "consortium-search.items.collection.get",
             "bulk-edit.permissions-self-check.get"
           ]
@@ -304,7 +306,8 @@
             "inventory-storage.service-points.collection.get",
             "instance-authority-links.authority-statistics.collection.get",
             "configuration.entries.collection.get",
-            "configuration.entries.item.post"
+            "configuration.entries.item.post",
+            "configuration.entries.item.delete"
           ]
         },
         {

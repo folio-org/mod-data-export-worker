@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 @Log4j2
 public class UserFetcher implements ItemProcessor<ItemIdentifier, User> {
-  private final String USER_SEARCH_QUERY = "type<>\"shadow\" and %s==\"%s\"";
+  private static final String USER_SEARCH_QUERY = "type<>\"shadow\" and %s==\"%s\"";
 
   private final UserClient userClient;
 

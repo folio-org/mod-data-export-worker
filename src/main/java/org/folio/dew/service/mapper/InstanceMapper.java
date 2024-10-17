@@ -68,7 +68,7 @@ public class InstanceMapper {
         .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
   }
 
-  private String fetchNatureOfContentTerms(Set<String> natureOfContentTermIds, ErrorServiceArgs errorServiceArgs) {
+  private String fetchNatureOfContentTerms(List<String> natureOfContentTermIds, ErrorServiceArgs errorServiceArgs) {
     return isEmpty(natureOfContentTermIds) ? EMPTY :
       natureOfContentTermIds.stream()
         .map(natId -> instanceReferenceService.getNatureOfContentTermNameById(natId, errorServiceArgs))

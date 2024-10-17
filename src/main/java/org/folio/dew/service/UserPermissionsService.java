@@ -12,6 +12,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.BULK_EDIT_INVENTORY_VIEW_PERMISSION;
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.BULK_EDIT_USERS_VIEW_PERMISSION;
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.INVENTORY_INSTANCES_ITEM_GET_PERMISSION;
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.INVENTORY_ITEMS_ITEM_GET_PERMISSION;
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION;
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.USER_ITEM_GET_PERMISSION;
+
 
 @RequiredArgsConstructor
 @Log4j2
@@ -20,14 +27,6 @@ public class UserPermissionsService {
 
   public static final String EUREKA_PLATFORM = "eureka";
   public static final String OKAPI_PLATFORM = "okapi";
-
-  public static final String BULK_EDIT_INVENTORY_VIEW_PERMISSION = "bulk-operations.item.inventory.get";
-  public static final String BULK_EDIT_USERS_VIEW_PERMISSION = "bulk-operations.item.users.get";
-
-  public static final String USER_ITEM_GET_PERMISSION = "users.item.get";
-  public static final String INVENTORY_ITEMS_ITEM_GET_PERMISSION = "inventory.items.item.get";
-  public static final String INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION = "inventory-storage.holdings.item.get";
-  public static final String INVENTORY_INSTANCES_ITEM_GET_PERMISSION = "inventory.instances.item.get";
 
   @Setter
   @Value("${application.platform}")
@@ -47,7 +46,7 @@ public class UserPermissionsService {
   }
 
   private List<String> getDesiredPermissions() {
-    return List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION, BULK_EDIT_USERS_VIEW_PERMISSION, USER_ITEM_GET_PERMISSION,
-      INVENTORY_ITEMS_ITEM_GET_PERMISSION, INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION, INVENTORY_INSTANCES_ITEM_GET_PERMISSION);
+    return List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), BULK_EDIT_USERS_VIEW_PERMISSION.getValue(), USER_ITEM_GET_PERMISSION.getValue(),
+      INVENTORY_ITEMS_ITEM_GET_PERMISSION.getValue(), INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION.getValue(), INVENTORY_INSTANCES_ITEM_GET_PERMISSION.getValue());
   }
 }

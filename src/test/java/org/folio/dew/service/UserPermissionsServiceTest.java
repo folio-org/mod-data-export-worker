@@ -12,6 +12,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.UUID;
 
+import static org.folio.dew.service.UserPermissionsService.EUREKA_PLATFORM;
+import static org.folio.dew.service.UserPermissionsService.OKAPI_PLATFORM;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
@@ -35,7 +37,7 @@ class UserPermissionsServiceTest {
     when(folioExecutionContext.getUserId()).thenReturn(UUID.randomUUID());
     when(okapiUserPermissionsClient.getPermissions(isA(String.class))).thenReturn(new UserPermissions());
 
-    userPermissionsService.setEurekaPermissionsModel(false);
+    userPermissionsService.setPlatform(OKAPI_PLATFORM);
     userPermissionsService.getPermissions();
     verify(okapiUserPermissionsClient).getPermissions(isA(String.class));
   }
@@ -45,7 +47,7 @@ class UserPermissionsServiceTest {
     when(folioExecutionContext.getUserId()).thenReturn(UUID.randomUUID());
     when(eurekaUserPermissionsClient.getPermissions(isA(String.class), anyList())).thenReturn(new UserPermissions());
 
-    userPermissionsService.setEurekaPermissionsModel(true);
+    userPermissionsService.setPlatform(EUREKA_PLATFORM);
     userPermissionsService.getPermissions();
     verify(eurekaUserPermissionsClient).getPermissions(isA(String.class), anyList());
   }

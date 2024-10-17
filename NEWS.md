@@ -1,3 +1,8 @@
+## Unreleased v3.X.X
+
+### Technical tasks
+* [MODEXPW-512](https://folio-org.atlassian.net/browse/MODEXPW-512) Rename sourceRecords permission
+
 ## 2024-03-23 v3.2.1
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.2.0...v3.2.1)

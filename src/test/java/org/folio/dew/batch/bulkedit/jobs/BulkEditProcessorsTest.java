@@ -130,7 +130,10 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   @SneakyThrows
   void shouldNotIncludeDuplicatedUsers(String identifierType) {
     when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.USER))).thenReturn(true);
-    when(userClient.getUserByQuery(String.format("%s==\"duplicateIdentifier\"", resolveIdentifier(identifierType)), 1)).thenReturn(new UserCollection().users(Collections.singletonList(new User())).totalRecords(2));
+    when(userClient.getUserByQuery(
+      String.format("type<>\"shadow\" and %s==\"duplicateIdentifier\"", resolveIdentifier(identifierType)),
+      1
+    )).thenReturn(new UserCollection().users(Collections.singletonList(new User())).totalRecords(2));
 
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {

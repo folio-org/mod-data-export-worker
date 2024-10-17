@@ -7,15 +7,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator.BULK_EDIT_INVENTORY_VIEW_PERMISSION;
-import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator.BULK_EDIT_USERS_VIEW_PERMISSION;
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.BULK_EDIT_INVENTORY_VIEW_PERMISSION;
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.BULK_EDIT_USERS_VIEW_PERMISSION;
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.INVENTORY_ITEMS_ITEM_GET_PERMISSION;
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.USER_ITEM_GET_PERMISSION;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -23,7 +28,7 @@ class PermissionsValidatorTest {
 
   @Mock
   private PermissionsProvider permissionsProvider;
-  @Mock
+  @Spy
   private RequiredPermissionResolver requiredPermissionResolver;
   @Mock
   private FolioExecutionContext folioExecutionContext;
@@ -33,9 +38,8 @@ class PermissionsValidatorTest {
 
   @Test
   void testIsBulkEditReadPermissionExistsForInventoryRecords() {
-    when(permissionsProvider.getUserPermissions("tenant1")).thenReturn(List.of("read_permission", "not_read_permission", BULK_EDIT_INVENTORY_VIEW_PERMISSION));
-    when(permissionsProvider.getUserPermissions("tenant2")).thenReturn(List.of("not_read_permission"));
-    when(requiredPermissionResolver.getReadPermission(EntityType.ITEM)).thenReturn("read_permission");
+    when(permissionsProvider.getUserPermissions(eq("tenant1"), any())).thenReturn(List.of(INVENTORY_ITEMS_ITEM_GET_PERMISSION.getValue(), "not_read_permission", BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue()));
+    when(permissionsProvider.getUserPermissions(eq("tenant2"), any())).thenReturn(List.of("not_read_permission"));
     when(folioExecutionContext.getUserId()).thenReturn(UUID.randomUUID());
 
     assertTrue(permissionsValidator.isBulkEditReadPermissionExists("tenant1", EntityType.ITEM));
@@ -44,9 +48,8 @@ class PermissionsValidatorTest {
 
   @Test
   void testIsBulkEditReadPermissionExistsForUsers() {
-    when(permissionsProvider.getUserPermissions("tenant1")).thenReturn(List.of("read_permission", "not_read_permission", BULK_EDIT_USERS_VIEW_PERMISSION));
-    when(permissionsProvider.getUserPermissions("tenant2")).thenReturn(List.of("not_read_permission"));
-    when(requiredPermissionResolver.getReadPermission(EntityType.USER)).thenReturn("read_permission");
+    when(permissionsProvider.getUserPermissions(eq("tenant1"), any())).thenReturn(List.of(USER_ITEM_GET_PERMISSION.getValue(), "not_read_permission", BULK_EDIT_USERS_VIEW_PERMISSION.getValue(),  BULK_EDIT_USERS_VIEW_PERMISSION.getValue()));
+    when(permissionsProvider.getUserPermissions(eq("tenant2"), any())).thenReturn(List.of("not_read_permission"));
     when(folioExecutionContext.getUserId()).thenReturn(UUID.randomUUID());
 
     assertTrue(permissionsValidator.isBulkEditReadPermissionExists("tenant1", EntityType.USER));

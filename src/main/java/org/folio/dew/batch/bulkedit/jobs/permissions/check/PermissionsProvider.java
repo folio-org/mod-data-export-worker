@@ -18,7 +18,7 @@ public class PermissionsProvider extends FolioExecutionContextManager {
   private final FolioExecutionContext folioExecutionContext;
 
   @Cacheable(cacheNames = "userPermissions")
-  public List<String> getUserPermissions(String tenantId) {
+  public List<String> getUserPermissions(String tenantId, String userId) {
     try (var ignored = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
       return permissionsSelfCheckClient.getUserPermissionsForSelfCheck();
     }

@@ -131,7 +131,7 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   void shouldNotIncludeDuplicatedUsers(String identifierType) {
     when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.USER))).thenReturn(true);
     when(userClient.getUserByQuery(
-      String.format("type<>\"shadow\" and %s==\"duplicateIdentifier\"", resolveIdentifier(identifierType)),
+      String.format("(cql.allRecords=1 NOT type=\"\" or type<>\"shadow\") and %s==\"duplicateIdentifier\"", resolveIdentifier(identifierType)),
       1
     )).thenReturn(new UserCollection().users(Collections.singletonList(new User())).totalRecords(2));
 

@@ -16,6 +16,8 @@ import static org.folio.dew.service.UserPermissionsService.BULK_EDIT_INVENTORY_V
 import static org.folio.dew.service.UserPermissionsService.BULK_EDIT_USERS_VIEW_PERMISSION;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,8 +35,8 @@ class PermissionsValidatorTest {
 
   @Test
   void testIsBulkEditReadPermissionExistsForInventoryRecords() {
-    when(permissionsProvider.getUserPermissions("tenant1")).thenReturn(List.of("read_permission", "not_read_permission", BULK_EDIT_INVENTORY_VIEW_PERMISSION));
-    when(permissionsProvider.getUserPermissions("tenant2")).thenReturn(List.of("not_read_permission"));
+    when(permissionsProvider.getUserPermissions(eq("tenant1"), any())).thenReturn(List.of("read_permission", "not_read_permission", BULK_EDIT_INVENTORY_VIEW_PERMISSION));
+    when(permissionsProvider.getUserPermissions(eq("tenant2"), any())).thenReturn(List.of("not_read_permission"));
     when(requiredPermissionResolver.getReadPermission(EntityType.ITEM)).thenReturn("read_permission");
     when(folioExecutionContext.getUserId()).thenReturn(UUID.randomUUID());
 
@@ -44,8 +46,8 @@ class PermissionsValidatorTest {
 
   @Test
   void testIsBulkEditReadPermissionExistsForUsers() {
-    when(permissionsProvider.getUserPermissions("tenant1")).thenReturn(List.of("read_permission", "not_read_permission", BULK_EDIT_USERS_VIEW_PERMISSION));
-    when(permissionsProvider.getUserPermissions("tenant2")).thenReturn(List.of("not_read_permission"));
+    when(permissionsProvider.getUserPermissions(eq("tenant1"), any())).thenReturn(List.of("read_permission", "not_read_permission", BULK_EDIT_USERS_VIEW_PERMISSION));
+    when(permissionsProvider.getUserPermissions(eq("tenant2"), any())).thenReturn(List.of("not_read_permission"));
     when(requiredPermissionResolver.getReadPermission(EntityType.USER)).thenReturn("read_permission");
     when(folioExecutionContext.getUserId()).thenReturn(UUID.randomUUID());
 

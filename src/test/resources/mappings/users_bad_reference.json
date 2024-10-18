@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/users?query=barcode%3D%3D%22emptyAddressType%22&limit=1"
+        "url": "/users?query=%28cql.allRecords%3D1%20NOT%20type%3D%22%22%20or%20type%3C%3E%22shadow%22%29%20and%20barcode%3D%3D%22emptyAddressType%22&limit=1"
       },
       "response": {
         "status": 200,
@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/users?query=barcode%3D%3D%22badAddressType%22&limit=1"
+        "url": "/users?query=%28cql.allRecords%3D1%20NOT%20type%3D%22%22%20or%20type%3C%3E%22shadow%22%29%20and%20barcode%3D%3D%22badAddressType%22&limit=1"
       },
       "response": {
         "status": 200,
@@ -29,7 +29,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/users?query=barcode%3D%3D%22emptyPreferredContactTypeId%22&limit=1"
+        "url": "/users?query=%28cql.allRecords%3D1%20NOT%20type%3D%22%22%20or%20type%3C%3E%22shadow%22%29%20and%20barcode%3D%3D%22emptyPreferredContactTypeId%22&limit=1"
       },
       "response": {
         "status": 200,
@@ -42,7 +42,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/users?query=barcode%3D%3D%22emptyDepartments%22&limit=1"
+        "url": "/users?query=%28cql.allRecords%3D1%20NOT%20type%3D%22%22%20or%20type%3C%3E%22shadow%22%29%20and%20barcode%3D%3D%22emptyDepartments%22&limit=1"
       },
       "response": {
         "status": 200,
@@ -55,7 +55,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/users?query=barcode%3D%3D%22badDepartments%22&limit=1"
+        "url": "/users?query=%28cql.allRecords%3D1%20NOT%20type%3D%22%22%20or%20type%3C%3E%22shadow%22%29%20and%20barcode%3D%3D%22badDepartments%22&limit=1"
       },
       "response": {
         "status": 200,

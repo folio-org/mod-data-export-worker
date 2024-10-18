@@ -30,6 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 @Log4j2
 public class UserFetcher implements ItemProcessor<ItemIdentifier, User> {
+  private static final String USER_SEARCH_QUERY = "(cql.allRecords=1 NOT type=\"\" or type<>\"shadow\") and %s==\"%s\"";
+
   private final UserClient userClient;
 
   @Value("#{jobParameters['identifierType']}")
@@ -50,7 +52,11 @@ public class UserFetcher implements ItemProcessor<ItemIdentifier, User> {
     identifiersToCheckDuplication.add(itemIdentifier);
     try {
       var limit = 1;
-      var userCollection = userClient.getUserByQuery(String.format("%s==\"%s\"", resolveIdentifier(identifierType), itemIdentifier.getItemId()), limit);
+      var userCollection = userClient.getUserByQuery(
+        String.format(USER_SEARCH_QUERY, resolveIdentifier(identifierType), itemIdentifier.getItemId()),
+        limit
+      );
+
       if (userCollection.getUsers().isEmpty()) {
         throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
       } else if (userCollection.getTotalRecords() > limit) {

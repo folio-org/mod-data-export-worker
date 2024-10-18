@@ -7,13 +7,13 @@ import org.folio.dew.exceptions.ReadPermissionDoesNotExist;
 import org.folio.spring.FolioExecutionContext;
 import org.springframework.stereotype.Component;
 
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.BULK_EDIT_INVENTORY_VIEW_PERMISSION;
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.BULK_EDIT_USERS_VIEW_PERMISSION;
+
 @Component
 @RequiredArgsConstructor
 @Log4j2
 public class PermissionsValidator {
-
-  public static final String BULK_EDIT_INVENTORY_VIEW_PERMISSION = "bulk-operations.item.inventory.get";
-  public static final String BULK_EDIT_USERS_VIEW_PERMISSION = "bulk-operations.item.users.get";
 
   private final PermissionsProvider permissionsProvider;
   private final RequiredPermissionResolver requiredPermissionResolver;
@@ -27,12 +27,12 @@ public class PermissionsValidator {
 
   public boolean isBulkEditReadPermissionExists(String tenantId, EntityType entityType) {
     var readPermissionForEntity = requiredPermissionResolver.getReadPermission(entityType);
-    var userPermissions = permissionsProvider.getUserPermissions(tenantId);
+    var userPermissions = permissionsProvider.getUserPermissions(tenantId, folioExecutionContext.getUserId().toString());
     var isReadPermissionsExist = false;
     if (entityType == EntityType.USER) {
-      isReadPermissionsExist = userPermissions.contains(readPermissionForEntity) && userPermissions.contains(BULK_EDIT_USERS_VIEW_PERMISSION);
+      isReadPermissionsExist = userPermissions.contains(readPermissionForEntity.getValue()) && userPermissions.contains(BULK_EDIT_USERS_VIEW_PERMISSION.getValue());
     } else {
-      isReadPermissionsExist = userPermissions.contains(readPermissionForEntity) && userPermissions.contains(BULK_EDIT_INVENTORY_VIEW_PERMISSION);
+      isReadPermissionsExist = userPermissions.contains(readPermissionForEntity.getValue()) && userPermissions.contains(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue());
     }
     log.info("isBulkEditReadPermissionExists:: user {} has read permissions {} for {} in tenant {}", folioExecutionContext.getUserId(),
       isReadPermissionsExist, entityType, tenantId);

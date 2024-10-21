@@ -28,7 +28,7 @@ import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.ExportJobManagerSync;
 import org.folio.dew.client.ConsortiaClient;
 import org.folio.dew.client.SearchClient;
-import org.folio.dew.client.UserPermissionsClient;
+import org.folio.dew.client.OkapiUserPermissionsClient;
 import org.folio.dew.domain.dto.BatchIdsDto;
 import org.folio.dew.domain.dto.ConsortiumHolding;
 import org.folio.dew.domain.dto.ConsortiumHoldingCollection;
@@ -117,7 +117,7 @@ public abstract class BaseBatchTest {
   @MockBean
   private ConsortiaClient consortiaClient;
   @MockBean
-  protected UserPermissionsClient userPermissionsClient;
+  protected OkapiUserPermissionsClient okapiUserPermissionsClient;
 
   static {
     postgreDBContainer.start();

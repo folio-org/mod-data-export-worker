@@ -139,6 +139,12 @@
       "version": "5.7"
     }
   ],
+  "optional": [
+    {
+      "id": "permissions-users",
+      "version": "1.0"
+    }
+  ],
   "provides": [
     {
       "id": "bulk-edit",
@@ -272,7 +278,10 @@
           "methods": [ "GET" ],
           "pathPattern": "/bulk-edit/permissions-self-check",
           "permissionsRequired": ["bulk-edit.permissions-self-check.get"],
-          "modulePermissions": ["perms.users.get"]
+          "modulePermissions": [
+            "perms.users.get",
+            "permissions.users.item.get"
+          ]
         },
         {
           "methods": [ "GET" ],

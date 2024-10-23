@@ -19,7 +19,7 @@ class PermissionsSelfCheckControllerTest extends BaseBatchTest {
   @SneakyThrows
   void shouldReturnDesiredPermissions() {
     var headers = defaultHeaders();
-    when(userPermissionsClient.getPermissions(isA(String.class)))
+    when(okapiUserPermissionsClient.getPermissions(isA(String.class)))
       .thenReturn(UserPermissions.builder().permissionNames(List.of("permission-1", "permission-2")).build());
     var result = mockMvc.perform(get("/bulk-edit/permissions-self-check")
         .headers(headers)).andExpect(status().isOk()).andReturn();

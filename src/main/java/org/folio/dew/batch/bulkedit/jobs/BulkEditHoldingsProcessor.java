@@ -10,13 +10,13 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getResponseAsString;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.DUPLICATES_ACROSS_TENANTS;
+import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 import static org.folio.dew.utils.Constants.NO_HOLDING_AFFILIATION;
 import static org.folio.dew.utils.Constants.NO_HOLDING_VIEW_PERMISSIONS;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 import static org.folio.dew.utils.SearchIdentifierTypeResolver.getSearchIdentifierType;
 
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
@@ -34,14 +34,16 @@ import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.ItemIdentifier;
+import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.error.BulkEditException;
-import org.folio.dew.exceptions.ReadPermissionDoesNotExist;
+import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.ConsortiaService;
 import org.folio.dew.service.FolioExecutionContextManager;
 import org.folio.dew.service.HoldingsReferenceService;
 import org.folio.dew.service.mapper.HoldingsMapper;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.scope.FolioExecutionContextSetter;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
@@ -66,7 +68,10 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
   private final FolioExecutionContext folioExecutionContext;
   private final UserClient userClient;
   private final PermissionsValidator permissionsValidator;
+  private final TenantResolver tenantResolver;
 
+  @Value("#{stepExecution.jobExecution}")
+  private JobExecution jobExecution;
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
   @Value("#{jobParameters['jobId']}")
@@ -126,9 +131,10 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
         if (INSTANCEHRID != identifierTypeEnum && tenantIds.size() > 1) {
           throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
         }
-        tenantIds.forEach(tenantId -> {
+        var affiliatedPermittedTenants = tenantResolver.getAffiliatedPermittedTenantIds(EntityType.HOLDINGS_RECORD,
+          jobExecution, identifierType, tenantIds, itemIdentifier);
+        affiliatedPermittedTenants.forEach(tenantId -> {
           try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-            permissionsValidator.checkBulkEditReadPermissions(tenantId, EntityType.HOLDINGS_RECORD);
             var holdingsRecordCollection = getHoldingsRecordCollection(type, itemIdentifier);
             extendedHoldingsRecordCollection.getExtendedHoldingsRecords().addAll(
               holdingsRecordCollection.getHoldingsRecords().stream()
@@ -136,18 +142,10 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
             );
             extendedHoldingsRecordCollection.setTotalRecords(extendedHoldingsRecordCollection.getTotalRecords() + holdingsRecordCollection.getTotalRecords());
           } catch (Exception e) {
-            if (e instanceof FeignException && ((FeignException) e).status() == 401) {
-              var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-              throw new BulkEditException(format(NO_HOLDING_AFFILIATION, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId));
-            } else if (e instanceof ReadPermissionDoesNotExist) {
-              var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-              throw new BulkEditException(format(NO_HOLDING_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId));
-            } else  {
-              throw e;
-            }
+            throw e;
           }
         });
-        return  extendedHoldingsRecordCollection;
+        return extendedHoldingsRecordCollection;
       } else {
         throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
       }
@@ -189,5 +187,4 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
       throw new BulkEditException(format("Identifier type \"%s\" is not supported", identifierType));
     }
   }
-
 }

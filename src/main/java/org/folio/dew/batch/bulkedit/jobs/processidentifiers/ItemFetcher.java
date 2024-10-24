@@ -18,6 +18,7 @@ import feign.codec.DecodeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.batch.bulkedit.jobs.TenantResolver;
 import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.SearchClient;
@@ -36,6 +37,7 @@ import org.folio.dew.service.FolioExecutionContextManager;
 import org.folio.dew.utils.ExceptionHelper;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.scope.FolioExecutionContextSetter;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,7 +60,10 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
   private final UserClient userClient;
   private final PermissionsValidator permissionsValidator;
   private final FolioExecutionContext folioExecutionContext;
+  private final TenantResolver tenantResolver;
 
+  @Value("#{stepExecution.jobExecution}")
+  private JobExecution jobExecution;
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
 
@@ -93,7 +98,9 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
           if (HOLDINGSRECORDID != identifierTypeEnum && tenantIds.size() > 1) {
             throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
           }
-          tenantIds.forEach(tenantId -> {
+          var affiliatedPermittedTenants = tenantResolver.getAffiliatedPermittedTenantIds(EntityType.ITEM,
+            jobExecution, identifierType, tenantIds, itemIdentifier);
+          affiliatedPermittedTenants.forEach(tenantId -> {
             try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
               permissionsValidator.checkBulkEditReadPermissions(tenantId, EntityType.ITEM);
               var url = format(getMatchPattern(identifierType), idType, identifier);
@@ -107,13 +114,6 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
               );
               extendedItemCollection.setTotalRecords(extendedItemCollection.getTotalRecords() + itemCollection.getTotalRecords());
             } catch (Exception e) {
-              if (e instanceof FeignException && ((FeignException) e).status() == 401) {
-                var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-                throw new BulkEditException(format(NO_ITEM_AFFILIATION, user.getUsername(), idType, identifier, tenantId));
-              } else if (e instanceof ReadPermissionDoesNotExist)  {
-                var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-                throw new BulkEditException(format(NO_ITEM_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId));
-              }
                 throw e;
               }
           });

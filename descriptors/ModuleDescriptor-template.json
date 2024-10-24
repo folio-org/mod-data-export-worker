@@ -137,6 +137,10 @@
     {
       "id": "permissions",
       "version": "5.7"
+    },
+    {
+      "id": "consortia",
+      "version": "1.1"
     }
   ],
   "optional": [
@@ -212,7 +216,8 @@
             "consortium-search.holdings.batch.collection.get",
             "consortium-search.items.batch.collection.get",
             "consortium-search.items.collection.get",
-            "bulk-edit.permissions-self-check.get"
+            "bulk-edit.permissions-self-check.get",
+            "consortia.user-tenants.collection.get"
           ]
         },
         {

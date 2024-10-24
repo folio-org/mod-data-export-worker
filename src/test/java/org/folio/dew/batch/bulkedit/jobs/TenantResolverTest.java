@@ -32,7 +32,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
-public class TenantResolverTest {
+class TenantResolverTest {
 
   @Mock
   private FolioExecutionContext folioExecutionContext;

@@ -7,9 +7,10 @@ import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 import lombok.SneakyThrows;
@@ -33,11 +34,11 @@ import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserCollection;
 import org.folio.dew.error.BulkEditException;
-import org.folio.dew.exceptions.ReadPermissionDoesNotExist;
 import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.StepExecution;
@@ -49,6 +50,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 class BulkEditProcessorsTest extends BaseBatchTest {
@@ -76,6 +78,8 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   private HoldingClient holdingClient;
   @MockBean
   private PermissionsValidator permissionsValidator;
+  @MockBean
+  private TenantResolver tenantResolver;
   @SpyBean
   private FolioExecutionContext folioExecutionContext;
 
@@ -217,26 +221,6 @@ class BulkEditProcessorsTest extends BaseBatchTest {
 
   @Test
   @SneakyThrows
-  void shouldProvideBulkEditExceptionWithNoItemViewPermissionMessageForCentral() {
-    var user = new User();
-    user.setUsername("userName");
-
-    doThrow(new ReadPermissionDoesNotExist()).when(permissionsValidator).checkBulkEditReadPermissions("tenant_h", EntityType.ITEM);
-    when(userClient.getUserById(any())).thenReturn(user);
-    when(folioExecutionContext.getTenantId()).thenReturn("central");
-
-    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
-    var expectedErrorMessage = "User userName does not have required permission to view the item record - hrid=hrid on the tenant tenant_h";
-    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
-      var identifier = new ItemIdentifier("hrid");
-      var throwable = assertThrows(BulkEditException.class, () -> itemFetcher.process(identifier));
-      assertEquals(expectedErrorMessage, throwable.getMessage());
-      return null;
-    });
-  }
-
-  @Test
-  @SneakyThrows
   void shouldProvideBulkEditExceptionWithNoItemViewPermissionMessageForLocal() {
     var user = new User();
     user.setUsername("userName");
@@ -256,16 +240,17 @@ class BulkEditProcessorsTest extends BaseBatchTest {
 
   @Test
   @SneakyThrows
-  void shouldProvideBulkEditExceptionWithNoHoldingsViewPermissionMessageForCentral() {
+  void shouldProvideBulkEditExceptionForHoldingsIfAffiliatedAndPermittedTenantsDoNotExistInCentral() {
     var user = new User();
     user.setUsername("userName");
 
-    doThrow(new ReadPermissionDoesNotExist()).when(permissionsValidator).checkBulkEditReadPermissions("tenant_h", EntityType.HOLDINGS_RECORD);
     when(userClient.getUserById(any())).thenReturn(user);
     when(folioExecutionContext.getTenantId()).thenReturn("central");
+    when(tenantResolver.getAffiliatedPermittedTenantIds(eq(EntityType.HOLDINGS_RECORD), isA(JobExecution.class), anyString(), anySet(), isA(ItemIdentifier.class))).thenReturn(new HashSet<>());
 
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
-    var expectedErrorMessage = "User userName does not have required permission to view the holdings record - hrid=hrid on the tenant tenant_h";
+    var expectedErrorMessage = "No match found";
+
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var identifier = new ItemIdentifier("hrid");
       var throwable = assertThrows(BulkEditException.class, () -> holdingsProcessor.process(identifier));

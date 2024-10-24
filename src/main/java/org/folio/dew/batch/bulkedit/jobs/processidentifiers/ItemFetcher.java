@@ -8,12 +8,10 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.getResponseAsString;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.DUPLICATES_ACROSS_TENANTS;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
-import static org.folio.dew.utils.Constants.NO_ITEM_AFFILIATION;
 import static org.folio.dew.utils.Constants.NO_ITEM_VIEW_PERMISSIONS;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 import static org.folio.dew.utils.SearchIdentifierTypeResolver.getSearchIdentifierType;
 
-import feign.FeignException;
 import feign.codec.DecodeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -102,7 +100,6 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
             jobExecution, identifierType, tenantIds, itemIdentifier);
           affiliatedPermittedTenants.forEach(tenantId -> {
             try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-              permissionsValidator.checkBulkEditReadPermissions(tenantId, EntityType.ITEM);
               var url = format(getMatchPattern(identifierType), idType, identifier);
               var itemCollection = inventoryClient.getItemByQuery(url, Integer.MAX_VALUE);
               if (itemCollection.getItems().size() > limit) {

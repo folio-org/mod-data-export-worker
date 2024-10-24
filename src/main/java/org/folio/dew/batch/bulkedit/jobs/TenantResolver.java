@@ -35,7 +35,7 @@ public class TenantResolver {
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   private final UserClient userClient;
 
-  public HashSet<String> getAffiliatedPermittedTenantIds(EntityType entityType, JobExecution jobExecution, String identifierType, Set<String> tenantIds, ItemIdentifier itemIdentifier) {
+  public Set<String> getAffiliatedPermittedTenantIds(EntityType entityType, JobExecution jobExecution, String identifierType, Set<String> tenantIds, ItemIdentifier itemIdentifier) {
     var affiliatedTenants = consortiaService.getAffiliatedTenants(folioExecutionContext.getTenantId(), folioExecutionContext.getUserId().toString());
     var jobId = jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID);
     var fileName = FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME));

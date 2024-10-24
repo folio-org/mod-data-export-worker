@@ -111,8 +111,9 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
               );
               extendedItemCollection.setTotalRecords(extendedItemCollection.getTotalRecords() + itemCollection.getTotalRecords());
             } catch (Exception e) {
-                throw e;
-              }
+              log.error(e.getMessage());
+              throw e;
+            }
           });
         } else {
           throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);

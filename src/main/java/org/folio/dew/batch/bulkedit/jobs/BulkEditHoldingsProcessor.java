@@ -140,6 +140,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
             );
             extendedHoldingsRecordCollection.setTotalRecords(extendedHoldingsRecordCollection.getTotalRecords() + holdingsRecordCollection.getTotalRecords());
           } catch (Exception e) {
+            log.error(e.getMessage());
             throw e;
           }
         });

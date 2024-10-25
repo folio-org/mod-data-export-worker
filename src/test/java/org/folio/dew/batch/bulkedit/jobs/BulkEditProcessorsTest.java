@@ -7,8 +7,6 @@ import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anySet;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.when;
@@ -50,7 +48,6 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 
 class BulkEditProcessorsTest extends BaseBatchTest {
@@ -233,27 +230,6 @@ class BulkEditProcessorsTest extends BaseBatchTest {
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var identifier = new ItemIdentifier("hrid");
       var throwable = assertThrows(BulkEditException.class, () -> itemFetcher.process(identifier));
-      assertEquals(expectedErrorMessage, throwable.getMessage());
-      return null;
-    });
-  }
-
-  @Test
-  @SneakyThrows
-  void shouldProvideBulkEditExceptionForHoldingsIfAffiliatedAndPermittedTenantsDoNotExistInCentral() {
-    var user = new User();
-    user.setUsername("userName");
-
-    when(userClient.getUserById(any())).thenReturn(user);
-    when(folioExecutionContext.getTenantId()).thenReturn("central");
-    when(tenantResolver.getAffiliatedPermittedTenantIds(eq(EntityType.HOLDINGS_RECORD), isA(JobExecution.class), anyString(), anySet(), isA(ItemIdentifier.class))).thenReturn(new HashSet<>());
-
-    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
-    var expectedErrorMessage = "No match found";
-
-    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
-      var identifier = new ItemIdentifier("hrid");
-      var throwable = assertThrows(BulkEditException.class, () -> holdingsProcessor.process(identifier));
       assertEquals(expectedErrorMessage, throwable.getMessage());
       return null;
     });

@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
 
-import org.folio.dew.client.ConsortiaClient;
 import org.folio.dew.client.ConsortiumClient;
 import org.folio.dew.domain.bean.Consortia;
 import org.folio.dew.domain.bean.ConsortiaCollection;

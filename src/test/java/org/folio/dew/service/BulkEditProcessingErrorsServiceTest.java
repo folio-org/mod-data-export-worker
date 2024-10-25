@@ -56,6 +56,23 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
   }
 
   @Test
+  @DisplayName("Show that error message is stored in error file")
+  void saveErrorMessageInCSVTestSuccessTest() throws IOException {
+    var jobId = UUID.randomUUID().toString();
+    var affectedIdentifier = "ID";
+    var errorMessage = "Record not found";
+    var fileName = "userUUIDs.csv";
+    var csvFileName = LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Matching-Records-Errors-" + fileName;
+    var pathToCsvFile = "E" + File.separator + BulkEditProcessingErrorsService.STORAGE + File.separator + jobId + File.separator + csvFileName;
+    bulkEditProcessingErrorsService.saveErrorInCSV(jobId, affectedIdentifier, errorMessage, fileName);
+    assertTrue(localFilesStorage.exists(pathToCsvFile));
+    List<String> lines = localFilesStorage.readAllLines(pathToCsvFile);
+    String expectedLine = affectedIdentifier + "," + errorMessage;
+    assertEquals(expectedLine, lines.get(0));
+    assertThat(lines, hasSize(1));
+  }
+
+  @Test
   @DisplayName("Show that error file is not created if at lease one of the parameter is null")
   void saveErrorInCSVTestFailedTest() {
     var jobId = UUID.randomUUID().toString();

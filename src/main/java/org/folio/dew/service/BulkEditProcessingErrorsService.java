@@ -69,6 +69,21 @@ public class BulkEditProcessingErrorsService {
     }
   }
 
+  public synchronized void saveErrorInCSV(String jobId, String affectedIdentifier, String errorMessage, String fileName) {
+    if (isNull(jobId) || isNull(affectedIdentifier) || isNull(errorMessage) || isNull(fileName)) {
+      log.error("Some of the parameters is null, jobId: {}, affectedIdentifier: {}, reasonForError: {}, fileName: {}", jobId, affectedIdentifier, errorMessage, fileName);
+      return;
+    }
+    var csvFileName = getCsvFileName(jobId, fileName);
+    var errorLine = affectedIdentifier + COMMA_SEPARATOR + errorMessage + System.lineSeparator();
+    var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
+    try {
+      localFilesStorage.append(pathToCSVFile, errorLine.getBytes(StandardCharsets.UTF_8));
+    } catch (IOException ioException) {
+      log.error("Failed to save {} error file with job id {} cause {}", csvFileName, jobId, ioException);
+    }
+  }
+
   public void saveErrorInCSV(String jobId, String errorString, String fileName) {
     var csvFileName = getCsvFileName(jobId, fileName);
     var pathToCSVFile = getPathToCsvFile(jobId, getCsvFileName(jobId, fileName));

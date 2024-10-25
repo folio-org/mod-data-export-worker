@@ -68,7 +68,7 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
     assertFalse(Files.exists(pathToCsvFile));
     bulkEditProcessingErrorsService.saveErrorInCSV(jobId, null, reasonForError, fileName);
     assertFalse(Files.exists(pathToCsvFile));
-    bulkEditProcessingErrorsService.saveErrorInCSV(jobId, affectedIdentifier, null, fileName);
+    bulkEditProcessingErrorsService.saveErrorInCSV(jobId, affectedIdentifier, new BulkEditException("error message"), fileName);
     assertFalse(Files.exists(pathToCsvFile));
     bulkEditProcessingErrorsService.saveErrorInCSV(jobId, affectedIdentifier, reasonForError, null);
     assertFalse(Files.exists(pathToCsvFile));

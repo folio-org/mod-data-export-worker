@@ -15,7 +15,6 @@ import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.JobParameterNames;
-import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.ConsortiaService;
 import org.folio.spring.FolioExecutionContext;
@@ -43,14 +42,14 @@ public class TenantResolver {
     for (var tenantId : tenantIds) {
       if (!affiliatedTenants.contains(tenantId)) {
         var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-        var bulkEditException = new BulkEditException(format(getAffiliationErrorPlaceholder(entityType), user.getUsername(),
-          resolveIdentifier(identifierType), itemIdentifier.getItemId(), tenantId));
-        bulkEditProcessingErrorsService.saveErrorInCSV(jobId, itemIdentifier.getItemId(), bulkEditException, fileName);
+        var errorMessage = format(getAffiliationErrorPlaceholder(entityType), user.getUsername(),
+          resolveIdentifier(identifierType), itemIdentifier.getItemId(), tenantId);
+        bulkEditProcessingErrorsService.saveErrorInCSV(jobId, itemIdentifier.getItemId(), errorMessage, fileName);
       } else if (!permissionsValidator.isBulkEditReadPermissionExists(tenantId, entityType)) {
         var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-        var bulkEditException = new BulkEditException(format(getViewPermissionErrorPlaceholder(entityType), user.getUsername(),
-          resolveIdentifier(identifierType), itemIdentifier.getItemId(), tenantId));
-        bulkEditProcessingErrorsService.saveErrorInCSV(jobId, itemIdentifier.getItemId(), bulkEditException, fileName);
+        var errorMessage = format(getViewPermissionErrorPlaceholder(entityType), user.getUsername(),
+          resolveIdentifier(identifierType), itemIdentifier.getItemId(), tenantId);
+        bulkEditProcessingErrorsService.saveErrorInCSV(jobId, itemIdentifier.getItemId(), errorMessage, fileName);
       } else {
         affiliatedAndPermittedTenants.add(tenantId);
       }

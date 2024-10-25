@@ -3,9 +3,6 @@ package org.folio.dew.batch.bulkedit.jobs;
 import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -15,7 +12,6 @@ import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.User;
-import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.ConsortiaService;
 import org.folio.spring.FolioExecutionContext;
@@ -75,7 +71,11 @@ class TenantResolverTest {
 
     var affiliatedAndPermittedTenants = tenantResolver.getAffiliatedPermittedTenantIds(EntityType.HOLDINGS_RECORD, jobExecution, "HRID", tenantsIds, itemIdentifier);
 
+    var expectedAffiliationError = "User userName does not have required affiliation to view the holdings record - hrid=hrid on the tenant member1";
+    var expectedPermissionError = "User userName does not have required permission to view the holdings record - hrid=hrid on the tenant member2";
+    verify(bulkEditProcessingErrorsService).saveErrorInCSV(jobId, itemIdentifier.getItemId(), expectedAffiliationError, fileName);
+    verify(bulkEditProcessingErrorsService).saveErrorInCSV(jobId, itemIdentifier.getItemId(), expectedPermissionError, fileName);
+
     assertEquals(1, affiliatedAndPermittedTenants.size());
-    verify(bulkEditProcessingErrorsService, times(2)).saveErrorInCSV(eq(jobId), eq(itemIdentifier.getItemId()), isA(BulkEditException.class), eq(fileName));
   }
 }

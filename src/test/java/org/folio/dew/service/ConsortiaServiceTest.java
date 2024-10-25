@@ -2,6 +2,7 @@ package org.folio.dew.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import org.folio.dew.client.ConsortiumClient;
@@ -46,5 +47,17 @@ class ConsortiaServiceTest {
 
     assertFalse(affiliatedTenants.isEmpty());
     assertEquals("member", affiliatedTenants.get(0));
+  }
+
+  @Test
+  void testGetAffiliatedTenantsIfConsortiaDoesNotExist() {
+    var userId = "userId";
+    var consortiaCollection = new ConsortiaCollection();
+    consortiaCollection.setConsortia(List.of());
+
+    when(consortiumClient.getConsortia()).thenReturn(consortiaCollection);
+
+    var affiliatedTenants = consortiaService.getAffiliatedTenants("currentTenantId", userId);
+    assertTrue(affiliatedTenants.isEmpty());
   }
 }

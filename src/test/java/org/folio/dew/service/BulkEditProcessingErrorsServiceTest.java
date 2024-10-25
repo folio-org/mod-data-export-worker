@@ -73,7 +73,7 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
   }
 
   @Test
-  @DisplayName("Show that error message is stored in error file")
+  @DisplayName("Show that error message is not stored in error file")
   void saveErrorNullMessageInCSVTestSuccessTest() {
     var jobId = UUID.randomUUID().toString();
     var affectedIdentifier = "ID";

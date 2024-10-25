@@ -57,14 +57,14 @@ public class TenantResolver {
     return affiliatedAndPermittedTenants;
   }
 
-  private String getAffiliationErrorPlaceholder(EntityType entityType) {
+  protected String getAffiliationErrorPlaceholder(EntityType entityType) {
     if (entityType == EntityType.ITEM) {
       return NO_ITEM_AFFILIATION;
     }
     return NO_HOLDING_AFFILIATION;
   }
 
-  private String getViewPermissionErrorPlaceholder(EntityType entityType) {
+  protected String getViewPermissionErrorPlaceholder(EntityType entityType) {
     if (entityType == EntityType.ITEM) {
       return NO_ITEM_VIEW_PERMISSIONS;
     }

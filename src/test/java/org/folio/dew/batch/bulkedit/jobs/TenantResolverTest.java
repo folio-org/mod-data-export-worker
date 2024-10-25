@@ -1,6 +1,10 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
 import static org.folio.dew.utils.Constants.FILE_NAME;
+import static org.folio.dew.utils.Constants.NO_HOLDING_AFFILIATION;
+import static org.folio.dew.utils.Constants.NO_HOLDING_VIEW_PERMISSIONS;
+import static org.folio.dew.utils.Constants.NO_ITEM_AFFILIATION;
+import static org.folio.dew.utils.Constants.NO_ITEM_VIEW_PERMISSIONS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -77,5 +81,17 @@ class TenantResolverTest {
     verify(bulkEditProcessingErrorsService).saveErrorInCSV(jobId, itemIdentifier.getItemId(), expectedPermissionError, fileName);
 
     assertEquals(1, affiliatedAndPermittedTenants.size());
+  }
+
+  @Test
+  void testGetAffiliationErrorPlaceholder() {
+    assertEquals(NO_ITEM_AFFILIATION, tenantResolver.getAffiliationErrorPlaceholder(EntityType.ITEM));
+    assertEquals(NO_HOLDING_AFFILIATION, tenantResolver.getAffiliationErrorPlaceholder(EntityType.HOLDINGS_RECORD));
+  }
+
+  @Test
+  void testGetViewPermissionErrorPlaceholder() {
+    assertEquals(NO_ITEM_VIEW_PERMISSIONS, tenantResolver.getViewPermissionErrorPlaceholder(EntityType.ITEM));
+    assertEquals(NO_HOLDING_VIEW_PERMISSIONS, tenantResolver.getViewPermissionErrorPlaceholder(EntityType.HOLDINGS_RECORD));
   }
 }

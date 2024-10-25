@@ -31,7 +31,8 @@ class ConsortiaServiceTest {
   void testGetAffiliatedTenants() {
     var userId = "userId";
 
-    var consortia = new Consortia("consortia");
+    var consortia = new Consortia();
+    consortia.setId("consortia");
     var consortiaCollection = new ConsortiaCollection();
     consortiaCollection.setConsortia(List.of(consortia));
 

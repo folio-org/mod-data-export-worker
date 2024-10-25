@@ -56,7 +56,7 @@ class TenantResolverTest {
     user.setUsername("userName");
     var tenantsIds = Set.of("member1", "member2", "member3");
 
-    var hrid  = "hrid";
+    var hrid = "hrid";
     var itemIdentifier = new ItemIdentifier(hrid);
 
     var builder = new JobParametersBuilder();

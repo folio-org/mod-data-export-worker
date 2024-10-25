@@ -32,9 +32,7 @@ import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.ItemIdentifier;
-import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.error.BulkEditException;
-import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.ConsortiaService;
 import org.folio.dew.service.FolioExecutionContextManager;
 import org.folio.dew.service.HoldingsReferenceService;
@@ -88,11 +86,6 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
     identifiersToCheckDuplication.add(itemIdentifier);
 
     var holdings = getHoldingsRecords(itemIdentifier);
-    if (holdings.getExtendedHoldingsRecords().isEmpty()) {
-      log.error(NO_MATCH_FOUND_MESSAGE);
-      throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
-    }
-
     var distinctHoldings = holdings.getExtendedHoldingsRecords().stream()
       .filter(holdingsRecord -> !fetchedHoldingsIds.contains(holdingsRecord.getEntity().getId()))
       .toList();
@@ -152,9 +145,13 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
       // Process local tenant case
       checkReadPermissions(folioExecutionContext.getTenantId(), identifier);
       var holdingsRecordCollection = getHoldingsRecordCollection(type, itemIdentifier);
-      return new ExtendedHoldingsRecordCollection().extendedHoldingsRecords(holdingsRecordCollection.getHoldingsRecords().stream()
+      var extendedHoldingsRecordCollection =  new ExtendedHoldingsRecordCollection().extendedHoldingsRecords(holdingsRecordCollection.getHoldingsRecords().stream()
           .map(holdingsRecord -> new ExtendedHoldingsRecord().tenantId(folioExecutionContext.getTenantId()).entity(holdingsRecord)).toList())
         .totalRecords(holdingsRecordCollection.getTotalRecords());
+      if (extendedHoldingsRecordCollection.getExtendedHoldingsRecords().isEmpty()) {
+        throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
+      }
+      return extendedHoldingsRecordCollection;
     }
   }
 

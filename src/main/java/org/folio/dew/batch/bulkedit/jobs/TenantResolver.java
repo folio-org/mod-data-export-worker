@@ -8,6 +8,7 @@ import static org.folio.dew.utils.Constants.NO_HOLDING_VIEW_PERMISSIONS;
 import static org.folio.dew.utils.Constants.NO_ITEM_AFFILIATION;
 import static org.folio.dew.utils.Constants.NO_ITEM_VIEW_PERMISSIONS;
 
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
@@ -15,6 +16,7 @@ import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.JobParameterNames;
+import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.folio.dew.service.ConsortiaService;
 import org.folio.spring.FolioExecutionContext;
@@ -45,7 +47,7 @@ public class TenantResolver {
         var errorMessage = format(getAffiliationErrorPlaceholder(entityType), user.getUsername(),
           resolveIdentifier(identifierType), itemIdentifier.getItemId(), tenantId);
         bulkEditProcessingErrorsService.saveErrorInCSV(jobId, itemIdentifier.getItemId(), errorMessage, fileName);
-      } else if (!permissionsValidator.isBulkEditReadPermissionExists(tenantId, entityType)) {
+      } else if (!isBulkEditReadPermissionExists(tenantId, entityType)) {
         var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
         var errorMessage = format(getViewPermissionErrorPlaceholder(entityType), user.getUsername(),
           resolveIdentifier(identifierType), itemIdentifier.getItemId(), tenantId);
@@ -55,6 +57,14 @@ public class TenantResolver {
       }
     }
     return affiliatedAndPermittedTenants;
+  }
+
+  private boolean isBulkEditReadPermissionExists(String tenantId, EntityType entityType) {
+    try {
+      return permissionsValidator.isBulkEditReadPermissionExists(tenantId, entityType);
+    } catch (FeignException e) {
+      throw new BulkEditException(e.getMessage());
+    }
   }
 
   protected String getAffiliationErrorPlaceholder(EntityType entityType) {

@@ -6,6 +6,7 @@ import static org.folio.dew.utils.Constants.NO_HOLDING_VIEW_PERMISSIONS;
 import static org.folio.dew.utils.Constants.NO_ITEM_AFFILIATION;
 import static org.folio.dew.utils.Constants.NO_ITEM_VIEW_PERMISSIONS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -87,11 +88,15 @@ class TenantResolverTest {
   void testGetAffiliationErrorPlaceholder() {
     assertEquals(NO_ITEM_AFFILIATION, tenantResolver.getAffiliationErrorPlaceholder(EntityType.ITEM));
     assertEquals(NO_HOLDING_AFFILIATION, tenantResolver.getAffiliationErrorPlaceholder(EntityType.HOLDINGS_RECORD));
+
+    assertThrows(UnsupportedOperationException.class, () -> tenantResolver.getAffiliationErrorPlaceholder(EntityType.INSTANCE));
   }
 
   @Test
   void testGetViewPermissionErrorPlaceholder() {
     assertEquals(NO_ITEM_VIEW_PERMISSIONS, tenantResolver.getViewPermissionErrorPlaceholder(EntityType.ITEM));
     assertEquals(NO_HOLDING_VIEW_PERMISSIONS, tenantResolver.getViewPermissionErrorPlaceholder(EntityType.HOLDINGS_RECORD));
+
+    assertThrows(UnsupportedOperationException.class, () -> tenantResolver.getViewPermissionErrorPlaceholder(EntityType.INSTANCE));
   }
 }

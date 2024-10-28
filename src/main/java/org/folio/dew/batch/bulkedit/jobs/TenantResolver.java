@@ -30,6 +30,9 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class TenantResolver {
 
+  private static final String UNSUPPORTED_ERROR_MESSAGE_FOR_AFFILIATIONS = "Unsupported entity type to get affiliation error message";
+  private static final String UNSUPPORTED_ERROR_MESSAGE_FOR_PERMISSIONS = "Unsupported entity type to get permissions error message";
+
   private final FolioExecutionContext folioExecutionContext;
   private final ConsortiaService consortiaService;
   private final PermissionsValidator permissionsValidator;
@@ -68,16 +71,18 @@ public class TenantResolver {
   }
 
   protected String getAffiliationErrorPlaceholder(EntityType entityType) {
-    if (entityType == EntityType.ITEM) {
-      return NO_ITEM_AFFILIATION;
-    }
-    return NO_HOLDING_AFFILIATION;
+    return switch (entityType) {
+      case ITEM -> NO_ITEM_AFFILIATION;
+      case HOLDINGS_RECORD -> NO_HOLDING_AFFILIATION;
+      default -> throw new UnsupportedOperationException(UNSUPPORTED_ERROR_MESSAGE_FOR_AFFILIATIONS);
+    };
   }
 
   protected String getViewPermissionErrorPlaceholder(EntityType entityType) {
-    if (entityType == EntityType.ITEM) {
-      return NO_ITEM_VIEW_PERMISSIONS;
-    }
-    return NO_HOLDING_VIEW_PERMISSIONS;
+    return switch (entityType) {
+      case ITEM -> NO_ITEM_VIEW_PERMISSIONS;
+      case HOLDINGS_RECORD -> NO_HOLDING_VIEW_PERMISSIONS;
+      default -> throw new UnsupportedOperationException(UNSUPPORTED_ERROR_MESSAGE_FOR_PERMISSIONS);
+    };
   }
 }

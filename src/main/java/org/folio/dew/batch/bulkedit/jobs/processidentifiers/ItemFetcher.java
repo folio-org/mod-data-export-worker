@@ -29,7 +29,6 @@ import org.folio.dew.domain.dto.ExtendedItemCollection;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
-import org.folio.dew.exceptions.ReadPermissionDoesNotExist;
 import org.folio.dew.service.ConsortiaService;
 import org.folio.dew.service.FolioExecutionContextManager;
 import org.folio.dew.utils.ExceptionHelper;
@@ -131,6 +130,10 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
         extendedItemCollection.setExtendedItems(itemCollection.getItems().stream()
           .map(item -> new ExtendedItem().tenantId(folioExecutionContext.getTenantId()).entity(item)).toList());
         extendedItemCollection.setTotalRecords(itemCollection.getTotalRecords());
+        if (extendedItemCollection.getExtendedItems().isEmpty()) {
+          log.error(NO_MATCH_FOUND_MESSAGE);
+          throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
+        }
       }
       return extendedItemCollection;
     } catch (DecodeException e) {

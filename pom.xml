@@ -51,7 +51,6 @@
         <folio-spring-base.version>8.2.0</folio-spring-base.version>
         <folio-service-tools.version>3.1.0</folio-service-tools.version>
         <folio-spring-cql.version>8.2.0</folio-spring-cql.version>
-        <commons-io.version>2.11.0</commons-io.version>
         <minio.version>8.5.9</minio.version>
         <openapi-generator.version>6.2.1</openapi-generator.version>
         <commons-collections4.version>4.4</commons-collections4.version>
@@ -177,11 +176,6 @@
           <groupId>org.apache.commons</groupId>
           <artifactId>commons-collections4</artifactId>
           <version>${commons-collections4.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>commons-io</groupId>
-          <artifactId>commons-io</artifactId>
-          <version>${commons-io.version}</version>
       </dependency>
 
       <dependency>

@@ -8,7 +8,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.EurekaProxyTenantsClient;
 import org.folio.dew.client.OkapiClient;
-import org.folio.dew.domain.bean.ModuleTenant;
+import org.folio.dew.domain.bean.ModuleForTenant;
 import org.folio.dew.error.NotFoundException;
 import org.folio.spring.FolioExecutionContext;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,6 +58,6 @@ public class ModuleTenantService {
 
   private Optional<String> getModuleIdForEureka(String moduleName) {
     var modules = eurekaProxyTenantsClient.getModules(URI.create(URL_PREFIX), folioExecutionContext.getTenantId());
-    return modules.stream().filter(module -> StringUtils.equals(moduleName, module.getName())).findFirst().map(ModuleTenant::getId);
+    return modules.stream().filter(module -> StringUtils.equals(moduleName, module.getName())).findFirst().map(ModuleForTenant::getId);
   }
 }

@@ -9,7 +9,7 @@ import static org.mockito.Mockito.when;
 
 import org.folio.dew.client.EurekaProxyTenantsClient;
 import org.folio.dew.client.OkapiClient;
-import org.folio.dew.domain.bean.ModuleTenant;
+import org.folio.dew.domain.bean.ModuleForTenant;
 import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,7 +39,7 @@ class ModuleTenantServiceTest {
     var moduleName = "moduleName";
     var moduleId = "moduleId";
 
-    var module = new ModuleTenant();
+    var module = new ModuleForTenant();
     module.setId(moduleId);
     when(folioExecutionContext.getTenantId()).thenReturn(tenantId);
     when(okapiClient.getModuleIds(isA(URI.class), eq(tenantId), eq(moduleName))).thenReturn(List.of(module));
@@ -56,7 +56,7 @@ class ModuleTenantServiceTest {
     var moduleName = "moduleName";
     var moduleId = "moduleId";
 
-    var module = new ModuleTenant();
+    var module = new ModuleForTenant();
     module.setId(moduleId);
     module.setName(moduleName);
     when(folioExecutionContext.getTenantId()).thenReturn(tenantId);

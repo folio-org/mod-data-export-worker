@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ModuleTenant {
+public class ModuleForTenant {
 
   @JsonProperty("id")
   private String id;

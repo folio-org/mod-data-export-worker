@@ -97,6 +97,9 @@ public class Constants {
   public static final String PROVENANCE = "Provenance";
   public static final String REPRODUCTION = "Reproduction";
 
+  public static final String EUREKA_PLATFORM = "eureka";
+  public static final String OKAPI_PLATFORM = "okapi";
+
 
   public static String getWorkingDirectory(String springApplicationName, String dirName) {
     return springApplicationName + PATH_SEPARATOR + dirName + PATH_SEPARATOR;

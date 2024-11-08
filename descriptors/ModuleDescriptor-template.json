@@ -308,8 +308,8 @@
           "pathPattern": "/_/tenant",
           "modulePermissions": [
             "circulation-logs.collection.get",
-            "feesfines.accounts.transfer.item.post",
-            "feesfines.accounts-bulk.transfer.item.post",
+            "feesfines.accounts.transfer.post",
+            "feesfines.accounts-bulk.transfer.post",
             "accounts.collection.get",
             "feefineactions.collection.get",
             "users.collection.get",

@@ -1,5 +1,13 @@
 ## Unreleased v3.4.0
 
+## 2024-11-08 v3.3.1
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.3.0...v3.3.1)
+
+### Technical tasks
+* [MODEXPW-530](https://folio-org.atlassian.net/browse/MODEXPW-530) Upgrade commons-io for Ramsons
+* Improvements and dependencies updating.
+
 ## 2024-10-30 v3.3.0
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.2.4...v3.3.0)

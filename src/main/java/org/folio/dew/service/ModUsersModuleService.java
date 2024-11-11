@@ -23,6 +23,7 @@ public class ModUsersModuleService {
   private static final String OKAPI_URL = "http://_";
   private static final String MOD_USERS = "mod-users";
   private static final String ERROR_MESSAGE = "Module id not found for name: " + MOD_USERS;
+
   @Setter
   @Value("${application.platform}")
   private String platform;

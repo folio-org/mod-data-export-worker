@@ -113,6 +113,8 @@ application:
   core-pool-size: ${CORE_POOL_SIZE:10}
   max-pool-size: ${MAX_POOL_SIZE:10}
   platform: ${PLATFORM:okapi}
+  related-modules:
+    mod-users-id: ${MOD_USERS_ID}
 
 folio:
   tenant:

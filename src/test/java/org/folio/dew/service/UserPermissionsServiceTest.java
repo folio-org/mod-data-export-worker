@@ -1,5 +1,12 @@
 package org.folio.dew.service;
 
+import static org.folio.dew.utils.Constants.EUREKA_PLATFORM;
+import static org.folio.dew.utils.Constants.OKAPI_PLATFORM;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import org.folio.dew.batch.bulkedit.jobs.permissions.check.UserPermissions;
 import org.folio.dew.client.EurekaUserPermissionsClient;
 import org.folio.dew.client.OkapiUserPermissionsClient;
@@ -11,13 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.UUID;
-
-import static org.folio.dew.service.UserPermissionsService.EUREKA_PLATFORM;
-import static org.folio.dew.service.UserPermissionsService.OKAPI_PLATFORM;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UserPermissionsServiceTest {

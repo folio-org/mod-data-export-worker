@@ -22,7 +22,7 @@ public class ModUsersModuleService {
 
   private static final String OKAPI_URL = "http://_";
   private static final String MOD_USERS = "mod-users";
-
+  private static final String ERROR_MESSAGE = "Module id not found for name: " + MOD_USERS;
   @Setter
   @Value("${application.platform}")
   private String platform;
@@ -35,7 +35,11 @@ public class ModUsersModuleService {
 
   @Cacheable(cacheNames = "modUsersModuleId")
   public String getModUsersModuleId() {
-    if (StringUtils.equals(EUREKA_PLATFORM, platform) && StringUtils.isNotEmpty(modUsersId)) {
+    if (StringUtils.equals(EUREKA_PLATFORM, platform)) {
+      if (StringUtils.isEmpty(modUsersId)) {
+        log.error(ERROR_MESSAGE);
+        throw new NotFoundException(ERROR_MESSAGE);
+      }
       return modUsersId;
     }
     var tenantId = folioExecutionContext.getTenantId();
@@ -43,8 +47,7 @@ public class ModUsersModuleService {
     if (!moduleNamesJson.isEmpty()) {
       return moduleNamesJson.get(0).get("id").asText();
     }
-    var msg = "Module id not found for name: " + MOD_USERS;
-    log.error(msg);
-    throw new NotFoundException(msg);
+    log.error(ERROR_MESSAGE);
+    throw new NotFoundException(ERROR_MESSAGE);
   }
 }

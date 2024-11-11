@@ -21,7 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.net.URI;
 
 @ExtendWith(MockitoExtension.class)
-public class ModUsersModuleServiceTest {
+class ModUsersModuleServiceTest {
 
   @Mock
   private FolioExecutionContext folioExecutionContext;

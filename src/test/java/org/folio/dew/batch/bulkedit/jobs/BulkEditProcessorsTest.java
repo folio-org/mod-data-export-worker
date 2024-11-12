@@ -6,10 +6,14 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.when;
 
 import lombok.SneakyThrows;
 import org.folio.dew.BaseBatchTest;
+import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
 import org.folio.dew.batch.bulkedit.jobs.processidentifiers.InstanceFetcher;
 import org.folio.dew.batch.bulkedit.jobs.processidentifiers.ItemFetcher;
 import org.folio.dew.batch.bulkedit.jobs.processidentifiers.UserFetcher;
@@ -17,6 +21,7 @@ import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.InventoryInstancesClient;
 import org.folio.dew.client.UserClient;
+import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExtendedItem;
 import org.folio.dew.domain.dto.HoldingsRecord;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
@@ -27,6 +32,7 @@ import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserCollection;
 import org.folio.dew.error.BulkEditException;
+import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -37,6 +43,7 @@ import org.springframework.batch.test.MetaDataInstanceFactory;
 import org.springframework.batch.test.StepScopeTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import java.nio.file.Path;
 import java.util.Collections;
@@ -65,6 +72,12 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   private BulkEditHoldingsProcessor holdingsProcessor;
   @MockBean
   private HoldingClient holdingClient;
+  @MockBean
+  private PermissionsValidator permissionsValidator;
+  @MockBean
+  private TenantResolver tenantResolver;
+  @SpyBean
+  private FolioExecutionContext folioExecutionContext;
 
   @Test
   @SneakyThrows
@@ -100,7 +113,9 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   @ValueSource(strings = {"ID", "HRID"})
   @SneakyThrows
   void shouldNotIncludeDuplicatedInstances(String identifierType) {
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
     when(inventoryInstancesClient.getInstanceByQuery(String.format("%s==duplicateIdentifier", resolveIdentifier(identifierType)), 1)).thenReturn(new InstanceCollection().instances(Collections.emptyList()).totalRecords(2));
+
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var identifier = new ItemIdentifier("duplicateIdentifier");
@@ -114,7 +129,12 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   @ValueSource(strings = {"ID", "HRID", "EXTERNAL_SYSTEM_ID", "USER_NAME"})
   @SneakyThrows
   void shouldNotIncludeDuplicatedUsers(String identifierType) {
-    when(userClient.getUserByQuery(String.format("%s==\"duplicateIdentifier\"", resolveIdentifier(identifierType)), 1)).thenReturn(new UserCollection().users(Collections.singletonList(new User())).totalRecords(2));
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.USER))).thenReturn(true);
+    when(userClient.getUserByQuery(
+      String.format("(cql.allRecords=1 NOT type=\"\" or type<>\"shadow\") and %s==\"duplicateIdentifier\"", resolveIdentifier(identifierType)),
+      1
+    )).thenReturn(new UserCollection().users(Collections.singletonList(new User())).totalRecords(2));
+
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var identifier = new ItemIdentifier("duplicateIdentifier");
@@ -130,6 +150,8 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   void shouldNotIncludeDuplicatedItems(String identifierType) {
     when(inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), "duplicateIdentifier"), Integer.MAX_VALUE)).thenReturn(new ItemCollection().items(List.of(new Item(), new Item())).totalRecords(2));
     when(inventoryClient.getItemByQuery("barcode==\"duplicateIdentifier\"", Integer.MAX_VALUE)).thenReturn(new ItemCollection().items(List.of(new Item(), new Item())).totalRecords(2));
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.ITEM))).thenReturn(true);
+
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var identifier = new ItemIdentifier("duplicateIdentifier");
@@ -144,6 +166,8 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   @SneakyThrows
   void shouldNotIncludeDuplicatedHoldings(String identifierType) {
     when(holdingClient.getHoldingsByQuery(String.format("%s==duplicateIdentifier", resolveIdentifier(identifierType)))).thenReturn(new HoldingsRecordCollection().holdingsRecords(Collections.singletonList(new HoldingsRecord())).totalRecords(2));
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.HOLDINGS_RECORD))).thenReturn(true);
+
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var identifier = new ItemIdentifier("duplicateIdentifier");
@@ -152,4 +176,82 @@ class BulkEditProcessorsTest extends BaseBatchTest {
       return null;
     });
   }
+
+  @Test
+  @SneakyThrows
+  void shouldProvideBulkEditExceptionWithNoInstanceViewPermissionMessage() {
+    var user = new User();
+    user.setUsername("userName");
+
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.HOLDINGS_RECORD))).thenReturn(false);
+    when(userClient.getUserById(any())).thenReturn(user);
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
+    var expectedErrorMessage = "User userName does not have required permission to view the instance record - hrid=hrid on the tenant diku";
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("hrid");
+      var throwable = assertThrows(BulkEditException.class, () -> instanceFetcher.process(identifier));
+      assertEquals(expectedErrorMessage, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldProvideBulkEditExceptionWithNoUserViewPermissionMessage() {
+    var user = new User();
+    user.setUsername("userName");
+
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.USER))).thenReturn(false);
+    when(userClient.getUserById(any())).thenReturn(user);
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
+    var expectedErrorMessage = "User userName does not have required permission to view the user record - hrid=hrid on the tenant diku";
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("hrid");
+      var throwable = assertThrows(BulkEditException.class, () -> userFetcher.process(identifier));
+      assertEquals(expectedErrorMessage, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldProvideBulkEditExceptionWithNoItemViewPermissionMessageForLocal() {
+    var user = new User();
+    user.setUsername("userName");
+
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.HOLDINGS_RECORD))).thenReturn(false);
+    when(userClient.getUserById(any())).thenReturn(user);
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
+    var expectedErrorMessage = "User userName does not have required permission to view the item record - hrid=hrid on the tenant diku";
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("hrid");
+      var throwable = assertThrows(BulkEditException.class, () -> itemFetcher.process(identifier));
+      assertEquals(expectedErrorMessage, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldProvideBulkEditExceptionWithNoHoldingsViewPermissionMessageForLocal() {
+    var user = new User();
+    user.setUsername("userName");
+
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.HOLDINGS_RECORD))).thenReturn(false);
+    when(userClient.getUserById(any())).thenReturn(user);
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
+    var expectedErrorMessage = "User userName does not have required permission to view the holdings record - hrid=hrid on the tenant diku";
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("hrid");
+      var throwable = assertThrows(BulkEditException.class, () -> holdingsProcessor.process(identifier));
+      assertEquals(expectedErrorMessage, throwable.getMessage());
+      return null;
+    });
+  }
+
+
 }

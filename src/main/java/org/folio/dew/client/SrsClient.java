@@ -11,5 +11,5 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface SrsClient {
 
   @GetMapping(value = "/source-records", produces = MediaType.APPLICATION_JSON_VALUE)
-  JsonNode getMarc(@RequestParam("instanceId") String instanceId, @RequestParam("idType") String idType);
+  JsonNode getMarc(@RequestParam("instanceId") String instanceId, @RequestParam("idType") String idType, @RequestParam("deleted") boolean deleted);
 }

@@ -1,15 +1,20 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
+import static java.lang.String.format;
 import static org.folio.dew.domain.dto.IdentifierType.ISBN;
 import static org.folio.dew.domain.dto.IdentifierType.ISSN;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.NO_INSTANCE_VIEW_PERMISSIONS;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
+import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
 import org.folio.dew.client.InventoryInstancesClient;
+import org.folio.dew.client.UserClient;
+import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.Instance;
 import org.folio.dew.domain.dto.InstanceCollection;
@@ -27,6 +32,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @StepScope
@@ -37,6 +43,8 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
   private final InstanceMapper instanceMapper;
   private final InstanceReferenceService instanceReferenceService;
   private final FolioExecutionContext folioExecutionContext;
+  private final PermissionsValidator permissionsValidator;
+  private final UserClient userClient;
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
@@ -45,11 +53,15 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
   @Value("#{jobParameters['fileName']}")
   private String fileName;
 
-  private Set<ItemIdentifier> identifiersToCheckDuplication = new HashSet<>();
-  private Set<String> fetchedInstanceIds = new HashSet<>();
+  private Set<ItemIdentifier> identifiersToCheckDuplication = ConcurrentHashMap.newKeySet();
+  private Set<String> fetchedInstanceIds = ConcurrentHashMap.newKeySet();
 
   @Override
-  public List<InstanceFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
+  public synchronized List<InstanceFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
+    if (!permissionsValidator.isBulkEditReadPermissionExists(folioExecutionContext.getTenantId(), EntityType.INSTANCE)) {
+      var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
+      throw new BulkEditException(format(NO_INSTANCE_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()));
+    }
     if (identifiersToCheckDuplication.contains(itemIdentifier)) {
       throw new BulkEditException("Duplicate entry");
     }

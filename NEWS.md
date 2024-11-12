@@ -1,9 +1,65 @@
+## Unreleased v3.4.0
+
+## 2024-11-08 v3.3.1
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.3.0...v3.3.1)
+
+### Technical tasks
+* [MODEXPW-530](https://folio-org.atlassian.net/browse/MODEXPW-530) Upgrade commons-io for Ramsons
+* Improvements and dependencies updating.
+
+## 2024-10-30 v3.3.0
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.2.4...v3.3.0)
+
+### Technical tasks
+* [MODEXPW-521](https://folio-org.atlassian.net/browse/MODEXPW-521) Verify notes permissions
+* [MODEXPW-519](https://folio-org.atlassian.net/browse/MODEXPW-519) Verify eholdings permissions
+* [MODEXPW-513](https://folio-org.atlassian.net/browse/MODEXPW-513) Verify consortium-search permissions
+* [MODEXPW-512](https://folio-org.atlassian.net/browse/MODEXPW-512) Rename sourceRecords permission
+* [MODEXPW-511](https://folio-org.atlassian.net/browse/MODEXPW-511) API version update
+* [MODEXPW-509](https://folio-org.atlassian.net/browse/MODEXPW-509) Support Eureka permissions model for bulk operations (read operations)
+* [MODEXPW-505](https://folio-org.atlassian.net/browse/MODEXPW-505) API version update
+* [MODEXPW-503](https://folio-org.atlassian.net/browse/MODEXPW-503) Bulk-Ops: performance improvement (data-export-worker part)
+* [MODEXPW-498](https://folio-org.atlassian.net/browse/MODEXPW-498) HoldingsRecordsSource schema alignment
+* [MODEXPW-489](https://folio-org.atlassian.net/browse/MODEXPW-489) Remove unused updating functionality
+* [MODEXPW-488](https://folio-org.atlassian.net/browse/MODEXPW-488) Central tenant view permissions handling
+* [MODEXPW-487](https://folio-org.atlassian.net/browse/MODEXPW-487) S3 Env Vars optimisation
+* [MODEXPW-483](https://folio-org.atlassian.net/browse/MODEXPW-483) User schema updating - new field preferredEmailCommunication
+* [MODEXPW-479](https://folio-org.atlassian.net/browse/MODEXPW-479) API version update
+* [MODEXPW-478](https://folio-org.atlassian.net/browse/MODEXPW-478) Add notes field to instance csv file
+* [MODEXPW-477](https://folio-org.atlassian.net/browse/MODEXPW-477) Items and holdings tenant populating
+* [MODEXPW-476](https://folio-org.atlassian.net/browse/MODEXPW-476) Extend entities schemas to support tenant information
+* [MODEXPW-475](https://folio-org.atlassian.net/browse/MODEXPW-475) Increase multipart upload consumption size
+* [MODEXPW-470](https://folio-org.atlassian.net/browse/MODEXPW-470) .mrc-file creation
+* [MODEXPW-345](https://folio-org.atlassian.net/browse/MODEXPW-345) Refreshing mechanism for presigned url (Bursar)
+* [FOLIO-4087](https://folio-org.atlassian.net/browse/FOLIO-4087) RMB & Spring upgrades (all modules)
+
+### Stories
+* [MODEXPW-516](https://folio-org.atlassian.net/browse/MODEXPW-516) Update module permissions in the ModuleDescriptor
+* [MODEXPW-515](https://folio-org.atlassian.net/browse/MODEXPW-515) Include Tentant in columns selection
+* [MODEXPW-504](https://folio-org.atlassian.net/browse/MODEXPW-504) Include tenantId in Item's and Holdings' Notes names in ECS
+* [MODEXPW-465](https://folio-org.atlassian.net/browse/MODEXPW-465) Separate Instance Notes by Note Type
+* [MODEXPW-460](https://folio-org.atlassian.net/browse/MODEXPW-460) Holdings record's column names cleanup
+* [MODEXPW-455](https://folio-org.atlassian.net/browse/MODEXPW-455) Item record's column names cleanup
+* [MODEXPW-396](https://folio-org.atlassian.net/browse/MODEXPW-396) Allow additional item status updates
+
+### Bug fixes
+* [MODEXPW-520](https://folio-org.atlassian.net/browse/MODEXPW-520) Bulk edit allows editing shadow users
+* [MODEXPW-507](https://folio-org.atlassian.net/browse/MODEXPW-507) 500 Internal Server Error when download bulk edit job file from Export manager
+* [MODEXPW-495](https://folio-org.atlassian.net/browse/MODEXPW-495) ECS | Incorrect "totalRecords" value when search Items by Former identifier on Member tenant
+* [MODEXPW-493](https://folio-org.atlassian.net/browse/MODEXPW-493) Outdated preview of matched records in case of remove (add) affiliation and upload the same file with Holdings, Items identifiers in Central tenant
+
+### Tech debts
+* [MODEXPW-499](https://folio-org.atlassian.net/browse/MODEXPW-499) Replace deprecated KafkaProperties methods
+
 ## 2024-03-23 v3.2.1
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.2.0...v3.2.1)
 
 ### Technical tasks
-ModuleDescriptor: ERM interface version upgrading
+* ModuleDescriptor: ERM interface version upgrading
+* [MODEXPW-516](https://folio-org.atlassian.net/browse/MODEXPW-516) Upgrade "holdings-storage" to 8.0
 
 ## 2024-03-19 v3.2.0
 

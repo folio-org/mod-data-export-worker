@@ -2,7 +2,6 @@ package org.folio.dew.repository;
 
 import io.minio.ComposeObjectArgs;
 import io.minio.ComposeSource;
-import io.minio.GetObjectArgs;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
@@ -33,7 +32,6 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.config.properties.RemoteFilesStorageProperties;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Repository;
 
@@ -91,6 +89,7 @@ public class RemoteFilesStorage extends BaseFilesStorage {
       String contentType)
       throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
       ServerException, InternalException, XmlParserException, ErrorResponseException {
+    destObject = getS3Path(destObject);
     List<ComposeSource> sources = sourceObjects.stream()
         .map(so -> ComposeSource.builder().bucket(bucket).object(getS3Path(so)).build())
         .collect(Collectors.toList());
@@ -119,7 +118,7 @@ public class RemoteFilesStorage extends BaseFilesStorage {
     String result = client.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
       .method(Method.GET)
       .bucket(bucket)
-      .object(object)
+      .object(getS3Path(object))
       .region(region)
       .expiry(urlExpirationTimeInSeconds, TimeUnit.SECONDS)
       .build());

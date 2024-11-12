@@ -57,7 +57,9 @@ public class ModuleTenantService {
   }
 
   private Optional<String> getModuleIdForEureka(String moduleName) {
+    log.info("getModuleIdForEureka");
     var modules = eurekaProxyTenantsClient.getModules(URI.create(URL_PREFIX), folioExecutionContext.getTenantId());
+    log.info(modules);
     return modules.stream().filter(module -> StringUtils.equals(moduleName, module.getName())).findFirst().map(ModuleForTenant::getId);
   }
 }

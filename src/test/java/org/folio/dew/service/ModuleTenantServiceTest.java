@@ -58,9 +58,11 @@ class ModuleTenantServiceTest {
     module1.setId(moduleId);
     var module2 = new ModuleForTenant();
     module2.setId("mod-users-bl-7.9.2-SNAPSHOT.170");
+    var module3 = new ModuleForTenant();
+    module3.setId("mod-users");
 
     when(folioExecutionContext.getTenantId()).thenReturn(tenantId);
-    when(eurekaProxyTenantsClient.getModules(isA(URI.class), eq(tenantId))).thenReturn(List.of(module1, module2));
+    when(eurekaProxyTenantsClient.getModules(isA(URI.class), eq(tenantId))).thenReturn(List.of(module1, module2, module3));
 
     moduleTenantService.setPlatform(EUREKA_PLATFORM);
     var actual = moduleTenantService.getModUsersModuleId();

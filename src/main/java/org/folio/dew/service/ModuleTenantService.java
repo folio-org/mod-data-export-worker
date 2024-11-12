@@ -64,10 +64,6 @@ public class ModuleTenantService {
   }
 
   private Optional<String> filterModUsersModuleId(List<ModuleForTenant> modules) {
-    var modUsersLengthWithVersion = 11;
-    return modules.stream().filter(moduleForTenant -> StringUtils.startsWith(moduleForTenant.getId(), MOD_USERS)).filter(module -> {
-      var moduleWithVersion = module.getId().substring(0, modUsersLengthWithVersion);
-      return Character.isDigit(moduleWithVersion.charAt(modUsersLengthWithVersion - 1));
-    }).map(ModuleForTenant::getId).findFirst();
+    return modules.stream().map(ModuleForTenant::getId).filter(id -> id.matches("^mod-users-\\d.*?$")).findFirst();
   }
 }

@@ -91,9 +91,12 @@ public class UserReferenceService {
 
   @Cacheable(cacheNames = "customFields")
   public CustomField getCustomFieldByRefId(String refId) {
+    log.info("getCustomFieldByRefId:: {}", refId);
     var moduleId = moduleTenantService.getModUsersModuleId();
-    return customFieldsClient.getCustomFieldsByQuery(moduleId, format(QUERY_PATTERN_REF_ID, encode(refId)))
-    .getCustomFields().stream().filter(customField -> customField.getRefId().equals(refId))
+    var customFields = customFieldsClient.getCustomFieldsByQuery(moduleId, format(QUERY_PATTERN_REF_ID, encode(refId)))
+    .getCustomFields();
+    log.info(customFields);
+    return customFields.stream().filter(customField -> customField.getRefId().equals(refId))
       .findFirst()
       .orElseThrow(() -> new BulkEditException(format("Custom field with refId=%s not found", refId)));
   }

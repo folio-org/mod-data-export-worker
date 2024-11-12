@@ -4,6 +4,8 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static java.lang.String.format;
 import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
+import static org.folio.dew.utils.Constants.QUERY_PATTERN_REF_ID;
+import static org.folio.dew.utils.Utils.encode;
 
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.AddressTypeClient;
@@ -90,7 +92,7 @@ public class UserReferenceService {
   @Cacheable(cacheNames = "customFields")
   public CustomField getCustomFieldByRefId(String refId) {
     var moduleId = moduleTenantService.getModUsersModuleId();
-    return customFieldsClient.getCustomFieldsByQuery(moduleId, String.format("refId==\"%s\"", refId))
+    return customFieldsClient.getCustomFieldsByQuery(moduleId, format(QUERY_PATTERN_REF_ID, encode(refId)))
     .getCustomFields().stream().filter(customField -> customField.getRefId().equals(refId))
       .findFirst()
       .orElseThrow(() -> new BulkEditException(format("Custom field with refId=%s not found", refId)));

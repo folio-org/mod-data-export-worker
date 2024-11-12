@@ -43,10 +43,6 @@
       "version": "1.0"
     },
     {
-      "id": "data-export-spring",
-      "version": "2.0"
-    },
-    {
       "id": "electronic-access-relationships",
       "version": "1.1"
     },
@@ -137,9 +133,49 @@
     {
       "id": "permissions",
       "version": "5.7"
+    },
+    {
+      "id": "user-tenants",
+      "version": "1.0"
+    },
+    {
+      "id": "instance-formats",
+      "version": "2.0"
+    },
+    {
+      "id": "instance-types",
+      "version": "2.0"
+    },
+    {
+      "id": "modes-of-issuance",
+      "version": "1.1"
+    },
+    {
+      "id": "nature-of-content-terms",
+      "version": "1.0"
+    },
+    {
+      "id": "consortium-search",
+      "version": "2.1"
+    },
+    {
+      "id": "source-storage-source-records",
+      "version": "3.2"
+    },
+    {
+      "id": "circulation-logs",
+      "version": "1.2"
     }
   ],
   "optional": [
+    {
+      "id": "data-export-spring",
+      "version": "2.0"
+    },
+    {
+      "id": "users-keycloak",
+      "version": "1.0"
+    },
     {
       "id": "permissions-users",
       "version": "1.0"

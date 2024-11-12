@@ -69,6 +69,6 @@ public class ModuleTenantService {
       -> StringUtils.startsWith(moduleForTenant.getId(), MOD_USERS)).filter(module -> {
       var moduleWithVersion = module.getId().substring(0, modUsersLengthWithVersion);
       return Character.isDigit(moduleWithVersion.charAt(modUsersLengthWithVersion - 1));
-      }).map(ModuleForTenant::getId).findFirst();
+    }).map(ModuleForTenant::getId).findFirst();
   }
 }

@@ -55,7 +55,7 @@ class ModuleTenantServiceTest {
     var moduleId = "mod-users-19.4.1-SNAPSHOT.322";
 
     var module1 = new ModuleForTenant();
-    module1.setId("mod-users-19.4.1-SNAPSHOT.322");
+    module1.setId(moduleId);
     var module2 = new ModuleForTenant();
     module2.setId("mod-users-bl-7.9.2-SNAPSHOT.170");
 

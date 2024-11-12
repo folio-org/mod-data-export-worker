@@ -16,6 +16,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -26,6 +27,7 @@ public class ModuleTenantService {
 
   private static final String MODULE_NOT_FOUND_ERROR = "Module id not found for name: ";
   private static final String URL_PREFIX = "http://_";
+  private static final String MOD_USERS = "mod-users";
 
   @Setter
   @Value("${application.platform}")
@@ -36,30 +38,37 @@ public class ModuleTenantService {
   private final EurekaProxyTenantsClient eurekaProxyTenantsClient;
 
   @Cacheable(cacheNames = "moduleIds")
-  public String getModuleId(String moduleName) {
+  public String getModUsersModuleId() {
     Optional<String> moduleId;
     if (StringUtils.equals(EUREKA_PLATFORM, platform)) {
-      moduleId = getModuleIdForEureka(moduleName);
+      moduleId = getModUsersModuleIdForEureka();
     } else {
-      moduleId = getModuleIdForOkapi(moduleName);
+      moduleId = getModUsersModuleIdForOkapi();
     }
-    var msg = MODULE_NOT_FOUND_ERROR + moduleName;
+    var msg = MODULE_NOT_FOUND_ERROR + MOD_USERS;
     return moduleId.orElseThrow(() -> new NotFoundException(msg));
   }
 
-  private Optional<String> getModuleIdForOkapi(String moduleName) {
+  private Optional<String> getModUsersModuleIdForOkapi() {
     var tenantId = folioExecutionContext.getTenantId();
-    var modules = okapiClient.getModuleIds(URI.create(URL_PREFIX), tenantId, moduleName);
+    var modules = okapiClient.getModuleIds(URI.create(URL_PREFIX), tenantId, MOD_USERS);
     if (!modules.isEmpty()) {
       return Optional.of(modules.get(0).getId());
     }
     return Optional.empty();
   }
 
-  private Optional<String> getModuleIdForEureka(String moduleName) {
-    log.info("getModuleIdForEureka");
+  private Optional<String> getModUsersModuleIdForEureka() {
     var modules = eurekaProxyTenantsClient.getModules(URI.create(URL_PREFIX), folioExecutionContext.getTenantId());
-    log.info(modules);
-    return modules.stream().filter(module -> StringUtils.equals(moduleName, module.getName())).findFirst().map(ModuleForTenant::getId);
+    return filterModUsersModuleId(modules);
+  }
+
+  private Optional<String> filterModUsersModuleId(List<ModuleForTenant> modules) {
+    var modUsersLengthWithVersion = 11;
+    return modules.stream().filter(moduleForTenant
+      -> StringUtils.startsWith(moduleForTenant.getId(), MOD_USERS)).filter(module -> {
+      var moduleWithVersion = module.getId().substring(0, modUsersLengthWithVersion);
+      return Character.isDigit(moduleWithVersion.charAt(modUsersLengthWithVersion - 1));
+      }).map(ModuleForTenant::getId).findFirst();
   }
 }

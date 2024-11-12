@@ -24,8 +24,6 @@ import lombok.RequiredArgsConstructor;
 @Log4j2
 public class UserReferenceService {
 
-  private static final String MOD_USERS = "mod-users";
-
   private final AddressTypeClient addressTypeClient;
   private final DepartmentClient departmentClient;
   private final GroupClient groupClient;
@@ -91,7 +89,7 @@ public class UserReferenceService {
 
   @Cacheable(cacheNames = "customFields")
   public CustomField getCustomFieldByRefId(String refId) {
-    var moduleId = moduleTenantService.getModuleId(MOD_USERS);
+    var moduleId = moduleTenantService.getModUsersModuleId();
     return customFieldsClient.getCustomFieldsByQuery(moduleId, String.format("refId==\"%s\"", refId))
     .getCustomFields().stream().filter(customField -> customField.getRefId().equals(refId))
       .findFirst()

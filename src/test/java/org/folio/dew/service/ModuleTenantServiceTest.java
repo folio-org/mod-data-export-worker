@@ -36,34 +36,34 @@ class ModuleTenantServiceTest {
   @Test
   void getModuleIdForOkapiTest() {
     var tenantId = "diku";
-    var moduleName = "moduleName";
     var moduleId = "moduleId";
 
     var module = new ModuleForTenant();
     module.setId(moduleId);
     when(folioExecutionContext.getTenantId()).thenReturn(tenantId);
-    when(okapiClient.getModuleIds(isA(URI.class), eq(tenantId), eq(moduleName))).thenReturn(List.of(module));
+    when(okapiClient.getModuleIds(isA(URI.class), eq(tenantId), eq("mod-users"))).thenReturn(List.of(module));
 
-    var actual = moduleTenantService.getModuleId(moduleName);
+    var actual = moduleTenantService.getModUsersModuleId();
 
-    verify(okapiClient).getModuleIds(isA(URI.class), eq(tenantId), eq(moduleName));
+    verify(okapiClient).getModuleIds(isA(URI.class), eq(tenantId), eq("mod-users"));
     assertEquals(moduleId, actual);
   }
 
   @Test
   void getModuleIdForEurekaTest() {
     var tenantId = "diku";
-    var moduleName = "moduleName";
-    var moduleId = "moduleId";
+    var moduleId = "mod-users-19.4.1-SNAPSHOT.322";
 
-    var module = new ModuleForTenant();
-    module.setId(moduleId);
-    module.setName(moduleName);
+    var module1 = new ModuleForTenant();
+    module1.setId("mod-users-19.4.1-SNAPSHOT.322");
+    var module2 = new ModuleForTenant();
+    module2.setId("mod-users-bl-7.9.2-SNAPSHOT.170");
+
     when(folioExecutionContext.getTenantId()).thenReturn(tenantId);
-    when(eurekaProxyTenantsClient.getModules(isA(URI.class), eq(tenantId))).thenReturn(List.of(module));
+    when(eurekaProxyTenantsClient.getModules(isA(URI.class), eq(tenantId))).thenReturn(List.of(module1, module2));
 
     moduleTenantService.setPlatform(EUREKA_PLATFORM);
-    var actual = moduleTenantService.getModuleId(moduleName);
+    var actual = moduleTenantService.getModUsersModuleId();
 
     verify(eurekaProxyTenantsClient).getModules(isA(URI.class), eq(tenantId));
     assertEquals(moduleId, actual);

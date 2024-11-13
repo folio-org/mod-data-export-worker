@@ -8,7 +8,6 @@ import static org.folio.dew.batch.bulkedit.jobs.processidentifiers.Utils.encode;
 import static org.folio.dew.utils.Constants.QUERY_PATTERN_REF_ID;
 
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.AddressTypeClient;
 import org.folio.dew.client.CustomFieldsClient;
 import org.folio.dew.client.DepartmentClient;

@@ -28,7 +28,7 @@ public class ModuleTenantService {
   private static final String MODULE_NOT_FOUND_ERROR = "Module id not found for name: ";
   private static final String URL_PREFIX = "http://_";
   private static final String MOD_USERS = "mod-users";
-  private static final String MOD_USERS_REGEXP = "^mod-users-\\d.*?$";
+  private static final String MOD_USERS_REGEXP = "^mod-users-\\d.*$";
 
   @Setter
   @Value("${application.platform}")

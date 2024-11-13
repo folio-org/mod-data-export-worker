@@ -16,6 +16,8 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -116,7 +118,9 @@ class ElectronicAccessServiceTest {
 
   @Test
   void getRelationshipNameAndIdByIdNotFoundExceptionTest() {
-    when(folioExecutionContext.getAllHeaders()).thenReturn(Map.of(X_OKAPI_TENANT, List.of("original")));
+    Map<String, Collection<String>> headers = new HashMap<>();
+    headers.put(X_OKAPI_TENANT,  List.of("original"));
+    when(folioExecutionContext.getAllHeaders()).thenReturn(headers);
     var id = UUID.randomUUID().toString();
     var electronicAccessRelationship = new ElectronicAccessRelationship();
     electronicAccessRelationship.setId(id);

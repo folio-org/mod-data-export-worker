@@ -39,6 +39,7 @@ public class BulkEditProcessingErrorsService {
   public static final DateTimeFormatter CSV_NAME_DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
   public static final String STORAGE = "storage";
 
+  private static final String FAILED_TO_SAVE_ERROR_FILE_PLACEHOLDER = "Failed to save {} error file with job id {} cause {}";
   private static final String STORAGE_TEMPLATE = "E" + File.separator + STORAGE + File.separator + "%s";
   private static final String CSV_FILE_TEMPLATE = STORAGE_TEMPLATE + File.separator + "%s";
   private static final String CONTENT_TYPE = "text/csv";
@@ -49,9 +50,7 @@ public class BulkEditProcessingErrorsService {
 
   private final LocalFilesStorage localFilesStorage;
 
-
-
-  public void saveErrorInCSV(String jobId, String affectedIdentifier, Throwable reasonForError, String fileName) {
+  public synchronized void saveErrorInCSV(String jobId, String affectedIdentifier, Throwable reasonForError, String fileName) {
     if (isNull(jobId) || isNull(affectedIdentifier) || isNull(reasonForError) || isNull(fileName)) {
       log.error("Some of the parameters is null, jobId: {}, affectedIdentifier: {}, reasonForError: {}, fileName: {}", jobId, affectedIdentifier, reasonForError, fileName);
       return;
@@ -64,18 +63,23 @@ public class BulkEditProcessingErrorsService {
       try {
         localFilesStorage.append(pathToCSVFile, errorLine.getBytes(StandardCharsets.UTF_8));
       } catch (IOException ioException) {
-        log.error("Failed to save {} error file with job id {} cause {}", csvFileName, jobId, ioException);
+        log.error(FAILED_TO_SAVE_ERROR_FILE_PLACEHOLDER, csvFileName, jobId, ioException);
       }
     }
   }
 
-  public void saveErrorInCSV(String jobId, String errorString, String fileName) {
+  public synchronized void saveErrorInCSV(String jobId, String affectedIdentifier, String errorMessage, String fileName) {
+    if (isNull(jobId) || isNull(affectedIdentifier) || isNull(errorMessage) || isNull(fileName)) {
+      log.error("Some of the parameters is null, jobId: {}, affectedIdentifier: {}, reasonForError: {}, fileName: {}", jobId, affectedIdentifier, errorMessage, fileName);
+      return;
+    }
     var csvFileName = getCsvFileName(jobId, fileName);
-    var pathToCSVFile = getPathToCsvFile(jobId, getCsvFileName(jobId, fileName));
+    var errorLine = affectedIdentifier + COMMA_SEPARATOR + errorMessage + System.lineSeparator();
+    var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
     try {
-      localFilesStorage.append(pathToCSVFile, errorString.getBytes(StandardCharsets.UTF_8));
+      localFilesStorage.append(pathToCSVFile, errorLine.getBytes(StandardCharsets.UTF_8));
     } catch (IOException ioException) {
-      log.error("Failed to save {} error file with job id {} cause {}", csvFileName, jobId, ioException);
+      log.error(FAILED_TO_SAVE_ERROR_FILE_PLACEHOLDER, csvFileName, jobId, ioException);
     }
   }
 

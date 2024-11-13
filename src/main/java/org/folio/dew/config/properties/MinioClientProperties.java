@@ -42,6 +42,11 @@ public class MinioClientProperties {
   private boolean forcePathStyle;
 
   /**
+   * Path in s3 bucket.
+   */
+  private String subPath;
+
+  /**
    * Presigned url expiration time (in seconds).
    */
   private int urlExpirationTimeInSeconds;

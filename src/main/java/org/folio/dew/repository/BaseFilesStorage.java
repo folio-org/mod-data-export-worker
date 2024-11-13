@@ -57,14 +57,18 @@ import java.util.stream.StreamSupport;
 
 import static io.minio.ObjectWriteArgs.MIN_MULTIPART_SIZE;
 import static java.lang.String.format;
+import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 
 @Log4j2
 public class BaseFilesStorage implements S3CompatibleStorage {
 
+  private static final String SET_VALUE = "<set>";
+  private static final String NOT_SET_VALUE = "<not set>";
   private final MinioClient client;
   private S3Client s3Client;
   private final String bucket;
   private final String region;
+  private final String subPath;
 
   private final boolean isComposeWithAwsSdk;
 
@@ -74,10 +78,12 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     final String regionName = properties.getRegion();
     final String bucketName = properties.getBucket();
     final String secretKey = properties.getSecretKey();
+    subPath = properties.getSubPath();
     isComposeWithAwsSdk = properties.isComposeWithAwsSdk();
     final boolean isForcePathStyle = properties.isForcePathStyle();
-    log.info("Creating MinIO client endpoint {},region {},bucket {},accessKey {},secretKey {}, isComposedWithAwsSdk {}.", endpoint, regionName, bucketName,
-      StringUtils.isNotBlank(accessKey) ? "<set>" : "<not set>", StringUtils.isNotBlank(secretKey) ? "<set>" : "<not set>", isComposeWithAwsSdk);
+    log.info("Creating MinIO client endpoint {},region {},bucket {},accessKey {},secretKey {}, subPath {}, isComposedWithAwsSdk {}.", endpoint, regionName, bucketName,
+      StringUtils.isNotBlank(accessKey) ? SET_VALUE : NOT_SET_VALUE, StringUtils.isNotBlank(secretKey) ? SET_VALUE : NOT_SET_VALUE,
+      StringUtils.isNotBlank(subPath) ? SET_VALUE : NOT_SET_VALUE, isComposeWithAwsSdk);
 
     var builder = MinioClient.builder().endpoint(endpoint);
     if (StringUtils.isNotBlank(regionName)) {
@@ -149,6 +155,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @throws IOException - if an I/O error occurs
    */
   public String upload(String path, String filename) throws IOException {
+    path = getS3Path(path);
     try {
       return client.uploadObject(UploadObjectArgs.builder()
           .bucket(bucket)
@@ -172,7 +179,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @throws IOException - if an I/O error occurs
    */
   public String write(String path, byte[] bytes, Map<String, String> headers) throws IOException {
-
+    path = getS3Path(path);
     if (isComposeWithAwsSdk) {
       log.info("Writing with using AWS SDK client");
       s3Client.putObject(PutObjectRequest.builder().bucket(bucket)
@@ -211,7 +218,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @throws IOException - if an I/O error occurs
    */
   public String writeFile(String path, Path inputPath, Map<String, String> headers) throws IOException {
-
+    path = getS3Path(path);
     if (isComposeWithAwsSdk) {
       log.info("Writing file using AWS SDK client");
       s3Client.putObject(PutObjectRequest.builder().bucket(bucket)
@@ -248,6 +255,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @throws IOException if an I/O error occurs
    */
   public void append(String path, byte[] bytes) throws IOException {
+    path = getS3Path(path);
     try {
       if (notExists(path)) {
         log.info("Appending non-existing file");
@@ -349,6 +357,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @throws FileOperationException if an I/O error occurs
    */
   public void delete(String path) {
+    path = getS3Path(path);
     try {
       var paths = walk(path).collect(Collectors.toList());
 
@@ -377,7 +386,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @throws FileOperationException if an I/O error occurs
    */
   public Stream<String> walk(String path) {
-    return getInternalStructure(path, true);
+    return getInternalStructure(getS3Path(path), true);
   }
 
   /**
@@ -387,6 +396,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @return true if file exists, otherwise - false
    */
   public boolean exists(String path)  {
+    path = getS3Path(path);
     var iterator = client.listObjects(ListObjectsArgs.builder()
         .bucket(bucket)
         .region(region)
@@ -419,6 +429,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @throws IOException - if an I/O error occurs reading from the file
    */
   public InputStream newInputStream(String path) throws IOException {
+    path = getS3Path(path);
     try {
       return client.getObject(GetObjectArgs.builder()
         .bucket(bucket)
@@ -545,5 +556,15 @@ public class BaseFilesStorage implements S3CompatibleStorage {
       log.error("Cannot read folder: " + path, e);
       return null;
     }
+  }
+
+  public String getS3Path(String path) {
+    if (StringUtils.isBlank(subPath) || StringUtils.startsWith(path, subPath + PATH_SEPARATOR)) {
+      return path;
+    }
+    if (path.startsWith(PATH_SEPARATOR)) {
+      return subPath + path;
+    }
+    return subPath + PATH_SEPARATOR + path;
   }
 }

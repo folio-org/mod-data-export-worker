@@ -3,7 +3,6 @@ package org.folio.dew.service;
 import static java.util.Objects.nonNull;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
 import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
 import static org.folio.dew.utils.Constants.CSV_EXTENSION;
@@ -107,9 +106,9 @@ public class JobCommandsReceiverService {
 
         prepareJobParameters(jobCommand);
 
-        if (Set.of(BULK_EDIT_IDENTIFIERS, BULK_EDIT_QUERY, BULK_EDIT_UPDATE).contains(jobCommand.getExportType())) {
+        if (Set.of(BULK_EDIT_IDENTIFIERS, BULK_EDIT_QUERY).contains(jobCommand.getExportType())) {
           addBulkEditJobCommand(jobCommand);
-          if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType()) || BULK_EDIT_UPDATE.equals(jobCommand.getExportType())) {
+          if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())) {
             return;
           }
         }
@@ -136,35 +135,6 @@ public class JobCommandsReceiverService {
 
   private void prepareJobParameters(JobCommand jobCommand) {
     var paramsBuilder = new JobParametersBuilder(jobCommand.getJobParameters());
-
-    // TODO enrich exportType.json with value MARC_EXPORT
-    if ("MARC_EXPORT".equals(jobCommand.getExportType().getValue())) {
-      var uploadedFilePath = jobCommand.getJobParameters().getString(FILE_NAME);
-      if (nonNull(uploadedFilePath) && FilenameUtils.isExtension(uploadedFilePath, "cql")) {
-        var tempIdentifiersFileName = workDir + FilenameUtils.getBaseName(uploadedFilePath) + CSV_EXTENSION;
-        try (var lines = localFilesStorage.lines(uploadedFilePath);
-             var outputStream = new FileOutputStream(tempIdentifiersFileName)) {
-          var query = lines.collect(Collectors.joining());
-          // TODO enrich entityType.json with values INSTANCE, HOLDINGS
-          InputStreamResource resource = null;
-          if ("INSTANCE".equals(jobCommand.getEntityType().getValue())) {
-            resource = searchClient.getInstanceIds(query).getBody();
-          } else if ("HOLDINGS".equals(jobCommand.getEntityType().getValue())) {
-            resource = searchClient.getHoldingIds(query).getBody();
-          }
-          if (nonNull(resource)) {
-            resource.getInputStream().transferTo(outputStream);
-          }
-          var identifiersUrl = remoteFilesStorage.objectToPresignedObjectUrl(
-            remoteFilesStorage.uploadObject(FilenameUtils.getName(tempIdentifiersFileName), tempIdentifiersFileName, null, "text/csv", true));
-          paramsBuilder.addString(FILE_NAME, identifiersUrl, JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
-        } catch (Exception e) {
-          var msg = String.format("Failed to read %s, reason: %s", FilenameUtils.getBaseName(uploadedFilePath), e.getMessage());
-          log.error(msg);
-          throw new FileOperationException(msg);
-        }
-      }
-    }
 
     var jobId = jobCommand.getId().toString();
     var outputFileName = fileNameResolver.resolve(jobCommand, workDir, jobId);

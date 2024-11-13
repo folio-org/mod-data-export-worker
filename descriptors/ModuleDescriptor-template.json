@@ -150,7 +150,7 @@
     },
     {
       "id": "custom-fields",
-      "version": "2.1"
+      "version": "3.0"
     }
   ],
   "provides": [

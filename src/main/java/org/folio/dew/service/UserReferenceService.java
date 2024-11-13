@@ -16,6 +16,7 @@ import org.folio.dew.domain.dto.CustomField;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
+import org.folio.spring.FolioExecutionContext;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +33,7 @@ public class UserReferenceService {
   private final CustomFieldsClient customFieldsClient;
   private final BulkEditProcessingErrorsService errorsService;
   private final ModuleTenantService moduleTenantService;
+  private final FolioExecutionContext folioExecutionContext;
 
   @Cacheable(cacheNames = "addressTypeNames")
   public String getAddressTypeDescById(String id, ErrorServiceArgs args) {
@@ -94,7 +96,9 @@ public class UserReferenceService {
     log.info("getCustomFieldByRefId::{}", refId);
     var moduleId = moduleTenantService.getModUsersModuleId();
     log.info("getCustomFieldByRefId::{}", moduleId);
-    return customFieldsClient.getCustomFieldsByQuery(moduleId, format(QUERY_PATTERN_REF_ID, encode(refId))).getCustomFields()
+    var tenantId = folioExecutionContext.getTenantId();
+    log.info("getCustomFieldByRefId::{}", tenantId);
+    return customFieldsClient.getCustomFieldsByQuery(moduleId, tenantId, format(QUERY_PATTERN_REF_ID, encode(refId))).getCustomFields()
       .stream().filter(customField -> customField.getRefId().equals(refId))
       .findFirst()
       .orElseThrow(() -> new BulkEditException(format("Custom field with refId=%s not found", refId)));

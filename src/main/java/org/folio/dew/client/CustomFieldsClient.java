@@ -1,7 +1,8 @@
 package org.folio.dew.client;
 
-import org.folio.dew.config.feign.FeignClientConfiguration;
+
 import org.folio.dew.domain.dto.CustomFieldCollection;
+import org.folio.spring.config.FeignClientConfiguration;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,4 +14,8 @@ public interface CustomFieldsClient {
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   CustomFieldCollection getCustomFieldsByQuery(@RequestHeader(value = "x-okapi-module-id") String moduleId, @RequestParam("query") String query);
+
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  CustomFieldCollection getCustomFieldsByQuery(@RequestHeader(value = "x-okapi-module-id") String moduleId, @RequestHeader(value = "x-okapi-tenant") String tenantId, @RequestParam("query") String query);
+
 }

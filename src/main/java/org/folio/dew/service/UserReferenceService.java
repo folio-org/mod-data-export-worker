@@ -93,9 +93,7 @@ public class UserReferenceService {
 
   @Cacheable(cacheNames = "customFields")
   public CustomField getCustomFieldByRefId(String refId) {
-    log.info("getCustomFieldByRefId::{}", refId);
     var moduleId = moduleTenantService.getModUsersModuleId();
-    log.info("getCustomFieldByRefId::{}", moduleId);
     return customFieldsClient.getCustomFieldsByQuery(moduleId, format(QUERY_PATTERN_REF_ID, encode(refId))).getCustomFields()
       .stream().filter(customField -> customField.getRefId().equals(refId))
       .findFirst()

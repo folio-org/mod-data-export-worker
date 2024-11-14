@@ -137,10 +137,6 @@
     {
       "id": "permissions",
       "version": "5.7"
-    },
-    {
-      "id": "custom-fields",
-      "version": "3.0"
     }
   ],
   "optional": [
@@ -151,6 +147,10 @@
     {
       "id": "consortia",
       "version": "1.1"
+    },
+    {
+      "id": "custom-fields",
+      "version": "3.0"
     }
   ],
   "provides": [

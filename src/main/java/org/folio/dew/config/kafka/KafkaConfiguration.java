@@ -43,7 +43,7 @@ public class KafkaConfiguration {
 
   @Bean
   public <V> ConsumerFactory<String, V> consumerFactory(ObjectMapper objectMapper, FolioModuleMetadata folioModuleMetadata) {
-    Map<String, Object> props = new HashMap<>(kafkaProperties.buildConsumerProperties());
+    Map<String, Object> props = new HashMap<>(kafkaProperties.buildConsumerProperties(null));
     var deserializer = new JsonDeserializer<V>(objectMapper).trustedPackages("*");
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, deserializer);
@@ -56,7 +56,7 @@ public class KafkaConfiguration {
   @Bean
   public <V> ProducerFactory<String, V> producerFactory(
     FolioExecutionContext folioExecutionContext) {
-    Map<String, Object> props = new HashMap<>(kafkaProperties.buildProducerProperties());
+    Map<String, Object> props = new HashMap<>(kafkaProperties.buildProducerProperties(null));
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
     props.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, KafkaProducerInterceptor.class.getName());

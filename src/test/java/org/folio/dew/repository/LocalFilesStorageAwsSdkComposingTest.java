@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Log4j2
 @SpringBootTest(classes = { LocalFilesStorageProperties.class, LocalFilesStorage.class }, properties = {
-    "application.minio-local.compose-with-aws-sdk = true" })
+    "application.minio-local.compose-with-aws-sdk = true", "application.minio-local.force-path-style = true" })
 @EnableConfigurationProperties
 class LocalFilesStorageAwsSdkComposingTest {
 

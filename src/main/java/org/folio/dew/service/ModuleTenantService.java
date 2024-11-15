@@ -40,8 +40,7 @@ public class ModuleTenantService {
 
   @Cacheable(cacheNames = "modUsersModuleIds")
   public String getModUsersModuleId() {
-    Optional<String> moduleId = StringUtils.equals(EUREKA_PLATFORM, platform) ? getModUsersModuleIdForEureka()
-      : getModUsersModuleIdForOkapi();
+    Optional<String> moduleId = StringUtils.equals(EUREKA_PLATFORM, platform) ? getModUsersModuleIdForEureka() : getModUsersModuleIdForOkapi();
     return moduleId.orElseThrow(() -> new NotFoundException(MOD_USERS_NOT_FOUND_ERROR));
   }
 

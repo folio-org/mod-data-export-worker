@@ -5,481 +5,6 @@ info:
 servers:
   - url: /bulk-edit/
 paths:
-  /{jobId}/item-content-update/upload:
-    post:
-      description: Upload item content updates
-      operationId: postItemContentUpdates
-      parameters:
-        - name: jobId
-          in: path
-          required: true
-          description: UUID of the JobCommand
-          schema:
-            $ref: "#/components/schemas/UUID"
-        - in: query
-          name: limit
-          required: false
-          schema:
-            type: integer
-          description: The numbers of records to return
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/itemContentUpdateCollection"
-      responses:
-        "200":
-          description: Collection of items for preview
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/itemCollection"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        "500":
-          description: Internal server errors, e.g. due to misconfiguration
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-  /{jobId}/user-content-update/upload:
-    post:
-      description: Upload user content updates
-      operationId: postUserContentUpdates
-      parameters:
-        - name: jobId
-          in: path
-          required: true
-          description: UUID of the JobCommand
-          schema:
-            $ref: "#/components/schemas/UUID"
-        - in: query
-          name: limit
-          required: false
-          schema:
-            type: integer
-          description: The numbers of records to return
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/userContentUpdateCollection"
-      responses:
-        "200":
-          description: Collection of users for preview
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/userCollection"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        "500":
-          description: Internal server errors, e.g. due to misconfiguration
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-  /{jobId}/holdings-content-update/upload:
-    post:
-      description: Upload holdings record content updates
-      operationId: postHoldingsContentUpdates
-      parameters:
-        - name: jobId
-          in: path
-          required: true
-          description: UUID of the JobCommand
-          schema:
-            $ref: "#/components/schemas/UUID"
-        - in: query
-          name: limit
-          required: false
-          schema:
-            type: integer
-          description: The numbers of records to return
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/holdingsContentUpdateCollection"
-      responses:
-        "200":
-          description: Collection of holdings records for preview
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/holdingsRecordCollection"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        "500":
-          description: Internal server errors, e.g. due to misconfiguration
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-  /{jobId}/preview/updated-items/download:
-    get:
-      description: Download updated items preview as csv-file
-      operationId: downloadItemsPreviewByJobId
-      parameters:
-        - name: jobId
-          in: path
-          required: true
-          description: UUID of the JobCommand
-          schema:
-            $ref: "#/components/schemas/UUID"
-      responses:
-        '200':
-          description: Preview of updated items to download
-          content:
-            text/csv:
-              schema:
-                type: string
-                format: binary
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        "500":
-          description: Internal server errors, e.g. due to misconfiguration
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-  /{jobId}/preview/updated-users/download:
-    get:
-      description: Download updated users preview as csv-file
-      operationId: downloadUsersPreviewByJobId
-      parameters:
-        - name: jobId
-          in: path
-          required: true
-          description: UUID of the JobCommand
-          schema:
-            $ref: "#/components/schemas/UUID"
-      responses:
-        '200':
-          description: Preview of updated items to download
-          content:
-            text/csv:
-              schema:
-                type: string
-                format: binary
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        "500":
-          description: Internal server errors, e.g. due to misconfiguration
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-  /{jobId}/preview/updated-holdings/download:
-    get:
-      description: Download updated holdings records preview as csv-file
-      operationId: downloadHoldingsPreviewByJobId
-      parameters:
-        - name: jobId
-          in: path
-          required: true
-          description: UUID of the JobCommand
-          schema:
-            $ref: "#/components/schemas/UUID"
-      responses:
-        '200':
-          description: Preview of updated holdings to download
-          content:
-            text/csv:
-              schema:
-                type: string
-                format: binary
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        "500":
-          description: Internal server errors, e.g. due to misconfiguration
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-  /{jobId}/preview/users:
-    get:
-      description: Get a list of users for preview
-      operationId: getPreviewUsersByJobId
-      parameters:
-        - name: jobId
-          in: path
-          required: true
-          description: UUID of the JobCommand
-          schema:
-            $ref: "#/components/schemas/UUID"
-        - in: query
-          name: limit
-          required: true
-          schema:
-            type: integer
-          description: The numbers of users to return
-      responses:
-        '200':
-          description: Collection of users for preview
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/userCollection"
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        '404':
-          description: Bad Request
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        '500':
-           description: Internal server errors, e.g. due to misconfiguration
-           content:
-             application/json:
-               example:
-                 $ref: "#/components/examples/errors"
-               schema:
-                 $ref: "#/components/schemas/errors"
-  /{jobId}/preview/items:
-    get:
-      description: Get a list of items for preview
-      operationId: getPreviewItemsByJobId
-      parameters:
-        - name: jobId
-          in: path
-          required: true
-          description: UUID of the JobCommand
-          schema:
-            $ref: "#/components/schemas/UUID"
-        - in: query
-          name: limit
-          required: true
-          schema:
-            type: integer
-          description: The numbers of items to return
-      responses:
-        '200':
-          description: Collection of items for preview
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/itemCollection"
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        '404':
-          description: Not found
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        '500':
-          description: Internal server errors, e.g. due to misconfiguration
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-  /{jobId}/preview/holdings:
-    get:
-      description: Get a list of holdings for preview
-      operationId: getPreviewHoldingsByJobId
-      parameters:
-        - name: jobId
-          in: path
-          required: true
-          description: UUID of the JobCommand
-          schema:
-            $ref: "#/components/schemas/UUID"
-        - in: query
-          name: limit
-          required: true
-          schema:
-            type: integer
-          description: The numbers of holdings to return
-      responses:
-        '200':
-          description: Collection of holdings for preview
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/holdingsRecordCollection"
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        '404':
-          description: Not found
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        '500':
-          description: Internal server errors, e.g. due to misconfiguration
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-  /{jobId}/errors:
-    get:
-      description: Get a list of errors for preview
-      operationId: getErrorsPreviewByJobId
-      parameters:
-        - name: jobId
-          in: path
-          required: true
-          description: UUID of the JobCommand
-          schema:
-            $ref: "#/components/schemas/UUID"
-        - in: query
-          name: limit
-          required: true
-          schema:
-            type: integer
-          description: The numbers of users to return
-      responses:
-        '200':
-          description: Collection of users for preview
-          content:
-            application/json:
-              example:
-                $ref: "#/components/examples/errors"
-              schema:
-                $ref: "#/components/schemas/errors"
-        '404':
-          description: No found
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Job not found
-        '500':
-          description: Internal server errors, e.g. due to misconfiguration
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Internal server error
   /{jobId}/upload:
     post:
       description: Upload csv file
@@ -564,10 +89,10 @@ paths:
                 $ref: "#/components/examples/errors"
               schema:
                 $ref: "#/components/schemas/errors"
-  /{jobId}/roll-back:
-    post:
-      description: Roll back csv file
-      operationId: rollBackCsvFile
+  /{jobId}/errors:
+    get:
+      description: Get a list of errors for preview
+      operationId: getErrorsPreviewByJobId
       parameters:
         - name: jobId
           in: path
@@ -575,23 +100,66 @@ paths:
           description: UUID of the JobCommand
           schema:
             $ref: "#/components/schemas/UUID"
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+          description: The numbers of users to return
       responses:
-        "200":
-          description: Csv file roll back uploaded
-          content:
-            text/plain:
-              schema:
-                type: string
-        "500":
-          description: Internal server errors, e.g. due to misconfiguration
+        '200':
+          description: Collection of users for preview
           content:
             application/json:
               example:
                 $ref: "#/components/examples/errors"
               schema:
                 $ref: "#/components/schemas/errors"
+        '404':
+          description: No found
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Job not found
+        '500':
+          description: Internal server errors, e.g. due to misconfiguration
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Internal server error
+  /permissions-self-check:
+    get:
+      description: Get users permissions
+      operationId: getUsersPermissions
+      responses:
+        '200':
+          description:  List of actual users permissions for current tenant
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/userPermission"
+        '404':
+          description: No found
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Desired permissions not found
+        '500':
+          description: Internal server errors, e.g. due to misconfiguration
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Internal server error
 components:
   schemas:
+    userPermission:
+      type: string
     UUID:
       type: string
       format: uuid
@@ -641,10 +209,6 @@ components:
       $ref: '../../../../folio-export-common/schemas/inventory/electronicAccessRelationshipCollection.json#/ElectronicAccessRelationshipCollection'
     statisticalCodes:
       $ref: '../../../../folio-export-common/schemas/inventory/statisticalCodeCollection.json#/StatisticalCodeCollection'
-    itemContentUpdateCollection:
-      $ref: '../../../../folio-export-common/schemas/bulk-edit/itemContentUpdateCollection.json#/ItemContentUpdateCollection'
-    userContentUpdateCollection:
-      $ref: '../../../../folio-export-common/schemas/bulk-edit/userContentUpdateCollection.json#/UserContentUpdateCollection'
     customFieldCollection:
       $ref: '../../../../folio-export-common/schemas/user/customFieldCollection.json#/CustomFieldCollection'
     holdingsRecordCollection:

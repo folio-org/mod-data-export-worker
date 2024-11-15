@@ -78,7 +78,7 @@ public class MarcAsListStringsWriter<T, U extends Formatable<T>> extends FlatFil
 
   private List<String> getMarcContent(String id) throws Exception {
     List<String> mrcRecords = new ArrayList<>();
-    var srsRecords = srsClient.getMarc(id, "INSTANCE").get("sourceRecords");
+    var srsRecords = srsClient.getMarc(id, "INSTANCE", true).get("sourceRecords");
     if (srsRecords.isEmpty()) {
       log.warn("No SRS records found by instanceId = {}", id);
       return mrcRecords;

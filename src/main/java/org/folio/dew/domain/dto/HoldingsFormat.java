@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class HoldingsFormat implements Formatable<HoldingsRecord> {
   private HoldingsRecord original;
-  private String tenantId;
 
   @CsvBindByName(column = "Holdings UUID")
   @CsvBindByPosition(position = 0)
@@ -140,6 +139,10 @@ public class HoldingsFormat implements Formatable<HoldingsRecord> {
   @CsvBindByName(column = "Tags")
   @CsvBindByPosition(position = 29)
   private String tags;
+
+  @CsvBindByName(column = "Tenant")
+  @CsvBindByPosition(position = 30)
+  private String tenantId;
 
   private String instanceHrid;
   private String itemBarcode;

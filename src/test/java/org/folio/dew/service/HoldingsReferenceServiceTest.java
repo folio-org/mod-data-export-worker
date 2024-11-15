@@ -17,6 +17,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -38,11 +40,13 @@ class HoldingsReferenceServiceTest {
     "titlePublisherDate.json;Sample title. Publisher, 2023"}, delimiter = ';')
   @SneakyThrows
   void shouldFormatInstanceTitle(String fileName, String expected) {
+    Map<String, Collection<String>> headers = new HashMap<>();
+    headers.put(X_OKAPI_TENANT,  List.of("original"));
     var mapper = new ObjectMapper();
     var path = "src/test/resources/samples/" + fileName;
     var resultJson = mapper.readTree(new File(path));
 
-    when(folioExecutionContext.getAllHeaders()).thenReturn(Map.of(X_OKAPI_TENANT, List.of("original")));
+    when(folioExecutionContext.getAllHeaders()).thenReturn(headers);
     when(instanceClient.getInstanceJsonById(anyString())).thenReturn(resultJson);
 
     var actual = service.getInstanceTitleById(UUID.randomUUID().toString(), "tenant");

@@ -12,7 +12,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -21,6 +20,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static java.util.List.of;
 import static java.util.stream.Collectors.toList;
+import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,19 +36,24 @@ class LocalFilesStorageTest {
   private static final String NON_EXISTING_PATH = "non-existing-path";
 
   @Autowired
+  private LocalFilesStorageProperties localFilesStorageProperties;
+  @Autowired
   private LocalFilesStorage localFilesStorage;
+
 
   @ParameterizedTest
   @ValueSource(ints = {1024, ObjectWriteArgs.MIN_MULTIPART_SIZE + 1 })
   @DisplayName("Create files and read internal objects structure")
   void testWriteRead(int size) throws IOException {
+    var subPath = localFilesStorageProperties.getSubPath() + PATH_SEPARATOR;
     byte[] content = getRandomBytes(size);
     var original = of("directory_1/CSV_Data_1.csv", "directory_1/directory_2/CSV_Data_2.csv",
         "directory_1/directory_2/directory_3/CSV_Data_3.csv");
-
-    List<String> expected;
+    var expectedS3Pathes = of(subPath + "directory_1/CSV_Data_1.csv", subPath + "directory_1/directory_2/CSV_Data_2.csv",
+      subPath + "directory_1/directory_2/directory_3/CSV_Data_3.csv");
+    List<String> actual;
     try {
-      expected = original.stream()
+      actual = original.stream()
         .map(p -> {
           try {
             return localFilesStorage.write(p, content);
@@ -61,16 +66,16 @@ class LocalFilesStorageTest {
       throw new IOException(e);
     }
 
-    assertTrue(Objects.deepEquals(original, expected));
+    assertTrue(Objects.deepEquals(expectedS3Pathes, actual));
 
-    assertTrue(Objects.deepEquals(localFilesStorage.walk("directory_1/")
+    assertTrue(Objects.deepEquals(localFilesStorage.walk(subPath + "directory_1/")
       .collect(toList()),
-        of("directory_1/CSV_Data_1.csv", "directory_1/directory_2/CSV_Data_2.csv",
-          "directory_1/directory_2/directory_3/CSV_Data_3.csv")));
+        of(subPath + "directory_1/CSV_Data_1.csv", subPath + "directory_1/directory_2/CSV_Data_2.csv",
+          subPath + "directory_1/directory_2/directory_3/CSV_Data_3.csv")));
 
-    assertTrue(Objects.deepEquals(localFilesStorage.walk("directory_1/directory_2/")
+    assertTrue(Objects.deepEquals(localFilesStorage.walk(subPath + "directory_1/directory_2/")
       .collect(toList()),
-        of("directory_1/directory_2/CSV_Data_2.csv", "directory_1/directory_2/directory_3/CSV_Data_3.csv")));
+        of(subPath + "directory_1/directory_2/CSV_Data_2.csv", subPath + "directory_1/directory_2/directory_3/CSV_Data_3.csv")));
 
     original.forEach(p -> assertTrue(localFilesStorage.exists(p)));
 
@@ -111,8 +116,9 @@ class LocalFilesStorageTest {
     byte[] original = getRandomBytes(size);
     byte[] patch = getRandomBytes(size);
     var remoteFilePath = "directory_1/directory_2/CSV_Data.csv";
+    var expectedS3FilePath = localFilesStorageProperties.getSubPath() + PATH_SEPARATOR + remoteFilePath;
 
-    assertThat(localFilesStorage.write(remoteFilePath, original), is(remoteFilePath));
+    assertThat(localFilesStorage.write(remoteFilePath, original), is(expectedS3FilePath));
     assertTrue(localFilesStorage.exists(remoteFilePath));
 
     assertTrue(Objects.deepEquals(localFilesStorage.readAllBytes(remoteFilePath), original));

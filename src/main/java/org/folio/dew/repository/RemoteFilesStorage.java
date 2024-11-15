@@ -2,7 +2,6 @@ package org.folio.dew.repository;
 
 import io.minio.ComposeObjectArgs;
 import io.minio.ComposeSource;
-import io.minio.GetObjectArgs;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
@@ -33,7 +32,6 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.config.properties.RemoteFilesStorageProperties;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Repository;
 
@@ -75,16 +73,11 @@ public class RemoteFilesStorage extends BaseFilesStorage {
     return result;
   }
 
-  public void downloadObject(String objectToGet, String fileToSave) throws IOException, InvalidKeyException,
-    InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException,
-    InternalException, XmlParserException, ErrorResponseException {
-    localFilesStorage.write(fileToSave, client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectToGet).build()).readAllBytes());
-  }
-
   public boolean containsFile(String fileName)
     throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException,
     InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-    for (Result<Item> itemResult : client.listObjects(ListObjectsArgs.builder().bucket(bucket).prefix(fileName).build())) {
+    fileName = getS3Path(fileName);
+    for (Result<Item> itemResult : client.listObjects(ListObjectsArgs.builder().bucket(bucket).prefix(getS3Path(fileName)).build())) {
       if (fileName.equals(itemResult.get().objectName())) {
         return true;
       }
@@ -96,8 +89,9 @@ public class RemoteFilesStorage extends BaseFilesStorage {
       String contentType)
       throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
       ServerException, InternalException, XmlParserException, ErrorResponseException {
+    destObject = getS3Path(destObject);
     List<ComposeSource> sources = sourceObjects.stream()
-        .map(so -> ComposeSource.builder().bucket(bucket).object(so).build())
+        .map(so -> ComposeSource.builder().bucket(bucket).object(getS3Path(so)).build())
         .collect(Collectors.toList());
     log.info("Composing object {},sources [{}],downloadFilename {},contentType {}.", destObject,
         sources.stream().map(s -> String.format("bucket %s,object %s", s.bucket(), s.object())).collect(Collectors.joining(",")),
@@ -114,7 +108,7 @@ public class RemoteFilesStorage extends BaseFilesStorage {
     log.info("Deleting objects [{}].", StringUtils.join(objects, ","));
     return client.removeObjects(RemoveObjectsArgs.builder()
         .bucket(bucket)
-        .objects(objects.stream().map(DeleteObject::new).collect(Collectors.toList()))
+        .objects(objects.stream().map(this::getS3Path).map(DeleteObject::new).toList())
         .build());
   }
 
@@ -124,7 +118,7 @@ public class RemoteFilesStorage extends BaseFilesStorage {
     String result = client.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
       .method(Method.GET)
       .bucket(bucket)
-      .object(object)
+      .object(getS3Path(object))
       .region(region)
       .expiry(urlExpirationTimeInSeconds, TimeUnit.SECONDS)
       .build());

@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.item.ExecutionContext;
@@ -78,11 +77,12 @@ class CirculationLogTest extends BaseBatchTest {
     final ExecutionContext executionContext = jobExecution.getExecutionContext();
     final String fileInStorage = (String) executionContext.get("outputFilesInStorage");
     final String fileName = executionContext.getString(CIRCULATION_LOG_FILE_NAME);
+    final String expectedNameInStorage = "remote/" + fileName;
 
     final FileSystemResource actualChargeFeesFinesOutput = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(EXPECTED_CIRCULATION_OUTPUT);
     assertFileEquals(expectedCharges, actualChargeFeesFinesOutput);
-    assertEquals(fileName, fileInStorage);
+    assertEquals(expectedNameInStorage, fileInStorage);
   }
 
   private JobParameters prepareJobParameters() {

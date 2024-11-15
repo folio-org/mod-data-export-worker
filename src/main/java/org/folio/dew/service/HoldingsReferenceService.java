@@ -22,7 +22,6 @@ import org.folio.dew.client.LocationClient;
 import org.folio.dew.client.StatisticalCodeClient;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.HoldingsRecord;
-import org.folio.dew.domain.dto.ItemLocation;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.folio.spring.FolioExecutionContext;
@@ -135,17 +134,6 @@ public class HoldingsReferenceService extends FolioExecutionContextManager {
       log.error(msg);
       throw new BulkEditException(msg);
     }
-  }
-
-  @Cacheable(cacheNames = "holdingsLocations")
-  public ItemLocation getLocationByName(String name) {
-    var locations = locationClient.getLocationByQuery(String.format(QUERY_PATTERN_NAME, name));
-    if (locations.getLocations().isEmpty()) {
-      var msg = "Location not found by name=" + name;
-      log.error(msg);
-      throw new BulkEditException(msg);
-    }
-    return locations.getLocations().get(0);
   }
 
   @Cacheable(cacheNames = "holdingsCallNumberTypesNames")

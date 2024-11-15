@@ -25,9 +25,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ModuleTenantService {
 
-  private static final String MODULE_NOT_FOUND_ERROR = "Module id not found for name: ";
   private static final String URL_PREFIX = "http://_";
   private static final String MOD_USERS = "mod-users";
+  private static final String MOD_USERS_NOT_FOUND_ERROR = "Module id not found for name: " + MOD_USERS;
   private static final String MOD_USERS_REGEXP = "^mod-users-\\d.*$";
 
   @Setter
@@ -38,16 +38,11 @@ public class ModuleTenantService {
   private final OkapiClient okapiClient;
   private final EurekaProxyTenantsClient eurekaProxyTenantsClient;
 
-  @Cacheable(cacheNames = "moduleIds")
+  @Cacheable(cacheNames = "modUsersModuleIds")
   public String getModUsersModuleId() {
-    Optional<String> moduleId;
-    if (StringUtils.equals(EUREKA_PLATFORM, platform)) {
-      moduleId = getModUsersModuleIdForEureka();
-    } else {
-      moduleId = getModUsersModuleIdForOkapi();
-    }
-    var msg = MODULE_NOT_FOUND_ERROR + MOD_USERS;
-    return moduleId.orElseThrow(() -> new NotFoundException(msg));
+    Optional<String> moduleId = StringUtils.equals(EUREKA_PLATFORM, platform) ? getModUsersModuleIdForEureka()
+      : getModUsersModuleIdForOkapi();
+    return moduleId.orElseThrow(() -> new NotFoundException(MOD_USERS_NOT_FOUND_ERROR));
   }
 
   private Optional<String> getModUsersModuleIdForOkapi() {

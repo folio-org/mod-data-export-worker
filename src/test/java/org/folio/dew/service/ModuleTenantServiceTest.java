@@ -36,7 +36,7 @@ class ModuleTenantServiceTest {
   @Test
   void getModuleIdForOkapiTest() {
     var tenantId = "diku";
-    var moduleId = "moduleId";
+    var moduleId = "mod-users-19.4.1-SNAPSHOT.322";
 
     var module = new ModuleForTenant();
     module.setId(moduleId);

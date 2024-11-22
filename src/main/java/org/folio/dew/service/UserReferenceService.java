@@ -4,13 +4,14 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static java.lang.String.format;
 import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
+import static org.folio.dew.batch.bulkedit.jobs.processidentifiers.Utils.encode;
+import static org.folio.dew.utils.Constants.QUERY_PATTERN_REF_ID;
 
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.AddressTypeClient;
 import org.folio.dew.client.CustomFieldsClient;
 import org.folio.dew.client.DepartmentClient;
 import org.folio.dew.client.GroupClient;
-import org.folio.dew.client.OkapiClient;
 import org.folio.dew.domain.dto.CustomField;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.BulkEditException;
@@ -21,22 +22,18 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 
-import java.net.URI;
-
 @Service
 @RequiredArgsConstructor
 @Log4j2
 public class UserReferenceService {
-  private static final String OKAPI_URL = "http://_";
-  private static final String MOD_USERS = "mod-users";
 
   private final AddressTypeClient addressTypeClient;
   private final DepartmentClient departmentClient;
   private final GroupClient groupClient;
   private final CustomFieldsClient customFieldsClient;
-  private final FolioExecutionContext folioExecutionContext;
-  private final OkapiClient okapiClient;
   private final BulkEditProcessingErrorsService errorsService;
+  private final ModuleTenantService moduleTenantService;
+  private final FolioExecutionContext folioExecutionContext;
 
   @Cacheable(cacheNames = "addressTypeNames")
   public String getAddressTypeDescById(String id, ErrorServiceArgs args) {
@@ -96,21 +93,10 @@ public class UserReferenceService {
 
   @Cacheable(cacheNames = "customFields")
   public CustomField getCustomFieldByRefId(String refId) {
-    return customFieldsClient.getCustomFieldsByQuery(getModuleId(MOD_USERS),String.format("refId==\"%s\"", refId))
-    .getCustomFields().stream().filter(customField -> customField.getRefId().equals(refId))
+    var moduleId = moduleTenantService.getModUsersModuleId();
+    return customFieldsClient.getCustomFieldsByQuery(moduleId, format(QUERY_PATTERN_REF_ID, encode(refId))).getCustomFields()
+      .stream().filter(customField -> customField.getRefId().equals(refId))
       .findFirst()
       .orElseThrow(() -> new BulkEditException(format("Custom field with refId=%s not found", refId)));
-  }
-
-  @Cacheable(cacheNames = "moduleIds")
-  public String getModuleId(String moduleName) {
-    var tenantId = folioExecutionContext.getTenantId();
-    var moduleNamesJson = okapiClient.getModuleIds(URI.create(OKAPI_URL), tenantId, moduleName);
-    if (!moduleNamesJson.isEmpty()) {
-      return moduleNamesJson.get(0).get("id").asText();
-    }
-    var msg = "Module id not found for name: " + moduleName;
-    log.error(msg);
-    throw new NotFoundException(msg);
   }
 }

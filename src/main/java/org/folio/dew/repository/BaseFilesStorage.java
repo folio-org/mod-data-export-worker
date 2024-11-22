@@ -80,6 +80,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     final String secretKey = properties.getSecretKey();
     subPath = properties.getSubPath();
     isComposeWithAwsSdk = properties.isComposeWithAwsSdk();
+    final boolean isForcePathStyle = properties.isForcePathStyle();
     log.info("Creating MinIO client endpoint {},region {},bucket {},accessKey {},secretKey {}, subPath {}, isComposedWithAwsSdk {}.", endpoint, regionName, bucketName,
       StringUtils.isNotBlank(accessKey) ? SET_VALUE : NOT_SET_VALUE, StringUtils.isNotBlank(secretKey) ? SET_VALUE : NOT_SET_VALUE,
       StringUtils.isNotBlank(subPath) ? SET_VALUE : NOT_SET_VALUE, isComposeWithAwsSdk);
@@ -116,6 +117,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
       }
 
       s3Client = S3Client.builder()
+        .forcePathStyle(isForcePathStyle)
         .endpointOverride(URI.create(endpoint))
         .region(Region.of(regionName))
         .credentialsProvider(credentialsProvider)

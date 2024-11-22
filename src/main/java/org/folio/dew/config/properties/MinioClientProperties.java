@@ -29,10 +29,17 @@ public class MinioClientProperties {
    *  The credentials for access to object storage - secretKey.
    */
   private String secretKey;
+
   /**
    * Key that enables files merging in storage with using AWS SDK capabilities.
    */
   private boolean composeWithAwsSdk;
+
+  /**
+   * Forces the AWS SDK client to use path-style, not virtual-host-style, addressing for buckets.
+   * Needed for LocalFilesStorageAwsSdkComposingTest.
+   */
+  private boolean forcePathStyle;
 
   /**
    * Path in s3 bucket.

@@ -1,5 +1,22 @@
 ## Unreleased v3.4.0
 
+## 2024-11-15 v3.3.2
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.3.1...v3.3.2)
+
+### Technical tasks
+* [MODEXPW-526](https://folio-org.atlassian.net/browse/MODEXPW-526) Eureka: service for retrieving moduleId
+* [MODEXPW-500](https://folio-org.atlassian.net/browse/MODEXPW-500) UnknownHostException: local-files-test.localhost in LocalFilesStorageAwsSdkComposingTest
+* [MODEXPW-499](https://folio-org.atlassian.net/browse/MODEXPW-499) Replace deprecated KafkaProperties methods
+
+## 2024-11-08 v3.3.1
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.3.0...v3.3.1)
+
+### Technical tasks
+* [MODEXPW-530](https://folio-org.atlassian.net/browse/MODEXPW-530) Upgrade commons-io for Ramsons
+* Improvements and dependencies updating.
+
 ## 2024-10-30 v3.3.0
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.2.4...v3.3.0)

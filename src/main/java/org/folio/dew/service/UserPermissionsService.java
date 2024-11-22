@@ -18,15 +18,13 @@ import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum
 import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.INVENTORY_ITEMS_ITEM_GET_PERMISSION;
 import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION;
 import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.USER_ITEM_GET_PERMISSION;
+import static org.folio.dew.utils.Constants.EUREKA_PLATFORM;
 
 
 @RequiredArgsConstructor
 @Log4j2
 @Service
 public class UserPermissionsService {
-
-  public static final String EUREKA_PLATFORM = "eureka";
-  public static final String OKAPI_PLATFORM = "okapi";
 
   @Setter
   @Value("${application.platform}")

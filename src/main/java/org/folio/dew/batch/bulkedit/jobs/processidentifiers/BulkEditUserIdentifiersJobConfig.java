@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
+import static org.folio.dew.batch.bulkedit.jobs.processidentifiers.Utils.getUtf8Bom;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
 import static org.folio.dew.domain.dto.UserFormat.getUserColumnHeaders;
@@ -88,7 +89,7 @@ public class BulkEditUserIdentifiersJobConfig {
   @StepScope
   public CompositeItemWriter<UserFormat> compositeItemWriter(@Value("#{jobParameters['" + TEMP_LOCAL_FILE_PATH +"']}") String outputFileName) {
     var writer = new CompositeItemWriter<UserFormat>();
-    writer.setDelegates(Arrays.asList(new CsvFileWriter<>(outputFileName, getUserColumnHeaders(), getUserFieldsArray(), (field, i) -> field),
+    writer.setDelegates(Arrays.asList(new CsvFileWriter<>(outputFileName, getUtf8Bom() + getUserColumnHeaders(), getUserFieldsArray(), (field, i) -> field),
       new JsonFileWriter<>(new FileSystemResource(outputFileName + ".json"))));
     return writer;
   }

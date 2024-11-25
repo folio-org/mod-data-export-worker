@@ -1,5 +1,7 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
+import java.nio.charset.StandardCharsets;
+
 public class Utils {
 
   private Utils() {}
@@ -19,5 +21,9 @@ public class Utils {
     }
     appendable.append('"');
     return appendable.toString();
+  }
+
+  public static String getUtf8Bom() {
+    return new String(new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF}, StandardCharsets.UTF_8);
   }
 }

@@ -1,5 +1,6 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
+import static org.folio.dew.batch.bulkedit.jobs.processidentifiers.Utils.getUtf8Bom;
 import static org.folio.dew.domain.dto.EntityType.HOLDINGS_RECORD;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
 import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
@@ -81,7 +82,7 @@ public class BulkEditHoldingsIdentifiersJobConfig {
   @StepScope
   public CompositeItemWriter<List<HoldingsFormat>> compositeHoldingsListWriter(@Value("#{jobParameters['" + TEMP_LOCAL_FILE_PATH + "']}") String outputFileName) {
     var writer = new CompositeItemWriter<List<HoldingsFormat>>();
-    writer.setDelegates(Arrays.asList(new CsvListFileWriter<>(outputFileName, HoldingsFormat.getHoldingsColumnHeaders(), HoldingsFormat.getHoldingsFieldsArray(), (field, i) -> field),
+    writer.setDelegates(Arrays.asList(new CsvListFileWriter<>(outputFileName, getUtf8Bom() +  HoldingsFormat.getHoldingsColumnHeaders(), HoldingsFormat.getHoldingsFieldsArray(), (field, i) -> field),
         new JsonListFileWriter<>(new FileSystemResource(outputFileName + ".json"))));
     return writer;
   }

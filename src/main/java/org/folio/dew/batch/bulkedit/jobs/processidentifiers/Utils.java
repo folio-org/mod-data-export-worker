@@ -1,6 +1,5 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
-
 public class Utils {
 
   private Utils() {}

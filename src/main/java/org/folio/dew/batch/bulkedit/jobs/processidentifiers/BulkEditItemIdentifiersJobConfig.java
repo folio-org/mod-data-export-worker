@@ -1,9 +1,9 @@
 package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 
-import static org.folio.dew.batch.bulkedit.jobs.processidentifiers.Utils.getUtf8Bom;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
 import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
+import static org.folio.dew.utils.Constants.UTF8_BOM;
 
 import lombok.RequiredArgsConstructor;
 import org.folio.dew.batch.CsvListFileWriter;
@@ -88,7 +88,7 @@ public class BulkEditItemIdentifiersJobConfig {
   @StepScope
   public CompositeItemWriter<List<ItemFormat>> compositeItemListWriter(@Value("#{jobParameters['" + TEMP_LOCAL_FILE_PATH + "']}") String outputFileName) {
     var writer = new CompositeItemWriter<List<ItemFormat>>();
-    writer.setDelegates(Arrays.asList(new CsvListFileWriter<>(outputFileName, getUtf8Bom() + ItemFormat.getItemColumnHeaders(), ItemFormat.getItemFieldsArray(), (field, i) -> field),
+    writer.setDelegates(Arrays.asList(new CsvListFileWriter<>(outputFileName, UTF8_BOM + ItemFormat.getItemColumnHeaders(), ItemFormat.getItemFieldsArray(), (field, i) -> field),
       new JsonListFileWriter<>(new FileSystemResource(outputFileName + ".json"))));
     return writer;
   }

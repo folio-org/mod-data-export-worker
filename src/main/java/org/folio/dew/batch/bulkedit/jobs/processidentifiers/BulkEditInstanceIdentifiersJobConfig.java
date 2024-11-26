@@ -38,6 +38,7 @@ import static org.folio.dew.domain.dto.EntityType.INSTANCE;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_FILE_PATH;
 import static org.folio.dew.domain.dto.JobParameterNames.TEMP_LOCAL_MARC_PATH;
 import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
+import static org.folio.dew.utils.Constants.UTF8_BOM;
 
 @Configuration
 @RequiredArgsConstructor
@@ -86,7 +87,7 @@ public class BulkEditInstanceIdentifiersJobConfig {
   public CompositeItemWriter<List<InstanceFormat>> compositeInstanceListWriter(@Value("#{jobParameters['" + TEMP_LOCAL_FILE_PATH + "']}") String outputFileName,
                                                                                @Value("#{jobParameters['" + TEMP_LOCAL_MARC_PATH + "']}") String outputMarcName) {
     var writer = new CompositeItemWriter<List<InstanceFormat>>();
-    writer.setDelegates(Arrays.asList(new CsvListFileWriter<>(outputFileName, InstanceFormat.getInstanceColumnHeaders(), InstanceFormat.getInstanceFieldsArray(), (field, i) -> field),
+    writer.setDelegates(Arrays.asList(new CsvListFileWriter<>(outputFileName, UTF8_BOM + InstanceFormat.getInstanceColumnHeaders(), InstanceFormat.getInstanceFieldsArray(), (field, i) -> field),
       new JsonListFileWriter<>(new FileSystemResource(outputFileName + ".json")), new MarcAsListStringsWriter<>(outputMarcName, srsClient, jsonToMarcConverter)));
     return writer;
   }

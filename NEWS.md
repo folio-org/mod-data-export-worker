@@ -1,4 +1,6 @@
-## Unreleased v3.4.0
+## 2024-12-02 v3.3.3
+
+* [MODEXPW-538](https://folio-org.atlassian.net/browse/MODEXPW-538) Update permissions for mod-feesfines
 
 ## 2024-11-15 v3.3.2
 

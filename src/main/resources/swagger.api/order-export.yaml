@@ -61,3 +61,7 @@ components:
       $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/purchase_order.json#/PurchaseOrder'
     purchaseOrderCollection:
       $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/purchase_order_collection.json#/PurchaseOrderCollection'
+    piece:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/piece.json#/Piece'
+    pieceCollection:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/piece_collection.json#/PieceCollection'

@@ -76,7 +76,7 @@ class MappingOrdersToEdifactTest extends BaseBatchTest {
 
     serviceMocks();
 
-    byte[] ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifactArray(compPOs, getTestEdiConfig(), jobName);
+    byte[] ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, getTestEdiConfig(), jobName).getBytes(StandardCharsets.UTF_8);
     assertNotNull(ediOrder);
     String ediOrderString = new String(ediOrder);
     log.info(ediOrderString);

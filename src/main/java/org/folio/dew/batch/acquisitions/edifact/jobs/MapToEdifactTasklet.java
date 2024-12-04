@@ -2,18 +2,13 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static java.util.Objects.requireNonNullElse;
 import static java.util.stream.Collectors.groupingBy;
+import static org.folio.dew.batch.acquisitions.edifact.jobs.EdifactExportJobConfig.POL_MEM_KEY;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
@@ -21,56 +16,48 @@ import org.folio.dew.batch.acquisitions.edifact.exceptions.CompositeOrderMapping
 import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.OrderNotFoundException;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
-import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.JobParameterNames;
-import org.folio.dew.domain.dto.EdiConfig;
-import org.folio.dew.domain.dto.ExportConfig;
-import org.folio.dew.domain.dto.ExportConfigCollection;
-import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.PurchaseOrder;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
+import org.folio.dew.domain.dto.acquisitions.edifact.EdifactExportHolder;
 import org.springframework.batch.core.StepContribution;
-import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.xlate.edi.stream.EDIStreamException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @RequiredArgsConstructor
-@Component
-@StepScope
 @Log4j2
-public class MapToEdifactTasklet implements Tasklet {
-  private final ObjectMapper ediObjectMapper;
+public abstract class MapToEdifactTasklet implements Tasklet {
 
-  private final OrdersService ordersService;
-  private final DataExportSpringClient dataExportSpringClient;
+  private final ObjectMapper ediObjectMapper;
+  protected final OrdersService ordersService;
   private final PurchaseOrdersToEdifactMapper purchaseOrdersToEdifactMapper;
 
   @Override
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-    log.info("Execute MapToEdifactTasklet");
+    log.info("execute:: Executing MapToEdifactTasklet with job: {}", chunkContext.getStepContext().getJobName());
     var jobParameters = chunkContext.getStepContext().getJobParameters();
     var ediExportConfig = ediObjectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
     validateEdiExportConfig(ediExportConfig);
 
-    List<CompositePurchaseOrder> compOrders = getCompPOList(ediExportConfig);
-    // save poLineIds in memory
-    persistPoLineIds(chunkContext, compOrders);
+    var holder = buildEdifactExportHolder(chunkContext, ediExportConfig, jobParameters);
+    persistPoLineIds(chunkContext, holder.getOrders());
 
     String jobName = jobParameters.get(JobParameterNames.JOB_NAME).toString();
-    String edifactOrderAsString = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compOrders, ediExportConfig, jobName);
+    var edifactStringResult = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(holder.getOrders(), holder.getPieces(), ediExportConfig, jobName);
+
     // save edifact file content in memory
-    ExecutionContextUtils.addToJobExecutionContext(chunkContext.getStepContext().getStepExecution(), "edifactOrderAsString", edifactOrderAsString, "");
+    ExecutionContextUtils.addToJobExecutionContext(chunkContext.getStepContext().getStepExecution(), "edifactOrderAsString", edifactStringResult, "");
     return RepeatStatus.FINISHED;
   }
 
@@ -86,93 +73,34 @@ public class MapToEdifactTasklet implements Tasklet {
     if (port.isEmpty()) {
       throw new EdifactException("Export configuration is incomplete, missing FTP/SFTP Port");
     }
+
+    var missingFields = getExportConfigMissingFields(ediExportConfig);
+    if (!missingFields.isEmpty()) {
+      throw new EdifactException("Export configuration is incomplete, missing required fields: %s".formatted(missingFields));
+    }
   }
 
-  private List<CompositePurchaseOrder> getCompPOList(VendorEdiOrdersExportConfig ediConfig) {
-    var poLineQuery = buildPoLineQuery(ediConfig);
+protected List<CompositePurchaseOrder> getCompositeOrders(String poLineQuery) {
     var poLines = ordersService.getPoLinesByQuery(poLineQuery);
-
     var orderIds = poLines.stream()
       .map(PoLine::getPurchaseOrderId)
       .distinct()
       .toList();
-    var orders = ordersService.getPurchaseOrdersByIds(orderIds);
+    var compOrders = assembleCompositeOrders(ordersService.getPurchaseOrdersByIds(orderIds), poLines);
 
-    var compOrders = assembleCompositeOrders(orders, poLines);
-
-    log.debug("composite purchase orders: {}", compOrders);
-
+    log.debug("getCompositeOrders:: {}", compOrders);
     if (compOrders.isEmpty()) {
       throw new OrderNotFoundException("Orders for export not found", false);
     }
     return compOrders;
   }
 
-  private String buildPoLineQuery(VendorEdiOrdersExportConfig ediConfig) {
-    // Order filters
-    var workflowStatusFilter = "purchaseOrder.workflowStatus==Open"; // order status is Open
-    var vendorFilter = String.format(" AND purchaseOrder.vendor==%s", ediConfig.getVendorId()); // vendor id matches
-    var notManualFilter = " AND (cql.allRecords=1 NOT purchaseOrder.manualPo==true)"; // not a manual order
-
-    // Order line filters
-    var automaticExportFilter = " AND automaticExport==true"; // line with automatic export
-    var ediExportDateFilter = " AND (cql.allRecords=1 NOT lastEDIExportDate=\"\")"; // has not been exported yet
-    var acqMethodsFilter = fieldInListFilter("acquisitionMethod",
-      ediConfig.getEdiConfig().getDefaultAcquisitionMethods()); // acquisitionMethod in default list
-    String vendorAccountFilter = "";
-    if (Boolean.TRUE.equals(ediConfig.getIsDefaultConfig())) {
-      var configQuery = String.format("configName==%s_%s*", ExportType.EDIFACT_ORDERS_EXPORT, ediConfig.getVendorId());
-      var configs =  dataExportSpringClient.getExportConfigs(configQuery);
-      if (configs.getTotalRecords() > 1) {
-        var accountNoSetForExclude = getAccountNoSet(configs);
-        vendorAccountFilter = fieldNotInListFilter("vendorDetail.vendorAccount", accountNoSetForExclude);
-      }
-    } else {
-      // vendorAccount in the config account number list
-      vendorAccountFilter = fieldInListFilter("vendorDetail.vendorAccount",
-        ediConfig.getEdiConfig().getAccountNoList());
-    }
-
-    var resultQuery = String.format("%s%s%s%s%s%s%s", workflowStatusFilter, vendorFilter, notManualFilter,
-      automaticExportFilter, ediExportDateFilter, acqMethodsFilter, vendorAccountFilter);
-    log.info("GET purchase order line query: {}", resultQuery);
-    return resultQuery;
-  }
-
-  private Set<String> getAccountNoSet(ExportConfigCollection configs) {
-    Set<String> accountNoSet = new HashSet<>();
-    for (ExportConfig exportConfig : configs.getConfigs()) {
-      EdiConfig ediConfig = exportConfig.getExportTypeSpecificParameters().getVendorEdiOrdersExportConfig().getEdiConfig();
-      if (Objects.nonNull(ediConfig)) {
-        List<String> currentAccountNoList = ediConfig.getAccountNoList();
-        if (CollectionUtils.isNotEmpty(currentAccountNoList)) {
-          accountNoSet.addAll(currentAccountNoList);
-        }
-      }
-    }
-    return accountNoSet;
-  }
-
-  private void persistPoLineIds(ChunkContext chunkContext, List<CompositePurchaseOrder> compOrders) throws JsonProcessingException {
-    var polineIds = compOrders.stream()
+  protected void persistPoLineIds(ChunkContext chunkContext, List<CompositePurchaseOrder> compOrders) throws JsonProcessingException {
+    var poLineIds = compOrders.stream()
       .flatMap(ord -> ord.getCompositePoLines().stream())
       .map(CompositePoLine::getId)
       .toList();
-    ExecutionContextUtils.addToJobExecutionContext(chunkContext.getStepContext().getStepExecution(),"polineIds", ediObjectMapper.writeValueAsString(polineIds),"");
-  }
-
-  private String fieldInListFilter(String fieldName, List<?> list) {
-    return String.format(" AND %s==%s", fieldName,
-      list.stream()
-      .map(item -> String.format("\"%s\"", item.toString()))
-      .collect(Collectors.joining(" OR ", "(", ")")));
-  }
-
-  private static String fieldNotInListFilter(String fieldName, Collection<?> list) {
-    return String.format(" AND cql.allRecords=1 NOT %s==%s", fieldName,
-      list.stream()
-        .map(item -> String.format("\"%s\"", item.toString()))
-        .collect(Collectors.joining(" OR ", "(", ")")));
+    ExecutionContextUtils.addToJobExecutionContext(chunkContext.getStepContext().getStepExecution(), POL_MEM_KEY, ediObjectMapper.writeValueAsString(poLineIds),"");
   }
 
   private List<CompositePurchaseOrder> assembleCompositeOrders(List<PurchaseOrder> orders, List<PoLine> poLines) {
@@ -193,4 +121,10 @@ public class MapToEdifactTasklet implements Tasklet {
       throw new CompositeOrderMappingException(String.format("%s for object %s", ex.getMessage(), value));
     }
   }
+
+  protected abstract List<String> getExportConfigMissingFields(VendorEdiOrdersExportConfig ediOrdersExportConfig);
+
+  protected abstract EdifactExportHolder buildEdifactExportHolder(ChunkContext chunkContext, VendorEdiOrdersExportConfig ediExportConfig,
+                                                                  Map<String, Object> jobParameters) throws JsonProcessingException, EDIStreamException;
+
 }

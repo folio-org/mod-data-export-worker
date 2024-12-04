@@ -1,5 +1,7 @@
 package org.folio.dew.batch.acquisitions.edifact;
 
+import static org.folio.dew.domain.dto.ReferenceNumberItem.RefNumberTypeEnum.ORDER_REFERENCE_NUMBER;
+
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
 import javax.money.MonetaryAmount;
@@ -17,8 +19,10 @@ import org.folio.dew.domain.dto.Contributor;
 import org.folio.dew.domain.dto.Cost;
 import org.folio.dew.domain.dto.FundDistribution;
 import org.folio.dew.domain.dto.Location;
+import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.ProductIdentifier;
 import org.folio.dew.domain.dto.ReferenceNumberItem;
+import org.folio.dew.domain.dto.VendorDetail;
 import org.javamoney.moneta.Money;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -27,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class CompositePOLineConverter {
   private static final int MAX_CHARS_PER_LINE = 70;
@@ -55,7 +60,7 @@ public class CompositePOLineConverter {
   @Autowired
   private HoldingService holdingService;
 
-  public int convertPOLine(CompositePoLine poLine, EDIStreamWriter writer, int currentLineNumber, int quantityOrdered) throws EDIStreamException {
+  public int convertPOLine(CompositePoLine poLine, List<Piece> pieces, EDIStreamWriter writer, int currentLineNumber, int quantityOrdered) throws EDIStreamException {
     int messageSegmentCount = 0;
 
     Map<String, ProductIdentifier> productTypeProductIdentifierMap = new HashMap<>();
@@ -80,6 +85,11 @@ public class CompositePOLineConverter {
     for (String titlePart : getTitleParts(poLine)) {
       messageSegmentCount++;
       writeTitle(titlePart, writer);
+    }
+
+    for (Piece piece : pieces) {
+      messageSegmentCount++;
+      writePiece(piece, writer);
     }
 
     if (poLine.getPublisher() != null) {
@@ -141,16 +151,14 @@ public class CompositePOLineConverter {
       writeFundCode(getFundAndExpenseClass(fundDistribution), writer);
     }
 
-    if (poLine.getVendorDetail() != null && referenceQuantity < MAX_NUMBER_OF_REFS) {
-      for (ReferenceNumberItem number : poLine.getVendorDetail().getReferenceNumbers()) {
-        if (referenceQuantity >= MAX_NUMBER_OF_REFS) {
-          break;
-        }
-        if (number.getRefNumber() != null) {
-          referenceQuantity++;
-          messageSegmentCount++;
-          writeVendorReferenceNumber(number.getRefNumber(), writer);
-        }
+    for (ReferenceNumberItem number : getVendorReferenceNumbers(poLine)) {
+      if (referenceQuantity >= MAX_NUMBER_OF_REFS) {
+        break;
+      }
+      if (number.getRefNumber() != null) {
+        referenceQuantity++;
+        messageSegmentCount++;
+        writeVendorReferenceNumber(number.getRefNumber(), number.getRefNumberType(), writer);
       }
     }
 
@@ -241,6 +249,21 @@ public class CompositePOLineConverter {
       .writeComponent("")
       .writeComponent("")
       .writeComponent(titlePart)
+      .endElement()
+      .writeEndSegment();
+  }
+
+  private void writePiece(Piece piece, EDIStreamWriter writer) throws EDIStreamException {
+    writer.writeStartSegment("IMD")
+      .writeElement("L")
+      .writeElement("080")
+      .writeStartElement()
+      .writeComponent("")
+      .writeComponent("")
+      .writeComponent("")
+      .writeComponent(piece.getDisplaySummary()) // TODO
+      .writeComponent(piece.getChronology())
+      .writeComponent(piece.getEnumeration())
       .endElement()
       .writeEndSegment();
   }
@@ -356,10 +379,11 @@ public class CompositePOLineConverter {
       .writeEndSegment();
   }
 
-  private void writeVendorReferenceNumber(String number, EDIStreamWriter writer) throws EDIStreamException {
+  private void writeVendorReferenceNumber(String number, ReferenceNumberItem.RefNumberTypeEnum type, EDIStreamWriter writer) throws EDIStreamException {
+    var component = type != ORDER_REFERENCE_NUMBER ? "SLI" : "SNA";
     writer.writeStartSegment("RFF")
       .writeStartElement()
-      .writeComponent("SLI")
+      .writeComponent(component)
       .writeComponent(number)
       .endElement()
       .writeEndSegment();
@@ -455,6 +479,12 @@ public class CompositePOLineConverter {
       return expenseClassService.getExpenseClassCode(expenseClassId);
     }
     return "";
+  }
+
+  private List<ReferenceNumberItem> getVendorReferenceNumbers(CompositePoLine poLine) {
+    return Optional.ofNullable(poLine.getVendorDetail())
+      .map(VendorDetail::getReferenceNumbers)
+      .orElse(List.of());
   }
 
   private List<Location> getLocations(CompositePoLine poLine) {

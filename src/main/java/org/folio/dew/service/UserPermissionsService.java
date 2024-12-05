@@ -24,6 +24,7 @@ import static org.folio.dew.utils.Constants.EUREKA_PLATFORM;
 @RequiredArgsConstructor
 @Log4j2
 @Service
+@Deprecated
 public class UserPermissionsService {
 
   @Setter

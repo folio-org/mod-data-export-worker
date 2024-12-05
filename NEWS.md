@@ -1,3 +1,10 @@
+## 2024-12-05 v3.3.4
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.3.3...v3.3.4)
+
+### Bug fixes
+* [EUREKA-533](https://folio-org.atlassian.net/browse/EUREKA-533) 401 Unauthorized error while upload file with valid identifiers in Bulk edit on Eureka environment
+
 ## 2024-12-02 v3.3.3
 
 * [MODEXPW-538](https://folio-org.atlassian.net/browse/MODEXPW-538) Update permissions for mod-feesfines

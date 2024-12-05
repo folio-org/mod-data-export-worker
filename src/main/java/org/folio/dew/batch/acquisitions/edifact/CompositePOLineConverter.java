@@ -52,16 +52,20 @@ public class CompositePOLineConverter {
   private static final String EN_PRODUCT_ID_QUALIFIER = "EN";
   private static final int EAN_IDENTIFIER_LENGTH = 13;
 
-  @Autowired
-  private IdentifierTypeService identifierTypeService;
-  @Autowired
-  private MaterialTypeService materialTypeService;
-  @Autowired
-  private ExpenseClassService expenseClassService;
-  @Autowired
-  private LocationService locationService;
-  @Autowired
-  private HoldingService holdingService;
+  private final IdentifierTypeService identifierTypeService;
+  private final MaterialTypeService materialTypeService;
+  private final ExpenseClassService expenseClassService;
+  private final LocationService locationService;
+  private final HoldingService holdingService;
+
+  public CompositePOLineConverter(IdentifierTypeService identifierTypeService, MaterialTypeService materialTypeService,
+                                  ExpenseClassService expenseClassService, LocationService locationService, HoldingService holdingService) {
+    this.identifierTypeService = identifierTypeService;
+    this.materialTypeService = materialTypeService;
+    this.expenseClassService = expenseClassService;
+    this.locationService = locationService;
+    this.holdingService = holdingService;
+  }
 
   public int convertPOLine(CompositePoLine poLine, List<Piece> pieces, EDIStreamWriter writer, int currentLineNumber, int quantityOrdered) throws EDIStreamException {
     int messageSegmentCount = 0;
@@ -164,7 +168,7 @@ public class CompositePOLineConverter {
       var vendorOrderNumber = getAndRemoveVendorOrderNumber(referenceNumbers);
       if (vendorOrderNumber != null) {
         messageSegmentCount++;
-        writeVendorReferenceNumber(vendorOrderNumber.getRefNumber(), vendorOrderNumber.getRefNumberType(), writer);
+        writeVendorOrderNumber(vendorOrderNumber.getRefNumber(), writer);
       }
     }
 
@@ -175,7 +179,7 @@ public class CompositePOLineConverter {
       if (number.getRefNumber() != null) {
         referenceQuantity++;
         messageSegmentCount++;
-        writeVendorReferenceNumber(number.getRefNumber(), number.getRefNumberType(), writer);
+        writeVendorReferenceNumber(number.getRefNumber(), writer);
       }
     }
 
@@ -394,8 +398,15 @@ public class CompositePOLineConverter {
       .writeEndSegment();
   }
 
-  private void writeVendorReferenceNumber(String number, ReferenceNumberItem.RefNumberTypeEnum type, EDIStreamWriter writer) throws EDIStreamException {
-    var component = type != ORDER_REFERENCE_NUMBER ? "SLI" : "SNA";
+  private void writeVendorOrderNumber(String number, EDIStreamWriter writer) throws EDIStreamException {
+    writeVendorReferenceNumber(number, "SNA", writer);
+  }
+
+  private void writeVendorReferenceNumber(String number, EDIStreamWriter writer) throws EDIStreamException {
+    writeVendorReferenceNumber(number, "SLI", writer);
+  }
+
+  private void writeVendorReferenceNumber(String number, String component, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("RFF")
       .writeStartElement()
       .writeComponent(component)
@@ -505,7 +516,7 @@ public class CompositePOLineConverter {
   private List<ReferenceNumberItem> getVendorReferenceNumbers(CompositePoLine poLine) {
     return Optional.ofNullable(poLine.getVendorDetail())
       .map(VendorDetail::getReferenceNumbers)
-      .orElse(List.of());
+      .orElse(new ArrayList<>());
   }
 
   private ReferenceNumberItem getAndRemoveVendorOrderNumber(List<ReferenceNumberItem> referenceNumberItems) {

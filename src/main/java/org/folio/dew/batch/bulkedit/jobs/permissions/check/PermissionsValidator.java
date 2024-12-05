@@ -1,7 +1,6 @@
 package org.folio.dew.batch.bulkedit.jobs.permissions.check;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.spring.FolioExecutionContext;
 import org.springframework.stereotype.Component;
@@ -11,7 +10,6 @@ import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum
 
 @Component
 @RequiredArgsConstructor
-@Log4j2
 public class PermissionsValidator {
 
   private final PermissionsProvider permissionsProvider;
@@ -27,8 +25,6 @@ public class PermissionsValidator {
     } else {
       isReadPermissionsExist = userPermissions.contains(readPermissionForEntity.getValue()) && userPermissions.contains(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue());
     }
-    log.info("isBulkEditReadPermissionExists:: user {} has read permissions {} for {} in tenant {}", folioExecutionContext.getUserId(),
-      isReadPermissionsExist, entityType, tenantId);
     return isReadPermissionsExist;
   }
 }

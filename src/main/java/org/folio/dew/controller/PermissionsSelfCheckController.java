@@ -13,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/bulk-edit")
 @RequiredArgsConstructor
+@Deprecated
 public class PermissionsSelfCheckController implements PermissionsSelfCheckApi {
 
   private final UserPermissionsService userPermissionsService;

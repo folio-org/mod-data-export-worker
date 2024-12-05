@@ -52,7 +52,7 @@ public class EdifactExportJobConfig {
   @Bean
   public Step mapToEdifactOrdersStep(MapToEdifactOrdersTasklet mapToEdifactOrdersTasklet, JobRepository jobRepository,
                                      PlatformTransactionManager transactionManager) {
-    return new StepBuilder("mapToEdifactOrdersStep", jobRepository)
+    return new StepBuilder("mapToEdifactStep", jobRepository)
       .tasklet(mapToEdifactOrdersTasklet, transactionManager)
       .build();
   }
@@ -60,7 +60,7 @@ public class EdifactExportJobConfig {
   @Bean
   public Step mapToEdifactClaimsStep(MapToEdifactClaimsTasklet mapToEdifactClaimsTasklet, JobRepository jobRepository,
                                      PlatformTransactionManager transactionManager) {
-    return new StepBuilder("mapToEdifactClaimsStep", jobRepository)
+    return new StepBuilder("mapToEdifactStep", jobRepository)
       .tasklet(mapToEdifactClaimsTasklet, transactionManager)
       .build();
   }

@@ -14,7 +14,7 @@ import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.CompositeOrderMappingException;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
-import org.folio.dew.batch.acquisitions.edifact.exceptions.OrderNotFoundException;
+import org.folio.dew.batch.acquisitions.edifact.exceptions.EntitiesNotFoundException;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
@@ -90,7 +90,7 @@ protected List<CompositePurchaseOrder> getCompositeOrders(String poLineQuery) {
 
     log.debug("getCompositeOrders:: {}", compOrders);
     if (compOrders.isEmpty()) {
-      throw new OrderNotFoundException("Orders for export not found", false);
+      throw new EntitiesNotFoundException(PurchaseOrder.class);
     }
     return compOrders;
   }

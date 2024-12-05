@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
@@ -23,25 +24,33 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import lombok.SneakyThrows;
+
 class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
+
+  private static final String DATA_EXPORT_CONFIGS_PATH = "edifact/dataExportConfigs.json";
 
   @Autowired
   Job edifactOrdersExportJob;
 
+  private List<PurchaseOrder> orders;
+  private List<PoLine> poLines;
+
   @BeforeEach
-  @Override
+  @SneakyThrows
   protected void setUp() {
     super.setUp();
     edifactExportJob = edifactOrdersExportJob;
+    orders = objectMapper.readValue(getMockData(SAMPLE_PURCHASE_ORDERS_PATH), PurchaseOrderCollection.class).getPurchaseOrders();
+    poLines = objectMapper.readValue(getMockData(SAMPLE_PO_LINES_PATH), PoLineCollection.class).getPoLines();
+
   }
 
   @Test
-  void edifactOrdersExportJobTestSuccess() throws Exception {
+  void testEdifactOrdersExport() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
-    List<PurchaseOrder> orders = objectMapper.readValue(getMockData(
-      "edifact/acquisitions/purchase_order_collection.json"), PurchaseOrderCollection.class).getPurchaseOrders();
-    List<PoLine> poLines = objectMapper.readValue(getMockData("edifact/acquisitions/po_line_collection.json"),
-      PoLineCollection.class).getPoLines();
     String cqlString = "purchaseOrder.workflowStatus==Open" +
       " AND purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1" +
       " AND (cql.allRecords=1 NOT purchaseOrder.manualPo==true)" +
@@ -53,7 +62,7 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
     doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
     doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
 
-    JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters(false));
+    JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT)));
 
     Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
     verify(ordersService).getPoLinesByQuery(cqlString);
@@ -61,12 +70,8 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
   }
 
   @Test
-  void edifactOrdersExportJobIfDefaultConfigTestSuccess() throws Exception {
+  void testEdifactOrdersExportDefaultConfig() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
-    List<PurchaseOrder> orders = objectMapper.readValue(getMockData(
-      "edifact/acquisitions/purchase_order_collection.json"), PurchaseOrderCollection.class).getPurchaseOrders();
-    List<PoLine> poLines = objectMapper.readValue(getMockData("edifact/acquisitions/po_line_collection.json"),
-      PoLineCollection.class).getPoLines();
     String cqlString = "purchaseOrder.workflowStatus==Open" +
       " AND purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1" +
       " AND (cql.allRecords=1 NOT purchaseOrder.manualPo==true)" +
@@ -82,7 +87,8 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
     doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
     doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
 
-    JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters(true));
+    var exportConfig = getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT, true);
+    JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig));
 
     Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
     verify(ordersService).getPoLinesByQuery(cqlString);
@@ -90,12 +96,8 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
   }
 
   @Test
-  void edifactOrdersExportJobIfDefaultConfigNotOneTestSuccess() throws Exception {
+  void testEdifactOrdersExportDefaultConfigWithTwoExportConfigs() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
-    List<PurchaseOrder> orders = objectMapper.readValue(getMockData(
-      "edifact/acquisitions/purchase_order_collection.json"), PurchaseOrderCollection.class).getPurchaseOrders();
-    List<PoLine> poLines = objectMapper.readValue(getMockData("edifact/acquisitions/po_line_collection.json"),
-      PoLineCollection.class).getPoLines();
     String cqlString = "purchaseOrder.workflowStatus==Open" +
       " AND purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1" +
       " AND (cql.allRecords=1 NOT purchaseOrder.manualPo==true)" +
@@ -104,18 +106,23 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
       " AND acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\")" +
       " AND cql.allRecords=1 NOT vendorDetail.vendorAccount==(\"org1\" OR \"org2\")";
     String configSql = "configName==EDIFACT_ORDERS_EXPORT_d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1*";
-    ExportConfigCollection exportConfigCollection = objectMapper.readValue(getMockData("edifact/dataExportConfigs.json"), ExportConfigCollection.class);
+    ExportConfigCollection exportConfigCollection = objectMapper.readValue(getMockData(DATA_EXPORT_CONFIGS_PATH), ExportConfigCollection.class);
     poLines.get(0).getVendorDetail().setVendorAccount(null);
     doReturn(poLines).when(ordersService).getPoLinesByQuery(cqlString);
     doReturn(exportConfigCollection).when(dataExportSpringClient).getExportConfigs(configSql);
     doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
     doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
 
-    JobExecution jobExecution = testLauncher.launchStep("mapToEdifactStep", getJobParameters(true));
+    var exportConfig = getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT, true);
+    JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig));
 
     Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
     verify(ordersService).getPoLinesByQuery(cqlString);
     verify(ordersService).getPurchaseOrdersByIds(anyList());
+  }
+
+  protected ObjectNode getEdifactExportConfig(String path, boolean isDefaultConfig) throws IOException {
+    return getEdifactExportConfig(path).put("isDefaultConfig", isDefaultConfig);
   }
 
 }

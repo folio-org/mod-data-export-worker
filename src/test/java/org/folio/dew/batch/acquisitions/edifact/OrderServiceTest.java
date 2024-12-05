@@ -70,12 +70,12 @@ class OrderServiceTest {
         orderList1.add(order);
         query1Builder.append(id);
         if (i != 49)
-          query1Builder.append(" OR ");
+          query1Builder.append(" or ");
       } else {
         orderList2.add(order);
         query2Builder.append(id);
         if (i != 59)
-          query2Builder.append(" OR ");
+          query2Builder.append(" or ");
       }
     }
     query1Builder.append(")");

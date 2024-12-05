@@ -24,6 +24,7 @@ import static org.folio.dew.utils.Constants.EUREKA_PLATFORM;
 @RequiredArgsConstructor
 @Log4j2
 @Service
+@Deprecated
 public class UserPermissionsService {
 
   @Setter
@@ -47,4 +48,5 @@ public class UserPermissionsService {
     return List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), BULK_EDIT_USERS_VIEW_PERMISSION.getValue(), USER_ITEM_GET_PERMISSION.getValue(),
       INVENTORY_ITEMS_ITEM_GET_PERMISSION.getValue(), INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION.getValue(), INVENTORY_INSTANCES_ITEM_GET_PERMISSION.getValue());
   }
+
 }

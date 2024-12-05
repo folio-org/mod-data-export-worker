@@ -13,11 +13,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/bulk-edit")
 @RequiredArgsConstructor
+@Deprecated
 public class PermissionsSelfCheckController implements PermissionsSelfCheckApi {
 
   private final UserPermissionsService userPermissionsService;
 
   @Override
+  @Deprecated
   public ResponseEntity<List<String>> getUsersPermissions() {
     return new ResponseEntity<>(userPermissionsService.getPermissions(), HttpStatus.OK);
   }

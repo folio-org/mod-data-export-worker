@@ -175,7 +175,7 @@ public abstract class BaseBatchTest {
   }
 
   @BeforeEach
-  void setUp() {
+  protected void setUp() {
     okapiHeaders = new LinkedHashMap<>();
     okapiHeaders.put(XOkapiHeaders.TENANT, TENANT);
     okapiHeaders.put(XOkapiHeaders.TOKEN, TOKEN);

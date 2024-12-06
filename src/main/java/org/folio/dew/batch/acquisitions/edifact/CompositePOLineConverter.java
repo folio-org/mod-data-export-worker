@@ -1,12 +1,17 @@
 package org.folio.dew.batch.acquisitions.edifact;
 
+import static org.folio.dew.domain.dto.ReferenceNumberItem.RefNumberTypeEnum.ORDER_REFERENCE_NUMBER;
+
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
 import javax.money.MonetaryAmount;
 
 import io.xlate.edi.stream.EDIStreamException;
 import io.xlate.edi.stream.EDIStreamWriter;
-import liquibase.util.StringUtil;
+import one.util.streamex.StreamEx;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.acquisitions.edifact.services.ExpenseClassService;
 import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
 import org.folio.dew.batch.acquisitions.edifact.services.IdentifierTypeService;
@@ -17,16 +22,18 @@ import org.folio.dew.domain.dto.Contributor;
 import org.folio.dew.domain.dto.Cost;
 import org.folio.dew.domain.dto.FundDistribution;
 import org.folio.dew.domain.dto.Location;
+import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.ProductIdentifier;
 import org.folio.dew.domain.dto.ReferenceNumberItem;
+import org.folio.dew.domain.dto.VendorDetail;
 import org.javamoney.moneta.Money;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class CompositePOLineConverter {
   private static final int MAX_CHARS_PER_LINE = 70;
@@ -44,18 +51,22 @@ public class CompositePOLineConverter {
   private static final String EN_PRODUCT_ID_QUALIFIER = "EN";
   private static final int EAN_IDENTIFIER_LENGTH = 13;
 
-  @Autowired
-  private IdentifierTypeService identifierTypeService;
-  @Autowired
-  private MaterialTypeService materialTypeService;
-  @Autowired
-  private ExpenseClassService expenseClassService;
-  @Autowired
-  private LocationService locationService;
-  @Autowired
-  private HoldingService holdingService;
+  private final IdentifierTypeService identifierTypeService;
+  private final MaterialTypeService materialTypeService;
+  private final ExpenseClassService expenseClassService;
+  private final LocationService locationService;
+  private final HoldingService holdingService;
 
-  public int convertPOLine(CompositePoLine poLine, EDIStreamWriter writer, int currentLineNumber, int quantityOrdered) throws EDIStreamException {
+  public CompositePOLineConverter(IdentifierTypeService identifierTypeService, MaterialTypeService materialTypeService,
+                                  ExpenseClassService expenseClassService, LocationService locationService, HoldingService holdingService) {
+    this.identifierTypeService = identifierTypeService;
+    this.materialTypeService = materialTypeService;
+    this.expenseClassService = expenseClassService;
+    this.locationService = locationService;
+    this.holdingService = holdingService;
+  }
+
+  public int convertPOLine(CompositePoLine poLine, List<Piece> pieces, EDIStreamWriter writer, int currentLineNumber, int quantityOrdered) throws EDIStreamException {
     int messageSegmentCount = 0;
 
     Map<String, ProductIdentifier> productTypeProductIdentifierMap = new HashMap<>();
@@ -82,6 +93,14 @@ public class CompositePOLineConverter {
       writeTitle(titlePart, writer);
     }
 
+    for (Piece piece : pieces) {
+      var pieceDetails = getPieceDetails(piece);
+      if (StringUtils.isNotBlank(pieceDetails)) {
+        messageSegmentCount++;
+        writePiece(pieceDetails, writer);
+      }
+    }
+
     if (poLine.getPublisher() != null) {
       messageSegmentCount++;
       writePublisher(poLine.getPublisher(), writer);
@@ -93,13 +112,13 @@ public class CompositePOLineConverter {
     }
 
     String physicalMaterial = getPhysicalMaterial(poLine);
-    if (StringUtil.isNotEmpty(physicalMaterial)) {
+    if (StringUtils.isNotEmpty(physicalMaterial)) {
       messageSegmentCount++;
       writeMaterialType(physicalMaterial, writer);
     }
 
     String electronicMaterial = getElectronicMaterial(poLine);
-    if (StringUtil.isNotEmpty(electronicMaterial)) {
+    if (StringUtils.isNotEmpty(electronicMaterial)) {
       messageSegmentCount++;
       writeMaterialType(electronicMaterial, writer);
     }
@@ -121,7 +140,7 @@ public class CompositePOLineConverter {
     messageSegmentCount++;
     writePoLineCurrency(poLine, writer);
 
-    if (poLine.getVendorDetail() != null && StringUtil.isNotEmpty(poLine.getVendorDetail().getInstructions())) {
+    if (poLine.getVendorDetail() != null && StringUtils.isNotEmpty(poLine.getVendorDetail().getInstructions())) {
       messageSegmentCount++;
       writeInstructionsToVendor(poLine.getVendorDetail().getInstructions(), writer);
     }
@@ -141,16 +160,25 @@ public class CompositePOLineConverter {
       writeFundCode(getFundAndExpenseClass(fundDistribution), writer);
     }
 
-    if (poLine.getVendorDetail() != null && referenceQuantity < MAX_NUMBER_OF_REFS) {
-      for (ReferenceNumberItem number : poLine.getVendorDetail().getReferenceNumbers()) {
-        if (referenceQuantity >= MAX_NUMBER_OF_REFS) {
-          break;
-        }
-        if (number.getRefNumber() != null) {
-          referenceQuantity++;
-          messageSegmentCount++;
-          writeVendorReferenceNumber(number.getRefNumber(), writer);
-        }
+    var referenceNumbers = getVendorReferenceNumbers(poLine);
+    // Non-empty pieces list is a sign that the export is for claims
+    if (CollectionUtils.isNotEmpty(pieces)) {
+      // Vendor order number is a required field for claims export, it must be included regardless of the number of references
+      var vendorOrderNumber = getAndRemoveVendorOrderNumber(referenceNumbers);
+      if (vendorOrderNumber != null) {
+        messageSegmentCount++;
+        writeVendorOrderNumber(vendorOrderNumber.getRefNumber(), writer);
+      }
+    }
+
+    for (ReferenceNumberItem number : getVendorReferenceNumbers(poLine)) {
+      if (referenceQuantity >= MAX_NUMBER_OF_REFS) {
+        break;
+      }
+      if (number.getRefNumber() != null) {
+        referenceQuantity++;
+        messageSegmentCount++;
+        writeVendorReferenceNumber(number.getRefNumber(), writer);
       }
     }
 
@@ -241,6 +269,19 @@ public class CompositePOLineConverter {
       .writeComponent("")
       .writeComponent("")
       .writeComponent(titlePart)
+      .endElement()
+      .writeEndSegment();
+  }
+
+  private void writePiece(String pieceDetails, EDIStreamWriter writer) throws EDIStreamException {
+    writer.writeStartSegment("IMD")
+      .writeElement("L")
+      .writeElement("080")
+      .writeStartElement()
+      .writeComponent("")
+      .writeComponent("")
+      .writeComponent("")
+      .writeComponent(pieceDetails)
       .endElement()
       .writeEndSegment();
   }
@@ -356,10 +397,18 @@ public class CompositePOLineConverter {
       .writeEndSegment();
   }
 
+  private void writeVendorOrderNumber(String number, EDIStreamWriter writer) throws EDIStreamException {
+    writeVendorReferenceNumber(number, "SNA", writer);
+  }
+
   private void writeVendorReferenceNumber(String number, EDIStreamWriter writer) throws EDIStreamException {
+    writeVendorReferenceNumber(number, "SLI", writer);
+  }
+
+  private void writeVendorReferenceNumber(String number, String component, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("RFF")
       .writeStartElement()
-      .writeComponent("SLI")
+      .writeComponent(component)
       .writeComponent(number)
       .endElement()
       .writeEndSegment();
@@ -417,6 +466,12 @@ public class CompositePOLineConverter {
     return title.split("(?<=\\G.{" + MAX_CHARS_PER_LINE + "})");
   }
 
+  private String getPieceDetails(Piece piece) {
+    return StreamEx.of(piece.getDisplaySummary(), piece.getChronology(), piece.getEnumeration())
+      .filter(StringUtils::isNotBlank)
+      .joining(":");
+  }
+
   private String getPhysicalMaterial(CompositePoLine poLine) {
     if (poLine.getPhysical() != null && poLine.getPhysical().getMaterialType() != null) {
       String materialTypeId = poLine.getPhysical().getMaterialType();
@@ -455,6 +510,21 @@ public class CompositePOLineConverter {
       return expenseClassService.getExpenseClassCode(expenseClassId);
     }
     return "";
+  }
+
+  private List<ReferenceNumberItem> getVendorReferenceNumbers(CompositePoLine poLine) {
+    return Optional.ofNullable(poLine.getVendorDetail())
+      .map(VendorDetail::getReferenceNumbers)
+      .orElse(new ArrayList<>());
+  }
+
+  private ReferenceNumberItem getAndRemoveVendorOrderNumber(List<ReferenceNumberItem> referenceNumberItems) {
+    var vendorOrderNumber = referenceNumberItems.stream()
+      .filter(r -> r.getRefNumberType() == ORDER_REFERENCE_NUMBER)
+      .findFirst()
+      .orElse(null);
+    referenceNumberItems.remove(vendorOrderNumber);
+    return vendorOrderNumber;
   }
 
   private List<Location> getLocations(CompositePoLine poLine) {

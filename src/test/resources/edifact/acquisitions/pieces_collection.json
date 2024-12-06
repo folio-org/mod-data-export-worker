@@ -1,0 +1,38 @@
+{
+  "pieces": [
+    {
+      "id": "5e317dc2-deeb-4429-b2a1-91e5cd0fd5f7",
+      "displaySummary": "Tutorial Volume 5",
+      "comment": "Special Edition",
+      "format": "Electronic",
+      "itemId": "522a501a-56b5-48d9-b28a-3a8f02482d97",
+      "bindItemId": "779b89f7-6c0f-42d0-bf50-4b0e30958d2d",
+      "locationId": "53cf956f-c1df-410b-8bea-27f712cca7c0",
+      "poLineId": "d471d766-8dbb-4609-999a-02681dea6c22",
+      "titleId": "9a665b22-9fe5-4c95-b4ee-837a5433c95d",
+      "receivingTenantId": "diku",
+      "displayOnHolding": false,
+      "displayToPublic": false,
+      "enumeration": "Volume 1",
+      "chronology": "2021",
+      "barcode": "0987654111",
+      "accessionNumber": "2015.1",
+      "callNumber": "BF2050 .M335 1999",
+      "discoverySuppress": false,
+      "copyNumber": "94753",
+      "receivingStatus": "Late",
+      "supplement": true,
+      "isBound": true,
+      "receiptDate": "2018-10-11T00:00:00.000Z",
+      "claimingInterval": 0,
+      "internalNote": "Internal note for Send Claim action",
+      "externalNote": "External note for Send Claim action to share with Vendor",
+      "statusUpdatedDate": "2018-10-11T00:00:00.000Z",
+      "metadata": {
+        "createdDate": "2018-08-19T00:00:00.000+0000",
+        "createdByUserId": "28d1057c-d137-11e8-a8d5-f2801f1b9fd1"
+      }
+    }
+
+  ]
+}

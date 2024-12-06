@@ -1,5 +1,7 @@
 package org.folio.dew.batch.acquisitions.edifact;
 
+import static org.folio.dew.domain.dto.ExportType.CLAIMS;
+import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -16,99 +18,131 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.IOUtils;
-import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
 import org.folio.dew.batch.acquisitions.edifact.services.ExpenseClassService;
 import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
 import org.folio.dew.batch.acquisitions.edifact.services.IdentifierTypeService;
 import org.folio.dew.batch.acquisitions.edifact.services.LocationService;
 import org.folio.dew.batch.acquisitions.edifact.services.MaterialTypeService;
+import org.folio.dew.config.JacksonConfiguration;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
+import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.Piece;
+import org.folio.dew.domain.dto.PieceCollection;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 @Log4j2
 @ExtendWith(MockitoExtension.class)
-class MappingOrdersToEdifactTest extends BaseBatchTest {
-  @Autowired
+class MappingOrdersToEdifactTest {
+
+  private static final Map<ExportType, String> EXPORT_EDI_PATHS = Map.of(
+    EDIFACT_ORDERS_EXPORT,"edifact/acquisitions/edifact_orders_result.edi",
+    CLAIMS, "edifact/acquisitions/edifact_claims_result.edi"
+  );
+
   private ObjectMapper objectMapper;
-  @Autowired
   private PurchaseOrdersToEdifactMapper purchaseOrdersToEdifactMapper;
-  @MockBean
+
+  @Mock
   private IdentifierTypeService identifierTypeService;
-  @MockBean
+  @Mock
   private MaterialTypeService materialTypeService;
-  @MockBean
+  @Mock
   private ExpenseClassService expenseClassService;
-  @MockBean
+  @Mock
   private LocationService locationService;
-  @MockBean
+  @Mock
   private HoldingService holdingService;
-  @MockBean
+  @Mock
   private ConfigurationService configurationService;
 
-  @Test
-  void convertOrdersToEdifact() throws Exception {
-    String jobName = "123456789012345";
-    String fileIdExpected = "23456789012345";
-    List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson();
-
-    serviceMocks();
-
-    String ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, getTestEdiConfig(), jobName);
-    log.info(ediOrder);
-    assertFalse(ediOrder.isEmpty());
-    validateEdifactOrders(ediOrder, fileIdExpected);
+  @BeforeEach
+  void setUp() {
+    var compositePOLineConverter = new CompositePOLineConverter(identifierTypeService, materialTypeService, expenseClassService, locationService, holdingService);
+    var compositePOConverter = new CompositePOConverter(compositePOLineConverter, configurationService);
+    purchaseOrdersToEdifactMapper = new PurchaseOrdersToEdifactMapper(compositePOConverter);
+    objectMapper = new JacksonConfiguration().objectMapper();
   }
 
-  @Test
-  void convertOrdersToEdifactByteArray() throws Exception {
-    String jobName = "12345";
-    List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson();
+  @ParameterizedTest
+  @EnumSource(value = ExportType.class, names = {"EDIFACT_ORDERS_EXPORT", "CLAIMS"})
+  void convertOrdersToEdifact(ExportType type) throws Exception {
+    String jobName = "123456789012345";
+    String fileIdExpected = "23456789012345";
+    List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson(type);
+    List<Piece> pieces = getTestPiecesFromJson(type);
 
     serviceMocks();
 
-    byte[] ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifactArray(compPOs, getTestEdiConfig(), jobName);
+    String ediOrder;
+    if (type == EDIFACT_ORDERS_EXPORT) {
+      ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, getTestEdiConfig(), jobName);
+    } else {
+      var piecePoLineIds = pieces.stream().map(Piece::getPoLineId).toList();
+      compPOs = compPOs.stream()
+        .peek(po -> po.getCompositePoLines().stream().filter(line -> piecePoLineIds.contains(line.getId())).toList())
+        .filter(po -> !po.getCompositePoLines().isEmpty())
+        .toList();
+      ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, pieces, getTestEdiConfig(), jobName);
+    }
+
+    assertFalse(ediOrder.isEmpty());
+    validateEdifactOrders(type, ediOrder, fileIdExpected);
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = ExportType.class, names = {"EDIFACT_ORDERS_EXPORT", "CLAIMS"})
+  void convertOrdersToEdifactByteArray(ExportType type) throws Exception {
+    String jobName = "12345";
+    List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson(type);
+    List<Piece> pieces = getTestPiecesFromJson(type);
+
+    serviceMocks();
+
+    byte[] ediOrder;
+    if (type == EDIFACT_ORDERS_EXPORT) {
+      ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, getTestEdiConfig(), jobName).getBytes(StandardCharsets.UTF_8);
+    } else {
+      ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, pieces, getTestEdiConfig(), jobName).getBytes(StandardCharsets.UTF_8);
+    }
+
     assertNotNull(ediOrder);
-    String ediOrderString = new String(ediOrder);
-    log.info(ediOrderString);
-    validateEdifactOrders(ediOrderString, jobName);
+    validateEdifactOrders(type, new String(ediOrder), jobName);
   }
 
   private VendorEdiOrdersExportConfig getTestEdiConfig() throws IOException {
     return objectMapper.readValue(getMockData("edifact/acquisitions/vendorEdiOrdersExportConfig.json"), VendorEdiOrdersExportConfig.class);
   }
 
-  private List<CompositePurchaseOrder> getTestOrdersFromJson() throws IOException {
-
-    CompositePurchaseOrder compPo = objectMapper.readValue(getMockData("edifact/acquisitions/composite_purchase_order.json"), CompositePurchaseOrder.class);
-
-    CompositePurchaseOrder comprehensiveCompPo = objectMapper.readValue(getMockData("edifact/acquisitions/comprehensive_composite_purchase_order.json"), CompositePurchaseOrder.class);
-
-    CompositePurchaseOrder minimalisticCompPo = objectMapper.readValue(getMockData("edifact/acquisitions/minimalistic_composite_purchase_order.json"), CompositePurchaseOrder.class);
-
-    CompositePurchaseOrder compPoWithEmptyVendorAccount = objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_empty_vendor_account.json"), CompositePurchaseOrder.class);
-
-    CompositePurchaseOrder compPoWithNonEANProductIds = objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_non_ean_product_ids.json"), CompositePurchaseOrder.class);
-
-    CompositePurchaseOrder compPoTitleWithEscapeChars = objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_title_with_escape_chars.json"), CompositePurchaseOrder.class);
-
+  private List<CompositePurchaseOrder> getTestOrdersFromJson(ExportType type) throws IOException {
     List<CompositePurchaseOrder> compPOs = new ArrayList<>();
-    compPOs.add(compPo);
-    compPOs.add(comprehensiveCompPo);
-    compPOs.add(minimalisticCompPo);
-    compPOs.add(compPoWithEmptyVendorAccount);
-    compPOs.add(compPoWithNonEANProductIds);
-    compPOs.add(compPoTitleWithEscapeChars);
+    compPOs.add(objectMapper.readValue(getMockData("edifact/acquisitions/composite_purchase_order.json"), CompositePurchaseOrder.class));
+    compPOs.add(objectMapper.readValue(getMockData("edifact/acquisitions/comprehensive_composite_purchase_order.json"), CompositePurchaseOrder.class));
+    compPOs.add(objectMapper.readValue(getMockData("edifact/acquisitions/minimalistic_composite_purchase_order.json"), CompositePurchaseOrder.class));
+    if (type == EDIFACT_ORDERS_EXPORT) {
+      compPOs.add(objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_empty_vendor_account.json"), CompositePurchaseOrder.class));
+      compPOs.add(objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_non_ean_product_ids.json"), CompositePurchaseOrder.class));
+      compPOs.add(objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_title_with_escape_chars.json"), CompositePurchaseOrder.class));
+    }
     return compPOs;
+  }
+
+
+  private List<Piece> getTestPiecesFromJson(ExportType type) throws IOException {
+    return type == EDIFACT_ORDERS_EXPORT
+      ? List.of()
+      : objectMapper.readValue(getMockData("edifact/acquisitions/pieces_collection_mixed.json"), PieceCollection.class).getPieces();
   }
 
   public static String getMockData(String path) throws IOException {
@@ -142,10 +176,9 @@ class MappingOrdersToEdifactTest extends BaseBatchTest {
       .thenReturn("Bockenheimer Landstr. 134-13");
   }
 
-  private void validateEdifactOrders(String ediOrder, String fileId) throws IOException {
-    String ediOrderExpected = getMockData("edifact/acquisitions/edifact_orders_result.edi")
-      .replaceAll("\\{fileId}", fileId);
-
+  private void validateEdifactOrders(ExportType type, String ediOrder, String fileId) throws IOException {
+    log.info("Generated EDI file:\n{}", ediOrder);
+    String ediOrderExpected = getMockData(EXPORT_EDI_PATHS.get(type)).replaceAll("\\{fileId}", fileId);
     String ediOrderWithRemovedDateTime = ediOrder.replaceFirst("\\d{6}:\\d{4}\\+", "ddmmyy:hhmm+");
     assertEquals(ediOrderExpected, ediOrderWithRemovedDateTime);
   }

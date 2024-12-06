@@ -59,6 +59,7 @@
         <opencsv.version>5.7.1</opencsv.version>
         <feign-jackson.version>12.1</feign-jackson.version>
         <marc4j.version>2.9.2</marc4j.version>
+        <streamex.version>0.8.3</streamex.version>
 
         <!-- Test properties-->
         <junit-extensions.version>2.4.0</junit-extensions.version>
@@ -205,7 +206,7 @@
       <dependency>
         <groupId>io.xlate</groupId>
         <artifactId>staedi</artifactId>
-        <version>1.24.0</version>
+        <version>1.25.2</version>
       </dependency>
 
       <dependency>
@@ -248,6 +249,12 @@
         <artifactId>moneta</artifactId>
         <version>1.4.2</version>
         <type>pom</type>
+      </dependency>
+
+      <dependency>
+        <groupId>one.util</groupId>
+        <artifactId>streamex</artifactId>
+        <version>${streamex.version}</version>
       </dependency>
 
         <!-- Test dependencies -->

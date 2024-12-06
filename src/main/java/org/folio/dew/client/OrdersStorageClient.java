@@ -1,5 +1,6 @@
 package org.folio.dew.client;
 
+import org.folio.dew.domain.dto.PieceCollection;
 import org.folio.dew.domain.dto.PoLineCollection;
 import org.folio.dew.domain.dto.PurchaseOrderCollection;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -19,6 +20,13 @@ public interface OrdersStorageClient {
 
   @GetMapping(value = "/po-lines", produces = MediaType.APPLICATION_JSON_VALUE)
   PoLineCollection getPoLinesByQuery(
+    @RequestParam("query") String query,
+    @RequestParam("offset") int offset,
+    @RequestParam("limit") int limit
+  );
+
+  @GetMapping(value = "/pieces", produces = MediaType.APPLICATION_JSON_VALUE)
+  PieceCollection getPiecesByQuery(
     @RequestParam("query") String query,
     @RequestParam("offset") int offset,
     @RequestParam("limit") int limit

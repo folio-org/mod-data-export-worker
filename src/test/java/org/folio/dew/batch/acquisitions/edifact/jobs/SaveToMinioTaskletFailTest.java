@@ -23,6 +23,7 @@ import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 
@@ -30,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 class SaveToMinioTaskletFailTest extends BaseBatchTest {
   @Autowired
+  @Qualifier("edifactOrdersExportJob")
   private Job edifactExportJob;
   @MockBean
   private OrganizationsService organizationsService;

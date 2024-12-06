@@ -1,7 +1,8 @@
 package org.folio.dew.batch.acquisitions.edifact;
 
+import static java.util.stream.Collectors.groupingBy;
+
 import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -12,6 +13,8 @@ import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import io.xlate.edi.stream.EDIOutputFactory;
 import io.xlate.edi.stream.EDIStreamException;
 import io.xlate.edi.stream.EDIStreamWriter;
+
+import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.acquisitions.edifact.EdiFileConfig;
 
@@ -23,6 +26,10 @@ public class PurchaseOrdersToEdifactMapper {
   }
 
   public String convertOrdersToEdifact(List<CompositePurchaseOrder> compPOs, VendorEdiOrdersExportConfig ediExportConfig, String jobName) throws EDIStreamException {
+    return convertOrdersToEdifact(compPOs, List.of(), ediExportConfig, jobName);
+  }
+
+  public String convertOrdersToEdifact(List<CompositePurchaseOrder> compPOs, List<Piece> pieces, VendorEdiOrdersExportConfig ediExportConfig, String jobName) throws EDIStreamException {
     ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
     EDIOutputFactory factory = EDIOutputFactory.newFactory();
@@ -44,9 +51,10 @@ public class PurchaseOrdersToEdifactMapper {
 
     writeInterchangeHeader(writer, ediFileConfig);
 
+    var poLineIdToPieces = pieces.stream().collect(groupingBy(Piece::getPoLineId));
     // Purchase orders
     for (CompositePurchaseOrder compPO : compPOs) {
-      compositePOConverter.convertPOtoEdifact(writer, compPO, ediFileConfig);
+      compositePOConverter.convertPOtoEdifact(writer, compPO, poLineIdToPieces, ediFileConfig);
       messageCount++;
     }
 
@@ -55,10 +63,6 @@ public class PurchaseOrdersToEdifactMapper {
     writer.close();
 
     return stream.toString();
-  }
-
-  public byte[] convertOrdersToEdifactArray(List<CompositePurchaseOrder> compPOs, VendorEdiOrdersExportConfig ediExportConfig, String jobName) throws EDIStreamException {
-    return convertOrdersToEdifact(compPOs, ediExportConfig, jobName).getBytes(StandardCharsets.UTF_8);
   }
 
   // Start of file - Can contain multiple order messages

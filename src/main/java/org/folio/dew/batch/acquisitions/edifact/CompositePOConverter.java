@@ -7,11 +7,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
+import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.acquisitions.edifact.EdiFileConfig;
 import org.folio.dew.error.NotFoundException;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Map;
 
 public class CompositePOConverter {
   private static final String RUSH_ORDER = "224";
@@ -25,7 +28,8 @@ public class CompositePOConverter {
     this.configurationService = configurationService;
   }
 
-  public void convertPOtoEdifact(EDIStreamWriter writer, CompositePurchaseOrder compPO, EdiFileConfig ediFileConfig) throws EDIStreamException {
+  public void convertPOtoEdifact(EDIStreamWriter writer, CompositePurchaseOrder compPO,
+                                 Map<String, List<Piece>> poLineToPieces, EdiFileConfig ediFileConfig) throws EDIStreamException {
     int messageSegmentCount = 0;
 
     messageSegmentCount++;
@@ -65,7 +69,8 @@ public class CompositePOConverter {
     int totalNumberOfLineItems = 0;
     for (CompositePoLine poLine : compPO.getCompositePoLines()) {
       int quantityOrdered = getPoLineQuantityOrdered(poLine);
-      int segments = compositePOLineConverter.convertPOLine(poLine, writer, ++totalNumberOfLineItems, quantityOrdered);
+      var pieces = poLineToPieces.getOrDefault(poLine.getId(), List.of());
+      int segments = compositePOLineConverter.convertPOLine(poLine, pieces, writer, ++totalNumberOfLineItems, quantityOrdered);
       messageSegmentCount += segments;
       totalQuantity += quantityOrdered;
     }

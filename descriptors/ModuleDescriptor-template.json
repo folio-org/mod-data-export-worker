@@ -257,7 +257,9 @@
             "consortium-search.items.batch.collection.get",
             "consortium-search.items.collection.get",
             "bulk-edit.permissions-self-check.get",
-            "consortia.user-tenants.collection.get"
+            "consortia.user-tenants.collection.get",
+            "perms.users.get",
+            "permissions.users.item.get"
           ]
         },
         {
@@ -310,7 +312,9 @@
             "inventory-storage.holdings-sources.collection.get",
             "inventory-storage.holdings-sources.item.get",
             "inventory-storage.holdings.item.put",
-            "bulk-edit.permissions-self-check.get"
+            "bulk-edit.permissions-self-check.get",
+            "perms.users.get",
+            "permissions.users.item.get"
           ]
         },
         {

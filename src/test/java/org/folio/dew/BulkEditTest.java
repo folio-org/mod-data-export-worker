@@ -16,6 +16,7 @@ import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.service.UserPermissionsService;
 import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -56,6 +57,12 @@ import java.util.UUID;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.BULK_EDIT_INVENTORY_VIEW_PERMISSION;
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.BULK_EDIT_USERS_VIEW_PERMISSION;
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.INVENTORY_INSTANCES_ITEM_GET_PERMISSION;
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.INVENTORY_ITEMS_ITEM_GET_PERMISSION;
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION;
+import static org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionEnum.USER_ITEM_GET_PERMISSION;
 import static org.folio.dew.domain.dto.EntityType.HOLDINGS_RECORD;
 import static org.folio.dew.domain.dto.EntityType.INSTANCE;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
@@ -179,6 +186,8 @@ class BulkEditTest extends BaseBatchTest {
   private InstanceClient instanceClient;
   @MockBean
   private KafkaService kafkaService;
+  @MockBean
+  private UserPermissionsService userPermissionsService;
   @Mock
   private FolioExecutionContext folioExecutionContext;
 
@@ -186,7 +195,7 @@ class BulkEditTest extends BaseBatchTest {
   @CsvSource({"BARCODE," + BARCODES_CSV, "USER_NAME," + USERNAMES_CSV})
   @DisplayName("Run bulk-edit (user identifiers) successfully")
   void uploadUserIdentifiersJobTest(IdentifierType identifierType, String inputFile) throws Exception {
-
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_USERS_VIEW_PERMISSION.getValue(), USER_ITEM_GET_PERMISSION.getValue()));
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, identifierType, inputFile);
@@ -199,7 +208,7 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (user identifiers) to test preferred email communication successfully")
   void uploadUserIdentifiers_preferredEmailCommunicationTest() throws Exception {
-
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_USERS_VIEW_PERMISSION.getValue(), USER_ITEM_GET_PERMISSION.getValue()));
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, USER_NAME, USERNAME_PREFERRED_EMAIL_CSV);
@@ -212,7 +221,7 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Update retrieval progress (user identifiers) successfully")
   void shouldUpdateProgressUponUserIdentifiersJob() throws Exception {
-
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_USERS_VIEW_PERMISSION.getValue(), USER_ITEM_GET_PERMISSION.getValue()));
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, BARCODES_FOR_PROGRESS_CSV);
@@ -231,7 +240,7 @@ class BulkEditTest extends BaseBatchTest {
   void shouldUpdateProgressUponItemIdentifiersJob() throws Exception {
 
     mockInstanceClient();
-
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_ITEMS_ITEM_GET_PERMISSION.getValue()));
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, BARCODES_FOR_PROGRESS_CSV);
@@ -251,6 +260,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run bulk-edit (item identifiers) successfully")
   void uploadItemIdentifiersJobTest(IdentifierType identifierType) throws Exception {
     mockInstanceClient();
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_ITEMS_ITEM_GET_PERMISSION.getValue()));
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
@@ -266,7 +276,7 @@ class BulkEditTest extends BaseBatchTest {
   @EnumSource(value = IdentifierType.class, names = {"ID","HRID"}, mode = EnumSource.Mode.INCLUDE)
   @DisplayName("Run bulk-edit (instance identifiers ID or HRID) successfully")
   void uploadInstanceIdentifiersJobTest_1(IdentifierType identifierType) throws Exception {
-
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_INSTANCES_ITEM_GET_PERMISSION.getValue()));
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessInstanceIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, INSTANCE, identifierType, INSTANCE_HRIDS_CSV);
@@ -281,7 +291,7 @@ class BulkEditTest extends BaseBatchTest {
   @CsvSource({"ID," + MARC_INSTANCE_ID_CSV, "HRID," + MARC_INSTANCE_HRID_CSV})
   @DisplayName("Run bulk-edit (instance identifiers ID or HRID) successfully")
   void uploadMarcInstanceIdentifiersJobTest(String identifierType, String path) throws Exception {
-
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_INSTANCES_ITEM_GET_PERMISSION.getValue()));
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessInstanceIdentifiersJob);
 
     var parametersBuilder = new JobParametersBuilder();
@@ -331,7 +341,7 @@ class BulkEditTest extends BaseBatchTest {
 
   @Test
   void uploadMarcInstanceIdentifiersInvalidContentJobTest() throws Exception {
-
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_INSTANCES_ITEM_GET_PERMISSION.getValue()));
     var path = MARC_INSTANCE_ID_INVALID_CONTENT_CSV;
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessInstanceIdentifiersJob);
 
@@ -384,7 +394,7 @@ class BulkEditTest extends BaseBatchTest {
   @EnumSource(value = IdentifierType.class, names = {"ISSN","ISBN"}, mode = EnumSource.Mode.INCLUDE)
   @DisplayName("Run bulk-edit (instance identifiers ISSN or ISBN) successfully")
   void uploadInstanceIdentifiersJobTest_2(IdentifierType identifierType) throws Exception {
-
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_INSTANCES_ITEM_GET_PERMISSION.getValue()));
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessInstanceIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, INSTANCE, identifierType, INSTANCE_ISSN_ISBN_CSV);
@@ -400,6 +410,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run bulk-edit (item identifiers) with wrong reference identifiers")
   void shouldWriteErrorsWhenItemReferenceDataNotFoundAndContinueBulkEdit() throws Exception {
     mockInstanceClient();
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_ITEMS_ITEM_GET_PERMISSION.getValue()));
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
@@ -415,6 +426,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run bulk-edit (item identifiers) with empty reference identifiers")
   void shouldSkipEmptyItemReferenceData() throws Exception {
     mockInstanceClient();
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_ITEMS_ITEM_GET_PERMISSION.getValue()));
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
@@ -429,6 +441,7 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (user identifiers) with wrong reference identifiers")
   void shouldWriteErrorsWhenUserReferenceDataNotFoundAndContinueBulkEdit() throws Exception {
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_USERS_VIEW_PERMISSION.getValue(), USER_ITEM_GET_PERMISSION.getValue()));
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
 
@@ -444,6 +457,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run bulk-edit (user identifiers) with empty reference identifiers")
   void shouldSkipEmptyUserReferenceData() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_USERS_VIEW_PERMISSION.getValue(), USER_ITEM_GET_PERMISSION.getValue()));
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, USER_IDENTIFIERS_EMPTY_REFERENCE_IDS_CSV);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
@@ -455,6 +469,7 @@ class BulkEditTest extends BaseBatchTest {
 
   @Test
    void uploadHoldingsIdentifiersIdJobTest() throws Exception {
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION.getValue()));
     var identifierType = ID;
     mockInstanceClient();
     mockInstanceClientForHrid();
@@ -474,6 +489,7 @@ class BulkEditTest extends BaseBatchTest {
 
   @Test
   void uploadHoldingsIdentifiersHridJobTest() throws Exception {
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION.getValue()));
     var identifierType = HRID;
     mockInstanceClient();
     mockInstanceClientForHrid();
@@ -493,6 +509,7 @@ class BulkEditTest extends BaseBatchTest {
 
   @Test
   void uploadHoldingsIdentifiersInstanceHridJobTest() throws Exception {
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION.getValue()));
     var identifierType = INSTANCE_HRID;
     mockInstanceClient();
     mockInstanceClientForHrid();
@@ -511,6 +528,7 @@ class BulkEditTest extends BaseBatchTest {
 
   @Test
   void uploadHoldingsIdentifiersItemBarcodeJobTest() throws Exception {
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION.getValue()));
     var identifierType = ITEM_BARCODE;
     mockInstanceClient();
     mockInstanceClientForHrid();
@@ -531,6 +549,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run bulk-edit (holdings records identifiers) with wrong reference identifiers")
   void shouldWriteErrorsWhenHoldingsReferenceDataNotFoundAndContinueBulkEdit() throws Exception {
     mockInstanceClient();
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION.getValue()));
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
 
@@ -546,6 +565,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run bulk-edit (holdings records identifiers) with empty reference identifiers")
   void shouldSkipEmptyHoldingsReferenceData() throws Exception {
     mockInstanceClient();
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION.getValue()));
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
 
@@ -561,7 +581,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run bulk-edit (holdings records by item barcode) with duplicated holdings")
   void shouldSkipDuplicatedHoldingsOnItemBarcodes() throws Exception {
     mockInstanceClient();
-
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION.getValue()));
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
 //    when(folioExecutionContext.getAllHeaders()).thenReturn(Map.of(X_OKAPI_TENANT, List.of("original")));
 
@@ -577,7 +597,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Upload item identifiers (holdingsRecordId) successfully")
   void shouldProcessMultipleItemsOnHoldingsRecordId() throws Exception {
     mockInstanceClient();
-
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_ITEMS_ITEM_GET_PERMISSION.getValue()));
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, HOLDINGS_RECORD_ID, ITEM_HOLDINGS_CSV);
@@ -592,6 +612,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run bulk-edit (user identifiers) with errors")
   void bulkEditUserJobTestWithErrors() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessUserIdentifiersJob);
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_USERS_VIEW_PERMISSION.getValue(), USER_ITEM_GET_PERMISSION.getValue()));
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, USER, BARCODE, BARCODES_SOME_NOT_FOUND);
 
@@ -606,7 +627,7 @@ class BulkEditTest extends BaseBatchTest {
   @DisplayName("Run bulk-edit (item identifiers) with errors")
   void bulkEditItemJobTestWithErrors() throws Exception {
     mockInstanceClient();
-
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_ITEMS_ITEM_GET_PERMISSION.getValue()));
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, ITEM_BARCODES_SOME_NOT_FOUND);
@@ -620,6 +641,7 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (instance identifiers) with errors")
   void bulkEditInstanceJobTestWithErrors() throws Exception {
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_INSTANCES_ITEM_GET_PERMISSION.getValue()));
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessInstanceIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, INSTANCE, HRID, INSTANCE_HRIDS_SOME_NOT_FOUND);
@@ -649,6 +671,7 @@ class BulkEditTest extends BaseBatchTest {
   @SneakyThrows
   void shouldEscapeDoubleQuotes() {
     mockInstanceClient();
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_ITEMS_ITEM_GET_PERMISSION.getValue()));
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, ITEM_BARCODES_DOUBLE_QOUTES_CSV);

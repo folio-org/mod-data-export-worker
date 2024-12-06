@@ -27,7 +27,6 @@ import org.folio.dew.domain.dto.ProductIdentifier;
 import org.folio.dew.domain.dto.ReferenceNumberItem;
 import org.folio.dew.domain.dto.VendorDetail;
 import org.javamoney.moneta.Money;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

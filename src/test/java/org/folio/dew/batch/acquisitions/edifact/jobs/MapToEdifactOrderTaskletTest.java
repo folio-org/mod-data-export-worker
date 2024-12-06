@@ -40,6 +40,7 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
 
   @BeforeEach
   @SneakyThrows
+  @Override
   protected void setUp() {
     super.setUp();
     edifactExportJob = edifactOrdersExportJob;

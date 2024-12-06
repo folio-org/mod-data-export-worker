@@ -470,7 +470,7 @@ public class CompositePOLineConverter {
   private String getPieceDetails(Piece piece) {
     return StreamEx.of(piece.getDisplaySummary(), piece.getChronology(), piece.getEnumeration())
       .filter(StringUtils::isNotBlank)
-      .joining("?");
+      .joining(":");
   }
 
   private String getPhysicalMaterial(CompositePoLine poLine) {

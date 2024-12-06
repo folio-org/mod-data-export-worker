@@ -206,7 +206,8 @@
       <dependency>
         <groupId>io.xlate</groupId>
         <artifactId>staedi</artifactId>
-        <version>1.24.0</version>
+
+        <version>1.25.2</version>
       </dependency>
 
       <dependency>

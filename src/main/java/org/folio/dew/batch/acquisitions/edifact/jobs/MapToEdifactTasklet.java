@@ -51,10 +51,10 @@ public abstract class MapToEdifactTasklet implements Tasklet {
     validateEdiExportConfig(ediExportConfig);
 
     var holder = buildEdifactExportHolder(chunkContext, ediExportConfig, jobParameters);
-    persistPoLineIds(chunkContext, holder.getOrders());
+    persistPoLineIds(chunkContext, holder.orders());
 
     String jobName = jobParameters.get(JobParameterNames.JOB_NAME).toString();
-    var edifactStringResult = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(holder.getOrders(), holder.getPieces(), ediExportConfig, jobName);
+    var edifactStringResult = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(holder.orders(), holder.pieces(), ediExportConfig, jobName);
 
     // save edifact file content in memory
     ExecutionContextUtils.addToJobExecutionContext(chunkContext.getStepContext().getStepExecution(), "edifactOrderAsString", edifactStringResult, "");

@@ -187,6 +187,10 @@
     {
       "id": "custom-fields",
       "version": "3.0"
+    },
+    {
+      "id": "okapi",
+      "version": "1.9"
     }
   ],
   "provides": [

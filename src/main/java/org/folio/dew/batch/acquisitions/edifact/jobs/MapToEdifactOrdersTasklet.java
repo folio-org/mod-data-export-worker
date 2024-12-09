@@ -1,7 +1,11 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
+import static org.folio.dew.utils.QueryUtils.combineCqlExpressions;
+import static org.folio.dew.utils.QueryUtils.convertFieldListToCqlQuery;
+import static org.folio.dew.utils.QueryUtils.getCqlExpressionForFieldNullValue;
+import static org.folio.dew.utils.QueryUtils.negateQuery;
+
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -12,8 +16,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.client.DataExportSpringClient;
-import org.folio.dew.domain.dto.EdiConfig;
-import org.folio.dew.domain.dto.ExportConfig;
 import org.folio.dew.domain.dto.ExportConfigCollection;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
@@ -52,62 +54,42 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
   }
 
   protected String getPoLineQuery(VendorEdiOrdersExportConfig ediConfig) {
-    // Order filters
-    var workflowStatusFilter = "purchaseOrder.workflowStatus==Open"; // order status is Open
-    var vendorFilter = String.format(" AND purchaseOrder.vendor==%s", ediConfig.getVendorId()); // vendor id matches
-    var notManualFilter = " AND (cql.allRecords=1 NOT purchaseOrder.manualPo==true)"; // not a manual order
+    var acqMethods = ediConfig.getEdiConfig().getDefaultAcquisitionMethods();
+    var resultQuery = combineCqlExpressions("AND",
+      // Order filters
+      "purchaseOrder.workflowStatus==Open", // order status is Open
+      "purchaseOrder.vendor==%s".formatted(ediConfig.getVendorId()), // vendor id matches
+      negateQuery("purchaseOrder.manualPo==true"), // not a manual order
 
-    // Order line filters
-    var automaticExportFilter = " AND automaticExport==true"; // line with automatic export
-    var ediExportDateFilter = " AND (cql.allRecords=1 NOT lastEDIExportDate=\"\")"; // has not been exported yet
-    var acqMethodsFilter = fieldInListFilter("acquisitionMethod",
-      ediConfig.getEdiConfig().getDefaultAcquisitionMethods()); // acquisitionMethod in default list
-    String vendorAccountFilter = "";
-    if (Boolean.TRUE.equals(ediConfig.getIsDefaultConfig())) {
-      var configQuery = String.format("configName==%s_%s*", ExportType.EDIFACT_ORDERS_EXPORT, ediConfig.getVendorId());
-      var configs = dataExportSpringClient.getExportConfigs(configQuery);
-      if (configs.getTotalRecords() > 1) {
-        var accountNoSetForExclude = getAccountNoSet(configs);
-        vendorAccountFilter = fieldNotInListFilter("vendorDetail.vendorAccount", accountNoSetForExclude);
-      }
-    } else {
-      // vendorAccount in the config account number list
-      vendorAccountFilter = fieldInListFilter("vendorDetail.vendorAccount",
-        ediConfig.getEdiConfig().getAccountNoList());
-    }
-
-    var resultQuery = String.format("%s%s%s%s%s%s%s", workflowStatusFilter, vendorFilter, notManualFilter,
-      automaticExportFilter, ediExportDateFilter, acqMethodsFilter, vendorAccountFilter);
-    log.info("GET purchase order line query: {}", resultQuery);
+      // Order line filters
+      "automaticExport==true", // line with automatic export
+      getCqlExpressionForFieldNullValue("lastEDIExportDate"), // has not been exported yet
+      convertFieldListToCqlQuery(acqMethods, "acquisitionMethod", true), // acquisitionMethod in default list
+      getVendorAccountFilter(ediConfig) // vendor account no filter
+    );
+    log.info("getPoLineQuery:: Fetching purchase order lines with query: {}", resultQuery);
     return resultQuery;
   }
 
-  private Set<String> getAccountNoSet(ExportConfigCollection configs) {
-    Set<String> accountNoSet = new HashSet<>();
-    for (ExportConfig exportConfig : configs.getConfigs()) {
-      EdiConfig ediConfig = exportConfig.getExportTypeSpecificParameters().getVendorEdiOrdersExportConfig().getEdiConfig();
-      if (Objects.nonNull(ediConfig)) {
-        List<String> currentAccountNoList = ediConfig.getAccountNoList();
-        if (CollectionUtils.isNotEmpty(currentAccountNoList)) {
-          accountNoSet.addAll(currentAccountNoList);
-        }
-      }
+  private String getVendorAccountFilter(VendorEdiOrdersExportConfig ediConfig) {
+    if (Boolean.TRUE.equals(ediConfig.getIsDefaultConfig())) {
+      var configQuery = "configName==%s_%s*".formatted(ExportType.EDIFACT_ORDERS_EXPORT, ediConfig.getVendorId());
+      var configs = dataExportSpringClient.getExportConfigs(configQuery);
+      return configs.getTotalRecords() > 1
+        ? negateQuery(convertFieldListToCqlQuery(extractAllAccountNoLists(configs), "vendorDetail.vendorAccount", true))
+        : null;
     }
-    return accountNoSet;
+    return convertFieldListToCqlQuery(ediConfig.getEdiConfig().getAccountNoList(), "vendorDetail.vendorAccount", true);
   }
 
-  private String fieldInListFilter(String fieldName, List<?> list) {
-    return String.format(" AND %s==%s", fieldName,
-      list.stream()
-        .map(item -> String.format("\"%s\"", item.toString()))
-        .collect(Collectors.joining(" OR ", "(", ")")));
-  }
-
-  private static String fieldNotInListFilter(String fieldName, Collection<?> list) {
-    return String.format(" AND cql.allRecords=1 NOT %s==%s", fieldName,
-      list.stream()
-        .map(item -> String.format("\"%s\"", item.toString()))
-        .collect(Collectors.joining(" OR ", "(", ")")));
+  private Set<String> extractAllAccountNoLists(ExportConfigCollection configs) {
+    return configs.getConfigs().stream()
+      .map(config -> config.getExportTypeSpecificParameters().getVendorEdiOrdersExportConfig().getEdiConfig())
+      .map(config -> Objects.nonNull(config) && CollectionUtils.isNotEmpty(config.getAccountNoList())
+        ? config.getAccountNoList()
+        : List.<String>of())
+      .flatMap(Collection::stream)
+      .collect(Collectors.toSet());
   }
 
 }

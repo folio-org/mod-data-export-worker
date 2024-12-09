@@ -19,7 +19,8 @@ public class QueryUtils {
   private static final String CQL_MATCH = "%s=%s";
   private static final String CQL_PREFIX = "(";
   private static final String CQL_SUFFIX = ")";
-  private static final String CQL_UNDEFINED_FIELD_EXPRESSION = "cql.allRecords=1 NOT %s=\"\"";
+  private static final String CQL_NEGATE_PREFIX = "cql.allRecords=1 NOT ";
+  private static final String CQL_UNDEFINED_FIELD_EXPRESSION = CQL_NEGATE_PREFIX + "%s=\"\"";
   private static final Pattern CQL_SORT_BY_PATTERN = Pattern.compile("(.*)(\\ssortBy\\s.*)", Pattern.CASE_INSENSITIVE); //NOSONAR
 
   public static String encodeQuery(String query) {
@@ -83,9 +84,16 @@ public class QueryUtils {
    * @param strictMatch indicates whether strict match mode (i.e. ==) should be used or not (i.e. =)
    * @return String representing CQL query to get records by some property values
    */
-  public static String convertFieldListToCqlQuery(Collection<String> values, String fieldName, boolean strictMatch) {
+  public static String convertFieldListToCqlQuery(Collection<?> values, String fieldName, boolean strictMatch) {
     var prefix = String.format(strictMatch ? CQL_MATCH_STRICT : CQL_MATCH, fieldName, CQL_PREFIX);
-    return StreamEx.of(values).joining(" or ", prefix, CQL_SUFFIX);
+    return StreamEx.of(values)
+      .map(Object::toString)
+      .map("\"%s\""::formatted)
+      .joining(" or ", prefix, CQL_SUFFIX);
+  }
+
+  public static String negateQuery(String cql) {
+    return CQL_NEGATE_PREFIX + cql;
   }
 
   public static String getCqlExpressionForFieldNullValue(String fieldName) {

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.folio.dew.client.InstanceNoteTypesClient;
+import org.folio.dew.client.StatisticalCodeClient;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
@@ -27,6 +28,8 @@ class InstanceReferenceServiceTest {
   private InstanceNoteTypesClient instanceNoteTypesClient;
   @Mock
   private BulkEditProcessingErrorsService errorsService;
+  @Mock
+  private StatisticalCodeClient statisticalCodeClient;
   @InjectMocks
   private InstanceReferenceService instanceReferenceService;
 
@@ -45,6 +48,25 @@ class InstanceReferenceServiceTest {
   @NullAndEmptySource
   void shouldReturnEmptyNameWhenInstanceNoteTypeIsNullOrEmpty(String id) {
     var name = instanceReferenceService.getInstanceTypeNameById(id,
+      new ErrorServiceArgs("jobId", "identifier", "errorFile"));
+    assertThat(name).isEmpty();
+  }
+
+  @Test
+  void shouldSaveErrorWhenStatisticalCodeNotFound() {
+    when(statisticalCodeClient.getById(anyString()))
+      .thenThrow(new NotFoundException("not found"));
+
+    instanceReferenceService.getStatisticalCodeNameById(UUID.randomUUID().toString(),
+      new ErrorServiceArgs("jobId", "identifier", "errorFile"));
+
+    verify(errorsService).saveErrorInCSV(eq("jobId"), eq("identifier"), any(BulkEditException.class), eq("errorFile"));
+  }
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  void shouldReturnEmptyNameWhenStatisticalCodeIdIsNullOrEmpty(String id) {
+    var name = instanceReferenceService.getStatisticalCodeNameById(id,
       new ErrorServiceArgs("jobId", "identifier", "errorFile"));
     assertThat(name).isEmpty();
   }

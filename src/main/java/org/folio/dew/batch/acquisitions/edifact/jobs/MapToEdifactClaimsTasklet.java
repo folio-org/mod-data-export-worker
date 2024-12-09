@@ -7,11 +7,11 @@ import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
-import org.folio.dew.batch.acquisitions.edifact.exceptions.EntitiesNotFoundException;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.acquisitions.edifact.EdifactExportHolder;
+import org.folio.dew.error.NotFoundException;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.stereotype.Component;
@@ -39,7 +39,7 @@ public class MapToEdifactClaimsTasklet extends MapToEdifactTasklet {
   protected EdifactExportHolder buildEdifactExportHolder(ChunkContext chunkContext, VendorEdiOrdersExportConfig ediExportConfig, Map<String, Object> jobParameters) {
     var pieces = ordersService.getPiecesByIdsAndReceivingStatus(ediExportConfig.getClaimPieceIds(), Piece.ReceivingStatusEnum.LATE);
     if (pieces.isEmpty()) {
-      throw new EntitiesNotFoundException(Piece.class);
+      throw new NotFoundException(Piece.class);
     }
 
     var poLineQuery = convertIdsToCqlQuery(pieces.stream().map(Piece::getPoLineId).toList());

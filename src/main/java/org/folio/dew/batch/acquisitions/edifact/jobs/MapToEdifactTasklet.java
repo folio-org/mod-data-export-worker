@@ -14,7 +14,6 @@ import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.CompositeOrderMappingException;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
-import org.folio.dew.batch.acquisitions.edifact.exceptions.EntitiesNotFoundException;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
@@ -23,6 +22,7 @@ import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.PurchaseOrder;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.acquisitions.edifact.EdifactExportHolder;
+import org.folio.dew.error.NotFoundException;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -90,7 +90,7 @@ protected List<CompositePurchaseOrder> getCompositeOrders(String poLineQuery) {
 
     log.debug("getCompositeOrders:: {}", compOrders);
     if (compOrders.isEmpty()) {
-      throw new EntitiesNotFoundException(PurchaseOrder.class);
+      throw new NotFoundException(PurchaseOrder.class);
     }
     return compOrders;
   }

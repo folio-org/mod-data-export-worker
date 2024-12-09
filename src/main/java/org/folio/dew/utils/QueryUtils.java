@@ -23,6 +23,8 @@ public class QueryUtils {
   private static final String CQL_UNDEFINED_FIELD_EXPRESSION = CQL_NEGATE_PREFIX + "%s=\"\"";
   private static final Pattern CQL_SORT_BY_PATTERN = Pattern.compile("(.*)(\\ssortBy\\s.*)", Pattern.CASE_INSENSITIVE); //NOSONAR
 
+  private QueryUtils() {}
+
   public static String encodeQuery(String query) {
     return URLEncoder.encode(query, StandardCharsets.UTF_8);
   }
@@ -113,7 +115,5 @@ public class QueryUtils {
   public static String getCqlExpressionForFieldNullValue(String fieldName) {
     return String.format(CQL_UNDEFINED_FIELD_EXPRESSION, fieldName);
   }
-
-  private QueryUtils() {}
 
 }

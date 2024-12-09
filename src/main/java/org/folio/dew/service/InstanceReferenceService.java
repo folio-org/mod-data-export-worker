@@ -11,6 +11,7 @@ import org.folio.dew.client.InstanceTypesClient;
 import org.folio.dew.client.NatureOfContentTermsClient;
 import org.folio.dew.client.InstanceFormatsClient;
 import org.folio.dew.client.IdentifierTypeClient;
+import org.folio.dew.client.StatisticalCodeClient;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.IdentifierTypeReferenceCollection;
 import org.folio.dew.error.BulkEditException;
@@ -36,6 +37,7 @@ public class InstanceReferenceService {
   private final InstanceFormatsClient instanceFormatsClient;
   private final IdentifierTypeClient identifierTypeClient;
   private final InstanceNoteTypesClient instanceNoteTypesClient;
+  private final StatisticalCodeClient statisticalCodeClient;
 
 
   @Cacheable(cacheNames = "instanceStatusNames")
@@ -107,4 +109,15 @@ public class InstanceReferenceService {
     }
   }
 
+  @Cacheable(cacheNames = "instanceStatisticalCodeNames")
+  public String getStatisticalCodeNameById(String id, ErrorServiceArgs args) {
+    try {
+      return StringUtils.isEmpty(id) ? EMPTY : statisticalCodeClient.getById(id).getName();
+    } catch (NotFoundException e) {
+      var msg = "Statistical code not found by id=" + id;
+      log.error(msg);
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg), args.getFileName());
+      return id;
+    }
+  }
 }

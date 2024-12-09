@@ -59,60 +59,64 @@ public class InstanceFormat implements Formatable<org.folio.dew.domain.dto.Insta
   @CsvBindByPosition(position = 8)
   private String modeOfIssuanceId;
 
-  @CsvBindByName(column = "Administrative note")
+  @CsvBindByName(column = "Statistical codes")
   @CsvBindByPosition(position = 9)
+  private String statisticalCodes;
+
+  @CsvBindByName(column = "Administrative note")
+  @CsvBindByPosition(position = 10)
   private String administrativeNotes;
 
   @CsvBindByName(column = "Resource title")
-  @CsvBindByPosition(position = 10)
+  @CsvBindByPosition(position = 11)
   private String title;
 
   @CsvBindByName(column = "Index title")
-  @CsvBindByPosition(position = 11)
+  @CsvBindByPosition(position = 12)
   private String indexTitle;
 
   @CsvBindByName(column = "Series statements")
-  @CsvBindByPosition(position = 12)
+  @CsvBindByPosition(position = 13)
   private String series;
 
   @CsvBindByName(column = "Contributors")
-  @CsvBindByPosition(position = 13)
+  @CsvBindByPosition(position = 14)
   private String contributors;
 
   @CsvBindByName(column = "Edition")
-  @CsvBindByPosition(position = 14)
+  @CsvBindByPosition(position = 15)
   private String editions;
 
   @CsvBindByName(column = "Physical description")
-  @CsvBindByPosition(position = 15)
+  @CsvBindByPosition(position = 16)
   private String physicalDescriptions;
 
   @CsvBindByName(column = "Resource type")
-  @CsvBindByPosition(position = 16)
+  @CsvBindByPosition(position = 17)
   private String instanceTypeId;
 
   @CsvBindByName(column = "Nature of content")
-  @CsvBindByPosition(position = 17)
+  @CsvBindByPosition(position = 18)
   private String natureOfContentTermIds;
 
   @CsvBindByName(column = "Formats")
-  @CsvBindByPosition(position = 18)
+  @CsvBindByPosition(position = 19)
   private String instanceFormatIds;
 
   @CsvBindByName(column = "Languages")
-  @CsvBindByPosition(position = 19)
+  @CsvBindByPosition(position = 20)
   private String languages;
 
   @CsvBindByName(column = "Publication frequency")
-  @CsvBindByPosition(position = 20)
+  @CsvBindByPosition(position = 21)
   private String publicationFrequency;
 
   @CsvBindByName(column = "Publication range")
-  @CsvBindByPosition(position = 21)
+  @CsvBindByPosition(position = 22)
   private String publicationRange;
 
   @CsvBindByName(column = "Notes")
-  @CsvBindByPosition(position = 22)
+  @CsvBindByPosition(position = 23)
   private String notes;
 
   private String isbn;

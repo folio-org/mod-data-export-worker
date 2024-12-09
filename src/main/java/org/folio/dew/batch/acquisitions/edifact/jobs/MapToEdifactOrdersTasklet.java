@@ -1,7 +1,7 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.folio.dew.utils.QueryUtils.combineCqlExpressions;
-import static org.folio.dew.utils.QueryUtils.convertFieldListToCqlQuery;
+import static org.folio.dew.utils.QueryUtils.convertFieldListToEnclosedCqlQuery;
 import static org.folio.dew.utils.QueryUtils.getCqlExpressionForFieldNullValue;
 import static org.folio.dew.utils.QueryUtils.negateQuery;
 
@@ -64,7 +64,7 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
       // Order line filters
       "automaticExport==true", // line with automatic export
       getCqlExpressionForFieldNullValue("lastEDIExportDate"), // has not been exported yet
-      convertFieldListToCqlQuery(acqMethods, "acquisitionMethod", true), // acquisitionMethod in default list
+      convertFieldListToEnclosedCqlQuery(acqMethods, "acquisitionMethod", true), // acquisitionMethod in default list
       getVendorAccountFilter(ediConfig) // vendor account no filter
     );
     log.info("getPoLineQuery:: Fetching purchase order lines with query: {}", resultQuery);
@@ -76,10 +76,10 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
       var configQuery = "configName==%s_%s*".formatted(ExportType.EDIFACT_ORDERS_EXPORT, ediConfig.getVendorId());
       var configs = dataExportSpringClient.getExportConfigs(configQuery);
       return configs.getTotalRecords() > 1
-        ? negateQuery(convertFieldListToCqlQuery(extractAllAccountNoLists(configs), "vendorDetail.vendorAccount", true))
-        : null;
+        ? negateQuery(convertFieldListToEnclosedCqlQuery(extractAllAccountNoLists(configs), "vendorDetail.vendorAccount", true))
+        : "";
     }
-    return convertFieldListToCqlQuery(ediConfig.getEdiConfig().getAccountNoList(), "vendorDetail.vendorAccount", true);
+    return convertFieldListToEnclosedCqlQuery(ediConfig.getEdiConfig().getAccountNoList(), "vendorDetail.vendorAccount", true);
   }
 
   private Set<String> extractAllAccountNoLists(ExportConfigCollection configs) {

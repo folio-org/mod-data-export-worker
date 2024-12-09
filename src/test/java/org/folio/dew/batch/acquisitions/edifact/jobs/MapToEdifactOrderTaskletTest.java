@@ -52,13 +52,13 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
   @Test
   void testEdifactOrdersExport() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
-    String cqlString = "purchaseOrder.workflowStatus==Open" +
-      " AND purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1" +
+    String cqlString = "(purchaseOrder.workflowStatus==Open)" +
+      " AND (purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1)" +
       " AND (cql.allRecords=1 NOT purchaseOrder.manualPo==true)" +
-      " AND automaticExport==true" +
+      " AND (automaticExport==true)" +
       " AND (cql.allRecords=1 NOT lastEDIExportDate=\"\")" +
-      " AND acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\")" +
-      " AND vendorDetail.vendorAccount==(\"BRXXXXX-01\")";
+      " AND (acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\"))" +
+      " AND (vendorDetail.vendorAccount==(\"BRXXXXX-01\"))";
     doReturn(poLines).when(ordersService).getPoLinesByQuery(cqlString);
     doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
     doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
@@ -73,12 +73,12 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
   @Test
   void testEdifactOrdersExportDefaultConfig() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
-    String cqlString = "purchaseOrder.workflowStatus==Open" +
-      " AND purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1" +
+    String cqlString = "(purchaseOrder.workflowStatus==Open)" +
+      " AND (purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1)" +
       " AND (cql.allRecords=1 NOT purchaseOrder.manualPo==true)" +
-      " AND automaticExport==true" +
+      " AND (automaticExport==true)" +
       " AND (cql.allRecords=1 NOT lastEDIExportDate=\"\")" +
-      " AND acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\")";
+      " AND (acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\"))";
     String configSql = "configName==EDIFACT_ORDERS_EXPORT_d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1*";
     ExportConfigCollection exportConfigCollection = new ExportConfigCollection();
     exportConfigCollection.setTotalRecords(1);
@@ -99,13 +99,13 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
   @Test
   void testEdifactOrdersExportDefaultConfigWithTwoExportConfigs() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
-    String cqlString = "purchaseOrder.workflowStatus==Open" +
-      " AND purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1" +
+    String cqlString = "(purchaseOrder.workflowStatus==Open)" +
+      " AND (purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1)" +
       " AND (cql.allRecords=1 NOT purchaseOrder.manualPo==true)" +
-      " AND automaticExport==true" +
+      " AND (automaticExport==true)" +
       " AND (cql.allRecords=1 NOT lastEDIExportDate=\"\")" +
-      " AND acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\")" +
-      " AND cql.allRecords=1 NOT vendorDetail.vendorAccount==(\"org1\" OR \"org2\")";
+      " AND (acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\"))" +
+      " AND (cql.allRecords=1 NOT vendorDetail.vendorAccount==(\"org1\" or \"org2\"))";
     String configSql = "configName==EDIFACT_ORDERS_EXPORT_d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1*";
     ExportConfigCollection exportConfigCollection = objectMapper.readValue(getMockData(DATA_EXPORT_CONFIGS_PATH), ExportConfigCollection.class);
     poLines.get(0).getVendorDetail().setVendorAccount(null);

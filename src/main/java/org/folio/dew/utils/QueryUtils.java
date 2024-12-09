@@ -63,7 +63,7 @@ public class QueryUtils {
    * @return A CQL query string representing the IDs.
    */
   public static String convertIdsToCqlQuery(Collection<String> ids, String idField) {
-    return convertFieldListToCqlQuery(ids, idField, true);
+    return convertFieldListToCqlQuery(ids, idField, true, false);
   }
 
   /**
@@ -73,7 +73,19 @@ public class QueryUtils {
    * @return A CQL query string representing the IDs.
    */
   public static String convertIdsToCqlQuery(Collection<String> ids) {
-    return convertFieldListToCqlQuery(ids, ID, true);
+    return convertFieldListToCqlQuery(ids, ID, true, false);
+  }
+
+  /**
+   * Transform list of values for some property to CQL query using 'or' operation and enclosing values with quotes
+   *
+   * @param values      list of field values
+   * @param fieldName   the property name to search by
+   * @param strictMatch indicates whether strict match mode (i.e. ==) should be used or not (i.e. =)
+   * @return String representing CQL query to get records by some property enclosed values
+   */
+  public static String convertFieldListToEnclosedCqlQuery(Collection<?> values, String fieldName, boolean strictMatch) {
+    return convertFieldListToCqlQuery(values, fieldName, strictMatch, true);
   }
 
   /**
@@ -82,13 +94,15 @@ public class QueryUtils {
    * @param values      list of field values
    * @param fieldName   the property name to search by
    * @param strictMatch indicates whether strict match mode (i.e. ==) should be used or not (i.e. =)
+   * @param enclosed    indicates whether values should be enclosed with quotes (i.e. asd) or not (i.e. "asd")
    * @return String representing CQL query to get records by some property values
    */
-  public static String convertFieldListToCqlQuery(Collection<?> values, String fieldName, boolean strictMatch) {
+  public static String convertFieldListToCqlQuery(Collection<?> values, String fieldName, boolean strictMatch, boolean enclosed) {
     var prefix = String.format(strictMatch ? CQL_MATCH_STRICT : CQL_MATCH, fieldName, CQL_PREFIX);
+    var enclose = enclosed ? "\"%s\"" : "%s";
     return StreamEx.of(values)
       .map(Object::toString)
-      .map("\"%s\""::formatted)
+      .map(enclose::formatted)
       .joining(" or ", prefix, CQL_SUFFIX);
   }
 

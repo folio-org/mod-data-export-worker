@@ -29,8 +29,8 @@ public class EdifactExportJobConfig {
     return jobBuilder.incrementer(new RunIdIncrementer())
       .listener(ediExportJobCompletionListener)
       .start(mapToEdifactOrdersStep)
-      .next(saveToFTPStep)
       .next(saveToMinIOStep)
+      .next(saveToFTPStep)
       .next(createExportHistoryRecordsStep)
       .build();
   }

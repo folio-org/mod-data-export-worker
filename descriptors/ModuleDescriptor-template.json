@@ -107,6 +107,10 @@
       "version": "12.1"
     },
     {
+      "id": "orders-storage.pieces",
+      "version": "5.0"
+    },
+    {
       "id": "organizations.organizations",
       "version": "1.2"
     },
@@ -187,6 +191,10 @@
     {
       "id": "custom-fields",
       "version": "3.0"
+    },
+    {
+      "id": "okapi",
+      "version": "1.9"
     }
   ],
   "provides": [
@@ -256,7 +264,6 @@
             "consortium-search.holdings.batch.collection.get",
             "consortium-search.items.batch.collection.get",
             "consortium-search.items.collection.get",
-            "bulk-edit.permissions-self-check.get",
             "consortia.user-tenants.collection.get",
             "perms.users.get",
             "permissions.users.item.get"
@@ -312,7 +319,6 @@
             "inventory-storage.holdings-sources.collection.get",
             "inventory-storage.holdings-sources.item.get",
             "inventory-storage.holdings.item.put",
-            "bulk-edit.permissions-self-check.get",
             "perms.users.get",
             "permissions.users.item.get"
           ]
@@ -322,15 +328,6 @@
           "pathPattern": "/bulk-edit/{jobId}/errors",
           "permissionsRequired": [ "bulk-edit.errors.collection.get" ],
           "modulePermissions": []
-        },
-        {
-          "methods": [ "GET" ],
-          "pathPattern": "/bulk-edit/permissions-self-check",
-          "permissionsRequired": ["bulk-edit.permissions-self-check.get"],
-          "modulePermissions": [
-            "perms.users.get",
-            "permissions.users.item.get"
-          ]
         },
         {
           "methods": [ "GET" ],
@@ -405,11 +402,6 @@
       "description" : "Get errors for preview"
     },
     {
-      "permissionName" : "bulk-edit.permissions-self-check.get",
-      "displayName" : "Set of users permissions for self check",
-      "description" : "Set of users permissions for self check"
-    },
-    {
       "permissionName" : "refresh-presigned-url.get",
       "displayName" : "Get refreshed presigned url for export file",
       "description" : "Get refreshed presigned url for export file"
@@ -421,8 +413,7 @@
       "subPermissions" : [
         "bulk-edit.item.post",
         "bulk-edit.start.item.post",
-        "bulk-edit.errors.collection.get",
-        "bulk-edit.permissions-self-check.get"
+        "bulk-edit.errors.collection.get"
       ]
     },
     {

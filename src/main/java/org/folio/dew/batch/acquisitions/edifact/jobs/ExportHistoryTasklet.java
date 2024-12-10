@@ -1,5 +1,6 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
+import static org.folio.dew.batch.acquisitions.edifact.jobs.EdifactExportJobConfig.POL_MEM_KEY;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 
@@ -77,7 +78,7 @@ public class ExportHistoryTasklet implements Tasklet {
 
   List<String> getPoLineIdsFromExecutionContext(StepExecution stepExecutionContext) {
     try {
-      return ediObjectMapper.readValue((String) ExecutionContextUtils.getExecutionVariable(stepExecutionContext, "polineIds"), new TypeReference<>() {});
+      return ediObjectMapper.readValue((String) ExecutionContextUtils.getExecutionVariable(stepExecutionContext, POL_MEM_KEY), new TypeReference<>() {});
     } catch (Exception e) {
       return Collections.emptyList();
     }

@@ -107,6 +107,10 @@
       "version": "12.1"
     },
     {
+      "id": "orders-storage.pieces",
+      "version": "5.0"
+    },
+    {
       "id": "organizations.organizations",
       "version": "1.2"
     },
@@ -187,6 +191,10 @@
     {
       "id": "custom-fields",
       "version": "3.0"
+    },
+    {
+      "id": "okapi",
+      "version": "1.9"
     }
   ],
   "provides": [

@@ -4,6 +4,11 @@ import org.folio.dew.batch.acquisitions.edifact.CompositePOConverter;
 import org.folio.dew.batch.acquisitions.edifact.CompositePOLineConverter;
 import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
+import org.folio.dew.batch.acquisitions.edifact.services.ExpenseClassService;
+import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
+import org.folio.dew.batch.acquisitions.edifact.services.IdentifierTypeService;
+import org.folio.dew.batch.acquisitions.edifact.services.LocationService;
+import org.folio.dew.batch.acquisitions.edifact.services.MaterialTypeService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -12,8 +17,9 @@ import org.springframework.context.annotation.Configuration;
 @ComponentScan({ "org.folio.dew.batch.acquisitions.edifact" })
 public class EdifactPurchaseOrderConfig {
   @Bean
-  CompositePOLineConverter compositePOLineConverter() {
-    return new CompositePOLineConverter();
+  CompositePOLineConverter compositePOLineConverter(IdentifierTypeService identifierTypeService, MaterialTypeService materialTypeService,
+                                                    ExpenseClassService expenseClassService, LocationService locationService, HoldingService holdingService) {
+    return new CompositePOLineConverter(identifierTypeService, materialTypeService, expenseClassService, locationService, holdingService);
   }
 
   @Bean

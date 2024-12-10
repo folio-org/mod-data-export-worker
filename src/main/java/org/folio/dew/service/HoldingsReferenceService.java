@@ -34,7 +34,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Log4j2
 public class HoldingsReferenceService extends FolioExecutionContextManager {
-  private static final String QUERY_PATTERN_NAME = "name==\"%s\"";
   private static final String QUERY_PATTERN_HRID = "hrid==\"%s\"";
   private static final String QUERY_PATTERN_BARCODE = "barcode==\"%s\"";
 
@@ -111,12 +110,18 @@ public class HoldingsReferenceService extends FolioExecutionContextManager {
   }
 
   @Cacheable(cacheNames = "holdingsTypesNames")
-  public String getHoldingsTypeNameById(String id, ErrorServiceArgs args, String tenantId) {
-    if (isEmpty(id)) {
+  public String getHoldingsTypeNameById(String id, String tenantId) {
+   if (isEmpty(id)) {
       return EMPTY;
     }
     try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-      return isEmpty(id) ? EMPTY : holdingsTypeClient.getById(id).getName();
+      return holdingsTypeClient.getById(id).getName();
+    }
+  }
+
+  public String getHoldingsTypeNameById(String id, ErrorServiceArgs args, String tenantId) {
+    try  {
+      return getHoldingsTypeNameById(id, tenantId);
     } catch (NotFoundException e) {
       var msg = "Holdings type not found by id=" + id;
       log.error(msg);
@@ -137,9 +142,18 @@ public class HoldingsReferenceService extends FolioExecutionContextManager {
   }
 
   @Cacheable(cacheNames = "holdingsCallNumberTypesNames")
-  public String getCallNumberTypeNameById(String id, ErrorServiceArgs args, String tenantId) {
+  public String getCallNumberTypeNameById(String id, String tenantId) {
+    if (isEmpty(id)) {
+      return EMPTY;
+    }
     try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-      return isEmpty(id) ? EMPTY : callNumberTypeClient.getById(id).getName();
+      return callNumberTypeClient.getById(id).getName();
+    }
+  }
+
+  public String getCallNumberTypeNameById(String id, ErrorServiceArgs args, String tenantId) {
+    try  {
+      return getCallNumberTypeNameById(id, tenantId);
     } catch (NotFoundException e) {
       var msg = "Call number type not found by id=" + id;
       log.error(msg);
@@ -149,9 +163,18 @@ public class HoldingsReferenceService extends FolioExecutionContextManager {
   }
 
   @Cacheable(cacheNames = "holdingsNoteTypesNames")
-  public String getNoteTypeNameById(String id, ErrorServiceArgs args, String tenantId) {
+  public String getNoteTypeNameById(String id, String tenantId) {
+    if (isEmpty(id)) {
+      return EMPTY;
+    }
     try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-      return isEmpty(id) ? EMPTY : holdingsNoteTypeClient.getById(id).getName();
+      return holdingsNoteTypeClient.getById(id).getName();
+    }
+  }
+
+  public String getNoteTypeNameById(String id, ErrorServiceArgs args, String tenantId) {
+    try {
+      return getNoteTypeNameById(id, tenantId);
     } catch (NotFoundException e) {
       var msg = "Note type not found by id=" + id;
       log.error(msg);
@@ -161,21 +184,39 @@ public class HoldingsReferenceService extends FolioExecutionContextManager {
   }
 
   @Cacheable(cacheNames = "illPolicyNames")
-  public String getIllPolicyNameById(String id, ErrorServiceArgs args, String tenantId) {
+  public String getIllPolicyNameById(String id, String tenantId) {
+    if (isEmpty(id)) {
+      return EMPTY;
+    }
     try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-      return isEmpty(id) ? EMPTY : illPolicyClient.getById(id).getName();
+      return illPolicyClient.getById(id).getName();
+    }
+  }
+
+  public String getIllPolicyNameById(String id, ErrorServiceArgs args, String tenantId) {
+    try {
+      return getIllPolicyNameById(id, tenantId);
     } catch (NotFoundException e) {
-        var msg = "Ill policy not found by id=" + id;
-        log.error(msg);
-        errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg), args.getFileName());
-        return id;
+      var msg = "Ill policy not found by id=" + id;
+      log.error(msg);
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg), args.getFileName());
+      return id;
     }
   }
 
   @Cacheable(cacheNames = "holdingsSourceNames")
-  public String getSourceNameById(String id, ErrorServiceArgs args, String tenantId) {
+  public String getSourceNameById(String id, String tenantId) {
+    if (isEmpty(id)) {
+      return EMPTY;
+    }
     try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-      return isEmpty(id) ? EMPTY : sourceClient.getById(id).getName();
+      return sourceClient.getById(id).getName();
+    }
+  }
+
+  public String getSourceNameById(String id, ErrorServiceArgs args, String tenantId) {
+    try {
+      return getSourceNameById(id, tenantId);
     } catch (NotFoundException e) {
       var msg = "Holdings record source not found by id=" + id;
       log.error(msg);
@@ -185,9 +226,18 @@ public class HoldingsReferenceService extends FolioExecutionContextManager {
   }
 
   @Cacheable(cacheNames = "holdingsStatisticalCodeNames")
-  public String getStatisticalCodeNameById(String id, ErrorServiceArgs args, String tenantId) {
+  public String getStatisticalCodeNameById(String id, String tenantId) {
+    if (isEmpty(id)) {
+      return EMPTY;
+    }
     try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-      return isEmpty(id) ? EMPTY : statisticalCodeClient.getById(id).getName();
+      return statisticalCodeClient.getById(id).getName();
+    }
+  }
+
+  public String getStatisticalCodeNameById(String id, ErrorServiceArgs args, String tenantId) {
+    try {
+      return getStatisticalCodeNameById(id, tenantId);
     } catch (NotFoundException e) {
       var msg = "Statistical code not found by id=" + id;
       log.error(msg);

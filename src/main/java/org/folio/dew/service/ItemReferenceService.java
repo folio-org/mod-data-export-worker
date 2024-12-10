@@ -44,26 +44,27 @@ import java.util.List;
 @Log4j2
 @RequiredArgsConstructor
 public class ItemReferenceService extends FolioExecutionContextManager {
-  private static final String QUERY_PATTERN_NAME = "name==\"%s\"";
-  public static final String EFFECTIVE_LOCATION_ID = "effectiveLocationId";
 
   private final CallNumberTypeClient callNumberTypeClient;
   private final DamagedStatusClient damagedStatusClient;
   private final ItemNoteTypeClient itemNoteTypeClient;
   private final StatisticalCodeClient statisticalCodeClient;
-  private final LocationClient locationClient;
-  private final MaterialTypeClient materialTypeClient;
-  private final HoldingClient holdingClient;
-  private final LoanTypeClient loanTypeClient;
-  private final ConfigurationClient configurationClient;
-  private final ObjectMapper objectMapper;
   private final BulkEditProcessingErrorsService errorsService;
   private final FolioExecutionContext folioExecutionContext;
 
   @Cacheable(cacheNames = "callNumberTypeNames")
-  public String getCallNumberTypeNameById(String callNumberTypeId, ErrorServiceArgs args, String tenantId) {
+  public String getCallNumberTypeNameById(String callNumberTypeId, String tenantId) {
+    if (isEmpty(callNumberTypeId)) {
+      return EMPTY;
+    }
     try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-      return isEmpty(callNumberTypeId) ? EMPTY : callNumberTypeClient.getById(callNumberTypeId).getName();
+      return callNumberTypeClient.getById(callNumberTypeId).getName();
+    }
+  }
+
+  public String getCallNumberTypeNameById(String callNumberTypeId, ErrorServiceArgs args, String tenantId) {
+    try {
+      return getCallNumberTypeNameById(callNumberTypeId, tenantId);
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Call number type was not found by id: [%s]", callNumberTypeId)), args.getFileName());
       return callNumberTypeId;
@@ -71,9 +72,18 @@ public class ItemReferenceService extends FolioExecutionContextManager {
   }
 
   @Cacheable(cacheNames = "damagedStatusNames")
-  public String getDamagedStatusNameById(String damagedStatusId, ErrorServiceArgs args, String tenantId) {
+  public String getDamagedStatusNameById(String damagedStatusId, String tenantId) {
+    if (isEmpty(damagedStatusId)) {
+      return EMPTY;
+    }
     try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-      return isEmpty(damagedStatusId) ? EMPTY : damagedStatusClient.getById(damagedStatusId).getName();
+      return damagedStatusClient.getById(damagedStatusId).getName();
+    }
+  }
+
+  public String getDamagedStatusNameById(String damagedStatusId, ErrorServiceArgs args, String tenantId) {
+    try {
+      return getDamagedStatusNameById(damagedStatusId, tenantId);
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Damaged status was not found by id: [%s]", damagedStatusId)), args.getFileName());
       return damagedStatusId;
@@ -81,9 +91,18 @@ public class ItemReferenceService extends FolioExecutionContextManager {
   }
 
   @Cacheable(cacheNames = "noteTypeNames")
-  public String getNoteTypeNameById(String noteTypeId, ErrorServiceArgs args, String tenantId) {
+  public String getNoteTypeNameById(String noteTypeId, String tenantId) {
+    if (isEmpty(noteTypeId)) {
+      return EMPTY;
+    }
     try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-      return isEmpty(noteTypeId) ? EMPTY : itemNoteTypeClient.getById(noteTypeId).getName();
+      return itemNoteTypeClient.getById(noteTypeId).getName();
+    }
+  }
+
+  public String getNoteTypeNameById(String noteTypeId, ErrorServiceArgs args, String tenantId) {
+    try {
+      return getNoteTypeNameById(noteTypeId, tenantId);
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Note type was not found by id: [%s]", noteTypeId)), args.getFileName());
       return noteTypeId;
@@ -91,59 +110,21 @@ public class ItemReferenceService extends FolioExecutionContextManager {
   }
 
   @Cacheable(cacheNames = "statisticalCodeNames")
-  public String getStatisticalCodeById(String statisticalCodeId, ErrorServiceArgs args, String tenantId) {
+  public String getStatisticalCodeById(String statisticalCodeId, String tenantId) {
+    if (isEmpty(statisticalCodeId)) {
+      return EMPTY;
+    }
     try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-      return isEmpty(statisticalCodeId) ? EMPTY : statisticalCodeClient.getById(statisticalCodeId).getCode();
+      return statisticalCodeClient.getById(statisticalCodeId).getCode();
+    }
+  }
+
+  public String getStatisticalCodeById(String statisticalCodeId, ErrorServiceArgs args, String tenantId) {
+    try {
+      return getStatisticalCodeById(statisticalCodeId, tenantId);
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Statistical code was not found by id: [%s]", statisticalCodeId)), args.getFileName());
       return statisticalCodeId;
     }
-  }
-
-  @Cacheable(cacheNames = "locations")
-  public ItemLocationCollection getItemLocationsByName(String name) {
-    return locationClient.getLocationByQuery(String.format(QUERY_PATTERN_NAME, name));
-  }
-
-  @Cacheable(cacheNames = "materialTypes")
-  public MaterialTypeCollection getMaterialTypesByName(String name) {
-    return materialTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
-  }
-
-  @Cacheable(cacheNames = "loanTypes")
-  public LoanTypeCollection getLoanTypesByName(String name) {
-    return loanTypeClient.getByQuery(String.format(QUERY_PATTERN_NAME, name));
-  }
-
-  @Cacheable(cacheNames = "holdings")
-  public String getHoldingEffectiveLocationCodeById(String id) {
-    var holdingJson = holdingClient.getHoldingById(id);
-    var effectiveLocationId = isEmpty(holdingJson.get(EFFECTIVE_LOCATION_ID)) ? getHoldingsEffectiveLocation(holdingJson) : holdingJson.get(EFFECTIVE_LOCATION_ID);
-    if (nonNull(effectiveLocationId)) {
-      var locationJson = locationClient.getLocation(effectiveLocationId.asText());
-      return isEmpty(locationJson.get("name")) ? EMPTY : locationJson.get("name").asText();
-    }
-    return EMPTY;
-  }
-
-  @Cacheable(cacheNames = "allowedStatuses")
-  public List<String> getAllowedStatuses(String statusName) {
-    var configurations = configurationClient.getConfigurations(String.format(BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE, MODULE_NAME, STATUSES_CONFIG_NAME));
-    if (configurations.getConfigs().isEmpty()) {
-      throw new NotFoundException("Statuses configuration was not found");
-    }
-    try {
-      var statuses = objectMapper
-        .readValue(configurations.getConfigs().get(0).getValue(), new TypeReference<HashMap<String, List<String>>>() {});
-      return statuses.getOrDefault(statusName, Collections.emptyList());
-    } catch (JsonProcessingException e) {
-      var msg = String.format("Error reading configuration, reason: %s", e.getMessage());
-      log.error(msg);
-      throw new ConfigurationException(msg);
-    }
-  }
-
-  private JsonNode getHoldingsEffectiveLocation(JsonNode holdingsJson) {
-    return isEmpty(holdingsJson.get("temporaryLocationId")) ? holdingsJson.get("permanentLocationId") : holdingsJson.get("temporaryLocationId");
   }
 }

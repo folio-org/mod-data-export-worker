@@ -1,3 +1,9 @@
+## 2024-12-10 v3.3.5
+
+This release contains updates for missing interfaces.
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.3.4...v3.3.5)
+
 ## 2024-12-05 v3.3.4
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.3.3...v3.3.4)

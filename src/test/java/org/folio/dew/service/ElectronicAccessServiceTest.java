@@ -134,33 +134,6 @@ class ElectronicAccessServiceTest {
     assertEquals(expected, actual);
   }
 
-  @Test
-  void getElectronicAccessRelationshipIdByNameTest() {
-    var id = UUID.randomUUID().toString();
-    var electronicAccessRelationship = new ElectronicAccessRelationship();
-    electronicAccessRelationship.setId(id);
-    electronicAccessRelationship.name("name");
-
-    var electronicAccessRelationshipCollection = new ElectronicAccessRelationshipCollection();
-    electronicAccessRelationshipCollection.setElectronicAccessRelationships(List.of(electronicAccessRelationship));
-
-    when(relationshipClient.getByQuery(isA(String.class))).thenReturn(electronicAccessRelationshipCollection);
-
-    var actualId =  electronicAccessService.getElectronicAccessRelationshipIdByName("name");
-    assertEquals(id, actualId);
-  }
-
-  @Test
-  void getElectronicAccessRelationshipIdByNameWithEmptyCollectionTest() {
-    var electronicAccessRelationshipCollection = new ElectronicAccessRelationshipCollection();
-    electronicAccessRelationshipCollection.setElectronicAccessRelationships(new ArrayList<>());
-
-    when(relationshipClient.getByQuery(isA(String.class))).thenReturn(electronicAccessRelationshipCollection);
-
-    var actualId = electronicAccessService.getElectronicAccessRelationshipIdByName("name");
-    assertEquals(StringUtils.EMPTY, actualId);
-  }
-
   private ErrorServiceArgs buildErrorServiceArgs() {
     return new ErrorServiceArgs(UUID.randomUUID().toString(), "identifier", "filename");
   }

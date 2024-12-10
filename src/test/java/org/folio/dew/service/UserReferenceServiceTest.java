@@ -27,30 +27,12 @@ public class UserReferenceServiceTest {
   private UserReferenceService userReferenceService;
 
   @Test
-  void getAddressTypeByDescTest() {
-    when(addressTypeClient.getAddressTypeByQuery("desc==\"abc\"")).thenReturn(new AddressTypeCollection());
-
-    userReferenceService.getAddressTypeIdByDesc("abc");
-
-    verify(addressTypeClient).getAddressTypeByQuery("desc==\"abc\"");
-  }
-
-  @Test
   void getDepartmentByIdTest() {
     when(departmentClient.getDepartmentById("id")).thenReturn(new Department());
 
     userReferenceService.getDepartmentNameById("id", new ErrorServiceArgs("jobId", "ïdentifier", "fileName"));
 
     verify(departmentClient).getDepartmentById("id");
-  }
-
-  @Test
-  void getDepartmentByNameTest() {
-    when(departmentClient.getDepartmentByQuery("name==\"name\"")).thenReturn(new DepartmentCollection());
-
-    userReferenceService.getDepartmentIdByName("name");
-
-    verify(departmentClient).getDepartmentByQuery("name==\"name\"");
   }
 
 }

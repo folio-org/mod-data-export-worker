@@ -58,12 +58,12 @@ class InstanceMapperTest {
     var mapper = new InstanceMapper(instanceReferenceService, new SpecialCharacterEscaper());
 
     when(statisticalCodeClient.getById(statisticalCodeId1))
-      .thenReturn(new StatisticalCode().name("statistical_cod_1"));
+      .thenReturn(new StatisticalCode().name("statistical_code_1"));
     when(statisticalCodeClient.getById(statisticalCodeId2))
       .thenReturn(new StatisticalCode().name("statistical_code_2"));
 
     var instanceFormat = mapper.mapToInstanceFormat(instance, "identifier", UUID.randomUUID().toString(), "errorFile");
 
-    assertThat(instanceFormat.getStatisticalCodes()).isEqualTo("statistical_cod_1;statistical_code_2");
+    assertThat(instanceFormat.getStatisticalCodes()).isEqualTo("statistical_code_1;statistical_code_2");
   }
 }

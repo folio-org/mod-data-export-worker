@@ -17,18 +17,18 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Log4j2
 @RequiredArgsConstructor
 public class EdifactExportJobConfig {
-  @Bean
-  public Job edifactExportJob(
-    EdiExportJobCompletionListener ediExportJobCompletionListener,
-    JobRepository jobRepository,
-    Step mapToEdifactStep,
-    Step saveToFTPStep,
-    Step saveToMinIOStep,
-    Step createExportHistoryRecordsStep) {
-    return new JobBuilder(ExportType.EDIFACT_ORDERS_EXPORT.getValue(), jobRepository)
-      .incrementer(new RunIdIncrementer())
+
+  public static final String POL_MEM_KEY = "poLineIds";
+
+  private Job constructEdifactExportJob(JobBuilder jobBuilder,
+                                        EdiExportJobCompletionListener ediExportJobCompletionListener,
+                                        Step mapToEdifactOrdersStep,
+                                        Step saveToFTPStep,
+                                        Step saveToMinIOStep,
+                                        Step createExportHistoryRecordsStep) {
+    return jobBuilder.incrementer(new RunIdIncrementer())
       .listener(ediExportJobCompletionListener)
-      .start(mapToEdifactStep)
+      .start(mapToEdifactOrdersStep)
       .next(saveToMinIOStep)
       .next(saveToFTPStep)
       .next(createExportHistoryRecordsStep)
@@ -36,10 +36,32 @@ public class EdifactExportJobConfig {
   }
 
   @Bean
-  public Step mapToEdifactStep(MapToEdifactTasklet mapToEdifactTasklet, JobRepository jobRepository,
-                               PlatformTransactionManager transactionManager) {
+  public Job edifactOrdersExportJob(EdiExportJobCompletionListener ediExportJobCompletionListener, JobRepository jobRepository,
+                                    Step mapToEdifactOrdersStep, Step saveToFTPStep, Step saveToMinIOStep, Step createExportHistoryRecordsStep) {
+    return constructEdifactExportJob(new JobBuilder(ExportType.EDIFACT_ORDERS_EXPORT.getValue(), jobRepository),
+      ediExportJobCompletionListener, mapToEdifactOrdersStep, saveToFTPStep, saveToMinIOStep, createExportHistoryRecordsStep);
+  }
+
+  @Bean
+  public Job edifactClaimsExportJob(EdiExportJobCompletionListener ediExportJobCompletionListener, JobRepository jobRepository,
+                                    Step mapToEdifactClaimsStep, Step saveToFTPStep, Step saveToMinIOStep, Step createExportHistoryRecordsStep) {
+    return constructEdifactExportJob(new JobBuilder(ExportType.CLAIMS.getValue(), jobRepository),
+      ediExportJobCompletionListener, mapToEdifactClaimsStep, saveToFTPStep, saveToMinIOStep, createExportHistoryRecordsStep);
+  }
+
+  @Bean
+  public Step mapToEdifactOrdersStep(MapToEdifactOrdersTasklet mapToEdifactOrdersTasklet, JobRepository jobRepository,
+                                     PlatformTransactionManager transactionManager) {
     return new StepBuilder("mapToEdifactStep", jobRepository)
-      .tasklet(mapToEdifactTasklet, transactionManager)
+      .tasklet(mapToEdifactOrdersTasklet, transactionManager)
+      .build();
+  }
+
+  @Bean
+  public Step mapToEdifactClaimsStep(MapToEdifactClaimsTasklet mapToEdifactClaimsTasklet, JobRepository jobRepository,
+                                     PlatformTransactionManager transactionManager) {
+    return new StepBuilder("mapToEdifactStep", jobRepository)
+      .tasklet(mapToEdifactClaimsTasklet, transactionManager)
       .build();
   }
 

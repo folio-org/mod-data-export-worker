@@ -1,44 +1,21 @@
 package org.folio.dew.service;
 
-import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.folio.dew.utils.Constants.BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE;
-import static org.folio.dew.utils.Constants.MODULE_NAME;
-import static org.folio.dew.utils.Constants.STATUSES_CONFIG_NAME;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.CallNumberTypeClient;
-import org.folio.dew.client.ConfigurationClient;
 import org.folio.dew.client.DamagedStatusClient;
-import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.ItemNoteTypeClient;
-import org.folio.dew.client.LoanTypeClient;
-import org.folio.dew.client.LocationClient;
-import org.folio.dew.client.MaterialTypeClient;
-import org.folio.dew.client.ServicePointClient;
 import org.folio.dew.client.StatisticalCodeClient;
-import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
-import org.folio.dew.domain.dto.ItemLocationCollection;
-import org.folio.dew.domain.dto.LoanTypeCollection;
-import org.folio.dew.domain.dto.MaterialTypeCollection;
 import org.folio.dew.error.BulkEditException;
-import org.folio.dew.error.ConfigurationException;
 import org.folio.dew.error.NotFoundException;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 
 @Service
 @Log4j2

@@ -7,15 +7,11 @@ import static org.folio.dew.utils.Constants.ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DEL
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.folio.dew.client.ElectronicAccessRelationshipClient;
 import org.folio.dew.domain.dto.ElectronicAccess;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
-import org.folio.spring.FolioExecutionContext;
-import org.folio.spring.scope.FolioExecutionContextSetter;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,9 +22,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Log4j2
 public class ElectronicAccessService extends FolioExecutionContextManager {
-  private final ElectronicAccessRelationshipClient relationshipClient;
   private final BulkEditProcessingErrorsService errorsService;
-  private final FolioExecutionContext folioExecutionContext;
+  private final ElectronicAccessServiceCache electronicAccessServiceCache;
 
   public String getElectronicAccessesToString(List<ElectronicAccess> electronicAccesses, ErrorServiceArgs errorServiceArgs, EntityType entityType, String tenantId) {
     return isEmpty(electronicAccesses) ?
@@ -50,16 +45,9 @@ public class ElectronicAccessService extends FolioExecutionContextManager {
       isEmpty(access.getPublicNote()) ? EMPTY : access.getPublicNote());
   }
 
-  @Cacheable(cacheNames = "relationships")
-  public String getRelationshipNameById(String id, String tenantId) {
-    try (var context = new FolioExecutionContextSetter(refreshAndGetFolioExecutionContext(tenantId, folioExecutionContext))) {
-      return relationshipClient.getById(id).getName();
-    }
-  }
-
   public String getRelationshipNameById(String id, ErrorServiceArgs errorServiceArgs, String tenantId) {
     try {
-      return getRelationshipNameById(id, tenantId);
+      return electronicAccessServiceCache.getRelationshipNameById(id, tenantId);
     } catch (NotFoundException e) {
       var errorMessage = String.format("Electronic access relationship not found by id=%s", id);
       log.error(errorMessage);

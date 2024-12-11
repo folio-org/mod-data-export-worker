@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,6 +45,7 @@ public class InstanceMapper {
       .catalogedDate(formatDate(instance.getCatalogedDate()))
       .statusId(instanceReferenceService.getInstanceStatusNameById(instance.getStatusId(), errorServiceArgs))
       .modeOfIssuanceId(instanceReferenceService.getModeOfIssuanceNameById(instance.getModeOfIssuanceId(), errorServiceArgs))
+      .statisticalCode(getStatisticalCodeNames(instance.getStatisticalCodeIds(), errorServiceArgs))
       .notes(fetchNotes(instance.getNotes(), errorServiceArgs))
       .administrativeNotes(isEmpty(instance.getAdministrativeNotes()) ? EMPTY : String.join(ITEM_DELIMITER_SPACED, instance.getAdministrativeNotes()))
       .title(instance.getTitle())
@@ -101,5 +103,13 @@ public class InstanceMapper {
       specialCharacterEscaper.escape(instanceReferenceService.getInstanceNoteTypeNameById(note.getInstanceNoteTypeId(), errorServiceArgs)),
       specialCharacterEscaper.escape(note.getNote()),
       booleanToStringNullSafe(note.getStaffOnly())));
+  }
+
+  private String getStatisticalCodeNames(List<String> codeIds, ErrorServiceArgs args) {
+    return isEmpty(codeIds) ? EMPTY : codeIds.stream()
+      .filter(Objects::nonNull)
+      .map(id -> instanceReferenceService.getStatisticalCodeNameById(id, args))
+      .map(specialCharacterEscaper::escape)
+      .collect(Collectors.joining(ARRAY_DELIMITER));
   }
 }

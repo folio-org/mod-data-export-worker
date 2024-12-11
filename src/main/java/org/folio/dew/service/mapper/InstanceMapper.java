@@ -45,7 +45,7 @@ public class InstanceMapper {
       .catalogedDate(formatDate(instance.getCatalogedDate()))
       .statusId(instanceReferenceService.getInstanceStatusNameById(instance.getStatusId(), errorServiceArgs))
       .modeOfIssuanceId(instanceReferenceService.getModeOfIssuanceNameById(instance.getModeOfIssuanceId(), errorServiceArgs))
-      .statisticalCodes(getStatisticalCodeNames(instance.getStatisticalCodeIds(), errorServiceArgs))
+      .statisticalCode(getStatisticalCodeNames(instance.getStatisticalCodeIds(), errorServiceArgs))
       .notes(fetchNotes(instance.getNotes(), errorServiceArgs))
       .administrativeNotes(isEmpty(instance.getAdministrativeNotes()) ? EMPTY : String.join(ITEM_DELIMITER_SPACED, instance.getAdministrativeNotes()))
       .title(instance.getTitle())

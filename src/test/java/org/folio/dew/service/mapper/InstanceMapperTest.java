@@ -64,6 +64,6 @@ class InstanceMapperTest {
 
     var instanceFormat = mapper.mapToInstanceFormat(instance, "identifier", UUID.randomUUID().toString(), "errorFile");
 
-    assertThat(instanceFormat.getStatisticalCodes()).isEqualTo("statistical_code_1;statistical_code_2");
+    assertThat(instanceFormat.getStatisticalCode()).isEqualTo("statistical_code_1;statistical_code_2");
   }
 }

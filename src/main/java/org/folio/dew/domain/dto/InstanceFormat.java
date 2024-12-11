@@ -9,7 +9,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.folio.dew.domain.dto.IdentifierType;
 
 import java.lang.reflect.Field;
 import java.util.stream.Collectors;
@@ -59,9 +58,9 @@ public class InstanceFormat implements Formatable<org.folio.dew.domain.dto.Insta
   @CsvBindByPosition(position = 8)
   private String modeOfIssuanceId;
 
-  @CsvBindByName(column = "Statistical codes")
+  @CsvBindByName(column = "Statistical code")
   @CsvBindByPosition(position = 9)
-  private String statisticalCodes;
+  private String statisticalCode;
 
   @CsvBindByName(column = "Administrative note")
   @CsvBindByPosition(position = 10)

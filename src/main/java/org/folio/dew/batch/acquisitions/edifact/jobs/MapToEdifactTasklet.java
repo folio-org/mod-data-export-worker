@@ -11,7 +11,7 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
-import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
+import org.folio.dew.batch.acquisitions.edifact.mapper.EdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.CompositeOrderMappingException;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
@@ -21,7 +21,7 @@ import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.PurchaseOrder;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
-import org.folio.dew.domain.dto.acquisitions.edifact.EdifactExportHolder;
+import org.folio.dew.domain.dto.acquisitions.edifact.ExportHolder;
 import org.folio.dew.error.NotFoundException;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -41,7 +41,7 @@ public abstract class MapToEdifactTasklet implements Tasklet {
 
   private final ObjectMapper ediObjectMapper;
   protected final OrdersService ordersService;
-  private final PurchaseOrdersToEdifactMapper purchaseOrdersToEdifactMapper;
+  private final EdifactMapper edifactMapper;
 
   @Override
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
@@ -54,7 +54,7 @@ public abstract class MapToEdifactTasklet implements Tasklet {
     persistPoLineIds(chunkContext, holder.orders());
 
     String jobName = jobParameters.get(JobParameterNames.JOB_NAME).toString();
-    var edifactStringResult = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(holder.orders(), holder.pieces(), ediExportConfig, jobName);
+    var edifactStringResult = edifactMapper.convertForExport(holder.orders(), holder.pieces(), ediExportConfig, jobName);
 
     // save edifact file content in memory
     ExecutionContextUtils.addToJobExecutionContext(chunkContext.getStepContext().getStepExecution(), "edifactOrderAsString", edifactStringResult, "");
@@ -124,7 +124,7 @@ protected List<CompositePurchaseOrder> getCompositeOrders(String poLineQuery) {
 
   protected abstract List<String> getExportConfigMissingFields(VendorEdiOrdersExportConfig ediOrdersExportConfig);
 
-  protected abstract EdifactExportHolder buildEdifactExportHolder(ChunkContext chunkContext, VendorEdiOrdersExportConfig ediExportConfig,
-                                                                  Map<String, Object> jobParameters) throws JsonProcessingException, EDIStreamException;
+  protected abstract ExportHolder buildEdifactExportHolder(ChunkContext chunkContext, VendorEdiOrdersExportConfig ediExportConfig,
+                                                           Map<String, Object> jobParameters) throws JsonProcessingException, EDIStreamException;
 
 }

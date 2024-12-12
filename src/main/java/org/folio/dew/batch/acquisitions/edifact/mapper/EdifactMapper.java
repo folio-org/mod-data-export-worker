@@ -1,4 +1,4 @@
-package org.folio.dew.batch.acquisitions.edifact;
+package org.folio.dew.batch.acquisitions.edifact.mapper;
 
 import static java.util.stream.Collectors.groupingBy;
 
@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompositePOConverter;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 
 import io.xlate.edi.stream.EDIOutputFactory;
@@ -18,18 +19,14 @@ import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.acquisitions.edifact.EdiFileConfig;
 
-public class PurchaseOrdersToEdifactMapper {
+public class EdifactMapper implements ExportResourceMapper {
   private final CompositePOConverter compositePOConverter;
 
-  public PurchaseOrdersToEdifactMapper(CompositePOConverter compositePOConverter) {
+  public EdifactMapper(CompositePOConverter compositePOConverter) {
     this.compositePOConverter = compositePOConverter;
   }
 
-  public String convertOrdersToEdifact(List<CompositePurchaseOrder> compPOs, VendorEdiOrdersExportConfig ediExportConfig, String jobName) throws EDIStreamException {
-    return convertOrdersToEdifact(compPOs, List.of(), ediExportConfig, jobName);
-  }
-
-  public String convertOrdersToEdifact(List<CompositePurchaseOrder> compPOs, List<Piece> pieces, VendorEdiOrdersExportConfig ediExportConfig, String jobName) throws EDIStreamException {
+  public String convertForExport(List<CompositePurchaseOrder> compPOs, List<Piece> pieces, VendorEdiOrdersExportConfig ediExportConfig, String jobName) throws EDIStreamException {
     ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
     EDIOutputFactory factory = EDIOutputFactory.newFactory();

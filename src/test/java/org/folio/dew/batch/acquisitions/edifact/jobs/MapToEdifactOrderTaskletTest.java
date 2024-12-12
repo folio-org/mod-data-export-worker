@@ -61,7 +61,7 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
       " AND (vendorDetail.vendorAccount==(\"BRXXXXX-01\"))";
     doReturn(poLines).when(ordersService).getPoLinesByQuery(cqlString);
     doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
-    doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
+    doReturn("test1").when(edifactMapper).convertForExport(any(), any(), any(), anyString());
 
     JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT)));
 
@@ -86,7 +86,7 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
     doReturn(poLines).when(ordersService).getPoLinesByQuery(cqlString);
     doReturn(exportConfigCollection).when(dataExportSpringClient).getExportConfigs(configSql);
     doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
-    doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
+    doReturn("test1").when(edifactMapper).convertForExport(any(), any(), any(), anyString());
 
     var exportConfig = getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT, true);
     JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig));
@@ -112,7 +112,7 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
     doReturn(poLines).when(ordersService).getPoLinesByQuery(cqlString);
     doReturn(exportConfigCollection).when(dataExportSpringClient).getExportConfigs(configSql);
     doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
-    doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
+    doReturn("test1").when(edifactMapper).convertForExport(any(), any(), any(), anyString());
 
     var exportConfig = getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT, true);
     JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig));

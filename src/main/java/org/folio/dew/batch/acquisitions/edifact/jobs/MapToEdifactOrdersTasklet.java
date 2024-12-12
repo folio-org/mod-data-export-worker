@@ -13,13 +13,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
+import org.folio.dew.batch.acquisitions.edifact.mapper.EdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.domain.dto.ExportConfigCollection;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
-import org.folio.dew.domain.dto.acquisitions.edifact.EdifactExportHolder;
+import org.folio.dew.domain.dto.acquisitions.edifact.ExportHolder;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.stereotype.Component;
@@ -37,8 +37,8 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
 
   public MapToEdifactOrdersTasklet(ObjectMapper ediObjectMapper, OrdersService ordersService,
                                    DataExportSpringClient dataExportSpringClient,
-                                   PurchaseOrdersToEdifactMapper purchaseOrdersToEdifactMapper) {
-    super(ediObjectMapper, ordersService, purchaseOrdersToEdifactMapper);
+                                   EdifactMapper edifactMapper) {
+    super(ediObjectMapper, ordersService, edifactMapper);
     this.dataExportSpringClient = dataExportSpringClient;
   }
 
@@ -47,10 +47,10 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
   }
 
   @Override
-  protected EdifactExportHolder buildEdifactExportHolder(ChunkContext chunkContext, VendorEdiOrdersExportConfig ediExportConfig, Map<String, Object> jobParameters) {
+  protected ExportHolder buildEdifactExportHolder(ChunkContext chunkContext, VendorEdiOrdersExportConfig ediExportConfig, Map<String, Object> jobParameters) {
     var poLineQuery = getPoLineQuery(ediExportConfig);
     var compOrders = getCompositeOrders(poLineQuery);
-    return new EdifactExportHolder(compOrders, List.of());
+    return new ExportHolder(compOrders, List.of());
   }
 
   protected String getPoLineQuery(VendorEdiOrdersExportConfig ediConfig) {

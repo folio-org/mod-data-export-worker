@@ -1,4 +1,4 @@
-package org.folio.dew.batch.acquisitions.edifact;
+package org.folio.dew.batch.acquisitions.edifact.mapper.converter;
 
 import io.xlate.edi.stream.EDIStreamException;
 import io.xlate.edi.stream.EDIStreamWriter;

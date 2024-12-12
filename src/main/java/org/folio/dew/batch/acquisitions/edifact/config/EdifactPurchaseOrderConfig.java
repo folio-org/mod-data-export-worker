@@ -1,8 +1,9 @@
 package org.folio.dew.batch.acquisitions.edifact.config;
 
-import org.folio.dew.batch.acquisitions.edifact.CompositePOConverter;
-import org.folio.dew.batch.acquisitions.edifact.CompositePOLineConverter;
-import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
+import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
+import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompositePOConverter;
+import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompositePOLineConverter;
+import org.folio.dew.batch.acquisitions.edifact.mapper.EdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
 import org.folio.dew.batch.acquisitions.edifact.services.ExpenseClassService;
 import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
@@ -28,7 +29,7 @@ public class EdifactPurchaseOrderConfig {
   }
 
   @Bean
-  PurchaseOrdersToEdifactMapper mappingOrdersToEdifact(CompositePOConverter compositePOConverter) {
-    return new PurchaseOrdersToEdifactMapper(compositePOConverter);
+  ExportResourceMapper mappingOrdersToEdifact(CompositePOConverter compositePOConverter) {
+    return new EdifactMapper(compositePOConverter);
   }
 }

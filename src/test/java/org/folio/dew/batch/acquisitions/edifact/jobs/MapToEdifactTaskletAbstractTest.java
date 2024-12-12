@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.folio.dew.BaseBatchTest;
-import org.folio.dew.batch.acquisitions.edifact.PurchaseOrdersToEdifactMapper;
+import org.folio.dew.batch.acquisitions.edifact.mapper.EdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.client.DataExportSpringClient;
 import org.junit.jupiter.api.Test;
@@ -46,7 +46,7 @@ abstract class MapToEdifactTaskletAbstractTest extends BaseBatchTest {
   @MockBean
   protected DataExportSpringClient dataExportSpringClient;
   @MockBean
-  protected PurchaseOrdersToEdifactMapper purchaseOrdersToEdifactMapper;
+  protected EdifactMapper edifactMapper;
   @Autowired
   protected ObjectMapper objectMapper;
   protected Job edifactExportJob;

@@ -22,6 +22,9 @@ import java.util.Map;
 import java.util.stream.Stream;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.IOUtils;
+import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompositePOConverter;
+import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompositePOLineConverter;
+import org.folio.dew.batch.acquisitions.edifact.mapper.EdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
 import org.folio.dew.batch.acquisitions.edifact.services.ExpenseClassService;
 import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
@@ -52,7 +55,7 @@ class MappingOrdersToEdifactTest {
   );
 
   private ObjectMapper objectMapper;
-  private PurchaseOrdersToEdifactMapper purchaseOrdersToEdifactMapper;
+  private EdifactMapper edifactMapper;
 
   @Mock
   private IdentifierTypeService identifierTypeService;
@@ -71,7 +74,7 @@ class MappingOrdersToEdifactTest {
   void setUp() {
     var compositePOLineConverter = new CompositePOLineConverter(identifierTypeService, materialTypeService, expenseClassService, locationService, holdingService);
     var compositePOConverter = new CompositePOConverter(compositePOLineConverter, configurationService);
-    purchaseOrdersToEdifactMapper = new PurchaseOrdersToEdifactMapper(compositePOConverter);
+    edifactMapper = new EdifactMapper(compositePOConverter);
     objectMapper = new JacksonConfiguration().objectMapper();
   }
 
@@ -87,14 +90,14 @@ class MappingOrdersToEdifactTest {
 
     String ediOrder;
     if (type == EDIFACT_ORDERS_EXPORT) {
-      ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, getTestEdiConfig(), jobName);
+      ediOrder = edifactMapper.convertForExport(compPOs, List.of(), getTestEdiConfig(), jobName);
     } else {
       var piecePoLineIds = pieces.stream().map(Piece::getPoLineId).toList();
       compPOs = compPOs.stream()
         .peek(po -> po.getCompositePoLines().stream().filter(line -> piecePoLineIds.contains(line.getId())).toList())
         .filter(po -> !po.getCompositePoLines().isEmpty())
         .toList();
-      ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, pieces, getTestEdiConfig(), jobName);
+      ediOrder = edifactMapper.convertForExport(compPOs, pieces, getTestEdiConfig(), jobName);
     }
 
     assertFalse(ediOrder.isEmpty());
@@ -112,9 +115,9 @@ class MappingOrdersToEdifactTest {
 
     byte[] ediOrder;
     if (type == EDIFACT_ORDERS_EXPORT) {
-      ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, getTestEdiConfig(), jobName).getBytes(StandardCharsets.UTF_8);
+      ediOrder = edifactMapper.convertForExport(compPOs, List.of(), getTestEdiConfig(), jobName).getBytes(StandardCharsets.UTF_8);
     } else {
-      ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, pieces, getTestEdiConfig(), jobName).getBytes(StandardCharsets.UTF_8);
+      ediOrder = edifactMapper.convertForExport(compPOs, pieces, getTestEdiConfig(), jobName).getBytes(StandardCharsets.UTF_8);
     }
 
     assertNotNull(ediOrder);

@@ -1,6 +1,7 @@
 package org.folio.dew.batch.acquisitions.edifact.mapper.converter;
 
 import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.getVendorOrderNumber;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.getVendorReferenceNumbers;
 
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
@@ -25,7 +26,6 @@ import org.folio.dew.domain.dto.Location;
 import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.ProductIdentifier;
 import org.folio.dew.domain.dto.ReferenceNumberItem;
-import org.folio.dew.domain.dto.VendorDetail;
 import org.javamoney.moneta.Money;
 
 import java.math.BigDecimal;
@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class CompPoLineEdiConverter {
   private static final int MAX_CHARS_PER_LINE = 70;
@@ -510,12 +509,6 @@ public class CompPoLineEdiConverter {
       return expenseClassService.getExpenseClassCode(expenseClassId);
     }
     return "";
-  }
-
-  private List<ReferenceNumberItem> getVendorReferenceNumbers(CompositePoLine poLine) {
-    return Optional.ofNullable(poLine.getVendorDetail())
-      .map(VendorDetail::getReferenceNumbers)
-      .orElse(new ArrayList<>());
   }
 
   private ReferenceNumberItem getAndRemoveVendorOrderNumber(List<ReferenceNumberItem> referenceNumberItems) {

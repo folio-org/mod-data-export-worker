@@ -1,7 +1,6 @@
 package org.folio.dew.batch.acquisitions.edifact;
 
 import static org.folio.dew.domain.dto.ExportType.CLAIMS;
-import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -19,10 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.log4j.Log4j2;
+
+import org.folio.dew.batch.acquisitions.edifact.mapper.CsvMapper;
 import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
-import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompOrderEdiConverter;
-import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompPoLineEdiConverter;
-import org.folio.dew.batch.acquisitions.edifact.mapper.EdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
 import org.folio.dew.batch.acquisitions.edifact.services.ExpenseClassService;
 import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
@@ -44,15 +42,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @Log4j2
 @ExtendWith(MockitoExtension.class)
-class EdifactMapperTest {
+class CsvMapperTest {
 
-  private static final Map<ExportType, String> EXPORT_EDI_PATHS = Map.of(
-    EDIFACT_ORDERS_EXPORT,"edifact/acquisitions/edifact_orders_result.edi",
+  private static final Map<ExportType, String> EXPORT_CSV_PATHS = Map.of(
     CLAIMS, "edifact/acquisitions/edifact_claims_result.edi"
   );
 
   private ObjectMapper objectMapper;
-  private ExportResourceMapper edifactMapper;
+  private ExportResourceMapper csvMapper;
 
   @Mock
   private IdentifierTypeService identifierTypeService;
@@ -69,9 +66,7 @@ class EdifactMapperTest {
 
   @BeforeEach
   void setUp() {
-    var compositePOLineConverter = new CompPoLineEdiConverter(identifierTypeService, materialTypeService, expenseClassService, locationService, holdingService);
-    var compositePOConverter = new CompOrderEdiConverter(compositePOLineConverter, configurationService);
-    edifactMapper = new EdifactMapper(compositePOConverter);
+    csvMapper = new CsvMapper();
     objectMapper = new JacksonConfiguration().objectMapper();
 
     when(identifierTypeService.getIdentifierTypeName("8261054f-be78-422d-bd51-4ed9f33c3422"))
@@ -91,21 +86,20 @@ class EdifactMapperTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = ExportType.class, names = {"EDIFACT_ORDERS_EXPORT", "CLAIMS"})
+  @EnumSource(value = ExportType.class, names = {"CLAIMS"})
   void convertOrdersToEdifact(ExportType type) throws Exception {
     String jobName = "123456789012345";
-    String fileIdExpected = "23456789012345";
     List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson(type);
     List<Piece> pieces = getTestPiecesFromJson(type);
 
-    String ediOrder = edifactMapper.convertForExport(compPOs, pieces, getTestEdiConfig(), jobName);
+    String csvOutput = csvMapper.convertForExport(compPOs, pieces, getTestEdiConfig(), jobName);
 
-    assertFalse(ediOrder.isEmpty());
-    validateEdifactOrders(type, ediOrder, fileIdExpected);
+    assertFalse(csvOutput.isEmpty());
+    validateCsvOutput(type, csvOutput);
 
-    byte[] ediOrderBytes = ediOrder.getBytes(StandardCharsets.UTF_8);
-    assertNotNull(ediOrderBytes);
-    validateEdifactOrders(type, new String(ediOrder), fileIdExpected);
+    byte[] csvOutputBytes = csvOutput.getBytes(StandardCharsets.UTF_8);
+    assertNotNull(csvOutputBytes);
+    validateCsvOutput(type, new String(csvOutputBytes));
   }
 
   private VendorEdiOrdersExportConfig getTestEdiConfig() throws IOException {
@@ -114,27 +108,23 @@ class EdifactMapperTest {
 
   private List<CompositePurchaseOrder> getTestOrdersFromJson(ExportType type) throws IOException {
     List<CompositePurchaseOrder> compPOs = new ArrayList<>();
-    compPOs.add(objectMapper.readValue(getMockData("edifact/acquisitions/composite_purchase_order.json"), CompositePurchaseOrder.class));
-    compPOs.add(objectMapper.readValue(getMockData("edifact/acquisitions/comprehensive_composite_purchase_order.json"), CompositePurchaseOrder.class));
-    compPOs.add(objectMapper.readValue(getMockData("edifact/acquisitions/minimalistic_composite_purchase_order.json"), CompositePurchaseOrder.class));
-    if (type == EDIFACT_ORDERS_EXPORT) {
-      compPOs.add(objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_empty_vendor_account.json"), CompositePurchaseOrder.class));
-      compPOs.add(objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_non_ean_product_ids.json"), CompositePurchaseOrder.class));
-      compPOs.add(objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_title_with_escape_chars.json"), CompositePurchaseOrder.class));
+    if (type == CLAIMS) {
+      compPOs.add(objectMapper.readValue(getMockData("edifact/acquisitions/composite_purchase_order.json"), CompositePurchaseOrder.class));
+      compPOs.add(objectMapper.readValue(getMockData("edifact/acquisitions/comprehensive_composite_purchase_order.json"), CompositePurchaseOrder.class));
+      compPOs.add(objectMapper.readValue(getMockData("edifact/acquisitions/minimalistic_composite_purchase_order.json"), CompositePurchaseOrder.class));
     }
     return compPOs;
   }
 
   private List<Piece> getTestPiecesFromJson(ExportType type) throws IOException {
-    return type == EDIFACT_ORDERS_EXPORT
-      ? List.of()
-      : objectMapper.readValue(getMockData("edifact/acquisitions/pieces_collection_mixed.json"), PieceCollection.class).getPieces();
+    return type == CLAIMS
+      ? objectMapper.readValue(getMockData("edifact/acquisitions/pieces_collection_mixed.json"), PieceCollection.class).getPieces()
+      : List.of();
   }
 
-  private void validateEdifactOrders(ExportType type, String ediOrder, String fileId) throws IOException {
-    log.info("Generated EDI file:\n{}", ediOrder);
-    String ediOrderExpected = getMockData(EXPORT_EDI_PATHS.get(type)).replaceAll("\\{fileId}", fileId);
-    String ediOrderWithRemovedDateTime = ediOrder.replaceFirst("\\d{6}:\\d{4}\\+", "ddmmyy:hhmm+");
-    assertEquals(ediOrderExpected, ediOrderWithRemovedDateTime);
+  private void validateCsvOutput(ExportType type, String csvOutput) throws IOException {
+    log.info("Generated CSV file:\n{}", csvOutput);
+    String csvExpected = getMockData(EXPORT_CSV_PATHS.get(type));
+    assertEquals(csvExpected, csvOutput);
   }
 }

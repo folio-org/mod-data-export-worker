@@ -11,9 +11,9 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
-import org.folio.dew.batch.acquisitions.edifact.mapper.EdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.CompositeOrderMappingException;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
+import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
@@ -41,7 +41,6 @@ public abstract class MapToEdifactTasklet implements Tasklet {
 
   private final ObjectMapper ediObjectMapper;
   protected final OrdersService ordersService;
-  private final EdifactMapper edifactMapper;
 
   @Override
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
@@ -54,7 +53,7 @@ public abstract class MapToEdifactTasklet implements Tasklet {
     persistPoLineIds(chunkContext, holder.orders());
 
     String jobName = jobParameters.get(JobParameterNames.JOB_NAME).toString();
-    var edifactStringResult = edifactMapper.convertForExport(holder.orders(), holder.pieces(), ediExportConfig, jobName);
+    var edifactStringResult = getExportResourceMapper(ediExportConfig).convertForExport(holder.orders(), holder.pieces(), ediExportConfig, jobName);
 
     // save edifact file content in memory
     ExecutionContextUtils.addToJobExecutionContext(chunkContext.getStepContext().getStepExecution(), "edifactOrderAsString", edifactStringResult, "");
@@ -121,6 +120,8 @@ protected List<CompositePurchaseOrder> getCompositeOrders(String poLineQuery) {
       throw new CompositeOrderMappingException(String.format("%s for object %s", ex.getMessage(), value));
     }
   }
+
+  protected abstract ExportResourceMapper getExportResourceMapper(VendorEdiOrdersExportConfig ediOrdersExportConfig);
 
   protected abstract List<String> getExportConfigMissingFields(VendorEdiOrdersExportConfig ediOrdersExportConfig);
 

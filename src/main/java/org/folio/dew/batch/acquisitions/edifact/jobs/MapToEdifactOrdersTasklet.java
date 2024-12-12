@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.folio.dew.batch.acquisitions.edifact.mapper.EdifactMapper;
+import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.domain.dto.ExportConfigCollection;
@@ -34,14 +34,17 @@ import lombok.extern.log4j.Log4j2;
 public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
 
   private final DataExportSpringClient dataExportSpringClient;
+  private final ExportResourceMapper edifactMapper;
 
   public MapToEdifactOrdersTasklet(ObjectMapper ediObjectMapper, OrdersService ordersService,
                                    DataExportSpringClient dataExportSpringClient,
-                                   EdifactMapper edifactMapper) {
-    super(ediObjectMapper, ordersService, edifactMapper);
+                                   ExportResourceMapper edifactMapper) {
+    super(ediObjectMapper, ordersService);
+    this.edifactMapper = edifactMapper;
     this.dataExportSpringClient = dataExportSpringClient;
   }
 
+  @Override
   protected List<String> getExportConfigMissingFields(VendorEdiOrdersExportConfig ediOrdersExportConfig) {
     return List.of();
   }
@@ -51,6 +54,11 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
     var poLineQuery = getPoLineQuery(ediExportConfig);
     var compOrders = getCompositeOrders(poLineQuery);
     return new ExportHolder(compOrders, List.of());
+  }
+
+  @Override
+  protected ExportResourceMapper getExportResourceMapper(VendorEdiOrdersExportConfig ediOrdersExportConfig) {
+    return edifactMapper;
   }
 
   protected String getPoLineQuery(VendorEdiOrdersExportConfig ediConfig) {

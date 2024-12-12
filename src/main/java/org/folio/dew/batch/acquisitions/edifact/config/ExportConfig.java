@@ -1,5 +1,6 @@
 package org.folio.dew.batch.acquisitions.edifact.config;
 
+import org.folio.dew.batch.acquisitions.edifact.mapper.CsvMapper;
 import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
 import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompOrderEdiConverter;
 import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompPoLineEdiConverter;
@@ -16,7 +17,8 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ComponentScan({ "org.folio.dew.batch.acquisitions.edifact" })
-public class EdifactPurchaseOrderConfig {
+public class ExportConfig {
+
   @Bean
   CompPoLineEdiConverter compositePOLineConverter(IdentifierTypeService identifierTypeService, MaterialTypeService materialTypeService,
                                                   ExpenseClassService expenseClassService, LocationService locationService, HoldingService holdingService) {
@@ -29,7 +31,13 @@ public class EdifactPurchaseOrderConfig {
   }
 
   @Bean
-  ExportResourceMapper mappingOrdersToEdifact(CompOrderEdiConverter compOrderEdiConverter) {
+  ExportResourceMapper edifactMapper(CompOrderEdiConverter compOrderEdiConverter) {
     return new EdifactMapper(compOrderEdiConverter);
   }
+
+  @Bean
+  ExportResourceMapper csvMapper() {
+    return new CsvMapper();
+  }
+
 }

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.folio.dew.batch.acquisitions.edifact.mapper.EdifactMapper;
+import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
@@ -23,12 +23,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class MapToEdifactClaimsTasklet extends MapToEdifactTasklet {
 
   public static final String CLAIM_PIECE_IDS = "claimPieceIds";
+  private final ExportResourceMapper edifactMapper;
+  private final ExportResourceMapper csvMapper;
 
   public MapToEdifactClaimsTasklet(ObjectMapper ediObjectMapper, OrdersService ordersService,
-                                   EdifactMapper edifactMapper) {
-    super(ediObjectMapper, ordersService, edifactMapper);
+                                   ExportResourceMapper edifactMapper, ExportResourceMapper csvMapper) {
+    super(ediObjectMapper, ordersService);
+    this.edifactMapper = edifactMapper;
+    this.csvMapper = csvMapper;
   }
 
+  @Override
+  protected ExportResourceMapper getExportResourceMapper(VendorEdiOrdersExportConfig ediOrdersExportConfig) {
+    return switch (ediOrdersExportConfig.getFileFormat()) {
+      case EDI -> edifactMapper;
+      case CSV -> csvMapper;
+    };
+  }
+
+  @Override
   protected List<String> getExportConfigMissingFields(VendorEdiOrdersExportConfig ediOrdersExportConfig) {
     return CollectionUtils.isEmpty(ediOrdersExportConfig.getClaimPieceIds())
       ? List.of(CLAIM_PIECE_IDS)

@@ -1,47 +1,31 @@
 package org.folio.dew.service;
 
-import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.BaseBatchTest;
 import org.folio.dew.client.ElectronicAccessRelationshipClient;
 import org.folio.dew.domain.dto.ElectronicAccess;
 import org.folio.dew.domain.dto.ElectronicAccessRelationship;
-import org.folio.dew.domain.dto.ElectronicAccessRelationshipCollection;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.NotFoundException;
-import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.folio.dew.domain.dto.EntityType.HOLDINGS_RECORD;
-import static org.folio.dew.service.FolioExecutionContextManager.X_OKAPI_TENANT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-class ElectronicAccessServiceTest {
 
-  @Mock
+class ElectronicAccessServiceTest extends BaseBatchTest {
+
+  @MockBean
   private ElectronicAccessRelationshipClient relationshipClient;
-  @Mock
+  @MockBean
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
-  @Mock
-  private FolioExecutionContext folioExecutionContext;
-  @Spy
-  private SpecialCharacterEscaper escaper;
-
-  @InjectMocks
+  @Autowired
   private ElectronicAccessService electronicAccessService;
 
   @Test
@@ -118,9 +102,6 @@ class ElectronicAccessServiceTest {
 
   @Test
   void getRelationshipNameAndIdByIdNotFoundExceptionTest() {
-    Map<String, Collection<String>> headers = new HashMap<>();
-    headers.put(X_OKAPI_TENANT,  List.of("original"));
-    when(folioExecutionContext.getAllHeaders()).thenReturn(headers);
     var id = UUID.randomUUID().toString();
     var electronicAccessRelationship = new ElectronicAccessRelationship();
     electronicAccessRelationship.setId(id);

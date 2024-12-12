@@ -7,27 +7,26 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.folio.dew.BaseBatchTest;
 import org.folio.dew.client.InstanceNoteTypesClient;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.UUID;
 
-@ExtendWith(MockitoExtension.class)
-class InstanceReferenceServiceTest {
-  @Mock
+
+class InstanceReferenceServiceTest extends BaseBatchTest {
+  @MockBean
   private InstanceNoteTypesClient instanceNoteTypesClient;
-  @Mock
+  @MockBean
   private BulkEditProcessingErrorsService errorsService;
-  @InjectMocks
+  @Autowired
   private InstanceReferenceService instanceReferenceService;
 
   @Test

@@ -7,14 +7,12 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import org.folio.dew.BaseBatchTest;
 import org.folio.dew.client.InstanceClient;
-import org.folio.spring.FolioExecutionContext;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.io.File;
 import java.util.Collection;
@@ -23,13 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@ExtendWith(MockitoExtension.class)
-class HoldingsReferenceServiceTest {
-  @Mock
+class HoldingsReferenceServiceTest extends BaseBatchTest {
+  @MockBean
   private InstanceClient instanceClient;
-  @Mock
-  private FolioExecutionContext folioExecutionContext;
-  @InjectMocks
+  @Autowired
   private HoldingsReferenceService service;
 
   @ParameterizedTest
@@ -46,7 +41,6 @@ class HoldingsReferenceServiceTest {
     var path = "src/test/resources/samples/" + fileName;
     var resultJson = mapper.readTree(new File(path));
 
-    when(folioExecutionContext.getAllHeaders()).thenReturn(headers);
     when(instanceClient.getInstanceJsonById(anyString())).thenReturn(resultJson);
 
     var actual = service.getInstanceTitleById(UUID.randomUUID().toString(), "tenant");

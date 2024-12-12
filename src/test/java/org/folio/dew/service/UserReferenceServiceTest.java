@@ -1,5 +1,6 @@
 package org.folio.dew.service;
 
+import org.folio.dew.BaseBatchTest;
 import org.folio.dew.client.AddressTypeClient;
 import org.folio.dew.client.DepartmentClient;
 import org.folio.dew.domain.dto.AddressTypeCollection;
@@ -11,19 +12,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-public class UserReferenceServiceTest {
 
-  @Mock
+public class UserReferenceServiceTest extends BaseBatchTest {
+
+  @MockBean
   private AddressTypeClient addressTypeClient;
-  @Mock
+  @MockBean
   private DepartmentClient departmentClient;
-
-  @InjectMocks
+  @Autowired
   private UserReferenceService userReferenceService;
 
   @Test

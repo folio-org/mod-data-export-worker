@@ -1,6 +1,6 @@
 package org.folio.dew.batch.acquisitions.edifact.mapper.converter;
 
-import static org.folio.dew.domain.dto.ReferenceNumberItem.RefNumberTypeEnum.ORDER_REFERENCE_NUMBER;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.getVendorOrderNumber;
 
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
@@ -519,10 +519,7 @@ public class CompPoLineEdiConverter {
   }
 
   private ReferenceNumberItem getAndRemoveVendorOrderNumber(List<ReferenceNumberItem> referenceNumberItems) {
-    var vendorOrderNumber = referenceNumberItems.stream()
-      .filter(r -> r.getRefNumberType() == ORDER_REFERENCE_NUMBER)
-      .findFirst()
-      .orElse(null);
+    var vendorOrderNumber = getVendorOrderNumber(referenceNumberItems);
     referenceNumberItems.remove(vendorOrderNumber);
     return vendorOrderNumber;
   }

@@ -47,7 +47,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @Log4j2
 @ExtendWith(MockitoExtension.class)
-class MappingOrdersToEdifactTest {
+class EdifactMapperTest {
 
   private static final Map<ExportType, String> EXPORT_EDI_PATHS = Map.of(
     EDIFACT_ORDERS_EXPORT,"edifact/acquisitions/edifact_orders_result.edi",
@@ -149,7 +149,7 @@ class MappingOrdersToEdifactTest {
   }
 
   public static String getMockData(String path) throws IOException {
-    try (InputStream resourceAsStream = MappingOrdersToEdifactTest.class.getClassLoader().getResourceAsStream(path)) {
+    try (InputStream resourceAsStream = EdifactMapperTest.class.getClassLoader().getResourceAsStream(path)) {
       if (resourceAsStream != null) {
         return IOUtils.toString(resourceAsStream, StandardCharsets.UTF_8);
       } else {

@@ -2,23 +2,29 @@ package org.folio.dew.batch.acquisitions.edifact;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
-import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.services.IdentifierTypeService;
 import org.folio.dew.client.IdentifierTypeClient;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+@ExtendWith(MockitoExtension.class)
+class IdentifierTypeServiceTest {
 
-class IdentifierTypeServiceTest extends BaseBatchTest {
-  @Autowired
+  @InjectMocks
   private IdentifierTypeService identifierTypeService;
-  @MockBean
+  @Mock
   private IdentifierTypeClient client;
+  @Spy
+  private ObjectMapper objectMapper;
 
   @Test
   void getIdentifierTypeName() {
@@ -28,8 +34,8 @@ class IdentifierTypeServiceTest extends BaseBatchTest {
 
   @Test
   void getIdentifierTypeNameFromJson() throws JsonProcessingException {
-    Mockito.when(client.getIdentifierType(anyString()))
-      .thenReturn(objectMapper.readTree("{\"name\": \"ISSN\"}"));
+    var identifierTypeJson = objectMapper.readTree("{\"name\": \"ISSN\"}");
+    when(client.getIdentifierType(anyString())).thenReturn(identifierTypeJson);
     String identifierTypeName = identifierTypeService.getIdentifierTypeName("913300b2-03ed-469a-8179-c1092c991227");
     assertEquals("ISSN", identifierTypeName);
   }

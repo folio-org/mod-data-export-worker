@@ -1,26 +1,31 @@
 package org.folio.dew.batch.acquisitions.edifact;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import org.folio.dew.BaseBatchTest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
 import org.folio.dew.client.HoldingClient;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 
+@ExtendWith(MockitoExtension.class)
+class HoldingServiceTest {
 
-class HoldingServiceTest extends BaseBatchTest {
-  @Autowired
+  @InjectMocks
   private HoldingService holdingService;
-  @MockBean
+  @Mock
   private HoldingClient client;
-
+  @Spy
+  private ObjectMapper objectMapper;
 
   @Test
   void getPermanentLocationIdFromJson() throws JsonProcessingException {

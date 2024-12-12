@@ -16,15 +16,15 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 
-public class CompositePOConverter {
+public class CompOrderEdiConverter {
   private static final String RUSH_ORDER = "224";
   private static final String NOT_RUSH_ORDER = "220";
 
-  private final CompositePOLineConverter compositePOLineConverter;
+  private final CompPoLineEdiConverter compPoLineEdiConverter;
   private final ConfigurationService configurationService;
 
-  public CompositePOConverter(CompositePOLineConverter compositePOLineConverter, ConfigurationService configurationService) {
-    this.compositePOLineConverter = compositePOLineConverter;
+  public CompOrderEdiConverter(CompPoLineEdiConverter compPoLineEdiConverter, ConfigurationService configurationService) {
+    this.compPoLineEdiConverter = compPoLineEdiConverter;
     this.configurationService = configurationService;
   }
 
@@ -70,7 +70,7 @@ public class CompositePOConverter {
     for (CompositePoLine poLine : compPO.getCompositePoLines()) {
       int quantityOrdered = getPoLineQuantityOrdered(poLine);
       var pieces = poLineToPieces.getOrDefault(poLine.getId(), List.of());
-      int segments = compositePOLineConverter.convertPOLine(poLine, pieces, writer, ++totalNumberOfLineItems, quantityOrdered);
+      int segments = compPoLineEdiConverter.convertPOLine(poLine, pieces, writer, ++totalNumberOfLineItems, quantityOrdered);
       messageSegmentCount += segments;
       totalQuantity += quantityOrdered;
     }

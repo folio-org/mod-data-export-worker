@@ -1,8 +1,8 @@
 package org.folio.dew.batch.acquisitions.edifact.config;
 
 import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
-import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompositePOConverter;
-import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompositePOLineConverter;
+import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompOrderEdiConverter;
+import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompPoLineEdiConverter;
 import org.folio.dew.batch.acquisitions.edifact.mapper.EdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
 import org.folio.dew.batch.acquisitions.edifact.services.ExpenseClassService;
@@ -18,18 +18,18 @@ import org.springframework.context.annotation.Configuration;
 @ComponentScan({ "org.folio.dew.batch.acquisitions.edifact" })
 public class EdifactPurchaseOrderConfig {
   @Bean
-  CompositePOLineConverter compositePOLineConverter(IdentifierTypeService identifierTypeService, MaterialTypeService materialTypeService,
-                                                    ExpenseClassService expenseClassService, LocationService locationService, HoldingService holdingService) {
-    return new CompositePOLineConverter(identifierTypeService, materialTypeService, expenseClassService, locationService, holdingService);
+  CompPoLineEdiConverter compositePOLineConverter(IdentifierTypeService identifierTypeService, MaterialTypeService materialTypeService,
+                                                  ExpenseClassService expenseClassService, LocationService locationService, HoldingService holdingService) {
+    return new CompPoLineEdiConverter(identifierTypeService, materialTypeService, expenseClassService, locationService, holdingService);
   }
 
   @Bean
-  CompositePOConverter compositePurchaseOrderConverter(CompositePOLineConverter compositePOLineConverter, ConfigurationService configurationService) {
-    return new CompositePOConverter(compositePOLineConverter, configurationService);
+  CompOrderEdiConverter compositePurchaseOrderConverter(CompPoLineEdiConverter compPoLineEdiConverter, ConfigurationService configurationService) {
+    return new CompOrderEdiConverter(compPoLineEdiConverter, configurationService);
   }
 
   @Bean
-  ExportResourceMapper mappingOrdersToEdifact(CompositePOConverter compositePOConverter) {
-    return new EdifactMapper(compositePOConverter);
+  ExportResourceMapper mappingOrdersToEdifact(CompOrderEdiConverter compOrderEdiConverter) {
+    return new EdifactMapper(compOrderEdiConverter);
   }
 }

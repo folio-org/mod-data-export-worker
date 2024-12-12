@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class CompositePOLineConverter {
+public class CompPoLineEdiConverter {
   private static final int MAX_CHARS_PER_LINE = 70;
   private static final int MAX_NUMBER_OF_REFS = 10;
   private static final String PRODUCT_ID_FUNCTION_CODE_MAIN_PRODUCT_IDNTIFICATION = "5";
@@ -57,8 +57,8 @@ public class CompositePOLineConverter {
   private final LocationService locationService;
   private final HoldingService holdingService;
 
-  public CompositePOLineConverter(IdentifierTypeService identifierTypeService, MaterialTypeService materialTypeService,
-                                  ExpenseClassService expenseClassService, LocationService locationService, HoldingService holdingService) {
+  public CompPoLineEdiConverter(IdentifierTypeService identifierTypeService, MaterialTypeService materialTypeService,
+                                ExpenseClassService expenseClassService, LocationService locationService, HoldingService holdingService) {
     this.identifierTypeService = identifierTypeService;
     this.materialTypeService = materialTypeService;
     this.expenseClassService = expenseClassService;

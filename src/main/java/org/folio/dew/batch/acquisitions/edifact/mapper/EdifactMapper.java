@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompositePOConverter;
+import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompOrderEdiConverter;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 
 import io.xlate.edi.stream.EDIOutputFactory;
@@ -20,10 +20,10 @@ import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.acquisitions.edifact.EdiFileConfig;
 
 public class EdifactMapper implements ExportResourceMapper {
-  private final CompositePOConverter compositePOConverter;
+  private final CompOrderEdiConverter compOrderEdiConverter;
 
-  public EdifactMapper(CompositePOConverter compositePOConverter) {
-    this.compositePOConverter = compositePOConverter;
+  public EdifactMapper(CompOrderEdiConverter compOrderEdiConverter) {
+    this.compOrderEdiConverter = compOrderEdiConverter;
   }
 
   public String convertForExport(List<CompositePurchaseOrder> compPOs, List<Piece> pieces, VendorEdiOrdersExportConfig ediExportConfig, String jobName) throws EDIStreamException {
@@ -51,7 +51,7 @@ public class EdifactMapper implements ExportResourceMapper {
     var poLineIdToPieces = pieces.stream().collect(groupingBy(Piece::getPoLineId));
     // Purchase orders
     for (CompositePurchaseOrder compPO : compPOs) {
-      compositePOConverter.convertPOtoEdifact(writer, compPO, poLineIdToPieces, ediFileConfig);
+      compOrderEdiConverter.convertPOtoEdifact(writer, compPO, poLineIdToPieces, ediFileConfig);
       messageCount++;
     }
 

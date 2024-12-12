@@ -183,8 +183,6 @@ class BulkEditTest extends BaseBatchTest {
   @Autowired
   private LocalFilesStorage localFilesStorage;
   @MockBean
-  private InstanceClient instanceClient;
-  @MockBean
   private KafkaService kafkaService;
   @MockBean
   private UserPermissionsService userPermissionsService;

@@ -9,13 +9,8 @@ import org.folio.dew.domain.dto.Instance;
 import org.folio.dew.domain.dto.InstanceNoteType;
 import org.folio.dew.domain.dto.InstanceNotesInner;
 import org.folio.dew.service.InstanceReferenceService;
-import org.folio.dew.service.InstanceReferenceServiceCache;
 import org.folio.dew.service.SpecialCharacterEscaper;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
@@ -25,8 +20,6 @@ import java.util.UUID;
 class InstanceMapperTest extends BaseBatchTest {
   @MockBean
   private InstanceNoteTypesClient instanceNoteTypesClient;
-//  @Mock
-//  private InstanceReferenceServiceCache instanceReferenceServiceCache;
   @Autowired
   private InstanceReferenceService instanceReferenceService;
 

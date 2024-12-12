@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.folio.dew.BaseBatchTest;
-import org.folio.dew.client.InstanceNoteTypesClient;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
@@ -22,8 +21,6 @@ import java.util.UUID;
 
 
 class InstanceReferenceServiceTest extends BaseBatchTest {
-  @MockBean
-  private InstanceNoteTypesClient instanceNoteTypesClient;
   @MockBean
   private BulkEditProcessingErrorsService errorsService;
   @Autowired

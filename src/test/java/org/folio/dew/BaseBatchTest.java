@@ -27,6 +27,9 @@ import lombok.SneakyThrows;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.ExportJobManagerSync;
 import org.folio.dew.client.ConsortiaClient;
+import org.folio.dew.client.ElectronicAccessRelationshipClient;
+import org.folio.dew.client.InstanceClient;
+import org.folio.dew.client.InstanceNoteTypesClient;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.client.OkapiUserPermissionsClient;
 import org.folio.dew.domain.dto.BatchIdsDto;
@@ -118,6 +121,12 @@ public abstract class BaseBatchTest {
   private ConsortiaClient consortiaClient;
   @MockBean
   protected OkapiUserPermissionsClient okapiUserPermissionsClient;
+  @MockBean
+  public ElectronicAccessRelationshipClient relationshipClient;
+  @MockBean
+  public InstanceNoteTypesClient instanceNoteTypesClient;
+  @MockBean
+  public InstanceClient instanceClient;
 
   static {
     postgreDBContainer.start();

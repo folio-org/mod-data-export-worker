@@ -1,7 +1,6 @@
 package org.folio.dew.service;
 
 import org.folio.dew.BaseBatchTest;
-import org.folio.dew.client.ElectronicAccessRelationshipClient;
 import org.folio.dew.domain.dto.ElectronicAccess;
 import org.folio.dew.domain.dto.ElectronicAccessRelationship;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
@@ -21,8 +20,6 @@ import static org.mockito.Mockito.when;
 
 class ElectronicAccessServiceTest extends BaseBatchTest {
 
-  @MockBean
-  private ElectronicAccessRelationshipClient relationshipClient;
   @MockBean
   private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   @Autowired

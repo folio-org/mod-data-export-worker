@@ -1,10 +1,5 @@
 package org.folio.dew.service;
 
-import static org.folio.dew.service.FolioExecutionContextManager.X_OKAPI_TENANT;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.folio.dew.BaseBatchTest;
@@ -21,9 +16,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.folio.dew.service.FolioExecutionContextManager.X_OKAPI_TENANT;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
+
 class HoldingsReferenceServiceTest extends BaseBatchTest {
-  @MockBean
-  private InstanceClient instanceClient;
+
   @Autowired
   private HoldingsReferenceService service;
 

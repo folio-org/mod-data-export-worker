@@ -1,6 +1,5 @@
-package org.folio.dew.batch.acquisitions.edifact;
+package org.folio.dew.batch.acquisitions.edifact.services;
 
-import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.client.OrdersStorageClient;
 import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.PoLineCollection;

@@ -1,4 +1,4 @@
-package org.folio.dew.batch.acquisitions.edifact;
+package org.folio.dew.batch.acquisitions.edifact.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -6,7 +6,6 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.folio.dew.BaseBatchTest;
-import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;

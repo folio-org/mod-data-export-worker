@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.folio.dew.BaseBatchTest;
-import org.folio.dew.batch.acquisitions.edifact.mapper.EdifactMapper;
+import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.client.DataExportSpringClient;
 import org.junit.jupiter.api.Test;
@@ -26,6 +26,7 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,7 +47,8 @@ abstract class MapToEdifactTaskletAbstractTest extends BaseBatchTest {
   @MockBean
   protected DataExportSpringClient dataExportSpringClient;
   @MockBean
-  protected EdifactMapper edifactMapper;
+  @Qualifier("edifactMapper")
+  protected ExportResourceMapper edifactMapper;
   @Autowired
   protected ObjectMapper objectMapper;
   protected Job edifactExportJob;

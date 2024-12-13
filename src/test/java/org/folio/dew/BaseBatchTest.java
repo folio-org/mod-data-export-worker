@@ -88,7 +88,7 @@ public abstract class BaseBatchTest {
 
   public static final int WIRE_MOCK_PORT = TestSocketUtils.findAvailableTcpPort();
   public static WireMockServer wireMockServer;
-  public static PostgreSQLContainer<?> postgreDBContainer = new PostgreSQLContainer<>("postgres:13");
+  public static PostgreSQLContainer<?> postgreDBContainer = new PostgreSQLContainer<>("postgres:16");
 
   @Autowired
   protected MockMvc mockMvc;

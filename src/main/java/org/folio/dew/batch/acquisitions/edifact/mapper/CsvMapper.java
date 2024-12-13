@@ -17,7 +17,7 @@ public class CsvMapper implements ExportResourceMapper {
   @Override
   public String convertForExport(List<CompositePurchaseOrder> compPOs, List<Piece> pieces, VendorEdiOrdersExportConfig ediExportConfig, String jobName) {
     var csvConverter = new ClaimCsvConverter();
-    var csvResult = new StringBuilder(csvConverter.getCsvHeaders());
+    var csvResult = new StringBuilder(csvConverter.getCsvHeaders()).append(LINE_BREAK);
     getClaimEntries(compPOs, pieces).stream()
       .map(csvConverter::convertEntryToCsv)
       .map(line -> line.concat(LINE_BREAK))

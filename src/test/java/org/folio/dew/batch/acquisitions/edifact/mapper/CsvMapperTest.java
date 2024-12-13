@@ -1,15 +1,10 @@
-package org.folio.dew.batch.acquisitions.edifact;
+package org.folio.dew.batch.acquisitions.edifact.mapper;
 
 import static org.folio.dew.domain.dto.ExportType.CLAIMS;
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.AdditionalMatchers.not;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -19,8 +14,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.log4j.Log4j2;
 
-import org.folio.dew.batch.acquisitions.edifact.mapper.CsvMapper;
-import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
 import org.folio.dew.batch.acquisitions.edifact.services.ExpenseClassService;
 import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
@@ -45,7 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class CsvMapperTest {
 
   private static final Map<ExportType, String> EXPORT_CSV_PATHS = Map.of(
-    CLAIMS, "edifact/acquisitions/edifact_claims_result.edi"
+    CLAIMS, "edifact/acquisitions/csv_claims_result.csv"
   );
 
   private ObjectMapper objectMapper;
@@ -68,26 +61,11 @@ class CsvMapperTest {
   void setUp() {
     csvMapper = new CsvMapper();
     objectMapper = new JacksonConfiguration().objectMapper();
-
-    when(identifierTypeService.getIdentifierTypeName("8261054f-be78-422d-bd51-4ed9f33c3422"))
-      .thenReturn("ISSN", "ISMN", "ISBN", "ISSN", "ISMN", "ISBN");
-    when(identifierTypeService.getIdentifierTypeName(not(eq("8261054f-be78-422d-bd51-4ed9f33c3422"))))
-      .thenReturn("Publisher or distributor number");
-    when(materialTypeService.getMaterialTypeName(anyString()))
-      .thenReturn("Book");
-    when(expenseClassService.getExpenseClassCode(anyString()))
-      .thenReturn("Elec");
-    when(locationService.getLocationCodeById(anyString()))
-      .thenReturn("KU/CC/DI/M");
-    when(holdingService.getPermanentLocationByHoldingId(anyString()))
-      .thenReturn("fcd64ce1-6995-48f0-840e-89ffa2288371");
-    when(configurationService.getAddressConfig(any()))
-      .thenReturn("Bockenheimer Landstr. 134-13");
   }
 
   @ParameterizedTest
   @EnumSource(value = ExportType.class, names = {"CLAIMS"})
-  void convertOrdersToEdifact(ExportType type) throws Exception {
+  void testConvertForExportCsv(ExportType type) throws Exception {
     String jobName = "123456789012345";
     List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson(type);
     List<Piece> pieces = getTestPiecesFromJson(type);
@@ -127,4 +105,5 @@ class CsvMapperTest {
     String csvExpected = getMockData(EXPORT_CSV_PATHS.get(type));
     assertEquals(csvExpected, csvOutput);
   }
+
 }

@@ -32,34 +32,33 @@ public class EdifactMapper implements ExportResourceMapper {
     EDIOutputFactory factory = EDIOutputFactory.newFactory();
     factory.setProperty(EDIOutputFactory.PRETTY_PRINT, true);
 
-    EDIStreamWriter writer = factory.createEDIStreamWriter(stream);
+    try (EDIStreamWriter writer = factory.createEDIStreamWriter(stream)) {
+      // Count of messages (one message per purchase order)
+      int messageCount = 0;
+      writer.startInterchange();
+      writeStartFile(writer);
 
-    // Count of messages (one message per purchase order)
-    int messageCount = 0;
-    writer.startInterchange();
-    writeStartFile(writer);
+      EdiFileConfig ediFileConfig = new EdiFileConfig();
+      ediFileConfig.setFileId(StringUtils.right(jobName, 14));
+      ediFileConfig.setLibEdiCode(ediExportConfig.getEdiConfig().getLibEdiCode());
+      ediFileConfig.setLibEdiType(ediExportConfig.getEdiConfig().getLibEdiType().getValue().substring(0, 3));
+      ediFileConfig.setVendorEdiCode(ediExportConfig.getEdiConfig().getVendorEdiCode());
+      ediFileConfig.setVendorEdiType(ediExportConfig.getEdiConfig().getVendorEdiType().getValue().substring(0, 3));
 
-    EdiFileConfig ediFileConfig = new EdiFileConfig();
-    ediFileConfig.setFileId(StringUtils.right(jobName, 14));
-    ediFileConfig.setLibEdiCode(ediExportConfig.getEdiConfig().getLibEdiCode());
-    ediFileConfig.setLibEdiType(ediExportConfig.getEdiConfig().getLibEdiType().getValue().substring(0, 3));
-    ediFileConfig.setVendorEdiCode(ediExportConfig.getEdiConfig().getVendorEdiCode());
-    ediFileConfig.setVendorEdiType(ediExportConfig.getEdiConfig().getVendorEdiType().getValue().substring(0, 3));
+      writeInterchangeHeader(writer, ediFileConfig);
 
-    writeInterchangeHeader(writer, ediFileConfig);
+      var poLineIdToPieces = pieces.stream().collect(groupingBy(Piece::getPoLineId));
+      // Purchase orders
+      for (CompositePurchaseOrder compPO : compPOs) {
+        compOrderEdiConverter.convertPOtoEdifact(writer, compPO, poLineIdToPieces, ediFileConfig);
+        messageCount++;
+      }
 
-    var poLineIdToPieces = pieces.stream().collect(groupingBy(Piece::getPoLineId));
-    // Purchase orders
-    for (CompositePurchaseOrder compPO : compPOs) {
-      compOrderEdiConverter.convertPOtoEdifact(writer, compPO, poLineIdToPieces, ediFileConfig);
-      messageCount++;
+      writeInterchangeFooter(writer, ediFileConfig.getFileId(), messageCount);
+      writer.endInterchange();
+      return stream.toString();
     }
 
-    writeInterchangeFooter(writer, ediFileConfig.getFileId(), messageCount);
-    writer.endInterchange();
-    writer.close();
-
-    return stream.toString();
   }
 
   // Start of file - Can contain multiple order messages

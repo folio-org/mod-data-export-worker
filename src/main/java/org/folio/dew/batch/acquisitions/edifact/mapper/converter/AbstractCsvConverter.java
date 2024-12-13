@@ -13,11 +13,11 @@ public abstract class AbstractCsvConverter<T> {
   private final DelimitedLineAggregator<String> lineAggregator;
   private final String delimiter;
 
-  public AbstractCsvConverter() {
+  protected AbstractCsvConverter() {
     this(COMMA);
   }
 
-  public AbstractCsvConverter(String delimiter) {
+  protected AbstractCsvConverter(String delimiter) {
     this.delimiter = delimiter;
     this.lineAggregator = new DelimitedLineAggregator<>();
     lineAggregator.setDelimiter(delimiter);

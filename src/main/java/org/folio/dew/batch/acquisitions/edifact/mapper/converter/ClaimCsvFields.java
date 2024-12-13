@@ -15,14 +15,14 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ClaimCsvFields implements ExtractableField<Pair<CompositePoLine, Piece>, String> {
 
-  POL_NUMBER("POL number", (pair) -> pair.getKey().getPoLineNumber()),
-  ORDER_NUMBER("Vendor order number", (pair) -> getVendorOrderNumber(pair.getKey())),
-  ACCOUNT_NUMBER("Account number", (pair) -> getVendorAccountNumber(pair.getKey())),
-  TITLE("Title from piece", (pair) -> "CHANGEME"), // FIXME: piece.titleId | poLine.titleOrPackage | title from inventory by piece.titleId
-  DISPLAY_SUMMARY("Display summary", (pair) -> pair.getValue().getDisplaySummary()),
-  CHRONOLOGY("Chronology", (pair) -> pair.getValue().getChronology()),
-  ENUMERATION("Enumeration", (pair) -> pair.getValue().getEnumeration()),
-  QUANTITY("Quantity", (pair) -> "CHANGEME"); // FIXME: implement quantity extraction
+  POL_NUMBER("POL number", pair -> pair.getKey().getPoLineNumber()),
+  ORDER_NUMBER("Vendor order number", pair -> getVendorOrderNumber(pair.getKey())),
+  ACCOUNT_NUMBER("Account number", pair -> getVendorAccountNumber(pair.getKey())),
+  TITLE("Title from piece", pair -> "CHANGEME"), // FIXME: piece.titleId | poLine.titleOrPackage | title from inventory by piece.titleId
+  DISPLAY_SUMMARY("Display summary", pair -> pair.getValue().getDisplaySummary()),
+  CHRONOLOGY("Chronology", pair -> pair.getValue().getChronology()),
+  ENUMERATION("Enumeration", pair -> pair.getValue().getEnumeration()),
+  QUANTITY("Quantity", pair -> "CHANGEME"); // FIXME: implement quantity extraction
 
   @Getter
   private final String name;

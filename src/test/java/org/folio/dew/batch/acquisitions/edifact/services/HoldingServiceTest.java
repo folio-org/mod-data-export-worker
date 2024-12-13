@@ -43,7 +43,7 @@ class HoldingServiceTest {
   }
 
   @Test
-  void getInstanceIdByHoldingShouldReturnCorrectEmptyStringWhenNull() throws JsonProcessingException {
+  void getInstanceIdByHoldingShouldReturnCorrectEmptyStringWhenNull() {
     String actual = holdingService.getInstanceIdByHolding(null);
     assertTrue(actual.isEmpty());
   }

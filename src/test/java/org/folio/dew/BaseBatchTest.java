@@ -50,6 +50,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.mockito.Mockito;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -94,7 +95,7 @@ public abstract class BaseBatchTest {
   public static PostgreSQLContainer<?> postgreDBContainer = new PostgreSQLContainer<>("postgres:13");
 
   @Autowired
-  protected MockMvc mockMvc;
+  public MockMvc mockMvc;
   @Autowired
   private FolioModuleMetadata folioModuleMetadata;
   @Autowired
@@ -122,11 +123,11 @@ public abstract class BaseBatchTest {
   @MockBean
   protected OkapiUserPermissionsClient okapiUserPermissionsClient;
   @MockBean
-  public ElectronicAccessRelationshipClient relationshipClient;
+  public InstanceClient instanceClient;
   @MockBean
   public InstanceNoteTypesClient instanceNoteTypesClient;
   @MockBean
-  public InstanceClient instanceClient;
+  public ElectronicAccessRelationshipClient relationshipClient;
 
   static {
     postgreDBContainer.start();
@@ -216,6 +217,7 @@ public abstract class BaseBatchTest {
 
     when(consortiaClient.getUserTenantCollection())
       .thenReturn(new UserTenantCollection().userTenants(List.of(new UserTenant().tenantId("member").centralTenantId("central"))));
+
   }
 
   @AfterEach

@@ -7,27 +7,23 @@ import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.dew.client.InstanceClient;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.BriefInstance;
 import org.folio.dew.domain.dto.BriefInstanceCollection;
+import org.folio.dew.domain.dto.ElectronicAccessRelationship;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.service.UserPermissionsService;
-import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -99,7 +95,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class BulkEditTest extends BaseBatchTest {
 
   private static final String HOLDINGS_IDENTIFIERS_CSV = "src/test/resources/upload/holdings_identifiers.csv";
@@ -186,8 +181,6 @@ class BulkEditTest extends BaseBatchTest {
   private KafkaService kafkaService;
   @MockBean
   private UserPermissionsService userPermissionsService;
-  @Mock
-  private FolioExecutionContext folioExecutionContext;
 
   @ParameterizedTest
   @CsvSource({"BARCODE," + BARCODES_CSV, "USER_NAME," + USERNAMES_CSV})
@@ -239,6 +232,7 @@ class BulkEditTest extends BaseBatchTest {
 
     mockInstanceClient();
     when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_ITEMS_ITEM_GET_PERMISSION.getValue()));
+    when(relationshipClient.getById(any())).thenReturn(new ElectronicAccessRelationship().name("Version of resource"));
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, BARCODES_FOR_PROGRESS_CSV);
@@ -581,7 +575,7 @@ class BulkEditTest extends BaseBatchTest {
     mockInstanceClient();
     when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_STORAGE_HOLDINGS_ITEM_GET_PERMISSION.getValue()));
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessHoldingsIdentifiersJob);
-//    when(folioExecutionContext.getAllHeaders()).thenReturn(Map.of(X_OKAPI_TENANT, List.of("original")));
+    when(relationshipClient.getById(any())).thenReturn(new ElectronicAccessRelationship().name("Version of resource"));
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, HOLDINGS_RECORD, ITEM_BARCODE, HOLDINGS_IDENTIFIERS_ITEM_BARCODE_CSV);
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
@@ -626,6 +620,7 @@ class BulkEditTest extends BaseBatchTest {
   void bulkEditItemJobTestWithErrors() throws Exception {
     mockInstanceClient();
     when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_ITEMS_ITEM_GET_PERMISSION.getValue()));
+    when(relationshipClient.getById(any())).thenReturn(new ElectronicAccessRelationship().name("Version of resource"));
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, ITEM_BARCODES_SOME_NOT_FOUND);
@@ -670,6 +665,7 @@ class BulkEditTest extends BaseBatchTest {
   void shouldEscapeDoubleQuotes() {
     mockInstanceClient();
     when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_ITEMS_ITEM_GET_PERMISSION.getValue()));
+    when(relationshipClient.getById(any())).thenReturn(new ElectronicAccessRelationship().name("Version of resource"));
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessItemIdentifiersJob);
 
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, ITEM, BARCODE, ITEM_BARCODES_DOUBLE_QOUTES_CSV);

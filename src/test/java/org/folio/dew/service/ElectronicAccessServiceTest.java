@@ -7,7 +7,6 @@ import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,11 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 class ElectronicAccessServiceTest extends BaseBatchTest {
 
-  @MockBean
-  private BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   @Autowired
   private ElectronicAccessService electronicAccessService;
 

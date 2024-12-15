@@ -1,27 +1,27 @@
 package org.folio.dew.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+
+import static java.lang.String.format;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
-import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.UUID;
 
-
+@ExtendWith(MockitoExtension.class)
 class InstanceReferenceServiceTest extends BaseBatchTest {
-  @MockBean
+  @Autowired
   private BulkEditProcessingErrorsService errorsService;
   @Autowired
   private InstanceReferenceService instanceReferenceService;
@@ -31,10 +31,15 @@ class InstanceReferenceServiceTest extends BaseBatchTest {
     when(instanceNoteTypesClient.getNoteTypeById(anyString()))
       .thenThrow(new NotFoundException("not found"));
 
-    instanceReferenceService.getInstanceNoteTypeNameById(UUID.randomUUID().toString(),
+    var id = UUID.randomUUID().toString();
+
+    instanceReferenceService.getInstanceNoteTypeNameById(id,
       new ErrorServiceArgs("jobId", "identifier", "errorFile"));
 
-    verify(errorsService).saveErrorInCSV(eq("jobId"), eq("identifier"), any(BulkEditException.class), eq("errorFile"));
+    var errors = errorsService.readErrorsFromCSV("jobId", "errorFile", Integer.MAX_VALUE);
+
+    assertThat(errors.getErrors(), Matchers.hasSize(1));
+    assertThat(errors.getErrors().get(0).getMessage(), Matchers.equalTo(format("identifier,Instance note type was not found by id: [%s]", id)));
   }
 
   @ParameterizedTest
@@ -42,6 +47,6 @@ class InstanceReferenceServiceTest extends BaseBatchTest {
   void shouldReturnEmptyNameWhenInstanceNoteTypeIsNullOrEmpty(String id) {
     var name = instanceReferenceService.getInstanceTypeNameById(id,
       new ErrorServiceArgs("jobId", "identifier", "errorFile"));
-    assertThat(name).isEmpty();
+    assertThat(name, Matchers.emptyOrNullString());
   }
 }

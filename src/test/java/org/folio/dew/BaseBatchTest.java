@@ -27,6 +27,9 @@ import lombok.SneakyThrows;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.ExportJobManagerSync;
 import org.folio.dew.client.ConsortiaClient;
+import org.folio.dew.client.ElectronicAccessRelationshipClient;
+import org.folio.dew.client.InstanceClient;
+import org.folio.dew.client.InstanceNoteTypesClient;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.client.OkapiUserPermissionsClient;
 import org.folio.dew.domain.dto.BatchIdsDto;
@@ -91,7 +94,7 @@ public abstract class BaseBatchTest {
   public static PostgreSQLContainer<?> postgreDBContainer = new PostgreSQLContainer<>("postgres:13");
 
   @Autowired
-  protected MockMvc mockMvc;
+  public MockMvc mockMvc;
   @Autowired
   private FolioModuleMetadata folioModuleMetadata;
   @Autowired
@@ -118,6 +121,12 @@ public abstract class BaseBatchTest {
   private ConsortiaClient consortiaClient;
   @MockBean
   protected OkapiUserPermissionsClient okapiUserPermissionsClient;
+  @MockBean
+  public InstanceClient instanceClient;
+  @MockBean
+  public InstanceNoteTypesClient instanceNoteTypesClient;
+  @MockBean
+  public ElectronicAccessRelationshipClient relationshipClient;
 
   static {
     postgreDBContainer.start();
@@ -207,6 +216,7 @@ public abstract class BaseBatchTest {
 
     when(consortiaClient.getUserTenantCollection())
       .thenReturn(new UserTenantCollection().userTenants(List.of(new UserTenant().tenantId("member").centralTenantId("central"))));
+
   }
 
   @AfterEach

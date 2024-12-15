@@ -157,11 +157,11 @@ public class BulkEditProcessingErrorsService {
     return format(STORAGE_TEMPLATE, jobId);
   }
 
-  private String getPathToCsvFile(String jobId, String csvFileName) {
+  public String getPathToCsvFile(String jobId, String csvFileName) {
     return format(CSV_FILE_TEMPLATE, jobId, csvFileName);
   }
 
-  private String getCsvFileName(String jobId, String fileName) {
+  public String getCsvFileName(String jobId, String fileName) {
     var pathToStorage = getPathToStorage(jobId);
     List<String> names = new ArrayList<>();
 

@@ -12,7 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-public class UserReferenceServiceTest extends BaseBatchTest {
+class UserReferenceServiceTest extends BaseBatchTest {
 
   @MockBean
   private DepartmentClient departmentClient;

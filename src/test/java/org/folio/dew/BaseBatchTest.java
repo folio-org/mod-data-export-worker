@@ -32,7 +32,6 @@ import org.folio.dew.client.InstanceClient;
 import org.folio.dew.client.InstanceNoteTypesClient;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.client.OkapiUserPermissionsClient;
-import org.folio.dew.client.StatisticalCodeClient;
 import org.folio.dew.domain.dto.BatchIdsDto;
 import org.folio.dew.domain.dto.ConsortiumHolding;
 import org.folio.dew.domain.dto.ConsortiumHoldingCollection;

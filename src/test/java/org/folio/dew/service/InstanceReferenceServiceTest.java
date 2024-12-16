@@ -32,12 +32,13 @@ class InstanceReferenceServiceTest extends BaseBatchTest {
     when(instanceNoteTypesClient.getNoteTypeById(anyString()))
       .thenThrow(new NotFoundException("not found"));
 
+    var jobId = UUID.randomUUID().toString();
     var id = UUID.randomUUID().toString();
 
     instanceReferenceService.getInstanceNoteTypeNameById(id,
-      new ErrorServiceArgs("jobId", "identifier", "errorFile"));
+      new ErrorServiceArgs(jobId, "identifier", "errorFile"));
 
-    var errors = errorsService.readErrorsFromCSV("jobId", "errorFile", Integer.MAX_VALUE);
+    var errors = errorsService.readErrorsFromCSV(jobId, "errorFile", Integer.MAX_VALUE);
 
     assertThat(errors.getErrors(), Matchers.hasSize(1));
     assertThat(errors.getErrors().get(0).getMessage(), Matchers.equalTo(format("identifier,Instance note type was not found by id: [%s]", id)));

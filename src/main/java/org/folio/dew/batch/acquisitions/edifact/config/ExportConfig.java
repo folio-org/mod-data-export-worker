@@ -2,6 +2,7 @@ package org.folio.dew.batch.acquisitions.edifact.config;
 
 import org.folio.dew.batch.acquisitions.edifact.mapper.CsvMapper;
 import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
+import org.folio.dew.batch.acquisitions.edifact.mapper.converter.ClaimCsvConverter;
 import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompOrderEdiConverter;
 import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompPoLineEdiConverter;
 import org.folio.dew.batch.acquisitions.edifact.mapper.EdifactMapper;
@@ -11,6 +12,7 @@ import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
 import org.folio.dew.batch.acquisitions.edifact.services.IdentifierTypeService;
 import org.folio.dew.batch.acquisitions.edifact.services.LocationService;
 import org.folio.dew.batch.acquisitions.edifact.services.MaterialTypeService;
+import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -36,8 +38,13 @@ public class ExportConfig {
   }
 
   @Bean
-  ExportResourceMapper csvMapper() {
-    return new CsvMapper();
+  ClaimCsvConverter claimCsvConverter(OrdersService ordersService) {
+    return new ClaimCsvConverter(ordersService);
+  }
+
+  @Bean
+  ExportResourceMapper csvMapper(ClaimCsvConverter claimCsvConverter) {
+    return new CsvMapper(claimCsvConverter);
   }
 
 }

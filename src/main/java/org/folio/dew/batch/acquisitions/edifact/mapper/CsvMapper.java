@@ -14,12 +14,17 @@ import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 
 public class CsvMapper implements ExportResourceMapper {
 
+  private final ClaimCsvConverter claimCsvConverter;
+
+  public CsvMapper(ClaimCsvConverter claimCsvConverter) {
+    this.claimCsvConverter = claimCsvConverter;
+  }
+
   @Override
   public String convertForExport(List<CompositePurchaseOrder> compPOs, List<Piece> pieces, VendorEdiOrdersExportConfig ediExportConfig, String jobName) {
-    var csvConverter = new ClaimCsvConverter();
-    var csvResult = new StringBuilder(csvConverter.getCsvHeaders()).append(LINE_BREAK);
+    var csvResult = new StringBuilder(claimCsvConverter.getCsvHeaders()).append(LINE_BREAK);
     getClaimEntries(compPOs, pieces).stream()
-      .map(csvConverter::convertEntryToCsv)
+      .map(claimCsvConverter::convertEntryToCsv)
       .map(line -> line.concat(LINE_BREAK))
       .forEachOrdered(csvResult::append);
     return csvResult.toString();

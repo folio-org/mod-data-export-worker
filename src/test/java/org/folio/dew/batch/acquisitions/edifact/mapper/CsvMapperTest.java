@@ -5,6 +5,8 @@ import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -14,15 +16,12 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.log4j.Log4j2;
 
-import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
-import org.folio.dew.batch.acquisitions.edifact.services.ExpenseClassService;
-import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
-import org.folio.dew.batch.acquisitions.edifact.services.IdentifierTypeService;
-import org.folio.dew.batch.acquisitions.edifact.services.LocationService;
-import org.folio.dew.batch.acquisitions.edifact.services.MaterialTypeService;
+import org.folio.dew.batch.acquisitions.edifact.mapper.converter.ClaimCsvConverter;
+import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.config.JacksonConfiguration;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.OrdersTitle;
 import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.PieceCollection;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
@@ -45,22 +44,14 @@ class CsvMapperTest {
   private ExportResourceMapper csvMapper;
 
   @Mock
-  private IdentifierTypeService identifierTypeService;
-  @Mock
-  private MaterialTypeService materialTypeService;
-  @Mock
-  private ExpenseClassService expenseClassService;
-  @Mock
-  private LocationService locationService;
-  @Mock
-  private HoldingService holdingService;
-  @Mock
-  private ConfigurationService configurationService;
+  private OrdersService ordersService;
 
   @BeforeEach
   void setUp() {
-    csvMapper = new CsvMapper();
+    csvMapper = new CsvMapper(new ClaimCsvConverter(ordersService));
     objectMapper = new JacksonConfiguration().objectMapper();
+
+    when(ordersService.getTitleById(anyString())).thenReturn(new OrdersTitle().title("Test title"));
   }
 
   @ParameterizedTest

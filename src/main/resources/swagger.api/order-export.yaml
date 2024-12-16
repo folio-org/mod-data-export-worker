@@ -65,3 +65,5 @@ components:
       $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/piece.json#/Piece'
     pieceCollection:
       $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/piece_collection.json#/PieceCollection'
+    ordersTitle:
+      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/title.json#/OrdersTitle'

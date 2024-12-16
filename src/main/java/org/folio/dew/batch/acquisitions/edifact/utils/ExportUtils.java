@@ -39,4 +39,8 @@ public class ExportUtils {
       .orElse(null);
   }
 
+  public static String getTitle(CompositePoLine poLine) {
+    return poLine.getIsPackage() ? null : poLine.getTitleOrPackage();
+  }
+
 }

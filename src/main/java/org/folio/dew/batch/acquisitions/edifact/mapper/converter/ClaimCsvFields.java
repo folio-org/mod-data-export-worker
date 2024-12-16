@@ -1,5 +1,6 @@
 package org.folio.dew.batch.acquisitions.edifact.mapper.converter;
 
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.getTitle;
 import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.getVendorAccountNumber;
 import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.getVendorOrderNumber;
 
@@ -18,7 +19,7 @@ public enum ClaimCsvFields implements ExtractableField<Pair<CompositePoLine, Pie
   POL_NUMBER("POL number", pair -> pair.getKey().getPoLineNumber()),
   ORDER_NUMBER("Vendor order number", pair -> getVendorOrderNumber(pair.getKey())),
   ACCOUNT_NUMBER("Account number", pair -> getVendorAccountNumber(pair.getKey())),
-  TITLE("Title from piece", pair -> "CHANGEME"), // FIXME: piece.titleId | poLine.titleOrPackage | title from inventory by piece.titleId
+  TITLE("Title from piece", pair -> getTitle(pair.getKey())),
   DISPLAY_SUMMARY("Display summary", pair -> pair.getValue().getDisplaySummary()),
   CHRONOLOGY("Chronology", pair -> pair.getValue().getChronology()),
   ENUMERATION("Enumeration", pair -> pair.getValue().getEnumeration()),

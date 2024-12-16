@@ -1,13 +1,11 @@
 package org.folio.dew.service;
 
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.springframework.stereotype.Service;
-
 
 @Service
 @Log4j2
@@ -72,6 +70,17 @@ public class InstanceReferenceService {
     } catch (NotFoundException e) {
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Instance note type was not found by id: [%s]", noteTypeId)), args.getFileName());
       return noteTypeId;
+    }
+  }
+
+  public String getStatisticalCodeNameById(String statisticalCodeId, ErrorServiceArgs args) {
+    try {
+      return instanceReferenceServiceCache.getStatisticalCodeNameById(statisticalCodeId);
+    } catch (NotFoundException e) {
+      var msg = "Statistical code not found by id=" + statisticalCodeId;
+      log.error(msg);
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg), args.getFileName());
+      return statisticalCodeId;
     }
   }
 }

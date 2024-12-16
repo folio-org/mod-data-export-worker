@@ -11,6 +11,7 @@ import org.folio.dew.client.InstanceNoteTypesClient;
 import org.folio.dew.client.InstanceStatusesClient;
 import org.folio.dew.client.InstanceTypesClient;
 import org.folio.dew.client.NatureOfContentTermsClient;
+import org.folio.dew.client.StatisticalCodeClient;
 import org.folio.dew.domain.dto.IdentifierTypeReferenceCollection;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ public class InstanceReferenceServiceCache {
   private final InstanceFormatsClient instanceFormatsClient;
   private final IdentifierTypeClient identifierTypeClient;
   private final InstanceNoteTypesClient instanceNoteTypesClient;
+  private final StatisticalCodeClient statisticalCodeClient;
 
 
   @Cacheable(cacheNames = "instanceStatusNames")
@@ -75,5 +77,13 @@ public class InstanceReferenceServiceCache {
   @Cacheable(cacheNames = "instanceNoteTypes")
   public String getInstanceNoteTypeNameById(String noteTypeId) {
       return isEmpty(noteTypeId) ? EMPTY : instanceNoteTypesClient.getNoteTypeById(noteTypeId).getName();
+  }
+
+  @Cacheable(cacheNames = "instanceStatisticalCodeNames")
+  public String getStatisticalCodeNameById(String id) {
+    if (StringUtils.isEmpty(id)) {
+      return EMPTY;
+    }
+    return statisticalCodeClient.getById(id).getName();
   }
 }

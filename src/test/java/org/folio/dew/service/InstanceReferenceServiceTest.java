@@ -21,6 +21,7 @@ import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
 class InstanceReferenceServiceTest extends BaseBatchTest {
+
   @Autowired
   private BulkEditProcessingErrorsService errorsService;
   @Autowired
@@ -31,12 +32,13 @@ class InstanceReferenceServiceTest extends BaseBatchTest {
     when(instanceNoteTypesClient.getNoteTypeById(anyString()))
       .thenThrow(new NotFoundException("not found"));
 
+    var jobId = UUID.randomUUID().toString();
     var id = UUID.randomUUID().toString();
 
     instanceReferenceService.getInstanceNoteTypeNameById(id,
-      new ErrorServiceArgs("jobId", "identifier", "errorFile"));
+      new ErrorServiceArgs(jobId, "identifier", "errorFile"));
 
-    var errors = errorsService.readErrorsFromCSV("jobId", "errorFile", Integer.MAX_VALUE);
+    var errors = errorsService.readErrorsFromCSV(jobId, "errorFile", Integer.MAX_VALUE);
 
     assertThat(errors.getErrors(), Matchers.hasSize(1));
     assertThat(errors.getErrors().get(0).getMessage(), Matchers.equalTo(format("identifier,Instance note type was not found by id: [%s]", id)));
@@ -48,5 +50,17 @@ class InstanceReferenceServiceTest extends BaseBatchTest {
     var name = instanceReferenceService.getInstanceTypeNameById(id,
       new ErrorServiceArgs("jobId", "identifier", "errorFile"));
     assertThat(name, Matchers.emptyOrNullString());
+  }
+
+  @Test
+  void shouldSaveErrorWhenStatisticalCodeNotFound() {
+    var jobId = UUID.randomUUID().toString();
+
+    instanceReferenceService.getStatisticalCodeNameById(UUID.randomUUID().toString(),
+      new ErrorServiceArgs(jobId, "identifier", "errorFile"));
+
+    var errors = errorsService.readErrorsFromCSV(jobId, "errorFile", Integer.MAX_VALUE);
+
+    assertThat(errors.getErrors(), Matchers.hasSize(1));
   }
 }

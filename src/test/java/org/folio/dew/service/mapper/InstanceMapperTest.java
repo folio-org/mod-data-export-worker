@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 class InstanceMapperTest extends BaseBatchTest {
@@ -36,5 +37,19 @@ class InstanceMapperTest extends BaseBatchTest {
     var instanceFormat = mapper.mapToInstanceFormat(instance, "identifier", UUID.randomUUID().toString(), "errorFile");
 
     assertThat(instanceFormat.getNotes()).isEqualTo("note type;test note;true");
+  }
+
+  @Test
+  void shouldMapInstanceStatisticalCodes() {
+    var statisticalCodeId1 = "b5968c9e-cddc-4576-99e3-8e60aed8b0dd";
+    var statisticalCodeId2 = "b5968c9e-cddc-4576-99e3-8e60aed8b0dd";
+    var instance = new Instance()
+      .id(UUID.randomUUID().toString())
+      .statisticalCodeIds(List.of(statisticalCodeId1, statisticalCodeId2));
+    var mapper = new InstanceMapper(instanceReferenceService, new SpecialCharacterEscaper());
+
+    var instanceFormat = mapper.mapToInstanceFormat(instance, "identifier", UUID.randomUUID().toString(), "errorFile");
+
+    assertThat(instanceFormat.getStatisticalCode()).isEqualTo("Book, print (books);Book, print (books)");
   }
 }

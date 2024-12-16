@@ -3,8 +3,7 @@ package org.folio.dew.service.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import org.folio.dew.client.InstanceNoteTypesClient;
-import org.folio.dew.client.StatisticalCodeClient;
+import org.folio.dew.BaseBatchTest;
 import org.folio.dew.domain.dto.Instance;
 import org.folio.dew.domain.dto.InstanceNoteType;
 import org.folio.dew.domain.dto.InstanceNotesInner;
@@ -12,22 +11,15 @@ import org.folio.dew.domain.dto.StatisticalCode;
 import org.folio.dew.service.InstanceReferenceService;
 import org.folio.dew.service.SpecialCharacterEscaper;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-@ExtendWith(MockitoExtension.class)
-class InstanceMapperTest {
-  @Mock
-  private InstanceNoteTypesClient instanceNoteTypesClient;
-  @Mock
-  private StatisticalCodeClient statisticalCodeClient;
-  @InjectMocks
+class InstanceMapperTest extends BaseBatchTest {
+
+  @Autowired
   private InstanceReferenceService instanceReferenceService;
 
   @Test

@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.log4j.Log4j2;
 
-import org.folio.dew.batch.acquisitions.edifact.mapper.converter.ClaimCsvConverter;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.config.JacksonConfiguration;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
@@ -48,7 +47,7 @@ class CsvMapperTest {
 
   @BeforeEach
   void setUp() {
-    csvMapper = new CsvMapper(new ClaimCsvConverter(ordersService));
+    csvMapper = new CsvMapper(ordersService);
     objectMapper = new JacksonConfiguration().objectMapper();
 
     when(ordersService.getTitleById(anyString())).thenReturn(new OrdersTitle().title("Test title"));

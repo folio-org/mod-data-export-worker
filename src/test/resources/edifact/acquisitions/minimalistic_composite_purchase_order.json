@@ -8,6 +8,7 @@
       "cost": {
         "currency": "USD"
       },
+      "isPackage": true,
       "titleOrPackage": "empty",
       "metadata": {
         "createdDate": "2021-12-28T08:17:02.171+00:00",

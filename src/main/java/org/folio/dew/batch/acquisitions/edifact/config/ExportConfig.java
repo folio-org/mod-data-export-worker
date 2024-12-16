@@ -2,7 +2,6 @@ package org.folio.dew.batch.acquisitions.edifact.config;
 
 import org.folio.dew.batch.acquisitions.edifact.mapper.CsvMapper;
 import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
-import org.folio.dew.batch.acquisitions.edifact.mapper.converter.ClaimCsvConverter;
 import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompOrderEdiConverter;
 import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompPoLineEdiConverter;
 import org.folio.dew.batch.acquisitions.edifact.mapper.EdifactMapper;
@@ -38,13 +37,8 @@ public class ExportConfig {
   }
 
   @Bean
-  ClaimCsvConverter claimCsvConverter(OrdersService ordersService) {
-    return new ClaimCsvConverter(ordersService);
-  }
-
-  @Bean
-  ExportResourceMapper csvMapper(ClaimCsvConverter claimCsvConverter) {
-    return new CsvMapper(claimCsvConverter);
+  ExportResourceMapper csvMapper(OrdersService ordersService) {
+    return new CsvMapper(ordersService);
   }
 
 }

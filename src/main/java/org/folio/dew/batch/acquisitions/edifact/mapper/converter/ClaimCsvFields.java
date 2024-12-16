@@ -1,38 +1,35 @@
 package org.folio.dew.batch.acquisitions.edifact.mapper.converter;
 
-import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.getTitle;
 import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.getVendorAccountNumber;
 import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.getVendorOrderNumber;
 
 import java.util.function.Function;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.folio.dew.domain.dto.CompositePoLine;
-import org.folio.dew.domain.dto.Piece;
+import org.folio.dew.domain.dto.acquisitions.edifact.ClaimCsvEntry;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @AllArgsConstructor
-public enum ClaimCsvFields implements ExtractableField<Pair<CompositePoLine, Piece>, String> {
+public enum ClaimCsvFields implements ExtractableField<ClaimCsvEntry, String> {
 
-  POL_NUMBER("POL number", pair -> pair.getKey().getPoLineNumber()),
-  ORDER_NUMBER("Vendor order number", pair -> getVendorOrderNumber(pair.getKey())),
-  ACCOUNT_NUMBER("Account number", pair -> getVendorAccountNumber(pair.getKey())),
-  TITLE("Title from piece", pair -> getTitle(pair.getKey())),
-  DISPLAY_SUMMARY("Display summary", pair -> pair.getValue().getDisplaySummary()),
-  CHRONOLOGY("Chronology", pair -> pair.getValue().getChronology()),
-  ENUMERATION("Enumeration", pair -> pair.getValue().getEnumeration()),
-  QUANTITY("Quantity", pair -> "CHANGEME"); // FIXME: implement quantity extraction
+  POL_NUMBER("POL number", entry -> entry.compositePoLine().getPoLineNumber()),
+  ORDER_NUMBER("Vendor order number", entry -> getVendorOrderNumber(entry.compositePoLine())),
+  ACCOUNT_NUMBER("Account number", entry -> getVendorAccountNumber(entry.compositePoLine())),
+  TITLE("Title from piece", ClaimCsvEntry::title),
+  DISPLAY_SUMMARY("Display summary", entry -> entry.piece().getDisplaySummary()),
+  CHRONOLOGY("Chronology", entry -> entry.piece().getChronology()),
+  ENUMERATION("Enumeration", entry -> entry.piece().getEnumeration()),
+  QUANTITY("Quantity", entry -> String.valueOf(entry.quantity()));
 
   @Getter
   private final String name;
-  private final Function<Pair<CompositePoLine, Piece>, String> extractor;
+  private final Function<ClaimCsvEntry, String> extractor;
 
 
   @Override
-  public String extract(Pair<CompositePoLine, Piece> item) {
-    return extractor.apply(item);
+  public String extract(ClaimCsvEntry entry) {
+    return extractor.apply(entry);
   }
 
 }

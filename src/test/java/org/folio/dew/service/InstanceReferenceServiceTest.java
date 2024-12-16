@@ -55,8 +55,6 @@ class InstanceReferenceServiceTest extends BaseBatchTest {
   @Test
   void shouldSaveErrorWhenStatisticalCodeNotFound() {
     var jobId = UUID.randomUUID().toString();
-    when(statisticalCodeClient.getById(anyString()))
-      .thenThrow(new NotFoundException("not found"));
 
     instanceReferenceService.getStatisticalCodeNameById(UUID.randomUUID().toString(),
       new ErrorServiceArgs(jobId, "identifier", "errorFile"));

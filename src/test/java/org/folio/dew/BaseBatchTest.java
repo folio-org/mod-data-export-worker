@@ -128,8 +128,6 @@ public abstract class BaseBatchTest {
   public InstanceNoteTypesClient instanceNoteTypesClient;
   @MockBean
   public ElectronicAccessRelationshipClient relationshipClient;
-  @MockBean
-  public StatisticalCodeClient statisticalCodeClient;
 
   static {
     postgreDBContainer.start();

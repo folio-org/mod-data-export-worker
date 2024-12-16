@@ -7,7 +7,6 @@ import org.folio.dew.BaseBatchTest;
 import org.folio.dew.domain.dto.Instance;
 import org.folio.dew.domain.dto.InstanceNoteType;
 import org.folio.dew.domain.dto.InstanceNotesInner;
-import org.folio.dew.domain.dto.StatisticalCode;
 import org.folio.dew.service.InstanceReferenceService;
 import org.folio.dew.service.SpecialCharacterEscaper;
 import org.junit.jupiter.api.Test;
@@ -42,20 +41,15 @@ class InstanceMapperTest extends BaseBatchTest {
 
   @Test
   void shouldMapInstanceStatisticalCodes() {
-    var statisticalCodeId1 = UUID.randomUUID().toString();
-    var statisticalCodeId2 = UUID.randomUUID().toString();
+    var statisticalCodeId1 = "b5968c9e-cddc-4576-99e3-8e60aed8b0dd";
+    var statisticalCodeId2 = "b5968c9e-cddc-4576-99e3-8e60aed8b0dd";
     var instance = new Instance()
       .id(UUID.randomUUID().toString())
       .statisticalCodeIds(List.of(statisticalCodeId1, statisticalCodeId2));
     var mapper = new InstanceMapper(instanceReferenceService, new SpecialCharacterEscaper());
 
-    when(statisticalCodeClient.getById(statisticalCodeId1))
-      .thenReturn(new StatisticalCode().name("statistical_code_1"));
-    when(statisticalCodeClient.getById(statisticalCodeId2))
-      .thenReturn(new StatisticalCode().name("statistical_code_2"));
-
     var instanceFormat = mapper.mapToInstanceFormat(instance, "identifier", UUID.randomUUID().toString(), "errorFile");
 
-    assertThat(instanceFormat.getStatisticalCode()).isEqualTo("statistical_code_1;statistical_code_2");
+    assertThat(instanceFormat.getStatisticalCode()).isEqualTo("Book, print (books);Book, print (books)");
   }
 }

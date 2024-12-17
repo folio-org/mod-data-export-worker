@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ComponentScan({ "org.folio.dew.batch.acquisitions.edifact" })
-public class ExportConfig {
+public class AcquisitionExportConfig {
 
   @Bean
   CompPoLineEdiConverter compositePOLineConverter(IdentifierTypeService identifierTypeService, MaterialTypeService materialTypeService,

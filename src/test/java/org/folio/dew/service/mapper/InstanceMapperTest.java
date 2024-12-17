@@ -3,26 +3,22 @@ package org.folio.dew.service.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import org.folio.dew.client.InstanceNoteTypesClient;
+import org.folio.dew.BaseBatchTest;
 import org.folio.dew.domain.dto.Instance;
 import org.folio.dew.domain.dto.InstanceNoteType;
 import org.folio.dew.domain.dto.InstanceNotesInner;
 import org.folio.dew.service.InstanceReferenceService;
 import org.folio.dew.service.SpecialCharacterEscaper;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
-@ExtendWith(MockitoExtension.class)
-class InstanceMapperTest {
-  @Mock
-  private InstanceNoteTypesClient instanceNoteTypesClient;
-  @InjectMocks
+class InstanceMapperTest extends BaseBatchTest {
+
+  @Autowired
   private InstanceReferenceService instanceReferenceService;
 
   @Test
@@ -41,5 +37,19 @@ class InstanceMapperTest {
     var instanceFormat = mapper.mapToInstanceFormat(instance, "identifier", UUID.randomUUID().toString(), "errorFile");
 
     assertThat(instanceFormat.getNotes()).isEqualTo("note type;test note;true");
+  }
+
+  @Test
+  void shouldMapInstanceStatisticalCodes() {
+    var statisticalCodeId1 = "b5968c9e-cddc-4576-99e3-8e60aed8b0dd";
+    var statisticalCodeId2 = "b5968c9e-cddc-4576-99e3-8e60aed8b0dd";
+    var instance = new Instance()
+      .id(UUID.randomUUID().toString())
+      .statisticalCodeIds(List.of(statisticalCodeId1, statisticalCodeId2));
+    var mapper = new InstanceMapper(instanceReferenceService, new SpecialCharacterEscaper());
+
+    var instanceFormat = mapper.mapToInstanceFormat(instance, "identifier", UUID.randomUUID().toString(), "errorFile");
+
+    assertThat(instanceFormat.getStatisticalCode()).isEqualTo("Book, print (books);Book, print (books)");
   }
 }

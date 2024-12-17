@@ -76,7 +76,7 @@ public class CsvMapper implements ExportResourceMapper {
   }
 
   private String getTitleById(CompositePoLine poLine, Piece piece) {
-    return poLine.getIsPackage()
+    return Boolean.TRUE.equals(poLine.getIsPackage())
       ? ordersService.getTitleById(piece.getTitleId()).getTitle()
       : poLine.getTitleOrPackage();
   }

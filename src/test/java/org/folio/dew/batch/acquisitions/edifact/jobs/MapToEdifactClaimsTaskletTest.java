@@ -66,7 +66,7 @@ class MapToEdifactClaimsTaskletTest extends MapToEdifactTaskletAbstractTest {
 
     doReturn(poLines).when(ordersService).getPoLinesByQuery(poLineQuery);
     doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
-    doReturn("test1").when(purchaseOrdersToEdifactMapper).convertOrdersToEdifact(any(), any(), anyString());
+    doReturn("test1").when(edifactMapper).convertForExport(any(), any(), any(), anyString());
 
     var exportConfig = getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT, pieceIds);
     JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig));

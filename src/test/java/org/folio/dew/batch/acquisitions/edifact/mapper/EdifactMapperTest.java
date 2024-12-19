@@ -1,7 +1,8 @@
-package org.folio.dew.batch.acquisitions.edifact;
+package org.folio.dew.batch.acquisitions.edifact.mapper;
 
 import static org.folio.dew.domain.dto.ExportType.CLAIMS;
 import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
+import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -9,19 +10,19 @@ import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.io.IOUtils;
+import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
+import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompOrderEdiConverter;
+import org.folio.dew.batch.acquisitions.edifact.mapper.converter.CompPoLineEdiConverter;
+import org.folio.dew.batch.acquisitions.edifact.mapper.EdifactMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.ConfigurationService;
 import org.folio.dew.batch.acquisitions.edifact.services.ExpenseClassService;
 import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
@@ -39,12 +40,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @Log4j2
 @ExtendWith(MockitoExtension.class)
-class MappingOrdersToEdifactTest {
+class EdifactMapperTest {
 
   private static final Map<ExportType, String> EXPORT_EDI_PATHS = Map.of(
     EDIFACT_ORDERS_EXPORT,"edifact/acquisitions/edifact_orders_result.edi",
@@ -52,7 +52,7 @@ class MappingOrdersToEdifactTest {
   );
 
   private ObjectMapper objectMapper;
-  private PurchaseOrdersToEdifactMapper purchaseOrdersToEdifactMapper;
+  private ExportResourceMapper edifactMapper;
 
   @Mock
   private IdentifierTypeService identifierTypeService;
@@ -69,10 +69,25 @@ class MappingOrdersToEdifactTest {
 
   @BeforeEach
   void setUp() {
-    var compositePOLineConverter = new CompositePOLineConverter(identifierTypeService, materialTypeService, expenseClassService, locationService, holdingService);
-    var compositePOConverter = new CompositePOConverter(compositePOLineConverter, configurationService);
-    purchaseOrdersToEdifactMapper = new PurchaseOrdersToEdifactMapper(compositePOConverter);
+    var compositePOLineConverter = new CompPoLineEdiConverter(identifierTypeService, materialTypeService, expenseClassService, locationService, holdingService);
+    var compositePOConverter = new CompOrderEdiConverter(compositePOLineConverter, configurationService);
+    edifactMapper = new EdifactMapper(compositePOConverter);
     objectMapper = new JacksonConfiguration().objectMapper();
+
+    when(identifierTypeService.getIdentifierTypeName("8261054f-be78-422d-bd51-4ed9f33c3422"))
+      .thenReturn("ISSN", "ISMN", "ISBN", "ISSN", "ISMN", "ISBN");
+    when(identifierTypeService.getIdentifierTypeName(not(eq("8261054f-be78-422d-bd51-4ed9f33c3422"))))
+      .thenReturn("Publisher or distributor number");
+    when(materialTypeService.getMaterialTypeName(anyString()))
+      .thenReturn("Book");
+    when(expenseClassService.getExpenseClassCode(anyString()))
+      .thenReturn("Elec");
+    when(locationService.getLocationCodeById(anyString()))
+      .thenReturn("KU/CC/DI/M");
+    when(holdingService.getPermanentLocationByHoldingId(anyString()))
+      .thenReturn("fcd64ce1-6995-48f0-840e-89ffa2288371");
+    when(configurationService.getAddressConfig(any()))
+      .thenReturn("Bockenheimer Landstr. 134-13");
   }
 
   @ParameterizedTest
@@ -83,42 +98,14 @@ class MappingOrdersToEdifactTest {
     List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson(type);
     List<Piece> pieces = getTestPiecesFromJson(type);
 
-    serviceMocks();
-
-    String ediOrder;
-    if (type == EDIFACT_ORDERS_EXPORT) {
-      ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, getTestEdiConfig(), jobName);
-    } else {
-      var piecePoLineIds = pieces.stream().map(Piece::getPoLineId).toList();
-      compPOs = compPOs.stream()
-        .peek(po -> po.getCompositePoLines().stream().filter(line -> piecePoLineIds.contains(line.getId())).toList())
-        .filter(po -> !po.getCompositePoLines().isEmpty())
-        .toList();
-      ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, pieces, getTestEdiConfig(), jobName);
-    }
+    String ediOrder = edifactMapper.convertForExport(compPOs, pieces, getTestEdiConfig(), jobName);
 
     assertFalse(ediOrder.isEmpty());
     validateEdifactOrders(type, ediOrder, fileIdExpected);
-  }
 
-  @ParameterizedTest
-  @EnumSource(value = ExportType.class, names = {"EDIFACT_ORDERS_EXPORT", "CLAIMS"})
-  void convertOrdersToEdifactByteArray(ExportType type) throws Exception {
-    String jobName = "12345";
-    List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson(type);
-    List<Piece> pieces = getTestPiecesFromJson(type);
-
-    serviceMocks();
-
-    byte[] ediOrder;
-    if (type == EDIFACT_ORDERS_EXPORT) {
-      ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, getTestEdiConfig(), jobName).getBytes(StandardCharsets.UTF_8);
-    } else {
-      ediOrder = purchaseOrdersToEdifactMapper.convertOrdersToEdifact(compPOs, pieces, getTestEdiConfig(), jobName).getBytes(StandardCharsets.UTF_8);
-    }
-
-    assertNotNull(ediOrder);
-    validateEdifactOrders(type, new String(ediOrder), jobName);
+    byte[] ediOrderBytes = ediOrder.getBytes(StandardCharsets.UTF_8);
+    assertNotNull(ediOrderBytes);
+    validateEdifactOrders(type, new String(ediOrder), fileIdExpected);
   }
 
   private VendorEdiOrdersExportConfig getTestEdiConfig() throws IOException {
@@ -138,42 +125,10 @@ class MappingOrdersToEdifactTest {
     return compPOs;
   }
 
-
   private List<Piece> getTestPiecesFromJson(ExportType type) throws IOException {
     return type == EDIFACT_ORDERS_EXPORT
       ? List.of()
       : objectMapper.readValue(getMockData("edifact/acquisitions/pieces_collection_mixed.json"), PieceCollection.class).getPieces();
-  }
-
-  public static String getMockData(String path) throws IOException {
-    try (InputStream resourceAsStream = MappingOrdersToEdifactTest.class.getClassLoader().getResourceAsStream(path)) {
-      if (resourceAsStream != null) {
-        return IOUtils.toString(resourceAsStream, StandardCharsets.UTF_8);
-      } else {
-        StringBuilder sb = new StringBuilder();
-        try (Stream<String> lines = Files.lines(Paths.get(path))) {
-          lines.forEach(sb::append);
-        }
-        return sb.toString();
-      }
-    }
-  }
-
-  private void serviceMocks() {
-    Mockito.when(identifierTypeService.getIdentifierTypeName("8261054f-be78-422d-bd51-4ed9f33c3422"))
-      .thenReturn("ISSN", "ISMN", "ISBN", "ISSN", "ISMN", "ISBN");
-    Mockito.when(identifierTypeService.getIdentifierTypeName(not(eq("8261054f-be78-422d-bd51-4ed9f33c3422"))))
-      .thenReturn("Publisher or distributor number");
-    Mockito.when(materialTypeService.getMaterialTypeName(anyString()))
-      .thenReturn("Book");
-    Mockito.when(expenseClassService.getExpenseClassCode(anyString()))
-      .thenReturn("Elec");
-    Mockito.when(locationService.getLocationCodeById(anyString()))
-      .thenReturn("KU/CC/DI/M");
-    Mockito.when(holdingService.getPermanentLocationByHoldingId(anyString()))
-      .thenReturn("fcd64ce1-6995-48f0-840e-89ffa2288371");
-    Mockito.when(configurationService.getAddressConfig(any()))
-      .thenReturn("Bockenheimer Landstr. 134-13");
   }
 
   private void validateEdifactOrders(ExportType type, String ediOrder, String fileId) throws IOException {

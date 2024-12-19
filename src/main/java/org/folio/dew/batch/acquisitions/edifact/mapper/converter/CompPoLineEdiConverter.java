@@ -1,6 +1,7 @@
-package org.folio.dew.batch.acquisitions.edifact;
+package org.folio.dew.batch.acquisitions.edifact.mapper.converter;
 
-import static org.folio.dew.domain.dto.ReferenceNumberItem.RefNumberTypeEnum.ORDER_REFERENCE_NUMBER;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.getVendorOrderNumber;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.getVendorReferenceNumbers;
 
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
@@ -25,7 +26,6 @@ import org.folio.dew.domain.dto.Location;
 import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.ProductIdentifier;
 import org.folio.dew.domain.dto.ReferenceNumberItem;
-import org.folio.dew.domain.dto.VendorDetail;
 import org.javamoney.moneta.Money;
 
 import java.math.BigDecimal;
@@ -33,9 +33,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-public class CompositePOLineConverter {
+public class CompPoLineEdiConverter {
   private static final int MAX_CHARS_PER_LINE = 70;
   private static final int MAX_NUMBER_OF_REFS = 10;
   private static final String PRODUCT_ID_FUNCTION_CODE_MAIN_PRODUCT_IDNTIFICATION = "5";
@@ -57,8 +56,8 @@ public class CompositePOLineConverter {
   private final LocationService locationService;
   private final HoldingService holdingService;
 
-  public CompositePOLineConverter(IdentifierTypeService identifierTypeService, MaterialTypeService materialTypeService,
-                                  ExpenseClassService expenseClassService, LocationService locationService, HoldingService holdingService) {
+  public CompPoLineEdiConverter(IdentifierTypeService identifierTypeService, MaterialTypeService materialTypeService,
+                                ExpenseClassService expenseClassService, LocationService locationService, HoldingService holdingService) {
     this.identifierTypeService = identifierTypeService;
     this.materialTypeService = materialTypeService;
     this.expenseClassService = expenseClassService;
@@ -512,17 +511,8 @@ public class CompositePOLineConverter {
     return "";
   }
 
-  private List<ReferenceNumberItem> getVendorReferenceNumbers(CompositePoLine poLine) {
-    return Optional.ofNullable(poLine.getVendorDetail())
-      .map(VendorDetail::getReferenceNumbers)
-      .orElse(new ArrayList<>());
-  }
-
   private ReferenceNumberItem getAndRemoveVendorOrderNumber(List<ReferenceNumberItem> referenceNumberItems) {
-    var vendorOrderNumber = referenceNumberItems.stream()
-      .filter(r -> r.getRefNumberType() == ORDER_REFERENCE_NUMBER)
-      .findFirst()
-      .orElse(null);
+    var vendorOrderNumber = getVendorOrderNumber(referenceNumberItems);
     referenceNumberItems.remove(vendorOrderNumber);
     return vendorOrderNumber;
   }

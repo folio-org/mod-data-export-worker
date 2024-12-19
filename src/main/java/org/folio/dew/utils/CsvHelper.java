@@ -1,6 +1,7 @@
 package org.folio.dew.utils;
 
 import static org.folio.dew.utils.Constants.LINE_BREAK;
+import static org.folio.dew.utils.Constants.LINE_BREAK_REPLACEMENT;
 
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
@@ -8,6 +9,8 @@ import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
+
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.repository.BaseFilesStorage;
 
 import java.io.BufferedReader;
@@ -86,5 +89,21 @@ public class CsvHelper {
     try (var lines = storage.lines(path)) {
       return lines.count();
     }
+  }
+
+
+  /**
+   * Escapes delimiter in the value with escape character. If value contains delimiter, line break or escape character,
+   * it will be escaped - as instructed in <a href="https://www.ietf.org/rfc/rfc4180.txt">RFC 4180</a>
+   *
+   * @param value      value to process
+   * @param delimiter  delimiter to escape
+   * @param escape     escape character
+   * @return escaped value
+   */
+  public static String escapeDelimiter(String value, String delimiter, String escape) {
+    return StringUtils.isNotBlank(value) && value.contains(delimiter)
+      ? escape + value.replace(escape, escape + escape).replace(LINE_BREAK, LINE_BREAK_REPLACEMENT) + escape
+      : value;
   }
 }

@@ -4,10 +4,12 @@ import static org.folio.dew.utils.QueryUtils.combineCqlExpressions;
 import static org.folio.dew.utils.QueryUtils.convertIdsToCqlQuery;
 
 import org.folio.dew.client.OrdersStorageClient;
+import org.folio.dew.domain.dto.OrdersTitle;
 import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.PurchaseOrder;
 import org.folio.dew.utils.QueryUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -69,6 +71,14 @@ public class OrdersService {
       .toList();
     log.debug("getPiecesByIdsAndReceivingStatus:: Fetched {} pieces", pieces.size());
     return pieces;
+  }
+
+  @Cacheable("titleIds")
+  public OrdersTitle getTitleById(String titleId) {
+    log.debug("getTitleById: Fetching title: {}", titleId);
+    var title =  ordersStorageClient.getTitleById(titleId);
+    log.debug("getTitleById:: Fetched title: {}", title);
+    return title;
   }
 
 }

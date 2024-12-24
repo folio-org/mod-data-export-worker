@@ -2,6 +2,7 @@ package org.folio.dew.service;
 
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
+import static org.folio.dew.domain.dto.ExportType.CLAIMS;
 import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
@@ -13,6 +14,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -145,7 +147,7 @@ public class JobCommandsReceiverService {
   }
 
   private void addOrderExportSpecificParameters(JobCommand jobCommand, JobParametersBuilder paramsBuilder) {
-    if (jobCommand.getExportType().equals(EDIFACT_ORDERS_EXPORT)) {
+    if (jobCommand.getExportType() == EDIFACT_ORDERS_EXPORT || jobCommand.getExportType() == CLAIMS) {
       paramsBuilder.addString(JobParameterNames.JOB_NAME, jobCommand.getName(), JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
     }
   }

@@ -60,7 +60,7 @@ abstract class MapToEdifactTaskletAbstractTest extends BaseBatchTest {
 
     assertEquals(BatchStatus.FAILED, status);
     assertThat(jobExecution.getExitStatus().getExitCode()).isEqualTo(ExitStatus.FAILED.getExitCode());
-    assertThat(jobExecution.getExitStatus().getExitDescription()).contains("Export configuration is incomplete, missing FTP/SFTP Port");
+    assertThat(jobExecution.getExitStatus().getExitDescription()).contains("Export configuration is incomplete, missing required fields: [ftpPort, serverAddress]");
   }
 
   @Test

@@ -2,6 +2,9 @@
   "vendorId": "d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1",
   "configName": "EDIFACT 1",
   "configDescription": "EDI configuration for testing export",
+  "integrationType": "Ordering",
+  "transmissionMethod": "FTP",
+  "fileFormat": "EDI",
   "ediConfig": {
     "accountNoList": [
       "BRXXXXX-01"
@@ -27,7 +30,6 @@
     "notes": "separate directories for EOCRs and cat records",
     "orderDirectory": "/uploads",
     "password": "12345",
-    "serverAddress": "sftp://random-address.com",
     "username": "user"
   },
   "isDefaultConfig": false

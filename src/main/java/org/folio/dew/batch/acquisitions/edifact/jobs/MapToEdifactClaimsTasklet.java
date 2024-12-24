@@ -1,12 +1,10 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.CLAIM_PIECE_IDS;
-import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.FILE_FORMAT;
-import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.INTEGRATION_TYPE;
 import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.LIB_EDI_TYPE;
-import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.TRANSMISSION_METHOD;
 import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.VENDOR_EDI_TYPE;
 import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.validateField;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.FileFormatEnum.EDI;
 import static org.folio.dew.utils.QueryUtils.convertIdsToCqlQuery;
 
 import java.util.ArrayList;
@@ -52,12 +50,9 @@ public class MapToEdifactClaimsTasklet extends MapToEdifactTasklet {
   @Override
   protected List<String> getExportConfigMissingFields(VendorEdiOrdersExportConfig ediOrdersExportConfig) {
     List<String> missingFields = new ArrayList<>();
-    validateField(INTEGRATION_TYPE.getName(), ediOrdersExportConfig.getIntegrationType(), Objects::nonNull, missingFields);
-    validateField(TRANSMISSION_METHOD.getName(), ediOrdersExportConfig.getTransmissionMethod(), Objects::nonNull, missingFields);
-    validateField(FILE_FORMAT.getName(), ediOrdersExportConfig.getFileFormat(), Objects::nonNull, missingFields);
     validateField(CLAIM_PIECE_IDS.getName(), ediOrdersExportConfig.getClaimPieceIds(), CollectionUtils::isNotEmpty, missingFields);
 
-    if (ediOrdersExportConfig.getFileFormat() == VendorEdiOrdersExportConfig.FileFormatEnum.EDI) {
+    if (ediOrdersExportConfig.getFileFormat() == EDI) {
       var ediConfig = ediOrdersExportConfig.getEdiConfig();
       validateField(LIB_EDI_TYPE.getName(), ediConfig.getLibEdiType(), Objects::nonNull, missingFields);
       validateField(VENDOR_EDI_TYPE.getName(), ediConfig.getVendorEdiType(), Objects::nonNull, missingFields);

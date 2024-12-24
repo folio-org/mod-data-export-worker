@@ -3,8 +3,11 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.stream.Collectors.groupingBy;
 import static org.folio.dew.batch.acquisitions.edifact.jobs.EdifactExportJobConfig.POL_MEM_KEY;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.FILE_FORMAT;
 import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.FTP_PORT;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.INTEGRATION_TYPE;
 import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.SERVER_ADDRESS;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.TRANSMISSION_METHOD;
 import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.validateField;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.FTP;
@@ -66,6 +69,9 @@ public abstract class MapToEdifactTasklet implements Tasklet {
 
   private void validateEdiExportConfig(VendorEdiOrdersExportConfig ediExportConfig) {
     var missingFields = getExportConfigMissingFields(ediExportConfig);
+    validateField(INTEGRATION_TYPE.getName(), ediExportConfig.getIntegrationType(), Objects::nonNull, missingFields);
+    validateField(TRANSMISSION_METHOD.getName(), ediExportConfig.getTransmissionMethod(), Objects::nonNull, missingFields);
+    validateField(FILE_FORMAT.getName(), ediExportConfig.getFileFormat(), Objects::nonNull, missingFields);
 
     if (ediExportConfig.getTransmissionMethod() == FTP) {
       var ftpConfig = ediExportConfig.getEdiFtp();

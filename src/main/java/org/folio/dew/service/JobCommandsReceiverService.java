@@ -113,12 +113,16 @@ public class JobCommandsReceiverService {
           }
         }
 
-        var jobLaunchRequest =
-          new JobLaunchRequest(
-            jobMap.get(resolveJobKey(jobCommand)),
-            jobCommand.getJobParameters());
+        var jobKey = resolveJobKey(jobCommand);
+        log.info("receiveStartJobCommand:: Resolving job with key: '{}' for command: '{}'", jobKey, jobCommand.getId());
+        var job = jobMap.get(jobKey);
 
-        exportJobManagerSync.launchJob(jobLaunchRequest);
+        if (job != null) {
+          log.info("receiveStartJobCommand:: Job resolved: '{}', launching...", job.getName());
+          exportJobManagerSync.launchJob(new JobLaunchRequest(job, jobCommand.getJobParameters()));
+        } else {
+          log.error("Job with key '{}' not found for command: '{}'", jobKey, jobCommand.getId());
+        }
 
       } catch (Exception e) {
         log.error(e.toString(), e);

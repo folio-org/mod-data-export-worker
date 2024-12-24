@@ -1,6 +1,11 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.CLAIM_PIECE_IDS;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.INTEGRATION_TYPE;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.TRANSMISSION_METHOD;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.FTP;
 import static org.folio.dew.utils.QueryUtils.convertIdsToCqlQuery;
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,6 +25,7 @@ import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.PoLineCollection;
 import org.folio.dew.domain.dto.PurchaseOrder;
 import org.folio.dew.domain.dto.PurchaseOrderCollection;
+import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.BatchStatus;
@@ -110,7 +116,9 @@ class MapToEdifactClaimsTaskletTest extends MapToEdifactTaskletAbstractTest {
 
   protected ObjectNode getEdifactExportConfig(String path, List<String> pieceIds) throws IOException {
     var exportConfig = super.getEdifactExportConfig(path);
-    var arr = exportConfig.putArray("claimPieceIds");
+    exportConfig.put(INTEGRATION_TYPE.getName(), CLAIMING.getValue());
+    exportConfig.put(TRANSMISSION_METHOD.getName(), FTP.getValue());
+    var arr = exportConfig.putArray(CLAIM_PIECE_IDS.getName());
     pieceIds.forEach(arr::add);
     return exportConfig;
   }

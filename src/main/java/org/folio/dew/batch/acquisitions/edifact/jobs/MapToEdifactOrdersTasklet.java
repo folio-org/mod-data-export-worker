@@ -1,10 +1,16 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.LIB_EDI_CODE;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.LIB_EDI_TYPE;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.VENDOR_EDI_CODE;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.VENDOR_EDI_TYPE;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.validateField;
 import static org.folio.dew.utils.QueryUtils.combineCqlExpressions;
 import static org.folio.dew.utils.QueryUtils.convertFieldListToEnclosedCqlQuery;
 import static org.folio.dew.utils.QueryUtils.getCqlExpressionForFieldNullValue;
 import static org.folio.dew.utils.QueryUtils.negateQuery;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
 import org.folio.dew.client.DataExportSpringClient;
@@ -46,7 +53,13 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
 
   @Override
   protected List<String> getExportConfigMissingFields(VendorEdiOrdersExportConfig ediOrdersExportConfig) {
-    return List.of();
+    List<String> missingFields = new ArrayList<>();
+    var ediConfig = ediOrdersExportConfig.getEdiConfig();
+    validateField(LIB_EDI_TYPE.getName(), ediConfig.getLibEdiType(), Objects::nonNull, missingFields);
+    validateField(LIB_EDI_CODE.getName(), ediConfig.getLibEdiCode(), StringUtils::isNotBlank, missingFields);
+    validateField(VENDOR_EDI_TYPE.getName(), ediConfig.getVendorEdiType(), Objects::nonNull, missingFields);
+    validateField(VENDOR_EDI_CODE.getName(), ediConfig.getVendorEdiCode(), StringUtils::isNotBlank, missingFields);
+    return missingFields;
   }
 
   @Override

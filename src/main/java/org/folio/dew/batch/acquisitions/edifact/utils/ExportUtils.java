@@ -5,6 +5,7 @@ import static org.folio.dew.domain.dto.ReferenceNumberItem.RefNumberTypeEnum.ORD
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.ReferenceNumberItem;
@@ -37,6 +38,12 @@ public class ExportUtils {
     return Optional.ofNullable(poLine.getVendorDetail())
       .map(VendorDetail::getVendorAccount)
       .orElse(null);
+  }
+
+  public static <T> void validateField(String field, T value, Predicate<T> validator, List<String> missingFields) {
+    if (!validator.test(value)) {
+      missingFields.add(field);
+    }
   }
 
 }

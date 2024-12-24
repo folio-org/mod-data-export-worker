@@ -61,18 +61,9 @@ public abstract class MapToEdifactTasklet implements Tasklet {
   }
 
   private void validateEdiExportConfig(VendorEdiOrdersExportConfig ediExportConfig) {
-    var ediConfig = ediExportConfig.getEdiConfig();
-    Optional<Integer> port = Optional.ofNullable(ediExportConfig.getEdiFtp().getFtpPort());
-
-    if (StringUtils.isEmpty(ediConfig.getLibEdiCode()) || ediConfig.getLibEdiType() == null
-      || StringUtils.isEmpty(ediConfig.getVendorEdiCode()) || ediConfig.getVendorEdiType() == null) {
-      throw new EdifactException("Export configuration is incomplete, missing library EDI code/Vendor EDI code");
-    }
-
-    if (port.isEmpty()) {
+    if (ediExportConfig.getEdiFtp().getFtpPort() == null) {
       throw new EdifactException("Export configuration is incomplete, missing FTP/SFTP Port");
     }
-
     var missingFields = getExportConfigMissingFields(ediExportConfig);
     if (!missingFields.isEmpty()) {
       throw new EdifactException("Export configuration is incomplete, missing required fields: %s".formatted(missingFields));

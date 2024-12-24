@@ -3,11 +3,15 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.stream.Collectors.groupingBy;
 import static org.folio.dew.batch.acquisitions.edifact.jobs.EdifactExportJobConfig.POL_MEM_KEY;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.FTP_PORT;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.SERVER_ADDRESS;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.validateField;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.FTP;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
@@ -61,10 +65,14 @@ public abstract class MapToEdifactTasklet implements Tasklet {
   }
 
   private void validateEdiExportConfig(VendorEdiOrdersExportConfig ediExportConfig) {
-    if (ediExportConfig.getEdiFtp().getFtpPort() == null) {
-      throw new EdifactException("Export configuration is incomplete, missing FTP/SFTP Port");
-    }
     var missingFields = getExportConfigMissingFields(ediExportConfig);
+
+    if (ediExportConfig.getTransmissionMethod() == FTP) {
+      var ftpConfig = ediExportConfig.getEdiFtp();
+      validateField(FTP_PORT.getName(), ftpConfig.getFtpPort(), Objects::nonNull, missingFields);
+      validateField(SERVER_ADDRESS.getName(), ftpConfig.getServerAddress(), StringUtils::isNotEmpty, missingFields);
+    }
+
     if (!missingFields.isEmpty()) {
       throw new EdifactException("Export configuration is incomplete, missing required fields: %s".formatted(missingFields));
     }

@@ -25,7 +25,6 @@ import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.PoLineCollection;
 import org.folio.dew.domain.dto.PurchaseOrder;
 import org.folio.dew.domain.dto.PurchaseOrderCollection;
-import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.BatchStatus;

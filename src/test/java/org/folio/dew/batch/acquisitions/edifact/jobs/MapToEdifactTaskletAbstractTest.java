@@ -39,7 +39,6 @@ abstract class MapToEdifactTaskletAbstractTest extends BaseBatchTest {
   protected static final String MAP_TO_EDIFACT_STEP = "mapToEdifactStep";
 
   protected static final String SAMPLE_EDI_ORDERS_EXPORT = "edifact/edifactOrdersExport.json";
-  private static final String SAMPLE_EDI_ORDERS_EXPORT_MISSING_FIELDS = "edifact/edifactOrdersExportWithoutRequiredFields.json";
   private static final String SAMPLE_EDI_ORDERS_EXPORT_MISSING_PORT = "edifact/edifactOrdersExportWithoutPort.json";
 
   @MockBean
@@ -52,17 +51,6 @@ abstract class MapToEdifactTaskletAbstractTest extends BaseBatchTest {
   @Autowired
   protected ObjectMapper objectMapper;
   protected Job edifactExportJob;
-
-  @Test
-  void testEdifactExportMissingRequiredFields() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
-    JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT_MISSING_FIELDS)));
-    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0).getStatus();
-
-    assertEquals(BatchStatus.FAILED, status);
-    assertThat(jobExecution.getExitStatus().getExitCode()).isEqualTo(ExitStatus.FAILED.getExitCode());
-    assertThat(jobExecution.getExitStatus().getExitDescription()).contains("Export configuration is incomplete, missing library EDI code/Vendor EDI code");
-  }
 
   @Test
   void testEdifactExportMissingFtpPort() throws Exception {

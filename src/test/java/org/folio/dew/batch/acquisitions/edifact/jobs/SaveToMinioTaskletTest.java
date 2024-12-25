@@ -17,6 +17,7 @@ import java.util.UUID;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
+import org.folio.dew.repository.RemoteFilesStorage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -29,6 +30,7 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.annotation.DirtiesContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -41,13 +43,14 @@ class SaveToMinioTaskletTest extends BaseBatchTest {
   private Job edifactExportJob;
   @MockBean
   private OrganizationsService organizationsService;
+  @SpyBean
+  private RemoteFilesStorage remoteFilesStorage;
 
   @Override
   @SneakyThrows
   @BeforeEach
   protected void setUp() {
     super.setUp();
-    remoteFilesStorage = spy(remoteFilesStorage);
 
     JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
     doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());

@@ -4,6 +4,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.FILE_DOWNLOAD;
 import static org.folio.dew.utils.Constants.EDIFACT_EXPORT_DIR_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
@@ -52,7 +53,7 @@ public class SaveToMinioTasklet implements Tasklet {
     // retrieve parameters from job context
     var jobParameters = chunkContext.getStepContext().getJobParameters();
     var ediExportConfig = ediObjectMapper.readValue((String) jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
-    if (ediExportConfig.getTransmissionMethod() != FILE_DOWNLOAD) {
+    if (ediExportConfig.getIntegrationType() != ORDERING && ediExportConfig.getTransmissionMethod() != FILE_DOWNLOAD) {
       log.info("execute:: Transmission method is not File Download, skipping the step");
       return RepeatStatus.FINISHED;
     }

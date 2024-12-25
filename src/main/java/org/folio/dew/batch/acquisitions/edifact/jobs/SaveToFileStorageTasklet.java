@@ -3,6 +3,7 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.FTP;
 
 import java.nio.charset.StandardCharsets;
@@ -40,7 +41,7 @@ public class SaveToFileStorageTasklet implements Tasklet {
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     var jobParameters = chunkContext.getStepContext().getJobParameters();
     var ediExportConfig = ediObjectMapper.readValue((String) jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
-    if (ediExportConfig.getTransmissionMethod() != FTP) {
+    if (ediExportConfig.getIntegrationType() != ORDERING && ediExportConfig.getTransmissionMethod() != FTP) {
       log.info("execute:: Transmission method is not FTP, skipping the step");
       return RepeatStatus.FINISHED;
     }

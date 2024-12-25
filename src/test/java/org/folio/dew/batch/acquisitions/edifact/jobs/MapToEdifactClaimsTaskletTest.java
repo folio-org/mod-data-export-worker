@@ -61,7 +61,7 @@ class MapToEdifactClaimsTaskletTest extends MapToEdifactTaskletAbstractTest {
     pieces = objectMapper.readValue(getMockData(SAMPLE_PIECES_PATH), PieceCollection.class).getPieces();
 
     pieceIds = pieces.stream().map(Piece::getId).toList();
-    doReturn(pieces).when(ordersService).getPiecesByIdsAndReceivingStatus(pieceIds, Piece.ReceivingStatusEnum.LATE);
+    doReturn(pieces).when(ordersService).getPiecesByIdsAndReceivingStatus(pieceIds, Piece.ReceivingStatusEnum.CLAIM_SENT);
   }
 
   @Test
@@ -77,7 +77,7 @@ class MapToEdifactClaimsTaskletTest extends MapToEdifactTaskletAbstractTest {
     JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig));
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-    verify(ordersService).getPiecesByIdsAndReceivingStatus(pieceIds, Piece.ReceivingStatusEnum.LATE);
+    verify(ordersService).getPiecesByIdsAndReceivingStatus(pieceIds, Piece.ReceivingStatusEnum.CLAIM_SENT);
     verify(ordersService).getPoLinesByQuery(poLineQuery);
     verify(ordersService).getPurchaseOrdersByIds(anyList());
   }
@@ -85,14 +85,14 @@ class MapToEdifactClaimsTaskletTest extends MapToEdifactTaskletAbstractTest {
   @Test
   void testEdifactClaimsExportNoPiecesFound() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
-    doReturn(List.of()).when(ordersService).getPiecesByIdsAndReceivingStatus(pieceIds, Piece.ReceivingStatusEnum.LATE);
+    doReturn(List.of()).when(ordersService).getPiecesByIdsAndReceivingStatus(pieceIds, Piece.ReceivingStatusEnum.CLAIM_SENT);
 
     var exportConfig = getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT, pieceIds);
     JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig));
 
     assertThat(jobExecution.getExitStatus().getExitCode()).isEqualTo(ExitStatus.FAILED.getExitCode());
     assertThat(jobExecution.getExitStatus().getExitDescription()).contains("Entities not found: Piece");
-    verify(ordersService).getPiecesByIdsAndReceivingStatus(pieceIds, Piece.ReceivingStatusEnum.LATE);
+    verify(ordersService).getPiecesByIdsAndReceivingStatus(pieceIds, Piece.ReceivingStatusEnum.CLAIM_SENT);
   }
 
   @Test

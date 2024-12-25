@@ -1,11 +1,10 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
-import static org.folio.dew.domain.dto.JobParameterNames.UPLOADED_FILE_PATH;
-import static org.folio.dew.utils.Constants.EDIFACT_EXPORT_DIR_NAME;
-import static org.folio.dew.utils.Constants.getWorkingDirectory;
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -14,7 +13,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -22,7 +20,9 @@ import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.repository.FTPObjectStorageRepository;
 import org.folio.dew.repository.SFTPObjectStorageRepository;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -35,9 +35,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import lombok.SneakyThrows;
 
 class SaveToFileStorageTaskletTest extends BaseBatchTest {
+
   @Autowired
   @Qualifier("edifactOrdersExportJob")
   private Job edifactExportJob;
@@ -48,69 +49,43 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
   @MockBean
   private OrganizationsService organizationsService;
 
-  @Test
-  @DirtiesContext
-  void sftpUploadSuccessful() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+  @Override
+  @SneakyThrows
+  @BeforeEach
+  protected void setUp() {
+    super.setUp();
 
+    doReturn(objectMapper.readTree("{\"code\": \"GOBI\"}")).when(organizationsService).getOrganizationById(anyString());
     doReturn(true).when(sftpObjectStorageRepository).upload(anyString(), anyString(), anyString(), anyInt(), anyString(), anyString(), any());
-    JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
-    doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
-
-    JobParameters jobParameters = getSFTPJobParameters();
-    ExecutionContext executionContext = getExecutionContext(jobParameters.getString(UPLOADED_FILE_PATH));
-
-    JobExecution jobExecution = testLauncher.launchStep("saveToFTPStep", getSFTPJobParameters(), executionContext);
-
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-
+    doNothing().when(ftpObjectStorageRepository).upload(anyString(), anyString(), anyString(), anyString(), anyString(), any());
   }
 
-  @Test
+  @ParameterizedTest(name = "{0}")
+  @CsvSource(value = {"SFTP Upload,edifact/edifactOrdersExport.json", "FTP Upload,edifact/edifactFTPOrdersExport.json"}, delimiter = ',')
   @DirtiesContext
-  void ftpUploadSuccessful() throws Exception {
+  void testUploadSuccessful(String testName, String edifactOrdersExport) throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
 
-    JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
-    doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
-    doNothing().when(ftpObjectStorageRepository).upload(anyString(),anyString(),anyString(), anyString(), anyString(), any());
-
-    JobParameters jobParameters = getSFTPJobParameters();
-    ExecutionContext executionContext = getExecutionContext(jobParameters.getString(UPLOADED_FILE_PATH));
-    JobExecution jobExecution = testLauncher.launchStep("saveToFTPStep", getFTPJobParameters(), executionContext);
+    var jobParameters = getJobParameters(edifactOrdersExport);
+    ExecutionContext executionContext = getExecutionContext();
+    JobExecution jobExecution = testLauncher.launchStep("saveToFTPStep", jobParameters, executionContext);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
   }
 
-  private JobParameters getSFTPJobParameters() throws IOException {
+  private JobParameters getJobParameters(String edifactOrdersExport) throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
-
-    paramsBuilder.addString(EDIFACT_ORDERS_EXPORT, getMockData("edifact/edifactOrdersExport.json"));
+    paramsBuilder.addString(EDIFACT_ORDERS_EXPORT, getMockData(edifactOrdersExport));
     paramsBuilder.addString(JOB_ID, UUID.randomUUID().toString());
-
-    String workDir = getWorkingDirectory(springApplicationName, EDIFACT_EXPORT_DIR_NAME);
-
-    // prepare local file copy
-    var filename = "testEdiFile.edi";
-    var fileContent = RandomStringUtils.random(100);
-    var uploadedFilePath = remoteFilesStorage.write(workDir + filename, fileContent.getBytes(StandardCharsets.UTF_8));
-    paramsBuilder.addString(UPLOADED_FILE_PATH, uploadedFilePath);
-
     return paramsBuilder.toJobParameters();
   }
 
-  private JobParameters getFTPJobParameters() throws IOException {
-    JobParametersBuilder paramsBuilder = new JobParametersBuilder();
-
-    paramsBuilder.addString(EDIFACT_ORDERS_EXPORT, getMockData("edifact/edifactFTPOrdersExport.json"));
-    paramsBuilder.addString(JOB_ID, UUID.randomUUID().toString());
-
-    return paramsBuilder.toJobParameters();
-  }
-
-  private ExecutionContext getExecutionContext(String uploadedFilePath) {
+  private ExecutionContext getExecutionContext() {
+    // Prepare file name and content
     ExecutionContext executionContext = new ExecutionContext();
-    executionContext.put(UPLOADED_FILE_PATH, uploadedFilePath);
+    executionContext.put(EDIFACT_FILE_NAME, "testEdiFile.edi");
+    executionContext.put(ACQ_EXPORT_FILE, RandomStringUtils.random(100));
     return executionContext;
   }
 
@@ -121,4 +96,5 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
     testLauncher.setJobRepository(jobRepository);
     return testLauncher;
   }
+
 }

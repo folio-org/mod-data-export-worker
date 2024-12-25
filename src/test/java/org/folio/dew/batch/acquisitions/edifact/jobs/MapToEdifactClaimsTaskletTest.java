@@ -62,6 +62,7 @@ class MapToEdifactClaimsTaskletTest extends MapToEdifactTaskletAbstractTest {
 
     pieceIds = pieces.stream().map(Piece::getId).toList();
     doReturn(pieces).when(ordersService).getPiecesByIdsAndReceivingStatus(pieceIds, Piece.ReceivingStatusEnum.CLAIM_SENT);
+    doReturn(objectMapper.readTree("{\"code\": \"GOBI\"}")).when(organizationsService).getOrganizationById(anyString());
   }
 
   @Test

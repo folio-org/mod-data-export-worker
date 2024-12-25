@@ -19,6 +19,7 @@ import java.util.UUID;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
+import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.client.DataExportSpringClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.BatchStatus;
@@ -46,6 +47,8 @@ abstract class MapToEdifactTaskletAbstractTest extends BaseBatchTest {
 
   @MockBean
   protected OrdersService ordersService;
+  @MockBean
+  protected OrganizationsService organizationsService;
   @MockBean
   protected DataExportSpringClient dataExportSpringClient;
   @MockBean

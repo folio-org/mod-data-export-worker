@@ -51,6 +51,8 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
     edifactExportJob = edifactOrdersExportJob;
     orders = objectMapper.readValue(getMockData(SAMPLE_PURCHASE_ORDERS_PATH), PurchaseOrderCollection.class).getPurchaseOrders();
     poLines = objectMapper.readValue(getMockData(SAMPLE_PO_LINES_PATH), PoLineCollection.class).getPoLines();
+
+    doReturn(objectMapper.readTree("{\"code\": \"GOBI\"}")).when(organizationsService).getOrganizationById(anyString());
   }
 
   @Test

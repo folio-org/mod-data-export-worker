@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -46,6 +47,7 @@ class SaveToMinioTaskletTest extends BaseBatchTest {
   @BeforeEach
   protected void setUp() {
     super.setUp();
+    remoteFilesStorage = spy(remoteFilesStorage);
 
     JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
     doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());

@@ -62,7 +62,7 @@ public class MapToEdifactClaimsTasklet extends MapToEdifactTasklet {
 
   @Override
   protected ExportHolder buildEdifactExportHolder(ChunkContext chunkContext, VendorEdiOrdersExportConfig ediExportConfig, Map<String, Object> jobParameters) {
-    var pieces = ordersService.getPiecesByIdsAndReceivingStatus(ediExportConfig.getClaimPieceIds(), Piece.ReceivingStatusEnum.LATE);
+    var pieces = ordersService.getPiecesByIdsAndReceivingStatus(ediExportConfig.getClaimPieceIds(), Piece.ReceivingStatusEnum.CLAIM_SENT);
     if (pieces.isEmpty()) {
       throw new NotFoundException(Piece.class);
     }

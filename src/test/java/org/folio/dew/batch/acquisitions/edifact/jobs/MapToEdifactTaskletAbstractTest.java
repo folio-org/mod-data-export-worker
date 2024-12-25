@@ -1,5 +1,8 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
+import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
+import static org.folio.dew.domain.dto.JobParameterNames.JOB_NAME;
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -82,9 +85,9 @@ abstract class MapToEdifactTaskletAbstractTest extends BaseBatchTest {
 
   protected JobParameters getJobParameters(ObjectNode edifactExport) {
     return new JobParametersBuilder()
-      .addString("jobId", UUID.randomUUID().toString())
-      .addString("edifactOrdersExport", edifactExport.toString())
-      .addString("jobName", "000015")
+      .addString(JOB_ID, UUID.randomUUID().toString())
+      .addString(JOB_NAME, "000015")
+      .addString(EDIFACT_ORDERS_EXPORT, edifactExport.toString())
       .toJobParameters();
   }
 

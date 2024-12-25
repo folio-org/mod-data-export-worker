@@ -1,26 +1,22 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
-import static org.folio.dew.domain.dto.JobParameterNames.UPLOADED_FILE_PATH;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.FILE_DOWNLOAD;
 import static org.folio.dew.utils.Constants.EDIFACT_EXPORT_DIR_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
 import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
-import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
-import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.spring.FolioExecutionContext;
 import org.springframework.batch.core.StepContribution;
+import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -39,12 +35,13 @@ import lombok.extern.log4j.Log4j2;
 @StepScope
 @Log4j2
 public class SaveToMinioTasklet implements Tasklet {
+
+  private static final String REMOTE_STORAGE_ERROR_MESSAGE = "Failed to save edifact file to remote storage";
+  private static final String UPLOADED_PATH_TEMPLATE = "%s%s/%s";
+
   private final RemoteFilesStorage remoteFilesStorage;
-  private final OrganizationsService organizationsService;
   private final FolioExecutionContext folioExecutionContext;
   private final ObjectMapper ediObjectMapper;
-  private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-  private static final String REMOTE_STORAGE_ERROR_MESSAGE = "Failed to save edifact file to remote storage";
 
   @Value("${spring.application.name}")
   protected String springApplicationName;
@@ -61,39 +58,25 @@ public class SaveToMinioTasklet implements Tasklet {
     }
 
     var stepExecution = chunkContext.getStepContext().getStepExecution();
-    var edifactOrderAsString = (String) ExecutionContextUtils.getExecutionVariable(stepExecution,"edifactOrderAsString");
-
-    var fullFilePath = buildFullFilePath(ediExportConfig);
-    String edifactFileName = FilenameUtils.getName(fullFilePath);
+    var edifactOrderAsString = (String) ExecutionContextUtils.getExecutionVariable(stepExecution, ACQ_EXPORT_FILE);
+    var fullFilePath = buildFullFilePath(stepExecution);
     String uploadedFilePath;
     try {
       uploadedFilePath = remoteFilesStorage.write(fullFilePath, edifactOrderAsString.getBytes(StandardCharsets.UTF_8));
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.error(REMOTE_STORAGE_ERROR_MESSAGE, e);
       throw new EdifactException(REMOTE_STORAGE_ERROR_MESSAGE);
     }
-    ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), UPLOADED_FILE_PATH, fullFilePath, "");
-    ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), EDIFACT_FILE_NAME, edifactFileName, "");
     ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), OUTPUT_FILES_IN_STORAGE, uploadedFilePath, ";");
 
     return RepeatStatus.FINISHED;
   }
 
-  private String generateFileName(VendorEdiOrdersExportConfig ediExportConfig) {
-    var vendorId = ediExportConfig.getVendorId().toString();
-    var vendor = organizationsService.getOrganizationById(vendorId);
-    var vendorName = vendor.get("code").asText();
-    var fileDate = dateFormat.format(new Date());
-    // exclude restricted symbols after implementing naming convention feature
-    return vendorName + "_" + ediExportConfig.getConfigName() + "_" + fileDate + ".edi";
-  }
-
-  private String buildFullFilePath(VendorEdiOrdersExportConfig ediExportConfig) {
+  private String buildFullFilePath(StepExecution stepExecution) {
     var workDir = getWorkingDirectory(springApplicationName, EDIFACT_EXPORT_DIR_NAME);
     var tenantName = folioExecutionContext.getTenantId();
-    var filename = generateFileName(ediExportConfig);
-
-    return String.format("%s%s/%s", workDir, tenantName, filename);
+    var fileName = (String) ExecutionContextUtils.getExecutionVariable(stepExecution, EDIFACT_FILE_NAME);
+    return UPLOADED_PATH_TEMPLATE.formatted(workDir, tenantName, fileName);
   }
+
 }

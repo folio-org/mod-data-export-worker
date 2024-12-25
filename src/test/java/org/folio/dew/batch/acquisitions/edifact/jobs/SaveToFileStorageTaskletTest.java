@@ -1,6 +1,8 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
+import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.folio.dew.domain.dto.JobParameterNames.UPLOADED_FILE_PATH;
 import static org.folio.dew.utils.Constants.EDIFACT_EXPORT_DIR_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
@@ -83,8 +85,8 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
   private JobParameters getSFTPJobParameters() throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
 
-    paramsBuilder.addString("edifactOrdersExport", getMockData("edifact/edifactOrdersExport.json"));
-    paramsBuilder.addString("jobId", UUID.randomUUID().toString());
+    paramsBuilder.addString(EDIFACT_ORDERS_EXPORT, getMockData("edifact/edifactOrdersExport.json"));
+    paramsBuilder.addString(JOB_ID, UUID.randomUUID().toString());
 
     String workDir = getWorkingDirectory(springApplicationName, EDIFACT_EXPORT_DIR_NAME);
 
@@ -100,8 +102,8 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
   private JobParameters getFTPJobParameters() throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
 
-    paramsBuilder.addString("edifactOrdersExport", getMockData("edifact/edifactFTPOrdersExport.json"));
-    paramsBuilder.addString("jobId", UUID.randomUUID().toString());
+    paramsBuilder.addString(EDIFACT_ORDERS_EXPORT, getMockData("edifact/edifactFTPOrdersExport.json"));
+    paramsBuilder.addString(JOB_ID, UUID.randomUUID().toString());
 
     return paramsBuilder.toJobParameters();
   }

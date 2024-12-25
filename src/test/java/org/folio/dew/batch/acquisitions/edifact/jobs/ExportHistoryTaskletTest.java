@@ -20,6 +20,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
+import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
+import static org.folio.dew.domain.dto.JobParameterNames.JOB_NAME;
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -72,11 +76,10 @@ class ExportHistoryTaskletTest extends BaseBatchTest {
   private JobParameters getJobParameters() throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
 
-    paramsBuilder.addString("edifactOrdersExport", getMockData("edifact/edifactOrdersExport.json"));
-    paramsBuilder.addString("edifactOrderAsString", RandomStringUtils.random(100, true, true));
-    paramsBuilder.addString("jobName", "TestJob00123");
-    var jobId = UUID.randomUUID().toString();
-    paramsBuilder.addString("jobId", jobId);
+    paramsBuilder.addString(EDIFACT_ORDERS_EXPORT, getMockData("edifact/edifactOrdersExport.json"));
+    paramsBuilder.addString(ACQ_EXPORT_FILE, RandomStringUtils.random(100, true, true));
+    paramsBuilder.addString(JOB_NAME, "TestJob00123");
+    paramsBuilder.addString(JOB_ID, UUID.randomUUID().toString());
 
     return paramsBuilder.toJobParameters();
   }

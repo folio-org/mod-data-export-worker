@@ -1,5 +1,8 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
+import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -60,16 +63,15 @@ class SaveToMinioTaskletFailTest extends BaseBatchTest {
   private JobParameters getJobParameters() throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
 
-    paramsBuilder.addString("edifactOrdersExport", getMockData("edifact/edifactOrdersExport.json"));
-    var jobId = UUID.randomUUID().toString();
-    paramsBuilder.addString("jobId", jobId);
+    paramsBuilder.addString(EDIFACT_ORDERS_EXPORT, getMockData("edifact/edifactOrdersExport.json"));
+    paramsBuilder.addString(JOB_ID, UUID.randomUUID().toString());
 
     return paramsBuilder.toJobParameters();
   }
 
   private ExecutionContext getExecutionContext() {
     ExecutionContext executionContext = new ExecutionContext();
-    executionContext.put("edifactOrderAsString", RandomStringUtils.random(100, true, true));
+    executionContext.put(ACQ_EXPORT_FILE, RandomStringUtils.random(100, true, true));
     return executionContext;
   }
 

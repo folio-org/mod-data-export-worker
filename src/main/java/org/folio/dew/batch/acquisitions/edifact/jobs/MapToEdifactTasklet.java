@@ -8,7 +8,10 @@ import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.
 import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.INTEGRATION_TYPE;
 import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.SERVER_ADDRESS;
 import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.TRANSMISSION_METHOD;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.generateFileName;
 import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.validateField;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.FTP;
 
@@ -22,6 +25,7 @@ import org.folio.dew.batch.acquisitions.edifact.exceptions.CompositeOrderMapping
 import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
 import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
+import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.JobParameterNames;
@@ -47,13 +51,14 @@ import lombok.extern.log4j.Log4j2;
 public abstract class MapToEdifactTasklet implements Tasklet {
 
   private final ObjectMapper ediObjectMapper;
+  private final OrganizationsService organizationsService;
   protected final OrdersService ordersService;
 
   @Override
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
     log.info("execute:: Executing MapToEdifactTasklet with job: {}", chunkContext.getStepContext().getJobName());
     var jobParameters = chunkContext.getStepContext().getJobParameters();
-    var ediExportConfig = ediObjectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
+    var ediExportConfig = ediObjectMapper.readValue((String) jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
     validateEdiExportConfig(ediExportConfig);
 
     var holder = buildEdifactExportHolder(chunkContext, ediExportConfig, jobParameters);
@@ -62,8 +67,10 @@ public abstract class MapToEdifactTasklet implements Tasklet {
     String jobName = jobParameters.get(JobParameterNames.JOB_NAME).toString();
     var edifactStringResult = getExportResourceMapper(ediExportConfig).convertForExport(holder.orders(), holder.pieces(), ediExportConfig, jobName);
 
-    // save edifact file content in memory
-    ExecutionContextUtils.addToJobExecutionContext(chunkContext.getStepContext().getStepExecution(), "edifactOrderAsString", edifactStringResult, "");
+    // save edifact file content and name in memory
+    var stepExecution = chunkContext.getStepContext().getStepExecution();
+    ExecutionContextUtils.addToJobExecutionContext(stepExecution, ACQ_EXPORT_FILE, edifactStringResult, "");
+    ExecutionContextUtils.addToJobExecutionContext(stepExecution, EDIFACT_FILE_NAME, getFileName(ediExportConfig), "");
     return RepeatStatus.FINISHED;
   }
 
@@ -84,7 +91,7 @@ public abstract class MapToEdifactTasklet implements Tasklet {
     }
   }
 
-protected List<CompositePurchaseOrder> getCompositeOrders(String poLineQuery) {
+  protected List<CompositePurchaseOrder> getCompositeOrders(String poLineQuery) {
     var poLines = ordersService.getPoLinesByQuery(poLineQuery);
     var orderIds = poLines.stream()
       .map(PoLine::getPurchaseOrderId)
@@ -104,7 +111,7 @@ protected List<CompositePurchaseOrder> getCompositeOrders(String poLineQuery) {
       .flatMap(ord -> ord.getCompositePoLines().stream())
       .map(CompositePoLine::getId)
       .toList();
-    ExecutionContextUtils.addToJobExecutionContext(chunkContext.getStepContext().getStepExecution(), POL_MEM_KEY, ediObjectMapper.writeValueAsString(poLineIds),"");
+    ExecutionContextUtils.addToJobExecutionContext(chunkContext.getStepContext().getStepExecution(), POL_MEM_KEY, ediObjectMapper.writeValueAsString(poLineIds), "");
   }
 
   private List<CompositePurchaseOrder> assembleCompositeOrders(List<PurchaseOrder> orders, List<PoLine> poLines) {
@@ -116,6 +123,13 @@ protected List<CompositePurchaseOrder> getCompositeOrders(String poLineQuery) {
       .map(compPo -> compPo.compositePoLines(
         requireNonNullElse(orderIdToCompositePoLines.get(compPo.getId().toString()), List.of())))
       .toList();
+  }
+
+  private String getFileName(VendorEdiOrdersExportConfig ediExportConfig) {
+    var vendorName = organizationsService.getOrganizationById(ediExportConfig.getVendorId().toString()).get("code").asText();
+    var configName = ediExportConfig.getConfigName();
+    var fileFormat = ediExportConfig.getFileFormat();
+    return generateFileName(vendorName, configName, fileFormat);
   }
 
   private <T> T convertTo(Object value, Class<T> c) {

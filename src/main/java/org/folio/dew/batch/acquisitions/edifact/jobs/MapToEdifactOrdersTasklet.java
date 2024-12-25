@@ -22,6 +22,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
+import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.domain.dto.ExportConfigCollection;
 import org.folio.dew.domain.dto.ExportType;
@@ -43,10 +44,10 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
   private final DataExportSpringClient dataExportSpringClient;
   private final ExportResourceMapper edifactMapper;
 
-  public MapToEdifactOrdersTasklet(ObjectMapper ediObjectMapper, OrdersService ordersService,
+  public MapToEdifactOrdersTasklet(ObjectMapper ediObjectMapper, OrganizationsService organizationsService, OrdersService ordersService,
                                    DataExportSpringClient dataExportSpringClient,
                                    ExportResourceMapper edifactMapper) {
-    super(ediObjectMapper, ordersService);
+    super(ediObjectMapper, organizationsService, ordersService);
     this.edifactMapper = edifactMapper;
     this.dataExportSpringClient = dataExportSpringClient;
   }

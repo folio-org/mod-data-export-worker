@@ -2,7 +2,10 @@ package org.folio.dew.batch.acquisitions.edifact.utils;
 
 import static org.folio.dew.domain.dto.ReferenceNumberItem.RefNumberTypeEnum.ORDER_REFERENCE_NUMBER;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -10,8 +13,12 @@ import java.util.function.Predicate;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.ReferenceNumberItem;
 import org.folio.dew.domain.dto.VendorDetail;
+import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.FileFormatEnum;
 
 public class ExportUtils {
+
+  private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+  private static final String FILE_NAME_FORMAT = "%s_%s_%s.%s";
 
   private ExportUtils() { }
 
@@ -44,6 +51,10 @@ public class ExportUtils {
     if (!validator.test(value)) {
       missingFields.add(field);
     }
+  }
+
+  public static String generateFileName(String vendorName, String configName, FileFormatEnum fileFormat) {
+    return FILE_NAME_FORMAT.formatted(vendorName, configName, DATE_FORMAT.format(new Date()), fileFormat.getValue().toLowerCase()); // Enum being EDI or CSV
   }
 
 }

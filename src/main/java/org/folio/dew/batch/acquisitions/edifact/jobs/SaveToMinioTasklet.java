@@ -4,6 +4,7 @@ import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.JobParameterNames.UPLOADED_FILE_PATH;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.FILE_DOWNLOAD;
 import static org.folio.dew.utils.Constants.EDIFACT_EXPORT_DIR_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
@@ -52,9 +53,14 @@ public class SaveToMinioTasklet implements Tasklet {
   @SneakyThrows
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     // retrieve parameters from job context
-    var stepExecution = chunkContext.getStepContext().getStepExecution();
     var jobParameters = chunkContext.getStepContext().getJobParameters();
-    var ediExportConfig = ediObjectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
+    var ediExportConfig = ediObjectMapper.readValue((String) jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
+    if (ediExportConfig.getTransmissionMethod() != FILE_DOWNLOAD) {
+      log.info("execute:: Transmission method is not File Download, skipping the step");
+      return RepeatStatus.FINISHED;
+    }
+
+    var stepExecution = chunkContext.getStepContext().getStepExecution();
     var edifactOrderAsString = (String) ExecutionContextUtils.getExecutionVariable(stepExecution,"edifactOrderAsString");
 
     var fullFilePath = buildFullFilePath(ediExportConfig);

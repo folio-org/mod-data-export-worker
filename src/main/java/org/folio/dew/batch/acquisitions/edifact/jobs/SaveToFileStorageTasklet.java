@@ -2,6 +2,7 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.JobParameterNames.UPLOADED_FILE_PATH;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.FTP;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,9 +41,14 @@ public class SaveToFileStorageTasklet implements Tasklet {
   @Override
   @SneakyThrows
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-    var stepExecution = chunkContext.getStepContext().getStepExecution();
     var jobParameters = chunkContext.getStepContext().getJobParameters();
-    var ediExportConfig = ediObjectMapper.readValue((String)jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
+    var ediExportConfig = ediObjectMapper.readValue((String) jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
+    if (ediExportConfig.getTransmissionMethod() != FTP) {
+      log.info("execute:: Transmission method is not FTP, skipping the step");
+      return RepeatStatus.FINISHED;
+    }
+
+    var stepExecution = chunkContext.getStepContext().getStepExecution();
     var uploadedFilePath = (String) ExecutionContextUtils.getExecutionVariable(stepExecution, UPLOADED_FILE_PATH);
 
     String host = ediExportConfig.getEdiFtp().getServerAddress().replace(SFTP_PROTOCOL, "");

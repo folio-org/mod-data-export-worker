@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dew.client.ConfigurationClient;
 import org.folio.dew.domain.dto.ModelConfiguration;
+import org.folio.dew.error.NotFoundException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +25,12 @@ public class ConfigurationService {
   private final ObjectMapper objectMapper;
 
   private ModelConfiguration getConfigById(String configId) {
-    return configurationClient.getConfigById(configId);
+    try {
+      return configurationClient.getConfigById(configId);
+    } catch (NotFoundException e) {
+      logger.error("getConfigById:: Couldn't fetch configuration entry by id: '{}'", configId, e);
+      throw new NotFoundException("Configuration entry not found for id: " + configId, e);
+    }
   }
 
   @Cacheable(cacheNames = "addressConfiguration")

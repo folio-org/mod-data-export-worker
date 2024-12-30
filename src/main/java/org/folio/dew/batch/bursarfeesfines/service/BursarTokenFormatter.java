@@ -94,23 +94,17 @@ public class BursarTokenFormatter {
     return processDateToken(currentDateTime, tokenDate.getValue(), tokenDate.getLengthControl());
   }
 
-  public static String formatFeeDateDataToken(BursarExportTokenFeeDate tokenFeeDate,
-      AccountWithAncillaryData accountWithAncillaryData) {
-    Date accountDate;
-    switch (tokenFeeDate.getProperty()) {
-    case CREATED -> accountDate = accountWithAncillaryData.getAccount()
-      .getDateCreated();
-    case UPDATED -> accountDate = accountWithAncillaryData.getAccount()
-      .getDateUpdated();
-    case DUE -> accountDate = accountWithAncillaryData.getAccount()
-      .getDueDate();
-    case RETURNED -> accountDate = accountWithAncillaryData.getAccount()
-      .getReturnedDate();
-    default -> {
-      log.error("[invalid fee date property: {}]", tokenFeeDate.getValue());
-      return tokenFeeDate.getPlaceholder();
-    }
-    }
+  public static String formatFeeDateDataToken(BursarExportTokenFeeDate tokenFeeDate, AccountWithAncillaryData accountWithAncillaryData) {
+    Date accountDate = switch (tokenFeeDate.getProperty()) {
+      case CREATED -> accountDate = accountWithAncillaryData.getAccount().getDateCreated();
+      case UPDATED -> accountDate = accountWithAncillaryData.getAccount().getDateUpdated();
+      case DUE -> accountDate = accountWithAncillaryData.getAccount().getDueDate();
+      case RETURNED -> accountDate = accountWithAncillaryData.getAccount().getReturnedDate();
+      default -> {
+        log.error("[invalid fee date property: {}]", tokenFeeDate.getValue());
+        yield null;
+      }
+    };
 
     if (accountDate == null) {
       return applyLengthControl(tokenFeeDate.getPlaceholder(), tokenFeeDate.getLengthControl());
@@ -269,7 +263,11 @@ public class BursarTokenFormatter {
     }
   }
 
-  public static String applyLengthControl(String input, @CheckForNull BursarExportTokenLengthControl lengthControl) {
+  public static String applyLengthControl(String input, BursarExportTokenLengthControl lengthControl) {
+    if (input == null) {
+      return applyLengthControl("", lengthControl);
+    }
+
     if (lengthControl == null) {
       return input;
     }

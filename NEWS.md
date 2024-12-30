@@ -1,3 +1,7 @@
+## 2024-12-30 v3.3.6
+
+* [MODEXPW-549](https://folio-org.atlassian.net/browse/MODEXPW-549) Improve fallback logic for missing fields in bursar migration
+
 ## 2024-12-10 v3.3.5
 
 This release contains updates for missing interfaces.

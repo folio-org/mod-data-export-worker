@@ -14,31 +14,22 @@ import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
-import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
-import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.acquisitions.edifact.ExportHolder;
 import org.folio.dew.error.NotFoundException;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.experimental.SuperBuilder;
 
+@SuperBuilder
 @Component
 @StepScope
 public class MapToEdifactClaimsTasklet extends MapToEdifactTasklet {
 
   private final ExportResourceMapper edifactMapper;
   private final ExportResourceMapper csvMapper;
-
-  public MapToEdifactClaimsTasklet(ObjectMapper ediObjectMapper, OrganizationsService organizationsService, OrdersService ordersService,
-                                   ExportResourceMapper edifactMapper, ExportResourceMapper csvMapper) {
-    super(ediObjectMapper, organizationsService, ordersService);
-    this.edifactMapper = edifactMapper;
-    this.csvMapper = csvMapper;
-  }
 
   @Override
   protected ExportResourceMapper getExportResourceMapper(VendorEdiOrdersExportConfig ediOrdersExportConfig) {
@@ -62,7 +53,7 @@ public class MapToEdifactClaimsTasklet extends MapToEdifactTasklet {
   }
 
   @Override
-  protected ExportHolder buildEdifactExportHolder(ChunkContext chunkContext, VendorEdiOrdersExportConfig ediExportConfig, Map<String, Object> jobParameters) {
+  protected ExportHolder buildEdifactExportHolder(VendorEdiOrdersExportConfig ediExportConfig, Map<String, Object> jobParameters) {
     var pieces = ordersService.getPiecesByIdsAndReceivingStatus(ediExportConfig.getClaimPieceIds(), Piece.ReceivingStatusEnum.CLAIM_SENT);
     if (pieces.isEmpty()) {
       throw new NotFoundException(Piece.class);

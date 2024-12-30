@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.ExportType;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
@@ -22,16 +21,18 @@ public class EdifactExportJobConfig {
   public static final String POL_MEM_KEY = "poLineIds";
 
   private Job constructEdifactExportJob(JobBuilder jobBuilder,
-                                        JobExecutionListener listener,
-                                        Step... steps) {
-    var builder = jobBuilder
-      .incrementer(new RunIdIncrementer())
-      .listener(listener)
-      .start(steps[0]);
-    for (int i = 1; i < steps.length; i++) {
-      builder = builder.next(steps[i]);
-    }
-    return builder.build();
+                                        EdiExportJobCompletionListener ediExportJobCompletionListener,
+                                        Step mapToFileStep,
+                                        Step saveToMinIOStep,
+                                        Step saveToFTPStep,
+                                        Step createExportHistoryRecordsStep) {
+    return jobBuilder.incrementer(new RunIdIncrementer())
+      .listener(ediExportJobCompletionListener)
+      .start(mapToFileStep)
+      .next(saveToMinIOStep)
+      .next(saveToFTPStep)
+      .next(createExportHistoryRecordsStep)
+      .build();
   }
 
   @Bean
@@ -43,9 +44,9 @@ public class EdifactExportJobConfig {
 
   @Bean
   public Job edifactClaimsExportJob(EdiExportJobCompletionListener ediExportJobCompletionListener, JobRepository jobRepository,
-                                    Step mapToEdifactClaimsStep, Step saveToFTPStep, Step saveToMinIOStep) {
+                                    Step mapToEdifactClaimsStep, Step saveToFTPStep, Step saveToMinIOStep, Step createExportHistoryRecordsStep) {
     return constructEdifactExportJob(new JobBuilder(ExportType.CLAIMS.getValue(), jobRepository),
-      ediExportJobCompletionListener, mapToEdifactClaimsStep, saveToFTPStep, saveToMinIOStep);
+      ediExportJobCompletionListener, mapToEdifactClaimsStep, saveToFTPStep, saveToMinIOStep, createExportHistoryRecordsStep);
   }
 
   @Bean

@@ -36,32 +36,31 @@ import org.folio.dew.domain.dto.acquisitions.edifact.ExportHolder;
 import org.folio.dew.error.NotFoundException;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
-import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.xlate.edi.stream.EDIStreamException;
-import lombok.RequiredArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import lombok.extern.log4j.Log4j2;
 
-@RequiredArgsConstructor
+@SuperBuilder
 @Log4j2
-public abstract class MapToEdifactTasklet implements Tasklet {
+public abstract class MapToEdifactTasklet extends FilterableTasklet {
 
   private final ObjectMapper ediObjectMapper;
   private final OrganizationsService organizationsService;
   protected final OrdersService ordersService;
 
   @Override
-  public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+  public RepeatStatus execute(VendorEdiOrdersExportConfig exportConfig, StepContribution contribution, ChunkContext chunkContext) throws Exception {
     log.info("execute:: Executing MapToEdifactTasklet with job: {}", chunkContext.getStepContext().getJobName());
     var jobParameters = chunkContext.getStepContext().getJobParameters();
     var ediExportConfig = ediObjectMapper.readValue((String) jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
     validateEdiExportConfig(ediExportConfig);
 
-    var holder = buildEdifactExportHolder(chunkContext, ediExportConfig, jobParameters);
+    var holder = buildEdifactExportHolder(ediExportConfig, jobParameters);
     persistPoLineIds(chunkContext, holder.orders());
 
     String jobName = jobParameters.get(JobParameterNames.JOB_NAME).toString();
@@ -144,7 +143,7 @@ public abstract class MapToEdifactTasklet implements Tasklet {
 
   protected abstract List<String> getExportConfigMissingFields(VendorEdiOrdersExportConfig ediOrdersExportConfig);
 
-  protected abstract ExportHolder buildEdifactExportHolder(ChunkContext chunkContext, VendorEdiOrdersExportConfig ediExportConfig,
-                                                           Map<String, Object> jobParameters) throws JsonProcessingException, EDIStreamException;
+  protected abstract ExportHolder buildEdifactExportHolder(VendorEdiOrdersExportConfig ediExportConfig, Map<String, Object> jobParameters)
+    throws JsonProcessingException, EDIStreamException;
 
 }

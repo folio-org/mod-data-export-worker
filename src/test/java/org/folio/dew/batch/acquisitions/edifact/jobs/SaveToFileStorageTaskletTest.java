@@ -2,7 +2,7 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
-import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.folio.dew.utils.TestUtils.getMockData;
@@ -84,7 +84,7 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
   private ExecutionContext getExecutionContext() {
     // Prepare file name and content
     ExecutionContext executionContext = new ExecutionContext();
-    executionContext.put(EDIFACT_FILE_NAME, "testEdiFile.edi");
+    executionContext.put(ACQ_EXPORT_FILE_NAME, "testEdiFile.edi");
     executionContext.put(ACQ_EXPORT_FILE, RandomStringUtils.random(100));
     return executionContext;
   }

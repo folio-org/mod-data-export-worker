@@ -1,7 +1,7 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
-import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING;
@@ -76,7 +76,7 @@ public class SaveToMinioTasklet implements Tasklet {
   private String buildFullFilePath(StepExecution stepExecution) {
     var workDir = getWorkingDirectory(springApplicationName, EDIFACT_EXPORT_DIR_NAME);
     var tenantName = folioExecutionContext.getTenantId();
-    var fileName = (String) ExecutionContextUtils.getExecutionVariable(stepExecution, EDIFACT_FILE_NAME);
+    var fileName = (String) ExecutionContextUtils.getExecutionVariable(stepExecution, ACQ_EXPORT_FILE_NAME);
     return UPLOADED_PATH_TEMPLATE.formatted(workDir, tenantName, fileName);
   }
 

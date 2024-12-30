@@ -1,7 +1,7 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.folio.dew.batch.acquisitions.edifact.jobs.EdifactExportJobConfig.POL_MEM_KEY;
-import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 
 import java.util.Collections;
@@ -60,7 +60,7 @@ public class ExportHistoryTasklet implements Tasklet {
     var vendorName = vendor.get("code").asText();
     var stepExecutionContext = chunkContext.getStepContext().getStepExecution();
     var poLineIds = getPoLineIdsFromExecutionContext(stepExecutionContext);
-    var fileName = ExecutionContextUtils.getExecutionVariable(stepExecutionContext, EDIFACT_FILE_NAME).toString();
+    var fileName = ExecutionContextUtils.getExecutionVariable(stepExecutionContext, ACQ_EXPORT_FILE_NAME).toString();
     var jobName = jobParameters.get(JobParameterNames.JOB_NAME).toString();
 
     return new ExportHistory()

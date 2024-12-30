@@ -1,6 +1,6 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
-import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.convertToDate;
 
@@ -74,7 +74,7 @@ public class EdiExportJobCompletionListener extends JobExecutionListenerSupport 
       result.setFiles(Arrays.asList(outputFilesInStorage.split(PATHS_DELIMITER)));
     }
 
-    String ftpUploadedFile = ExecutionContextUtils.getFromJobExecutionContext(jobExecution, EDIFACT_FILE_NAME);
+    String ftpUploadedFile = ExecutionContextUtils.getFromJobExecutionContext(jobExecution, ACQ_EXPORT_FILE_NAME);
     if (StringUtils.isNotBlank(ftpUploadedFile)) {
       result.setFileNames(List.of(ftpUploadedFile));
     }

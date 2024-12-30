@@ -1,7 +1,7 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
-import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.FTP;
@@ -53,7 +53,7 @@ public class SaveToFileStorageTasklet implements Tasklet {
     }
 
     var stepExecution = chunkContext.getStepContext().getStepExecution();
-    var fileName = (String) ExecutionContextUtils.getExecutionVariable(stepExecution, EDIFACT_FILE_NAME);
+    var fileName = (String) ExecutionContextUtils.getExecutionVariable(stepExecution, ACQ_EXPORT_FILE_NAME);
     var edifactOrderAsString = (String) ExecutionContextUtils.getExecutionVariable(stepExecution, ACQ_EXPORT_FILE);
     ftpStorageService.uploadToFtp(ediExportConfig,  edifactOrderAsString.getBytes(StandardCharsets.UTF_8), fileName);
 

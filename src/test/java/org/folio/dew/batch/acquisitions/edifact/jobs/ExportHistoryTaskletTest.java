@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_NAME;
@@ -68,8 +69,7 @@ class ExportHistoryTaskletTest extends BaseBatchTest {
 
   protected ExecutionContext getExecutionContext() {
     ExecutionContext result = new ExecutionContext();
-    result.put("edifactFileName", "test_file");
-
+    result.put(ACQ_EXPORT_FILE_NAME, "test_file");
     return result;
   }
 

@@ -2,8 +2,7 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
-import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING;
-import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.FTP;
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 
 import java.nio.charset.StandardCharsets;
 
@@ -14,6 +13,7 @@ import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
+import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +27,7 @@ import lombok.extern.log4j.Log4j2;
 @Component
 @StepScope
 @Log4j2
-public class SaveToFileStorageTasklet extends FilterableTasklet {
+public class SaveToFileStorageTasklet implements Tasklet {
 
   private static final String SFTP_PROTOCOL = "sftp://";
 
@@ -36,7 +36,8 @@ public class SaveToFileStorageTasklet extends FilterableTasklet {
 
   @Override
   @SneakyThrows
-  public RepeatStatus execute(VendorEdiOrdersExportConfig exportConfig, StepContribution contribution, ChunkContext chunkContext) {
+  public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
+    var exportConfig = ediObjectMapper.readValue((String) chunkContext.getStepContext().getJobParameters().get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
     String host = exportConfig.getEdiFtp().getServerAddress().replace(SFTP_PROTOCOL, "");
     // skip ftp upload if address not specified
     if (StringUtils.isEmpty(host)) {
@@ -49,16 +50,6 @@ public class SaveToFileStorageTasklet extends FilterableTasklet {
     ftpStorageService.uploadToFtp(exportConfig,  edifactOrderAsString.getBytes(StandardCharsets.UTF_8), fileName);
 
     return RepeatStatus.FINISHED;
-  }
-
-  @Override
-  protected boolean shouldExecute(VendorEdiOrdersExportConfig exportConfig) {
-    // Always execute if the integration type is not ORDERING, or execute for other integration types if the transmission method is FTP
-    if (exportConfig.getIntegrationType() == ORDERING || exportConfig.getTransmissionMethod() == FTP) {
-      return true;
-    }
-    log.info("execute:: Transmission method is not FTP, skipping the step");
-    return false;
   }
 
 }

@@ -10,13 +10,13 @@ import java.nio.charset.StandardCharsets;
 
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
-import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.spring.FolioExecutionContext;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
+import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -29,7 +29,7 @@ import lombok.extern.log4j.Log4j2;
 @Component
 @StepScope
 @Log4j2
-public class SaveToMinioTasklet extends FilterableTasklet {
+public class SaveToMinioTasklet implements Tasklet {
 
   private static final String REMOTE_STORAGE_ERROR_MESSAGE = "Failed to save edifact file to remote storage";
   private static final String UPLOADED_PATH_TEMPLATE = "%s%s/%s";
@@ -42,7 +42,7 @@ public class SaveToMinioTasklet extends FilterableTasklet {
 
   @Override
   @SneakyThrows
-  public RepeatStatus execute(VendorEdiOrdersExportConfig exportConfig, StepContribution contribution, ChunkContext chunkContext) {
+  public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     // retrieve parameters from job context
     var stepExecution = chunkContext.getStepContext().getStepExecution();
     var edifactOrderAsString = (String) ExecutionContextUtils.getExecutionVariable(stepExecution, ACQ_EXPORT_FILE);

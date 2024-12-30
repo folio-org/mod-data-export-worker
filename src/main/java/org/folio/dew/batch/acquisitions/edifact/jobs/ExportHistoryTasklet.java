@@ -3,7 +3,6 @@ package org.folio.dew.batch.acquisitions.edifact.jobs;
 import static org.folio.dew.batch.acquisitions.edifact.jobs.EdifactExportJobConfig.POL_MEM_KEY;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
-import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING;
 
 import java.util.Collections;
 import java.util.Date;
@@ -23,6 +22,7 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
+import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -34,7 +34,7 @@ import lombok.extern.log4j.Log4j2;
 @Component
 @StepScope
 @Log4j2
-public class ExportHistoryTasklet extends FilterableTasklet {
+public class ExportHistoryTasklet implements Tasklet {
 
   private final KafkaService kafkaService;
   private final ObjectMapper ediObjectMapper;
@@ -43,7 +43,7 @@ public class ExportHistoryTasklet extends FilterableTasklet {
   @Value("#{jobParameters['jobId']}")
   private String jobId;
   @Override
-  public RepeatStatus execute(VendorEdiOrdersExportConfig exportConfig, StepContribution contribution, ChunkContext chunkContext) {
+  public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     var exportHistory = buildExportHistory(chunkContext);
     kafkaService.send(KafkaService.Topic.EXPORT_HISTORY_CREATE, null, exportHistory);
 
@@ -82,11 +82,6 @@ public class ExportHistoryTasklet extends FilterableTasklet {
     } catch (Exception e) {
       return Collections.emptyList();
     }
-  }
-
-  @Override
-  protected boolean shouldExecute(VendorEdiOrdersExportConfig exportConfig) {
-    return exportConfig.getIntegrationType() == ORDERING;
   }
 
 }

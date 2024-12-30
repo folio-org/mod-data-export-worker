@@ -36,6 +36,7 @@ import org.folio.dew.domain.dto.acquisitions.edifact.ExportHolder;
 import org.folio.dew.error.NotFoundException;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
+import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -47,14 +48,14 @@ import lombok.extern.log4j.Log4j2;
 
 @SuperBuilder
 @Log4j2
-public abstract class MapToEdifactTasklet extends FilterableTasklet {
+public abstract class MapToEdifactTasklet implements Tasklet {
 
   private final ObjectMapper ediObjectMapper;
   private final OrganizationsService organizationsService;
   protected final OrdersService ordersService;
 
   @Override
-  public RepeatStatus execute(VendorEdiOrdersExportConfig exportConfig, StepContribution contribution, ChunkContext chunkContext) throws Exception {
+  public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
     log.info("execute:: Executing MapToEdifactTasklet with job: {}", chunkContext.getStepContext().getJobName());
     var jobParameters = chunkContext.getStepContext().getJobParameters();
     var ediExportConfig = ediObjectMapper.readValue((String) jobParameters.get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);

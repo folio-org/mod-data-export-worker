@@ -1,5 +1,8 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
+import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
+import static org.folio.dew.domain.dto.JobParameterNames.JOB_NAME;
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,6 +19,7 @@ import java.util.UUID;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
+import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.client.DataExportSpringClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.BatchStatus;
@@ -39,11 +43,12 @@ abstract class MapToEdifactTaskletAbstractTest extends BaseBatchTest {
   protected static final String MAP_TO_EDIFACT_STEP = "mapToEdifactStep";
 
   protected static final String SAMPLE_EDI_ORDERS_EXPORT = "edifact/edifactOrdersExport.json";
-  private static final String SAMPLE_EDI_ORDERS_EXPORT_MISSING_FIELDS = "edifact/edifactOrdersExportWithoutRequiredFields.json";
   private static final String SAMPLE_EDI_ORDERS_EXPORT_MISSING_PORT = "edifact/edifactOrdersExportWithoutPort.json";
 
   @MockBean
   protected OrdersService ordersService;
+  @MockBean
+  protected OrganizationsService organizationsService;
   @MockBean
   protected DataExportSpringClient dataExportSpringClient;
   @MockBean
@@ -54,17 +59,6 @@ abstract class MapToEdifactTaskletAbstractTest extends BaseBatchTest {
   protected Job edifactExportJob;
 
   @Test
-  void testEdifactExportMissingRequiredFields() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
-    JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT_MISSING_FIELDS)));
-    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0).getStatus();
-
-    assertEquals(BatchStatus.FAILED, status);
-    assertThat(jobExecution.getExitStatus().getExitCode()).isEqualTo(ExitStatus.FAILED.getExitCode());
-    assertThat(jobExecution.getExitStatus().getExitDescription()).contains("Export configuration is incomplete, missing library EDI code/Vendor EDI code");
-  }
-
-  @Test
   void testEdifactExportMissingFtpPort() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
     JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT_MISSING_PORT)));
@@ -72,7 +66,7 @@ abstract class MapToEdifactTaskletAbstractTest extends BaseBatchTest {
 
     assertEquals(BatchStatus.FAILED, status);
     assertThat(jobExecution.getExitStatus().getExitCode()).isEqualTo(ExitStatus.FAILED.getExitCode());
-    assertThat(jobExecution.getExitStatus().getExitDescription()).contains("Export configuration is incomplete, missing FTP/SFTP Port");
+    assertThat(jobExecution.getExitStatus().getExitDescription()).contains("Export configuration is incomplete, missing required fields: [ftpPort, serverAddress]");
   }
 
   @Test
@@ -94,9 +88,9 @@ abstract class MapToEdifactTaskletAbstractTest extends BaseBatchTest {
 
   protected JobParameters getJobParameters(ObjectNode edifactExport) {
     return new JobParametersBuilder()
-      .addString("jobId", UUID.randomUUID().toString())
-      .addString("edifactOrdersExport", edifactExport.toString())
-      .addString("jobName", "000015")
+      .addString(JOB_ID, UUID.randomUUID().toString())
+      .addString(JOB_NAME, "000015")
+      .addString(EDIFACT_ORDERS_EXPORT, edifactExport.toString())
       .toJobParameters();
   }
 

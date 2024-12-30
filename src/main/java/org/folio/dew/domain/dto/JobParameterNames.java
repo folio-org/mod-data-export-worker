@@ -16,7 +16,8 @@ public class JobParameterNames {
   public static final String UPDATED_FILE_NAME = "updatedFileName";
   public static final String PREVIEW_FILE_NAME = "previewFileName";
   public static final String UPLOADED_FILE_PATH = "uploadedFilePath";
-  public static final String EDIFACT_FILE_NAME = "edifactFileName";
+  public static final String ACQ_EXPORT_FILE = "acqExportFile";
+  public static final String ACQ_EXPORT_FILE_NAME = "acqExportFileName";
   public static final String E_HOLDINGS_FILE_NAME = "eHoldingsFileName";
   public static final String CIRCULATION_LOG_FILE_NAME = "circulationLogFileName";
   public static final String AUTHORITY_CONTROL_FILE_NAME = "authorityControlFileName";

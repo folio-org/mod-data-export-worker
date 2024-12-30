@@ -1,10 +1,16 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.LIB_EDI_CODE;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.LIB_EDI_TYPE;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.VENDOR_EDI_CODE;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportConfigFields.VENDOR_EDI_TYPE;
+import static org.folio.dew.batch.acquisitions.edifact.utils.ExportUtils.validateField;
 import static org.folio.dew.utils.QueryUtils.combineCqlExpressions;
 import static org.folio.dew.utils.QueryUtils.convertFieldListToEnclosedCqlQuery;
 import static org.folio.dew.utils.QueryUtils.getCqlExpressionForFieldNullValue;
 import static org.folio.dew.utils.QueryUtils.negateQuery;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -13,15 +19,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
 import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
+import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.domain.dto.ExportConfigCollection;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.acquisitions.edifact.ExportHolder;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,21 +43,26 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
   private final DataExportSpringClient dataExportSpringClient;
   private final ExportResourceMapper edifactMapper;
 
-  public MapToEdifactOrdersTasklet(ObjectMapper ediObjectMapper, OrdersService ordersService,
-                                   DataExportSpringClient dataExportSpringClient,
-                                   ExportResourceMapper edifactMapper) {
-    super(ediObjectMapper, ordersService);
-    this.edifactMapper = edifactMapper;
+  public MapToEdifactOrdersTasklet(ObjectMapper ediObjectMapper, OrganizationsService organizationsService, OrdersService ordersService,
+                                   DataExportSpringClient dataExportSpringClient, ExportResourceMapper edifactMapper) {
+    super(ediObjectMapper, organizationsService, ordersService);
     this.dataExportSpringClient = dataExportSpringClient;
+    this.edifactMapper = edifactMapper;
   }
 
   @Override
   protected List<String> getExportConfigMissingFields(VendorEdiOrdersExportConfig ediOrdersExportConfig) {
-    return List.of();
+    List<String> missingFields = new ArrayList<>();
+    var ediConfig = ediOrdersExportConfig.getEdiConfig();
+    validateField(LIB_EDI_TYPE.getName(), ediConfig.getLibEdiType(), Objects::nonNull, missingFields);
+    validateField(LIB_EDI_CODE.getName(), ediConfig.getLibEdiCode(), StringUtils::isNotBlank, missingFields);
+    validateField(VENDOR_EDI_TYPE.getName(), ediConfig.getVendorEdiType(), Objects::nonNull, missingFields);
+    validateField(VENDOR_EDI_CODE.getName(), ediConfig.getVendorEdiCode(), StringUtils::isNotBlank, missingFields);
+    return missingFields;
   }
 
   @Override
-  protected ExportHolder buildEdifactExportHolder(ChunkContext chunkContext, VendorEdiOrdersExportConfig ediExportConfig, Map<String, Object> jobParameters) {
+  protected ExportHolder buildEdifactExportHolder(VendorEdiOrdersExportConfig ediExportConfig, Map<String, Object> jobParameters) {
     var poLineQuery = getPoLineQuery(ediExportConfig);
     var compOrders = getCompositeOrders(poLineQuery);
     return new ExportHolder(compOrders, List.of());

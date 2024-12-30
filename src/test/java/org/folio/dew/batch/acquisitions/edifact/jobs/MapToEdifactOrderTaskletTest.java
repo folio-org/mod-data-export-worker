@@ -1,6 +1,8 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.dew.utils.TestUtils.getMockData;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -8,6 +10,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
@@ -18,6 +21,7 @@ import org.folio.dew.domain.dto.PurchaseOrder;
 import org.folio.dew.domain.dto.PurchaseOrderCollection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -31,6 +35,7 @@ import lombok.SneakyThrows;
 class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
 
   private static final String DATA_EXPORT_CONFIGS_PATH = "edifact/dataExportConfigs.json";
+  private static final String SAMPLE_EDI_ORDERS_EXPORT_MISSING_FIELDS = "edifact/edifactOrdersExportWithoutRequiredFields.json";
 
   @Autowired
   Job edifactOrdersExportJob;
@@ -46,6 +51,8 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
     edifactExportJob = edifactOrdersExportJob;
     orders = objectMapper.readValue(getMockData(SAMPLE_PURCHASE_ORDERS_PATH), PurchaseOrderCollection.class).getPurchaseOrders();
     poLines = objectMapper.readValue(getMockData(SAMPLE_PO_LINES_PATH), PoLineCollection.class).getPoLines();
+
+    doReturn(objectMapper.readTree("{\"code\": \"GOBI\"}")).when(organizationsService).getOrganizationById(anyString());
   }
 
   @Test
@@ -119,6 +126,17 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
     Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
     verify(ordersService).getPoLinesByQuery(cqlString);
     verify(ordersService).getPurchaseOrdersByIds(anyList());
+  }
+
+  @Test
+  void testEdifactOrdersExportMissingRequiredFields() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT_MISSING_FIELDS)));
+    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0).getStatus();
+
+    assertEquals(BatchStatus.FAILED, status);
+    assertThat(jobExecution.getExitStatus().getExitCode()).isEqualTo(ExitStatus.FAILED.getExitCode());
+    assertThat(jobExecution.getExitStatus().getExitDescription()).contains("Export configuration is incomplete, missing required fields: [libEdiCode, vendorEdiType]");
   }
 
   protected ObjectNode getEdifactExportConfig(String path, boolean isDefaultConfig) throws IOException {

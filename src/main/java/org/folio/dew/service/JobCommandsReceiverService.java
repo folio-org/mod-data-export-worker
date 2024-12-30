@@ -1,29 +1,26 @@
 package org.folio.dew.service;
 
-import static java.util.Objects.nonNull;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
+import static org.folio.dew.domain.dto.ExportType.CLAIMS;
 import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
-import static org.folio.dew.utils.Constants.CSV_EXTENSION;
-import static org.folio.dew.utils.Constants.FILE_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
 import jakarta.annotation.PostConstruct;
-import java.io.FileOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.de.entity.JobCommandType;
@@ -32,7 +29,6 @@ import org.folio.dew.batch.acquisitions.edifact.services.ResendService;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
-import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.JobCommandRepository;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
@@ -43,7 +39,6 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -113,12 +108,16 @@ public class JobCommandsReceiverService {
           }
         }
 
-        var jobLaunchRequest =
-          new JobLaunchRequest(
-            jobMap.get(resolveJobKey(jobCommand)),
-            jobCommand.getJobParameters());
+        var jobKey = resolveJobKey(jobCommand);
+        log.info("receiveStartJobCommand:: Resolving job with key: '{}' for command: '{}'", jobKey, jobCommand.getId());
+        var job = jobMap.get(jobKey);
 
-        exportJobManagerSync.launchJob(jobLaunchRequest);
+        if (job != null) {
+          log.info("receiveStartJobCommand:: Job resolved: '{}', launching...", job.getName());
+          exportJobManagerSync.launchJob(new JobLaunchRequest(job, jobCommand.getJobParameters()));
+        } else {
+          log.error("Job with key '{}' not found for command: '{}'", jobKey, jobCommand.getId());
+        }
 
       } catch (Exception e) {
         log.error(e.toString(), e);
@@ -148,7 +147,7 @@ public class JobCommandsReceiverService {
   }
 
   private void addOrderExportSpecificParameters(JobCommand jobCommand, JobParametersBuilder paramsBuilder) {
-    if (jobCommand.getExportType().equals(EDIFACT_ORDERS_EXPORT)) {
+    if (jobCommand.getExportType() == EDIFACT_ORDERS_EXPORT || jobCommand.getExportType() == CLAIMS) {
       paramsBuilder.addString(JobParameterNames.JOB_NAME, jobCommand.getName(), JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
     }
   }

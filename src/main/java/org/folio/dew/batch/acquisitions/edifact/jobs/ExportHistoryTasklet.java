@@ -1,7 +1,7 @@
 package org.folio.dew.batch.acquisitions.edifact.jobs;
 
 import static org.folio.dew.batch.acquisitions.edifact.jobs.EdifactExportJobConfig.POL_MEM_KEY;
-import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 
 import java.util.Collections;
@@ -11,6 +11,8 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
@@ -27,7 +29,6 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @RequiredArgsConstructor
@@ -60,7 +61,7 @@ public class ExportHistoryTasklet implements Tasklet {
     var vendorName = vendor.get("code").asText();
     var stepExecutionContext = chunkContext.getStepContext().getStepExecution();
     var poLineIds = getPoLineIdsFromExecutionContext(stepExecutionContext);
-    var fileName = ExecutionContextUtils.getExecutionVariable(stepExecutionContext, EDIFACT_FILE_NAME).toString();
+    var fileName = ExecutionContextUtils.getExecutionVariable(stepExecutionContext, ACQ_EXPORT_FILE_NAME).toString();
     var jobName = jobParameters.get(JobParameterNames.JOB_NAME).toString();
 
     return new ExportHistory()
@@ -83,4 +84,5 @@ public class ExportHistoryTasklet implements Tasklet {
       return Collections.emptyList();
     }
   }
+
 }

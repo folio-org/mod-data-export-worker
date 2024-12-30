@@ -2,6 +2,9 @@
   "vendorId": "e54f0eb5-36c6-43c8-a219-dabbafb0176c",
   "configName": "EDIFACT 2",
   "configDescription": "EDI configuration for testing export",
+  "integrationType": "Ordering",
+  "transmissionMethod": "FTP",
+  "fileFormat": "EDI",
   "ediConfig": {
     "accountNoList": [
       "BRXXXXX-01"

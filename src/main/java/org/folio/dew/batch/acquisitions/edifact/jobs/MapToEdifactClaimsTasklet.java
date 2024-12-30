@@ -14,6 +14,8 @@ import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.dew.batch.acquisitions.edifact.mapper.ExportResourceMapper;
+import org.folio.dew.batch.acquisitions.edifact.services.OrdersService;
+import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
 import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.acquisitions.edifact.ExportHolder;
@@ -21,15 +23,21 @@ import org.folio.dew.error.NotFoundException;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 
-import lombok.experimental.SuperBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-@SuperBuilder
 @Component
 @StepScope
 public class MapToEdifactClaimsTasklet extends MapToEdifactTasklet {
 
   private final ExportResourceMapper edifactMapper;
   private final ExportResourceMapper csvMapper;
+
+  public MapToEdifactClaimsTasklet(ObjectMapper ediObjectMapper, OrganizationsService organizationsService, OrdersService ordersService,
+                                   ExportResourceMapper edifactMapper, ExportResourceMapper csvMapper) {
+    super(ediObjectMapper, organizationsService, ordersService);
+    this.edifactMapper = edifactMapper;
+    this.csvMapper = csvMapper;
+  }
 
   @Override
   protected ExportResourceMapper getExportResourceMapper(VendorEdiOrdersExportConfig ediOrdersExportConfig) {

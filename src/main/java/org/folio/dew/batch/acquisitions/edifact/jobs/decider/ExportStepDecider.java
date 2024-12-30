@@ -10,10 +10,10 @@ import org.springframework.batch.core.job.flow.JobExecutionDecider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.experimental.SuperBuilder;
 
-@SuperBuilder
+@RequiredArgsConstructor
 public abstract class ExportStepDecider implements JobExecutionDecider {
 
   private final ObjectMapper objectMapper;

@@ -6,17 +6,17 @@ import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionM
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.stereotype.Component;
 
-import lombok.experimental.SuperBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.extern.log4j.Log4j2;
 
-@SuperBuilder
-@Component
-@StepScope
 @Log4j2
 public class SaveToFileStorageTaskletDecider extends ExportStepDecider {
+
+  public SaveToFileStorageTaskletDecider(ObjectMapper objectMapper) {
+    super(objectMapper);
+  }
 
   @Override
   public ExportStepDecision decide(VendorEdiOrdersExportConfig exportConfig, JobExecution jobExecution, StepExecution stepExecution) {

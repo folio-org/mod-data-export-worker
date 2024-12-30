@@ -11,6 +11,8 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.edifact.services.OrganizationsService;
@@ -27,10 +29,9 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import lombok.experimental.SuperBuilder;
 import lombok.extern.log4j.Log4j2;
 
-@SuperBuilder
+@RequiredArgsConstructor
 @Component
 @StepScope
 @Log4j2

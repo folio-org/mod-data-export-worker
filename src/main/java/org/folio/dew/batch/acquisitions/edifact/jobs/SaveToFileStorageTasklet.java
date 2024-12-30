@@ -19,11 +19,11 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.experimental.SuperBuilder;
 import lombok.extern.log4j.Log4j2;
 
-@SuperBuilder
+@RequiredArgsConstructor
 @Component
 @StepScope
 @Log4j2

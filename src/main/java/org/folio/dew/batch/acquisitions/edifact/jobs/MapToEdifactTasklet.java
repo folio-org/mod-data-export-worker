@@ -43,10 +43,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.xlate.edi.stream.EDIStreamException;
-import lombok.experimental.SuperBuilder;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
-@SuperBuilder
+@RequiredArgsConstructor
 @Log4j2
 public abstract class MapToEdifactTasklet implements Tasklet {
 

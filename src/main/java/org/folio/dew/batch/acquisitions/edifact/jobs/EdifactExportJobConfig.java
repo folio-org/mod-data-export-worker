@@ -20,6 +20,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @Configuration
 @Log4j2
 @RequiredArgsConstructor
@@ -30,25 +32,25 @@ public class EdifactExportJobConfig {
   private Job constructEdifactExportJob(JobBuilder jobBuilder,
                                         EdiExportJobCompletionListener ediExportJobCompletionListener,
                                         Step mapToFileStep,
-                                        Step saveToMinIOStep,
                                         Step saveToFTPStep,
+                                        Step saveToMinIOStep,
                                         Step createExportHistoryRecordsStep,
-                                        Map<Step, JobExecutionDecider> optionalStepDeciders) {
+                                        Map<String, JobExecutionDecider> optionalStepDeciders) {
     return jobBuilder.incrementer(new RunIdIncrementer())
       .listener(ediExportJobCompletionListener)
       .start(mapToFileStep)
       .next(saveToMinIOStep)
-      .next(optionalStepDeciders.get(saveToFTPStep))
-      .on(ExportStepDecision.PROCESS.getStatus()).to(saveToFTPStep)
-      .next(optionalStepDeciders.get(createExportHistoryRecordsStep))
-      .on(ExportStepDecision.PROCESS.getStatus()).to(createExportHistoryRecordsStep)
+      .next(optionalStepDeciders.get(saveToFTPStep.getName()))
+        .on(ExportStepDecision.PROCESS.getStatus()).to(saveToFTPStep)
+      .next(optionalStepDeciders.get(createExportHistoryRecordsStep.getName()))
+        .on(ExportStepDecision.PROCESS.getStatus()).to(createExportHistoryRecordsStep)
       .end().build();
   }
 
   @Bean
   public Job edifactOrdersExportJob(EdiExportJobCompletionListener ediExportJobCompletionListener, JobRepository jobRepository,
                                     Step mapToEdifactOrdersStep, Step saveToFTPStep, Step saveToMinIOStep, Step createExportHistoryRecordsStep,
-                                    Map<Step, JobExecutionDecider> deciders) {
+                                    Map<String, JobExecutionDecider> deciders) {
     return constructEdifactExportJob(new JobBuilder(ExportType.EDIFACT_ORDERS_EXPORT.getValue(), jobRepository),
       ediExportJobCompletionListener, mapToEdifactOrdersStep, saveToFTPStep, saveToMinIOStep, createExportHistoryRecordsStep, deciders);
   }
@@ -56,7 +58,7 @@ public class EdifactExportJobConfig {
   @Bean
   public Job edifactClaimsExportJob(EdiExportJobCompletionListener ediExportJobCompletionListener, JobRepository jobRepository,
                                     Step mapToEdifactClaimsStep, Step saveToFTPStep, Step saveToMinIOStep, Step createExportHistoryRecordsStep,
-                                    Map<Step, JobExecutionDecider> deciders) {
+                                    Map<String, JobExecutionDecider> deciders) {
     return constructEdifactExportJob(new JobBuilder(ExportType.CLAIMS.getValue(), jobRepository),
       ediExportJobCompletionListener, mapToEdifactClaimsStep, saveToFTPStep, saveToMinIOStep, createExportHistoryRecordsStep, deciders);
   }
@@ -102,11 +104,10 @@ public class EdifactExportJobConfig {
   }
 
   @Bean
-  public Map<Step, JobExecutionDecider> optionalStepDeciders(Step saveToFTPStep, SaveToFileStorageTaskletDecider saveToFileStorageTaskletDecider,
-                                                             Step createExportHistoryRecordsStep, ExportHistoryTaskletDecider exportHistoryTaskletDecider) {
+  public Map<String, JobExecutionDecider> optionalStepDeciders(Step saveToFTPStep, Step createExportHistoryRecordsStep, ObjectMapper objectMapper) {
     return Map.of(
-      saveToFTPStep, saveToFileStorageTaskletDecider,
-      createExportHistoryRecordsStep, exportHistoryTaskletDecider
+      saveToFTPStep.getName(), new SaveToFileStorageTaskletDecider(objectMapper),
+      createExportHistoryRecordsStep.getName(), new ExportHistoryTaskletDecider(objectMapper)
     );
   }
 

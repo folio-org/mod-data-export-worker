@@ -96,10 +96,10 @@ public class BursarTokenFormatter {
 
   public static String formatFeeDateDataToken(BursarExportTokenFeeDate tokenFeeDate, AccountWithAncillaryData accountWithAncillaryData) {
     Date accountDate = switch (tokenFeeDate.getProperty()) {
-      case CREATED -> accountDate = accountWithAncillaryData.getAccount().getDateCreated();
-      case UPDATED -> accountDate = accountWithAncillaryData.getAccount().getDateUpdated();
-      case DUE -> accountDate = accountWithAncillaryData.getAccount().getDueDate();
-      case RETURNED -> accountDate = accountWithAncillaryData.getAccount().getReturnedDate();
+      case CREATED -> accountWithAncillaryData.getAccount().getDateCreated();
+      case UPDATED -> accountWithAncillaryData.getAccount().getDateUpdated();
+      case DUE -> accountWithAncillaryData.getAccount().getDueDate();
+      case RETURNED -> accountWithAncillaryData.getAccount().getReturnedDate();
       default -> {
         log.error("[invalid fee date property: {}]", tokenFeeDate.getValue());
         yield null;

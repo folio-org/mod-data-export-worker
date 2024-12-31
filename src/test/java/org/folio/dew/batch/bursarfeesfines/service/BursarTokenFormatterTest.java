@@ -32,6 +32,9 @@ import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUser;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -89,40 +92,39 @@ class BursarTokenFormatterTest {
       .build();
   }
 
-  @Test
-  void testApplyLengthControl() {
-    String testString = "test";
-    BursarExportTokenLengthControl lengthControl = new BursarExportTokenLengthControl();
+  static List<Arguments> lengthControlCases() {
+    return List.of(
+      // length control, input, expected
+      Arguments.of(null, "test", "test"),
+      Arguments.of(new BursarExportTokenLengthControl().length(4), "test", "test"),
+      Arguments.of(
+        new BursarExportTokenLengthControl().length(8).character("0").direction(DirectionEnum.FRONT),
+        "test",
+        "0000test"
+      ),
+      Arguments.of(
+        new BursarExportTokenLengthControl().length(8).character("0").direction(DirectionEnum.BACK),
+        "test",
+        "test0000"
+      ),
+      Arguments.of(new BursarExportTokenLengthControl().length(2).truncate(false), "test", "test"),
+      Arguments.of(
+        new BursarExportTokenLengthControl().length(2).truncate(true).direction(DirectionEnum.FRONT),
+        "test",
+        "st"
+      ),
+      Arguments.of(
+        new BursarExportTokenLengthControl().length(2).truncate(true).direction(DirectionEnum.BACK),
+        "test",
+        "te"
+      )
+    );
+  }
 
-    // null length control test
-    assertThat(BursarTokenFormatter.applyLengthControl(testString, null), is("test"));
-
-    // same length test
-    lengthControl.setLength(4);
-    assertThat(BursarTokenFormatter.applyLengthControl(testString, lengthControl), is("test"));
-
-    // longer length test
-    lengthControl.setLength(8);
-    // test front padding
-    lengthControl.setCharacter("0");
-    lengthControl.setDirection(DirectionEnum.FRONT);
-    assertThat(BursarTokenFormatter.applyLengthControl(testString, lengthControl), is("0000test"));
-    // test back padding
-    lengthControl.setDirection(DirectionEnum.BACK);
-    assertThat(BursarTokenFormatter.applyLengthControl(testString, lengthControl), is("test0000"));
-
-    // shorter length test
-    lengthControl.setLength(2);
-    // test front truncation
-    lengthControl.setTruncate(true);
-    lengthControl.setDirection(DirectionEnum.FRONT);
-    assertThat(BursarTokenFormatter.applyLengthControl(testString, lengthControl), is("st"));
-    // test back truncation
-    lengthControl.setDirection(DirectionEnum.BACK);
-    assertThat(BursarTokenFormatter.applyLengthControl(testString, lengthControl), is("te"));
-    // test when truncation is false
-    lengthControl.setTruncate(false);
-    assertThat(BursarTokenFormatter.applyLengthControl(testString, lengthControl), is("test"));
+  @MethodSource("lengthControlCases")
+  @ParameterizedTest
+  void testApplyLengthControl(BursarExportTokenLengthControl lengthControl, String input, String expected) {
+    assertThat(BursarTokenFormatter.applyLengthControl(input, lengthControl), is(expected));
   }
 
   @Test

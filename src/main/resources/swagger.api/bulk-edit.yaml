@@ -160,6 +160,8 @@ components:
       $ref: '../../../../folio-export-common/schemas/inventory/electronicAccessRelationship.json#/ElectronicAccessRelationship'
     statisticalCode:
       $ref: '../../../../folio-export-common/schemas/inventory/statisticalCode.json#/StatisticalCode'
+    statisticalCodeType:
+      $ref: '../../../../folio-export-common/schemas/inventory/statisticalCodeType.json#/StatisticalCodeType'
     itemLocationCollection:
       $ref: '../../../../folio-export-common/schemas/inventory/locationCollection.json#/ItemLocationCollection'
     callNumberTypes:

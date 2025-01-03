@@ -5,7 +5,10 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.BulkEditProcessorHelper.booleanToStringNullSafe;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER_SPACED;
+import static org.folio.dew.utils.Constants.ITEM_DELIMITER;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_SPACED;
+import static org.folio.dew.utils.Constants.JOB_NAME_POSTFIX_SEPARATOR;
+import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
 import static org.folio.dew.utils.DateTimeHelper.formatDate;
 
 import lombok.RequiredArgsConstructor;
@@ -108,8 +111,15 @@ public class InstanceMapper {
   private String getStatisticalCodeNames(List<String> codeIds, ErrorServiceArgs args) {
     return isEmpty(codeIds) ? EMPTY : codeIds.stream()
       .filter(Objects::nonNull)
-      .map(id -> instanceReferenceService.getStatisticalCodeNameById(id, args))
+      .map(id -> getStatisticalCodeFormat(id, args))
       .map(specialCharacterEscaper::escape)
-      .collect(Collectors.joining(ARRAY_DELIMITER));
+      .collect(Collectors.joining(ITEM_DELIMITER));
+  }
+
+  private String getStatisticalCodeFormat(String id, ErrorServiceArgs args) {
+    var typeName = instanceReferenceService.getStatisticalCodeTypeNameById(id, args);
+    var code = instanceReferenceService.getStatisticalCodeCodeById(id, args);
+    var name = instanceReferenceService.getStatisticalCodeNameById(id, args);
+    return typeName + KEY_VALUE_DELIMITER + " " + code + " " + JOB_NAME_POSTFIX_SEPARATOR + name;
   }
 }

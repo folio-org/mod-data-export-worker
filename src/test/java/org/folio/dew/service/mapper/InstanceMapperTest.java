@@ -50,6 +50,6 @@ class InstanceMapperTest extends BaseBatchTest {
 
     var instanceFormat = mapper.mapToInstanceFormat(instance, "identifier", UUID.randomUUID().toString(), "errorFile");
 
-    assertThat(instanceFormat.getStatisticalCode()).isEqualTo("Code Type 1 (CD)%3A books -Book, print (books)|Code Type 1 (CD)%3A books -Book, print (books)");
+    assertThat(instanceFormat.getStatisticalCode()).isEqualTo("Code Type 1 (CD)%3A books - Book, print (books) | Code Type 1 (CD)%3A books - Book, print (books)");
   }
 }

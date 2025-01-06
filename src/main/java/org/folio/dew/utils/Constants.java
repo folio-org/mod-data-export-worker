@@ -16,6 +16,7 @@ public class Constants {
   public static final String PATH_SEPARATOR = "/";
   public static final String JOB_ID_SEPARATOR = "_";
   public static final String JOB_NAME_POSTFIX_SEPARATOR = "-";
+  public static final String STATISTICAL_CODE_NAME_SEPARATOR = " - ";
   public static final String MATCHED_RECORDS = "-Matched-Records-";
   public static final String MARC_RECORDS = "-Marc-Records-";
   public static final String CHANGED_RECORDS = "-Changed-Records-";

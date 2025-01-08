@@ -2,6 +2,7 @@ package org.folio.dew.utils;
 
 import static org.folio.dew.utils.Constants.LINE_BREAK;
 import static org.folio.dew.utils.Constants.LINE_BREAK_REPLACEMENT;
+import static org.folio.dew.utils.Constants.UTF8_BOM;
 
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
@@ -105,5 +106,12 @@ public class CsvHelper {
     return StringUtils.isNotBlank(value) && value.contains(delimiter)
       ? escape + value.replace(escape, escape + escape).replace(LINE_BREAK, LINE_BREAK_REPLACEMENT) + escape
       : value;
+  }
+
+  public static String clearBomSymbol(String obj) {
+    if (obj.startsWith(UTF8_BOM)) {
+      obj = obj.substring(1);
+    }
+    return obj;
   }
 }

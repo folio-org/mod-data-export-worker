@@ -263,7 +263,7 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   void shouldRemoveUTF8BOmFromInstances(String identifierType) {
     var id = "a912ee60-03c2-4316-9786-63b8be1f0d83";
     when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
-    when(inventoryInstancesClient.getInstanceByQuery(String.format("%s==" + id, resolveIdentifier(identifierType)), 1)).thenReturn(new InstanceCollection().instances(List.of(new Instance())).totalRecords(1));
+    when(inventoryInstancesClient.getInstanceByQuery(String.format("%s==%s", resolveIdentifier(identifierType), id), 1)).thenReturn(new InstanceCollection().instances(List.of(new Instance())).totalRecords(1));
 
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {

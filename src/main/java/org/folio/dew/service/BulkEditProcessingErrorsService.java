@@ -44,7 +44,7 @@ public class BulkEditProcessingErrorsService {
   private static final String CSV_FILE_TEMPLATE = STORAGE_TEMPLATE + File.separator + "%s";
   private static final String CONTENT_TYPE = "text/csv";
   public static final String COMMA_SEPARATOR = ",";
-  public static final String BULK_EDIT_ERROR_TYPE_NAME = "BULK_EDIT_ERROR";
+  public static final String BULK_EDIT_ERROR_TYPE_NAME = "ERROR";
 
   private final RemoteFilesStorage remoteFilesStorage;
 

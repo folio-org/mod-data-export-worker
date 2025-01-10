@@ -1,5 +1,5 @@
 HELP.md
-mod-data-export-worker/target/
+/target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -34,7 +34,6 @@ build/
 .vscode/
 
 **/postgres-conf.json
-/target/*
 /.settings/
 /.classpath
 /.project

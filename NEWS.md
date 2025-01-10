@@ -1,6 +1,14 @@
+## 2025-01-10 v3.3.7
+
+* [MODEXPW-554](https://folio-org.atlassian.net/browse/MODEXPW-554) Ramsons dependency upgrades fixing vulns (Spring Boot, etc.)
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.3.6...v3.3.7)
+
 ## 2025-01-08 v3.3.6
 
 * [MODEXPW-549](https://folio-org.atlassian.net/browse/MODEXPW-549) Improve fallback logic for missing fields in bursar migration
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.3.5...v3.3.6)
 
 ## 2024-12-10 v3.3.5
 

@@ -169,6 +169,10 @@
     {
       "id": "circulation-logs",
       "version": "1.2"
+    },
+    {
+      "id": "instance-statuses",
+      "version": "1.0"
     }
   ],
   "optional": [

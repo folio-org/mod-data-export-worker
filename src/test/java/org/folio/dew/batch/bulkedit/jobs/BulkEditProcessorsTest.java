@@ -4,6 +4,9 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
+import static org.folio.dew.utils.Constants.UTF8_BOM;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,6 +28,7 @@ import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExtendedItem;
 import org.folio.dew.domain.dto.HoldingsRecord;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
+import org.folio.dew.domain.dto.Instance;
 import org.folio.dew.domain.dto.InstanceCollection;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemCollection;
@@ -253,5 +257,21 @@ class BulkEditProcessorsTest extends BaseBatchTest {
     });
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = {"ID", "HRID"})
+  @SneakyThrows
+  void shouldRemoveUTF8BOmFromInstances(String identifierType) {
+    var id = "a912ee60-03c2-4316-9786-63b8be1f0d83";
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
+    when(inventoryInstancesClient.getInstanceByQuery(String.format("%s==%s", resolveIdentifier(identifierType), id), 1)).thenReturn(new InstanceCollection().instances(List.of(new Instance())).totalRecords(1));
 
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier();
+      identifier.setItemId(UTF8_BOM + id);
+      var instances = instanceFetcher.process(identifier);
+      assertThat(instances.getInstances(), hasSize(1));
+      return null;
+    });
+  }
 }

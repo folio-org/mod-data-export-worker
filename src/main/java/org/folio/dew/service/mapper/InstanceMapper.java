@@ -119,6 +119,6 @@ public class InstanceMapper {
     var typeName = instanceReferenceService.getStatisticalCodeTypeNameById(id, args);
     var code = instanceReferenceService.getStatisticalCodeCodeById(id, args);
     var name = instanceReferenceService.getStatisticalCodeNameById(id, args);
-    return typeName + KEY_VALUE_DELIMITER + " " + code + STATISTICAL_CODE_NAME_SEPARATOR + name;
+    return String.format("%s%s %s%s%s", typeName, KEY_VALUE_DELIMITER, code, STATISTICAL_CODE_NAME_SEPARATOR, name);
   }
 }

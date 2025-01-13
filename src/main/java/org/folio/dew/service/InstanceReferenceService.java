@@ -83,4 +83,26 @@ public class InstanceReferenceService {
       return statisticalCodeId;
     }
   }
+
+  public String getStatisticalCodeCodeById(String statisticalCodeId, ErrorServiceArgs args) {
+    try {
+      return instanceReferenceServiceCache.getStatisticalCodeCodeById(statisticalCodeId);
+    } catch (NotFoundException e) {
+      var msg = "Statistical code not found by id=" + statisticalCodeId;
+      log.error(msg);
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg), args.getFileName());
+      return statisticalCodeId;
+    }
+  }
+
+  public String getStatisticalCodeTypeNameById(String statisticalCodeId, ErrorServiceArgs args) {
+    try {
+      return instanceReferenceServiceCache.getStatisticalCodeTypeNameById(statisticalCodeId);
+    } catch (NotFoundException e) {
+      var msg = "Statistical code type not found by statistical code id=" + statisticalCodeId;
+      log.error(msg);
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg), args.getFileName());
+      return statisticalCodeId;
+    }
+  }
 }

@@ -1,0 +1,29 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/statistical-code-types/3abd6fc2-b3e4-4879-b1e1-78be41769fe3"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"id\": \"3abd6fc2-b3e4-4879-b1e1-78be41769fe3\",\n    \"name\": \"Code Type 1 (CD)\",\n   \"source\": \"UC\",\n    \"metadata\": {\n        \"createdDate\": \"2022-03-15T01:50:23.674+00:00\",\n        \"updatedDate\": \"2022-03-15T01:50:23.674+00:00\"\n    }\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/statistical-code-types/1d51c4da-0d5f-4303-a922-3e9d7a9b22f3"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

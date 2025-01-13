@@ -14,8 +14,8 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class SaveToFileStorageTaskletDecider extends ExportStepDecider {
 
-  public SaveToFileStorageTaskletDecider(ObjectMapper objectMapper) {
-    super(objectMapper);
+  public SaveToFileStorageTaskletDecider(ObjectMapper objectMapper, String stepName) {
+    super(objectMapper, stepName);
   }
 
   @Override
@@ -24,7 +24,7 @@ public class SaveToFileStorageTaskletDecider extends ExportStepDecider {
     if (exportConfig.getIntegrationType() == ORDERING || exportConfig.getTransmissionMethod() == FTP) {
       return ExportStepDecision.PROCESS;
     }
-    log.info("decide:: Transmission method is not FTP, skipping the step: {}", stepExecution.getStepName());
+    log.info("decide:: Transmission method is not FTP, skipping the step: {}", stepName);
     return ExportStepDecision.SKIP;
   }
 

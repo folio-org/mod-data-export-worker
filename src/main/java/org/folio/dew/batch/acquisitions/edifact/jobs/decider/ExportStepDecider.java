@@ -17,6 +17,7 @@ import lombok.SneakyThrows;
 public abstract class ExportStepDecider implements JobExecutionDecider {
 
   private final ObjectMapper objectMapper;
+  protected final String stepName;
 
   @Override
   @SneakyThrows

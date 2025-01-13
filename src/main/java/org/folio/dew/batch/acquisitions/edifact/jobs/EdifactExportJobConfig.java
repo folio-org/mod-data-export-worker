@@ -106,8 +106,8 @@ public class EdifactExportJobConfig {
   @Bean
   public Map<String, JobExecutionDecider> optionalStepDeciders(Step saveToFTPStep, Step createExportHistoryRecordsStep, ObjectMapper objectMapper) {
     return Map.of(
-      saveToFTPStep.getName(), new SaveToFileStorageTaskletDecider(objectMapper),
-      createExportHistoryRecordsStep.getName(), new ExportHistoryTaskletDecider(objectMapper)
+      saveToFTPStep.getName(), new SaveToFileStorageTaskletDecider(objectMapper, saveToFTPStep.getName()),
+      createExportHistoryRecordsStep.getName(), new ExportHistoryTaskletDecider(objectMapper, createExportHistoryRecordsStep.getName())
     );
   }
 

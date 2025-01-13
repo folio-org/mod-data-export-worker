@@ -13,8 +13,8 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class ExportHistoryTaskletDecider extends ExportStepDecider {
 
-  public ExportHistoryTaskletDecider(ObjectMapper objectMapper) {
-    super(objectMapper);
+  public ExportHistoryTaskletDecider(ObjectMapper objectMapper, String stepName) {
+    super(objectMapper, stepName);
   }
 
   @Override
@@ -23,7 +23,7 @@ public class ExportHistoryTaskletDecider extends ExportStepDecider {
     if (exportConfig.getIntegrationType() == ORDERING) {
       return ExportStepDecision.PROCESS;
     }
-    log.info("decide:: Integration type is not ORDERING, skipping the step: {}", stepExecution.getStepName());
+    log.info("decide:: Integration type is not ORDERING, skipping the step: {}", stepName);
     return ExportStepDecision.SKIP;
   }
 

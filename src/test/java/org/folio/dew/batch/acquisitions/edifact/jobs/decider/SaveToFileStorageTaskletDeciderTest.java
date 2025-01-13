@@ -21,7 +21,7 @@ class SaveToFileStorageTaskletDeciderTest {
 
   @BeforeEach
   void setUp() {
-    decider = new SaveToFileStorageTaskletDecider(new ObjectMapper());
+    decider = new SaveToFileStorageTaskletDecider(new ObjectMapper(), "saveToFTPStep");
   }
 
   @Test

@@ -20,7 +20,7 @@ class ExportHistoryTaskletDeciderTest {
 
   @BeforeEach
   void setUp() {
-    decider = new ExportHistoryTaskletDecider(new ObjectMapper());
+    decider = new ExportHistoryTaskletDecider(new ObjectMapper(), "createExportHistoryRecordsStep");
   }
 
   @Test

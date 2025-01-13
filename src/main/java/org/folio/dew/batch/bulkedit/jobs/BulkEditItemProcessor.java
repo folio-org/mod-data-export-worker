@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
-import org.folio.dew.batch.acquisitions.edifact.services.HoldingService;
+import org.folio.dew.batch.acquisitions.services.HoldingService;
 import org.folio.dew.domain.dto.CirculationNote;
 import org.folio.dew.domain.dto.EffectiveCallNumberComponents;
 import org.folio.dew.domain.dto.ErrorServiceArgs;

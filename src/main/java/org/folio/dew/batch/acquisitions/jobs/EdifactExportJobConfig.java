@@ -36,14 +36,16 @@ public class EdifactExportJobConfig {
                                         Step saveToMinIOStep,
                                         Step createExportHistoryRecordsStep,
                                         Map<String, JobExecutionDecider> optionalStepDeciders) {
+    var ftpStepDecider = optionalStepDeciders.get(saveToFTPStep.getName());
+    var exportHistoryStepDecider = optionalStepDeciders.get(createExportHistoryRecordsStep.getName());
     return jobBuilder.incrementer(new RunIdIncrementer())
       .listener(ediExportJobCompletionListener)
       .start(mapToFileStep)
       .next(saveToMinIOStep)
-      .next(optionalStepDeciders.get(saveToFTPStep.getName()))
-        .on(ExportStepDecision.PROCESS.getStatus()).to(saveToFTPStep)
-      .next(optionalStepDeciders.get(createExportHistoryRecordsStep.getName()))
-        .on(ExportStepDecision.PROCESS.getStatus()).to(createExportHistoryRecordsStep)
+      .next(ftpStepDecider).on(ExportStepDecision.PROCESS.getStatus()).to(saveToFTPStep)
+      .from(ftpStepDecider).on(ExportStepDecision.SKIP.getStatus()).to(exportHistoryStepDecider)
+      .next(exportHistoryStepDecider).on(ExportStepDecision.PROCESS.getStatus()).to(createExportHistoryRecordsStep)
+      .from(exportHistoryStepDecider).on(ExportStepDecision.SKIP.getStatus()).end()
       .end().build();
   }
 

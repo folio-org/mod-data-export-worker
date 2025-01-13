@@ -38,6 +38,7 @@ public class FTPObjectStorageRepository {
     URI url = new URI(ftpUrl);
     String scheme = url.getScheme();
     if (StringUtils.isNotEmpty(scheme) && !scheme.equalsIgnoreCase("FTP")) {
+      log.error("URI should be valid ftp path to login: {}", ftpUrl);
       throw new URISyntaxException(ftpUrl, "URI should be valid ftp path");
     }
 
@@ -48,6 +49,7 @@ public class FTPObjectStorageRepository {
     log.info("Connected to {}:{}", server, port);
     int reply = ftpClient.getReplyCode();
     if (!FTPReply.isPositiveCompletion(reply)) {
+      log.error("Unable to connect to FTP server: {}, reply code: {}", server, reply);
       throw new FtpException(ftpClient.getReplyCode(), ftpClient.getReplyString().trim());
     }
 

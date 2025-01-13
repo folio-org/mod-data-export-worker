@@ -9,7 +9,7 @@ import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.sftp.client.SftpClient;
 import org.apache.sshd.sftp.client.SftpClientFactory;
 import org.apache.sshd.sftp.spring.integration.ApacheSshdSftpSessionFactory;
-import org.folio.dew.batch.acquisitions.edifact.exceptions.EdifactException;
+import org.folio.dew.batch.acquisitions.exceptions.EdifactException;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.stereotype.Repository;
@@ -74,6 +74,7 @@ public class SFTPObjectStorageRepository {
     try {
       sshdFactory = getSshdSessionFactory(username, password, host, port);
     } catch (Exception e) {
+      log.error("Error connecting to {}:{}", host, port, e);
       throw new EdifactException(String.format("Unable to connect to %s:%d", host, port));
     }
     try (InputStream inputStream = new ByteArrayInputStream(content); var session = sshdFactory.getSession()) {

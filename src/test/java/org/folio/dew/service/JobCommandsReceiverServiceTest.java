@@ -16,7 +16,7 @@ import java.util.UUID;
 import org.folio.de.entity.JobCommand;
 import org.folio.de.entity.JobCommandType;
 import org.folio.dew.BaseBatchTest;
-import org.folio.dew.batch.acquisitions.edifact.services.FTPStorageService;
+import org.folio.dew.batch.acquisitions.services.FTPStorageService;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;

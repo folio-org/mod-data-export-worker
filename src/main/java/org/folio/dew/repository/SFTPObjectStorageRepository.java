@@ -74,6 +74,7 @@ public class SFTPObjectStorageRepository {
     try {
       sshdFactory = getSshdSessionFactory(username, password, host, port);
     } catch (Exception e) {
+      log.error("Error connecting to {}:{}", host, port, e);
       throw new EdifactException(String.format("Unable to connect to %s:%d", host, port));
     }
     try (InputStream inputStream = new ByteArrayInputStream(content); var session = sshdFactory.getSession()) {

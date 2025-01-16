@@ -4,23 +4,19 @@ import static java.util.Objects.requireNonNullElse;
 import static java.util.stream.Collectors.groupingBy;
 import static org.folio.dew.batch.acquisitions.jobs.EdifactExportJobConfig.POL_MEM_KEY;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.FILE_FORMAT;
-import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.FTP_PORT;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.INTEGRATION_TYPE;
-import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.SERVER_ADDRESS;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.TRANSMISSION_METHOD;
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.generateFileName;
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.validateField;
+import static org.folio.dew.batch.acquisitions.utils.ExportUtils.validateFtpFields;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
-import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING;
-import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.FTP;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.exceptions.CompositeOrderMappingException;
 import org.folio.dew.batch.acquisitions.exceptions.EdifactException;
@@ -80,13 +76,7 @@ public abstract class MapToEdifactTasklet implements Tasklet {
     validateField(INTEGRATION_TYPE.getName(), ediExportConfig.getIntegrationType(), Objects::nonNull, missingFields);
     validateField(TRANSMISSION_METHOD.getName(), ediExportConfig.getTransmissionMethod(), Objects::nonNull, missingFields);
     validateField(FILE_FORMAT.getName(), ediExportConfig.getFileFormat(), Objects::nonNull, missingFields);
-
-    if (ediExportConfig.getIntegrationType() == ORDERING || ediExportConfig.getTransmissionMethod() == FTP) {
-      var ftpConfig = ediExportConfig.getEdiFtp();
-      validateField(FTP_PORT.getName(), ftpConfig.getFtpPort(), Objects::nonNull, missingFields);
-      validateField(SERVER_ADDRESS.getName(), ftpConfig.getServerAddress(), StringUtils::isNotEmpty, missingFields);
-    }
-
+    validateFtpFields(ediExportConfig, missingFields);
     if (!missingFields.isEmpty()) {
       throw new EdifactException("Export configuration is incomplete, missing required fields: %s".formatted(missingFields));
     }

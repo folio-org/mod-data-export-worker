@@ -1,9 +1,14 @@
 package org.folio.dew.batch.acquisitions.services;
 
+import static org.folio.dew.batch.acquisitions.utils.ExportUtils.convertIntegrationTypeToExportType;
+import static org.folio.dew.batch.acquisitions.utils.ExportUtils.validateFtpFields;
 import static org.folio.dew.utils.Constants.EDIFACT_EXPORT_DIR_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -11,7 +16,6 @@ import org.folio.de.entity.Job;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.batch.acquisitions.exceptions.EdifactException;
 import org.folio.dew.config.kafka.KafkaService;
-import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.ExportTypeSpecificParameters;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.repository.RemoteFilesStorage;
@@ -50,13 +54,23 @@ public class ResendService {
     }
     log.info("Resend operation started for job ID: {}", jobId);
     Job job = new Job();
-    job.setType(ExportType.EDIFACT_ORDERS_EXPORT);
     job.setId(jobId);
     try {
-      String fileName = jobParameters.getString(FILE_NAME_KEY);
       VendorEdiOrdersExportConfig ediConfig = ediObjectMapper.readValue(jobParameters.getString(EDIFACT_ORDERS_EXPORT_KEY),
         VendorEdiOrdersExportConfig.class);
+      job.setType(convertIntegrationTypeToExportType(ediConfig.getIntegrationType()));
 
+      if (ediConfig.getTransmissionMethod() != VendorEdiOrdersExportConfig.TransmissionMethodEnum.FTP) {
+        throw new EdifactException("Transmission method must be FTP in order to resend exported file");
+      }
+
+      List<String> missingFields = new ArrayList<>();
+      validateFtpFields(ediConfig, missingFields);
+      if (!missingFields.isEmpty()) {
+        throw new EdifactException("Export configuration is incomplete, missing required fields: %s".formatted(missingFields));
+      }
+
+      String fileName = jobParameters.getString(FILE_NAME_KEY);
       String workDir = getWorkingDirectory(springApplicationName, EDIFACT_EXPORT_DIR_NAME);
       String tenantName = folioExecutionContext.getTenantId();
       String path = String.format("%s%s/%s", workDir, tenantName, fileName);

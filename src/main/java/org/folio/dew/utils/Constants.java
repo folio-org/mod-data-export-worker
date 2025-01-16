@@ -106,6 +106,8 @@ public class Constants {
 
   public static final String UTF8_BOM = new String(new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF}, StandardCharsets.UTF_8);
 
+  public static final int MIN_YEAR_FOR_BIRTH_DATE = 1900;
+
   public static String getWorkingDirectory(String springApplicationName, String dirName) {
     return springApplicationName + PATH_SEPARATOR + dirName + PATH_SEPARATOR;
   }

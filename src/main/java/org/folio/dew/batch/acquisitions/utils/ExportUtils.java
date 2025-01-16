@@ -59,7 +59,7 @@ public class ExportUtils {
     }
   }
 
-  public static <T> void validateFtpFields(VendorEdiOrdersExportConfig ediExportConfig, List<String> missingFields) {
+  public static void validateFtpFields(VendorEdiOrdersExportConfig ediExportConfig, List<String> missingFields) {
     if (ediExportConfig.getIntegrationType() == ORDERING || ediExportConfig.getTransmissionMethod() == FTP) {
       var ftpConfig = ediExportConfig.getEdiFtp();
       validateField(FTP_PORT.getName(), ftpConfig.getFtpPort(), Objects::nonNull, missingFields);

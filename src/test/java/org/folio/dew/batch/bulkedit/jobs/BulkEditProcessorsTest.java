@@ -1,6 +1,7 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.utils.BulkEditProcessorHelper.dateFromString;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
@@ -33,6 +34,7 @@ import org.folio.dew.domain.dto.InstanceCollection;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemCollection;
 import org.folio.dew.domain.dto.ItemIdentifier;
+import org.folio.dew.domain.dto.Personal;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserCollection;
 import org.folio.dew.error.BulkEditException;
@@ -144,6 +146,25 @@ class BulkEditProcessorsTest extends BaseBatchTest {
       var identifier = new ItemIdentifier("duplicateIdentifier");
       var throwable = assertThrows(BulkEditException.class, () -> userFetcher.process(identifier));
       assertEquals(MULTIPLE_MATCHES_MESSAGE, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"ID", "HRID", "EXTERNAL_SYSTEM_ID", "USER_NAME"})
+  @SneakyThrows
+  void shouldNotIncludeUsersWithInvalidBirthDate(String identifierType) {
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.USER))).thenReturn(true);
+    when(userClient.getUserByQuery(
+      String.format("(cql.allRecords=1 NOT type=\"\" or type<>\"shadow\") and %s==\"user id\"", resolveIdentifier(identifierType)),
+      1
+    )).thenReturn(new UserCollection().users(Collections.singletonList(new User().personal(new Personal().dateOfBirth(dateFromString("1899-01-15 00:00:00.000Z"))))).totalRecords(1));
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("user id");
+      var throwable = assertThrows(BulkEditException.class, () -> userFetcher.process(identifier));
+      assertEquals("Failed to parse Date from value \"1899-01-15 00:00:00.000Z\" in users.personal.dateOfBirth", throwable.getMessage());
       return null;
     });
   }

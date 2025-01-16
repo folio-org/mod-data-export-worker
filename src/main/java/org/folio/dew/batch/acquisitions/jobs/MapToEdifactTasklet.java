@@ -77,6 +77,7 @@ public abstract class MapToEdifactTasklet implements Tasklet {
     validateField(TRANSMISSION_METHOD.getName(), ediExportConfig.getTransmissionMethod(), Objects::nonNull, missingFields);
     validateField(FILE_FORMAT.getName(), ediExportConfig.getFileFormat(), Objects::nonNull, missingFields);
     validateFtpFields(ediExportConfig, missingFields);
+
     if (!missingFields.isEmpty()) {
       throw new EdifactException("Export configuration is incomplete, missing required fields: %s".formatted(missingFields));
     }

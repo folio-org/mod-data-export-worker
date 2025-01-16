@@ -37,8 +37,8 @@ public class ResendService {
   private final KafkaService kafka;
   private final ObjectMapper ediObjectMapper;
 
-  private static final String EDIFACT_ORDERS_EXPORT_KEY = "EDIFACT_ORDERS_EXPORT";
-  private static final String FILE_NAME_KEY = "FILE_NAME";
+  static final String EDIFACT_ORDERS_EXPORT_KEY = "EDIFACT_ORDERS_EXPORT";
+  static final String FILE_NAME_KEY = "FILE_NAME";
 
   @Value("${spring.application.name}")
   protected String springApplicationName;

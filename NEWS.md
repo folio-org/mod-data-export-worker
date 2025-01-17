@@ -1,3 +1,12 @@
+## 2025-01-17 v3.3.7
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.3.6...v3.3.7)
+
+### Bug fixes
+* [MODEXPW-554](https://folio-org.atlassian.net/browse/MODEXPW-554) Ramsons dependency upgrades fixing vulns
+* [MODEXPW-551](https://folio-org.atlassian.net/browse/MODEXPW-551) Invalid date representation in "Birth date" field fails commit of Users in "Bulk edit" app
+* Adding missed instance statuses interface
+
 ## 2025-01-08 v3.3.6
 
 * [MODEXPW-549](https://folio-org.atlassian.net/browse/MODEXPW-549) Improve fallback logic for missing fields in bursar migration

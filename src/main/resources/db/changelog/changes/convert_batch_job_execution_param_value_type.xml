@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+  <changeSet id="convert_batch_job_execution_param_value_type" author="thunderjet" runOnChange="true">
+    <sqlFile path="convert_batch_job_execution_param_value_type.sql" relativeToChangelogFile="true" />
+  </changeSet>
+
+</databaseChangeLog>

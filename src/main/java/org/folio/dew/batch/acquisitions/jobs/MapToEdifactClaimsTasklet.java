@@ -1,5 +1,6 @@
 package org.folio.dew.batch.acquisitions.jobs;
 
+import static org.folio.dew.batch.acquisitions.services.OrdersService.CHUNK_SIZE;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.CLAIM_PIECE_IDS;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.LIB_EDI_TYPE;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.VENDOR_EDI_TYPE;
@@ -8,6 +9,7 @@ import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.FileFormatEnu
 import static org.folio.dew.utils.QueryUtils.convertIdsToCqlQuery;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -20,10 +22,13 @@ import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.acquisitions.edifact.ExportHolder;
 import org.folio.dew.error.NotFoundException;
+import org.folio.dew.utils.QueryUtils;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import one.util.streamex.StreamEx;
 
 @Component
 @StepScope
@@ -67,8 +72,11 @@ public class MapToEdifactClaimsTasklet extends MapToEdifactTasklet {
       throw new NotFoundException(Piece.class);
     }
 
-    var poLineQuery = convertIdsToCqlQuery(pieces.stream().map(Piece::getPoLineId).toList());
-    var compOrders = getCompositeOrders(poLineQuery);
+    var compOrders = StreamEx.ofSubLists(pieces.stream().map(Piece::getPoLineId).toList(), CHUNK_SIZE)
+      .map(QueryUtils::convertIdsToCqlQuery)
+      .map(this::getCompositeOrders)
+      .flatMap(Collection::stream)
+      .toList();
     return new ExportHolder(compOrders, pieces);
   }
 

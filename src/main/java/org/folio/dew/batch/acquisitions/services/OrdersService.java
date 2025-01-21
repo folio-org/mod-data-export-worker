@@ -24,7 +24,7 @@ import java.util.List;
 @Log4j2
 public class OrdersService {
 
-  private static final int CHUNK_SIZE = 50;
+  public static final int CHUNK_SIZE = 50;
   private static final String PIECES_BY_REC_STATUS_QUERY = "receivingStatus==%s";
 
 

@@ -274,7 +274,8 @@
             "consortium-search.items.collection.get",
             "consortia.user-tenants.collection.get",
             "perms.users.get",
-            "permissions.users.item.get"
+            "permissions.users.item.get",
+            "inventory-storage.statistical-code-types.item.get"
           ]
         },
         {
@@ -328,7 +329,8 @@
             "inventory-storage.holdings-sources.item.get",
             "inventory-storage.holdings.item.put",
             "perms.users.get",
-            "permissions.users.item.get"
+            "permissions.users.item.get",
+            "inventory-storage.statistical-code-types.item.get"
           ]
         },
         {

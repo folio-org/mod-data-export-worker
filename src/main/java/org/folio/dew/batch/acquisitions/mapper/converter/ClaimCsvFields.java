@@ -1,5 +1,6 @@
 package org.folio.dew.batch.acquisitions.mapper.converter;
 
+import static org.folio.dew.batch.acquisitions.utils.ExportUtils.getFormattedDate;
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.getVendorAccountNumber;
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.getVendorOrderNumber;
 
@@ -16,11 +17,13 @@ public enum ClaimCsvFields implements ExtractableField<ClaimCsvEntry, String> {
   POL_NUMBER("POL number", entry -> entry.compositePoLine().getPoLineNumber()),
   ORDER_NUMBER("Vendor order number", entry -> getVendorOrderNumber(entry.compositePoLine())),
   ACCOUNT_NUMBER("Account number", entry -> getVendorAccountNumber(entry.compositePoLine())),
+  EXPECTED_DATE("Expected date", entry -> getFormattedDate(entry.piece().getReceiptDate())),
   TITLE("Title from piece", ClaimCsvEntry::title),
   DISPLAY_SUMMARY("Display summary", entry -> entry.piece().getDisplaySummary()),
   CHRONOLOGY("Chronology", entry -> entry.piece().getChronology()),
   ENUMERATION("Enumeration", entry -> entry.piece().getEnumeration()),
-  QUANTITY("Quantity", entry -> String.valueOf(entry.quantity()));
+  QUANTITY("Quantity", entry -> String.valueOf(entry.quantity())),
+  EXTERNAL_NOTE("External note", entry -> entry.piece().getExternalNote());
 
   @Getter
   private final String name;

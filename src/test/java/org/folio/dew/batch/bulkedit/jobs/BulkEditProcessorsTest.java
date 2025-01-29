@@ -64,6 +64,8 @@ class BulkEditProcessorsTest extends BaseBatchTest {
 
   @Autowired
   private InstanceFetcher instanceFetcher;
+  @Autowired
+  private BulkEditInstanceProcessor instanceProcessor;
   @MockBean
   private InventoryInstancesClient inventoryInstancesClient;
   @Autowired
@@ -292,6 +294,44 @@ class BulkEditProcessorsTest extends BaseBatchTest {
       identifier.setItemId(UTF8_BOM + id);
       var instances = instanceFetcher.process(identifier);
       assertThat(instances.getInstances(), hasSize(1));
+      return null;
+    });
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldProvideBulkEditExceptionWithNoInstanceViewPermissionMessageWhenProcessInstances() {
+    var user = new User();
+    user.setUsername("userName");
+
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.HOLDINGS_RECORD))).thenReturn(false);
+    when(userClient.getUserById(any())).thenReturn(user);
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
+    var expectedErrorMessage = "User userName does not have required permission to view the instance record - hrid=hrid on the tenant diku";
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("hrid");
+      var throwable = assertThrows(BulkEditException.class, () -> instanceProcessor.process(identifier));
+      assertEquals(expectedErrorMessage, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldProvideBulkEditExceptionWithNotSupportedIdentifierTypeMessageWhenProcessInstances() {
+    var user = new User();
+    user.setUsername("userName");
+
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
+    when(userClient.getUserById(any())).thenReturn(user);
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("BARCODE", String.class))));
+    var expectedErrorMessage = "Identifier type \"BARCODE\" is not supported";
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("BARCODE");
+      var throwable = assertThrows(BulkEditException.class, () -> instanceProcessor.process(identifier));
+      assertEquals(expectedErrorMessage, throwable.getMessage());
       return null;
     });
   }

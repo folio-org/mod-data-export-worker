@@ -4,7 +4,6 @@ import static org.folio.dew.error.ErrorCode.IO_ERROR;
 import static org.folio.dew.error.ErrorCode.NOT_FOUND_ERROR;
 import static org.folio.dew.error.ErrorCode.PROCESSING_ERROR;
 import static org.folio.dew.error.ErrorCode.VALIDATION_ERROR;
-import static org.folio.dew.error.ErrorType.INTERNAL;
 
 import org.folio.dew.domain.dto.Error;
 import org.folio.dew.domain.dto.Errors;

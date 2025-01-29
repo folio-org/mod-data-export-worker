@@ -43,7 +43,7 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
     bulkEditProcessingErrorsService.saveErrorInCSV(jobId, affectedIdentifier, reasonForError, fileName);
     assertTrue(localFilesStorage.exists(pathToCsvFile));
     List<String> lines = localFilesStorage.readAllLines(pathToCsvFile);
-    String expectedLine = affectedIdentifier + "," + reasonForError.getMessage();
+    String expectedLine = affectedIdentifier + "," + reasonForError.getMessage() + ",ERROR";
     assertEquals(expectedLine, lines.get(0));
     assertThat(lines, hasSize(1));
 
@@ -68,7 +68,7 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
     bulkEditProcessingErrorsService.saveErrorInCSV(jobId, affectedIdentifier, errorMessage, fileName, ErrorType.ERROR);
     assertTrue(localFilesStorage.exists(pathToCsvFile));
     List<String> lines = localFilesStorage.readAllLines(pathToCsvFile);
-    String expectedLine = affectedIdentifier + "," + errorMessage;
+    String expectedLine = affectedIdentifier + "," + errorMessage + ",ERROR";
     assertEquals(expectedLine, lines.get(0));
     assertThat(lines, hasSize(1));
   }

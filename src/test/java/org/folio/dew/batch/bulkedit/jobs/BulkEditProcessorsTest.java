@@ -19,6 +19,7 @@ import static org.mockito.Mockito.when;
 import feign.Request;
 import feign.codec.DecodeException;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
 import org.folio.dew.batch.bulkedit.jobs.processidentifiers.InstanceFetcher;
@@ -58,6 +59,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 class BulkEditProcessorsTest extends BaseBatchTest {
   @Autowired
@@ -372,6 +374,24 @@ class BulkEditProcessorsTest extends BaseBatchTest {
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
     var expectedErrorMessage = "DecodeException: Decode error";
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("HRID");
+      var throwable = assertThrows(BulkEditException.class, () -> instanceFetcher.process(identifier));
+      assertEquals(expectedErrorMessage, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldProvideBulkEditExceptionWhenDuplicateEntryWithProcessInstances() {
+
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
+    var expectedErrorMessage = "Duplicate entry";
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifiersToCheckDuplication = FieldUtils.readField(instanceFetcher, "identifiersToCheckDuplication", true);
+      ((Set)identifiersToCheckDuplication).add("HRID");
       var identifier = new ItemIdentifier("HRID");
       var throwable = assertThrows(BulkEditException.class, () -> instanceFetcher.process(identifier));
       assertEquals(expectedErrorMessage, throwable.getMessage());

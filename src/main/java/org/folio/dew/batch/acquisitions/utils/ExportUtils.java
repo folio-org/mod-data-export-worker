@@ -53,6 +53,10 @@ public class ExportUtils {
       .orElse(null);
   }
 
+  public static String getFormattedDate(Date date) {
+    return Optional.ofNullable(date).map(new SimpleDateFormat("yyyy-MM-dd")::format).orElse("");
+  }
+
   public static <T> void validateField(String field, T value, Predicate<T> validator, List<String> missingFields) {
     if (!validator.test(value)) {
       missingFields.add(field);

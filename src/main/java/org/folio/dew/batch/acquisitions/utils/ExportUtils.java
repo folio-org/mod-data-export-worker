@@ -25,7 +25,6 @@ import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.FileFormatEnum;
 public class ExportUtils {
 
   private static final String FILE_NAME_FORMAT = "%s_%s_%s.%s";
-  private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd");
 
   private ExportUtils() { }
 
@@ -55,7 +54,7 @@ public class ExportUtils {
   }
 
   public static String getFormattedDate(Date date) {
-    return Optional.ofNullable(date).map(DATE_FORMATTER::format).orElse("");
+    return Optional.ofNullable(date).map(new SimpleDateFormat("yyyy-MM-dd")::format).orElse("");
   }
 
   public static <T> void validateField(String field, T value, Predicate<T> validator, List<String> missingFields) {

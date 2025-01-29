@@ -13,8 +13,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
+import feign.Request;
+import feign.codec.DecodeException;
 import lombok.SneakyThrows;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
@@ -54,6 +57,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 class BulkEditProcessorsTest extends BaseBatchTest {
   @Autowired
@@ -331,6 +335,45 @@ class BulkEditProcessorsTest extends BaseBatchTest {
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var identifier = new ItemIdentifier("BARCODE");
       var throwable = assertThrows(BulkEditException.class, () -> instanceProcessor.process(identifier));
+      assertEquals(expectedErrorMessage, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldProvideBulkEditExceptionWithNotSupportedIdentifierTypeMessageWhenProcessHoldings() {
+    var user = new User();
+    user.setUsername("userName");
+
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.HOLDINGS_RECORD))).thenReturn(true);
+    when(userClient.getUserById(any())).thenReturn(user);
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("BARCODE", String.class))));
+    var expectedErrorMessage = "Identifier type \"BARCODE\" is not supported";
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("BARCODE");
+      var throwable = assertThrows(BulkEditException.class, () -> holdingsProcessor.process(identifier));
+      assertEquals(expectedErrorMessage, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldProvideBulkEditExceptionWithDecodeExceptionMessageWhenProcessInstances() {
+    var user = new User();
+    user.setUsername("userName");
+
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
+    doThrow(new DecodeException(1, "Decode error", Request.create(Request.HttpMethod.GET, "url", Map.of(), new byte[]{}, null))).when(inventoryInstancesClient)
+      .getInstanceByQuery("hrid==HRID", 1);
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
+    var expectedErrorMessage = "DecodeException: Decode error";
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("HRID");
+      var throwable = assertThrows(BulkEditException.class, () -> instanceFetcher.process(identifier));
       assertEquals(expectedErrorMessage, throwable.getMessage());
       return null;
     });

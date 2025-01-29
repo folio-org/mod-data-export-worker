@@ -132,7 +132,7 @@ class BulkEditControllerTest extends BaseBatchTest {
   void shouldReturnErrorsFileNotFoundErrorForErrorsPreview() throws Exception {
 
     var jobId = JOB_ID;
-    var expectedJson = String.format("{\"errors\":[{\"message\":\"JobCommand with id %s doesn't exist.\",\"type\":\"ERROR\",\"code\":\"Not found\",\"parameters\":null}],\"total_records\":1}", jobId);
+    var expectedJson = String.format("{\"errors\":[{\"message\":\"JobCommand with id %s doesn't exist.\",\"type\":\"ERROR\",\"code\":\"Not found\",\"parameters\":null}],\"total_error_records\":1}", jobId);
 
     var headers = defaultHeaders();
 

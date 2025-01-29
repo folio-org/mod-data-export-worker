@@ -10,6 +10,7 @@ import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.ElectronicAccess;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.springframework.stereotype.Service;
@@ -51,7 +52,7 @@ public class ElectronicAccessService extends FolioExecutionContextManager {
     } catch (NotFoundException e) {
       var errorMessage = String.format("Electronic access relationship not found by id=%s", id);
       log.error(errorMessage);
-      errorsService.saveErrorInCSV(errorServiceArgs.getJobId(), errorServiceArgs.getIdentifier(), new BulkEditException(errorMessage), errorServiceArgs.getFileName());
+      errorsService.saveErrorInCSV(errorServiceArgs.getJobId(), errorServiceArgs.getIdentifier(), new BulkEditException(errorMessage, ErrorType.WARNING), errorServiceArgs.getFileName());
       return id;
     }
   }

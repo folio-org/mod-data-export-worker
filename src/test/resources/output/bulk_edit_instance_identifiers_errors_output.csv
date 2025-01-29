@@ -1,6 +1,6 @@
-inst000000000022,Instance type was not found by id: [6312d172-f0cf-40f6-b27d-9fa8feaf332f]
-inst000000000022,Nature of content term was not found by id: [921e6d93-bafb-4a02-b62f-dcd027c45406]
-inst000000000022,Instance format was not found by id: [5cb91d15-96b1-4b8a-bf60-ec310538da66]
-inst000000000003,No match found
-inst000000000022,Duplicate entry
-inst000000000004,No match found
+inst000000000022,Instance type was not found by id: [6312d172-f0cf-40f6-b27d-9fa8feaf332f],WARNING
+inst000000000022,Nature of content term was not found by id: [921e6d93-bafb-4a02-b62f-dcd027c45406],WARNING
+inst000000000022,Instance format was not found by id: [5cb91d15-96b1-4b8a-bf60-ec310538da66],WARNING
+inst000000000003,No match found,ERROR
+inst000000000022,Duplicate entry,WARNING
+inst000000000004,No match found,ERROR

@@ -13,6 +13,7 @@ import org.folio.dew.client.HoldingsTypeClient;
 import org.folio.dew.client.IllPolicyClient;
 import org.folio.dew.client.LocationClient;
 import org.folio.dew.client.StatisticalCodeClient;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.folio.spring.FolioExecutionContext;
@@ -57,7 +58,7 @@ public class HoldingsReferenceServiceCache extends FolioExecutionContextManager 
     } catch (NotFoundException e) {
       var msg = "Location not found by id=" + id;
       log.error(msg);
-      throw new BulkEditException(msg);
+      throw new BulkEditException(msg, ErrorType.WARNING);
     }
   }
 

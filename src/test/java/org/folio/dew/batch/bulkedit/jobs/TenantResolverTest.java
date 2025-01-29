@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.User;
@@ -78,8 +79,8 @@ class TenantResolverTest {
 
     var expectedAffiliationError = "User userName does not have required affiliation to view the holdings record - hrid=hrid on the tenant member1";
     var expectedPermissionError = "User userName does not have required permission to view the holdings record - hrid=hrid on the tenant member2";
-    verify(bulkEditProcessingErrorsService).saveErrorInCSV(jobId, itemIdentifier.getItemId(), expectedAffiliationError, fileName);
-    verify(bulkEditProcessingErrorsService).saveErrorInCSV(jobId, itemIdentifier.getItemId(), expectedPermissionError, fileName);
+    verify(bulkEditProcessingErrorsService).saveErrorInCSV(jobId, itemIdentifier.getItemId(), expectedAffiliationError, fileName, ErrorType.ERROR);
+    verify(bulkEditProcessingErrorsService).saveErrorInCSV(jobId, itemIdentifier.getItemId(), expectedPermissionError, fileName, ErrorType.ERROR);
 
     assertEquals(1, affiliatedAndPermittedTenants.size());
   }

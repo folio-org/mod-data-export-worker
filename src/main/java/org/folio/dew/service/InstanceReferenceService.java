@@ -3,6 +3,7 @@ package org.folio.dew.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ public class InstanceReferenceService {
     try {
       return instanceReferenceServiceCache.getInstanceStatusNameById(instanceStatusId);
     } catch (NotFoundException e) {
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Instance status was not found by id: [%s]", instanceStatusId)), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Instance status was not found by id: [%s]", instanceStatusId), ErrorType.WARNING), args.getFileName());
       return instanceStatusId;
     }
   }
@@ -28,7 +29,7 @@ public class InstanceReferenceService {
     try {
       return instanceReferenceServiceCache.getModeOfIssuanceNameById(issuanceModeId);
     } catch (NotFoundException e) {
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Issuance mode was not found by id: [%s]", issuanceModeId)), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Issuance mode was not found by id: [%s]", issuanceModeId), ErrorType.WARNING), args.getFileName());
       return issuanceModeId;
     }
   }
@@ -37,7 +38,7 @@ public class InstanceReferenceService {
     try {
       return instanceReferenceServiceCache.getInstanceTypeNameById(instanceTypeId);
     } catch (NotFoundException e) {
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Instance type was not found by id: [%s]", instanceTypeId)), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Instance type was not found by id: [%s]", instanceTypeId), ErrorType.WARNING), args.getFileName());
       return instanceTypeId;
     }
   }
@@ -46,7 +47,7 @@ public class InstanceReferenceService {
     try {
       return instanceReferenceServiceCache.getNatureOfContentTermNameById(natureOfContentTermId);
     } catch (NotFoundException e) {
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Nature of content term was not found by id: [%s]", natureOfContentTermId)), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Nature of content term was not found by id: [%s]", natureOfContentTermId), ErrorType.WARNING), args.getFileName());
       return natureOfContentTermId;
     }
   }
@@ -55,7 +56,7 @@ public class InstanceReferenceService {
     try {
       return instanceReferenceServiceCache.getFormatOfInstanceNameById(instanceFormatId);
     } catch (NotFoundException e) {
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Instance format was not found by id: [%s]", instanceFormatId)), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Instance format was not found by id: [%s]", instanceFormatId), ErrorType.WARNING), args.getFileName());
       return instanceFormatId;
     }
   }
@@ -68,7 +69,7 @@ public class InstanceReferenceService {
     try {
       return instanceReferenceServiceCache.getInstanceNoteTypeNameById(noteTypeId);
     } catch (NotFoundException e) {
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Instance note type was not found by id: [%s]", noteTypeId)), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Instance note type was not found by id: [%s]", noteTypeId), ErrorType.WARNING), args.getFileName());
       return noteTypeId;
     }
   }
@@ -79,7 +80,7 @@ public class InstanceReferenceService {
     } catch (NotFoundException e) {
       var msg = "Statistical code not found by id=" + statisticalCodeId;
       log.error(msg);
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg, ErrorType.WARNING), args.getFileName());
       return statisticalCodeId;
     }
   }
@@ -90,7 +91,7 @@ public class InstanceReferenceService {
     } catch (NotFoundException e) {
       var msg = "Statistical code not found by id=" + statisticalCodeId;
       log.error(msg);
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg, ErrorType.WARNING), args.getFileName());
       return statisticalCodeId;
     }
   }
@@ -101,7 +102,7 @@ public class InstanceReferenceService {
     } catch (NotFoundException e) {
       var msg = "Statistical code type not found by statistical code id=" + statisticalCodeId;
       log.error(msg);
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg, ErrorType.WARNING), args.getFileName());
       return statisticalCodeId;
     }
   }

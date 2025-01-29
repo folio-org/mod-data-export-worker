@@ -1,2 +1,2 @@
-789,No match found
-123,Duplicate entry
+789,No match found,ERROR
+123,Duplicate entry,WARNING

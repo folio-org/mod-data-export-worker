@@ -56,6 +56,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.Job;
 import org.folio.dew.config.kafka.KafkaService;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.Progress;
 import org.folio.dew.domain.dto.UserFormat;
@@ -124,7 +125,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
           } catch (NullPointerException e) {
             String msg = String.format("Couldn't open a required for the job file. File path '%s'", FILE_NAME);
             log.debug(msg);
-            throw new BulkEditException(msg);
+            throw new BulkEditException(msg, ErrorType.ERROR);
           }
         }
       }

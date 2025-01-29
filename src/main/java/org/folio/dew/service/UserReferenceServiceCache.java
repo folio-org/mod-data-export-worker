@@ -7,6 +7,7 @@ import org.folio.dew.client.CustomFieldsClient;
 import org.folio.dew.client.DepartmentClient;
 import org.folio.dew.client.GroupClient;
 import org.folio.dew.domain.dto.CustomField;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.error.BulkEditException;
 import org.folio.spring.FolioExecutionContext;
 import org.springframework.cache.annotation.Cacheable;
@@ -52,6 +53,6 @@ public class UserReferenceServiceCache {
     return customFieldsClient.getCustomFieldsByQuery(moduleId, format(QUERY_PATTERN_REF_ID, encode(refId))).getCustomFields()
       .stream().filter(customField -> customField.getRefId().equals(refId))
       .findFirst()
-      .orElseThrow(() -> new BulkEditException(format("Custom field with refId=%s not found", refId)));
+      .orElseThrow(() -> new BulkEditException(format("Custom field with refId=%s not found", refId), ErrorType.WARNING));
   }
 }

@@ -26,6 +26,7 @@ import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.BatchIdsDto;
 import org.folio.dew.domain.dto.ConsortiumHolding;
 import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.domain.dto.ExtendedHoldingsRecord;
 import org.folio.dew.domain.dto.ExtendedHoldingsRecordCollection;
 import org.folio.dew.domain.dto.HoldingsFormat;
@@ -81,7 +82,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
   @Override
   public synchronized List<HoldingsFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
     if (identifiersToCheckDuplication.contains(itemIdentifier)) {
-      throw new BulkEditException("Duplicate entry");
+      throw new BulkEditException("Duplicate entry", ErrorType.WARNING);
     }
     identifiersToCheckDuplication.add(itemIdentifier);
 
@@ -120,7 +121,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
           .stream()
           .map(ConsortiumHolding::getTenantId).collect(Collectors.toSet());
         if (INSTANCEHRID != identifierTypeEnum && tenantIds.size() > 1) {
-          throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
+          throw new BulkEditException(DUPLICATES_ACROSS_TENANTS, ErrorType.ERROR);
         }
         var affiliatedPermittedTenants = tenantResolver.getAffiliatedPermittedTenantIds(EntityType.HOLDINGS_RECORD,
           jobExecution, identifierType, tenantIds, itemIdentifier);
@@ -139,7 +140,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
         });
         return extendedHoldingsRecordCollection;
       } else {
-        throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
+        throw new BulkEditException(NO_MATCH_FOUND_MESSAGE, ErrorType.ERROR);
       }
     } else {
       // Process local tenant case
@@ -149,7 +150,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
           .map(holdingsRecord -> new ExtendedHoldingsRecord().tenantId(folioExecutionContext.getTenantId()).entity(holdingsRecord)).toList())
         .totalRecords(holdingsRecordCollection.getTotalRecords());
       if (extendedHoldingsRecordCollection.getExtendedHoldingsRecords().isEmpty()) {
-        throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
+        throw new BulkEditException(NO_MATCH_FOUND_MESSAGE, ErrorType.ERROR);
       }
       return extendedHoldingsRecordCollection;
     }
@@ -158,7 +159,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
   private void checkReadPermissions(String tenantId, String identifier) {
     if (!permissionsValidator.isBulkEditReadPermissionExists(tenantId, EntityType.HOLDINGS_RECORD)) {
       var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-      throw new BulkEditException(format(NO_HOLDING_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId));
+      throw new BulkEditException(format(NO_HOLDING_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId), ErrorType.ERROR);
     }
   }
 
@@ -172,7 +173,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
       var holdingsRecordCollection = holdingClient.getHoldingsByQuery(url);
       if (holdingsRecordCollection.getTotalRecords() > 1) {
         log.error("Response from {} for tenant {}: {}", url, folioExecutionContext.getTenantId(), getResponseAsString(holdingsRecordCollection));
-        throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
+        throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE, ErrorType.ERROR);
       }
       return holdingsRecordCollection;
     } else if (INSTANCE_HRID == type) {
@@ -180,7 +181,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
     } else if (ITEM_BARCODE == type) {
       return holdingClient.getHoldingsByQuery("id==" + holdingsReferenceService.getHoldingsIdByItemBarcode(itemIdentifier.getItemId()), 1);
     } else {
-      throw new BulkEditException(format("Identifier type \"%s\" is not supported", identifierType));
+      throw new BulkEditException(format("Identifier type \"%s\" is not supported", identifierType), ErrorType.ERROR);
     }
   }
 }

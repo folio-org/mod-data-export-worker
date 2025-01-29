@@ -106,14 +106,16 @@ public class BulkEditProcessingErrorsService {
             .type(ErrorType.fromValue(message[IDX_ERROR_TYPE])))
           .collect(toList());
         log.info("Errors file {} processing completed", csvFileName);
-        return new Errors().errors(errors).totalRecords(errors.size());
+        var totalErrors = errors.stream().filter(e -> e.getType() == ErrorType.ERROR).count();
+        var totalWarnings = errors.stream().filter(e -> e.getType() == ErrorType.WARNING).count();
+        return new Errors().errors(errors).totalErrorRecords((int) totalErrors).totalWarningRecords((int) totalWarnings);
       } catch (IOException e) {
         log.error("Failed to read {} errors file for job id {} cause {}", csvFileName, jobId, e);
         throw new FileOperationException(format("Failed to read %s errors file for job id %s", csvFileName, jobId));
       }
     } else {
       log.info("Errors file {} doesn't exist - empty error list returned", csvFileName);
-      return new Errors().errors(emptyList()).totalRecords(0);
+      return new Errors().errors(emptyList()).totalErrorRecords(0);
     }
   }
 

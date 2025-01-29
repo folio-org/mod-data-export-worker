@@ -28,7 +28,7 @@ public class DefaultErrorHandler {
         .message(e.getMessage())
         .code(NOT_FOUND_ERROR.getDescription())
         .type(org.folio.dew.domain.dto.ErrorType.ERROR)))
-      .totalRecords(1),
+      .totalErrorRecords(1),
       HttpStatus.NOT_FOUND);
   }
 
@@ -39,7 +39,7 @@ public class DefaultErrorHandler {
         .message(e.getMessage())
         .code(IO_ERROR.getDescription())
         .type(org.folio.dew.domain.dto.ErrorType.ERROR)))
-      .totalRecords(1),
+      .totalErrorRecords(1),
       HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
@@ -50,7 +50,7 @@ public class DefaultErrorHandler {
         .message(e.getMessage())
         .code(PROCESSING_ERROR.getDescription())
         .type(org.folio.dew.domain.dto.ErrorType.ERROR)))
-      .totalRecords(1),
+      .totalErrorRecords(1),
       HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
@@ -61,7 +61,7 @@ public class DefaultErrorHandler {
         .message(e.getMessage())
         .code(VALIDATION_ERROR.getDescription())
         .type(org.folio.dew.domain.dto.ErrorType.ERROR)))
-      .totalRecords(1),
+      .totalErrorRecords(1),
       HttpStatus.BAD_REQUEST);
   }
 
@@ -76,7 +76,7 @@ public class DefaultErrorHandler {
         .parameters(parameters)
         .code(VALIDATION_ERROR.getDescription())
         .type(org.folio.dew.domain.dto.ErrorType.ERROR)))
-      .totalRecords(1),
+      .totalErrorRecords(1),
       HttpStatus.BAD_REQUEST);
   }
 
@@ -87,7 +87,7 @@ public class DefaultErrorHandler {
         .message(e.getMessage())
         .code(VALIDATION_ERROR.getDescription())
         .type(org.folio.dew.domain.dto.ErrorType.ERROR)))
-      .totalRecords(1),
+      .totalErrorRecords(1),
       HttpStatus.BAD_REQUEST);
   }
 

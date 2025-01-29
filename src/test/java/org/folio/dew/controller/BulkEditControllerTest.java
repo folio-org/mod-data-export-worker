@@ -103,7 +103,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var errors = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), Errors.class);
 
     assertThat(errors.getErrors(), hasSize(errorsPreviewLimit));
-    assertThat(errors.getTotalRecords(), is(errorsPreviewLimit));
+    assertThat(errors.getTotalErrorRecords(), is(errorsPreviewLimit));
 
     bulkEditProcessingErrorsService.removeTemporaryErrorStorage();
   }
@@ -125,7 +125,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var errors = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), Errors.class);
 
     assertThat(errors.getErrors(), empty());
-    assertThat(errors.getTotalRecords(), is(0));
+    assertThat(errors.getTotalErrorRecords(), is(0));
   }
 
   @Test

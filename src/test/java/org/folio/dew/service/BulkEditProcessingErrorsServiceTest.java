@@ -117,7 +117,7 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
     }
     var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobId, fileName, errorsPreviewLimit);
     assertThat(errors.getErrors(), hasSize(errorsPreviewLimit));
-    assertThat(errors.getTotalRecords(), Matchers.is(errorsPreviewLimit));
+    assertThat(errors.getTotalErrorRecords(), Matchers.is(errorsPreviewLimit));
     removeStorage();
   }
 

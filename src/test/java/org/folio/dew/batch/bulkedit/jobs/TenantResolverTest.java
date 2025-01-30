@@ -108,7 +108,7 @@ class TenantResolverTest {
 
     when(folioExecutionContext.getUserId()).thenReturn(UUID.randomUUID());
     when(consortiaService.getAffiliatedTenants(any(), any())).thenReturn(List.of("member1"));
-    doThrow(new FeignException.FeignServerException(1, "feign error", feign.Request.create(Request.HttpMethod.GET, "url", Map.of(), new byte[]{}, null), null, null))
+    doThrow(new FeignException.FeignServerException(1, "feign error", feign.Request.create(Request.HttpMethod.GET, "url", Map.of(), new byte[]{}, null, null), null, null))
       .when(permissionsValidator).isBulkEditReadPermissionExists("member1", EntityType.INSTANCE);
     when(jobExecution.getJobParameters()).thenReturn(jobParameters);
 

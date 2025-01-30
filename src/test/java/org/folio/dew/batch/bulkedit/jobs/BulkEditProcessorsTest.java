@@ -366,7 +366,7 @@ class BulkEditProcessorsTest extends BaseBatchTest {
     user.setUsername("userName");
 
     when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
-    doThrow(new DecodeException(1, "Decode error", Request.create(Request.HttpMethod.GET, "url", Map.of(), new byte[]{}, null)))
+    doThrow(new DecodeException(1, "Decode error", Request.create(Request.HttpMethod.GET, "url", Map.of(), new byte[]{}, null, null)))
       .when(inventoryInstancesClient).getInstanceByQuery("hrid==HRID", 1);
 
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));

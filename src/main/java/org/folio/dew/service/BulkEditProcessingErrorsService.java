@@ -43,8 +43,8 @@ public class BulkEditProcessingErrorsService {
   public static final String STORAGE = "storage";
 
   private static final String FAILED_TO_SAVE_ERROR_FILE_PLACEHOLDER = "Failed to save {} error file with job id {} cause {}";
-  private static final String STORAGE_TEMPLATE = "E" + "/" + STORAGE + "/" + "%s";
-  private static final String CSV_FILE_TEMPLATE = STORAGE_TEMPLATE + "/" + "%s";
+  private static final String STORAGE_TEMPLATE = "E" + File.separator + STORAGE + File.separator + "%s";
+  private static final String CSV_FILE_TEMPLATE = STORAGE_TEMPLATE + File.separator + "%s";
   private static final String CONTENT_TYPE = "text/csv";
   private static final int IDX_ERROR_IDENTIFIER = 0;
   private static final int IDX_ERROR_MSG = 1;

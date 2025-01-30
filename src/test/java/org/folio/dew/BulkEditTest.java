@@ -643,6 +643,8 @@ class BulkEditTest extends BaseBatchTest {
 
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
+    Thread.sleep(2000);
+
     verifyFilesOutput(jobExecution, EXPECTED_BULK_EDIT_INSTANCE_OUTPUT_SOME_NOT_FOUND);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);

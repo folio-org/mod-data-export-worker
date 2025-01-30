@@ -19,7 +19,6 @@ import static org.mockito.Mockito.when;
 import feign.Request;
 import feign.codec.DecodeException;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
 import org.folio.dew.batch.bulkedit.jobs.processidentifiers.InstanceFetcher;
@@ -59,7 +58,6 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 class BulkEditProcessorsTest extends BaseBatchTest {
   @Autowired
@@ -368,8 +366,8 @@ class BulkEditProcessorsTest extends BaseBatchTest {
     user.setUsername("userName");
 
     when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
-    doThrow(new DecodeException(1, "Decode error", Request.create(Request.HttpMethod.GET, "url", Map.of(), new byte[]{}, null))).when(inventoryInstancesClient)
-      .getInstanceByQuery("hrid==HRID", 1);
+    doThrow(new DecodeException(1, "Decode error", Request.create(Request.HttpMethod.GET, "url", Map.of(), new byte[]{}, null)))
+      .when(inventoryInstancesClient).getInstanceByQuery("hrid==HRID", 1);
 
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
     var expectedErrorMessage = "DecodeException: Decode error";
@@ -386,13 +384,14 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   void shouldProvideBulkEditExceptionWhenDuplicateEntryWithProcessInstances() {
 
     when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
+    when(inventoryInstancesClient.getInstanceByQuery("hrid==HRID", 1))
+      .thenReturn(new InstanceCollection().instances(List.of(new Instance().id("instanceid"))).totalRecords(1));
 
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
     var expectedErrorMessage = "Duplicate entry";
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
-      var identifiersToCheckDuplication = FieldUtils.readField(instanceFetcher, "identifiersToCheckDuplication", true);
-      ((Set)identifiersToCheckDuplication).add("HRID");
       var identifier = new ItemIdentifier("HRID");
+      instanceFetcher.process(identifier);
       var throwable = assertThrows(BulkEditException.class, () -> instanceFetcher.process(identifier));
       assertEquals(expectedErrorMessage, throwable.getMessage());
       return null;

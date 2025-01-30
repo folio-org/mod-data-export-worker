@@ -643,8 +643,6 @@ class BulkEditTest extends BaseBatchTest {
 
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
-    Thread.sleep(2000);
-
     verifyFilesOutput(jobExecution, EXPECTED_BULK_EDIT_INSTANCE_OUTPUT_SOME_NOT_FOUND);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
@@ -774,7 +772,7 @@ class BulkEditTest extends BaseBatchTest {
     var parametersBuilder = new JobParametersBuilder();
     String jobId = UUID.randomUUID().toString();
     String workDir = getWorkingDirectory(springApplicationName, BULKEDIT_DIR_NAME);
-    parametersBuilder.addString(TEMP_OUTPUT_FILE_PATH, workDir + jobId + "/" + "out");
+    parametersBuilder.addString(TEMP_OUTPUT_FILE_PATH, workDir + jobId + PATH_SEPARATOR + "out");
     parametersBuilder.addString(TEMP_LOCAL_FILE_PATH,
       getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + jobId + PATH_SEPARATOR + "out");
     try {

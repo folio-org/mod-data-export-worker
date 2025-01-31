@@ -50,7 +50,6 @@ public class BulkEditProcessingErrorsService {
   private static final int IDX_ERROR_MSG = 1;
   private static final int IDX_ERROR_TYPE = 2;
   public static final String COMMA_SEPARATOR = ",";
-  public static final String BULK_EDIT_ERROR_TYPE_NAME = "ERROR";
 
   private final RemoteFilesStorage remoteFilesStorage;
 
@@ -64,7 +63,7 @@ public class BulkEditProcessingErrorsService {
     var csvFileName = getCsvFileName(jobId, fileName);
     var errorMessages = reasonForError.getMessage().split(COMMA_SEPARATOR);
     for (var errorMessage: errorMessages) {
-      var errorLine = affectedIdentifier + COMMA_SEPARATOR + errorMessage + COMMA_SEPARATOR + errorType + System.lineSeparator();
+      var errorLine = errorType + COMMA_SEPARATOR + affectedIdentifier + COMMA_SEPARATOR + errorMessage + System.lineSeparator();
       var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
       try {
         localFilesStorage.append(pathToCSVFile, errorLine.getBytes(StandardCharsets.UTF_8));
@@ -84,7 +83,7 @@ public class BulkEditProcessingErrorsService {
       return;
     }
     var csvFileName = getCsvFileName(jobId, fileName);
-    var errorLine = affectedIdentifier + COMMA_SEPARATOR + errorMessage + COMMA_SEPARATOR + errorType + System.lineSeparator();
+    var errorLine = errorType + COMMA_SEPARATOR + affectedIdentifier + COMMA_SEPARATOR + errorMessage + System.lineSeparator();
     var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
     try {
       localFilesStorage.append(pathToCSVFile, errorLine.getBytes(StandardCharsets.UTF_8));

@@ -14,6 +14,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.error.BulkEditException;
@@ -49,12 +50,12 @@ public class TenantResolver {
         var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
         var errorMessage = format(getAffiliationErrorPlaceholder(entityType), user.getUsername(),
           resolveIdentifier(identifierType), itemIdentifier.getItemId(), tenantId);
-        bulkEditProcessingErrorsService.saveErrorInCSV(jobId, itemIdentifier.getItemId(), errorMessage, fileName);
+        bulkEditProcessingErrorsService.saveErrorInCSV(jobId, itemIdentifier.getItemId(), errorMessage, fileName, ErrorType.ERROR);
       } else if (!isBulkEditReadPermissionExists(tenantId, entityType)) {
         var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
         var errorMessage = format(getViewPermissionErrorPlaceholder(entityType), user.getUsername(),
           resolveIdentifier(identifierType), itemIdentifier.getItemId(), tenantId);
-        bulkEditProcessingErrorsService.saveErrorInCSV(jobId, itemIdentifier.getItemId(), errorMessage, fileName);
+        bulkEditProcessingErrorsService.saveErrorInCSV(jobId, itemIdentifier.getItemId(), errorMessage, fileName, ErrorType.ERROR);
       } else {
         affiliatedAndPermittedTenants.add(tenantId);
       }
@@ -66,7 +67,7 @@ public class TenantResolver {
     try {
       return permissionsValidator.isBulkEditReadPermissionExists(tenantId, entityType);
     } catch (FeignException e) {
-      throw new BulkEditException(e.getMessage());
+      throw new BulkEditException(e.getMessage(), ErrorType.ERROR);
     }
   }
 

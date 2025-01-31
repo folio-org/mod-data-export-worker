@@ -2,6 +2,7 @@ package org.folio.dew.batch;
 
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.SrsClient;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.domain.dto.Formatable;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.JsonToMarcConverter;
@@ -44,7 +45,7 @@ public class MarcAsListStringsWriter<T, U extends Formatable<T>> extends FlatFil
           return getMarcContent(marc.getId());
         } catch (Exception e) {
           log.error(e);
-          throw new BulkEditException(format(NO_MARC_CONTENT, marc.getId(), e.getMessage()));
+          throw new BulkEditException(format(NO_MARC_CONTENT, marc.getId(), e.getMessage()), ErrorType.ERROR);
         }
       })
       .flatMap(List::stream).filter(Objects::nonNull).toList()));

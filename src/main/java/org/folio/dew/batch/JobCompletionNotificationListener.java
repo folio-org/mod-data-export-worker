@@ -56,6 +56,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.Job;
 import org.folio.dew.config.kafka.KafkaService;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.Progress;
 import org.folio.dew.domain.dto.UserFormat;
@@ -124,7 +125,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
           } catch (NullPointerException e) {
             String msg = String.format("Couldn't open a required for the job file. File path '%s'", FILE_NAME);
             log.debug(msg);
-            throw new BulkEditException(msg);
+            throw new BulkEditException(msg, ErrorType.ERROR);
           }
         }
       }
@@ -136,12 +137,13 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
         var fileName = FilenameUtils.getName(jobParameters.getString(FILE_NAME));
         var errors = bulkEditProcessingErrorsService.readErrorsFromCSV(jobId, fileName, 1_000_000);
-        var totalRecords = bulkEditStatisticService.getSuccess(jobId) + errors.getTotalRecords();
+        var totalRecords = bulkEditStatisticService.getSuccess(jobId) + errors.getTotalErrorRecords();
         progress.setTotal(totalRecords);
         progress.setProcessed(totalRecords);
         progress.setProgress(COMPLETE_PROGRESS_VALUE);
         progress.setSuccess(bulkEditStatisticService.getSuccess(jobId));
-        progress.setErrors(errors.getTotalRecords());
+        progress.setErrors(errors.getTotalErrorRecords());
+        progress.setWarnings(errors.getTotalWarningRecords());
         jobExecutionUpdate.setProgress(progress);
         bulkEditStatisticService.reset(jobId);
       }

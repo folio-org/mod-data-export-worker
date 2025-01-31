@@ -2,19 +2,19 @@
   "errors": [
     {
       "message": "123,Patron group cannot be cleared",
-      "type": "BULK_EDIT_ERROR",
+      "type": "ERROR",
       "code": null,
       "parameters": null
     },
     {
       "message": "456,Patron group cannot be cleared",
-      "type": "BULK_EDIT_ERROR",
+      "type": "ERROR",
       "code": null,
       "parameters": null
     },
     {
       "message": "789,Patron group cannot be cleared",
-      "type": "BULK_EDIT_ERROR",
+      "type": "ERROR",
       "code": null,
       "parameters": null
     }

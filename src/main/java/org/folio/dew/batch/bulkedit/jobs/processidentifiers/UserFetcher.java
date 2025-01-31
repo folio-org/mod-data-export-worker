@@ -15,6 +15,7 @@ import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.error.BulkEditException;
@@ -51,10 +52,10 @@ public class UserFetcher implements ItemProcessor<ItemIdentifier, User> {
   public synchronized User process(ItemIdentifier itemIdentifier) throws BulkEditException {
     if (!permissionsValidator.isBulkEditReadPermissionExists(folioExecutionContext.getTenantId(), EntityType.USER)) {
       var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-      throw new BulkEditException(format(NO_USER_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()));
+      throw new BulkEditException(format(NO_USER_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()), ErrorType.ERROR);
     }
     if (identifiersToCheckDuplication.contains(itemIdentifier)) {
-      throw new BulkEditException("Duplicate entry");
+      throw new BulkEditException("Duplicate entry", ErrorType.WARNING);
     }
     identifiersToCheckDuplication.add(itemIdentifier);
     try {
@@ -65,16 +66,16 @@ public class UserFetcher implements ItemProcessor<ItemIdentifier, User> {
       );
 
       if (userCollection.getUsers().isEmpty()) {
-        throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
+        throw new BulkEditException(NO_MATCH_FOUND_MESSAGE, ErrorType.ERROR);
       } else if (userCollection.getTotalRecords() > limit) {
-        throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
+        throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE, ErrorType.ERROR);
       }
       var user = userCollection.getUsers().get(0);
       var birthDate = user.getPersonal().getDateOfBirth();
       validateBirthDate(birthDate);
       return user;
     } catch (DecodeException e) {
-      throw new BulkEditException(ExceptionHelper.fetchMessage(e));
+      throw new BulkEditException(ExceptionHelper.fetchMessage(e), ErrorType.ERROR);
     }
   }
 
@@ -82,7 +83,7 @@ public class UserFetcher implements ItemProcessor<ItemIdentifier, User> {
     if (nonNull(birthDate)) {
       var year = LocalDateTime.ofInstant(Instant.ofEpochMilli(birthDate.getTime()), ZoneOffset.UTC).getYear();
       if (year < MIN_YEAR_FOR_BIRTH_DATE) {
-        throw new BulkEditException(String.format("Failed to parse Date from value \"%s\" in users.personal.dateOfBirth", dateToString(birthDate)));
+        throw new BulkEditException(String.format("Failed to parse Date from value \"%s\" in users.personal.dateOfBirth", dateToString(birthDate)), ErrorType.ERROR);
       }
     }
   }

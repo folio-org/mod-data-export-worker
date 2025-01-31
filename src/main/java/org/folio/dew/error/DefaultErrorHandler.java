@@ -4,7 +4,6 @@ import static org.folio.dew.error.ErrorCode.IO_ERROR;
 import static org.folio.dew.error.ErrorCode.NOT_FOUND_ERROR;
 import static org.folio.dew.error.ErrorCode.PROCESSING_ERROR;
 import static org.folio.dew.error.ErrorCode.VALIDATION_ERROR;
-import static org.folio.dew.error.ErrorType.INTERNAL;
 
 import org.folio.dew.domain.dto.Error;
 import org.folio.dew.domain.dto.Errors;
@@ -28,8 +27,8 @@ public class DefaultErrorHandler {
       .errors(Collections.singletonList(new Error()
         .message(e.getMessage())
         .code(NOT_FOUND_ERROR.getDescription())
-        .type(INTERNAL.getValue())))
-      .totalRecords(1),
+        .type(org.folio.dew.domain.dto.ErrorType.ERROR)))
+      .totalErrorRecords(1),
       HttpStatus.NOT_FOUND);
   }
 
@@ -39,8 +38,8 @@ public class DefaultErrorHandler {
       .errors(Collections.singletonList(new Error()
         .message(e.getMessage())
         .code(IO_ERROR.getDescription())
-        .type(INTERNAL.getValue())))
-      .totalRecords(1),
+        .type(org.folio.dew.domain.dto.ErrorType.ERROR)))
+      .totalErrorRecords(1),
       HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
@@ -50,8 +49,8 @@ public class DefaultErrorHandler {
       .errors(Collections.singletonList(new Error()
         .message(e.getMessage())
         .code(PROCESSING_ERROR.getDescription())
-        .type(INTERNAL.getValue())))
-      .totalRecords(1),
+        .type(org.folio.dew.domain.dto.ErrorType.ERROR)))
+      .totalErrorRecords(1),
       HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
@@ -61,8 +60,8 @@ public class DefaultErrorHandler {
       .errors(Collections.singletonList(new Error()
         .message(e.getMessage())
         .code(VALIDATION_ERROR.getDescription())
-        .type(INTERNAL.getValue())))
-      .totalRecords(1),
+        .type(org.folio.dew.domain.dto.ErrorType.ERROR)))
+      .totalErrorRecords(1),
       HttpStatus.BAD_REQUEST);
   }
 
@@ -76,8 +75,8 @@ public class DefaultErrorHandler {
         .message("Invalid request body")
         .parameters(parameters)
         .code(VALIDATION_ERROR.getDescription())
-        .type(INTERNAL.getValue())))
-      .totalRecords(1),
+        .type(org.folio.dew.domain.dto.ErrorType.ERROR)))
+      .totalErrorRecords(1),
       HttpStatus.BAD_REQUEST);
   }
 
@@ -87,8 +86,8 @@ public class DefaultErrorHandler {
       .errors(Collections.singletonList(new Error()
         .message(e.getMessage())
         .code(VALIDATION_ERROR.getDescription())
-        .type(INTERNAL.getValue())))
-      .totalRecords(1),
+        .type(org.folio.dew.domain.dto.ErrorType.ERROR)))
+      .totalErrorRecords(1),
       HttpStatus.BAD_REQUEST);
   }
 

@@ -15,6 +15,7 @@ import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
 import org.folio.dew.client.InventoryInstancesClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.Instance;
 import org.folio.dew.domain.dto.InstanceCollection;
@@ -29,7 +30,6 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -60,17 +60,17 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
   public synchronized List<InstanceFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
     if (!permissionsValidator.isBulkEditReadPermissionExists(folioExecutionContext.getTenantId(), EntityType.INSTANCE)) {
       var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-      throw new BulkEditException(format(NO_INSTANCE_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()));
+      throw new BulkEditException(format(NO_INSTANCE_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()), ErrorType.ERROR);
     }
     if (identifiersToCheckDuplication.contains(itemIdentifier)) {
-      throw new BulkEditException("Duplicate entry");
+      throw new BulkEditException("Duplicate entry", ErrorType.WARNING);
     }
     identifiersToCheckDuplication.add(itemIdentifier);
 
     var instances = getInstances(itemIdentifier);
     if (instances.getInstances().isEmpty()) {
       log.error(NO_MATCH_FOUND_MESSAGE);
-      throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
+      throw new BulkEditException(NO_MATCH_FOUND_MESSAGE, ErrorType.ERROR);
     }
 
     var distinctInstances = instances.getInstances().stream()
@@ -97,7 +97,7 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
       inventoryInstancesClient.getInstanceByQuery(String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId()), 1);
       case ISBN -> getInstancesByIdentifierTypeAndValue(ISBN, itemIdentifier.getItemId());
       case ISSN -> getInstancesByIdentifierTypeAndValue(ISSN, itemIdentifier.getItemId());
-      default -> throw new BulkEditException(String.format("Identifier type \"%s\" is not supported", identifierType));
+      default -> throw new BulkEditException(String.format("Identifier type \"%s\" is not supported", identifierType), ErrorType.ERROR);
     };
   }
 

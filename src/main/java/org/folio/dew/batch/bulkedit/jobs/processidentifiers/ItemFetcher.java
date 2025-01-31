@@ -24,6 +24,7 @@ import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.BatchIdsDto;
 import org.folio.dew.domain.dto.ConsortiumItem;
 import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.domain.dto.ExtendedItem;
 import org.folio.dew.domain.dto.ExtendedItemCollection;
 import org.folio.dew.domain.dto.IdentifierType;
@@ -69,7 +70,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
   @Override
   public synchronized ExtendedItemCollection process(ItemIdentifier itemIdentifier) throws BulkEditException {
     if (identifiersToCheckDuplication.contains(itemIdentifier)) {
-      throw new BulkEditException("Duplicate entry");
+      throw new BulkEditException("Duplicate entry", ErrorType.WARNING);
     }
     identifiersToCheckDuplication.add(itemIdentifier);
     var type = IdentifierType.fromValue(identifierType);
@@ -93,7 +94,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
             .stream()
             .map(ConsortiumItem::getTenantId).collect(Collectors.toSet());
           if (HOLDINGSRECORDID != identifierTypeEnum && tenantIds.size() > 1) {
-            throw new BulkEditException(DUPLICATES_ACROSS_TENANTS);
+            throw new BulkEditException(DUPLICATES_ACROSS_TENANTS, ErrorType.ERROR);
           }
           var affiliatedPermittedTenants = tenantResolver.getAffiliatedPermittedTenantIds(EntityType.ITEM,
             jobExecution, identifierType, tenantIds, itemIdentifier);
@@ -103,7 +104,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
               var itemCollection = inventoryClient.getItemByQuery(url, Integer.MAX_VALUE);
               if (itemCollection.getItems().size() > limit) {
                 log.error("Central tenant case: response from {} for tenant {}: {}", url, tenantId, getResponseAsString(itemCollection));
-                throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
+                throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE, ErrorType.ERROR);
               }
               extendedItemCollection.getExtendedItems().addAll(
                 itemCollection.getItems().stream().map(item -> new ExtendedItem().tenantId(tenantId).entity(item)).toList()
@@ -115,7 +116,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
             }
           });
         } else {
-          throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
+          throw new BulkEditException(NO_MATCH_FOUND_MESSAGE, ErrorType.ERROR);
         }
       } else {
         // Process local tenant case
@@ -125,26 +126,26 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
         var itemCollection =  inventoryClient.getItemByQuery(url, Integer.MAX_VALUE);
         if (itemCollection.getItems().size() > limit) {
           log.error("Member/local tenant case: response from {} for tenant {}: {}", url, currentTenantId, getResponseAsString(itemCollection));
-          throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
+          throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE, ErrorType.ERROR);
         }
         extendedItemCollection.setExtendedItems(itemCollection.getItems().stream()
           .map(item -> new ExtendedItem().tenantId(folioExecutionContext.getTenantId()).entity(item)).toList());
         extendedItemCollection.setTotalRecords(itemCollection.getTotalRecords());
         if (extendedItemCollection.getExtendedItems().isEmpty()) {
           log.error(NO_MATCH_FOUND_MESSAGE);
-          throw new BulkEditException(NO_MATCH_FOUND_MESSAGE);
+          throw new BulkEditException(NO_MATCH_FOUND_MESSAGE, ErrorType.ERROR);
         }
       }
       return extendedItemCollection;
     } catch (DecodeException e) {
-      throw new BulkEditException(ExceptionHelper.fetchMessage(e));
+      throw new BulkEditException(ExceptionHelper.fetchMessage(e), ErrorType.ERROR);
     }
   }
 
   private void checkReadPermissions(String tenantId, String identifier) {
     if (!permissionsValidator.isBulkEditReadPermissionExists(tenantId, EntityType.ITEM)) {
       var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-      throw new BulkEditException(format(NO_ITEM_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId));
+      throw new BulkEditException(format(NO_ITEM_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), identifier, tenantId), ErrorType.ERROR);
     }
   }
 

@@ -3,6 +3,7 @@ package org.folio.dew.service;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.CustomField;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ public class UserReferenceService {
     try {
       return userReferenceServiceCache.getAddressTypeDescById(id);
     } catch (NotFoundException e) {
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Address type was not found by id: [%s]", id)), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Address type was not found by id: [%s]", id), ErrorType.WARNING), args.getFileName());
       return id;
     }
   }
@@ -30,7 +31,7 @@ public class UserReferenceService {
     try {
       return userReferenceServiceCache.getDepartmentNameById(id);
     } catch (NotFoundException e) {
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Department was not found by id: [%s]", id)), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Department was not found by id: [%s]", id), ErrorType.WARNING), args.getFileName());
       return id;
     }
   }
@@ -39,7 +40,7 @@ public class UserReferenceService {
     try {
       return userReferenceServiceCache.getPatronGroupNameById(id);
     } catch (NotFoundException e) {
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Patron group was not found by id: [%s]", id)), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(String.format("Patron group was not found by id: [%s]", id), ErrorType.WARNING), args.getFileName());
       return id;
     }
   }

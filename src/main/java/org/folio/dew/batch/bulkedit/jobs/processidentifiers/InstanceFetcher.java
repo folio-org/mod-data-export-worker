@@ -14,6 +14,7 @@ import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
 import org.folio.dew.client.InventoryInstancesClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.InstanceCollection;
 import org.folio.dew.domain.dto.ItemIdentifier;
@@ -50,10 +51,10 @@ public class InstanceFetcher implements ItemProcessor<ItemIdentifier, InstanceCo
   public InstanceCollection process(@NotNull ItemIdentifier itemIdentifier) throws BulkEditException {
     if (!permissionsValidator.isBulkEditReadPermissionExists(folioExecutionContext.getTenantId(), EntityType.INSTANCE)) {
       var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-      throw new BulkEditException(format(NO_INSTANCE_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()));
+      throw new BulkEditException(format(NO_INSTANCE_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()), ErrorType.ERROR);
     }
     if (identifiersToCheckDuplication.contains(itemIdentifier)) {
-      throw new BulkEditException("Duplicate entry");
+      throw new BulkEditException("Duplicate entry", ErrorType.WARNING);
     }
     identifiersToCheckDuplication.add(itemIdentifier);
     var limit = HOLDINGS_RECORD_ID == IdentifierType.fromValue(identifierType) ? Integer.MAX_VALUE : 1;
@@ -65,11 +66,11 @@ public class InstanceFetcher implements ItemProcessor<ItemIdentifier, InstanceCo
       }
       var instances = inventoryInstancesClient.getInstanceByQuery(String.format(getMatchPattern(identifierType), idType, itemIdentifier.getItemId()), limit);
       if (instances.getTotalRecords() > limit) {
-        throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE);
+        throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE, ErrorType.ERROR);
       }
       return instances;
     } catch (DecodeException e) {
-      throw new BulkEditException(ExceptionHelper.fetchMessage(e));
+      throw new BulkEditException(ExceptionHelper.fetchMessage(e), ErrorType.ERROR);
     }
   }
 }

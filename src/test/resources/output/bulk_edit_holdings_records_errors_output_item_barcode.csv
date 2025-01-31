@@ -1,2 +1,2 @@
-789,Item not found by barcode=789,WARNING
-123,Duplicate entry,WARNING
+WARNING,789,Item not found by barcode=789
+WARNING,123,Duplicate entry

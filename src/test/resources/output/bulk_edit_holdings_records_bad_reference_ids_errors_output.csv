@@ -1,7 +1,7 @@
-badHoldingsTypeId,Holdings type not found by id=1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,WARNING
-badHoldingsCallNumberTypeId,Call number type not found by id=1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,WARNING
-badHoldingsNoteTypeId,Note type not found by id=1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,WARNING
-badIllPolicyId,Ill policy not found by id=1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,WARNING
-badHoldingsSourceId,Holdings record source not found by id=1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,WARNING
-badHoldingsStatisticalCodeId,Statistical code not found by id=1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,WARNING
-badHoldingsLocationId,Location not found by id=1d51c4da-0d5f-4303-a922-3e9d7a9b22f3,WARNING
+WARNING,badHoldingsTypeId,Holdings type not found by id=1d51c4da-0d5f-4303-a922-3e9d7a9b22f3
+WARNING,badHoldingsCallNumberTypeId,Call number type not found by id=1d51c4da-0d5f-4303-a922-3e9d7a9b22f3
+WARNING,badHoldingsNoteTypeId,Note type not found by id=1d51c4da-0d5f-4303-a922-3e9d7a9b22f3
+WARNING,badIllPolicyId,Ill policy not found by id=1d51c4da-0d5f-4303-a922-3e9d7a9b22f3
+WARNING,badHoldingsSourceId,Holdings record source not found by id=1d51c4da-0d5f-4303-a922-3e9d7a9b22f3
+WARNING,badHoldingsStatisticalCodeId,Statistical code not found by id=1d51c4da-0d5f-4303-a922-3e9d7a9b22f3
+WARNING,badHoldingsLocationId,Location not found by id=1d51c4da-0d5f-4303-a922-3e9d7a9b22f3

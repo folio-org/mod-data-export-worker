@@ -63,7 +63,7 @@ public class BulkEditProcessingErrorsService {
     var csvFileName = getCsvFileName(jobId, fileName);
     var errorMessages = reasonForError.getMessage().split(COMMA_SEPARATOR);
     for (var errorMessage: errorMessages) {
-      var errorLine = errorType + COMMA_SEPARATOR + affectedIdentifier + COMMA_SEPARATOR + errorMessage + System.lineSeparator();
+      var errorLine = "%s%s%s%s%s%s".formatted(errorType, COMMA_SEPARATOR, affectedIdentifier, COMMA_SEPARATOR, errorMessage, System.lineSeparator());
       var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
       try {
         localFilesStorage.append(pathToCSVFile, errorLine.getBytes(StandardCharsets.UTF_8));
@@ -83,7 +83,7 @@ public class BulkEditProcessingErrorsService {
       return;
     }
     var csvFileName = getCsvFileName(jobId, fileName);
-    var errorLine = errorType + COMMA_SEPARATOR + affectedIdentifier + COMMA_SEPARATOR + errorMessage + System.lineSeparator();
+    var errorLine = "%s%s%s%s%s%s".formatted(errorType, COMMA_SEPARATOR, affectedIdentifier, COMMA_SEPARATOR, errorMessage, System.lineSeparator());
     var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
     try {
       localFilesStorage.append(pathToCSVFile, errorLine.getBytes(StandardCharsets.UTF_8));
@@ -101,7 +101,7 @@ public class BulkEditProcessingErrorsService {
       try (var lines = localFilesStorage.lines(pathToCSVFile)) {
         var errors = lines.limit(limit)
           .map(Pattern.compile(",")::split)
-          .map(message -> new Error().message(message[IDX_ERROR_IDENTIFIER] + COMMA_SEPARATOR + message[IDX_ERROR_MSG])
+          .map(message -> new Error().message("%s%s%s".formatted(message[IDX_ERROR_IDENTIFIER], COMMA_SEPARATOR, message[IDX_ERROR_MSG]))
             .type(ErrorType.fromValue(message[IDX_ERROR_TYPE])))
           .collect(toList());
         log.info("Errors file {} processing completed", csvFileName);

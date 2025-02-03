@@ -87,4 +87,28 @@ class InstanceReferenceServiceTest extends BaseBatchTest {
 
     assertThat(errors.getErrors(), Matchers.hasSize(1));
   }
+
+  @Test
+  void shouldSaveErrorWhenInstanceStatusNameNotFound() {
+    var jobId = UUID.randomUUID().toString();
+
+    instanceReferenceService.getInstanceStatusNameById(UUID.randomUUID().toString(),
+      new ErrorServiceArgs(jobId, "identifier", "errorFile"));
+
+    var errors = errorsService.readErrorsFromCSV(jobId, "errorFile", Integer.MAX_VALUE);
+
+    assertThat(errors.getErrors(), Matchers.hasSize(1));
+  }
+
+  @Test
+  void shouldSaveErrorWhenModeOfIssuanceNameNotFound() {
+    var jobId = UUID.randomUUID().toString();
+
+    instanceReferenceService.getModeOfIssuanceNameById(UUID.randomUUID().toString(),
+      new ErrorServiceArgs(jobId, "identifier", "errorFile"));
+
+    var errors = errorsService.readErrorsFromCSV(jobId, "errorFile", Integer.MAX_VALUE);
+
+    assertThat(errors.getErrors(), Matchers.hasSize(1));
+  }
 }

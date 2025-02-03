@@ -12,6 +12,7 @@ import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.InstanceClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.domain.dto.HoldingsRecord;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
@@ -47,7 +48,7 @@ public class HoldingsReferenceService extends FolioExecutionContextManager {
   public String getInstanceIdByHrid(String instanceHrid) {
     var briefInstances = instanceClient.getByQuery(String.format(QUERY_PATTERN_HRID, instanceHrid));
     if (briefInstances.getInstances().isEmpty()) {
-      throw new BulkEditException("Instance not found by hrid=" + instanceHrid);
+      throw new BulkEditException("Instance not found by hrid=" + instanceHrid, ErrorType.WARNING);
     } else {
       return briefInstances.getInstances().get(0).getId();
     }
@@ -69,7 +70,7 @@ public class HoldingsReferenceService extends FolioExecutionContextManager {
     } catch (NotFoundException e) {
       var msg = "Instance not found by id=" + instanceId;
       log.error(msg);
-      throw new BulkEditException(msg);
+      throw new BulkEditException(msg, ErrorType.WARNING);
     }
   }
 
@@ -88,7 +89,7 @@ public class HoldingsReferenceService extends FolioExecutionContextManager {
   public String getHoldingsIdByItemBarcode(String itemBarcode) {
     var items = inventoryClient.getItemByQuery(String.format(QUERY_PATTERN_BARCODE, itemBarcode), 1);
     if (items.getItems().isEmpty()) {
-      throw new BulkEditException("Item not found by barcode=" + itemBarcode);
+      throw new BulkEditException("Item not found by barcode=" + itemBarcode, ErrorType.WARNING);
     }
     return items.getItems().get(0).getHoldingsRecordId();
   }
@@ -99,7 +100,7 @@ public class HoldingsReferenceService extends FolioExecutionContextManager {
     } catch (NotFoundException e) {
       var msg = "Holdings type not found by id=" + id;
       log.error(msg);
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg, ErrorType.WARNING), args.getFileName(), ErrorType.WARNING);
       return id;
     }
   }
@@ -110,7 +111,7 @@ public class HoldingsReferenceService extends FolioExecutionContextManager {
     } catch (NotFoundException e) {
       var msg = "Call number type not found by id=" + id;
       log.error(msg);
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg, ErrorType.WARNING), args.getFileName(), ErrorType.WARNING);
       return id;
     }
   }
@@ -121,7 +122,7 @@ public class HoldingsReferenceService extends FolioExecutionContextManager {
     } catch (NotFoundException e) {
       var msg = "Note type not found by id=" + id;
       log.error(msg);
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg, ErrorType.WARNING), args.getFileName(), ErrorType.WARNING);
       return id;
     }
   }
@@ -132,7 +133,7 @@ public class HoldingsReferenceService extends FolioExecutionContextManager {
     } catch (NotFoundException e) {
       var msg = "Ill policy not found by id=" + id;
       log.error(msg);
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg, ErrorType.WARNING), args.getFileName(), ErrorType.WARNING);
       return id;
     }
   }
@@ -144,7 +145,7 @@ public class HoldingsReferenceService extends FolioExecutionContextManager {
     } catch (NotFoundException e) {
       var msg = "Holdings record source not found by id=" + id;
       log.error(msg);
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg, ErrorType.WARNING), args.getFileName(), ErrorType.WARNING);
       return id;
     }
   }
@@ -155,7 +156,7 @@ public class HoldingsReferenceService extends FolioExecutionContextManager {
     } catch (NotFoundException e) {
       var msg = "Statistical code not found by id=" + id;
       log.error(msg);
-      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg), args.getFileName());
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg, ErrorType.WARNING), args.getFileName(), ErrorType.WARNING);
       return id;
     }
   }

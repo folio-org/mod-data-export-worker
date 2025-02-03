@@ -12,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.domain.dto.Error;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.domain.dto.Errors;
+import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
@@ -28,6 +30,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -43,14 +46,16 @@ public class BulkEditProcessingErrorsService {
   private static final String STORAGE_TEMPLATE = "E" + File.separator + STORAGE + File.separator + "%s";
   private static final String CSV_FILE_TEMPLATE = STORAGE_TEMPLATE + File.separator + "%s";
   private static final String CONTENT_TYPE = "text/csv";
+  private static final int IDX_ERROR_IDENTIFIER = 1;
+  private static final int IDX_ERROR_MSG = 2;
+  private static final int IDX_ERROR_TYPE = 0;
   public static final String COMMA_SEPARATOR = ",";
-  public static final String BULK_EDIT_ERROR_TYPE_NAME = "ERROR";
 
   private final RemoteFilesStorage remoteFilesStorage;
 
   private final LocalFilesStorage localFilesStorage;
 
-  public synchronized void saveErrorInCSV(String jobId, String affectedIdentifier, Throwable reasonForError, String fileName) {
+  public synchronized void saveErrorInCSV(String jobId, String affectedIdentifier, Throwable reasonForError, String fileName, ErrorType errorType) {
     if (isNull(jobId) || isNull(affectedIdentifier) || isNull(reasonForError) || isNull(fileName)) {
       log.error("Some of the parameters is null, jobId: {}, affectedIdentifier: {}, reasonForError: {}, fileName: {}", jobId, affectedIdentifier, reasonForError, fileName);
       return;
@@ -58,7 +63,7 @@ public class BulkEditProcessingErrorsService {
     var csvFileName = getCsvFileName(jobId, fileName);
     var errorMessages = reasonForError.getMessage().split(COMMA_SEPARATOR);
     for (var errorMessage: errorMessages) {
-      var errorLine = affectedIdentifier + COMMA_SEPARATOR + errorMessage + System.lineSeparator();
+      var errorLine = "%s%s%s%s%s%s".formatted(errorType, COMMA_SEPARATOR, affectedIdentifier, COMMA_SEPARATOR, errorMessage, System.lineSeparator());
       var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
       try {
         localFilesStorage.append(pathToCSVFile, errorLine.getBytes(StandardCharsets.UTF_8));
@@ -68,13 +73,17 @@ public class BulkEditProcessingErrorsService {
     }
   }
 
-  public synchronized void saveErrorInCSV(String jobId, String affectedIdentifier, String errorMessage, String fileName) {
+  public synchronized void saveErrorInCSV(String jobId, String affectedIdentifier, BulkEditException reasonForError, String fileName) {
+    saveErrorInCSV(jobId, affectedIdentifier, reasonForError, fileName, reasonForError.getErrorType());
+  }
+
+  public synchronized void saveErrorInCSV(String jobId, String affectedIdentifier, String errorMessage, String fileName, ErrorType errorType) {
     if (isNull(jobId) || isNull(affectedIdentifier) || isNull(errorMessage) || isNull(fileName)) {
       log.error("Some of the parameters is null, jobId: {}, affectedIdentifier: {}, reasonForError: {}, fileName: {}", jobId, affectedIdentifier, errorMessage, fileName);
       return;
     }
     var csvFileName = getCsvFileName(jobId, fileName);
-    var errorLine = affectedIdentifier + COMMA_SEPARATOR + errorMessage + System.lineSeparator();
+    var errorLine = "%s%s%s%s%s%s".formatted(errorType, COMMA_SEPARATOR, affectedIdentifier, COMMA_SEPARATOR, errorMessage, System.lineSeparator());
     var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
     try {
       localFilesStorage.append(pathToCSVFile, errorLine.getBytes(StandardCharsets.UTF_8));
@@ -91,17 +100,21 @@ public class BulkEditProcessingErrorsService {
     if (localFilesStorage.exists(pathToCSVFile)) {
       try (var lines = localFilesStorage.lines(pathToCSVFile)) {
         var errors = lines.limit(limit)
-          .map(message -> new Error().message(message).type(BULK_EDIT_ERROR_TYPE_NAME))
+          .map(Pattern.compile(",")::split)
+          .map(message -> new Error().message("%s%s%s".formatted(message[IDX_ERROR_IDENTIFIER], COMMA_SEPARATOR, message[IDX_ERROR_MSG]))
+            .type(ErrorType.fromValue(message[IDX_ERROR_TYPE])))
           .collect(toList());
         log.info("Errors file {} processing completed", csvFileName);
-        return new Errors().errors(errors).totalRecords(errors.size());
+        var totalErrors = errors.stream().filter(e -> e.getType() == ErrorType.ERROR).count();
+        var totalWarnings = errors.stream().filter(e -> e.getType() == ErrorType.WARNING).count();
+        return new Errors().errors(errors).totalErrorRecords((int) totalErrors).totalWarningRecords((int) totalWarnings);
       } catch (IOException e) {
         log.error("Failed to read {} errors file for job id {} cause {}", csvFileName, jobId, e);
         throw new FileOperationException(format("Failed to read %s errors file for job id %s", csvFileName, jobId));
       }
     } else {
       log.info("Errors file {} doesn't exist - empty error list returned", csvFileName);
-      return new Errors().errors(emptyList()).totalRecords(0);
+      return new Errors().errors(emptyList()).totalErrorRecords(0);
     }
   }
 

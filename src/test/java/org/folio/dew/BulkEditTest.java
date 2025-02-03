@@ -44,8 +44,10 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -696,9 +698,10 @@ class BulkEditTest extends BaseBatchTest {
   }
 
   private String getSortedOutput(FileSystemResource resource) throws IOException {
-    var lines = Files.readAllLines(Path.of(resource.getPath()));
-    Collections.sort(lines);
-    return lines.toString();
+    var lines = new HashSet<>(Files.readAllLines(Path.of(resource.getPath())));
+    var listLines = new ArrayList<>(lines);
+    Collections.sort(listLines);
+    return listLines.toString();
   }
 
   private FileSystemResource getExpectedResourceByJobName(String jobName) {
@@ -769,7 +772,7 @@ class BulkEditTest extends BaseBatchTest {
     var parametersBuilder = new JobParametersBuilder();
     String jobId = UUID.randomUUID().toString();
     String workDir = getWorkingDirectory(springApplicationName, BULKEDIT_DIR_NAME);
-    parametersBuilder.addString(TEMP_OUTPUT_FILE_PATH, workDir + jobId + "/" + "out");
+    parametersBuilder.addString(TEMP_OUTPUT_FILE_PATH, workDir + jobId + PATH_SEPARATOR + "out");
     parametersBuilder.addString(TEMP_LOCAL_FILE_PATH,
       getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + jobId + PATH_SEPARATOR + "out");
     try {

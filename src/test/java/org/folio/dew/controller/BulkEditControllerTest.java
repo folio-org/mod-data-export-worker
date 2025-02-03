@@ -39,6 +39,7 @@ import org.folio.de.entity.JobCommandType;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.domain.dto.Errors;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.IdentifierType;
@@ -87,7 +88,7 @@ class BulkEditControllerTest extends BaseBatchTest {
 
     int numOfErrorLines = 3;
     int errorsPreviewLimit = 2;
-    var reasonForError = new BulkEditException("Record not found");
+    var reasonForError = new BulkEditException("Record not found", ErrorType.ERROR);
     var fileName = "barcodes.csv";
     for (int i = 0; i < numOfErrorLines; i++) {
       bulkEditProcessingErrorsService.saveErrorInCSV(jobId.toString(), String.valueOf(i), reasonForError, fileName);
@@ -102,7 +103,7 @@ class BulkEditControllerTest extends BaseBatchTest {
     var errors = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), Errors.class);
 
     assertThat(errors.getErrors(), hasSize(errorsPreviewLimit));
-    assertThat(errors.getTotalRecords(), is(errorsPreviewLimit));
+    assertThat(errors.getTotalErrorRecords(), is(errorsPreviewLimit));
 
     bulkEditProcessingErrorsService.removeTemporaryErrorStorage();
   }
@@ -124,14 +125,14 @@ class BulkEditControllerTest extends BaseBatchTest {
     var errors = objectMapper.readValue(response.andReturn().getResponse().getContentAsString(), Errors.class);
 
     assertThat(errors.getErrors(), empty());
-    assertThat(errors.getTotalRecords(), is(0));
+    assertThat(errors.getTotalErrorRecords(), is(0));
   }
 
   @Test
   void shouldReturnErrorsFileNotFoundErrorForErrorsPreview() throws Exception {
 
     var jobId = JOB_ID;
-    var expectedJson = String.format("{\"errors\":[{\"message\":\"JobCommand with id %s doesn't exist.\",\"type\":\"-1\",\"code\":\"Not found\",\"parameters\":null}],\"total_records\":1}", jobId);
+    var expectedJson = String.format("{\"errors\":[{\"message\":\"JobCommand with id %s doesn't exist.\",\"type\":\"ERROR\",\"code\":\"Not found\",\"parameters\":null}],\"total_error_records\":1}", jobId);
 
     var headers = defaultHeaders();
 

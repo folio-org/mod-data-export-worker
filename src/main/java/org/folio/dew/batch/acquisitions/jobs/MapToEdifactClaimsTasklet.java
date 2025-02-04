@@ -72,7 +72,7 @@ public class MapToEdifactClaimsTasklet extends MapToEdifactTasklet {
       throw new NotFoundException(Piece.class);
     }
 
-    var compOrdersMap = StreamEx.ofSubLists(pieces.stream().map(Piece::getPoLineId).toList(), CHUNK_SIZE)
+    var compOrdersMap = StreamEx.ofSubLists(pieces.stream().map(Piece::getPoLineId).distinct().toList(), CHUNK_SIZE)
       .map(QueryUtils::convertIdsToCqlQuery)
       .map(this::getCompositeOrders)
       .flatMap(Collection::stream)

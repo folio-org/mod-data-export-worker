@@ -6,7 +6,6 @@ import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.LIB_EDI_
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.VENDOR_EDI_TYPE;
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.validateField;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.FileFormatEnum.EDI;
-import static org.folio.dew.utils.QueryUtils.convertIdsToCqlQuery;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,6 +17,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.folio.dew.batch.acquisitions.mapper.ExportResourceMapper;
 import org.folio.dew.batch.acquisitions.services.OrdersService;
 import org.folio.dew.batch.acquisitions.services.OrganizationsService;
+import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.acquisitions.edifact.ExportHolder;
@@ -72,11 +72,24 @@ public class MapToEdifactClaimsTasklet extends MapToEdifactTasklet {
       throw new NotFoundException(Piece.class);
     }
 
-    var compOrders = StreamEx.ofSubLists(pieces.stream().map(Piece::getPoLineId).toList(), CHUNK_SIZE)
+    var compOrdersMap = StreamEx.ofSubLists(pieces.stream().map(Piece::getPoLineId).toList(), CHUNK_SIZE)
       .map(QueryUtils::convertIdsToCqlQuery)
       .map(this::getCompositeOrders)
       .flatMap(Collection::stream)
-      .toList();
+      .groupingBy(CompositePurchaseOrder::getId);
+
+    // Composite orders are fetched in chunks based on po lines, so there can be multiple orders with the same id
+    // and different po lines in the map values. We need to merge them into one order with all po lines.
+    var compOrders = compOrdersMap.values().stream()
+      .filter(CollectionUtils::isNotEmpty)
+      .map(orders -> {
+        var poLines = orders.stream()
+          .map(CompositePurchaseOrder::getCompositePoLines)
+          .flatMap(Collection::stream)
+          .toList();
+        return orders.get(0).compositePoLines(poLines);
+      }).toList();
+
     return new ExportHolder(compOrders, pieces);
   }
 

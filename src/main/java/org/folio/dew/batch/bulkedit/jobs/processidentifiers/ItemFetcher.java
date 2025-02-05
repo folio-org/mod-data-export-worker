@@ -6,14 +6,12 @@ import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getResponseAsString;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
-import static org.folio.dew.utils.Constants.CANNOT_GET_ITEM_FROM_INVENTORY_THROUGH_QUERY;
 import static org.folio.dew.utils.Constants.DUPLICATES_ACROSS_TENANTS;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 import static org.folio.dew.utils.Constants.NO_ITEM_VIEW_PERMISSIONS;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 import static org.folio.dew.utils.SearchIdentifierTypeResolver.getSearchIdentifierType;
 
-import feign.FeignException;
 import feign.codec.DecodeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -118,7 +116,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
         checkReadPermissions(folioExecutionContext.getTenantId(), identifier);
         var url = format(getMatchPattern(identifierType), idType, identifier);
         var currentTenantId = folioExecutionContext.getTenantId();
-        var itemCollection = getItemCollection(url, identifier);
+        var itemCollection = inventoryClient.getItemByQuery(url, Integer.MAX_VALUE);
         if (itemCollection.getItems().size() > limit) {
           log.error("Member/local tenant case: response from {} for tenant {}: {}", url, currentTenantId, getResponseAsString(itemCollection));
           throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE, ErrorType.ERROR);
@@ -147,16 +145,5 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
 
   private boolean isCurrentTenantCentral(String centralTenantId) {
     return StringUtils.isNotEmpty(centralTenantId) && centralTenantId.equals(folioExecutionContext.getTenantId());
-  }
-
-  private ItemCollection getItemCollection(String query, String identifier) {
-    try {
-      return inventoryClient.getItemByQuery(query, Integer.MAX_VALUE);
-    } catch (DecodeException e) {
-      throw e;
-    } catch (FeignException e) {
-      log.error(e);
-      throw new BulkEditException(CANNOT_GET_ITEM_FROM_INVENTORY_THROUGH_QUERY.formatted(identifier, query), ErrorType.ERROR);
-    }
   }
 }

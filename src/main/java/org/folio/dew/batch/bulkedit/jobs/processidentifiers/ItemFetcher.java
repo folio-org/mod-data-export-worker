@@ -6,12 +6,14 @@ import static org.folio.dew.domain.dto.IdentifierType.HOLDINGS_RECORD_ID;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getResponseAsString;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.CANNOT_GET_ITEM_FROM_INVENTORY_THROUGH_QUERY;
 import static org.folio.dew.utils.Constants.DUPLICATES_ACROSS_TENANTS;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 import static org.folio.dew.utils.Constants.NO_ITEM_VIEW_PERMISSIONS;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 import static org.folio.dew.utils.SearchIdentifierTypeResolver.getSearchIdentifierType;
 
+import feign.FeignException;
 import feign.codec.DecodeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -123,14 +125,19 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
         checkReadPermissions(folioExecutionContext.getTenantId(), identifier);
         var url = format(getMatchPattern(identifierType), idType, identifier);
         var currentTenantId = folioExecutionContext.getTenantId();
-        var itemCollection =  inventoryClient.getItemByQuery(url, Integer.MAX_VALUE);
-        if (itemCollection.getItems().size() > limit) {
-          log.error("Member/local tenant case: response from {} for tenant {}: {}", url, currentTenantId, getResponseAsString(itemCollection));
-          throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE, ErrorType.ERROR);
+        try {
+          var itemCollection = inventoryClient.getItemByQuery(url, Integer.MAX_VALUE);
+          if (itemCollection.getItems().size() > limit) {
+            log.error("Member/local tenant case: response from {} for tenant {}: {}", url, currentTenantId, getResponseAsString(itemCollection));
+            throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE, ErrorType.ERROR);
+          }
+          extendedItemCollection.setExtendedItems(itemCollection.getItems().stream()
+            .map(item -> new ExtendedItem().tenantId(folioExecutionContext.getTenantId()).entity(item)).toList());
+          extendedItemCollection.setTotalRecords(itemCollection.getTotalRecords());
+        } catch (FeignException e) {
+          log.error(e);
+          throw new BulkEditException(CANNOT_GET_ITEM_FROM_INVENTORY_THROUGH_QUERY.formatted(identifier, url), ErrorType.ERROR);
         }
-        extendedItemCollection.setExtendedItems(itemCollection.getItems().stream()
-          .map(item -> new ExtendedItem().tenantId(folioExecutionContext.getTenantId()).entity(item)).toList());
-        extendedItemCollection.setTotalRecords(itemCollection.getTotalRecords());
         if (extendedItemCollection.getExtendedItems().isEmpty()) {
           log.error(NO_MATCH_FOUND_MESSAGE);
           throw new BulkEditException(NO_MATCH_FOUND_MESSAGE, ErrorType.ERROR);

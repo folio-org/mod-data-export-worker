@@ -4,11 +4,13 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dew.utils.BulkEditProcessorHelper.dateFromString;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.CANNOT_GET_ITEM_FROM_INVENTORY_THROUGH_QUERY;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 import static org.folio.dew.utils.Constants.UTF8_BOM;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -16,6 +18,7 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
+import feign.FeignException;
 import feign.Request;
 import feign.codec.DecodeException;
 import lombok.SneakyThrows;
@@ -188,6 +191,35 @@ class BulkEditProcessorsTest extends BaseBatchTest {
       var identifier = new ItemIdentifier("duplicateIdentifier");
       var throwable = assertThrows(BulkEditException.class, () -> itemFetcher.process(identifier));
       assertEquals(MULTIPLE_MATCHES_MESSAGE, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"ID", "HRID", "BARCODE", "FORMER_IDS", "ACCESSION_NUMBER"})
+  @SneakyThrows
+  void shouldThrowErrorWhenItemIsCorrupted(String identifierType) {
+    when(inventoryClient.getItemByQuery("barcode==\"validItemIdentifier\"", Integer.MAX_VALUE))
+      .thenReturn(new ItemCollection().items(List.of(new Item())).totalRecords(1));
+    when(inventoryClient.getItemByQuery(String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), "validItemIdentifier"), Integer.MAX_VALUE))
+      .thenReturn(new ItemCollection().items(List.of(new Item())).totalRecords(1));
+    doThrow(new FeignException.FeignClientException(500, "some error msg", Request.create(Request.HttpMethod.GET, "url", Map.of(), null, null, null), null, null))
+      .when(inventoryClient).getItemByQuery("barcode==\"corruptedItemIdentifier\"", Integer.MAX_VALUE);
+    doThrow(new FeignException.FeignClientException(500, "some error msg", Request.create(Request.HttpMethod.GET, "url", Map.of(), null, null, null), null, null))
+      .when(inventoryClient).getItemByQuery(String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), "corruptedItemIdentifier"), Integer.MAX_VALUE);
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.ITEM))).thenReturn(true);
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var validIdentifier = new ItemIdentifier("validItemIdentifier");
+      var actualItemCollection = itemFetcher.process(validIdentifier);
+      assertNotNull(actualItemCollection);
+      assertThat(actualItemCollection.getExtendedItems(), hasSize(1));
+      var corruptedIdentifier = new ItemIdentifier("corruptedItemIdentifier");
+      var throwable = assertThrows(BulkEditException.class, () -> itemFetcher.process(corruptedIdentifier));
+      assertEquals(CANNOT_GET_ITEM_FROM_INVENTORY_THROUGH_QUERY
+        .formatted(identifierType.equals("BARCODE") ? "\"corruptedItemIdentifier\"" : "corruptedItemIdentifier",
+          String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), identifierType.equals("BARCODE") ? "\"corruptedItemIdentifier\"" : "corruptedItemIdentifier")), throwable.getMessage());
       return null;
     });
   }

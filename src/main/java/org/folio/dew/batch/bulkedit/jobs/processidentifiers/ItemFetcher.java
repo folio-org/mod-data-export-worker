@@ -21,7 +21,14 @@ import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.client.UserClient;
-import org.folio.dew.domain.dto.*;
+import org.folio.dew.domain.dto.BatchIdsDto;
+import org.folio.dew.domain.dto.ConsortiumItem;
+import org.folio.dew.domain.dto.EntityType;
+import org.folio.dew.domain.dto.ErrorType;
+import org.folio.dew.domain.dto.ExtendedItem;
+import org.folio.dew.domain.dto.ExtendedItemCollection;
+import org.folio.dew.domain.dto.IdentifierType;
+import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.ConsortiaService;
 import org.folio.dew.service.FolioExecutionContextManager;
@@ -116,7 +123,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
         checkReadPermissions(folioExecutionContext.getTenantId(), identifier);
         var url = format(getMatchPattern(identifierType), idType, identifier);
         var currentTenantId = folioExecutionContext.getTenantId();
-        var itemCollection = inventoryClient.getItemByQuery(url, Integer.MAX_VALUE);
+        var itemCollection =  inventoryClient.getItemByQuery(url, Integer.MAX_VALUE);
         if (itemCollection.getItems().size() > limit) {
           log.error("Member/local tenant case: response from {} for tenant {}: {}", url, currentTenantId, getResponseAsString(itemCollection));
           throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE, ErrorType.ERROR);
@@ -124,7 +131,6 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
         extendedItemCollection.setExtendedItems(itemCollection.getItems().stream()
           .map(item -> new ExtendedItem().tenantId(folioExecutionContext.getTenantId()).entity(item)).toList());
         extendedItemCollection.setTotalRecords(itemCollection.getTotalRecords());
-
         if (extendedItemCollection.getExtendedItems().isEmpty()) {
           log.error(NO_MATCH_FOUND_MESSAGE);
           throw new BulkEditException(NO_MATCH_FOUND_MESSAGE, ErrorType.ERROR);

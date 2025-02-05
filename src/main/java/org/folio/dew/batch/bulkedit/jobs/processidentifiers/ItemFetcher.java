@@ -134,6 +134,8 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
           extendedItemCollection.setExtendedItems(itemCollection.getItems().stream()
             .map(item -> new ExtendedItem().tenantId(folioExecutionContext.getTenantId()).entity(item)).toList());
           extendedItemCollection.setTotalRecords(itemCollection.getTotalRecords());
+        } catch (DecodeException e) {
+          throw e;
         } catch (FeignException e) {
           log.error(e);
           throw new BulkEditException(CANNOT_GET_ITEM_FROM_INVENTORY_THROUGH_QUERY.formatted(identifier, url), ErrorType.ERROR);

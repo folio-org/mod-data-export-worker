@@ -1,7 +1,6 @@
 package org.folio.dew.config.feign;
 
-import static feign.FeignException.errorStatus;
-import static org.folio.dew.utils.Constants.CANNOT_GET_RECORD_FROM_INVENTORY;
+import static org.folio.dew.utils.Constants.CANNOT_GET_RECORD;
 
 import feign.Response;
 import feign.codec.ErrorDecoder;
@@ -17,10 +16,9 @@ public class CustomFeignErrorDecoder implements ErrorDecoder {
     String requestUrl = response.request().url();
     if (HttpStatus.NOT_FOUND.value() == response.status()) {
       return new NotFoundException(requestUrl);
-    } else if (HttpStatus.INTERNAL_SERVER_ERROR.value() == response.status()) {
-      return new BulkEditException(CANNOT_GET_RECORD_FROM_INVENTORY.formatted(requestUrl, response.reason()), ErrorType.ERROR);
     }
-    return errorStatus(methodKey, response);
+    String reason = response.reason() != null ? response.reason() : "Unknown error";
+    return new BulkEditException(CANNOT_GET_RECORD.formatted(requestUrl, reason), ErrorType.ERROR);
   }
 
 }

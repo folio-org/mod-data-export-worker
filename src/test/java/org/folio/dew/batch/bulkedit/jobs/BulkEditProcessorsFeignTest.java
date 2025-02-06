@@ -20,7 +20,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.Collections;
 
-import static org.folio.dew.utils.Constants.CANNOT_GET_RECORD_FROM_INVENTORY;
+import static org.folio.dew.utils.Constants.CANNOT_GET_RECORD;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -54,7 +54,7 @@ class BulkEditProcessorsFeignTest extends BaseBatchTest {
       assertThat(actualItemCollection.getExtendedItems(), hasSize(1));
       var corruptedIdentifier = new ItemIdentifier("corruptedItemIdentifier");
       var throwable = assertThrows(BulkEditException.class, () -> itemFetcher.process(corruptedIdentifier));
-      assertEquals(CANNOT_GET_RECORD_FROM_INVENTORY.formatted("http://inventory/items?query=%s%%3D%s%scorruptedItemIdentifier%s&limit=2147483647"
+      assertEquals(CANNOT_GET_RECORD.formatted("http://inventory/items?query=%s%%3D%s%scorruptedItemIdentifier%s&limit=2147483647"
         .formatted(getIdentifierTypeForQuery(identifierType), identifierType.equals("FORMER_IDS") ? "" : "%3D",
           identifierType.equals("BARCODE") ? "%22" : "", identifierType.equals("BARCODE") ? "%22" : ""), "Server Error"), throwable.getMessage());
       return null;

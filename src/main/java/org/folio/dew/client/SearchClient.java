@@ -1,5 +1,7 @@
 package org.folio.dew.client;
 
+import org.folio.dew.config.feign.FeignClientConfiguration;
+import org.folio.dew.config.feign.FeignEncoderConfiguration;
 import org.folio.dew.domain.dto.BatchIdsDto;
 import org.folio.dew.domain.dto.ConsortiumHoldingCollection;
 import org.folio.dew.domain.dto.ConsortiumItemCollection;
@@ -7,7 +9,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "search")
+@FeignClient(name = "search", configuration = {FeignEncoderConfiguration.class, FeignClientConfiguration.class})
 public interface SearchClient {
   @PostMapping(value = "/consortium/batch/items", headers = {"Accept=application/json"})
   ConsortiumItemCollection getConsortiumItemCollection(@RequestBody BatchIdsDto batchIdsDto);

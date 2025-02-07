@@ -71,6 +71,7 @@ public class Constants {
   public static final String NO_INSTANCE_VIEW_PERMISSIONS = "User %s does not have required permission to view the instance record - %s=%s on the tenant %s";
   public static final String NO_USER_VIEW_PERMISSIONS = "User %s does not have required permission to view the user record - %s=%s on the tenant %s";
   public static final String DUPLICATES_ACROSS_TENANTS = "Duplicates across tenants";
+  public static final String CANNOT_GET_RECORD = "Cannot get data from %s due to %s";
 
   public static final String MODULE_NAME = "BULKEDIT";
   public static final String BULKEDIT_DIR_NAME = "bulk_edit";

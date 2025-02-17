@@ -3,11 +3,11 @@
     {
       "request": {
         "method": "GET",
-        "url": "/instance-formats/5cb91d15-96b1-4b8a-bf60-ec310538da66"
+        "url": "/instance-formats/9a847cae-ce43-4e99-82bd-805e6daf1824"
       },
       "response": {
         "status": 200,
-        "body": "{\n            \"id\": \"5cb91d15-96b1-4b8a-bf60-ec310538da66\",\n            \"name\": \"projected image -- film roll\",\n            \"code\": \"mo\",\n            \"source\": \"rdacarrier\",\n            \"metadata\": {\n                \"createdDate\": \"2025-02-17T03:12:39.152+00:00\",\n                \"updatedDate\": \"2025-02-17T03:12:39.152+00:00\"\n            }\n        }",
+        "body": "{\n            \"id\": \"9a847cae-ce43-4e99-82bd-805e6daf1824\",\n            \"name\": \"projected image -- film roll\",\n            \"code\": \"mo\",\n            \"source\": \"rdacarrier\",\n            \"metadata\": {\n                \"createdDate\": \"2025-02-17T03:12:39.152+00:00\",\n                \"updatedDate\": \"2025-02-17T03:12:39.152+00:00\"\n            }\n        }",
         "headers": {
           "Content-Type": "application/json"
         }

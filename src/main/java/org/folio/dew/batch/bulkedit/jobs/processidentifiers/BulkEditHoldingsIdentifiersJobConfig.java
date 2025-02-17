@@ -14,6 +14,7 @@ import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
+import org.folio.dew.error.BulkEditMultiException;
 import org.folio.dew.error.BulkEditSkipListener;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.springframework.batch.core.Job;

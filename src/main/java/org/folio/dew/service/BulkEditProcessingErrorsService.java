@@ -15,6 +15,7 @@ import org.folio.dew.domain.dto.Error;
 import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.domain.dto.Errors;
 import org.folio.dew.error.BulkEditException;
+import org.folio.dew.error.BulkEditMultiException;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
@@ -75,6 +76,10 @@ public class BulkEditProcessingErrorsService {
 
   public synchronized void saveErrorInCSV(String jobId, String affectedIdentifier, BulkEditException reasonForError, String fileName) {
     saveErrorInCSV(jobId, affectedIdentifier, reasonForError, fileName, reasonForError.getErrorType());
+  }
+
+  public synchronized void saveErrorInCSV(String jobId, String affectedIdentifier, BulkEditMultiException reasonForError, String fileName) {
+    reasonForError.getExceptions().forEach(bulkEditException -> saveErrorInCSV(jobId, affectedIdentifier, bulkEditException, fileName, bulkEditException.getErrorType()));
   }
 
   public synchronized void saveErrorInCSV(String jobId, String affectedIdentifier, String errorMessage, String fileName, ErrorType errorType) {

@@ -11,17 +11,17 @@ import static org.folio.dew.domain.dto.EntityType.ITEM;
 
 @UtilityClass
 public class Constants {
+  public static final String LINKED_DATA_SOURCE = "LINKED_DATA";
+  public static final String MARC_SOURCE = "MARC";
+
   public static final String ROLLBACK_FILE = "rollBackFile";
-  public static final String TMP_DIR_PROPERTY = "java.io.tmpdir";
   public static final String PATH_SEPARATOR = "/";
-  public static final String JOB_ID_SEPARATOR = "_";
   public static final String JOB_NAME_POSTFIX_SEPARATOR = "-";
   public static final String STATISTICAL_CODE_NAME_SEPARATOR = " - ";
   public static final String MATCHED_RECORDS = "-Matched-Records-";
   public static final String MARC_RECORDS = "-Marc-Records-";
   public static final String CHANGED_RECORDS = "-Changed-Records-";
   public static final String UPDATED_PREFIX = "UPDATED-";
-  public static final String PREVIEW_PREFIX = "PREVIEW-";
   public static final String INITIAL_PREFIX = "INITIAL-";
   public static final String CSV_EXTENSION = ".csv";
 
@@ -30,7 +30,6 @@ public class Constants {
   public static final String ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER = "\u001f;";
   public static final String ITEM_DELIMITER = "|";
   public static final String ITEM_DELIMITER_SPACED = " | ";
-  public static final String ITEM_DELIMITER_PATTERN = "\\|";
   public static final String KEY_VALUE_DELIMITER = ":";
   public static final String HOLDINGS_DELIMITER = "\u001f|";
   public static final Map<EntityType, String> ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DELIMITER = Map.of(HOLDINGS_RECORD, HOLDINGS_DELIMITER, ITEM, ITEM_DELIMITER);
@@ -59,9 +58,6 @@ public class Constants {
   public static final char NEW_LINE = '\n';
 
   public static final String NO_MATCH_FOUND_MESSAGE = "No match found";
-  public static final String NO_CHANGE_MESSAGE = "No change in value needed";
-  public static final String STATUS_FIELD_CAN_NOT_CLEARED = "Status field can not be cleared";
-  public static final String STATUS_VALUE_NOT_ALLOWED = "New status value \"%s\" is not allowed";
   public static final String MULTIPLE_MATCHES_MESSAGE = "Multiple matches for the same identifier.";
   public static final String NO_MARC_CONTENT = "Cannot get marc content for record with id = %s, reason: %s";
   public static final String NO_ITEM_AFFILIATION = "User %s does not have required affiliation to view the item record - %s=%s on the tenant %s";
@@ -71,7 +67,9 @@ public class Constants {
   public static final String NO_INSTANCE_VIEW_PERMISSIONS = "User %s does not have required permission to view the instance record - %s=%s on the tenant %s";
   public static final String NO_USER_VIEW_PERMISSIONS = "User %s does not have required permission to view the user record - %s=%s on the tenant %s";
   public static final String DUPLICATES_ACROSS_TENANTS = "Duplicates across tenants";
+  public static final String DUPLICATE_ENTRY = "Duplicate entry";
   public static final String CANNOT_GET_RECORD = "Cannot get data from %s due to %s";
+  public static final String LINKED_DATA_SOURCE_IS_NOT_SUPPORTED = "Bulk edit of instances with source set to LINKED_DATA is not supported";
 
   public static final String MODULE_NAME = "BULKEDIT";
   public static final String BULKEDIT_DIR_NAME = "bulk_edit";
@@ -91,14 +89,6 @@ public class Constants {
   public static final String PATH_TO_ERRORS = "PATH_TO_ERRORS";
   public static final String PATH_TO_MATCHED_RECORDS = "PATH_TO_MATCHED_RECORDS";
   public static final String CHARACTERS_SHOULD_BE_REPLACED_IN_PATH = "[+]";
-
-  public static final String ACTION_NOTE = "Action note";
-  public static final String BINDING = "Binding";
-  public static final String COPY_NOTE = "Copy note";
-  public static final String ELECTRONIC_BOOKPLATE = "Electronic bookplate";
-  public static final String NOTE = "Note";
-  public static final String PROVENANCE = "Provenance";
-  public static final String REPRODUCTION = "Reproduction";
 
   public static final String EUREKA_PLATFORM = "eureka";
   public static final String OKAPI_PLATFORM = "okapi";

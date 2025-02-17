@@ -8,7 +8,7 @@ import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.service.BulkEditProcessingErrorsService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.annotation.OnSkipInProcess;
-import org.springframework.batch.core.configuration.annotation.JobScope;
+
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -26,8 +26,13 @@ public class BulkEditSkipListener {
   private JobExecution jobExecution;
 
   @OnSkipInProcess
-  public void onSkipInProcess(ItemIdentifier itemIdentifier, BulkEditException bulkEditException) {
-    log.debug(bulkEditException);
-    bulkEditProcessingErrorsService.saveErrorInCSV(jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID), itemIdentifier.getItemId(), bulkEditException, FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
+  public void onSkipInProcess(ItemIdentifier itemIdentifier, Throwable exception) {
+    log.debug(exception);
+    if (exception instanceof BulkEditException) {
+      bulkEditProcessingErrorsService.saveErrorInCSV(jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID), itemIdentifier.getItemId(), (BulkEditException) exception, FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
+    }
+    if (exception instanceof BulkEditMultiException) {
+      bulkEditProcessingErrorsService.saveErrorInCSV(jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID), itemIdentifier.getItemId(), (BulkEditMultiException) exception, FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
+    }
   }
 }

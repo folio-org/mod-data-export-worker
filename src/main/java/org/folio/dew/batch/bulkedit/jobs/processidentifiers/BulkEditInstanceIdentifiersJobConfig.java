@@ -12,6 +12,7 @@ import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.InstanceFormat;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
+import org.folio.dew.error.BulkEditMultiException;
 import org.folio.dew.error.BulkEditSkipListener;
 import org.folio.dew.service.JsonToMarcConverter;
 import org.springframework.batch.core.Job;
@@ -75,6 +76,7 @@ public class BulkEditInstanceIdentifiersJobConfig {
       .skipLimit(1_000_000)
       .processorNonTransactional() // Required to avoid repeating BulkEditItemProcessor#process after skip.
       .skip(BulkEditException.class)
+      .skip(BulkEditMultiException.class)
       .listener(bulkEditSkipListener)
       .writer(compositeInstanceListWriter)
       .listener(listIdentifiersWriteListener)

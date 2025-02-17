@@ -5,6 +5,9 @@ import static org.folio.dew.domain.dto.IdentifierType.ISBN;
 import static org.folio.dew.domain.dto.IdentifierType.ISSN;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
+import static org.folio.dew.utils.Constants.DUPLICATE_ENTRY;
+import static org.folio.dew.utils.Constants.LINKED_DATA_SOURCE;
+import static org.folio.dew.utils.Constants.LINKED_DATA_SOURCE_IS_NOT_SUPPORTED;
 import static org.folio.dew.utils.Constants.NO_INSTANCE_VIEW_PERMISSIONS;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 
@@ -22,6 +25,7 @@ import org.folio.dew.domain.dto.InstanceCollection;
 import org.folio.dew.domain.dto.InstanceFormat;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
+import org.folio.dew.error.BulkEditMultiException;
 import org.folio.dew.service.InstanceReferenceService;
 import org.folio.dew.service.mapper.InstanceMapper;
 import org.folio.spring.FolioExecutionContext;
@@ -57,13 +61,13 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
   private Set<String> fetchedInstanceIds = ConcurrentHashMap.newKeySet();
 
   @Override
-  public synchronized List<InstanceFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
+  public synchronized List<InstanceFormat> process(ItemIdentifier itemIdentifier) throws BulkEditMultiException {
     if (!permissionsValidator.isBulkEditReadPermissionExists(folioExecutionContext.getTenantId(), EntityType.INSTANCE)) {
       var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
       throw new BulkEditException(format(NO_INSTANCE_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()), ErrorType.ERROR);
     }
     if (identifiersToCheckDuplication.contains(itemIdentifier)) {
-      throw new BulkEditException("Duplicate entry", ErrorType.WARNING);
+      throw new BulkEditException(DUPLICATE_ENTRY, ErrorType.WARNING);
     }
     identifiersToCheckDuplication.add(itemIdentifier);
 
@@ -71,6 +75,12 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
     if (instances.getInstances().isEmpty()) {
       log.error(NO_MATCH_FOUND_MESSAGE);
       throw new BulkEditException(NO_MATCH_FOUND_MESSAGE, ErrorType.ERROR);
+    }
+    var linkedDataInstances = instances.getInstances().stream()
+      .filter(instance -> instance.getSource().equals(LINKED_DATA_SOURCE))
+      .map(instance -> new BulkEditException(LINKED_DATA_SOURCE_IS_NOT_SUPPORTED, ErrorType.ERROR)).toList();
+    if (!linkedDataInstances.isEmpty()) {
+      throw new BulkEditMultiException(linkedDataInstances);
     }
 
     var distinctInstances = instances.getInstances().stream()

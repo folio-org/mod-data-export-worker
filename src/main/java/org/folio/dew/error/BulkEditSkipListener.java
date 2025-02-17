@@ -26,13 +26,13 @@ public class BulkEditSkipListener {
   private JobExecution jobExecution;
 
   @OnSkipInProcess
-  public void onSkipInProcess(ItemIdentifier itemIdentifier, Throwable exception) {
-    log.debug(exception);
-    if (exception instanceof BulkEditException) {
-      bulkEditProcessingErrorsService.saveErrorInCSV(jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID), itemIdentifier.getItemId(), (BulkEditException) exception, FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
+  public void onSkipInProcess(ItemIdentifier itemIdentifier, Throwable throwable) {
+    log.debug(throwable);
+    if (throwable instanceof BulkEditException exception) {
+      bulkEditProcessingErrorsService.saveErrorInCSV(jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID), itemIdentifier.getItemId(), exception, FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
     }
-    if (exception instanceof BulkEditMultiException) {
-      bulkEditProcessingErrorsService.saveErrorInCSV(jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID), itemIdentifier.getItemId(), (BulkEditMultiException) exception, FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
+    if (throwable instanceof BulkEditMultiException exception) {
+      bulkEditProcessingErrorsService.saveErrorInCSV(jobExecution.getJobParameters().getString(JobParameterNames.JOB_ID), itemIdentifier.getItemId(), exception, FilenameUtils.getName(jobExecution.getJobParameters().getString(FILE_NAME)));
     }
   }
 }

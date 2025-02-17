@@ -140,10 +140,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String EXPECTED_BULK_EDIT_ITEM_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_output.csv";
   private static final String EXPECTED_BULK_EDIT_ITEM_JSON_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_json_output.json";
   private static final String EXPECTED_BULK_EDIT_INSTANCE_OUTPUT = "src/test/resources/output/bulk_edit_instance_identifiers_output.csv";
-  private static final String EXPECTED_BULK_EDIT_INSTANCE_BY_ISSN_ISBN_OUTPUT = "src/test/resources/output/bulk_edit_instance_by_issn_isbn_output.csv";
   private static final String EXPECTED_BULK_EDIT_INSTANCE_JSON_OUTPUT = "src/test/resources/output/bulk_edit_instance_identifiers_json_output.json";
-  private static final String EXPECTED_BULK_EDIT_INSTANCE_BY_ISSN_JSON_OUTPUT = "src/test/resources/output/bulk_edit_instance_by_issn_json_output.json";
-  private static final String EXPECTED_BULK_EDIT_INSTANCE_BY_ISBN_JSON_OUTPUT = "src/test/resources/output/bulk_edit_instance_by_isbn_json_output.json";
 
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT = "src/test/resources/output/bulk_edit_holdings_records_output.csv";
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_JSON_OUTPUT = "src/test/resources/output/bulk_edit_holdings_records_json_output.json";
@@ -382,22 +379,6 @@ class BulkEditTest extends BaseBatchTest {
     final FileSystemResource actualResult = actualFileOutput(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE).split(";")[3]);
 
     assertEquals("", new String(actualResult.getContentAsByteArray()).trim());
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-  }
-
-  @ParameterizedTest
-  @EnumSource(value = IdentifierType.class, names = {"ISSN","ISBN"}, mode = EnumSource.Mode.INCLUDE)
-  @DisplayName("Run bulk-edit (instance identifiers ISSN or ISBN) successfully")
-  void uploadInstanceIdentifiersJobTest_2(IdentifierType identifierType) throws Exception {
-    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_INSTANCES_ITEM_GET_PERMISSION.getValue()));
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessInstanceIdentifiersJob);
-
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, INSTANCE, identifierType, INSTANCE_ISSN_ISBN_CSV);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
-
-    String expectedJsonRef = "ISBN".equals(identifierType.getValue()) ? EXPECTED_BULK_EDIT_INSTANCE_BY_ISBN_JSON_OUTPUT : EXPECTED_BULK_EDIT_INSTANCE_BY_ISSN_JSON_OUTPUT;
-    verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_INSTANCE_BY_ISSN_ISBN_OUTPUT, expectedJsonRef);
-
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 

@@ -61,7 +61,7 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
   private Set<String> fetchedInstanceIds = ConcurrentHashMap.newKeySet();
 
   @Override
-  public synchronized List<InstanceFormat> process(ItemIdentifier itemIdentifier) throws BulkEditMultiException {
+  public synchronized List<InstanceFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException, BulkEditMultiException {
     if (!permissionsValidator.isBulkEditReadPermissionExists(folioExecutionContext.getTenantId(), EntityType.INSTANCE)) {
       var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
       throw new BulkEditException(format(NO_INSTANCE_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()), ErrorType.ERROR);

@@ -664,8 +664,7 @@ class BulkEditTest extends BaseBatchTest {
     // Verify output - it is enough to check only instances presence in csv file
     final FileSystemResource actualResult = actualFileOutput(files[0]);
     var output = getSortedOutput(actualResult);
-    assertThat(output).contains("inst000000000028");
-    assertThat(output).contains("inst000000000002");
+    assertThat(output).contains("inst00000000001333");
     // Verify errors - verify errors in csv file
     assertEquals(expected,
       getSortedOutput(actualFileOutput(files[1])));

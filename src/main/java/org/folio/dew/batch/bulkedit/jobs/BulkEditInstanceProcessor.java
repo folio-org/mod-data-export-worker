@@ -79,10 +79,9 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
             .withTenantId(folioExecutionContext.getTenantId()));
       }
       return emptyList();
+    } catch (BulkEditException e) {
+      throw e;
     } catch (Exception e) {
-      if (e instanceof BulkEditException) {
-        throw (BulkEditException) e;
-      }
       throw new BulkEditException(e.getMessage(), ErrorType.ERROR);
     }
   }

@@ -5,13 +5,19 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.dateFromString;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
+import static org.folio.dew.utils.Constants.UTF8_BOM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.testcontainers.shaded.org.hamcrest.MatcherAssert.assertThat;
+import static org.testcontainers.shaded.org.hamcrest.Matchers.hasSize;
 
+import feign.Request;
+import feign.codec.DecodeException;
 import lombok.SneakyThrows;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
@@ -25,6 +31,8 @@ import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExtendedItem;
 import org.folio.dew.domain.dto.HoldingsRecord;
 import org.folio.dew.domain.dto.HoldingsRecordCollection;
+import org.folio.dew.domain.dto.Instance;
+import org.folio.dew.domain.dto.InstanceCollection;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemCollection;
 import org.folio.dew.domain.dto.ItemIdentifier;
@@ -48,6 +56,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 class BulkEditProcessorsTest extends BaseBatchTest {
   @Autowired
@@ -105,6 +114,22 @@ class BulkEditProcessorsTest extends BaseBatchTest {
       assertEquals(EMPTY, userFormat.getAddresses());
       assertEquals("TestMultiSelect:", userFormat.getCustomFields());
       System.out.println(userFormat);
+      return null;
+    });
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"ID", "HRID"})
+  @SneakyThrows
+  void shouldNotIncludeDuplicatedInstances(String identifierType) {
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
+    when(inventoryInstancesClient.getInstanceByQuery(String.format("%s==duplicateIdentifier", resolveIdentifier(identifierType)), 1)).thenReturn(new InstanceCollection().instances(Collections.emptyList()).totalRecords(2));
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("duplicateIdentifier");
+      var throwable = assertThrows(BulkEditException.class, () -> instanceProcessor.process(identifier));
+      assertEquals(MULTIPLE_MATCHES_MESSAGE, throwable.getMessage());
       return null;
     });
   }
@@ -182,6 +207,25 @@ class BulkEditProcessorsTest extends BaseBatchTest {
 
   @Test
   @SneakyThrows
+  void shouldProvideBulkEditExceptionWithNoInstanceViewPermissionMessage() {
+    var user = new User();
+    user.setUsername("userName");
+
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.HOLDINGS_RECORD))).thenReturn(false);
+    when(userClient.getUserById(any())).thenReturn(user);
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
+    var expectedErrorMessage = "User userName does not have required permission to view the instance record - hrid=hrid on the tenant diku";
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("hrid");
+      var throwable = assertThrows(BulkEditException.class, () -> instanceProcessor.process(identifier));
+      assertEquals(expectedErrorMessage, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @Test
+  @SneakyThrows
   void shouldProvideBulkEditExceptionWithNoUserViewPermissionMessage() {
     var user = new User();
     user.setUsername("userName");
@@ -233,6 +277,24 @@ class BulkEditProcessorsTest extends BaseBatchTest {
       var identifier = new ItemIdentifier("hrid");
       var throwable = assertThrows(BulkEditException.class, () -> holdingsProcessor.process(identifier));
       assertEquals(expectedErrorMessage, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"ID", "HRID"})
+  @SneakyThrows
+  void shouldRemoveUTF8BOmFromInstances(String identifierType) {
+    var id = "a912ee60-03c2-4316-9786-63b8be1f0d83";
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
+    when(inventoryInstancesClient.getInstanceByQuery(String.format("%s==%s", resolveIdentifier(identifierType), id), 1)).thenReturn(new InstanceCollection().instances(List.of(new Instance().id("a00bf050-f7f3-4660-9000-b014f2f5dac2"))).totalRecords(1));
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier();
+      identifier.setItemId(UTF8_BOM + id);
+      var instances = instanceProcessor.process(identifier);
+      assertThat(instances, hasSize(1));
       return null;
     });
   }
@@ -289,6 +351,45 @@ class BulkEditProcessorsTest extends BaseBatchTest {
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var identifier = new ItemIdentifier("BARCODE");
       var throwable = assertThrows(BulkEditException.class, () -> holdingsProcessor.process(identifier));
+      assertEquals(expectedErrorMessage, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldProvideBulkEditExceptionWithDecodeExceptionMessageWhenProcessInstances() {
+    var user = new User();
+    user.setUsername("userName");
+
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
+    doThrow(new DecodeException(1, "Decode error", Request.create(Request.HttpMethod.GET, "url", Map.of(), new byte[]{}, null, null)))
+      .when(inventoryInstancesClient).getInstanceByQuery("hrid==HRID", 1);
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
+    var expectedErrorMessage = "Decode error";
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("HRID");
+      var throwable = assertThrows(BulkEditException.class, () -> instanceProcessor.process(identifier));
+      assertEquals(expectedErrorMessage, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldProvideBulkEditExceptionWhenDuplicateEntryWithProcessInstances() {
+
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
+    when(inventoryInstancesClient.getInstanceByQuery("hrid==HRID", 1))
+      .thenReturn(new InstanceCollection().instances(List.of(new Instance().id("instanceid"))).totalRecords(1));
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
+    var expectedErrorMessage = "Duplicate entry";
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("HRID");
+      instanceProcessor.process(identifier);
+      var throwable = assertThrows(BulkEditException.class, () -> instanceProcessor.process(identifier));
       assertEquals(expectedErrorMessage, throwable.getMessage());
       return null;
     });

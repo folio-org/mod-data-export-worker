@@ -7,6 +7,7 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.DUPLICATE_ENTRY;
 import static org.folio.dew.utils.Constants.LINKED_DATA_SOURCE;
 import static org.folio.dew.utils.Constants.LINKED_DATA_SOURCE_IS_NOT_SUPPORTED;
+import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 import static org.folio.dew.utils.Constants.NO_INSTANCE_VIEW_PERMISSIONS;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
 
@@ -57,28 +58,34 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
 
   @Override
   public synchronized List<InstanceFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
-    if (!permissionsValidator.isBulkEditReadPermissionExists(folioExecutionContext.getTenantId(), EntityType.INSTANCE)) {
-      var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
-      throw new BulkEditException(format(NO_INSTANCE_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()), ErrorType.ERROR);
-    }
-    if (!identifiersToCheckDuplication.add(itemIdentifier)) {
-      throw new BulkEditException(DUPLICATE_ENTRY, ErrorType.WARNING);
-    }
+    try {
+      if (!permissionsValidator.isBulkEditReadPermissionExists(folioExecutionContext.getTenantId(), EntityType.INSTANCE)) {
+        var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
+        throw new BulkEditException(format(NO_INSTANCE_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()), ErrorType.ERROR);
+      }
+      if (!identifiersToCheckDuplication.add(itemIdentifier)) {
+        throw new BulkEditException(DUPLICATE_ENTRY, ErrorType.WARNING);
+      }
 
-    var instance = getInstance(itemIdentifier);
+      var instance = getInstance(itemIdentifier);
 
-    if (LINKED_DATA_SOURCE.equals(instance.getSource())) {
-      throw new BulkEditException(LINKED_DATA_SOURCE_IS_NOT_SUPPORTED, ErrorType.ERROR);
-    }
+      if (LINKED_DATA_SOURCE.equals(instance.getSource())) {
+        throw new BulkEditException(LINKED_DATA_SOURCE_IS_NOT_SUPPORTED, ErrorType.ERROR);
+      }
 
-    if (fetchedInstanceIds.add(instance.getId())) {
-      return List.of(
-        instanceMapper.mapToInstanceFormat(instance, itemIdentifier.getItemId(), jobId, FilenameUtils.getName(fileName)).withOriginal(instance)
-          .withTenantId(folioExecutionContext.getTenantId()));
+      if (fetchedInstanceIds.add(instance.getId())) {
+        return List.of(
+          instanceMapper.mapToInstanceFormat(instance, itemIdentifier.getItemId(), jobId, FilenameUtils.getName(fileName)).withOriginal(instance)
+            .withTenantId(folioExecutionContext.getTenantId()));
+      }
+      return emptyList();
+    } catch (Exception e) {
+      if (e instanceof BulkEditException) {
+        throw (BulkEditException) e;
+      }
+      throw new BulkEditException(e.getMessage(), ErrorType.ERROR);
     }
-    return emptyList();
   }
-
 
   /**
    * Retrieves instance based on the instance identifier value. Currently, only ID and HRID are supported for instances.
@@ -92,7 +99,10 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
     return switch (IdentifierType.fromValue(identifierType)) {
       case ID, HRID -> {
         var instances = inventoryInstancesClient.getInstanceByQuery(String.format(getMatchPattern(identifierType), resolveIdentifier(identifierType), itemIdentifier.getItemId()), 1);
-        if (instances.getTotalRecords() < 1 || instances.getInstances().isEmpty()) {
+        if (instances.getTotalRecords() > 1) {
+          log.error(MULTIPLE_MATCHES_MESSAGE);
+          throw new BulkEditException(MULTIPLE_MATCHES_MESSAGE, ErrorType.ERROR);
+        } else if (instances.getTotalRecords() < 1 || instances.getInstances().isEmpty()) {
           log.error(NO_MATCH_FOUND_MESSAGE);
           throw new BulkEditException(NO_MATCH_FOUND_MESSAGE, ErrorType.ERROR);
         }

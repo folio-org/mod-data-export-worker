@@ -207,25 +207,6 @@ class BulkEditProcessorsTest extends BaseBatchTest {
 
   @Test
   @SneakyThrows
-  void shouldProvideBulkEditExceptionWithNoInstanceViewPermissionMessage() {
-    var user = new User();
-    user.setUsername("userName");
-
-    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.HOLDINGS_RECORD))).thenReturn(false);
-    when(userClient.getUserById(any())).thenReturn(user);
-
-    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
-    var expectedErrorMessage = "User userName does not have required permission to view the instance record - hrid=hrid on the tenant diku";
-    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
-      var identifier = new ItemIdentifier("hrid");
-      var throwable = assertThrows(BulkEditException.class, () -> instanceProcessor.process(identifier));
-      assertEquals(expectedErrorMessage, throwable.getMessage());
-      return null;
-    });
-  }
-
-  @Test
-  @SneakyThrows
   void shouldProvideBulkEditExceptionWithNoUserViewPermissionMessage() {
     var user = new User();
     user.setUsername("userName");

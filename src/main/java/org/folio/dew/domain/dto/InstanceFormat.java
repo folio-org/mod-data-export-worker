@@ -12,6 +12,9 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 
 import java.lang.reflect.Field;
 import java.util.stream.Collectors;
+
+import static org.folio.dew.utils.Constants.MARC_SOURCE;
+
 @Data
 @Builder
 @With
@@ -157,6 +160,6 @@ public class InstanceFormat implements Formatable<org.folio.dew.domain.dto.Insta
 
   @Override
   public boolean isSourceMarc() {
-    return source.equals("MARC");
+    return source.equals(MARC_SOURCE);
   }
 }

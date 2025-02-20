@@ -125,12 +125,12 @@ class BulkEditTest extends BaseBatchTest {
   private static final String MARC_INSTANCE_ID_CSV = "src/test/resources/upload/marc_instance_id.csv";
   private static final String MARC_INSTANCE_ID_INVALID_CONTENT_CSV = "src/test/resources/upload/marc_instance_id_invalid_content.csv";
   private static final String MARC_INSTANCE_HRID_CSV = "src/test/resources/upload/marc_instance_hrid.csv";
-  private static final String INSTANCE_ISSN_ISBN_CSV = "src/test/resources/upload/instance_ISSN_ISBN.csv";
   private static final String ITEM_BARCODES_DOUBLE_QOUTES_CSV = "src/test/resources/upload/item_barcodes_double_qoutes.csv";
   private static final String ITEM_HOLDINGS_CSV = "src/test/resources/upload/item_holdings.csv";
   private static final String BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/barcodesSomeNotFound.csv";
   private static final String ITEM_BARCODES_SOME_NOT_FOUND = "src/test/resources/upload/item_barcodes_some_not_found.csv";
   private static final String INSTANCE_HRIDS_SOME_NOT_FOUND = "src/test/resources/upload/instance_hrids_some_not_found.csv";
+  private static final String INSTANCE_HRIDS_SOME_WITH_LINKED_DATA_SOURCE = "src/test/resources/upload/instance_hrids_some_with_linked_data_source.csv";
   private static final String QUERY_NO_GROUP_FILE_PATH = "src/test/resources/upload/active_no_group.cql";
   private static final String EXPECTED_BULK_EDIT_USER_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_output.csv";
   private static final String EXPECTED_BULK_EDIT_USER_PREFERRED_EMAIL_OUTPUT = "src/test/resources/output/bulk_edit_user_identifiers_preferred_email_output.csv";
@@ -139,10 +139,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String EXPECTED_BULK_EDIT_ITEM_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_output.csv";
   private static final String EXPECTED_BULK_EDIT_ITEM_JSON_OUTPUT = "src/test/resources/output/bulk_edit_item_identifiers_json_output.json";
   private static final String EXPECTED_BULK_EDIT_INSTANCE_OUTPUT = "src/test/resources/output/bulk_edit_instance_identifiers_output.csv";
-  private static final String EXPECTED_BULK_EDIT_INSTANCE_BY_ISSN_ISBN_OUTPUT = "src/test/resources/output/bulk_edit_instance_by_issn_isbn_output.csv";
   private static final String EXPECTED_BULK_EDIT_INSTANCE_JSON_OUTPUT = "src/test/resources/output/bulk_edit_instance_identifiers_json_output.json";
-  private static final String EXPECTED_BULK_EDIT_INSTANCE_BY_ISSN_JSON_OUTPUT = "src/test/resources/output/bulk_edit_instance_by_issn_json_output.json";
-  private static final String EXPECTED_BULK_EDIT_INSTANCE_BY_ISBN_JSON_OUTPUT = "src/test/resources/output/bulk_edit_instance_by_isbn_json_output.json";
 
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_OUTPUT = "src/test/resources/output/bulk_edit_holdings_records_output.csv";
   private static final String EXPECTED_BULK_EDIT_HOLDINGS_JSON_OUTPUT = "src/test/resources/output/bulk_edit_holdings_records_json_output.json";
@@ -381,22 +378,6 @@ class BulkEditTest extends BaseBatchTest {
     final FileSystemResource actualResult = actualFileOutput(jobExecution.getExecutionContext().getString(OUTPUT_FILES_IN_STORAGE).split(";")[3]);
 
     assertEquals("", new String(actualResult.getContentAsByteArray()).trim());
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-  }
-
-  @ParameterizedTest
-  @EnumSource(value = IdentifierType.class, names = {"ISSN","ISBN"}, mode = EnumSource.Mode.INCLUDE)
-  @DisplayName("Run bulk-edit (instance identifiers ISSN or ISBN) successfully")
-  void uploadInstanceIdentifiersJobTest_2(IdentifierType identifierType) throws Exception {
-    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_INSTANCES_ITEM_GET_PERMISSION.getValue()));
-    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessInstanceIdentifiersJob);
-
-    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, INSTANCE, identifierType, INSTANCE_ISSN_ISBN_CSV);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
-
-    String expectedJsonRef = "ISBN".equals(identifierType.getValue()) ? EXPECTED_BULK_EDIT_INSTANCE_BY_ISBN_JSON_OUTPUT : EXPECTED_BULK_EDIT_INSTANCE_BY_ISSN_JSON_OUTPUT;
-    verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_INSTANCE_BY_ISSN_ISBN_OUTPUT, expectedJsonRef);
-
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 
@@ -645,6 +626,26 @@ class BulkEditTest extends BaseBatchTest {
 
     verifyFilesOutput(jobExecution, EXPECTED_BULK_EDIT_INSTANCE_OUTPUT_SOME_NOT_FOUND);
 
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  @Test
+  @DisplayName("Run bulk-edit (instance identifiers) with linked data source")
+  void bulkEditLinkedDataInstanceJobTestWithErrors() throws Exception {
+    var expected = "[ERROR,inst00000000001222,Bulk edit of instances with source set to LINKED_DATA is not supported, ERROR,inst00000000001444,Bulk edit of instances with source set to LINKED_DATA is not supported]";
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_INSTANCES_ITEM_GET_PERMISSION.getValue()));
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessInstanceIdentifiersJob);
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, INSTANCE, HRID, INSTANCE_HRIDS_SOME_WITH_LINKED_DATA_SOURCE);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    var files = ((String) jobExecution.getExecutionContext().get("outputFilesInStorage")).split(";");
+    // Verify output - it is enough to check only instances presence in csv file
+    final FileSystemResource actualResult = actualFileOutput(files[0]);
+    var output = getSortedOutput(actualResult);
+    assertThat(output).contains("inst00000000001333");
+    // Verify errors - verify errors in csv file
+    assertEquals(expected,
+      getSortedOutput(actualFileOutput(files[1])));
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 

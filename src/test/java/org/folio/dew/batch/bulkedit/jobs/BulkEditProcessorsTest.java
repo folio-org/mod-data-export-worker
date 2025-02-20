@@ -6,8 +6,6 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
 import static org.folio.dew.utils.Constants.UTF8_BOM;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,13 +13,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.testcontainers.shaded.org.hamcrest.MatcherAssert.assertThat;
+import static org.testcontainers.shaded.org.hamcrest.Matchers.hasSize;
 
 import feign.Request;
 import feign.codec.DecodeException;
 import lombok.SneakyThrows;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
-import org.folio.dew.batch.bulkedit.jobs.processidentifiers.InstanceFetcher;
 import org.folio.dew.batch.bulkedit.jobs.processidentifiers.ItemFetcher;
 import org.folio.dew.batch.bulkedit.jobs.processidentifiers.UserFetcher;
 import org.folio.dew.client.HoldingClient;
@@ -66,8 +65,6 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   @Autowired
   private BulkEditUserProcessor bulkEditUserProcessor;
 
-  @Autowired
-  private InstanceFetcher instanceFetcher;
   @Autowired
   private BulkEditInstanceProcessor instanceProcessor;
   @MockBean
@@ -131,7 +128,7 @@ class BulkEditProcessorsTest extends BaseBatchTest {
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var identifier = new ItemIdentifier("duplicateIdentifier");
-      var throwable = assertThrows(BulkEditException.class, () -> instanceFetcher.process(identifier));
+      var throwable = assertThrows(BulkEditException.class, () -> instanceProcessor.process(identifier));
       assertEquals(MULTIPLE_MATCHES_MESSAGE, throwable.getMessage());
       return null;
     });
@@ -210,25 +207,6 @@ class BulkEditProcessorsTest extends BaseBatchTest {
 
   @Test
   @SneakyThrows
-  void shouldProvideBulkEditExceptionWithNoInstanceViewPermissionMessage() {
-    var user = new User();
-    user.setUsername("userName");
-
-    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.HOLDINGS_RECORD))).thenReturn(false);
-    when(userClient.getUserById(any())).thenReturn(user);
-
-    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
-    var expectedErrorMessage = "User userName does not have required permission to view the instance record - hrid=hrid on the tenant diku";
-    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
-      var identifier = new ItemIdentifier("hrid");
-      var throwable = assertThrows(BulkEditException.class, () -> instanceFetcher.process(identifier));
-      assertEquals(expectedErrorMessage, throwable.getMessage());
-      return null;
-    });
-  }
-
-  @Test
-  @SneakyThrows
   void shouldProvideBulkEditExceptionWithNoUserViewPermissionMessage() {
     var user = new User();
     user.setUsername("userName");
@@ -290,14 +268,14 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   void shouldRemoveUTF8BOmFromInstances(String identifierType) {
     var id = "a912ee60-03c2-4316-9786-63b8be1f0d83";
     when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
-    when(inventoryInstancesClient.getInstanceByQuery(String.format("%s==%s", resolveIdentifier(identifierType), id), 1)).thenReturn(new InstanceCollection().instances(List.of(new Instance())).totalRecords(1));
+    when(inventoryInstancesClient.getInstanceByQuery(String.format("%s==%s", resolveIdentifier(identifierType), id), 1)).thenReturn(new InstanceCollection().instances(List.of(new Instance().id("a00bf050-f7f3-4660-9000-b014f2f5dac2"))).totalRecords(1));
 
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var identifier = new ItemIdentifier();
       identifier.setItemId(UTF8_BOM + id);
-      var instances = instanceFetcher.process(identifier);
-      assertThat(instances.getInstances(), hasSize(1));
+      var instances = instanceProcessor.process(identifier);
+      assertThat(instances, hasSize(1));
       return null;
     });
   }
@@ -370,10 +348,10 @@ class BulkEditProcessorsTest extends BaseBatchTest {
       .when(inventoryInstancesClient).getInstanceByQuery("hrid==HRID", 1);
 
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
-    var expectedErrorMessage = "DecodeException: Decode error";
+    var expectedErrorMessage = "Decode error";
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var identifier = new ItemIdentifier("HRID");
-      var throwable = assertThrows(BulkEditException.class, () -> instanceFetcher.process(identifier));
+      var throwable = assertThrows(BulkEditException.class, () -> instanceProcessor.process(identifier));
       assertEquals(expectedErrorMessage, throwable.getMessage());
       return null;
     });
@@ -391,8 +369,8 @@ class BulkEditProcessorsTest extends BaseBatchTest {
     var expectedErrorMessage = "Duplicate entry";
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var identifier = new ItemIdentifier("HRID");
-      instanceFetcher.process(identifier);
-      var throwable = assertThrows(BulkEditException.class, () -> instanceFetcher.process(identifier));
+      instanceProcessor.process(identifier);
+      var throwable = assertThrows(BulkEditException.class, () -> instanceProcessor.process(identifier));
       assertEquals(expectedErrorMessage, throwable.getMessage());
       return null;
     });

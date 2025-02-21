@@ -69,7 +69,7 @@ public class Constants {
   public static final String DUPLICATES_ACROSS_TENANTS = "Duplicates across tenants";
   public static final String DUPLICATE_ENTRY = "Duplicate entry";
   public static final String CANNOT_GET_RECORD = "Cannot get data from %s due to %s";
-  public static final String LINKED_DATA_SOURCE_IS_NOT_SUPPORTED = "Bulk edit of instances with source set to LINKED_DATA is not supported";
+  public static final String LINKED_DATA_SOURCE_IS_NOT_SUPPORTED = "Bulk edit of instances with source set to LINKED_DATA is not supported.";
 
   public static final String MODULE_NAME = "BULKEDIT";
   public static final String BULKEDIT_DIR_NAME = "bulk_edit";

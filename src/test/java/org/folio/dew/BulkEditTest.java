@@ -632,7 +632,7 @@ class BulkEditTest extends BaseBatchTest {
   @Test
   @DisplayName("Run bulk-edit (instance identifiers) with linked data source")
   void bulkEditLinkedDataInstanceJobTestWithErrors() throws Exception {
-    var expected = "[ERROR,inst00000000001222,Bulk edit of instances with source set to LINKED_DATA is not supported, ERROR,inst00000000001444,Bulk edit of instances with source set to LINKED_DATA is not supported]";
+    var expected = "[ERROR,inst00000000001222,Bulk edit of instances with source set to LINKED_DATA is not supported., ERROR,inst00000000001444,Bulk edit of instances with source set to LINKED_DATA is not supported]";
     when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_INSTANCES_ITEM_GET_PERMISSION.getValue()));
     JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessInstanceIdentifiersJob);
     final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, INSTANCE, HRID, INSTANCE_HRIDS_SOME_WITH_LINKED_DATA_SOURCE);

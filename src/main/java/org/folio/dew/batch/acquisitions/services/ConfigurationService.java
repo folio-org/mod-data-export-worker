@@ -24,15 +24,6 @@ public class ConfigurationService {
   private final ConfigurationClient configurationClient;
   private final ObjectMapper objectMapper;
 
-  private ModelConfiguration getConfigById(String configId) {
-    try {
-      return configurationClient.getConfigById(configId);
-    } catch (NotFoundException e) {
-      logger.error("getConfigById:: Couldn't fetch configuration entry by id: '{}'", configId, e);
-      throw new NotFoundException("Configuration entry not found for id: " + configId, e);
-    }
-  }
-
   @Cacheable(cacheNames = "addressConfiguration")
   public String getAddressConfig(UUID shipToConfigId) {
     if (shipToConfigId == null) {
@@ -40,7 +31,13 @@ public class ConfigurationService {
       return "";
     }
 
-    var addressConfig = getConfigById(shipToConfigId.toString());
+    ModelConfiguration addressConfig;
+    try {
+      addressConfig = getConfigById(shipToConfigId.toString());
+    } catch (NotFoundException e) {
+      logger.warn("getAddressConfig:: cannot find config by id: '{}'", shipToConfigId);
+      return "";
+    }
     if (addressConfig.getValue() == null) {
       logger.warn("getAddressConfig:: 'address config with id '{}' is not found", shipToConfigId);
       return "";
@@ -51,6 +48,14 @@ public class ConfigurationService {
     } catch (JsonProcessingException e) {
       logger.error("getAddressConfig:: Couldn't convert configValue: {} to json", addressConfig, e);
       return "";
+    }
+  }
+
+  private ModelConfiguration getConfigById(String configId) {
+    try {
+      return configurationClient.getConfigById(configId);
+    } catch (NotFoundException e) {
+      throw new NotFoundException("Configuration entry not found for id: " + configId, e);
     }
   }
 }

@@ -27,35 +27,26 @@ public class ConfigurationService {
   @Cacheable(cacheNames = "addressConfiguration")
   public String getAddressConfig(UUID shipToConfigId) {
     if (shipToConfigId == null) {
-      logger.warn("getAddressConfig:: 'shipTo' field of composite purchase order is null");
+      logger.warn("getAddressConfig:: shipToConfigId is null");
       return "";
     }
-
-    ModelConfiguration addressConfig;
+    ModelConfiguration config;
     try {
-      addressConfig = getConfigById(shipToConfigId.toString());
+      config = configurationClient.getConfigById(shipToConfigId.toString());
     } catch (NotFoundException e) {
-      logger.warn("getAddressConfig:: cannot find config by id: '{}'", shipToConfigId);
+      logger.warn("getAddressConfig:: Cannot find config by id: '{}'", shipToConfigId);
       return "";
     }
-    if (addressConfig.getValue() == null) {
-      logger.warn("getAddressConfig:: 'address config with id '{}' is not found", shipToConfigId);
+    if (config.getValue() == null) {
+      logger.warn("getAddressConfig:: Address on the config with id '{}' is not found", shipToConfigId);
       return "";
     }
     try {
-      JsonNode valueJsonObject = objectMapper.readTree(addressConfig.getValue());
+      JsonNode valueJsonObject = objectMapper.readTree(config.getValue());
       return valueJsonObject.has("address") ? valueJsonObject.get("address").asText() : "";
     } catch (JsonProcessingException e) {
-      logger.error("getAddressConfig:: Couldn't convert configValue: {} to json", addressConfig, e);
+      logger.error("getAddressConfig:: Cannot convert config value: {} to json", config, e);
       return "";
-    }
-  }
-
-  private ModelConfiguration getConfigById(String configId) {
-    try {
-      return configurationClient.getConfigById(configId);
-    } catch (NotFoundException e) {
-      throw new NotFoundException("Configuration entry not found for id: " + configId, e);
     }
   }
 }

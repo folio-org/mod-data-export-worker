@@ -44,6 +44,10 @@ public class EdifactExportJobConfig {
       .listener(ediExportJobCompletionListener)
       .start(mapToFileStep)
       .next(saveToMinIOStep)
+      // FTP and Export History are optional independent steps when the integration type is "Ordering"
+      // both FTP and/or Export History can be enabled, whereas when integration type is "Claiming"
+      // only the FTP can be used when the transmission method is "FTP". The syntax below tries to
+      // account for all branching choices within the limit of Spring Batch conditional flow
       .next(ftpStepDecider)
         .on(PROCESS.getStatus()).to(saveToFTPStep)
         .from(saveToFTPStep)

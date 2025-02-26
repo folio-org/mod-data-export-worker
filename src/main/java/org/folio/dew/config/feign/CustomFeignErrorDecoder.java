@@ -4,11 +4,15 @@ import static org.folio.dew.utils.Constants.CANNOT_GET_RECORD;
 
 import feign.Response;
 import feign.codec.ErrorDecoder;
+import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.springframework.http.HttpStatus;
 
+import java.io.IOException;
+
+@Log4j2
 public class CustomFeignErrorDecoder implements ErrorDecoder {
 
   @Override
@@ -16,6 +20,12 @@ public class CustomFeignErrorDecoder implements ErrorDecoder {
     String requestUrl = response.request().url();
     if (HttpStatus.NOT_FOUND.value() == response.status()) {
       return new NotFoundException(requestUrl);
+    }
+    try {
+      log.info("response: {}", response);
+      log.info("response body: {}", new String(response.body().asInputStream().readAllBytes()));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
     String reason = response.reason() != null ? response.reason() : "Unknown error";
     return new BulkEditException(CANNOT_GET_RECORD.formatted(requestUrl, reason), ErrorType.ERROR);

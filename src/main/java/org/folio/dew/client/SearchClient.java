@@ -9,7 +9,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "search", configuration = {FeignEncoderConfiguration.class, FeignClientConfiguration.class})
+@FeignClient(name = "search")
 public interface SearchClient {
   @PostMapping(value = "/consortium/batch/items", headers = {"Accept=application/json"})
   ConsortiumItemCollection getConsortiumItemCollection(@RequestBody BatchIdsDto batchIdsDto);

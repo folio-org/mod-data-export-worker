@@ -62,14 +62,14 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.springframework.test.util.TestSocketUtils;
 import org.springframework.test.web.servlet.MockMvc;
@@ -105,27 +105,27 @@ public abstract class BaseBatchTest {
   protected ObjectMapper objectMapper;
   @Autowired
   protected RemoteFilesStorage remoteFilesStorage;
-  @SpyBean
+  @MockitoSpyBean
   protected JobCommandsReceiverService jobCommandsReceiverService;
-  @MockBean
+  @MockitoBean
   @Qualifier("exportJobManager")
   protected ExportJobManager exportJobManager;
-  @MockBean
+  @MockitoBean
   @Qualifier("exportJobManagerSync")
   protected ExportJobManagerSync exportJobManagerSync;
   @Value("${spring.application.name}")
   protected String springApplicationName;
-  @MockBean
+  @MockitoBean
   private SearchClient searchClient;
-  @MockBean
+  @MockitoBean
   private ConsortiaClient consortiaClient;
-  @MockBean
+  @MockitoBean
   protected OkapiUserPermissionsClient okapiUserPermissionsClient;
-  @MockBean
+  @MockitoBean
   public InstanceClient instanceClient;
-  @MockBean
+  @MockitoBean
   public InstanceNoteTypesClient instanceNoteTypesClient;
-  @MockBean
+  @MockitoBean
   public ElectronicAccessRelationshipClient relationshipClient;
 
   static {

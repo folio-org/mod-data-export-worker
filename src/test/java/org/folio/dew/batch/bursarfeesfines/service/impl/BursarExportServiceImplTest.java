@@ -35,8 +35,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.MockBeans;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -47,33 +45,33 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import lombok.extern.log4j.Log4j2;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBeans;
 
 @ExtendWith({ MockitoExtension.class })
 @SpringBootTest(classes = { JacksonConfiguration.class, BursarExportServiceImpl.class })
-@MockBeans({ @MockBean(AccountClient.class), @MockBean(InventoryClient.class), @MockBean(UserClient.class),
-    @MockBean(AccountBulkClient.class), @MockBean(TransferClient.class), @MockBean(ServicePointClient.class), })
 @Log4j2
 class BursarExportServiceImplTest {
 
   @Autowired
   private BursarExportService service;
 
-  @MockBean
+  @MockitoBean
   private UserClient userClient;
 
-  @MockBean
+  @MockitoBean
   private TransferClient transferClient;
 
-  @MockBean
+  @MockitoBean
   private ServicePointClient servicePointClient;
 
-  @MockBean
+  @MockitoBean
   private AccountClient accountClient;
 
-  @MockBean
+  @MockitoBean
   private AccountBulkClient bulkClient;
 
-  @MockBean
+  @MockitoBean
   private InventoryClient inventoryClient;
 
   @Test

@@ -9,7 +9,7 @@ import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.any;
@@ -22,11 +22,11 @@ import static org.mockito.Mockito.when;
 
 class UserReferenceServiceTest extends BaseBatchTest {
 
-  @MockBean
+  @MockitoBean
   private DepartmentClient departmentClient;
-  @MockBean
+  @MockitoBean
   private GroupClient groupClient;
-  @MockBean
+  @MockitoBean
   private BulkEditProcessingErrorsService errorService;
   @Autowired
   private UserReferenceService userReferenceService;

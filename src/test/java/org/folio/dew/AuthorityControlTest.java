@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
-import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.File;
@@ -38,8 +37,8 @@ import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 @Log4j2
 class AuthorityControlTest extends BaseBatchTest {
@@ -59,7 +58,7 @@ class AuthorityControlTest extends BaseBatchTest {
   private FileNameResolver fileNameResolver;
   @Autowired
   private RemoteFilesStorage remoteFilesStorage;
-  @SpyBean
+  @MockitoSpyBean
   private KafkaService kafkaService;
 
   @Test
@@ -137,7 +136,7 @@ class AuthorityControlTest extends BaseBatchTest {
     final String presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(fileInStorage);
     final FileSystemResource actualOutput = actualFileOutput(presignedUrl);
     FileSystemResource expectedOutput = new FileSystemResource(expectedFile);
-    assertFileEquals(expectedOutput, actualOutput);
+    assertEquals(expectedOutput.getContentAsByteArray(), actualOutput.getContentAsByteArray());
   }
 
   private void verifyJobEvent() {

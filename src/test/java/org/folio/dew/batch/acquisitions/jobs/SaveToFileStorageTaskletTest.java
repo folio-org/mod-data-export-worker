@@ -32,21 +32,21 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 
 import lombok.SneakyThrows;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 class SaveToFileStorageTaskletTest extends BaseBatchTest {
 
   @Autowired
   @Qualifier("edifactOrdersExportJob")
   private Job edifactExportJob;
-  @MockBean
+  @MockitoBean
   private SFTPObjectStorageRepository sftpObjectStorageRepository;
-  @MockBean
+  @MockitoBean
   private FTPObjectStorageRepository ftpObjectStorageRepository;
-  @MockBean
+  @MockitoBean
   private OrganizationsService organizationsService;
 
   @Override

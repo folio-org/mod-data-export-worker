@@ -31,10 +31,10 @@ import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 abstract class MapToEdifactTaskletAbstractTest extends BaseBatchTest {
 
@@ -45,13 +45,13 @@ abstract class MapToEdifactTaskletAbstractTest extends BaseBatchTest {
   protected static final String SAMPLE_EDI_ORDERS_EXPORT = "edifact/edifactOrdersExport.json";
   private static final String SAMPLE_EDI_ORDERS_EXPORT_MISSING_PORT = "edifact/edifactOrdersExportWithoutPort.json";
 
-  @MockBean
+  @MockitoBean
   protected OrdersService ordersService;
-  @MockBean
+  @MockitoBean
   protected OrganizationsService organizationsService;
-  @MockBean
+  @MockitoBean
   protected DataExportSpringClient dataExportSpringClient;
-  @MockBean
+  @MockitoBean
   @Qualifier("edifactMapper")
   protected ExportResourceMapper edifactMapper;
   @Autowired

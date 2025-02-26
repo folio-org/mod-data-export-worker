@@ -19,8 +19,9 @@ public class ExportHistoryTaskletDecider extends ExportStepDecider {
 
   @Override
   public ExportStepDecision decide(VendorEdiOrdersExportConfig exportConfig, JobExecution jobExecution, StepExecution stepExecution) {
-    // Always execute if the integration type is not ORDERING, or execute for other integration types if the transmission method is FTP
+    // Always execute if the integration type is ORDERING
     if (exportConfig.getIntegrationType() == ORDERING) {
+      log.info("decide:: Processing step: {}", stepName);
       return ExportStepDecision.PROCESS;
     }
     log.info("decide:: Integration type is not ORDERING, skipping the step: {}", stepName);

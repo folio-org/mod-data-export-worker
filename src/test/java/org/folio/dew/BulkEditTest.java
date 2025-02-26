@@ -34,8 +34,8 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -176,9 +176,9 @@ class BulkEditTest extends BaseBatchTest {
   private Job bulkEditItemCqlJob;
   @Autowired
   private LocalFilesStorage localFilesStorage;
-  @MockBean
+  @MockitoBean
   private KafkaService kafkaService;
-  @MockBean
+  @MockitoBean
   private UserPermissionsService userPermissionsService;
 
   @ParameterizedTest

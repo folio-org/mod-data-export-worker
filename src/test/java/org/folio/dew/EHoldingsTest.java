@@ -27,8 +27,8 @@ import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -50,7 +50,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
-import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 @Log4j2
 class EHoldingsTest extends BaseBatchTest {
@@ -64,7 +63,7 @@ class EHoldingsTest extends BaseBatchTest {
   private EHoldingsResourceRepository resourceRepository;
   @Autowired
   private RemoteFilesStorage remoteFilesStorage;
-  @SpyBean
+  @MockitoSpyBean
   private KafkaService kafkaService;
 
   private final static String RESOURCE_ID = "1-22-333";
@@ -270,7 +269,7 @@ class EHoldingsTest extends BaseBatchTest {
     final String presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(fileInStorage);
     final FileSystemResource actualOutput = actualFileOutput(presignedUrl);
     FileSystemResource expectedOutput = new FileSystemResource(expectedFile);
-    assertFileEquals(expectedOutput, actualOutput);
+    assertEquals(expectedOutput.getContentAsByteArray(), actualOutput.getContentAsByteArray());
   }
 
   private void verifyJobEvent() {

@@ -28,21 +28,21 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.annotation.DirtiesContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import lombok.SneakyThrows;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 class SaveToMinioTaskletTest extends BaseBatchTest {
   @Autowired
   @Qualifier("edifactOrdersExportJob")
   private Job edifactExportJob;
-  @MockBean
+  @MockitoBean
   private OrganizationsService organizationsService;
-  @SpyBean
+  @MockitoSpyBean
   private RemoteFilesStorage remoteFilesStorage;
 
   @Override

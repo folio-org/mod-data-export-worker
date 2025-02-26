@@ -23,10 +23,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 
-@RequiredArgsConstructor
-@Component
-@StepScope
 @Log4j2
+@StepScope
+@Component
+@RequiredArgsConstructor
 public class SaveToFileStorageTasklet implements Tasklet {
 
   private static final String SFTP_PROTOCOL = "sftp://";

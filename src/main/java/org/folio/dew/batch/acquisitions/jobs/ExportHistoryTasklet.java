@@ -31,10 +31,10 @@ import org.springframework.stereotype.Component;
 
 import lombok.extern.log4j.Log4j2;
 
-@RequiredArgsConstructor
-@Component
-@StepScope
 @Log4j2
+@StepScope
+@Component
+@RequiredArgsConstructor
 public class ExportHistoryTasklet implements Tasklet {
 
   private final KafkaService kafkaService;
@@ -43,6 +43,7 @@ public class ExportHistoryTasklet implements Tasklet {
 
   @Value("#{jobParameters['jobId']}")
   private String jobId;
+
   @Override
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     var exportHistory = buildExportHistory(chunkContext);

@@ -16,20 +16,20 @@ class ConfigurationServiceTest extends BaseBatchTest {
   @Autowired
   private ConfigurationService configurationService;
 
-  static Stream<Arguments> provideAddressConfigData() {
+  static Stream<Arguments> testGetAddressConfigArgs() {
     return Stream.of(
-      Arguments.of("1947e709-8d60-42e2-8dde-7566ae446d24", "Address 123"), // existing config
-      Arguments.of(null, ""), // null config ID
-      Arguments.of("116a38c2-cac3-4f08-816b-afebfebe453d", ""), // non-existing config
-      Arguments.of("8ea92aa2-7b11-4f0e-9ed2-ab8fe281f37f", "") // config without address value
+      Arguments.of(null, ""), // No config id
+      Arguments.of("1947e709-8d60-42e2-8dde-7566ae446d24", "Address 123"), // Config with address
+      Arguments.of("8ea92aa2-7b11-4f0e-9ed2-ab8fe281f37f", ""), // Config without address
+      Arguments.of("116a38c2-cac3-4f08-816b-afebfebe453d", ""), // Config without a body
+      Arguments.of("c5cefe49-e4d4-433e-b286-24ffd935b043", "")  // No config
     );
   }
 
   @ParameterizedTest
-  @MethodSource("provideAddressConfigData")
+  @MethodSource("testGetAddressConfigArgs")
   void testGetAddressConfig(String addressConfigId, String expectedAddress) {
-    UUID configId = addressConfigId != null ? UUID.fromString(addressConfigId) : null;
-    String address = configurationService.getAddressConfig(configId);
-    assertEquals(expectedAddress, address);
+    var configId = addressConfigId != null ? UUID.fromString(addressConfigId) : null;
+    assertEquals(expectedAddress, configurationService.getAddressConfig(configId));
   }
 }

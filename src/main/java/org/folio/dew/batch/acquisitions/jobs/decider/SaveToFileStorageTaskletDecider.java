@@ -20,11 +20,12 @@ public class SaveToFileStorageTaskletDecider extends ExportStepDecider {
 
   @Override
   public ExportStepDecision decide(VendorEdiOrdersExportConfig exportConfig, JobExecution jobExecution, StepExecution stepExecution) {
-    // Always execute if the integration type is ORDERING, or other integration type if the transmission method is FTP
+    // Always execute if the integration type is ORDERING, or execute for other integration type if the transmission method is FTP
     if (exportConfig.getIntegrationType() == ORDERING || exportConfig.getTransmissionMethod() == FTP) {
+      log.info("decide:: Processing step: {}", stepName);
       return ExportStepDecision.PROCESS;
     }
-    log.info("decide:: Transmission method is not FTP, skipping the step: {}", stepName);
+    log.info("decide:: Integration type is not ORDERING or Transmission method is not FTP, skipping the step: {}", stepName);
     return ExportStepDecision.SKIP;
   }
 

@@ -24,32 +24,28 @@ public class ConfigurationService {
   private final ConfigurationClient configurationClient;
   private final ObjectMapper objectMapper;
 
-  private ModelConfiguration getConfigById(String configId) {
-    try {
-      return configurationClient.getConfigById(configId);
-    } catch (NotFoundException e) {
-      logger.error("getConfigById:: Couldn't fetch configuration entry by id: '{}'", configId, e);
-      throw new NotFoundException("Configuration entry not found for id: " + configId, e);
-    }
-  }
-
   @Cacheable(cacheNames = "addressConfiguration")
   public String getAddressConfig(UUID shipToConfigId) {
     if (shipToConfigId == null) {
-      logger.warn("getAddressConfig:: 'shipTo' field of composite purchase order is null");
+      logger.warn("getAddressConfig:: shipToConfigId is null");
       return "";
     }
-
-    var addressConfig = getConfigById(shipToConfigId.toString());
-    if (addressConfig.getValue() == null) {
-      logger.warn("getAddressConfig:: 'address config with id '{}' is not found", shipToConfigId);
+    ModelConfiguration config;
+    try {
+      config = configurationClient.getConfigById(shipToConfigId.toString());
+    } catch (NotFoundException e) {
+      logger.warn("getAddressConfig:: Cannot find config by id: '{}'", shipToConfigId);
+      return "";
+    }
+    if (config.getValue() == null) {
+      logger.warn("getAddressConfig:: Address on the config with id '{}' is not found", shipToConfigId);
       return "";
     }
     try {
-      JsonNode valueJsonObject = objectMapper.readTree(addressConfig.getValue());
+      JsonNode valueJsonObject = objectMapper.readTree(config.getValue());
       return valueJsonObject.has("address") ? valueJsonObject.get("address").asText() : "";
     } catch (JsonProcessingException e) {
-      logger.error("getAddressConfig:: Couldn't convert configValue: {} to json", addressConfig, e);
+      logger.error("getAddressConfig:: Cannot convert config value: {} to json", config, e);
       return "";
     }
   }

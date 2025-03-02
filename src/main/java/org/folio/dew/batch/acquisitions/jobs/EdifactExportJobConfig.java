@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import org.folio.dew.batch.acquisitions.jobs.decider.ExportHistoryTaskletDecider;
-import org.folio.dew.batch.acquisitions.jobs.decider.ExportStepDecision;
 import org.folio.dew.batch.acquisitions.jobs.decider.SaveToFileStorageTaskletDecider;
 import org.folio.dew.domain.dto.ExportType;
 import org.springframework.batch.core.Job;
@@ -22,6 +21,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static org.folio.dew.batch.acquisitions.jobs.decider.ExportStepDecision.PROCESS;
+import static org.folio.dew.batch.acquisitions.jobs.decider.ExportStepDecision.SKIP;
+
 @Configuration
 @Log4j2
 @RequiredArgsConstructor
@@ -32,8 +34,8 @@ public class EdifactExportJobConfig {
   private Job constructEdifactExportJob(JobBuilder jobBuilder,
                                         EdiExportJobCompletionListener ediExportJobCompletionListener,
                                         Step mapToFileStep,
-                                        Step saveToFTPStep,
                                         Step saveToMinIOStep,
+                                        Step saveToFTPStep,
                                         Step createExportHistoryRecordsStep,
                                         Map<String, JobExecutionDecider> optionalStepDeciders) {
     var ftpStepDecider = optionalStepDeciders.get(saveToFTPStep.getName());
@@ -42,27 +44,38 @@ public class EdifactExportJobConfig {
       .listener(ediExportJobCompletionListener)
       .start(mapToFileStep)
       .next(saveToMinIOStep)
-      .next(ftpStepDecider).on(ExportStepDecision.PROCESS.getStatus()).to(saveToFTPStep)
-      .from(ftpStepDecider).on(ExportStepDecision.SKIP.getStatus()).to(exportHistoryStepDecider)
-      .next(exportHistoryStepDecider).on(ExportStepDecision.PROCESS.getStatus()).to(createExportHistoryRecordsStep)
-      .from(exportHistoryStepDecider).on(ExportStepDecision.SKIP.getStatus()).end()
-      .end().build();
+      // FTP and Export History are optional independent steps when the integration type is "Ordering"
+      // both FTP and/or Export History can be enabled, whereas when integration type is "Claiming"
+      // only the FTP can be used when the transmission method is "FTP". The syntax below tries to
+      // account for all branching choices within the limit of Spring Batch conditional flow
+      .next(ftpStepDecider)
+        .on(PROCESS.getStatus()).to(saveToFTPStep)
+        .from(saveToFTPStep)
+          .next(exportHistoryStepDecider)
+            .on(PROCESS.getStatus()).to(createExportHistoryRecordsStep)
+            .from(exportHistoryStepDecider).on(SKIP.getStatus()).end()
+        .from(ftpStepDecider).on(SKIP.getStatus()).to(exportHistoryStepDecider)
+      .next(exportHistoryStepDecider)
+        .on(PROCESS.getStatus()).to(createExportHistoryRecordsStep)
+        .from(exportHistoryStepDecider).on(SKIP.getStatus()).end()
+      .end()
+      .build();
   }
 
   @Bean
   public Job edifactOrdersExportJob(EdiExportJobCompletionListener ediExportJobCompletionListener, JobRepository jobRepository,
-                                    Step mapToEdifactOrdersStep, Step saveToFTPStep, Step saveToMinIOStep, Step createExportHistoryRecordsStep,
+                                    Step mapToEdifactOrdersStep, Step saveToMinIOStep, Step saveToFTPStep, Step createExportHistoryRecordsStep,
                                     Map<String, JobExecutionDecider> deciders) {
     return constructEdifactExportJob(new JobBuilder(ExportType.EDIFACT_ORDERS_EXPORT.getValue(), jobRepository),
-      ediExportJobCompletionListener, mapToEdifactOrdersStep, saveToFTPStep, saveToMinIOStep, createExportHistoryRecordsStep, deciders);
+      ediExportJobCompletionListener, mapToEdifactOrdersStep, saveToMinIOStep, saveToFTPStep, createExportHistoryRecordsStep, deciders);
   }
 
   @Bean
   public Job edifactClaimsExportJob(EdiExportJobCompletionListener ediExportJobCompletionListener, JobRepository jobRepository,
-                                    Step mapToEdifactClaimsStep, Step saveToFTPStep, Step saveToMinIOStep, Step createExportHistoryRecordsStep,
+                                    Step mapToEdifactClaimsStep, Step saveToMinIOStep, Step saveToFTPStep, Step createExportHistoryRecordsStep,
                                     Map<String, JobExecutionDecider> deciders) {
     return constructEdifactExportJob(new JobBuilder(ExportType.CLAIMS.getValue(), jobRepository),
-      ediExportJobCompletionListener, mapToEdifactClaimsStep, saveToFTPStep, saveToMinIOStep, createExportHistoryRecordsStep, deciders);
+      ediExportJobCompletionListener, mapToEdifactClaimsStep, saveToMinIOStep, saveToFTPStep, createExportHistoryRecordsStep, deciders);
   }
 
   @Bean
@@ -106,10 +119,13 @@ public class EdifactExportJobConfig {
   }
 
   @Bean
-  public Map<String, JobExecutionDecider> optionalStepDeciders(Step saveToFTPStep, Step createExportHistoryRecordsStep, ObjectMapper objectMapper) {
-    return Map.of(
-      saveToFTPStep.getName(), new SaveToFileStorageTaskletDecider(objectMapper, saveToFTPStep.getName()),
-      createExportHistoryRecordsStep.getName(), new ExportHistoryTaskletDecider(objectMapper, createExportHistoryRecordsStep.getName())
+  public Map<String, JobExecutionDecider> optionalStepDeciders(Step saveToFTPStep, Step createExportHistoryRecordsStep,
+                                                               ObjectMapper objectMapper) {
+    return Map.ofEntries(
+      Map.entry(saveToFTPStep.getName(),
+        new SaveToFileStorageTaskletDecider(objectMapper, saveToFTPStep.getName())),
+      Map.entry(createExportHistoryRecordsStep.getName(),
+        new ExportHistoryTaskletDecider(objectMapper, createExportHistoryRecordsStep.getName()))
     );
   }
 

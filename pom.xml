@@ -50,9 +50,9 @@
         <refresh-presigned-url.yaml.file>
           ${project.basedir}/src/main/resources/swagger.api/refresh-presigned-url.yaml
         </refresh-presigned-url.yaml.file>
-        <folio-spring-base.version>9.0.0-SNAPSHOT</folio-spring-base.version>
+        <folio-spring-base.version>9.0.0</folio-spring-base.version>
         <folio-service-tools.version>4.1.1</folio-service-tools.version>
-        <folio-spring-cql.version>9.0.0-SNAPSHOT</folio-spring-cql.version>
+        <folio-spring-cql.version>9.0.0</folio-spring-cql.version>
         <folio-module-descriptor-validator.version>1.0.0</folio-module-descriptor-validator.version>
         <minio.version>8.5.15</minio.version>
         <openapi-generator.version>6.2.1</openapi-generator.version>
@@ -234,16 +234,11 @@
         <artifactId>hibernate-validator</artifactId>
         <scope>compile</scope>
       </dependency>
+
       <dependency>
         <groupId>jakarta.validation</groupId>
         <artifactId>jakarta.validation-api</artifactId>
         <version>3.1.0-M1</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.marc4j</groupId>
-        <artifactId>marc4j</artifactId>
-        <version>${marc4j.version}</version>
       </dependency>
 
       <dependency>

@@ -128,9 +128,9 @@ public class BulkEditFileAssembler implements StepExecutionAggregator {
   private String getColumnHeaders(StepExecution stepExecution) {
     var jobName = stepExecution.getJobExecution().getJobInstance().getJobName();
     if (jobName.endsWith(INSTANCE.getValue())) {
-      return UTF8_BOM + InstanceFormat.getInstanceColumnHeaders();
+      return UTF8_BOM + InstanceFormat.getInstanceColumnHeaders() + NEW_LINE;
     } else if (jobName.endsWith(HOLDINGS_RECORD.getValue())) {
-      return UTF8_BOM +  HoldingsFormat.getHoldingsColumnHeaders() + NEW_LINE;
+      return UTF8_BOM + HoldingsFormat.getHoldingsColumnHeaders() + NEW_LINE;
     } else if (jobName.endsWith(ITEM.getValue())) {
       return UTF8_BOM + ItemFormat.getItemColumnHeaders() + NEW_LINE;
     } else if (jobName.endsWith(USER.getValue())) {

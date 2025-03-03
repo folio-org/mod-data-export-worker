@@ -78,7 +78,8 @@ class CirculationLogTest extends BaseBatchTest {
 
     final FileSystemResource actualChargeFeesFinesOutput = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(EXPECTED_CIRCULATION_OUTPUT);
-    assertEquals(expectedCharges.getContentAsByteArray(), actualChargeFeesFinesOutput.getContentAsByteArray());
+
+    assertThat(expectedCharges.getFile()).hasSameBinaryContentAs(actualChargeFeesFinesOutput.getFile());
     assertEquals(expectedNameInStorage, fileInStorage);
   }
 

@@ -136,7 +136,8 @@ class AuthorityControlTest extends BaseBatchTest {
     final String presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(fileInStorage);
     final FileSystemResource actualOutput = actualFileOutput(presignedUrl);
     FileSystemResource expectedOutput = new FileSystemResource(expectedFile);
-    assertEquals(expectedOutput.getContentAsByteArray(), actualOutput.getContentAsByteArray());
+
+    assertThat(expectedOutput.getFile()).hasSameBinaryContentAs(actualOutput.getFile());
   }
 
   private void verifyJobEvent() {

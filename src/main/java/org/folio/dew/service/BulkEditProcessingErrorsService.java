@@ -30,7 +30,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -61,7 +60,7 @@ public class BulkEditProcessingErrorsService {
       return;
     }
     var csvFileName = getCsvFileName(jobId, fileName);
-    var errorMessages = reasonForError.getMessage().split(COMMA_SEPARATOR);
+    var errorMessages = reasonForError.getMessage().split(COMMA_SEPARATOR, 1);
     for (var errorMessage: errorMessages) {
       var errorLine = "%s%s%s%s%s%s".formatted(errorType, COMMA_SEPARATOR, affectedIdentifier, COMMA_SEPARATOR, errorMessage, System.lineSeparator());
       var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
@@ -100,7 +99,7 @@ public class BulkEditProcessingErrorsService {
     if (localFilesStorage.exists(pathToCSVFile)) {
       try (var lines = localFilesStorage.lines(pathToCSVFile)) {
         var errors = lines.limit(limit)
-          .map(Pattern.compile(",")::split)
+          .map(s -> s.split(COMMA_SEPARATOR, 3))
           .map(message -> new Error().message("%s%s%s".formatted(message[IDX_ERROR_IDENTIFIER], COMMA_SEPARATOR, message[IDX_ERROR_MSG]))
             .type(ErrorType.fromValue(message[IDX_ERROR_TYPE])))
           .collect(toList());

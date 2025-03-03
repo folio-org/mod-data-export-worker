@@ -38,7 +38,7 @@ public class Constants {
   public static final String FILE_NAME = "fileName";
   public static final String TEMP_IDENTIFIERS_FILE_NAME = "tempIdentifiersFileName";
   public static final String TOTAL_CSV_LINES = "totalCsvLines";
-  public static final String NUMBER_OF_WRITTEN_RECORDS = "numberOfWrittenRecords";
+  public static final String NUMBER_OF_PROCESSED_IDENTIFIERS = "numberOfProcessedIdentifiers";
   public static final String JOB_ID = "jobId";
   public static final String EXPORT_TYPE = "exportType";
   public static final String ENTITY_TYPE = "entityType";
@@ -70,6 +70,8 @@ public class Constants {
   public static final String DUPLICATE_ENTRY = "Duplicate entry";
   public static final String CANNOT_GET_RECORD = "Cannot get data from %s due to %s";
   public static final String LINKED_DATA_SOURCE_IS_NOT_SUPPORTED = "Bulk edit of instances with source set to LINKED_DATA is not supported.";
+  public static final String MULTIPLE_SRS = "Multiple SRS records are associated with the instance. The following SRS have been identified: %s.";
+  public static final String SRS_MISSING = "SRS record associated with the instance is missing.";
 
   public static final String MODULE_NAME = "BULKEDIT";
   public static final String BULKEDIT_DIR_NAME = "bulk_edit";

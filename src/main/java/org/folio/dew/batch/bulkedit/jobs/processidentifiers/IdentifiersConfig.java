@@ -20,21 +20,15 @@ import org.springframework.core.io.FileSystemResource;
 public class IdentifiersConfig {
   @Bean
   @StepScope
-  public SynchronizedItemStreamReader<ItemIdentifier> csvItemIdentifierReader(
-    @Value("#{jobParameters['" + TEMP_IDENTIFIERS_FILE_NAME + "']}") String uploadedFileName) {
-    var reader = new SynchronizedItemStreamReader<ItemIdentifier>();
-    reader.setDelegate(synchronizedCsvItemIdentifierReader1(uploadedFileName));
-    return reader;
-  }
-
-  @Bean
-  @StepScope
-  public FlatFileItemReader<ItemIdentifier> synchronizedCsvItemIdentifierReader1(
-    @Value("#{jobParameters['" + TEMP_IDENTIFIERS_FILE_NAME + "']}") String uploadedFileName) {
+  public FlatFileItemReader<ItemIdentifier> csvItemIdentifierReader(
+    @Value("#{jobParameters['" + TEMP_IDENTIFIERS_FILE_NAME + "']}") String uploadedFileName,
+    @Value("#{stepExecutionContext['offset']}") Long offset,
+    @Value("#{stepExecutionContext['limit']}") Long limit) {
     return new FlatFileItemReaderBuilder<ItemIdentifier>()
-      .name("userItemIdentifierReader")
+      .name("csvItemIdentifierReader")
       .resource(new FileSystemResource(uploadedFileName))
-      .linesToSkip(0)
+      .linesToSkip(Math.toIntExact(offset))
+      .maxItemCount(Math.toIntExact(limit))
       .lineMapper(lineMapper())
       .build();
   }

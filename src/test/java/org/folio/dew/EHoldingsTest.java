@@ -2,6 +2,7 @@ package org.folio.dew;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.FileUtils;
 import org.folio.de.entity.EHoldingsPackage;
 import org.folio.de.entity.EHoldingsResource;
 import org.folio.de.entity.JobCommand;
@@ -47,6 +48,7 @@ import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESO
 import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -269,7 +271,7 @@ class EHoldingsTest extends BaseBatchTest {
     final String presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(fileInStorage);
     final FileSystemResource actualOutput = actualFileOutput(presignedUrl);
     FileSystemResource expectedOutput = new FileSystemResource(expectedFile);
-    assertEquals(expectedOutput.getContentAsByteArray(), actualOutput.getContentAsByteArray());
+    assertTrue(FileUtils.contentEquals(expectedOutput.getFile(), actualOutput.getFile()), "Files are not identical!");
   }
 
   private void verifyJobEvent() {

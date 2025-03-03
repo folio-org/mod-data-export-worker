@@ -1,5 +1,6 @@
 package org.folio.dew;
 
+import org.apache.commons.io.FileUtils;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.CirculationLogExportFormat;
@@ -27,6 +28,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.dew.domain.dto.JobParameterNames.CIRCULATION_LOG_FILE_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 class CirculationLogTest extends BaseBatchTest {
@@ -78,7 +80,7 @@ class CirculationLogTest extends BaseBatchTest {
 
     final FileSystemResource actualChargeFeesFinesOutput = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(EXPECTED_CIRCULATION_OUTPUT);
-    assertEquals(expectedCharges.getContentAsByteArray(), actualChargeFeesFinesOutput.getContentAsByteArray());
+    assertTrue(FileUtils.contentEquals(expectedCharges.getFile(), actualChargeFeesFinesOutput.getFile()), "Files are not identical!");
     assertEquals(expectedNameInStorage, fileInStorage);
   }
 

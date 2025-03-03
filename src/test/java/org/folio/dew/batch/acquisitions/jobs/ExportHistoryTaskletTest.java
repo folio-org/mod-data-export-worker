@@ -77,7 +77,7 @@ class ExportHistoryTaskletTest extends BaseBatchTest {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
 
     paramsBuilder.addString(EDIFACT_ORDERS_EXPORT, getMockData("edifact/edifactOrdersExport.json"));
-    paramsBuilder.addString(ACQ_EXPORT_FILE, RandomStringUtils.random(100, true, true));
+    paramsBuilder.addString(ACQ_EXPORT_FILE, RandomStringUtils.secure().next(100, true, true));
     paramsBuilder.addString(JOB_NAME, "TestJob00123");
     paramsBuilder.addString(JOB_ID, UUID.randomUUID().toString());
 

@@ -85,7 +85,7 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
     // Prepare file name and content
     ExecutionContext executionContext = new ExecutionContext();
     executionContext.put(ACQ_EXPORT_FILE_NAME, "testEdiFile.edi");
-    executionContext.put(ACQ_EXPORT_FILE, RandomStringUtils.random(100));
+    executionContext.put(ACQ_EXPORT_FILE, RandomStringUtils.secure().next(100));
     return executionContext;
   }
 

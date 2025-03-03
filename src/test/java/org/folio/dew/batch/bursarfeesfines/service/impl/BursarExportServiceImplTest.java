@@ -46,7 +46,6 @@ import java.util.stream.Stream;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoBeans;
 
 @ExtendWith({ MockitoExtension.class })
 @SpringBootTest(classes = { JacksonConfiguration.class, BursarExportServiceImpl.class })

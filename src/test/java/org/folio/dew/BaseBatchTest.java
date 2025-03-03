@@ -11,8 +11,10 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.tomakehurst.wiremock.WireMockServer;
-import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -236,10 +238,16 @@ public abstract class BaseBatchTest {
     if (!spec.startsWith("http")) { // Case for CIRCULATION_LOG.
       spec = remoteFilesStorage.objectToPresignedObjectUrl(spec);
     }
-    try (InputStream inputStream = new URL(spec).openStream()) {
-      final Path actualResult = Files.createTempFile("temp", ".tmp");
-      Files.copy(inputStream, actualResult, StandardCopyOption.REPLACE_EXISTING);
-      return new FileSystemResource(actualResult);
+    try (HttpClient client = HttpClient.newHttpClient()) {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(URI.create(spec))
+          .GET()
+          .build();
+      try (var inputStream = client.send(request, HttpResponse.BodyHandlers.ofInputStream()).body()) {
+        final Path actualResult = Files.createTempFile("temp", ".tmp");
+        Files.copy(inputStream, actualResult, StandardCopyOption.REPLACE_EXISTING);
+        return new FileSystemResource(actualResult);
+      }
     }
   }
 

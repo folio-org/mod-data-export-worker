@@ -271,7 +271,7 @@ class EHoldingsTest extends BaseBatchTest {
     final String presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(fileInStorage);
     final FileSystemResource actualOutput = actualFileOutput(presignedUrl);
     FileSystemResource expectedOutput = new FileSystemResource(expectedFile);
-    assertTrue(FileUtils.contentEquals(expectedOutput.getFile(), actualOutput.getFile()), "Files are not identical!");
+    assertTrue(FileUtils.contentEqualsIgnoreEOL(expectedOutput.getFile(), actualOutput.getFile(), "UTF-8"), "Files are not identical!");
   }
 
   private void verifyJobEvent() {

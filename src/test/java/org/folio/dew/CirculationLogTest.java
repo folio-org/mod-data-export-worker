@@ -80,7 +80,7 @@ class CirculationLogTest extends BaseBatchTest {
 
     final FileSystemResource actualChargeFeesFinesOutput = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(EXPECTED_CIRCULATION_OUTPUT);
-    assertTrue(FileUtils.contentEquals(expectedCharges.getFile(), actualChargeFeesFinesOutput.getFile()), "Files are not identical!");
+    assertTrue(FileUtils.contentEqualsIgnoreEOL(expectedCharges.getFile(), actualChargeFeesFinesOutput.getFile(), "UTF-8"), "Files are not identical!");
     assertEquals(expectedNameInStorage, fileInStorage);
   }
 

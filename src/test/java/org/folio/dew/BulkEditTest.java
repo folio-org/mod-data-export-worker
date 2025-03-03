@@ -774,6 +774,7 @@ class BulkEditTest extends BaseBatchTest {
     String jobId = UUID.randomUUID().toString();
     String workDir = getWorkingDirectory(springApplicationName, BULKEDIT_DIR_NAME);
     parametersBuilder.addString(TEMP_OUTPUT_FILE_PATH, workDir + jobId + PATH_SEPARATOR + "out");
+    parametersBuilder.addString(TEMP_LOCAL_MARC_PATH, workDir + jobId + PATH_SEPARATOR + "out");
     parametersBuilder.addString(TEMP_LOCAL_FILE_PATH,
       getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + jobId + PATH_SEPARATOR + "out");
     try {

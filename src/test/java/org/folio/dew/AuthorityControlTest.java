@@ -7,7 +7,6 @@ import static org.folio.dew.domain.dto.ExportType.AUTH_HEADINGS_UPDATES;
 import static org.folio.dew.domain.dto.ExportType.FAILED_LINKED_BIB_UPDATES;
 import static org.folio.dew.domain.dto.JobParameterNames.AUTHORITY_CONTROL_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -16,7 +15,6 @@ import static org.mockito.Mockito.times;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.UUID;
 import lombok.SneakyThrows;
@@ -28,7 +26,6 @@ import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.FileNameResolver;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -141,9 +138,7 @@ class AuthorityControlTest extends BaseBatchTest {
     final String presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(fileInStorage);
     final FileSystemResource actualOutput = actualFileOutput(presignedUrl);
     FileSystemResource expectedOutput = new FileSystemResource(expectedFile);
-    assertEquals(expectedOutput.getContentAsString(StandardCharsets.UTF_8).trim(),
-      actualOutput.getContentAsString(StandardCharsets.UTF_8).trim(),
-      "Files are not identical!");
+    assertTrue(FileUtils.contentEquals(expectedOutput.getFile(), actualOutput.getFile()), "Files are not identical!");
   }
 
   private void verifyJobEvent() {

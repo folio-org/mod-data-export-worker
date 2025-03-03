@@ -268,7 +268,8 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   void shouldRemoveUTF8BOmFromInstances(String identifierType) {
     var id = "a912ee60-03c2-4316-9786-63b8be1f0d83";
     when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
-    when(inventoryInstancesClient.getInstanceByQuery(String.format("%s==%s", resolveIdentifier(identifierType), id), 1)).thenReturn(new InstanceCollection().instances(List.of(new Instance().id("a00bf050-f7f3-4660-9000-b014f2f5dac2"))).totalRecords(1));
+    when(inventoryInstancesClient.getInstanceByQuery(String.format("%s==%s", resolveIdentifier(identifierType), id), 1))
+      .thenReturn(new InstanceCollection().instances(List.of(new Instance().id("a00bf050-f7f3-4660-9000-b014f2f5dac2").source("FOLIO"))).totalRecords(1));
 
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
@@ -363,7 +364,7 @@ class BulkEditProcessorsTest extends BaseBatchTest {
 
     when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
     when(inventoryInstancesClient.getInstanceByQuery("hrid==HRID", 1))
-      .thenReturn(new InstanceCollection().instances(List.of(new Instance().id("instanceid"))).totalRecords(1));
+      .thenReturn(new InstanceCollection().instances(List.of(new Instance().id("instanceid").source("FOLIO"))).totalRecords(1));
 
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
     var expectedErrorMessage = "Duplicate entry";

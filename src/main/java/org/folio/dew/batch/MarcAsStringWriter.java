@@ -12,7 +12,7 @@ public class MarcAsStringWriter<T> extends FlatFileItemWriter<T> {
 
   public MarcAsStringWriter(String outputFileName) {
     super();
-    setResource(new FileSystemResource(outputFileName + ".mrc"));
+    setResource(new FileSystemResource(outputFileName));
     setLineSeparator(EMPTY);
     setLineAggregator(new PassThroughLineAggregator<>());
     setShouldDeleteIfEmpty(true);

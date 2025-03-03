@@ -3,7 +3,7 @@ package org.folio.dew.batch.bulkedit.jobs.processidentifiers;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
-import static org.folio.dew.utils.Constants.NUMBER_OF_WRITTEN_RECORDS;
+import static org.folio.dew.utils.Constants.NUMBER_OF_PROCESSED_IDENTIFIERS;
 import static org.folio.dew.utils.Constants.TOTAL_CSV_LINES;
 
 import lombok.RequiredArgsConstructor;
@@ -24,8 +24,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 @StepScope
@@ -39,9 +37,6 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
 
   @Value("${application.chunks}")
   private int chunks;
-
-  private AtomicInteger processedRecords = new AtomicInteger();
-  private AtomicLong processedIdentifiers = new AtomicLong();
 
   private final BulkEditStatisticService bulkEditStatisticService;
 
@@ -63,18 +58,20 @@ public class IdentifiersWriteListener<T> implements ItemWriteListener<T> {
     log.info("afterWrite:: update job by id {} after write for identifiers", job.getId());
 
     var totalCsvLines = jobExecution.getJobParameters().getLong(TOTAL_CSV_LINES);
-    var processed = processedIdentifiers.addAndGet(chunks);
+    long processed = chunks;
+    if (jobExecution.getExecutionContext().containsKey(NUMBER_OF_PROCESSED_IDENTIFIERS)) {
+      processed += jobExecution.getExecutionContext().getLong(NUMBER_OF_PROCESSED_IDENTIFIERS);
+    }
     if (nonNull(totalCsvLines) && processed > totalCsvLines) {
       processed = totalCsvLines;
     }
+    jobExecution.getExecutionContext().putLong(NUMBER_OF_PROCESSED_IDENTIFIERS, processed);
     var progress = new Progress();
     progress.setTotal(isNull(totalCsvLines) ? 0 : totalCsvLines.intValue());
     progress.setProcessed((int) processed);
     progress.setProgress(isNull(totalCsvLines) ? 0 : calculateProgress(processed, totalCsvLines));
     progress.setSuccess(bulkEditStatisticService.getSuccess(job.getId().toString()));
     job.setProgress(progress);
-
-    jobExecution.getExecutionContext().putLong(NUMBER_OF_WRITTEN_RECORDS, processedRecords.longValue());
 
     kafka.send(KafkaService.Topic.JOB_UPDATE, job.getId().toString(), job);
   }

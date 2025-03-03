@@ -219,8 +219,8 @@ class BulkEditTest extends BaseBatchTest {
 
     var jobCaptor = ArgumentCaptor.forClass(org.folio.de.entity.Job.class);
 
-    // expected 4 events: 1st - job started, 2nd, 3rd, 4th, 5th - updates after each chunk (100 identifiers) from more than 1 thread, 6th - job completed
-    Mockito.verify(kafkaService, Mockito.times(6)).send(any(), any(), jobCaptor.capture());
+    // expected 17 events: 1st - job started, 2nd...17th - updates after each partition (17 partitions) from more than 1 thread, 19th - job completed
+    Mockito.verify(kafkaService, Mockito.times(19)).send(any(), any(), jobCaptor.capture());
 
     verifyJobProgressUpdates(jobCaptor);
   }
@@ -240,8 +240,8 @@ class BulkEditTest extends BaseBatchTest {
 
     var jobCaptor = ArgumentCaptor.forClass(org.folio.de.entity.Job.class);
 
-    // expected 4 events: 1st - job started, 2nd, 3rd, 4th, 5th - updates after each chunk (100 identifiers) from more than 1 thread, 6th - job completed
-    Mockito.verify(kafkaService, Mockito.times(6)).send(any(), any(), jobCaptor.capture());
+    // expected 17 events: 1st - job started, 2nd...17th - updates after each partition (17 partitions) from more than 1 thread, 19th - job completed
+    Mockito.verify(kafkaService, Mockito.times(19)).send(any(), any(), jobCaptor.capture());
 
     verifyJobProgressUpdates(jobCaptor);
   }
@@ -774,6 +774,7 @@ class BulkEditTest extends BaseBatchTest {
     String jobId = UUID.randomUUID().toString();
     String workDir = getWorkingDirectory(springApplicationName, BULKEDIT_DIR_NAME);
     parametersBuilder.addString(TEMP_OUTPUT_FILE_PATH, workDir + jobId + PATH_SEPARATOR + "out");
+    parametersBuilder.addString(TEMP_LOCAL_MARC_PATH, workDir + jobId + PATH_SEPARATOR + "out");
     parametersBuilder.addString(TEMP_LOCAL_FILE_PATH,
       getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + jobId + PATH_SEPARATOR + "out");
     try {
@@ -820,7 +821,7 @@ class BulkEditTest extends BaseBatchTest {
   }
 
   private void verifyJobProgressUpdates(ArgumentCaptor<org.folio.de.entity.Job> jobCaptor) {
-    var job = jobCaptor.getAllValues().get(5);
+    var job = jobCaptor.getAllValues().get(18); // 17 partitions + 1 start job + 1 end job = 19
     assertThat(job.getProgress().getTotal()).isEqualTo(179);
     assertThat(job.getProgress().getProcessed()).isEqualTo(179);
     assertThat(job.getProgress().getProgress()).isEqualTo(100);

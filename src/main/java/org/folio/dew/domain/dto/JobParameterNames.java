@@ -25,6 +25,8 @@ public class JobParameterNames {
   public static final String QUERY = "query";
   public static final String EDIFACT_ORDERS_EXPORT = "edifactOrdersExport";
   public static final String TEMP_OUTPUT_MARC_PATH = "tempOutputMarcPath";
+  public static final String TEMP_OUTPUT_CSV_PATH = "tempOutputCsvPath";
+  public static final String TEMP_OUTPUT_JSON_PATH = "tempOutputJsonPath";
   public static final String TEMP_LOCAL_MARC_PATH = "tempLocalMarcPath";
-
+  public static final String AT_LEAST_ONE_MARC_EXISTS = "atLeastOneMarcExists";
 }

@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
 
+import static java.util.Optional.ofNullable;
+
 @Service
 public class BulkEditStatisticService {
 
@@ -20,7 +22,7 @@ public class BulkEditStatisticService {
   }
 
   public int getSuccess(String jobId) {
-    return success.get(jobId).intValue();
+    return ofNullable(success.get(jobId)).map(LongAdder::intValue).orElse(0);
   }
 
   public void reset(String jobId) {

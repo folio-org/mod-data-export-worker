@@ -28,21 +28,21 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.annotation.DirtiesContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import lombok.SneakyThrows;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 class SaveToMinioTaskletTest extends BaseBatchTest {
   @Autowired
   @Qualifier("edifactOrdersExportJob")
   private Job edifactExportJob;
-  @MockBean
+  @MockitoBean
   private OrganizationsService organizationsService;
-  @SpyBean
+  @MockitoSpyBean
   private RemoteFilesStorage remoteFilesStorage;
 
   @Override
@@ -82,7 +82,7 @@ class SaveToMinioTaskletTest extends BaseBatchTest {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
 
     paramsBuilder.addString(EDIFACT_ORDERS_EXPORT, getMockData("edifact/edifactOrdersExport.json"));
-    paramsBuilder.addString(ACQ_EXPORT_FILE, RandomStringUtils.random(100, true, true));
+    paramsBuilder.addString(ACQ_EXPORT_FILE, RandomStringUtils.secure().next(100, true, true));
     paramsBuilder.addString(JOB_ID, UUID.randomUUID().toString());
 
     return paramsBuilder.toJobParameters();
@@ -90,7 +90,7 @@ class SaveToMinioTaskletTest extends BaseBatchTest {
 
   private ExecutionContext getExecutionContext() {
     ExecutionContext executionContext = new ExecutionContext();
-    executionContext.put(ACQ_EXPORT_FILE, RandomStringUtils.random(100, true, true));
+    executionContext.put(ACQ_EXPORT_FILE, RandomStringUtils.secure().next(100, true, true));
     return executionContext;
   }
 

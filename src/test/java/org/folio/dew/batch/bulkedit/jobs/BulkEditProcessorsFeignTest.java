@@ -16,7 +16,7 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.test.MetaDataInstanceFactory;
 import org.springframework.batch.test.StepScopeTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.Collections;
 
@@ -37,7 +37,7 @@ class BulkEditProcessorsFeignTest extends BaseBatchTest {
   @Autowired
   private InventoryClient inventoryClient;
 
-  @MockBean
+  @MockitoBean
   private PermissionsValidator permissionsValidator;
 
   @ParameterizedTest

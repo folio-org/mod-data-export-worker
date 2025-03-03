@@ -2,6 +2,7 @@ package org.folio.dew;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.FileUtils;
 import org.folio.de.entity.EHoldingsPackage;
 import org.folio.de.entity.EHoldingsResource;
 import org.folio.de.entity.JobCommand;
@@ -27,8 +28,8 @@ import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -47,10 +48,10 @@ import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESO
 import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
-import static org.springframework.batch.test.AssertFile.assertFileEquals;
 
 @Log4j2
 class EHoldingsTest extends BaseBatchTest {
@@ -64,7 +65,7 @@ class EHoldingsTest extends BaseBatchTest {
   private EHoldingsResourceRepository resourceRepository;
   @Autowired
   private RemoteFilesStorage remoteFilesStorage;
-  @SpyBean
+  @MockitoSpyBean
   private KafkaService kafkaService;
 
   private final static String RESOURCE_ID = "1-22-333";
@@ -270,7 +271,7 @@ class EHoldingsTest extends BaseBatchTest {
     final String presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(fileInStorage);
     final FileSystemResource actualOutput = actualFileOutput(presignedUrl);
     FileSystemResource expectedOutput = new FileSystemResource(expectedFile);
-    assertFileEquals(expectedOutput, actualOutput);
+    assertTrue(FileUtils.contentEqualsIgnoreEOL(expectedOutput.getFile(), actualOutput.getFile(), "UTF-8"), "Files are not identical!");
   }
 
   private void verifyJobEvent() {

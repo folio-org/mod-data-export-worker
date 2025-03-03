@@ -30,15 +30,15 @@ import org.springframework.batch.core.JobExecutionException;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 class JobCommandsReceiverServiceTest extends BaseBatchTest {
 
-  @MockBean
+  @MockitoBean
   private JobCommandRepository jobCommandRepository;
-  @MockBean
+  @MockitoBean
   RemoteFilesStorage remoteFilesStorage;
-  @MockBean
+  @MockitoBean
   FTPStorageService ftpStorageService;
 
   @Test

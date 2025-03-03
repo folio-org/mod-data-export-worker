@@ -1,5 +1,6 @@
 package org.folio.dew;
 
+import org.apache.commons.io.FileUtils;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.CirculationLogExportFormat;
@@ -20,8 +21,6 @@ import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
@@ -29,7 +28,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.dew.domain.dto.JobParameterNames.CIRCULATION_LOG_FILE_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.batch.test.AssertFile.assertFileEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 class CirculationLogTest extends BaseBatchTest {
@@ -81,7 +80,7 @@ class CirculationLogTest extends BaseBatchTest {
 
     final FileSystemResource actualChargeFeesFinesOutput = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(EXPECTED_CIRCULATION_OUTPUT);
-    assertFileEquals(expectedCharges, actualChargeFeesFinesOutput);
+    assertTrue(FileUtils.contentEqualsIgnoreEOL(expectedCharges.getFile(), actualChargeFeesFinesOutput.getFile(), "UTF-8"), "Files are not identical!");
     assertEquals(expectedNameInStorage, fileInStorage);
   }
 

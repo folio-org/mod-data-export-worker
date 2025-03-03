@@ -68,7 +68,7 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
 
   @Override
   public List<InstanceFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
-    log.info("Instance processor current thread: {}", Thread.currentThread().getName());
+    log.debug("Instance processor current thread: {}", Thread.currentThread().getName());
     try {
       if (!permissionsValidator.isBulkEditReadPermissionExists(folioExecutionContext.getTenantId(), EntityType.INSTANCE)) {
         var user = userClient.getUserById(folioExecutionContext.getUserId().toString());

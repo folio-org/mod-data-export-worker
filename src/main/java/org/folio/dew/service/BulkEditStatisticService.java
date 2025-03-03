@@ -22,7 +22,7 @@ public class BulkEditStatisticService {
   }
 
   public int getSuccess(String jobId) {
-    return ofNullable(success.get(jobId)).map(v -> v.intValue()).orElse(0);
+    return ofNullable(success.get(jobId)).map(LongAdder::intValue).orElse(0);
   }
 
   public void reset(String jobId) {

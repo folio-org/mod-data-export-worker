@@ -21,7 +21,6 @@ import org.folio.dew.repository.RemoteFilesStorage;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

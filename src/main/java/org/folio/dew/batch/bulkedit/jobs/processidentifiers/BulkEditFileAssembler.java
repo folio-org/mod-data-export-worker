@@ -72,6 +72,7 @@ public class BulkEditFileAssembler implements StepExecutionAggregator {
       }
     } catch (InterruptedException e) {
       log.error(e);
+      Thread.currentThread().interrupt();
       throw new FileOperationException(e);
     }
   }
@@ -150,7 +151,6 @@ public class BulkEditFileAssembler implements StepExecutionAggregator {
       partFiles.forEach(file -> {
         try {
           Files.delete(Path.of(file));
-          log.info("File {} deleted", file); // FIXME remove
         } catch (IOException e) {
           log.error("Error occurred while deleting the part files", e);
           throw new FileOperationException(e);

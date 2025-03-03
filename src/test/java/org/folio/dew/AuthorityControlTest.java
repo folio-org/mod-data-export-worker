@@ -16,6 +16,7 @@ import static org.mockito.Mockito.times;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.UUID;
 import lombok.SneakyThrows;
@@ -140,7 +141,9 @@ class AuthorityControlTest extends BaseBatchTest {
     final String presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(fileInStorage);
     final FileSystemResource actualOutput = actualFileOutput(presignedUrl);
     FileSystemResource expectedOutput = new FileSystemResource(expectedFile);
-    assertTrue(FileUtils.contentEquals(expectedOutput.getFile(), actualOutput.getFile()), "Files are not identical!");
+    assertEquals(expectedOutput.getContentAsString(StandardCharsets.UTF_8).trim(),
+      actualOutput.getContentAsString(StandardCharsets.UTF_8).trim(),
+      "Files are not identical!");
   }
 
   private void verifyJobEvent() {

@@ -22,6 +22,7 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;

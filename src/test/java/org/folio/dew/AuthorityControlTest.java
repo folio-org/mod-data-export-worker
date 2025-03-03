@@ -7,7 +7,9 @@ import static org.folio.dew.domain.dto.ExportType.AUTH_HEADINGS_UPDATES;
 import static org.folio.dew.domain.dto.ExportType.FAILED_LINKED_BIB_UPDATES;
 import static org.folio.dew.domain.dto.JobParameterNames.AUTHORITY_CONTROL_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -25,6 +27,7 @@ import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.FileNameResolver;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -39,6 +42,7 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 
 @Log4j2
 class AuthorityControlTest extends BaseBatchTest {
@@ -136,7 +140,7 @@ class AuthorityControlTest extends BaseBatchTest {
     final String presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(fileInStorage);
     final FileSystemResource actualOutput = actualFileOutput(presignedUrl);
     FileSystemResource expectedOutput = new FileSystemResource(expectedFile);
-    assertEquals(expectedOutput.getContentAsByteArray(), actualOutput.getContentAsByteArray());
+    assertTrue(FileUtils.contentEquals(expectedOutput.getFile(), actualOutput.getFile()), "Files are not identical!");
   }
 
   private void verifyJobEvent() {

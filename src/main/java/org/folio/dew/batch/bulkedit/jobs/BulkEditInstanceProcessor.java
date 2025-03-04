@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
 import org.folio.dew.client.InventoryInstancesClient;
 import org.folio.dew.client.SrsClient;
@@ -143,6 +144,6 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
 
   private String getAllSrsIds(JsonNode srsRecords) {
     return String.join(", ", StreamSupport.stream(srsRecords.spliterator(), false)
-      .map(n -> n.get("recordId").toString()).toList());
+      .map(n -> StringUtils.strip(n.get("recordId").toString(), "\"")).toList());
   }
 }

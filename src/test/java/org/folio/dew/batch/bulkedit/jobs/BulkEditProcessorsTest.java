@@ -75,7 +75,7 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   private BulkEditInstanceProcessor instanceProcessor;
   @MockitoBean
   private InventoryInstancesClient inventoryInstancesClient;
-  @MockBean
+  @MockitoBean
   private SrsClient srsClient;
   @Autowired
   private UserFetcher userFetcher;

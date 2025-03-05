@@ -2,20 +2,26 @@ package org.folio.dew.batch.bulkedit.jobs;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
+import static org.folio.dew.domain.dto.JobParameterNames.AT_LEAST_ONE_MARC_EXISTS;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.DUPLICATE_ENTRY;
 import static org.folio.dew.utils.Constants.LINKED_DATA_SOURCE;
 import static org.folio.dew.utils.Constants.LINKED_DATA_SOURCE_IS_NOT_SUPPORTED;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
+import static org.folio.dew.utils.Constants.MULTIPLE_SRS;
 import static org.folio.dew.utils.Constants.NO_INSTANCE_VIEW_PERMISSIONS;
 import static org.folio.dew.utils.Constants.NO_MATCH_FOUND_MESSAGE;
+import static org.folio.dew.utils.Constants.SRS_MISSING;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
 import org.folio.dew.client.InventoryInstancesClient;
+import org.folio.dew.client.SrsClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ErrorType;
@@ -26,6 +32,7 @@ import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.service.mapper.InstanceMapper;
 import org.folio.spring.FolioExecutionContext;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +41,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.StreamSupport;
 
 @Component
 @StepScope
@@ -45,6 +53,7 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
   private final FolioExecutionContext folioExecutionContext;
   private final PermissionsValidator permissionsValidator;
   private final UserClient userClient;
+  private final SrsClient srsClient;
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
@@ -52,12 +61,15 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
   private String jobId;
   @Value("#{jobParameters['fileName']}")
   private String fileName;
+  @Value("#{stepExecution.jobExecution}")
+  private JobExecution jobExecution;
 
   private final Set<ItemIdentifier> identifiersToCheckDuplication = ConcurrentHashMap.newKeySet();
   private final Set<String> fetchedInstanceIds = ConcurrentHashMap.newKeySet();
 
   @Override
-  public synchronized List<InstanceFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
+  public List<InstanceFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
+    log.debug("Instance processor current thread: {}", Thread.currentThread().getName());
     try {
       if (!permissionsValidator.isBulkEditReadPermissionExists(folioExecutionContext.getTenantId(), EntityType.INSTANCE)) {
         var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
@@ -74,9 +86,10 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
       }
 
       if (fetchedInstanceIds.add(instance.getId())) {
-        return List.of(
-          instanceMapper.mapToInstanceFormat(instance, itemIdentifier.getItemId(), jobId, FilenameUtils.getName(fileName)).withOriginal(instance)
-            .withTenantId(folioExecutionContext.getTenantId()));
+        var instanceFormat = instanceMapper.mapToInstanceFormat(instance, itemIdentifier.getItemId(), jobId, FilenameUtils.getName(fileName)).withOriginal(instance)
+          .withTenantId(folioExecutionContext.getTenantId());
+        checkMissingSrsAndDuplication(instanceFormat);
+        return List.of(instanceFormat);
       }
       return emptyList();
     } catch (BulkEditException e) {
@@ -109,5 +122,28 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
       }
       default -> throw new BulkEditException(String.format("Identifier type \"%s\" is not supported", identifierType), ErrorType.ERROR);
     };
+  }
+
+  private void checkMissingSrsAndDuplication(InstanceFormat instanceFormat) {
+    if (instanceFormat.getSource().equals("MARC")) {
+      if (!jobExecution.getExecutionContext().containsKey(AT_LEAST_ONE_MARC_EXISTS)) {
+        jobExecution.getExecutionContext().put(AT_LEAST_ONE_MARC_EXISTS, true);
+      }
+      var srsRecords = srsClient.getMarc(instanceFormat.getId(), "INSTANCE", true).get("sourceRecords");
+      if (srsRecords.isEmpty()) {
+        log.error(SRS_MISSING);
+        throw new BulkEditException(SRS_MISSING);
+      }
+      if (srsRecords.size() > 1) {
+        var errorMsg = MULTIPLE_SRS.formatted(getAllSrsIds(srsRecords));
+        log.error(errorMsg);
+        throw new BulkEditException(errorMsg);
+      }
+    }
+  }
+
+  private String getAllSrsIds(JsonNode srsRecords) {
+    return String.join(", ", StreamSupport.stream(srsRecords.spliterator(), false)
+      .map(n -> StringUtils.strip(n.get("recordId").toString(), "\"")).toList());
   }
 }

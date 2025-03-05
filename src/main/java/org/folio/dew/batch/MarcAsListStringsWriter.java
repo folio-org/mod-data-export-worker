@@ -13,7 +13,6 @@ import org.springframework.batch.item.ItemStream;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.util.Assert;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

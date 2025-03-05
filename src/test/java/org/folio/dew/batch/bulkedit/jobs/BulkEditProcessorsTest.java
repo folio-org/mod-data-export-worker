@@ -55,8 +55,8 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.test.MetaDataInstanceFactory;
 import org.springframework.batch.test.StepScopeTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.nio.file.Path;
 import java.util.Collections;
@@ -73,27 +73,27 @@ class BulkEditProcessorsTest extends BaseBatchTest {
 
   @Autowired
   private BulkEditInstanceProcessor instanceProcessor;
-  @MockBean
+  @MockitoBean
   private InventoryInstancesClient inventoryInstancesClient;
-  @MockBean
+  @MockitoBean
   private SrsClient srsClient;
   @Autowired
   private UserFetcher userFetcher;
-  @MockBean
+  @MockitoBean
   private UserClient userClient;
   @Autowired
   private ItemFetcher itemFetcher;
-  @MockBean
+  @MockitoBean
   private InventoryClient inventoryClient;
   @Autowired
   private BulkEditHoldingsProcessor holdingsProcessor;
-  @MockBean
+  @MockitoBean
   private HoldingClient holdingClient;
-  @MockBean
+  @MockitoBean
   private PermissionsValidator permissionsValidator;
-  @MockBean
+  @MockitoBean
   private TenantResolver tenantResolver;
-  @SpyBean
+  @MockitoSpyBean
   private FolioExecutionContext folioExecutionContext;
 
   @Test

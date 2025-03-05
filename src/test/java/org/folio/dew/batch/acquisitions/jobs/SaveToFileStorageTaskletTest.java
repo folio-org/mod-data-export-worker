@@ -32,21 +32,21 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 
 import lombok.SneakyThrows;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 class SaveToFileStorageTaskletTest extends BaseBatchTest {
 
   @Autowired
   @Qualifier("edifactOrdersExportJob")
   private Job edifactExportJob;
-  @MockBean
+  @MockitoBean
   private SFTPObjectStorageRepository sftpObjectStorageRepository;
-  @MockBean
+  @MockitoBean
   private FTPObjectStorageRepository ftpObjectStorageRepository;
-  @MockBean
+  @MockitoBean
   private OrganizationsService organizationsService;
 
   @Override
@@ -85,7 +85,7 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
     // Prepare file name and content
     ExecutionContext executionContext = new ExecutionContext();
     executionContext.put(ACQ_EXPORT_FILE_NAME, "testEdiFile.edi");
-    executionContext.put(ACQ_EXPORT_FILE, RandomStringUtils.random(100));
+    executionContext.put(ACQ_EXPORT_FILE, RandomStringUtils.secure().next(100));
     return executionContext;
   }
 

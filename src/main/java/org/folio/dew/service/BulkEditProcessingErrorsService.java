@@ -11,6 +11,7 @@ import static org.folio.dew.utils.SystemHelper.validatePath;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.Error;
 import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.domain.dto.Errors;
@@ -21,8 +22,8 @@ import org.folio.dew.repository.RemoteFilesStorage;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -30,7 +31,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -61,9 +61,9 @@ public class BulkEditProcessingErrorsService {
       return;
     }
     var csvFileName = getCsvFileName(jobId, fileName);
-    var errorMessages = reasonForError.getMessage().split(COMMA_SEPARATOR);
+    var errorMessages = reasonForError.getMessage().split(COMMA_SEPARATOR, 1);
     for (var errorMessage: errorMessages) {
-      var errorLine = "%s%s%s%s%s%s".formatted(errorType, COMMA_SEPARATOR, affectedIdentifier, COMMA_SEPARATOR, errorMessage, System.lineSeparator());
+      var errorLine = "%s%s%s%s%s%s".formatted(errorType, COMMA_SEPARATOR, StringUtils.strip(affectedIdentifier, "\""), COMMA_SEPARATOR, errorMessage, System.lineSeparator());
       var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
       try {
         localFilesStorage.append(pathToCSVFile, errorLine.getBytes(StandardCharsets.UTF_8));
@@ -83,7 +83,7 @@ public class BulkEditProcessingErrorsService {
       return;
     }
     var csvFileName = getCsvFileName(jobId, fileName);
-    var errorLine = "%s%s%s%s%s%s".formatted(errorType, COMMA_SEPARATOR, affectedIdentifier, COMMA_SEPARATOR, errorMessage, System.lineSeparator());
+    var errorLine = "%s%s%s%s%s%s".formatted(errorType, COMMA_SEPARATOR, StringUtils.strip(affectedIdentifier, "\""), COMMA_SEPARATOR, errorMessage, System.lineSeparator());
     var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
     try {
       localFilesStorage.append(pathToCSVFile, errorLine.getBytes(StandardCharsets.UTF_8));
@@ -100,7 +100,7 @@ public class BulkEditProcessingErrorsService {
     if (localFilesStorage.exists(pathToCSVFile)) {
       try (var lines = localFilesStorage.lines(pathToCSVFile)) {
         var errors = lines.limit(limit)
-          .map(Pattern.compile(",")::split)
+          .map(s -> s.split(COMMA_SEPARATOR, 3))
           .map(message -> new Error().message("%s%s%s".formatted(message[IDX_ERROR_IDENTIFIER], COMMA_SEPARATOR, message[IDX_ERROR_MSG]))
             .type(ErrorType.fromValue(message[IDX_ERROR_TYPE])))
           .collect(toList());

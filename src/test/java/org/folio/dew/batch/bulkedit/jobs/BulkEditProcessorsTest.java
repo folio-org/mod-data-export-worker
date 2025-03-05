@@ -5,6 +5,8 @@ import static org.folio.dew.utils.BulkEditProcessorHelper.dateFromString;
 import static org.folio.dew.utils.BulkEditProcessorHelper.getMatchPattern;
 import static org.folio.dew.utils.BulkEditProcessorHelper.resolveIdentifier;
 import static org.folio.dew.utils.Constants.MULTIPLE_MATCHES_MESSAGE;
+import static org.folio.dew.utils.Constants.MULTIPLE_SRS;
+import static org.folio.dew.utils.Constants.SRS_MISSING;
 import static org.folio.dew.utils.Constants.UTF8_BOM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -16,6 +18,8 @@ import static org.mockito.Mockito.when;
 import static org.testcontainers.shaded.org.hamcrest.MatcherAssert.assertThat;
 import static org.testcontainers.shaded.org.hamcrest.Matchers.hasSize;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import feign.Request;
 import feign.codec.DecodeException;
 import lombok.SneakyThrows;
@@ -26,6 +30,7 @@ import org.folio.dew.batch.bulkedit.jobs.processidentifiers.UserFetcher;
 import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.InventoryClient;
 import org.folio.dew.client.InventoryInstancesClient;
+import org.folio.dew.client.SrsClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExtendedItem;
@@ -57,6 +62,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 class BulkEditProcessorsTest extends BaseBatchTest {
   @Autowired
@@ -69,6 +75,8 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   private BulkEditInstanceProcessor instanceProcessor;
   @MockitoBean
   private InventoryInstancesClient inventoryInstancesClient;
+  @MockBean
+  private SrsClient srsClient;
   @Autowired
   private UserFetcher userFetcher;
   @MockitoBean
@@ -123,13 +131,67 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   @SneakyThrows
   void shouldNotIncludeDuplicatedInstances(String identifierType) {
     when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
-    when(inventoryInstancesClient.getInstanceByQuery(String.format("%s==duplicateIdentifier", resolveIdentifier(identifierType)), 1)).thenReturn(new InstanceCollection().instances(Collections.emptyList()).totalRecords(2));
+    when(inventoryInstancesClient.getInstanceByQuery(String.format("%s==duplicateIdentifier", resolveIdentifier(identifierType)), 1))
+      .thenReturn(new InstanceCollection().instances(Collections.emptyList()).totalRecords(2));
 
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
       var identifier = new ItemIdentifier("duplicateIdentifier");
       var throwable = assertThrows(BulkEditException.class, () -> instanceProcessor.process(identifier));
       assertEquals(MULTIPLE_MATCHES_MESSAGE, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"ID", "HRID"})
+  @SneakyThrows
+  void shouldNotIncludeMarcInstancesWithNoUnderlyingSrs(String identifierType) {
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
+    when(inventoryInstancesClient.getInstanceByQuery(String.format("%s==marcNoSrs", resolveIdentifier(identifierType)), 1))
+      .thenReturn(new InstanceCollection().instances(List.of(new Instance().id("marcNoSrs").source("MARC"))).totalRecords(1));
+    when(srsClient.getMarc("marcNoSrs", "INSTANCE", true))
+      .thenReturn(JsonNodeFactory.instance.objectNode().put("sourceRecords", 2));
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("marcNoSrs");
+      var throwable = assertThrows(BulkEditException.class, () -> instanceProcessor.process(identifier));
+      assertEquals(SRS_MISSING, throwable.getMessage());
+      return null;
+    });
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"ID", "HRID"})
+  @SneakyThrows
+  void shouldNotIncludeMarcInstancesWithMoreThanOneUnderlyingSrs(String identifierType) {
+    when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
+    when(inventoryInstancesClient.getInstanceByQuery(String.format("%s==marcWithMultipleSrs", resolveIdentifier(identifierType)), 1))
+      .thenReturn(new InstanceCollection().instances(List.of(new Instance().id("marcWithMultipleSrs").source("MARC"))).totalRecords(1));
+    var srsId1 = UUID.randomUUID().toString();
+    var srsId2 = UUID.randomUUID().toString();
+    when(srsClient.getMarc("marcWithMultipleSrs", "INSTANCE", true))
+      .thenReturn(new ObjectMapper().readTree(
+        """
+        {
+          "sourceRecords": [
+            {
+              "recordId": "%s"
+            },
+            {
+              "recordId": "%s"
+            }
+          ],
+          "totalRecords": 2
+        }
+        """.formatted(srsId1, srsId2)));
+
+    StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
+    StepScopeTestUtils.doInStepScope(stepExecution, () -> {
+      var identifier = new ItemIdentifier("marcWithMultipleSrs");
+      var throwable = assertThrows(BulkEditException.class, () -> instanceProcessor.process(identifier));
+      assertEquals(MULTIPLE_SRS.formatted(srsId1 + ", " + srsId2), throwable.getMessage());
       return null;
     });
   }
@@ -268,7 +330,8 @@ class BulkEditProcessorsTest extends BaseBatchTest {
   void shouldRemoveUTF8BOmFromInstances(String identifierType) {
     var id = "a912ee60-03c2-4316-9786-63b8be1f0d83";
     when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
-    when(inventoryInstancesClient.getInstanceByQuery(String.format("%s==%s", resolveIdentifier(identifierType), id), 1)).thenReturn(new InstanceCollection().instances(List.of(new Instance().id("a00bf050-f7f3-4660-9000-b014f2f5dac2"))).totalRecords(1));
+    when(inventoryInstancesClient.getInstanceByQuery(String.format("%s==%s", resolveIdentifier(identifierType), id), 1))
+      .thenReturn(new InstanceCollection().instances(List.of(new Instance().id("a00bf050-f7f3-4660-9000-b014f2f5dac2").source("FOLIO"))).totalRecords(1));
 
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>(identifierType, String.class))));
     StepScopeTestUtils.doInStepScope(stepExecution, () -> {
@@ -363,7 +426,7 @@ class BulkEditProcessorsTest extends BaseBatchTest {
 
     when(permissionsValidator.isBulkEditReadPermissionExists(isA(String.class), eq(EntityType.INSTANCE))).thenReturn(true);
     when(inventoryInstancesClient.getInstanceByQuery("hrid==HRID", 1))
-      .thenReturn(new InstanceCollection().instances(List.of(new Instance().id("instanceid"))).totalRecords(1));
+      .thenReturn(new InstanceCollection().instances(List.of(new Instance().id("instanceid").source("FOLIO"))).totalRecords(1));
 
     StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new JobParameters(Collections.singletonMap("identifierType", new JobParameter<>("HRID", String.class))));
     var expectedErrorMessage = "Duplicate entry";

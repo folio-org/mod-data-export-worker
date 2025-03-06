@@ -50,13 +50,15 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
 
   @BeforeStep
   public void initStep(StepExecution stepExecution) {
-    log.error("--- Called AccountReader::initStep ---");
+    log.info("--- Called AccountReader::initStep ---");
 
     // grabbing accounts before users/items because, with a relatively
     // frequent transfer process, there will be less accounts than users
     accounts = exportService.getAllAccounts();
     stepExecution.getExecutionContext()
       .put("accounts", accounts);
+
+    log.info("Fetched {} accounts", accounts.size());
 
     if (accounts.isEmpty()) {
       log.error("No accounts found, terminating job...");

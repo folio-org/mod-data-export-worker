@@ -129,8 +129,6 @@ public class BursarExportJobConfig {
   @StepScope
   public BursarWriter writer(@Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
       @Value("#{jobExecutionContext['filename']}") String finalFilename, LocalFilesStorage localFilesStorage) {
-    log.error("BursarExportJobConfig.writer needs updating!!");
-
     String filename = tempOutputFilePath + '_' + finalFilename;
     WritableResource exportFileResource = new S3CompatibleResource<>(filename, localFilesStorage);
 

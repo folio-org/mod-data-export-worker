@@ -34,6 +34,9 @@ public class BursarExportStepListener extends BaseStepListener {
     var remoteFilesStorage = super.getRemoteFilesStorage();
 
     var jobExecution = stepExecution.getJobExecution();
+
+    log.info("BursarExportStepListener afterStepExecution 38, stepExecution: {}", stepExecution);
+
     String downloadFilename = jobExecution.getExecutionContext()
       .getString("filename");
     String filename = jobExecution.getJobParameters()
@@ -59,6 +62,9 @@ public class BursarExportStepListener extends BaseStepListener {
 
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.JOB_DESCRIPTION,
         String.format(BursarExportUtils.getJobDescriptionPart(), stepExecution.getWriteCount()), "\n");
+
+    log.info("Final jobExecutionContext: {}", jobExecution.getExecutionContext());
+    log.info("Final stepExecution: {}", stepExecution);
 
     return exitStatus;
   }

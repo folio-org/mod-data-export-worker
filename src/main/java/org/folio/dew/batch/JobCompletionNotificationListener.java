@@ -96,6 +96,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
 
   @SneakyThrows
   private void processJobUpdate(JobExecution jobExecution, boolean after) {
+    log.info("processJobUpdate 99: {}", jobExecution);
     log.info("processJobUpdate:: process job update with id {}", jobExecution.getJobId());
     var jobParameters = jobExecution.getJobParameters();
     var jobId = jobParameters.getString(JobParameterNames.JOB_ID);
@@ -213,6 +214,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
 
   private void processJobAfter(String jobId, JobParameters jobParameters) {
     var tempOutputFilePath = jobParameters.getString(TEMP_OUTPUT_FILE_PATH);
+    log.info("processJobAfter 217 jobId={}, jobParameters={}, tempOutputFilePath={}", jobId, jobParameters, tempOutputFilePath);
     if (StringUtils.isBlank(tempOutputFilePath) ||
       jobParameters.getParameters().containsKey(EXPORT_TYPE) && (BULK_EDIT_UPDATE.getValue().equals(jobParameters.getString(EXPORT_TYPE)))) {
       return;
@@ -324,6 +326,8 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
   private String saveResult(JobExecution jobExecution, boolean isSourceShouldBeDeleted) {
     var path = preparePath(jobExecution);
     try {
+      log.info("saveResult 327 with path {}; exec {}", path, jobExecution);
+
       if (isEmpty(path) || noRecordsFound(path)) {
         return EMPTY; // To prevent downloading empty file.
       }
@@ -331,8 +335,10 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
         return remoteFilesStorage.objectToPresignedObjectUrl(path);
       }
       var obj = prepareObject(jobExecution, path);
+      log.info("saveResult 336 with obj {}, download filename {}", obj, prepareDownloadFilename(jobExecution, path));
       if (isBulkEditJob(jobExecution) || isBursarFeesFinesJob(jobExecution)) {
         obj = validatePath(obj);
+        log.info("saveResult 339 validated path, got {}", obj);
       }
       jobExecution.getExecutionContext().putString(PATH_TO_MATCHED_RECORDS, obj);
       return remoteFilesStorage.objectToPresignedObjectUrl(

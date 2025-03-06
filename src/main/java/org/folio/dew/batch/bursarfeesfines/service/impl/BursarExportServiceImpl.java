@@ -122,10 +122,12 @@ public class BursarExportServiceImpl implements BursarExportService {
       return map;
     }
 
+    log.info("Fetching user info for {} users", userIds.size());
     List<User> users = fetchDataInBatch(new ArrayList<String>(userIds),
         partition -> userClient.getUserByQuery(String.format("id==(%s)", partition.stream()
           .collect(toQueryParameters)), bucketSize)
           .getUsers());
+    log.info("Fetched all user info");
 
     users.forEach(user -> map.put(user.getId(), user));
 
@@ -140,10 +142,12 @@ public class BursarExportServiceImpl implements BursarExportService {
       return map;
     }
 
+    log.info("Fetching item info for {} items", itemIds.size());
     List<Item> items = fetchDataInBatch(new ArrayList<String>(itemIds),
         partition -> inventoryClient.getItemByQuery(String.format("id==(%s)", partition.stream()
           .collect(toQueryParameters)), bucketSize)
           .getItems());
+    log.info("Fetched all item info");
 
     items.forEach(item -> map.put(item.getId(), item));
 
@@ -157,10 +161,15 @@ public class BursarExportServiceImpl implements BursarExportService {
     }
 
     final List<List<P>> partition = ListUtils.partition(parameters, bucketSize);
-    log.debug("Fetch data in several calls, bucket count {}", partition::size);
-    return partition.stream()
-      .map(client::apply)
-      .collect(ArrayList::new, List::addAll, List::addAll);
+    log.info("Fetching data in several calls, {} buckets", partition::size);
+
+    ArrayList<T> result = new ArrayList<>(parameters.size());
+    for (List<P> part : partition) {
+      result.addAll(client.apply(part));
+      log.info("Fetched data for bucket of size {}", part::size);
+    }
+
+    return result;
   }
 
   private TransferRequest toTransferRequest(List<AccountWithAncillaryData> accounts, String accountName) {

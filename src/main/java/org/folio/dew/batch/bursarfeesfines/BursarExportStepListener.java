@@ -63,9 +63,6 @@ public class BursarExportStepListener extends BaseStepListener {
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.JOB_DESCRIPTION,
         String.format(BursarExportUtils.getJobDescriptionPart(), stepExecution.getWriteCount()), "\n");
 
-    log.info("Final jobExecutionContext: {}", jobExecution.getExecutionContext());
-    log.info("Final stepExecution: {}", stepExecution);
-
     return exitStatus;
   }
 }

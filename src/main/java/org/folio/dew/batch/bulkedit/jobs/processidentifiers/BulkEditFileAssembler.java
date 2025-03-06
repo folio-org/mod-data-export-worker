@@ -9,6 +9,7 @@ import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.UserFormat;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.FileOperationException;
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.partition.support.StepExecutionAggregator;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,7 +50,15 @@ public class BulkEditFileAssembler implements StepExecutionAggregator {
 
   @Override
   public void aggregate(StepExecution stepExecution, Collection<StepExecution> executions) {
-    mergeCsvJsonMarcInParallel(stepExecution, executions);
+    if (atLeastOnePartitionFailed(stepExecution, executions)) {
+      stepExecution.setStatus(BatchStatus.FAILED);
+    } else {
+      mergeCsvJsonMarcInParallel(stepExecution, executions);
+    }
+  }
+
+  private boolean atLeastOnePartitionFailed(StepExecution stepExecution, Collection<StepExecution> executions) {
+    return executions.stream().anyMatch(step -> step.getStatus() == BatchStatus.FAILED);
   }
 
   private void mergeCsvJsonMarcInParallel(StepExecution stepExecution, Collection<StepExecution> executions) {

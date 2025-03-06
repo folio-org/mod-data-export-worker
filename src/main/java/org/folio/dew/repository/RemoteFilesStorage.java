@@ -120,9 +120,9 @@ public class RemoteFilesStorage extends BaseFilesStorage {
       .bucket(bucket)
       .object(getS3Path(object))
       .region(region)
-      .expiry(urlExpirationTimeInSeconds, TimeUnit.SECONDS)
+      .expiry(10, TimeUnit.SECONDS)
       .build());
-    log.info("Created presigned URL {}.", result);
+    log.info("Created presigned URL {}", result);
     return result;
   }
 

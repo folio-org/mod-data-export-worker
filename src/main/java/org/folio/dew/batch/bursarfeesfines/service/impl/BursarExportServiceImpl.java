@@ -166,7 +166,7 @@ public class BursarExportServiceImpl implements BursarExportService {
     ArrayList<T> result = new ArrayList<>(parameters.size());
     for (List<P> part : partition) {
       result.addAll(client.apply(part));
-      log.info("Fetched data for bucket of size {}", part::size);
+      log.info("Fetched data for bucket for next {}, at {}/{}", part::size, result::size, parameters::size);
     }
 
     return result;

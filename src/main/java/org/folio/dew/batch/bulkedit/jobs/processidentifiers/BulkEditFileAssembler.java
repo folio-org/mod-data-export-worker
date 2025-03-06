@@ -50,14 +50,14 @@ public class BulkEditFileAssembler implements StepExecutionAggregator {
 
   @Override
   public void aggregate(StepExecution stepExecution, Collection<StepExecution> executions) {
-    if (atLeastOnePartitionFailed(stepExecution, executions)) {
+    if (atLeastOnePartitionFailed(executions)) {
       stepExecution.setStatus(BatchStatus.FAILED);
     } else {
       mergeCsvJsonMarcInParallel(stepExecution, executions);
     }
   }
 
-  private boolean atLeastOnePartitionFailed(StepExecution stepExecution, Collection<StepExecution> executions) {
+  private boolean atLeastOnePartitionFailed(Collection<StepExecution> executions) {
     return executions.stream().anyMatch(step -> step.getStatus() == BatchStatus.FAILED);
   }
 

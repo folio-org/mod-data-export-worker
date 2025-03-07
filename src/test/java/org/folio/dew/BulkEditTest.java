@@ -122,6 +122,7 @@ class BulkEditTest extends BaseBatchTest {
   private static final String BARCODES_FOR_PROGRESS_CSV = "src/test/resources/upload/barcodes_for_progress.csv";
   private static final String ITEM_BARCODES_CSV = "src/test/resources/upload/item_barcodes.csv";
   private static final String INSTANCE_HRIDS_CSV = "src/test/resources/upload/instance_hrids.csv";
+  private static final String INSTANCE_HRIDS_INVALID_FORMAT_CSV = "src/test/resources/upload/instance_hrids_invalid_format.csv";
   private static final String MARC_INSTANCE_ID_CSV = "src/test/resources/upload/marc_instance_id.csv";
   private static final String MARC_INSTANCE_ID_INVALID_CONTENT_CSV = "src/test/resources/upload/marc_instance_id_invalid_content.csv";
   private static final String MARC_INSTANCE_HRID_CSV = "src/test/resources/upload/marc_instance_hrid.csv";
@@ -276,6 +277,18 @@ class BulkEditTest extends BaseBatchTest {
     verifyCsvAndJsonOutput(jobExecution, EXPECTED_BULK_EDIT_INSTANCE_OUTPUT, EXPECTED_BULK_EDIT_INSTANCE_JSON_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = IdentifierType.class, names = {"ID","HRID"}, mode = EnumSource.Mode.INCLUDE)
+  void uploadInstanceIdentifiersWhenInvalidFormat(IdentifierType identifierType) throws Exception {
+    when(userPermissionsService.getPermissions()).thenReturn(List.of(BULK_EDIT_INVENTORY_VIEW_PERMISSION.getValue(), INVENTORY_INSTANCES_ITEM_GET_PERMISSION.getValue()));
+    JobLauncherTestUtils testLauncher = createTestLauncher(bulkEditProcessInstanceIdentifiersJob);
+
+    final JobParameters jobParameters = prepareJobParameters(BULK_EDIT_IDENTIFIERS, INSTANCE, identifierType, INSTANCE_HRIDS_INVALID_FORMAT_CSV);
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.FAILED);
   }
 
   @ParameterizedTest

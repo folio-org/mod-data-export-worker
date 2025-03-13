@@ -1,4 +1,35 @@
-## Unreleased v3.4.0
+## Unreleased v3.5.0
+
+## 2025-03-12 v3.4.0
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.3.8...v3.4.0)
+
+### Technical tasks
+* [MODEXPW-567](https://folio-org.atlassian.net/browse/MODEXPW-567) Update to mod-data-export-worker Java 21
+* [MODEXPW-545](https://folio-org.atlassian.net/browse/MODEXPW-545) TD: Improve caching
+* [MODEXPW-544](https://folio-org.atlassian.net/browse/MODEXPW-544) Handle UTF-8-BOM when getting record by identifier
+* [MODEXPW-538](https://folio-org.atlassian.net/browse/MODEXPW-538) Update permissions for mod-feesfines
+* [MODBULKOPS-412](https://folio-org.atlassian.net/browse/MODBULKOPS-412) Add UTF-8 BOM to Exported csv Files
+
+### Bug fixes
+* [MODSIDECAR-74](https://folio-org.atlassian.net/browse/MODSIDECAR-74) 401 Unauthorized error while upload file with valid identifiers in Bulk edit on Eureka environment
+* [MODEXPW-566](https://folio-org.atlassian.net/browse/MODEXPW-566) Export details for successfully exported order are not populated on details pane
+* [MODEXPW-554](https://folio-org.atlassian.net/browse/MODEXPW-554) Ramsons dependency upgrades fixing vulns (Spring Boot, etc.)
+* [MODEXPW-551](https://folio-org.atlassian.net/browse/MODEXPW-551) Invalid date representation in "Birth date" field fails commit of Users in "Bulk edit" app
+* [MODEXPW-549](https://folio-org.atlassian.net/browse/MODEXPW-549) Failed to start Bursar job
+
+### Stories
+* [MODEXPW-564](https://folio-org.atlassian.net/browse/MODEXPW-564) Preventing bulk editing corrupted MARC instances  through error handling
+* [MODEXPW-557](https://folio-org.atlassian.net/browse/MODEXPW-557) Add additional data to Claim CSV file
+* [MODEXPW-548](https://folio-org.atlassian.net/browse/MODEXPW-548) Add Statistical code column to Instance records preview
+* [MODEXPW-547](https://folio-org.atlassian.net/browse/MODEXPW-547) Provide error and warnings for matched records
+* [MODEXPW-537](https://folio-org.atlassian.net/browse/MODEXPW-537) Add Statistical code column to instances CSV
+* [MODEXPW-533](https://folio-org.atlassian.net/browse/MODEXPW-533) Prevent bulk editing LINKED_DATA instances
+* [MODEXPW-529](https://folio-org.atlassian.net/browse/MODEXPW-529) Create CSV file for claims
+* [MODEXPW-528](https://folio-org.atlassian.net/browse/MODEXPW-528) Generate EDI file for claims
+* [MODEXPS-277](https://folio-org.atlassian.net/browse/MODEXPS-277) Adjust Edi Orders export schema to support Claiming type
+* [MODEXPS-273](https://folio-org.atlassian.net/browse/MODEXPS-273) Add claiming job type
+* [MODBULKOPS-270](https://folio-org.atlassian.net/browse/MODBULKOPS-270) Differentiate between errors and warnings (updating schema)
 
 ## 2024-11-15 v3.3.2
 

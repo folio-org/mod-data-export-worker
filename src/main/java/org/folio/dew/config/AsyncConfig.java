@@ -1,6 +1,9 @@
 package org.folio.dew.config;
 
+import lombok.extern.log4j.Log4j2;
 import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.TaskExecutorJobLauncher;
@@ -15,10 +18,12 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration
 @EnableAsync
+@Log4j2
 public class AsyncConfig {
 
   private static final int TASK_EXECUTOR_CORE_POOL_SIZE = 10;
   private static final int TASK_EXECUTOR_MAX_POOL_SIZE = 10;
+  private static final Logger log = LoggerFactory.getLogger(AsyncConfig.class);
 
   @Value("${application.core-pool-size}")
   private int corePoolSize;
@@ -48,6 +53,7 @@ public class AsyncConfig {
   @JobScope
   @Bean(name = "asyncTaskExecutorBulkEdit")
   public TaskExecutor getAsyncTaskExecutorBulkEdit() {
+    log.info("asyncTaskExecutorBulkEdit established");
     var threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
     threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
     threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);

@@ -1,6 +1,7 @@
 package org.folio.dew.config;
 
 import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
+import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.TaskExecutorJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
@@ -44,6 +45,7 @@ public class AsyncConfig {
     return threadPoolTaskExecutor;
   }
 
+  @JobScope
   @Bean(name = "asyncTaskExecutorBulkEdit")
   public TaskExecutor getAsyncTaskExecutorBulkEdit() {
     var threadPoolTaskExecutor = new ThreadPoolTaskExecutor();

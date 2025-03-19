@@ -16,11 +16,11 @@ spring:
       auto-offset-reset: latest
       enable-auto-commit: true
   datasource:
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:20}
     username: ${DB_USERNAME:folio_admin}
     password: ${DB_PASSWORD:folio_admin}
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_DATABASE:okapi_modules}
-  hikari:
-    maximum-pool-size: ${DB_POOL_SIZE:20}
   sql:
     init:
       continue-on-error: true

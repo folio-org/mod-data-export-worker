@@ -113,7 +113,7 @@ application:
     job-chunk-size: ${AUTHORITY_CONTROL_BATCH_JOB_CHUNK_SIZE:100}
     entities-links-chunk-size: ${AUTHORITY_CONTROL_BATCH_ENTITIES_LINKS_CHUNK_SIZE:100}
   chunks: ${CHUNKS:100}
-  quantity-per-partition: ${QUANTITY_PER_PARTITION:1000}
+  quantity-per-partition: ${QUANTITY_PER_PARTITION:5000}
   merge-csv-json-mrc-pool-size: ${MERGE_CSV_JSON_MRC_POOL_SIZE:3}
   num-partitions: ${NUM_PARTITIONS:8}
   minutes-for-merge: ${MINUTES_FOR_MERGE:10}

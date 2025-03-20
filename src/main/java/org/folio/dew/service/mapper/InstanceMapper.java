@@ -111,7 +111,7 @@ public class InstanceMapper {
     return isEmpty(codeIds) ? EMPTY : codeIds.stream()
       .filter(Objects::nonNull)
       .map(id -> getStatisticalCodeFormat(id, args))
-      .map(specialCharacterEscaper::escape)
+      .map(specialCharacterEscaper::escapeStatisticalCode)
       .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
   }
 

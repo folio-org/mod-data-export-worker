@@ -26,6 +26,17 @@ public class SpecialCharacterEscaper {
     return initial;
   }
 
+  public String escapeStatisticalCode(String initial) {
+    if (StringUtils.isEmpty(initial)) return EMPTY;
+    for (int i = 0; i < specialCharacters.length; i++) {
+      var specChar = specialCharacters[i];
+      if (!specChar.equals(KEY_VALUE_DELIMITER)) {
+        initial = initial.replace(specChar, escapedValues[i]);
+      }
+    }
+    return initial;
+  }
+
   public List<String> escape(List<String> initial) {
     if (initial == null) return Collections.emptyList();
     return initial.stream()

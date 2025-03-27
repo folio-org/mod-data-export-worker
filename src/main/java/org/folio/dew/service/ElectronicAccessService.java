@@ -2,6 +2,7 @@ package org.folio.dew.service;
 
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.utils.Constants.EMPTY_ELECTRONIC_ACCESS;
 import static org.folio.dew.utils.Constants.ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DATA_DELIMITER;
 import static org.folio.dew.utils.Constants.ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DELIMITER;
 
@@ -39,11 +40,18 @@ public class ElectronicAccessService extends FolioExecutionContextManager {
   private String electronicAccessToString(ElectronicAccess access, ErrorServiceArgs errorServiceArgs, EntityType entityType, String tenantId) {
     var relationshipName = isEmpty(access.getRelationshipId()) ? EMPTY : getRelationshipNameById(access.getRelationshipId(), errorServiceArgs,tenantId);
     return String.join(ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DATA_DELIMITER.get(entityType),
-      isEmpty(relationshipName) ? EMPTY : relationshipName,
-      isEmpty(access.getUri()) ? EMPTY : access.getUri(),
-      isEmpty(access.getLinkText()) ? EMPTY : access.getLinkText(),
-      isEmpty(access.getMaterialsSpecification()) ? EMPTY : access.getMaterialsSpecification(),
-      isEmpty(access.getPublicNote()) ? EMPTY : access.getPublicNote());
+      isEmpty(relationshipName) ? getEmpty(entityType) : relationshipName,
+      isEmpty(access.getUri()) ? getEmpty(entityType) : access.getUri(),
+      isEmpty(access.getLinkText()) ? getEmpty(entityType) : access.getLinkText(),
+      isEmpty(access.getMaterialsSpecification()) ? getEmpty(entityType) : access.getMaterialsSpecification(),
+      isEmpty(access.getPublicNote()) ? getEmpty(entityType) : access.getPublicNote());
+  }
+
+  private String getEmpty(EntityType entityType) {
+    if (entityType == EntityType.INSTANCE) {
+      return EMPTY_ELECTRONIC_ACCESS;
+    }
+    return EMPTY;
   }
 
   public String getRelationshipNameById(String id, ErrorServiceArgs errorServiceArgs, String tenantId) {

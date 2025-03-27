@@ -4,9 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import org.folio.dew.BaseBatchTest;
+import org.folio.dew.domain.dto.ExtendedInstance;
 import org.folio.dew.domain.dto.Instance;
 import org.folio.dew.domain.dto.InstanceNoteType;
 import org.folio.dew.domain.dto.InstanceNotesInner;
+import org.folio.dew.service.ElectronicAccessService;
 import org.folio.dew.service.InstanceReferenceService;
 import org.folio.dew.service.SpecialCharacterEscaper;
 import org.junit.jupiter.api.Test;
@@ -20,6 +22,8 @@ class InstanceMapperTest extends BaseBatchTest {
 
   @Autowired
   private InstanceReferenceService instanceReferenceService;
+  @Autowired
+  private ElectronicAccessService electronicAccessService;
 
   @Test
   void shouldMapInstanceNoteTypes() {
@@ -30,11 +34,11 @@ class InstanceMapperTest extends BaseBatchTest {
         .instanceNoteTypeId(noteTypeId)
         .note("test note")
         .staffOnly(true)));
-    var mapper = new InstanceMapper(instanceReferenceService, new SpecialCharacterEscaper());
+    var mapper = new InstanceMapper(instanceReferenceService, new SpecialCharacterEscaper(), electronicAccessService);
     when(instanceNoteTypesClient.getNoteTypeById(noteTypeId))
       .thenReturn(new InstanceNoteType().name("note type"));
 
-    var instanceFormat = mapper.mapToInstanceFormat(instance, "identifier", UUID.randomUUID().toString(), "errorFile");
+    var instanceFormat = mapper.mapToInstanceFormat(new ExtendedInstance().entity(instance).tenantId("diku"), "identifier", UUID.randomUUID().toString(), "errorFile");
 
     assertThat(instanceFormat.getNotes()).isEqualTo("note type;test note;true");
   }
@@ -46,9 +50,9 @@ class InstanceMapperTest extends BaseBatchTest {
     var instance = new Instance()
       .id(UUID.randomUUID().toString())
       .statisticalCodeIds(List.of(statisticalCodeId1, statisticalCodeId2));
-    var mapper = new InstanceMapper(instanceReferenceService, new SpecialCharacterEscaper());
+    var mapper = new InstanceMapper(instanceReferenceService, new SpecialCharacterEscaper(), electronicAccessService);
 
-    var instanceFormat = mapper.mapToInstanceFormat(instance, "identifier", UUID.randomUUID().toString(), "errorFile");
+    var instanceFormat = mapper.mapToInstanceFormat(new ExtendedInstance().entity(instance).tenantId("diku"), "identifier", UUID.randomUUID().toString(), "errorFile");
 
     assertThat(instanceFormat.getStatisticalCode()).isEqualTo("Code Type 1 (CD): books - Book, print (books) | Code Type 1 (CD): books - Book, print (books)");
   }

@@ -1,5 +1,16 @@
 ## Unreleased v3.5.0
 
+## 2025-03-27 v3.4.1
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.0...v3.4.1)
+
+### Bug fixes
+* [MODEXPW-559](https://folio-org.atlassian.net/browse/MODEXPW-559) Colon separating type and code in "Statistical code" column is encoded in the file with Matching records
+* Add missed statistical-code-types interface
+
+### Tech debts
+* [MODEXPW-579](https://folio-org.atlassian.net/browse/MODEXPW-579) Remove unused openssh sshpass (sftp) from Dockerfile
+
 ## 2025-03-12 v3.4.0
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.3.8...v3.4.0)

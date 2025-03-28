@@ -21,6 +21,7 @@ import org.folio.dew.domain.dto.InstanceElectronicAccessInner;
 import org.folio.dew.domain.dto.InstanceFormat;
 import org.folio.dew.domain.dto.InstanceNotesInner;
 import org.folio.dew.domain.dto.InstanceSeriesInner;
+import org.folio.dew.domain.dto.InstanceSubjectsInner;
 import org.folio.dew.service.ElectronicAccessService;
 import org.folio.dew.service.InstanceReferenceService;
 import org.folio.dew.service.SpecialCharacterEscaper;
@@ -71,6 +72,7 @@ public class InstanceMapper {
       .publicationFrequency(isEmpty(instance.getPublicationFrequency()) ? EMPTY : String.join(ITEM_DELIMITER_SPACED, new ArrayList<>(instance.getPublicationFrequency())))
       .publicationRange(isEmpty(instance.getPublicationRange()) ? EMPTY : String.join(ITEM_DELIMITER_SPACED, new ArrayList<>(instance.getPublicationRange())))
       .electronicAccess(electronicAccessService.getElectronicAccessesToString(toElectronicAccesses(instance.getElectronicAccess()), errorServiceArgs,INSTANCE, tenantId))
+      .subject(fetchSubjects(instance.getSubjects(), errorServiceArgs))
       .build();
   }
 
@@ -109,11 +111,26 @@ public class InstanceMapper {
         .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
   }
 
+  private String fetchSubjects(Set<InstanceSubjectsInner> subjects, ErrorServiceArgs errorServiceArgs) {
+    return isEmpty(subjects) ? EMPTY :
+        "Subject headings;Subject source;Subject type\n" +
+        subjects.stream()
+            .map(subject -> subjectToString(subject, errorServiceArgs))
+            .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
+  }
+
   private String noteToString(InstanceNotesInner note, ErrorServiceArgs errorServiceArgs) {
     return (String.join(ARRAY_DELIMITER,
       specialCharacterEscaper.escape(instanceReferenceService.getInstanceNoteTypeNameById(note.getInstanceNoteTypeId(), errorServiceArgs)),
       specialCharacterEscaper.escape(note.getNote()),
       booleanToStringNullSafe(note.getStaffOnly())));
+  }
+
+  private String subjectToString(InstanceSubjectsInner subject, ErrorServiceArgs errorServiceArgs) {
+    return (String.join(ARRAY_DELIMITER,
+        subject.getValue(),
+        instanceReferenceService.getSubjectSourceNameById(subject.getSourceId(), errorServiceArgs),
+        instanceReferenceService.getSubjectTypeNameById(subject.getTypeId(), errorServiceArgs)));
   }
 
   private String getStatisticalCodeNames(List<String> codeIds, ErrorServiceArgs args) {

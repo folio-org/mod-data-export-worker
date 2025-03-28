@@ -125,6 +125,10 @@ public class InstanceFormat implements Formatable<org.folio.dew.domain.dto.Insta
   @CsvBindByPosition(position = 24)
   private String electronicAccess;
 
+  @CsvBindByName(column = "Subject")
+  @CsvBindByPosition(position = 25)
+  private String subject;
+
   private String isbn;
   private String issn;
 

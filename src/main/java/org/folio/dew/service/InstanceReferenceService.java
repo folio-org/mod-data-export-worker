@@ -1,5 +1,7 @@
 package org.folio.dew.service;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
@@ -104,6 +106,28 @@ public class InstanceReferenceService {
       log.error(msg);
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg, ErrorType.WARNING), args.getFileName());
       return statisticalCodeId;
+    }
+  }
+
+  public String getSubjectSourceNameById(String subjectSourceId, ErrorServiceArgs args) {
+    try {
+      return instanceReferenceServiceCache.getSubjectSourceNameById(subjectSourceId);
+    } catch (Exception e) {
+      var msg = "Subject source not found by id=" + subjectSourceId;
+      log.error(msg);
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg, ErrorType.WARNING), args.getFileName());
+      return EMPTY;
+    }
+  }
+
+  public String getSubjectTypeNameById(String subjectTypeId, ErrorServiceArgs args) {
+    try {
+      return instanceReferenceServiceCache.getSubjectTypeNameById(subjectTypeId);
+    } catch (Exception e) {
+      var msg = "Subject type not found by id=" + subjectTypeId;
+      log.error(msg);
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg, ErrorType.WARNING), args.getFileName());
+      return EMPTY;
     }
   }
 }

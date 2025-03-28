@@ -2,6 +2,7 @@ package org.folio.dew.service.mapper;
 
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dew.domain.dto.EntityType.INSTANCE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.booleanToStringNullSafe;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER_SPACED;
@@ -12,12 +13,16 @@ import static org.folio.dew.utils.DateTimeHelper.formatDate;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.folio.dew.domain.dto.ElectronicAccess;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
-import org.folio.dew.domain.dto.Instance;
+import org.folio.dew.domain.dto.ExtendedInstance;
 import org.folio.dew.domain.dto.InstanceContributorsInner;
+import org.folio.dew.domain.dto.InstanceElectronicAccessInner;
 import org.folio.dew.domain.dto.InstanceFormat;
 import org.folio.dew.domain.dto.InstanceNotesInner;
 import org.folio.dew.domain.dto.InstanceSeriesInner;
+import org.folio.dew.domain.dto.InstanceSubjectsInner;
+import org.folio.dew.service.ElectronicAccessService;
 import org.folio.dew.service.InstanceReferenceService;
 import org.folio.dew.service.SpecialCharacterEscaper;
 import org.springframework.stereotype.Service;
@@ -27,6 +32,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -34,9 +40,12 @@ import java.util.stream.Collectors;
 public class InstanceMapper {
   private final InstanceReferenceService instanceReferenceService;
   private final SpecialCharacterEscaper specialCharacterEscaper;
+  private final ElectronicAccessService electronicAccessService;
 
-  public InstanceFormat mapToInstanceFormat(Instance instance, String identifier, String jobId, String errorFileName) {
+  public InstanceFormat mapToInstanceFormat(ExtendedInstance extendedInstance, String identifier, String jobId, String errorFileName) {
     var errorServiceArgs = new ErrorServiceArgs(jobId, identifier, errorFileName);
+    var tenantId = extendedInstance.getTenantId();
+    var instance = extendedInstance.getEntity();
     return InstanceFormat.builder()
       .id(instance.getId())
       .discoverySuppress(isEmpty(instance.getVersion()) ? EMPTY : Boolean.toString(instance.getDiscoverySuppress()))
@@ -62,6 +71,8 @@ public class InstanceMapper {
       .languages(isEmpty(instance.getLanguages()) ? EMPTY : String.join(ITEM_DELIMITER_SPACED, instance.getLanguages()))
       .publicationFrequency(isEmpty(instance.getPublicationFrequency()) ? EMPTY : String.join(ITEM_DELIMITER_SPACED, new ArrayList<>(instance.getPublicationFrequency())))
       .publicationRange(isEmpty(instance.getPublicationRange()) ? EMPTY : String.join(ITEM_DELIMITER_SPACED, new ArrayList<>(instance.getPublicationRange())))
+      .electronicAccess(electronicAccessService.getElectronicAccessesToString(toElectronicAccesses(instance.getElectronicAccess()), errorServiceArgs,INSTANCE, tenantId))
+      .subject(fetchSubjects(instance.getSubjects(), errorServiceArgs))
       .build();
   }
 
@@ -100,11 +111,26 @@ public class InstanceMapper {
         .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
   }
 
+  private String fetchSubjects(Set<InstanceSubjectsInner> subjects, ErrorServiceArgs errorServiceArgs) {
+    return isEmpty(subjects) ? EMPTY :
+        "Subject headings;Subject source;Subject type\n" +
+        subjects.stream()
+            .map(subject -> subjectToString(subject, errorServiceArgs))
+            .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
+  }
+
   private String noteToString(InstanceNotesInner note, ErrorServiceArgs errorServiceArgs) {
     return (String.join(ARRAY_DELIMITER,
       specialCharacterEscaper.escape(instanceReferenceService.getInstanceNoteTypeNameById(note.getInstanceNoteTypeId(), errorServiceArgs)),
       specialCharacterEscaper.escape(note.getNote()),
       booleanToStringNullSafe(note.getStaffOnly())));
+  }
+
+  private String subjectToString(InstanceSubjectsInner subject, ErrorServiceArgs errorServiceArgs) {
+    return (String.join(ARRAY_DELIMITER,
+        subject.getValue(),
+        instanceReferenceService.getSubjectSourceNameById(subject.getSourceId(), errorServiceArgs),
+        instanceReferenceService.getSubjectTypeNameById(subject.getTypeId(), errorServiceArgs)));
   }
 
   private String getStatisticalCodeNames(List<String> codeIds, ErrorServiceArgs args) {
@@ -120,5 +146,15 @@ public class InstanceMapper {
     var code = instanceReferenceService.getStatisticalCodeCodeById(id, args);
     var name = instanceReferenceService.getStatisticalCodeNameById(id, args);
     return String.format("%s%s %s%s%s", typeName, KEY_VALUE_DELIMITER, code, STATISTICAL_CODE_NAME_SEPARATOR, name);
+  }
+
+  private List<ElectronicAccess> toElectronicAccesses(List<InstanceElectronicAccessInner> listInstElAcc) {
+    return Stream.ofNullable(listInstElAcc).flatMap(List::stream).map(this::toElectronicAccess).toList();
+  }
+
+  private ElectronicAccess toElectronicAccess(InstanceElectronicAccessInner instanceElAcc) {
+    return new ElectronicAccess().linkText(instanceElAcc.getLinkText()).uri(instanceElAcc.getUri())
+      .materialsSpecification(instanceElAcc.getMaterialsSpecification()).publicNote(instanceElAcc.getPublicNote())
+      .relationshipId(instanceElAcc.getRelationshipId());
   }
 }

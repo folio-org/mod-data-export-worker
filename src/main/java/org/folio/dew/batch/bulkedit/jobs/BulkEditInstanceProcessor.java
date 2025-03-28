@@ -25,6 +25,7 @@ import org.folio.dew.client.SrsClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ErrorType;
+import org.folio.dew.domain.dto.ExtendedInstance;
 import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.Instance;
 import org.folio.dew.domain.dto.InstanceFormat;
@@ -86,7 +87,8 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
       }
 
       if (fetchedInstanceIds.add(instance.getId())) {
-        var instanceFormat = instanceMapper.mapToInstanceFormat(instance, itemIdentifier.getItemId(), jobId, FilenameUtils.getName(fileName)).withOriginal(instance)
+        var instanceFormat = instanceMapper.mapToInstanceFormat(new ExtendedInstance().entity(instance)
+            .tenantId(folioExecutionContext.getTenantId()), itemIdentifier.getItemId(), jobId, FilenameUtils.getName(fileName)).withOriginal(instance)
           .withTenantId(folioExecutionContext.getTenantId());
         checkMissingSrsAndDuplication(instanceFormat);
         return List.of(instanceFormat);

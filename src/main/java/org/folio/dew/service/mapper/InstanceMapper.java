@@ -6,6 +6,7 @@ import static org.folio.dew.domain.dto.EntityType.INSTANCE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.booleanToStringNullSafe;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER_SPACED;
+import static org.folio.dew.utils.Constants.VERTICAL_BAR_WITH_HIDDEN_SYMBOL;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_SPACED;
 import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
 import static org.folio.dew.utils.Constants.STATISTICAL_CODE_NAME_SEPARATOR;
@@ -116,7 +117,7 @@ public class InstanceMapper {
         "Subject headings;Subject source;Subject type\n" +
         subjects.stream()
             .map(subject -> subjectToString(subject, errorServiceArgs))
-            .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
+            .collect(Collectors.joining(VERTICAL_BAR_WITH_HIDDEN_SYMBOL));
   }
 
   private String noteToString(InstanceNotesInner note, ErrorServiceArgs errorServiceArgs) {

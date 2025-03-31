@@ -116,7 +116,6 @@ public class InstanceMapper {
         "Subject headings;Subject source;Subject type\n" +
         subjects.stream()
             .map(subject -> subjectToString(subject, errorServiceArgs))
-            .sorted()
             .collect(Collectors.joining(ITEM_DELIMITER_SPACED));
   }
 

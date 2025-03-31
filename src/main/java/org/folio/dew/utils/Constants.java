@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static org.folio.dew.domain.dto.EntityType.HOLDINGS_RECORD;
+import static org.folio.dew.domain.dto.EntityType.INSTANCE;
 import static org.folio.dew.domain.dto.EntityType.ITEM;
 
 @UtilityClass
@@ -32,8 +33,9 @@ public class Constants {
   public static final String ITEM_DELIMITER_SPACED = " | ";
   public static final String KEY_VALUE_DELIMITER = ":";
   public static final String HOLDINGS_DELIMITER = "\u001f|";
-  public static final Map<EntityType, String> ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DELIMITER = Map.of(HOLDINGS_RECORD, HOLDINGS_DELIMITER, ITEM, ITEM_DELIMITER);
-  public static final Map<EntityType, String> ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DATA_DELIMITER = Map.of(HOLDINGS_RECORD, ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER, ITEM, ARRAY_DELIMITER);
+  public static final String EMPTY_ELECTRONIC_ACCESS = "-";
+  public static final Map<EntityType, String> ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DELIMITER = Map.of(HOLDINGS_RECORD, HOLDINGS_DELIMITER, ITEM, ITEM_DELIMITER, INSTANCE, HOLDINGS_DELIMITER);
+  public static final Map<EntityType, String> ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DATA_DELIMITER = Map.of(HOLDINGS_RECORD, ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER, ITEM, ARRAY_DELIMITER, INSTANCE, ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER);
 
   public static final String FILE_NAME = "fileName";
   public static final String TEMP_IDENTIFIERS_FILE_NAME = "tempIdentifiersFileName";

@@ -33,7 +33,7 @@ public class Constants {
   public static final String ITEM_DELIMITER_SPACED = " | ";
   public static final String KEY_VALUE_DELIMITER = ":";
   public static final String VERTICAL_BAR_WITH_HIDDEN_SYMBOL = "\u001f|";
-  public static final String EMPTY_ELECTRONIC_ACCESS = "-";
+  public static final String EMPTY_ELEMENT = "-";
   public static final Map<EntityType, String> ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DELIMITER = Map.of(HOLDINGS_RECORD,
       VERTICAL_BAR_WITH_HIDDEN_SYMBOL, ITEM, ITEM_DELIMITER, INSTANCE,
       VERTICAL_BAR_WITH_HIDDEN_SYMBOL);

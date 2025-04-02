@@ -6,6 +6,7 @@ import static org.folio.dew.domain.dto.EntityType.INSTANCE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.booleanToStringNullSafe;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER_SPACED;
+import static org.folio.dew.utils.Constants.EMPTY_ELEMENT;
 import static org.folio.dew.utils.Constants.VERTICAL_BAR_WITH_HIDDEN_SYMBOL;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_SPACED;
 import static org.folio.dew.utils.Constants.KEY_VALUE_DELIMITER;
@@ -26,6 +27,7 @@ import org.folio.dew.domain.dto.InstanceSubjectsInner;
 import org.folio.dew.service.ElectronicAccessService;
 import org.folio.dew.service.InstanceReferenceService;
 import org.folio.dew.service.SpecialCharacterEscaper;
+import org.folio.dew.utils.NonEmpty;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -114,7 +116,6 @@ public class InstanceMapper {
 
   private String fetchSubjects(Set<InstanceSubjectsInner> subjects, ErrorServiceArgs errorServiceArgs) {
     return isEmpty(subjects) ? EMPTY :
-        "Subject headings;Subject source;Subject type\n" +
         subjects.stream()
             .map(subject -> subjectToString(subject, errorServiceArgs))
             .collect(Collectors.joining(VERTICAL_BAR_WITH_HIDDEN_SYMBOL));
@@ -129,9 +130,12 @@ public class InstanceMapper {
 
   private String subjectToString(InstanceSubjectsInner subject, ErrorServiceArgs errorServiceArgs) {
     return (String.join(ARRAY_DELIMITER,
-        subject.getValue(),
-        instanceReferenceService.getSubjectSourceNameById(subject.getSourceId(), errorServiceArgs),
-        instanceReferenceService.getSubjectTypeNameById(subject.getTypeId(), errorServiceArgs)));
+        NonEmpty.of(subject.getValue()).orElse(EMPTY_ELEMENT),
+        NonEmpty.of( instanceReferenceService.getSubjectSourceNameById(subject.getSourceId(), errorServiceArgs)).orElse(
+            EMPTY_ELEMENT),
+        NonEmpty.of( instanceReferenceService.getSubjectTypeNameById(subject.getTypeId(), errorServiceArgs)).orElse(
+            EMPTY_ELEMENT))
+    );
   }
 
   private String getStatisticalCodeNames(List<String> codeIds, ErrorServiceArgs args) {

@@ -94,7 +94,6 @@ class InstanceMapperTest extends BaseBatchTest {
         .thenReturn(new SubjectTypeCollection().subjectTypes(List.of(new SubjectType().id(subjectTypeId1).name("Type#2"))));
 
     var instanceFormat = mapper.mapToInstanceFormat(new ExtendedInstance().entity(instance).tenantId("diku"), "identifier", UUID.randomUUID().toString(), "errorFile");
-    assertThat(instanceFormat.getSubject()).contains("Subject headings;Subject source;Subject type\n");
     assertThat(instanceFormat.getSubject()).contains("Subject#1;Source#1;Type#1");
     assertThat(instanceFormat.getSubject()).contains("Subject#2;Source#2;Type#2");
 

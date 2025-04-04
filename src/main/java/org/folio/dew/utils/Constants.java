@@ -28,7 +28,7 @@ public class Constants {
 
   public static final String ARRAY_DELIMITER = ";";
   public static final String ARRAY_DELIMITER_SPACED = "; ";
-  public static final String ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER = "\u001f;";
+  public static final String ARRAY_DELIMITER_WITH_HIDDEN_SYMBOL = "\u001f;";
   public static final String ITEM_DELIMITER = "|";
   public static final String ITEM_DELIMITER_SPACED = " | ";
   public static final String KEY_VALUE_DELIMITER = ":";
@@ -37,7 +37,9 @@ public class Constants {
   public static final Map<EntityType, String> ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DELIMITER = Map.of(HOLDINGS_RECORD,
       VERTICAL_BAR_WITH_HIDDEN_SYMBOL, ITEM, ITEM_DELIMITER, INSTANCE,
       VERTICAL_BAR_WITH_HIDDEN_SYMBOL);
-  public static final Map<EntityType, String> ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DATA_DELIMITER = Map.of(HOLDINGS_RECORD, ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER, ITEM, ARRAY_DELIMITER, INSTANCE, ELECTRONIC_RELATIONSHIP_NAME_ID_DELIMITER);
+  public static final Map<EntityType, String> ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DATA_DELIMITER = Map.of(HOLDINGS_RECORD,
+      ARRAY_DELIMITER_WITH_HIDDEN_SYMBOL, ITEM, ARRAY_DELIMITER, INSTANCE,
+      ARRAY_DELIMITER_WITH_HIDDEN_SYMBOL);
 
   public static final String FILE_NAME = "fileName";
   public static final String TEMP_IDENTIFIERS_FILE_NAME = "tempIdentifiersFileName";

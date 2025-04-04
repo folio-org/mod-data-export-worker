@@ -6,6 +6,7 @@ import static org.folio.dew.domain.dto.EntityType.INSTANCE;
 import static org.folio.dew.utils.BulkEditProcessorHelper.booleanToStringNullSafe;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER;
 import static org.folio.dew.utils.Constants.ARRAY_DELIMITER_SPACED;
+import static org.folio.dew.utils.Constants.ARRAY_DELIMITER_WITH_HIDDEN_SYMBOL;
 import static org.folio.dew.utils.Constants.EMPTY_ELEMENT;
 import static org.folio.dew.utils.Constants.VERTICAL_BAR_WITH_HIDDEN_SYMBOL;
 import static org.folio.dew.utils.Constants.ITEM_DELIMITER_SPACED;
@@ -129,7 +130,7 @@ public class InstanceMapper {
   }
 
   private String subjectToString(InstanceSubjectsInner subject, ErrorServiceArgs errorServiceArgs) {
-    return (String.join(ARRAY_DELIMITER,
+    return (String.join(ARRAY_DELIMITER_WITH_HIDDEN_SYMBOL,
         NonEmpty.of(subject.getValue()).orElse(EMPTY_ELEMENT),
         NonEmpty.of( instanceReferenceService.getSubjectSourceNameById(subject.getSourceId(), errorServiceArgs)).orElse(
             EMPTY_ELEMENT),

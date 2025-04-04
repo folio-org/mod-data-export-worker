@@ -181,6 +181,14 @@
     {
       "id": "instance-statuses",
       "version": "1.0"
+    },
+    {
+      "id": "subject-types",
+      "version": "1.0"
+    },
+    {
+      "id": "subject-sources",
+      "version": "1.0"
     }
   ],
   "optional": [
@@ -279,7 +287,9 @@
             "consortia.user-tenants.collection.get",
             "perms.users.get",
             "permissions.users.item.get",
-            "inventory-storage.statistical-code-types.item.get"
+            "inventory-storage.statistical-code-types.item.get",
+            "inventory-storage.subject-types.collection.get",
+            "inventory-storage.subject-sources.collection.get"
           ]
         },
         {

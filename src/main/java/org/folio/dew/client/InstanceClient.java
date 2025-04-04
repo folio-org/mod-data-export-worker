@@ -1,6 +1,7 @@
 package org.folio.dew.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.folio.dew.config.feign.FeignClientConfiguration;
 import org.folio.dew.domain.dto.BriefInstance;
 import org.folio.dew.domain.dto.BriefInstanceCollection;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "instance-storage/instances")
+@FeignClient(name = "instance-storage/instances", configuration = {FeignClientConfiguration.class})
 public interface InstanceClient {
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   BriefInstanceCollection getByQuery(@RequestParam String query);

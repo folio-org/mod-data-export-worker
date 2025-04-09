@@ -2,7 +2,7 @@ package org.folio.dew.service;
 
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.folio.dew.utils.Constants.EMPTY_ELECTRONIC_ACCESS;
+import static org.folio.dew.utils.Constants.EMPTY_ELEMENT;
 import static org.folio.dew.utils.Constants.ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DATA_DELIMITER;
 import static org.folio.dew.utils.Constants.ENTITY_TYPE_TO_ELECTRONIC_ACCESS_DELIMITER;
 
@@ -49,7 +49,7 @@ public class ElectronicAccessService extends FolioExecutionContextManager {
 
   private String getEmpty(EntityType entityType) {
     if (entityType == EntityType.INSTANCE) {
-      return EMPTY_ELECTRONIC_ACCESS;
+      return EMPTY_ELEMENT;
     }
     return EMPTY;
   }

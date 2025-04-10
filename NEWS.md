@@ -1,5 +1,12 @@
 ## Unreleased v3.5.0
 
+## 2025-04-10 v3.4.2
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.1...v3.4.2)
+
+### Technical tasks
+* Add customer error decoder to instance client.
+
 ## 2025-03-27 v3.4.1
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.0...v3.4.1)

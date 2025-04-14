@@ -117,6 +117,7 @@ public class InstanceMapper {
 
   private String fetchSubjects(Set<InstanceSubjectsInner> subjects, ErrorServiceArgs errorServiceArgs) {
     return isEmpty(subjects) ? EMPTY :
+        "Subject headings;Subject source;Subject type\n" +
         subjects.stream()
             .map(subject -> subjectToString(subject, errorServiceArgs))
             .collect(Collectors.joining(VERTICAL_BAR_WITH_HIDDEN_SYMBOL));

@@ -55,6 +55,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.Job;
+import org.folio.dew.batch.bulkedit.jobs.DuplicationChecker;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.ErrorType;
 import org.folio.dew.domain.dto.JobParameterNames;
@@ -83,6 +84,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
   private final LocalFilesStorage localFilesStorage;
   private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
   private final BulkEditStatisticService bulkEditStatisticService;
+  private final DuplicationChecker duplicationChecker;
 
   @Override
   public void beforeJob(JobExecution jobExecution) {
@@ -109,6 +111,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
         moveTemporaryFilesToStorage(jobParameters);
         handleProcessingMatchedRecordsAndErrors(jobExecution, jobId);
         handleProcessingMarcFile(jobExecution);
+        duplicationChecker.reset();
       }
       processJobAfter(jobId, jobParameters);
     } else {

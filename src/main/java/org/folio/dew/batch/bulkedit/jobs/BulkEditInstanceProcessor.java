@@ -55,6 +55,7 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
   private final PermissionsValidator permissionsValidator;
   private final UserClient userClient;
   private final SrsClient srsClient;
+  private final DuplicationChecker duplicationChecker;
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
@@ -65,8 +66,8 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
   @Value("#{stepExecution.jobExecution}")
   private JobExecution jobExecution;
 
-  private final Set<ItemIdentifier> identifiersToCheckDuplication = ConcurrentHashMap.newKeySet();
-  private final Set<String> fetchedInstanceIds = ConcurrentHashMap.newKeySet();
+//  private final Set<ItemIdentifier> identifiersToCheckDuplication = ConcurrentHashMap.newKeySet();
+//  private final Set<String> fetchedInstanceIds = ConcurrentHashMap.newKeySet();
 
   @Override
   public List<InstanceFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
@@ -76,7 +77,7 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
         var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
         throw new BulkEditException(format(NO_INSTANCE_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()), ErrorType.ERROR);
       }
-      if (!identifiersToCheckDuplication.add(itemIdentifier)) {
+      if (duplicationChecker.isDuplicate(itemIdentifier)) {
         throw new BulkEditException(DUPLICATE_ENTRY, ErrorType.WARNING);
       }
 
@@ -86,7 +87,7 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
         throw new BulkEditException(LINKED_DATA_SOURCE_IS_NOT_SUPPORTED, ErrorType.ERROR);
       }
 
-      if (fetchedInstanceIds.add(instance.getId())) {
+      if (!duplicationChecker.fetched(instance.getId())) {
         var instanceFormat = instanceMapper.mapToInstanceFormat(new ExtendedInstance().entity(instance)
             .tenantId(folioExecutionContext.getTenantId()), itemIdentifier.getItemId(), jobId, FilenameUtils.getName(fileName)).withOriginal(instance)
           .withTenantId(folioExecutionContext.getTenantId());

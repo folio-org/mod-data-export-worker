@@ -220,6 +220,10 @@ components:
       $ref: '../../../../folio-export-common/schemas/inventory/identifierTypeReferenceCollection.json#/IdentifierTypeReferenceCollection'
     InstanceNoteType:
       $ref: '../../../../folio-export-common/schemas/inventory/instanceNoteType.json#/InstanceNoteType'
+    SubjectSourceCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/subjectSourceCollection.json'
+    SubjectTypeCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/subjectTypeCollection.json'
     ConsortiumItemCollection:
       $ref: '../../../../folio-export-common/schemas/search/consortiumItemCollection.json#/ConsortiumItemCollection'
     ConsortiumItem:

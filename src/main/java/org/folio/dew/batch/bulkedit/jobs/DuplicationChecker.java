@@ -16,10 +16,11 @@ public class DuplicationChecker {
   private final Set<String> fetchedInstanceIds = ConcurrentHashMap.newKeySet();
 
   public boolean isDuplicate(ItemIdentifier itemIdentifier) {
-    if (!identifiersToCheckDuplication.isEmpty()) {
+    var res = !identifiersToCheckDuplication.add(itemIdentifier);
+    if (res) {
       log.info("identifiersToCheckDuplication {}", identifiersToCheckDuplication);
     }
-    return !identifiersToCheckDuplication.add(itemIdentifier);
+    return res;
   }
 
   public boolean fetched(String id) {

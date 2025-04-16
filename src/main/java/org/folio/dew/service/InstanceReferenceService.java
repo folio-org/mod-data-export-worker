@@ -135,7 +135,7 @@ public class InstanceReferenceService {
     try {
       return instanceReferenceServiceCache.getClassificationTypeNameById(classificationTypeId);
     } catch (Exception e) {
-      var msg = "Subject type not found by id=" + classificationTypeId;
+      var msg = "Classification type not found by id=" + classificationTypeId;
       log.error(msg);
       errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg, ErrorType.WARNING), args.getFileName());
       return EMPTY;

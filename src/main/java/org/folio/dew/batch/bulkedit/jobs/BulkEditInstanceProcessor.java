@@ -81,6 +81,9 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
       if (duplicationChecker.isDuplicate(itemIdentifier)) {
         throw new BulkEditException(DUPLICATE_ENTRY, ErrorType.WARNING);
       }
+      if (itemIdentifier.getItemId().equals("1b74ab75-9f41-4837-8662-a1d99118008d")) {
+        log.info("itemIdentifier.getItemId() {}", duplicationChecker.getIdentifiersToCheckDuplication());
+      }
 
       var instance = getInstance(itemIdentifier);
 

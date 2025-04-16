@@ -16,6 +16,9 @@ public class DuplicationChecker {
   private final Set<String> fetchedInstanceIds = ConcurrentHashMap.newKeySet();
 
   public boolean isDuplicate(ItemIdentifier itemIdentifier) {
+    if (!identifiersToCheckDuplication.isEmpty()) {
+      log.info("identifiersToCheckDuplication {}", identifiersToCheckDuplication);
+    }
     return !identifiersToCheckDuplication.add(itemIdentifier);
   }
 
@@ -26,6 +29,10 @@ public class DuplicationChecker {
   public void reset() {
     identifiersToCheckDuplication.clear();
     fetchedInstanceIds.clear();
+  }
+
+  public Set<ItemIdentifier> getIdentifiersToCheckDuplication() {
+    return identifiersToCheckDuplication;
   }
 
   @PostConstruct

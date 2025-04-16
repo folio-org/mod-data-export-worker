@@ -1,5 +1,7 @@
 package org.folio.dew.batch.bulkedit.jobs;
 
+import jakarta.annotation.PostConstruct;
+import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.ItemIdentifier;
 import org.springframework.stereotype.Component;
 
@@ -7,6 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@Log4j2
 public class DuplicationChecker {
 
   private final Set<ItemIdentifier> identifiersToCheckDuplication = ConcurrentHashMap.newKeySet();
@@ -23,5 +26,10 @@ public class DuplicationChecker {
   public void reset() {
     identifiersToCheckDuplication.clear();
     fetchedInstanceIds.clear();
+  }
+
+  @PostConstruct
+  public void checkClassInstances() {
+    log.info("DuplicationChecker this: {}", this);
   }
 }

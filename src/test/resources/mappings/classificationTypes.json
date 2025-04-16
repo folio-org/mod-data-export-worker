@@ -1,0 +1,18 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/classification-types?query=id%3D%3D%2242471af9-7d25-4f3a-bf78-60d29dcf463b%22"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"classificationTypes\": [\n        {\n            \"id\": \"42471af9-7d25-4f3a-bf78-60d29dcf463b\",\n            \"name\": \"Dewey\",\n            \"source\": \"folio\",\n            \"metadata\": {\n                \"createdDate\": \"2025-04-16T01:52:47.665+00:00\",\n                \"updatedDate\": \"2025-04-16T01:52:47.665+00:00\"\n            }\n        }\n    ],\n    \"totalRecords\": 1\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}
+

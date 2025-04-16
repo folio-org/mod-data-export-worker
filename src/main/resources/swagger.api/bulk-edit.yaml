@@ -204,6 +204,8 @@ components:
       $ref: '../../../../folio-export-common/schemas/inventory-storage/formatOfInstance.json#/FormatOfInstance'
     classificationType:
       $ref: '../../../../folio-export-common/schemas/inventory-storage/classificationType.json#/ClassificationType'
+    classificationTypeCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory-storage/classificationTypeCollection.json#/ClassificationTypeCollection'
     contributorNameType:
       $ref: '../../../../folio-export-common/schemas/inventory-storage/contributorNameType.json#/ContributorNameType'
     instanceStatus:

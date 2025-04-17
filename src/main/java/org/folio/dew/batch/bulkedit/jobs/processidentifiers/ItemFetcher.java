@@ -43,8 +43,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Component
@@ -59,20 +57,18 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
   private final PermissionsValidator permissionsValidator;
   private final FolioExecutionContext folioExecutionContext;
   private final TenantResolver tenantResolver;
+  private final DuplicationChecker duplicationChecker;
 
   @Value("#{stepExecution.jobExecution}")
   private JobExecution jobExecution;
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
 
-  private Set<ItemIdentifier> identifiersToCheckDuplication = ConcurrentHashMap.newKeySet();
-
   @Override
   public synchronized ExtendedItemCollection process(ItemIdentifier itemIdentifier) throws BulkEditException {
-    if (identifiersToCheckDuplication.contains(itemIdentifier)) {
+    if (duplicationChecker.isDuplicate(itemIdentifier)) {
       throw new BulkEditException("Duplicate entry", ErrorType.WARNING);
     }
-    identifiersToCheckDuplication.add(itemIdentifier);
     var type = IdentifierType.fromValue(identifierType);
     var limit = HOLDINGS_RECORD_ID == type ? Integer.MAX_VALUE : 1;
     var idType = resolveIdentifier(identifierType);

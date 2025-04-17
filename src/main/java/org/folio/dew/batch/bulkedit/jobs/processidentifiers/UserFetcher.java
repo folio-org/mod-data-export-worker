@@ -30,8 +30,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @StepScope
@@ -41,10 +39,10 @@ public class UserFetcher implements ItemProcessor<ItemIdentifier, User> {
   private static final String USER_SEARCH_QUERY = "(cql.allRecords=1 NOT type=\"\" or type<>\"shadow\") and %s==\"%s\"";
 
   private final UserClient userClient;
+  private final DuplicationChecker duplicationChecker;
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
-  private Set<ItemIdentifier> identifiersToCheckDuplication = ConcurrentHashMap.newKeySet();
   private final FolioExecutionContext folioExecutionContext;
   private final PermissionsValidator permissionsValidator;
 
@@ -54,10 +52,9 @@ public class UserFetcher implements ItemProcessor<ItemIdentifier, User> {
       var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
       throw new BulkEditException(format(NO_USER_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()), ErrorType.ERROR);
     }
-    if (identifiersToCheckDuplication.contains(itemIdentifier)) {
+    if (duplicationChecker.isDuplicate(itemIdentifier)) {
       throw new BulkEditException("Duplicate entry", ErrorType.WARNING);
     }
-    identifiersToCheckDuplication.add(itemIdentifier);
     try {
       var limit = 1;
       var userCollection = userClient.getUserByQuery(

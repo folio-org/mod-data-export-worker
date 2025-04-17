@@ -21,6 +21,7 @@ import org.folio.dew.domain.dto.User;
 import org.folio.dew.error.BulkEditException;
 import org.folio.dew.utils.ExceptionHelper;
 import org.folio.spring.FolioExecutionContext;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,8 +31,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @StepScope
@@ -41,10 +40,12 @@ public class UserFetcher implements ItemProcessor<ItemIdentifier, User> {
   private static final String USER_SEARCH_QUERY = "(cql.allRecords=1 NOT type=\"\" or type<>\"shadow\") and %s==\"%s\"";
 
   private final UserClient userClient;
+  private final DuplicationCheckerFactory duplicationCheckerFactory;
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
-  private Set<ItemIdentifier> identifiersToCheckDuplication = ConcurrentHashMap.newKeySet();
+  @Value("#{stepExecution.jobExecution}")
+  private JobExecution jobExecution;
   private final FolioExecutionContext folioExecutionContext;
   private final PermissionsValidator permissionsValidator;
 
@@ -54,10 +55,9 @@ public class UserFetcher implements ItemProcessor<ItemIdentifier, User> {
       var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
       throw new BulkEditException(format(NO_USER_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()), ErrorType.ERROR);
     }
-    if (identifiersToCheckDuplication.contains(itemIdentifier)) {
+    if (!duplicationCheckerFactory.getIdentifiersToCheckDuplication(jobExecution).add(itemIdentifier)) {
       throw new BulkEditException("Duplicate entry", ErrorType.WARNING);
     }
-    identifiersToCheckDuplication.add(itemIdentifier);
     try {
       var limit = 1;
       var userCollection = userClient.getUserByQuery(

@@ -19,6 +19,7 @@ import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.ElectronicAccess;
 import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.ExtendedInstance;
+import org.folio.dew.domain.dto.InstanceClassificationsInner;
 import org.folio.dew.domain.dto.InstanceContributorsInner;
 import org.folio.dew.domain.dto.InstanceElectronicAccessInner;
 import org.folio.dew.domain.dto.InstanceFormat;
@@ -77,6 +78,7 @@ public class InstanceMapper {
       .publicationRange(isEmpty(instance.getPublicationRange()) ? EMPTY : String.join(ITEM_DELIMITER_SPACED, new ArrayList<>(instance.getPublicationRange())))
       .electronicAccess(electronicAccessService.getElectronicAccessesToString(toElectronicAccesses(instance.getElectronicAccess()), errorServiceArgs,INSTANCE, tenantId))
       .subject(fetchSubjects(instance.getSubjects(), errorServiceArgs))
+      .classification(fetchClassifications(instance.getClassifications(), errorServiceArgs))
       .build();
   }
 
@@ -123,6 +125,14 @@ public class InstanceMapper {
             .collect(Collectors.joining(VERTICAL_BAR_WITH_HIDDEN_SYMBOL));
   }
 
+  private String fetchClassifications(List<InstanceClassificationsInner> classifications, ErrorServiceArgs errorServiceArgs) {
+    return isEmpty(classifications) ? EMPTY :
+        "Classification identifier type;Classification\n" +
+            classifications.stream()
+                .map(classification -> classificationToString(classification, errorServiceArgs))
+                .collect(Collectors.joining(VERTICAL_BAR_WITH_HIDDEN_SYMBOL));
+  }
+
   private String noteToString(InstanceNotesInner note, ErrorServiceArgs errorServiceArgs) {
     return (String.join(ARRAY_DELIMITER,
       specialCharacterEscaper.escape(instanceReferenceService.getInstanceNoteTypeNameById(note.getInstanceNoteTypeId(), errorServiceArgs)),
@@ -131,12 +141,19 @@ public class InstanceMapper {
   }
 
   private String subjectToString(InstanceSubjectsInner subject, ErrorServiceArgs errorServiceArgs) {
-    return (String.join(ARRAY_DELIMITER_WITH_HIDDEN_SYMBOL,
+    return String.join(ARRAY_DELIMITER_WITH_HIDDEN_SYMBOL,
         NonEmpty.of(subject.getValue()).orElse(EMPTY_ELEMENT),
         NonEmpty.of( instanceReferenceService.getSubjectSourceNameById(subject.getSourceId(), errorServiceArgs)).orElse(
             EMPTY_ELEMENT),
         NonEmpty.of( instanceReferenceService.getSubjectTypeNameById(subject.getTypeId(), errorServiceArgs)).orElse(
-            EMPTY_ELEMENT))
+            EMPTY_ELEMENT));
+  }
+
+  private String classificationToString(InstanceClassificationsInner classification, ErrorServiceArgs errorServiceArgs) {
+    return String.join(ARRAY_DELIMITER_WITH_HIDDEN_SYMBOL,
+        NonEmpty.of(instanceReferenceService.getClassificationTypeNameById(classification.getClassificationTypeId(), errorServiceArgs)).orElse(
+            EMPTY_ELEMENT),
+        NonEmpty.of(classification.getClassificationNumber()).orElse(EMPTY_ELEMENT)
     );
   }
 

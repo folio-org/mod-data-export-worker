@@ -130,4 +130,15 @@ public class InstanceReferenceService {
       return EMPTY;
     }
   }
+
+  public String getClassificationTypeNameById(String classificationTypeId, ErrorServiceArgs args) {
+    try {
+      return instanceReferenceServiceCache.getClassificationTypeNameById(classificationTypeId);
+    } catch (Exception e) {
+      var msg = "Classification type not found by id=" + classificationTypeId;
+      log.error(msg);
+      errorsService.saveErrorInCSV(args.getJobId(), args.getIdentifier(), new BulkEditException(msg, ErrorType.WARNING), args.getFileName());
+      return EMPTY;
+    }
+  }
 }

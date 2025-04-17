@@ -189,6 +189,10 @@
     {
       "id": "subject-sources",
       "version": "1.0"
+    },
+    {
+      "id": "classification-types",
+      "version": "1.2"
     }
   ],
   "optional": [
@@ -289,7 +293,9 @@
             "permissions.users.item.get",
             "inventory-storage.statistical-code-types.item.get",
             "inventory-storage.subject-types.collection.get",
-            "inventory-storage.subject-sources.collection.get"
+            "inventory-storage.subject-sources.collection.get",
+            "inventory-storage.classification-types.collection.get"
+
           ]
         },
         {

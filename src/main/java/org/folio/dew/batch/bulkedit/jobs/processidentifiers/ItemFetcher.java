@@ -57,7 +57,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
   private final PermissionsValidator permissionsValidator;
   private final FolioExecutionContext folioExecutionContext;
   private final TenantResolver tenantResolver;
-  private final DuplicationChecker duplicationChecker;
+  private final DuplicationCheckerFactory duplicationCheckerFactory;
 
   @Value("#{stepExecution.jobExecution}")
   private JobExecution jobExecution;
@@ -66,7 +66,7 @@ public class ItemFetcher extends FolioExecutionContextManager implements ItemPro
 
   @Override
   public synchronized ExtendedItemCollection process(ItemIdentifier itemIdentifier) throws BulkEditException {
-    if (duplicationChecker.isDuplicate(itemIdentifier)) {
+    if (!duplicationCheckerFactory.getIdentifiersToCheckDuplication(jobExecution).add(itemIdentifier)) {
       throw new BulkEditException("Duplicate entry", ErrorType.WARNING);
     }
     var type = IdentifierType.fromValue(identifierType);

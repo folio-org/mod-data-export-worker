@@ -20,7 +20,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
-import org.folio.dew.batch.bulkedit.jobs.processidentifiers.DuplicationChecker;
+import org.folio.dew.batch.bulkedit.jobs.processidentifiers.DuplicationCheckerFactory;
 import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.SearchClient;
 import org.folio.dew.client.UserClient;
@@ -65,7 +65,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
   private final UserClient userClient;
   private final PermissionsValidator permissionsValidator;
   private final TenantResolver tenantResolver;
-  private final DuplicationChecker duplicationChecker;
+  private final DuplicationCheckerFactory duplicationCheckerFactory;
 
   @Value("#{stepExecution.jobExecution}")
   private JobExecution jobExecution;
@@ -78,15 +78,15 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
 
   @Override
   public List<HoldingsFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
-    if (duplicationChecker.isDuplicate(itemIdentifier)) {
+    if (!duplicationCheckerFactory.getIdentifiersToCheckDuplication(jobExecution).add(itemIdentifier)) {
       throw new BulkEditException("Duplicate entry", ErrorType.WARNING);
     }
 
     var holdings = getHoldingsRecords(itemIdentifier);
     var distinctHoldings = holdings.getExtendedHoldingsRecords().stream()
-      .filter(holdingsRecord -> duplicationChecker.wasNotFetched(holdingsRecord.getEntity().getId()))
+      .filter(holdingsRecord -> duplicationCheckerFactory.getFetchedIds(jobExecution).add(holdingsRecord.getEntity().getId()))
       .toList();
-    duplicationChecker.addAll(distinctHoldings.stream().map(extendedHoldingsRecord -> extendedHoldingsRecord.getEntity().getId()).toList());
+    duplicationCheckerFactory.getFetchedIds(jobExecution).addAll(distinctHoldings.stream().map(extendedHoldingsRecord -> extendedHoldingsRecord.getEntity().getId()).toList());
 
     var instanceHrid = INSTANCE_HRID == IdentifierType.fromValue(identifierType) ? itemIdentifier.getItemId() : null;
     var itemBarcode = ITEM_BARCODE == IdentifierType.fromValue(identifierType) ? itemIdentifier.getItemId() : null;

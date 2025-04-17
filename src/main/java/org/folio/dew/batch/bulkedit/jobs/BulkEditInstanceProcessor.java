@@ -20,7 +20,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.bulkedit.jobs.permissions.check.PermissionsValidator;
-import org.folio.dew.batch.bulkedit.jobs.processidentifiers.DuplicationChecker;
+import org.folio.dew.batch.bulkedit.jobs.processidentifiers.DuplicationCheckerFactory;
 import org.folio.dew.client.InventoryInstancesClient;
 import org.folio.dew.client.SrsClient;
 import org.folio.dew.client.UserClient;
@@ -54,7 +54,7 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
   private final PermissionsValidator permissionsValidator;
   private final UserClient userClient;
   private final SrsClient srsClient;
-  private final DuplicationChecker duplicationChecker;
+  private final DuplicationCheckerFactory duplicationCheckerFactory;
 
   @Value("#{jobParameters['identifierType']}")
   private String identifierType;
@@ -73,7 +73,7 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
         var user = userClient.getUserById(folioExecutionContext.getUserId().toString());
         throw new BulkEditException(format(NO_INSTANCE_VIEW_PERMISSIONS, user.getUsername(), resolveIdentifier(identifierType), itemIdentifier.getItemId(), folioExecutionContext.getTenantId()), ErrorType.ERROR);
       }
-      if (duplicationChecker.isDuplicate(itemIdentifier)) {
+      if (!duplicationCheckerFactory.getIdentifiersToCheckDuplication(jobExecution).add(itemIdentifier)) {
         throw new BulkEditException(DUPLICATE_ENTRY, ErrorType.WARNING);
       }
 
@@ -83,7 +83,7 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
         throw new BulkEditException(LINKED_DATA_SOURCE_IS_NOT_SUPPORTED, ErrorType.ERROR);
       }
 
-      if (duplicationChecker.wasNotFetched(instance.getId())) {
+      if (duplicationCheckerFactory.getFetchedIds(jobExecution).add(instance.getId())) {
         var instanceFormat = instanceMapper.mapToInstanceFormat(new ExtendedInstance().entity(instance)
             .tenantId(folioExecutionContext.getTenantId()), itemIdentifier.getItemId(), jobId, FilenameUtils.getName(fileName)).withOriginal(instance)
           .withTenantId(folioExecutionContext.getTenantId());

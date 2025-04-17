@@ -5,6 +5,7 @@ import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.client.ClassificationTypeClient;
 import org.folio.dew.client.IdentifierTypeClient;
 import org.folio.dew.client.InstanceFormatsClient;
 import org.folio.dew.client.InstanceModeOfIssuanceClient;
@@ -43,6 +44,7 @@ public class InstanceReferenceServiceCache {
   private final StatisticalCodeTypeClient statisticalCodeTypeClient;
   private final SubjectSourceClient subjectSourceClient;
   private final SubjectTypeClient subjectTypeClient;
+  private final ClassificationTypeClient classificationTypeClient;
 
 
   @Cacheable(cacheNames = "instanceStatusNames")
@@ -130,5 +132,14 @@ public class InstanceReferenceServiceCache {
     }
     return subjectTypeClient.getByQuery(format(QUERY_PATTERN_ID, id))
         .getSubjectTypes().getFirst().getName();
+  }
+
+  @Cacheable(cacheNames = "classificationTypeNames")
+  public String getClassificationTypeNameById(String id) {
+    if (StringUtils.isEmpty(id)) {
+      return EMPTY;
+    }
+    return classificationTypeClient.getByQuery(format(QUERY_PATTERN_ID, id))
+        .getClassificationTypes().getFirst().getName();
   }
 }

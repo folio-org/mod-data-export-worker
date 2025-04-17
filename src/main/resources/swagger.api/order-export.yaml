@@ -17,12 +17,8 @@ components:
       format: uuid
     referenceNumberItem:
       $ref: '../../../../folio-export-common/schemas/acquisitions/common/reference_number_item.json#/ReferenceNumberItem'
-    compositePoLine:
-      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders/composite_po_line.json#/CompositePoLine'
     compositePurchaseOrder:
       $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders/composite_purchase_order.json#/CompositePurchaseOrder'
-    alert:
-      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/alert.json#/Alert'
     claim:
       $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/claim.json#/Claim'
     closeReason:
@@ -47,8 +43,6 @@ components:
       $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/physical.json#/Physical'
     productIdentifier:
       $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/product_identifier.json#/ProductIdentifier'
-    reportingCode:
-      $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/reporting_code.json#/ReportingCode'
     vendorDetail:
       $ref: '../../../../folio-export-common/schemas/acquisitions/mod-orders-storage/vendor_detail.json#/VendorDetail'
     exportHistory:

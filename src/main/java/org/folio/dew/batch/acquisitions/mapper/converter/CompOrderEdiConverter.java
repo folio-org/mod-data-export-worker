@@ -5,9 +5,9 @@ import io.xlate.edi.stream.EDIStreamWriter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.acquisitions.services.ConfigurationService;
-import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.Piece;
+import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.acquisitions.edifact.EdiFileConfig;
 import org.folio.dew.error.NotFoundException;
 
@@ -20,11 +20,11 @@ public class CompOrderEdiConverter {
   private static final String RUSH_ORDER = "224";
   private static final String NOT_RUSH_ORDER = "220";
 
-  private final CompPoLineEdiConverter compPoLineEdiConverter;
+  private final PoLineEdiConverter poLineEdiConverter;
   private final ConfigurationService configurationService;
 
-  public CompOrderEdiConverter(CompPoLineEdiConverter compPoLineEdiConverter, ConfigurationService configurationService) {
-    this.compPoLineEdiConverter = compPoLineEdiConverter;
+  public CompOrderEdiConverter(PoLineEdiConverter poLineEdiConverter, ConfigurationService configurationService) {
+    this.poLineEdiConverter = poLineEdiConverter;
     this.configurationService = configurationService;
   }
 
@@ -35,7 +35,7 @@ public class CompOrderEdiConverter {
     messageSegmentCount++;
     writePOHeader(compPO, writer);
 
-    String rushOrderQualifier = compPO.getCompositePoLines().stream().filter(line -> line.getRush() != null).anyMatch(CompositePoLine::getRush) ? RUSH_ORDER : NOT_RUSH_ORDER;
+    String rushOrderQualifier = compPO.getPoLines().stream().filter(line -> line.getRush() != null).anyMatch(PoLine::getRush) ? RUSH_ORDER : NOT_RUSH_ORDER;
     messageSegmentCount++;
     writePONumber(compPO, writer, rushOrderQualifier);
 
@@ -49,12 +49,12 @@ public class CompOrderEdiConverter {
     messageSegmentCount++;
     writeVendor(ediFileConfig, writer);
 
-    if (compPO.getCompositePoLines().isEmpty()) {
-      String errMsg = String.format("CompositePoLines is not found for CompositeOrder '%s'", compPO.getId());
+    if (compPO.getPoLines().isEmpty()) {
+      String errMsg = String.format("poLines is not found for CompositeOrder '%s'", compPO.getId());
       throw new NotFoundException(errMsg);
     }
 
-    var comPoLine = compPO.getCompositePoLines().get(0);
+    var comPoLine = compPO.getPoLines().get(0);
     if (comPoLine.getVendorDetail() != null && StringUtils.isNotBlank(comPoLine.getVendorDetail().getVendorAccount())){
       messageSegmentCount++;
       writeAccountNumber(comPoLine.getVendorDetail().getVendorAccount(), writer);
@@ -67,10 +67,10 @@ public class CompOrderEdiConverter {
     // Order lines
     int totalQuantity = 0;
     int totalNumberOfLineItems = 0;
-    for (CompositePoLine poLine : compPO.getCompositePoLines()) {
+    for (PoLine poLine : compPO.getPoLines()) {
       int quantityOrdered = getPoLineQuantityOrdered(poLine);
       var pieces = poLineToPieces.getOrDefault(poLine.getId(), List.of());
-      int segments = compPoLineEdiConverter.convertPOLine(poLine, pieces, writer, ++totalNumberOfLineItems, quantityOrdered);
+      int segments = poLineEdiConverter.convertPOLine(poLine, pieces, writer, ++totalNumberOfLineItems, quantityOrdered);
       messageSegmentCount += segments;
       totalQuantity += quantityOrdered;
     }
@@ -212,7 +212,7 @@ public class CompOrderEdiConverter {
       .writeEndSegment();
   }
 
-  private int getPoLineQuantityOrdered(CompositePoLine poLine) {
+  private int getPoLineQuantityOrdered(PoLine poLine) {
     int quantity;
 
     int quantityPhysical = 0;

@@ -15,8 +15,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
-import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.ReferenceNumberItem;
 import org.folio.dew.domain.dto.VendorDetail;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
@@ -28,7 +28,7 @@ public class ExportUtils {
 
   private ExportUtils() { }
 
-  public static List<ReferenceNumberItem> getVendorReferenceNumbers(CompositePoLine poLine) {
+  public static List<ReferenceNumberItem> getVendorReferenceNumbers(PoLine poLine) {
     return Optional.ofNullable(poLine.getVendorDetail())
       .map(VendorDetail::getReferenceNumbers)
       .orElse(new ArrayList<>());
@@ -41,13 +41,13 @@ public class ExportUtils {
       .orElse(null);
   }
 
-  public static String getVendorOrderNumber(CompositePoLine poLine) {
+  public static String getVendorOrderNumber(PoLine poLine) {
     return Optional.ofNullable(getVendorOrderNumber(getVendorReferenceNumbers(poLine)))
       .map(ReferenceNumberItem::getRefNumber)
       .orElse(null);
   }
 
-  public static String getVendorAccountNumber(CompositePoLine poLine) {
+  public static String getVendorAccountNumber(PoLine poLine) {
     return Optional.ofNullable(poLine.getVendorDetail())
       .map(VendorDetail::getVendorAccount)
       .orElse(null);

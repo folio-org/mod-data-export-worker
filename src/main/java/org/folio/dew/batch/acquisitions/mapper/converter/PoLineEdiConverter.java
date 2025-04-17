@@ -18,12 +18,12 @@ import org.folio.dew.batch.acquisitions.services.HoldingService;
 import org.folio.dew.batch.acquisitions.services.IdentifierTypeService;
 import org.folio.dew.batch.acquisitions.services.LocationService;
 import org.folio.dew.batch.acquisitions.services.MaterialTypeService;
-import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.Contributor;
 import org.folio.dew.domain.dto.Cost;
 import org.folio.dew.domain.dto.FundDistribution;
 import org.folio.dew.domain.dto.Location;
 import org.folio.dew.domain.dto.Piece;
+import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.ProductIdentifier;
 import org.folio.dew.domain.dto.ReferenceNumberItem;
 import org.javamoney.moneta.Money;
@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CompPoLineEdiConverter {
+public class PoLineEdiConverter {
   private static final int MAX_CHARS_PER_LINE = 70;
   private static final int MAX_NUMBER_OF_REFS = 10;
   private static final String PRODUCT_ID_FUNCTION_CODE_MAIN_PRODUCT_IDNTIFICATION = "5";
@@ -56,7 +56,7 @@ public class CompPoLineEdiConverter {
   private final LocationService locationService;
   private final HoldingService holdingService;
 
-  public CompPoLineEdiConverter(IdentifierTypeService identifierTypeService, MaterialTypeService materialTypeService,
+  public PoLineEdiConverter(IdentifierTypeService identifierTypeService, MaterialTypeService materialTypeService,
                                 ExpenseClassService expenseClassService, LocationService locationService, HoldingService holdingService) {
     this.identifierTypeService = identifierTypeService;
     this.materialTypeService = materialTypeService;
@@ -65,7 +65,7 @@ public class CompPoLineEdiConverter {
     this.holdingService = holdingService;
   }
 
-  public int convertPOLine(CompositePoLine poLine, List<Piece> pieces, EDIStreamWriter writer, int currentLineNumber, int quantityOrdered) throws EDIStreamException {
+  public int convertPOLine(PoLine poLine, List<Piece> pieces, EDIStreamWriter writer, int currentLineNumber, int quantityOrdered) throws EDIStreamException {
     int messageSegmentCount = 0;
 
     Map<String, ProductIdentifier> productTypeProductIdentifierMap = new HashMap<>();
@@ -352,7 +352,7 @@ public class CompPoLineEdiConverter {
       .writeEndSegment();
   }
 
-  private void writePoLineCurrency(CompositePoLine poLine, EDIStreamWriter writer) throws EDIStreamException {
+  private void writePoLineCurrency(PoLine poLine, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("CUX")
       .writeStartElement()
       .writeComponent("2")
@@ -377,7 +377,7 @@ public class CompPoLineEdiConverter {
       .writeEndSegment();
   }
 
-  private void writePOLineNumber(CompositePoLine poLine, EDIStreamWriter writer) throws EDIStreamException {
+  private void writePOLineNumber(PoLine poLine, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("RFF")
       .writeStartElement()
       .writeComponent("LI")
@@ -424,7 +424,7 @@ public class CompPoLineEdiConverter {
       .writeEndSegment();
   }
 
-  private List<ProductIdentifier> getProductIds(CompositePoLine poLine) {
+  private List<ProductIdentifier> getProductIds(PoLine poLine) {
     if (poLine.getDetails() != null && poLine.getDetails().getProductIds() != null) {
       return poLine.getDetails().getProductIds();
     } else {
@@ -452,7 +452,7 @@ public class CompPoLineEdiConverter {
     }
   }
 
-  private List<Contributor> getContributors(CompositePoLine poLine) {
+  private List<Contributor> getContributors(PoLine poLine) {
     if (poLine.getContributors() != null) {
       return poLine.getContributors();
     } else {
@@ -460,7 +460,7 @@ public class CompPoLineEdiConverter {
     }
   }
 
-  private String[] getTitleParts(CompositePoLine poLine) {
+  private String[] getTitleParts(PoLine poLine) {
     String title = poLine.getTitleOrPackage();
     return title.split("(?<=\\G.{" + MAX_CHARS_PER_LINE + "})");
   }
@@ -471,7 +471,7 @@ public class CompPoLineEdiConverter {
       .joining(":");
   }
 
-  private String getPhysicalMaterial(CompositePoLine poLine) {
+  private String getPhysicalMaterial(PoLine poLine) {
     if (poLine.getPhysical() != null && poLine.getPhysical().getMaterialType() != null) {
       String materialTypeId = poLine.getPhysical().getMaterialType();
       return materialTypeService.getMaterialTypeName(materialTypeId);
@@ -479,7 +479,7 @@ public class CompPoLineEdiConverter {
     return "";
   }
 
-  private String getElectronicMaterial(CompositePoLine poLine) {
+  private String getElectronicMaterial(PoLine poLine) {
      if (poLine.getEresource() != null && poLine.getEresource().getMaterialType() != null) {
       String materialTypeId = poLine.getEresource().getMaterialType();
       return materialTypeService.getMaterialTypeName(materialTypeId);
@@ -487,7 +487,7 @@ public class CompPoLineEdiConverter {
     return "";
   }
 
-  private List<FundDistribution> getFundDistribution(CompositePoLine poLine) {
+  private List<FundDistribution> getFundDistribution(PoLine poLine) {
     if (poLine.getFundDistribution() != null) {
       return poLine.getFundDistribution();
     }
@@ -517,7 +517,7 @@ public class CompPoLineEdiConverter {
     return vendorOrderNumber;
   }
 
-  private List<Location> getLocations(CompositePoLine poLine) {
+  private List<Location> getLocations(PoLine poLine) {
     if (poLine.getLocations() != null) {
       return poLine.getLocations();
     }

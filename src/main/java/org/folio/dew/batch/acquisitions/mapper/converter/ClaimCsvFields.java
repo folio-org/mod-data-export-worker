@@ -14,9 +14,9 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ClaimCsvFields implements ExtractableField<ClaimCsvEntry, String> {
 
-  POL_NUMBER("POL number", entry -> entry.compositePoLine().getPoLineNumber()),
-  ORDER_NUMBER("Vendor order number", entry -> getVendorOrderNumber(entry.compositePoLine())),
-  ACCOUNT_NUMBER("Account number", entry -> getVendorAccountNumber(entry.compositePoLine())),
+  POL_NUMBER("POL number", entry -> entry.poLine().getPoLineNumber()),
+  ORDER_NUMBER("Vendor order number", entry -> getVendorOrderNumber(entry.poLine())),
+  ACCOUNT_NUMBER("Account number", entry -> getVendorAccountNumber(entry.poLine())),
   EXPECTED_DATE("Expected date", entry -> getFormattedDate(entry.piece().getReceiptDate())),
   TITLE("Title from piece", ClaimCsvEntry::title),
   DISPLAY_SUMMARY("Display summary", entry -> entry.piece().getDisplaySummary()),

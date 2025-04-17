@@ -21,7 +21,7 @@ import java.util.Map;
 import lombok.extern.log4j.Log4j2;
 
 import org.folio.dew.batch.acquisitions.mapper.converter.CompOrderEdiConverter;
-import org.folio.dew.batch.acquisitions.mapper.converter.CompPoLineEdiConverter;
+import org.folio.dew.batch.acquisitions.mapper.converter.PoLineEdiConverter;
 import org.folio.dew.batch.acquisitions.services.ConfigurationService;
 import org.folio.dew.batch.acquisitions.services.ExpenseClassService;
 import org.folio.dew.batch.acquisitions.services.HoldingService;
@@ -68,8 +68,8 @@ class EdifactMapperTest {
 
   @BeforeEach
   void setUp() {
-    var compositePOLineConverter = new CompPoLineEdiConverter(identifierTypeService, materialTypeService, expenseClassService, locationService, holdingService);
-    var compositePOConverter = new CompOrderEdiConverter(compositePOLineConverter, configurationService);
+    var poLineConverter = new PoLineEdiConverter(identifierTypeService, materialTypeService, expenseClassService, locationService, holdingService);
+    var compositePOConverter = new CompOrderEdiConverter(poLineConverter, configurationService);
     edifactMapper = new EdifactMapper(compositePOConverter);
     objectMapper = new JacksonConfiguration().objectMapper();
 

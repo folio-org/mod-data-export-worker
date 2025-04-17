@@ -84,10 +84,10 @@ public class MapToEdifactClaimsTasklet extends MapToEdifactTasklet {
       .filter(CollectionUtils::isNotEmpty)
       .map(orders -> {
         var poLines = orders.stream()
-          .map(CompositePurchaseOrder::getCompositePoLines)
+          .map(CompositePurchaseOrder::getPoLines)
           .flatMap(Collection::stream)
           .toList();
-        return orders.get(0).compositePoLines(poLines);
+        return orders.get(0).poLines(poLines);
       }).toList();
 
     return new ExportHolder(compOrders, pieces);

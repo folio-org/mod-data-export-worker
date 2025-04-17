@@ -23,7 +23,6 @@ import org.folio.dew.batch.acquisitions.exceptions.EdifactException;
 import org.folio.dew.batch.acquisitions.mapper.ExportResourceMapper;
 import org.folio.dew.batch.acquisitions.services.OrdersService;
 import org.folio.dew.batch.acquisitions.services.OrganizationsService;
-import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.PoLine;
@@ -100,20 +99,19 @@ public abstract class MapToEdifactTasklet implements Tasklet {
 
   protected void persistPoLineIds(ChunkContext chunkContext, List<CompositePurchaseOrder> compOrders) throws JsonProcessingException {
     var poLineIds = compOrders.stream()
-      .flatMap(ord -> ord.getCompositePoLines().stream())
-      .map(CompositePoLine::getId)
+      .flatMap(ord -> ord.getPoLines().stream())
+      .map(PoLine::getId)
       .toList();
     ExecutionContextUtils.addToJobExecutionContext(chunkContext.getStepContext().getStepExecution(), POL_MEM_KEY, ediObjectMapper.writeValueAsString(poLineIds), "");
   }
 
   private List<CompositePurchaseOrder> assembleCompositeOrders(List<PurchaseOrder> orders, List<PoLine> poLines) {
-    Map<String, List<CompositePoLine>> orderIdToCompositePoLines = poLines.stream()
-      .map(poLine -> convertTo(poLine, CompositePoLine.class))
-      .collect(groupingBy(CompositePoLine::getPurchaseOrderId));
+    Map<String, List<PoLine>> orderIdToPoLines = poLines.stream()
+      .collect(groupingBy(PoLine::getPurchaseOrderId));
     return orders.stream()
       .map(order -> convertTo(order, CompositePurchaseOrder.class))
-      .map(compPo -> compPo.compositePoLines(
-        requireNonNullElse(orderIdToCompositePoLines.get(compPo.getId().toString()), List.of())))
+      .map(compPo -> compPo.poLines(
+        requireNonNullElse(orderIdToPoLines.get(compPo.getId().toString()), List.of())))
       .toList();
   }
 

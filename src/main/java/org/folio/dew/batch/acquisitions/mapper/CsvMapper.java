@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.folio.dew.batch.acquisitions.mapper.converter.ClaimCsvConverter;
 import org.folio.dew.batch.acquisitions.services.OrdersService;
-import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.Piece;
+import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.acquisitions.edifact.ClaimCsvEntry;
 
@@ -41,8 +41,8 @@ public class CsvMapper implements ExportResourceMapper {
     // Map each PoLine ID to its corresponding Pieces
     var poLineIdToPieces = pieces.stream().collect(groupingBy(Piece::getPoLineId));
     // Map each PoLine ID to its corresponding PoLine
-    var poLineIdToPoLine = orders.stream().flatMap(order -> order.getCompositePoLines().stream())
-      .collect(Collectors.toMap(CompositePoLine::getId, Function.identity()));
+    var poLineIdToPoLine = orders.stream().flatMap(order -> order.getPoLines().stream())
+      .collect(Collectors.toMap(PoLine::getId, Function.identity()));
     // Map each Piece ID to its corresponding Title
     var pieceIdToTitle = poLineIdToPieces.entrySet().stream()
       .flatMap(entry -> entry.getValue().stream()
@@ -61,11 +61,11 @@ public class CsvMapper implements ExportResourceMapper {
     // Return a list of ClaimCsvEntry objects, each representing a group of claimed pieces
     return claimedPieces.entrySet().stream()
       .map(entry -> entry.getKey().withQuantity(entry.getValue()))
-      .sorted(Comparator.comparing(o -> o.compositePoLine().getPoLineNumber()))
+      .sorted(Comparator.comparing(o -> o.poLine().getPoLineNumber()))
       .toList();
   }
 
-  private String getTitleById(CompositePoLine poLine, Piece piece) {
+  private String getTitleById(PoLine poLine, Piece piece) {
     return Boolean.TRUE.equals(poLine.getIsPackage())
       ? ordersService.getTitleById(piece.getTitleId()).getTitle()
       : poLine.getTitleOrPackage();

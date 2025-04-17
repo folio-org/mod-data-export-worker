@@ -17,7 +17,7 @@
   "totalItems": 4,
   "vendor": "50fb6ae0-cdf1-11e8-a8d5-f2801f1b9fd1",
   "workflowStatus": "Pending",
-  "compositePoLines": [
+  "poLines": [
     {
       "id": "81b6503d-1f50-404d-a663-794b7f726ffd",
       "edition": "",
@@ -25,7 +25,6 @@
       "instanceId": "69640328-788e-43fc-9c3c-af39e243f3b7",
       "acquisitionMethod": "2ee31dec-4dab-4807-938c-b4d35b72f523",
       "automaticExport": false,
-      "alerts": [],
       "claims": [],
       "collection": false,
       "contributors": [
@@ -140,7 +139,6 @@
       "publisher": "Palgrave Macmillan",
       "purchaseOrderId": "96aec519-e756-4a39-87f2-76a61ea878a1",
       "receiptStatus": "Pending",
-      "reportingCodes": [],
       "rush": false,
       "source": "User",
       "titleOrPackage": "Futures, biometrics and neuroscience research Luiz Moutinho, Mladen Sokele, editors",
@@ -168,7 +166,6 @@
       "instanceId": "69640328-788e-43fc-9c3c-af39e243f3b7",
       "acquisitionMethod": "2ee31dec-4dab-4807-938c-b4d35b72f523",
       "automaticExport": false,
-      "alerts": [],
       "cancellationRestriction": true,
       "claims": [],
       "collection": false,
@@ -244,7 +241,6 @@
       "publisher": "Otá Records, ",
       "purchaseOrderId": "96aec519-e756-4a39-87f2-76a61ea878a1",
       "receiptStatus": "Pending",
-      "reportingCodes": [],
       "rush": true,
       "source": "User",
       "titleOrPackage": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",

@@ -8,9 +8,9 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.config.kafka.KafkaService;
-import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.ExportHistory;
 import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.PoLine;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,16 +19,16 @@ import org.springframework.stereotype.Service;
 public class ExportHistoryService {
   private final KafkaService kafkaService;
 
-  void sendExportHistoryEvent(Set<CompositePoLine> compositePoLines, String jobId) {
-    var exportHistory = buildExportHistoryRecord(compositePoLines, jobId);
+  void sendExportHistoryEvent(Set<PoLine> poLines, String jobId) {
+    var exportHistory = buildExportHistoryRecord(poLines, jobId);
     var id = UUID.randomUUID().toString();
 
     kafkaService.send(KafkaService.Topic.EXPORT_HISTORY_CREATE, id, exportHistory);
   }
 
-  private ExportHistory buildExportHistoryRecord(Set<CompositePoLine> compositePoLines, String jobId) {
+  private ExportHistory buildExportHistoryRecord(Set<PoLine> poLines, String jobId) {
     ExportHistory eh = new ExportHistory();
-    var poLineIds = compositePoLines.stream().map(CompositePoLine::getId).collect(Collectors.toList());
+    var poLineIds = poLines.stream().map(PoLine::getId).collect(Collectors.toList());
     eh.id(UUID.randomUUID().toString());
     // TODO: check TIME ZONE
     eh.exportDate(Date.from(Instant.now()));

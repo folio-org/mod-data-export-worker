@@ -3,7 +3,7 @@ package org.folio.dew.batch.acquisitions.config;
 import org.folio.dew.batch.acquisitions.mapper.CsvMapper;
 import org.folio.dew.batch.acquisitions.mapper.ExportResourceMapper;
 import org.folio.dew.batch.acquisitions.mapper.converter.CompOrderEdiConverter;
-import org.folio.dew.batch.acquisitions.mapper.converter.CompPoLineEdiConverter;
+import org.folio.dew.batch.acquisitions.mapper.converter.PoLineEdiConverter;
 import org.folio.dew.batch.acquisitions.mapper.EdifactMapper;
 import org.folio.dew.batch.acquisitions.services.ConfigurationService;
 import org.folio.dew.batch.acquisitions.services.ExpenseClassService;
@@ -21,14 +21,14 @@ import org.springframework.context.annotation.Configuration;
 public class AcquisitionExportConfig {
 
   @Bean
-  CompPoLineEdiConverter compositePOLineConverter(IdentifierTypeService identifierTypeService, MaterialTypeService materialTypeService,
-                                                  ExpenseClassService expenseClassService, LocationService locationService, HoldingService holdingService) {
-    return new CompPoLineEdiConverter(identifierTypeService, materialTypeService, expenseClassService, locationService, holdingService);
+  PoLineEdiConverter poLineConverter(IdentifierTypeService identifierTypeService, MaterialTypeService materialTypeService,
+                                     ExpenseClassService expenseClassService, LocationService locationService, HoldingService holdingService) {
+    return new PoLineEdiConverter(identifierTypeService, materialTypeService, expenseClassService, locationService, holdingService);
   }
 
   @Bean
-  CompOrderEdiConverter compositePurchaseOrderConverter(CompPoLineEdiConverter compPoLineEdiConverter, ConfigurationService configurationService) {
-    return new CompOrderEdiConverter(compPoLineEdiConverter, configurationService);
+  CompOrderEdiConverter compositePurchaseOrderConverter(PoLineEdiConverter poLineEdiConverter, ConfigurationService configurationService) {
+    return new CompOrderEdiConverter(poLineEdiConverter, configurationService);
   }
 
   @Bean

@@ -2,8 +2,8 @@ package org.folio.dew.utils;
 
 import org.folio.dew.CopilotGenerated;
 import org.folio.dew.batch.acquisitions.utils.ExportUtils;
-import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.ReferenceNumberItem;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,7 @@ import static org.hamcrest.Matchers.nullValue;
 public class ExportUtilsTest {
   @Test
   void getVendorReferenceNumbersReturnsEmptyListWhenVendorDetailIsNull() {
-    CompositePoLine poLine = new CompositePoLine();
+    PoLine poLine = new PoLine();
     assertThat(ExportUtils.getVendorReferenceNumbers(poLine), is(List.of()));
   }
 
@@ -46,7 +46,7 @@ public class ExportUtilsTest {
 
   @Test
   void getVendorAccountNumberReturnsNullWhenVendorDetailIsNull() {
-    CompositePoLine poLine = new CompositePoLine();
+    PoLine poLine = new PoLine();
     assertThat(ExportUtils.getVendorAccountNumber(poLine), is(nullValue()));
   }
 

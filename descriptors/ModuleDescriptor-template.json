@@ -104,7 +104,7 @@
     },
     {
       "id": "orders-storage.po-lines",
-      "version": "12.1"
+      "version": "13.0"
     },
     {
       "id": "orders-storage.pieces",
@@ -120,7 +120,7 @@
     },
     {
       "id": "order-lines",
-      "version": "3.2"
+      "version": "4.0"
     },
     {
       "id": "search",
@@ -224,7 +224,7 @@
   "provides": [
     {
       "id": "bulk-edit",
-      "version": "4.2",
+      "version": "4.3",
       "handlers": [
         {
           "methods": [ "POST" ],

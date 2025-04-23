@@ -51,7 +51,7 @@ spring:
       max-request-size: ${MAX_UPLOADED_FILE_SIZE:40MB}
   cloud:
     openfeign:
-      okhttp:
+      httpclient:
         enabled: true
 management:
   endpoints:
@@ -72,6 +72,8 @@ feign:
     config:
       default:
         loggerLevel: basic
+  httpclient:
+    enabled: true
 application:
   kafka:
     topic-configuration:

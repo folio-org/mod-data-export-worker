@@ -14,8 +14,11 @@ spring:
       concurrency: ${KAFKA_CONCURRENCY_LEVEL:30}
   cloud:
     openfeign:
-      okhttp:
+      httpclient:
         enabled: true
+feign:
+  httpclient:
+    enabled: true
 application:
   kafka:
     topic-configuration:

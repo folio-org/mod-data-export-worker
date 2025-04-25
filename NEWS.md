@@ -1,5 +1,12 @@
 ## Unreleased v3.5.0
 
+## 2025-04-25 v3.4.3
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.2...v3.4.3)
+
+### Stories
+* [MODEXPW-583](https://folio-org.atlassian.net/browse/MODEXPW-583) Instance schema updating
+
 ## 2025-04-10 v3.4.2
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.1...v3.4.2)

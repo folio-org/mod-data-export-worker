@@ -2,6 +2,8 @@ package org.folio.dew.batch.acquisitions.mapper;
 
 import static org.folio.dew.domain.dto.ExportType.CLAIMS;
 import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING;
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -109,9 +111,7 @@ class EdifactMapperTest {
 
   private VendorEdiOrdersExportConfig getTestEdiConfig(ExportType type) throws IOException {
     var exportConfig = objectMapper.readValue(getMockData("edifact/acquisitions/vendorEdiOrdersExportConfig.json"), VendorEdiOrdersExportConfig.class);
-    exportConfig.setIntegrationType(type == EDIFACT_ORDERS_EXPORT
-      ? VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING
-      : VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING);
+    exportConfig.setIntegrationType(type == EDIFACT_ORDERS_EXPORT ? ORDERING : CLAIMING);
     return exportConfig;
   }
 

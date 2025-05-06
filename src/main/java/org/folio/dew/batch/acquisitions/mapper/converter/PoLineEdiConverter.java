@@ -2,6 +2,7 @@ package org.folio.dew.batch.acquisitions.mapper.converter;
 
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.getVendorOrderNumber;
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.getVendorReferenceNumbers;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING;
 
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 public class PoLineEdiConverter {
+
   private static final int MAX_CHARS_PER_LINE = 70;
   private static final int MAX_NUMBER_OF_REFS = 10;
   private static final String PRODUCT_ID_FUNCTION_CODE_MAIN_PRODUCT_IDNTIFICATION = "5";
@@ -126,7 +128,7 @@ public class PoLineEdiConverter {
       writeMaterialType(electronicMaterial, writer);
     }
 
-    if (integrationType == VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING) {
+    if (integrationType == CLAIMING) {
       writeCurrentStatus(writer);
     }
 
@@ -147,7 +149,7 @@ public class PoLineEdiConverter {
     messageSegmentCount++;
     writePoLineCurrency(poLine, writer);
 
-    if (integrationType == VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING) {
+    if (integrationType == CLAIMING) {
       writePONumber(compPO, writer);
     }
 
@@ -161,7 +163,7 @@ public class PoLineEdiConverter {
     referenceQuantity++;
     messageSegmentCount++;
     writePOLineNumber(poLine, writer);
-    if (integrationType == VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING) {
+    if (integrationType == CLAIMING) {
       writeClaims(writer);
     }
 
@@ -200,7 +202,6 @@ public class PoLineEdiConverter {
       messageSegmentCount++;
       writeDeliveryLocation(getLocationCode(location), writer);
     }
-
     return messageSegmentCount;
   }
 

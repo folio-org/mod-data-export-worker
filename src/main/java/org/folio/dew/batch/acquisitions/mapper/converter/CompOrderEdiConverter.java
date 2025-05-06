@@ -17,7 +17,10 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING;
+
 public class CompOrderEdiConverter {
+
   private static final String RUSH_ORDER = "224";
   private static final String NOT_RUSH_ORDER = "220";
 
@@ -64,7 +67,7 @@ public class CompOrderEdiConverter {
 
     messageSegmentCount++;
     String currency = comPoLine.getCost().getCurrency();
-    if (integrationType == VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING) {
+    if (integrationType == ORDERING) {
       writeCurrency(currency, writer);
     }
 
@@ -98,7 +101,7 @@ public class CompOrderEdiConverter {
     writer.writeStartSegment("UNH")
       .writeElement(compPO.getPoNumber())
       .writeStartElement()
-      .writeComponent(integrationType == VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING ? "ORDERS" : "OSTENQ")
+      .writeComponent(integrationType == ORDERING ? "ORDERS" : "OSTENQ")
       .writeComponent("D")
       .writeComponent("96A")
       .writeComponent("UN")

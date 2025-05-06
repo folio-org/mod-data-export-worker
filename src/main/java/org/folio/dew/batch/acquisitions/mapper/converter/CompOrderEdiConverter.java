@@ -201,7 +201,7 @@ public class CompOrderEdiConverter {
   }
 
   // Total number of line items
-  // 	If any line has QTY >1, then CNT+1 ≠ CNT+2
+  // If any line has QTY >1, then CNT+1 ≠ CNT+2
   private void writeNumberLineItems(EDIStreamWriter writer, int totalNumberOfLineItems) throws EDIStreamException {
     writer.writeStartSegment("CNT")
       .writeStartElement()

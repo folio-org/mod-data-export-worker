@@ -61,7 +61,6 @@ public class EdifactMapper implements ExportResourceMapper {
       writer.endInterchange();
       return stream.toString();
     }
-
   }
 
   private void setVendorAndLibEdiTypes(VendorEdiOrdersExportConfig ediExportConfig, EdiFileConfig ediFileConfig) {

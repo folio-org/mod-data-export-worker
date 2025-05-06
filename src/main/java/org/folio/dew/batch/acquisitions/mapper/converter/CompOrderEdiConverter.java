@@ -31,11 +31,11 @@ public class CompOrderEdiConverter {
 
   public void convertPOtoEdifact(EDIStreamWriter writer, CompositePurchaseOrder compPO,
                                  Map<String, List<Piece>> poLineToPieces, EdiFileConfig ediFileConfig,
-                                 VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationTypeEnum) throws EDIStreamException {
+                                 VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType) throws EDIStreamException {
     int messageSegmentCount = 0;
 
     messageSegmentCount++;
-    writePOHeader(integrationTypeEnum, compPO, writer);
+    writePOHeader(integrationType, compPO, writer);
 
     String rushOrderQualifier = compPO.getPoLines().stream().filter(line -> line.getRush() != null).anyMatch(PoLine::getRush) ? RUSH_ORDER : NOT_RUSH_ORDER;
     messageSegmentCount++;
@@ -64,7 +64,7 @@ public class CompOrderEdiConverter {
 
     messageSegmentCount++;
     String currency = comPoLine.getCost().getCurrency();
-    if (integrationTypeEnum == VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING) {
+    if (integrationType == VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING) {
       writeCurrency(currency, writer);
     }
 
@@ -74,7 +74,7 @@ public class CompOrderEdiConverter {
     for (PoLine poLine : compPO.getPoLines()) {
       int quantityOrdered = getPoLineQuantityOrdered(poLine);
       var pieces = poLineToPieces.getOrDefault(poLine.getId(), List.of());
-      int segments = poLineEdiConverter.convertPOLine(integrationTypeEnum, compPO, poLine, pieces, writer, ++totalNumberOfLineItems, quantityOrdered);
+      int segments = poLineEdiConverter.convertPOLine(integrationType, compPO, poLine, pieces, writer, ++totalNumberOfLineItems, quantityOrdered);
       messageSegmentCount += segments;
       totalQuantity += quantityOrdered;
     }
@@ -93,12 +93,12 @@ public class CompOrderEdiConverter {
   }
 
   // Order header = Start of order; EDIFACT message type - There would be a new UNH for each FOLIO PO in the file
-  private void writePOHeader(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationTypeEnum,
+  private void writePOHeader(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType,
                              CompositePurchaseOrder compPO, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("UNH")
       .writeElement(compPO.getPoNumber())
       .writeStartElement()
-      .writeComponent(integrationTypeEnum == VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING ? "ORDERS" : "OSTENQ")
+      .writeComponent(integrationType == VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING ? "ORDERS" : "OSTENQ")
       .writeComponent("D")
       .writeComponent("96A")
       .writeComponent("UN")

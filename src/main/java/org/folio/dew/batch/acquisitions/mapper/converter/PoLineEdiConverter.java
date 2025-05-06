@@ -18,7 +18,6 @@ import org.folio.dew.batch.acquisitions.services.HoldingService;
 import org.folio.dew.batch.acquisitions.services.IdentifierTypeService;
 import org.folio.dew.batch.acquisitions.services.LocationService;
 import org.folio.dew.batch.acquisitions.services.MaterialTypeService;
-import org.folio.dew.domain.dto.Claim;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.Contributor;
 import org.folio.dew.domain.dto.Cost;
@@ -68,7 +67,7 @@ public class PoLineEdiConverter {
     this.holdingService = holdingService;
   }
 
-  public int convertPOLine(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationTypeEnum,
+  public int convertPOLine(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType,
                            CompositePurchaseOrder compPO, PoLine poLine, List<Piece> pieces, EDIStreamWriter writer,
                            int currentLineNumber, int quantityOrdered) throws EDIStreamException {
     int messageSegmentCount = 0;
@@ -127,7 +126,9 @@ public class PoLineEdiConverter {
       writeMaterialType(electronicMaterial, writer);
     }
 
-    writeCurrentStatus(writer);
+    if (integrationType == VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING) {
+      writeCurrentStatus(writer);
+    }
 
     messageSegmentCount++;
     writeQuantity(quantityOrdered, writer);
@@ -146,7 +147,7 @@ public class PoLineEdiConverter {
     messageSegmentCount++;
     writePoLineCurrency(poLine, writer);
 
-    if (integrationTypeEnum == VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING) {
+    if (integrationType == VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING) {
       writePONumber(compPO, writer);
     }
 
@@ -160,10 +161,8 @@ public class PoLineEdiConverter {
     referenceQuantity++;
     messageSegmentCount++;
     writePOLineNumber(poLine, writer);
-    if (integrationTypeEnum == VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING) {
-      for (Claim claim : poLine.getClaims()) {
-        writeClaims(claim, writer);
-      }
+    if (integrationType == VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING) {
+      writeClaims(writer);
     }
 
     for (FundDistribution fundDistribution : getFundDistribution(poLine)) {
@@ -421,10 +420,10 @@ public class PoLineEdiConverter {
       .writeEndSegment();
   }
 
-  private void writeClaims(Claim claim, EDIStreamWriter writer) throws EDIStreamException {
+  private void writeClaims(EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("RFF")
       .writeElement("ACT")
-      .writeElement(claim.getGrace().toString())
+      .writeElement("1")
       .writeEndSegment();
   }
 

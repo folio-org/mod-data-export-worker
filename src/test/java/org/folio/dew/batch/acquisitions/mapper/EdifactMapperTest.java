@@ -97,18 +97,22 @@ class EdifactMapperTest {
     List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson(type);
     List<Piece> pieces = getTestPiecesFromJson(type);
 
-    String ediOrder = edifactMapper.convertForExport(compPOs, pieces, getTestEdiConfig(), jobName);
+    String ediOrder = edifactMapper.convertForExport(compPOs, pieces, getTestEdiConfig(type), jobName);
 
     assertFalse(ediOrder.isEmpty());
     validateEdifactOrders(type, ediOrder, fileIdExpected);
 
     byte[] ediOrderBytes = ediOrder.getBytes(StandardCharsets.UTF_8);
     assertNotNull(ediOrderBytes);
-    validateEdifactOrders(type, new String(ediOrder), fileIdExpected);
+    validateEdifactOrders(type, ediOrder, fileIdExpected);
   }
 
-  private VendorEdiOrdersExportConfig getTestEdiConfig() throws IOException {
-    return objectMapper.readValue(getMockData("edifact/acquisitions/vendorEdiOrdersExportConfig.json"), VendorEdiOrdersExportConfig.class);
+  private VendorEdiOrdersExportConfig getTestEdiConfig(ExportType type) throws IOException {
+    var exportConfig = objectMapper.readValue(getMockData("edifact/acquisitions/vendorEdiOrdersExportConfig.json"), VendorEdiOrdersExportConfig.class);
+    exportConfig.setIntegrationType(type == EDIFACT_ORDERS_EXPORT
+      ? VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING
+      : VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING);
+    return exportConfig;
   }
 
   private List<CompositePurchaseOrder> getTestOrdersFromJson(ExportType type) throws IOException {

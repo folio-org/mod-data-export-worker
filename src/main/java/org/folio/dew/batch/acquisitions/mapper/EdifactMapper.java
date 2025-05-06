@@ -20,6 +20,10 @@ import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.acquisitions.edifact.EdiFileConfig;
 
 public class EdifactMapper implements ExportResourceMapper {
+
+  private static final String VENDOR_EDI_TYPE_SUPPLIER_ASSIGNED_ID = "091";
+  private static final String LIB_EDI_TYPE_SUPPLIER_ASSIGNED_ID = "091";
+
   private final CompOrderEdiConverter compOrderEdiConverter;
 
   public EdifactMapper(CompOrderEdiConverter compOrderEdiConverter) {
@@ -41,9 +45,8 @@ public class EdifactMapper implements ExportResourceMapper {
       EdiFileConfig ediFileConfig = new EdiFileConfig();
       ediFileConfig.setFileId(StringUtils.right(jobName, 14));
       ediFileConfig.setLibEdiCode(ediExportConfig.getEdiConfig().getLibEdiCode());
-      ediFileConfig.setLibEdiType(ediExportConfig.getEdiConfig().getLibEdiType().getValue().substring(0, 3));
       ediFileConfig.setVendorEdiCode(ediExportConfig.getEdiConfig().getVendorEdiCode());
-      ediFileConfig.setVendorEdiType(ediExportConfig.getEdiConfig().getVendorEdiType().getValue().substring(0, 3));
+      setVendorAndLibEdiTypes(ediExportConfig, ediFileConfig);
 
       writeInterchangeHeader(writer, ediFileConfig);
 
@@ -59,6 +62,16 @@ public class EdifactMapper implements ExportResourceMapper {
       return stream.toString();
     }
 
+  }
+
+  private void setVendorAndLibEdiTypes(VendorEdiOrdersExportConfig ediExportConfig, EdiFileConfig ediFileConfig) {
+    if (ediExportConfig.getIntegrationType() == VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING) {
+      ediFileConfig.setVendorEdiType(VENDOR_EDI_TYPE_SUPPLIER_ASSIGNED_ID);
+      ediFileConfig.setLibEdiType(LIB_EDI_TYPE_SUPPLIER_ASSIGNED_ID);
+    } else {
+      ediFileConfig.setVendorEdiType(ediExportConfig.getEdiConfig().getVendorEdiType().getValue().substring(0, 3));
+      ediFileConfig.setLibEdiType(ediExportConfig.getEdiConfig().getLibEdiType().getValue().substring(0, 3));
+    }
   }
 
   // Start of file - Can contain multiple order messages

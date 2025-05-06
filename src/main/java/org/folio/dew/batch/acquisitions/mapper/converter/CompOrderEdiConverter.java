@@ -8,6 +8,7 @@ import org.folio.dew.batch.acquisitions.services.ConfigurationService;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.PoLine;
+import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.acquisitions.edifact.EdiFileConfig;
 import org.folio.dew.error.NotFoundException;
 
@@ -16,7 +17,10 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING;
+
 public class CompOrderEdiConverter {
+
   private static final String RUSH_ORDER = "224";
   private static final String NOT_RUSH_ORDER = "220";
 
@@ -29,11 +33,12 @@ public class CompOrderEdiConverter {
   }
 
   public void convertPOtoEdifact(EDIStreamWriter writer, CompositePurchaseOrder compPO,
-                                 Map<String, List<Piece>> poLineToPieces, EdiFileConfig ediFileConfig) throws EDIStreamException {
+                                 Map<String, List<Piece>> poLineToPieces, EdiFileConfig ediFileConfig,
+                                 VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType) throws EDIStreamException {
     int messageSegmentCount = 0;
 
     messageSegmentCount++;
-    writePOHeader(compPO, writer);
+    writePOHeader(integrationType, compPO, writer);
 
     String rushOrderQualifier = compPO.getPoLines().stream().filter(line -> line.getRush() != null).anyMatch(PoLine::getRush) ? RUSH_ORDER : NOT_RUSH_ORDER;
     messageSegmentCount++;
@@ -54,7 +59,7 @@ public class CompOrderEdiConverter {
       throw new NotFoundException(errMsg);
     }
 
-    var comPoLine = compPO.getPoLines().get(0);
+    var comPoLine = compPO.getPoLines().getFirst();
     if (comPoLine.getVendorDetail() != null && StringUtils.isNotBlank(comPoLine.getVendorDetail().getVendorAccount())){
       messageSegmentCount++;
       writeAccountNumber(comPoLine.getVendorDetail().getVendorAccount(), writer);
@@ -62,7 +67,9 @@ public class CompOrderEdiConverter {
 
     messageSegmentCount++;
     String currency = comPoLine.getCost().getCurrency();
-    writeCurrency(currency, writer);
+    if (integrationType == ORDERING) {
+      writeCurrency(currency, writer);
+    }
 
     // Order lines
     int totalQuantity = 0;
@@ -70,7 +77,7 @@ public class CompOrderEdiConverter {
     for (PoLine poLine : compPO.getPoLines()) {
       int quantityOrdered = getPoLineQuantityOrdered(poLine);
       var pieces = poLineToPieces.getOrDefault(poLine.getId(), List.of());
-      int segments = poLineEdiConverter.convertPOLine(poLine, pieces, writer, ++totalNumberOfLineItems, quantityOrdered);
+      int segments = poLineEdiConverter.convertPOLine(integrationType, compPO, poLine, pieces, writer, ++totalNumberOfLineItems, quantityOrdered);
       messageSegmentCount += segments;
       totalQuantity += quantityOrdered;
     }
@@ -89,11 +96,12 @@ public class CompOrderEdiConverter {
   }
 
   // Order header = Start of order; EDIFACT message type - There would be a new UNH for each FOLIO PO in the file
-  private void writePOHeader(CompositePurchaseOrder compPO, EDIStreamWriter writer) throws EDIStreamException {
+  private void writePOHeader(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType,
+                             CompositePurchaseOrder compPO, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("UNH")
       .writeElement(compPO.getPoNumber())
       .writeStartElement()
-      .writeComponent("ORDERS")
+      .writeComponent(integrationType == ORDERING ? "ORDERS" : "OSTENQ")
       .writeComponent("D")
       .writeComponent("96A")
       .writeComponent("UN")
@@ -193,7 +201,7 @@ public class CompOrderEdiConverter {
   }
 
   // Total number of line items
-  // 	If any line has QTY >1, then CNT+1 ≠ CNT+2
+  // If any line has QTY >1, then CNT+1 ≠ CNT+2
   private void writeNumberLineItems(EDIStreamWriter writer, int totalNumberOfLineItems) throws EDIStreamException {
     writer.writeStartSegment("CNT")
       .writeStartElement()

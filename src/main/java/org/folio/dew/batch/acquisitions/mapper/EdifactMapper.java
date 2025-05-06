@@ -50,7 +50,7 @@ public class EdifactMapper implements ExportResourceMapper {
       var poLineIdToPieces = pieces.stream().collect(groupingBy(Piece::getPoLineId));
       // Purchase orders
       for (CompositePurchaseOrder compPO : compPOs) {
-        compOrderEdiConverter.convertPOtoEdifact(writer, compPO, poLineIdToPieces, ediFileConfig);
+        compOrderEdiConverter.convertPOtoEdifact(writer, compPO, poLineIdToPieces, ediFileConfig, ediExportConfig.getIntegrationType());
         messageCount++;
       }
 

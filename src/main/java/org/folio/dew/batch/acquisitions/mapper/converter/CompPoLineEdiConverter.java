@@ -2,6 +2,7 @@ package org.folio.dew.batch.acquisitions.mapper.converter;
 
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.getVendorOrderNumber;
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.getVendorReferenceNumbers;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING;
 
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
@@ -18,6 +19,7 @@ import org.folio.dew.batch.acquisitions.services.HoldingService;
 import org.folio.dew.batch.acquisitions.services.IdentifierTypeService;
 import org.folio.dew.batch.acquisitions.services.LocationService;
 import org.folio.dew.batch.acquisitions.services.MaterialTypeService;
+import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.CompositePoLine;
 import org.folio.dew.domain.dto.Contributor;
 import org.folio.dew.domain.dto.Cost;
@@ -26,6 +28,7 @@ import org.folio.dew.domain.dto.Location;
 import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.ProductIdentifier;
 import org.folio.dew.domain.dto.ReferenceNumberItem;
+import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.javamoney.moneta.Money;
 
 import java.math.BigDecimal;
@@ -65,40 +68,17 @@ public class CompPoLineEdiConverter {
     this.holdingService = holdingService;
   }
 
-  public int convertPOLine(CompositePoLine poLine, List<Piece> pieces, EDIStreamWriter writer, int currentLineNumber, int quantityOrdered) throws EDIStreamException {
+  public int convertPOLine(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType,
+                           CompositePurchaseOrder compPO, CompositePoLine poLine, List<Piece> pieces, EDIStreamWriter writer,
+                           int currentLineNumber, int quantityOrdered) throws EDIStreamException {
     int messageSegmentCount = 0;
 
-    Map<String, ProductIdentifier> productTypeProductIdentifierMap = new HashMap<>();
-    for (ProductIdentifier productId : getProductIds(poLine)) {
-      productTypeProductIdentifierMap.put(getProductIdType(productId), productId);
-    }
-
+    Map<String, ProductIdentifier> productTypeProductIdentifierMap = prepareStringProductIdentifierMap(poLine);
     messageSegmentCount += writeOrderLineAndMainProductId(productTypeProductIdentifierMap, writer, currentLineNumber);
-
-    for (Map.Entry<String, ProductIdentifier> entry : productTypeProductIdentifierMap.entrySet()) {
-      messageSegmentCount++;
-      writeProductId(entry.getValue().getProductId(), writer, PRODUCT_ID_FUNCTION_CODE_ADDITIONAL_IDNTIFICATION, getProductIdQualifier(entry.getKey()));
-    }
-
-    for (Contributor contributor : getContributors(poLine)) {
-      if (contributor.getContributor() != null) {
-        messageSegmentCount++;
-        writeContributor(contributor.getContributor(), writer);
-      }
-    }
-
-    for (String titlePart : getTitleParts(poLine)) {
-      messageSegmentCount++;
-      writeTitle(titlePart, writer);
-    }
-
-    for (Piece piece : pieces) {
-      var pieceDetails = getPieceDetails(piece);
-      if (StringUtils.isNotBlank(pieceDetails)) {
-        messageSegmentCount++;
-        writePiece(pieceDetails, writer);
-      }
-    }
+    messageSegmentCount = writeProductIdentifiers(writer, productTypeProductIdentifierMap, messageSegmentCount);
+    messageSegmentCount = writeContributors(poLine, writer, messageSegmentCount);
+    messageSegmentCount = writeTitles(poLine, writer, messageSegmentCount);
+    messageSegmentCount = writePieces(pieces, writer, messageSegmentCount);
 
     if (poLine.getPublisher() != null) {
       messageSegmentCount++;
@@ -122,6 +102,10 @@ public class CompPoLineEdiConverter {
       writeMaterialType(electronicMaterial, writer);
     }
 
+    if (integrationType == CLAIMING) {
+      writeCurrentStatus(writer);
+    }
+
     messageSegmentCount++;
     writeQuantity(quantityOrdered, writer);
 
@@ -139,6 +123,10 @@ public class CompPoLineEdiConverter {
     messageSegmentCount++;
     writePoLineCurrency(poLine, writer);
 
+    if (integrationType == CLAIMING) {
+      writePONumber(compPO, writer);
+    }
+
     if (poLine.getVendorDetail() != null && StringUtils.isNotEmpty(poLine.getVendorDetail().getInstructions())) {
       messageSegmentCount++;
       writeInstructionsToVendor(poLine.getVendorDetail().getInstructions(), writer);
@@ -149,8 +137,70 @@ public class CompPoLineEdiConverter {
     referenceQuantity++;
     messageSegmentCount++;
     writePOLineNumber(poLine, writer);
+    if (integrationType == CLAIMING) {
+      writeClaims(writer);
+    }
 
-    for (FundDistribution fundDistribution : getFundDistribution(poLine)) {
+    var fundDistributions = getWriteFundDistributions(poLine, writer, referenceQuantity, messageSegmentCount);
+    messageSegmentCount = writeVendorOrderNumber(poLine, pieces, writer, fundDistributions.messageSegmentCount());
+    messageSegmentCount = writeVendorReferenceNumbers(poLine, writer, fundDistributions.referenceQuantity(), messageSegmentCount);
+    messageSegmentCount = writeDeliveryLocations(poLine, writer, messageSegmentCount);
+
+    return messageSegmentCount;
+  }
+
+  private  Map<String, ProductIdentifier> prepareStringProductIdentifierMap(CompositePoLine poLine) {
+    var productTypeProductIdentifierMap = new HashMap<String, ProductIdentifier>();
+    for (var productId : getProductIds(poLine)) {
+      productTypeProductIdentifierMap.put(getProductIdType(productId), productId);
+    }
+    return productTypeProductIdentifierMap;
+  }
+
+  private int writeProductIdentifiers(EDIStreamWriter writer, Map<String, ProductIdentifier> productTypeProductIdentifierMap,
+                                      int messageSegmentCount) throws EDIStreamException {
+    for (var entry : productTypeProductIdentifierMap.entrySet()) {
+      messageSegmentCount++;
+      writeProductId(entry.getValue().getProductId(), writer, PRODUCT_ID_FUNCTION_CODE_ADDITIONAL_IDNTIFICATION, getProductIdQualifier(entry.getKey()));
+    }
+    return messageSegmentCount;
+  }
+
+  private int writeTitles(CompositePoLine poLine, EDIStreamWriter writer,
+                          int messageSegmentCount) throws EDIStreamException {
+    for (var titlePart : getTitleParts(poLine)) {
+      messageSegmentCount++;
+      writeTitle(titlePart, writer);
+    }
+    return messageSegmentCount;
+  }
+
+  private int writePieces(List<Piece> pieces, EDIStreamWriter writer,
+                          int messageSegmentCount) throws EDIStreamException {
+    for (var piece : pieces) {
+      var pieceDetails = getPieceDetails(piece);
+      if (StringUtils.isNotBlank(pieceDetails)) {
+        messageSegmentCount++;
+        writePiece(pieceDetails, writer);
+      }
+    }
+    return messageSegmentCount;
+  }
+
+  private int writeContributors(CompositePoLine poLine, EDIStreamWriter writer,
+                                int messageSegmentCount) throws EDIStreamException {
+    for (var contributor : getContributors(poLine)) {
+      if (contributor.getContributor() != null) {
+        messageSegmentCount++;
+        writeContributor(contributor.getContributor(), writer);
+      }
+    }
+    return messageSegmentCount;
+  }
+
+  private CompPoLineEdiConverter.PreparedFundDistributions getWriteFundDistributions(CompositePoLine poLine, EDIStreamWriter writer,
+                                                                                 int referenceQuantity, int messageSegmentCount) throws EDIStreamException {
+    for (var fundDistribution : getFundDistribution(poLine)) {
       if (referenceQuantity >= MAX_NUMBER_OF_REFS) {
         break;
       }
@@ -158,7 +208,14 @@ public class CompPoLineEdiConverter {
       messageSegmentCount++;
       writeFundCode(getFundAndExpenseClass(fundDistribution), writer);
     }
+    return new PreparedFundDistributions(messageSegmentCount, referenceQuantity);
+  }
 
+  private record PreparedFundDistributions(int messageSegmentCount, int referenceQuantity) {
+  }
+
+  private int writeVendorOrderNumber(CompositePoLine poLine, List<Piece> pieces, EDIStreamWriter writer,
+                                     int messageSegmentCount) throws EDIStreamException {
     var referenceNumbers = getVendorReferenceNumbers(poLine);
     // Non-empty pieces list is a sign that the export is for claims
     if (CollectionUtils.isNotEmpty(pieces)) {
@@ -169,8 +226,12 @@ public class CompPoLineEdiConverter {
         writeVendorOrderNumber(vendorOrderNumber.getRefNumber(), writer);
       }
     }
+    return messageSegmentCount;
+  }
 
-    for (ReferenceNumberItem number : getVendorReferenceNumbers(poLine)) {
+  private int writeVendorReferenceNumbers(CompositePoLine poLine, EDIStreamWriter writer,
+                                          int referenceQuantity, int messageSegmentCount) throws EDIStreamException {
+    for (var number : getVendorReferenceNumbers(poLine)) {
       if (referenceQuantity >= MAX_NUMBER_OF_REFS) {
         break;
       }
@@ -180,17 +241,20 @@ public class CompPoLineEdiConverter {
         writeVendorReferenceNumber(number.getRefNumber(), writer);
       }
     }
+    return messageSegmentCount;
+  }
 
-    for (Location location : getLocations(poLine)) {
+  private int writeDeliveryLocations(CompositePoLine poLine, EDIStreamWriter writer,
+                                     int messageSegmentCount) throws EDIStreamException {
+    for (var location : getLocations(poLine)) {
       messageSegmentCount++;
       writeDeliveryLocation(getLocationCode(location), writer);
     }
-
     return messageSegmentCount;
   }
 
   private int writeOrderLineAndMainProductId(Map<String, ProductIdentifier> productTypeProductIdentifierMap, EDIStreamWriter writer,
-                              int currentLineNumber) throws EDIStreamException {
+                                             int currentLineNumber) throws EDIStreamException {
     int numberOfLinesWritten;
     if (productTypeProductIdentifierMap.get(ISBN_PRODUCT_ID_TYPE) != null) {
       writeMainProduct(productTypeProductIdentifierMap, writer, currentLineNumber, IB_PRODUCT_ID_QUALIFIER, ISBN_PRODUCT_ID_TYPE);
@@ -324,6 +388,18 @@ public class CompPoLineEdiConverter {
       .writeEndSegment();
   }
 
+  private void writeCurrentStatus(EDIStreamWriter writer) throws EDIStreamException {
+    writer.writeStartSegment("STS")
+      .writeElement("UP1")
+      .writeStartElement()
+      .writeComponent("")
+      .writeComponent("")
+      .writeComponent("55")
+      .writeComponent("CSD")
+      .endElement()
+      .writeEndSegment();
+  }
+
   // Quantity ordered
   private void writeQuantity(int quantityOrdered, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("QTY")
@@ -362,6 +438,13 @@ public class CompPoLineEdiConverter {
       .writeEndSegment();
   }
 
+  private void writePONumber(CompositePurchaseOrder compPO, EDIStreamWriter writer) throws EDIStreamException {
+    writer.writeStartSegment("RFF")
+      .writeElement("SNA")
+      .writeElement(compPO.getPoNumber())
+      .writeEndSegment();
+  }
+
   private void writeInstructionsToVendor(String instructions, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("FTX")
       .writeElement("LIN")
@@ -383,6 +466,13 @@ public class CompPoLineEdiConverter {
       .writeComponent("LI")
       .writeComponent(poLine.getPoLineNumber())
       .endElement()
+      .writeEndSegment();
+  }
+
+  private void writeClaims(EDIStreamWriter writer) throws EDIStreamException {
+    writer.writeStartSegment("RFF")
+      .writeElement("ACT")
+      .writeElement("1")
       .writeEndSegment();
   }
 
@@ -440,16 +530,12 @@ public class CompPoLineEdiConverter {
   }
 
   private String getProductIdQualifier(String productIdType) {
-    switch(productIdType) {
-      case "ISBN":
-        return IB_PRODUCT_ID_QUALIFIER;
-      case "ISSN":
-        return IS_PRODUCT_ID_QUALIFIER;
-      case "ISMN":
-        return IM_PRODUCT_ID_QUALIFIER;
-      default:
-        return MF_PRODUCT_ID_QUALIFIER;
-    }
+    return switch (productIdType) {
+      case "ISBN" -> IB_PRODUCT_ID_QUALIFIER;
+      case "ISSN" -> IS_PRODUCT_ID_QUALIFIER;
+      case "ISMN" -> IM_PRODUCT_ID_QUALIFIER;
+      default -> MF_PRODUCT_ID_QUALIFIER;
+    };
   }
 
   private List<Contributor> getContributors(CompositePoLine poLine) {

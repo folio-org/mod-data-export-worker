@@ -3,6 +3,7 @@ package org.folio.dew.batch.acquisitions.mapper.converter;
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.getVendorOrderNumber;
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.getVendorReferenceNumbers;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING;
 
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
@@ -122,7 +123,9 @@ public class PoLineEdiConverter {
     }
 
     messageSegmentCount++;
-    writePoLineCurrency(poLine, writer);
+    if (integrationType == ORDERING) {
+      writePoLineCurrency(poLine, writer);
+    }
 
     if (integrationType == CLAIMING) {
       writePONumber(compPO, writer);

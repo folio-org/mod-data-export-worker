@@ -17,6 +17,8 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -81,12 +83,6 @@ class EdifactMapperTest {
       .thenReturn("Publisher or distributor number");
     when(materialTypeService.getMaterialTypeName(anyString()))
       .thenReturn("Book");
-    when(expenseClassService.getExpenseClassCode(anyString()))
-      .thenReturn("Elec");
-    when(locationService.getLocationCodeById(anyString()))
-      .thenReturn("KU/CC/DI/M");
-    when(holdingService.getPermanentLocationByHoldingId(anyString()))
-      .thenReturn("fcd64ce1-6995-48f0-840e-89ffa2288371");
     when(configurationService.getAddressConfig(any()))
       .thenReturn("Bockenheimer Landstr. 134-13");
   }
@@ -98,6 +94,15 @@ class EdifactMapperTest {
     String fileIdExpected = "23456789012345";
     List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson(type);
     List<Piece> pieces = getTestPiecesFromJson(type);
+
+    if (type == EDIFACT_ORDERS_EXPORT) {
+      when(expenseClassService.getExpenseClassCode(anyString()))
+        .thenReturn("Elec");
+      when(locationService.getLocationCodeById(anyString()))
+        .thenReturn("KU/CC/DI/M");
+      when(holdingService.getPermanentLocationByHoldingId(anyString()))
+        .thenReturn("fcd64ce1-6995-48f0-840e-89ffa2288371");
+    }
 
     String ediOrder = edifactMapper.convertForExport(compPOs, pieces, getTestEdiConfig(type), jobName);
 
@@ -125,6 +130,8 @@ class EdifactMapperTest {
       compPOs.add(objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_non_ean_product_ids.json"), CompositePurchaseOrder.class));
       compPOs.add(objectMapper.readValue(getMockData("edifact/acquisitions/purchase_order_title_with_escape_chars.json"), CompositePurchaseOrder.class));
     }
+    compPOs.forEach(compPO -> compPO.setDateOrdered(java.util.Date.from(LocalDate.of(2025, 5, 8)
+      .atStartOfDay().atZone(ZoneId.systemDefault()).toInstant())));
     return compPOs;
   }
 

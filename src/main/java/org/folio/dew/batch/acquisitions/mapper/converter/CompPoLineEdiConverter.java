@@ -3,6 +3,7 @@ package org.folio.dew.batch.acquisitions.mapper.converter;
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.getVendorOrderNumber;
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.getVendorReferenceNumbers;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING;
 
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 
 public class CompPoLineEdiConverter {
+
   private static final int MAX_CHARS_PER_LINE = 70;
   private static final int MAX_NUMBER_OF_REFS = 10;
   private static final String PRODUCT_ID_FUNCTION_CODE_MAIN_PRODUCT_IDNTIFICATION = "5";
@@ -74,7 +76,7 @@ public class CompPoLineEdiConverter {
     int messageSegmentCount = 0;
 
     Map<String, ProductIdentifier> productTypeProductIdentifierMap = prepareStringProductIdentifierMap(poLine);
-    messageSegmentCount += writeOrderLineAndMainProductId(productTypeProductIdentifierMap, writer, currentLineNumber);
+    messageSegmentCount += writeOrderLineAndMainProductId(integrationType, productTypeProductIdentifierMap, writer, currentLineNumber);
     messageSegmentCount = writeProductIdentifiers(writer, productTypeProductIdentifierMap, messageSegmentCount);
     messageSegmentCount = writeContributors(poLine, writer, messageSegmentCount);
     messageSegmentCount = writeTitles(poLine, writer, messageSegmentCount);
@@ -103,49 +105,78 @@ public class CompPoLineEdiConverter {
     }
 
     if (integrationType == CLAIMING) {
+      messageSegmentCount++;
       writeCurrentStatus(writer);
     }
 
     messageSegmentCount++;
     writeQuantity(quantityOrdered, writer);
 
-    if (poLine.getCost().getPoLineEstimatedPrice() != null) {
-      messageSegmentCount++;
-      writePrice(poLine.getCost().getPoLineEstimatedPrice(), writer);
-    }
-
-    if (poLine.getCost().getListUnitPrice() != null || poLine.getCost().getListUnitPriceElectronic() != null) {
-      messageSegmentCount++;
-      String totalUnitPrice = calculateCostUnitsTotal(poLine.getCost());
-      writeUnitPrice(totalUnitPrice, writer);
-    }
-
-    messageSegmentCount++;
-    writePoLineCurrency(poLine, writer);
-
-    if (integrationType == CLAIMING) {
-      writePONumber(compPO, writer);
-    }
-
-    if (poLine.getVendorDetail() != null && StringUtils.isNotEmpty(poLine.getVendorDetail().getInstructions())) {
-      messageSegmentCount++;
-      writeInstructionsToVendor(poLine.getVendorDetail().getInstructions(), writer);
-    }
+    messageSegmentCount = writePrice(integrationType, poLine, writer, messageSegmentCount);
+    messageSegmentCount = writeTotalUnitPrice(integrationType, poLine, writer, messageSegmentCount);
+    messageSegmentCount = writePoLineCurrency(integrationType, poLine, writer, messageSegmentCount);
+    messageSegmentCount = writeInstructionsToVendor(poLine, writer, messageSegmentCount);
 
     int referenceQuantity = 0;
 
     referenceQuantity++;
     messageSegmentCount++;
     writePOLineNumber(poLine, writer);
+
     if (integrationType == CLAIMING) {
+      messageSegmentCount++;
+      writePONumber(compPO, writer);
+    }
+
+    if (integrationType == CLAIMING) {
+      messageSegmentCount++;
       writeClaims(writer);
     }
 
-    var fundDistributions = getWriteFundDistributions(poLine, writer, referenceQuantity, messageSegmentCount);
+    var fundDistributions = getWriteFundDistributions(integrationType, poLine, writer, referenceQuantity, messageSegmentCount);
     messageSegmentCount = writeVendorOrderNumber(poLine, pieces, writer, fundDistributions.messageSegmentCount());
     messageSegmentCount = writeVendorReferenceNumbers(poLine, writer, fundDistributions.referenceQuantity(), messageSegmentCount);
-    messageSegmentCount = writeDeliveryLocations(poLine, writer, messageSegmentCount);
 
+    if (integrationType == ORDERING) {
+      messageSegmentCount = writeDeliveryLocations(poLine, writer, messageSegmentCount);
+    }
+
+    return messageSegmentCount;
+  }
+
+  private int writePrice(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, CompositePoLine poLine, EDIStreamWriter writer,
+                         int messageSegmentCount) throws EDIStreamException {
+    if (integrationType == ORDERING && poLine.getCost().getPoLineEstimatedPrice() != null) {
+      messageSegmentCount++;
+      writePrice(poLine.getCost().getPoLineEstimatedPrice(), writer);
+    }
+    return messageSegmentCount;
+  }
+
+  private int writeTotalUnitPrice(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, CompositePoLine poLine, EDIStreamWriter writer,
+                                  int messageSegmentCount) throws EDIStreamException {
+    if (integrationType == ORDERING && (poLine.getCost().getListUnitPrice() != null || poLine.getCost().getListUnitPriceElectronic() != null)) {
+      String totalUnitPrice = calculateCostUnitsTotal(poLine.getCost());
+      messageSegmentCount++;
+      writeUnitPrice(totalUnitPrice, writer);
+    }
+    return messageSegmentCount;
+  }
+
+  private int writePoLineCurrency(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, CompositePoLine poLine, EDIStreamWriter writer,
+                                  int messageSegmentCount) throws EDIStreamException {
+    if (integrationType == ORDERING) {
+      messageSegmentCount++;
+      writePoLineCurrency(poLine, writer);
+    }
+    return messageSegmentCount;
+  }
+
+  private int writeInstructionsToVendor(CompositePoLine poLine, EDIStreamWriter writer, int messageSegmentCount) throws EDIStreamException {
+    if (poLine.getVendorDetail() != null && StringUtils.isNotEmpty(poLine.getVendorDetail().getInstructions())) {
+      messageSegmentCount++;
+      writeInstructionsToVendor(poLine.getVendorDetail().getInstructions(), writer);
+    }
     return messageSegmentCount;
   }
 
@@ -198,8 +229,12 @@ public class CompPoLineEdiConverter {
     return messageSegmentCount;
   }
 
-  private CompPoLineEdiConverter.PreparedFundDistributions getWriteFundDistributions(CompositePoLine poLine, EDIStreamWriter writer,
-                                                                                 int referenceQuantity, int messageSegmentCount) throws EDIStreamException {
+  private CompPoLineEdiConverter.PreparedFundDistributions getWriteFundDistributions(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType,
+                                                                                     CompositePoLine poLine, EDIStreamWriter writer, int referenceQuantity,
+                                                                                     int messageSegmentCount) throws EDIStreamException {
+    if (integrationType == CLAIMING) {
+      return new PreparedFundDistributions(messageSegmentCount, referenceQuantity);
+    }
     for (var fundDistribution : getFundDistribution(poLine)) {
       if (referenceQuantity >= MAX_NUMBER_OF_REFS) {
         break;
@@ -253,28 +288,30 @@ public class CompPoLineEdiConverter {
     return messageSegmentCount;
   }
 
-  private int writeOrderLineAndMainProductId(Map<String, ProductIdentifier> productTypeProductIdentifierMap, EDIStreamWriter writer,
-                                             int currentLineNumber) throws EDIStreamException {
+  private int writeOrderLineAndMainProductId(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType,
+                                             Map<String, ProductIdentifier> productTypeProductIdentifierMap,
+                                             EDIStreamWriter writer, int currentLineNumber) throws EDIStreamException {
     int numberOfLinesWritten;
     if (productTypeProductIdentifierMap.get(ISBN_PRODUCT_ID_TYPE) != null) {
-      writeMainProduct(productTypeProductIdentifierMap, writer, currentLineNumber, IB_PRODUCT_ID_QUALIFIER, ISBN_PRODUCT_ID_TYPE);
+      writeMainProduct(integrationType, productTypeProductIdentifierMap, writer, currentLineNumber, IB_PRODUCT_ID_QUALIFIER, ISBN_PRODUCT_ID_TYPE);
       numberOfLinesWritten = 2;
     } else if (productTypeProductIdentifierMap.get(ISSN_PRODUCT_ID_TYPE) != null) {
-      writeMainProduct(productTypeProductIdentifierMap, writer, currentLineNumber, IS_PRODUCT_ID_QUALIFIER, ISSN_PRODUCT_ID_TYPE);
+      writeMainProduct(integrationType, productTypeProductIdentifierMap, writer, currentLineNumber, IS_PRODUCT_ID_QUALIFIER, ISSN_PRODUCT_ID_TYPE);
       numberOfLinesWritten = 2;
     } else if (productTypeProductIdentifierMap.get(ISMN_PRODUCT_ID_TYPE) != null) {
-      writeMainProduct(productTypeProductIdentifierMap, writer, currentLineNumber, IM_PRODUCT_ID_QUALIFIER, ISMN_PRODUCT_ID_TYPE);
+      writeMainProduct(integrationType, productTypeProductIdentifierMap, writer, currentLineNumber, IM_PRODUCT_ID_QUALIFIER, ISMN_PRODUCT_ID_TYPE);
       numberOfLinesWritten = 2;
     } else {
-      writeOrderLine("", writer, currentLineNumber, "");
+      writeOrderLine(integrationType, "", writer, currentLineNumber, "");
       numberOfLinesWritten = 1;
     }
     return numberOfLinesWritten;
   }
 
-  private void writeMainProduct(Map<String, ProductIdentifier> productTypeProductIdentifierMap, EDIStreamWriter writer,
-                                int currentLineNumber, String qualifier, String productType) throws EDIStreamException {
-    writeOrderLine(productTypeProductIdentifierMap.get(productType).getProductId(), writer, currentLineNumber, qualifier);
+  private void writeMainProduct(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType,
+                                Map<String, ProductIdentifier> productTypeProductIdentifierMap,
+                                EDIStreamWriter writer, int currentLineNumber, String qualifier, String productType) throws EDIStreamException {
+    writeOrderLine(integrationType, productTypeProductIdentifierMap.get(productType).getProductId(), writer, currentLineNumber, qualifier);
     writeProductId(productTypeProductIdentifierMap.get(productType).getProductId(), writer, PRODUCT_ID_FUNCTION_CODE_MAIN_PRODUCT_IDNTIFICATION, qualifier);
     productTypeProductIdentifierMap.remove(productType);
   }
@@ -283,7 +320,15 @@ public class CompPoLineEdiConverter {
   // May or may not be the same number as the POL line number, since the POLs may skip numbers, and the EDI order does not
   // Since ISBNs expanded to 13 digits, they are equivalent to UPC barcode numbers
   // Identifier qualifier not included
-  private void writeOrderLine(String productId, EDIStreamWriter writer, int currentLineNumber, String qualifier) throws EDIStreamException {
+  private void writeOrderLine(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, String productId,
+                              EDIStreamWriter writer, int currentLineNumber, String qualifier) throws EDIStreamException {
+    if (integrationType == CLAIMING) {
+      writer.writeStartSegment("LIN")
+        .writeElement(String.valueOf(currentLineNumber))
+        .writeEndSegment();
+      return;
+    }
+
     String linQualifier = productId != null && productId.length() == EAN_IDENTIFIER_LENGTH
       ? EN_PRODUCT_ID_QUALIFIER : qualifier;
     writer.writeStartSegment("LIN")
@@ -390,13 +435,17 @@ public class CompPoLineEdiConverter {
 
   private void writeCurrentStatus(EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("STS")
-      .writeElement("UP1")
       .writeStartElement()
+      .writeComponent("UP1")
       .writeComponent("")
-      .writeComponent("")
-      .writeComponent("55")
-      .writeComponent("CSD")
+      .writeComponent("9")
       .endElement()
+      .writeStartElement()
+      .writeComponent("CSD")
+      .writeComponent("")
+      .writeComponent("9")
+      .endElement()
+      .writeElement("55")
       .writeEndSegment();
   }
 

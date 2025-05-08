@@ -17,6 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING;
 
 public class CompOrderEdiConverter {
@@ -49,7 +50,7 @@ public class CompOrderEdiConverter {
 
     String shipToAddress = configurationService.getAddressConfig(compPO.getShipTo());
     messageSegmentCount++;
-    writeLibrary(ediFileConfig, shipToAddress, writer);
+    writeLibrary(integrationType, ediFileConfig, shipToAddress, writer);
 
     messageSegmentCount++;
     writeVendor(ediFileConfig, writer);
@@ -59,15 +60,20 @@ public class CompOrderEdiConverter {
       throw new NotFoundException(errMsg);
     }
 
-    var comPoLine = compPO.getCompositePoLines().get(0);
+    var comPoLine = compPO.getCompositePoLines().getFirst();
     if (comPoLine.getVendorDetail() != null && StringUtils.isNotBlank(comPoLine.getVendorDetail().getVendorAccount())){
       messageSegmentCount++;
       writeAccountNumber(comPoLine.getVendorDetail().getVendorAccount(), writer);
     }
 
-    messageSegmentCount++;
-    String currency = comPoLine.getCost().getCurrency();
+    if (integrationType == CLAIMING) {
+      messageSegmentCount++;
+      writeDummyReference(writer);
+    }
+
     if (integrationType == ORDERING) {
+      String currency = comPoLine.getCost().getCurrency();
+      messageSegmentCount++;
       writeCurrency(currency, writer);
     }
 
@@ -132,7 +138,20 @@ public class CompOrderEdiConverter {
   }
 
   // Library ID and ID type
-  private void writeLibrary(EdiFileConfig ediFileConfig, String shipToAddress, EDIStreamWriter writer) throws EDIStreamException {
+  private void writeLibrary(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, EdiFileConfig ediFileConfig,
+                            String shipToAddress, EDIStreamWriter writer) throws EDIStreamException {
+    if (integrationType == CLAIMING) {
+      writer.writeStartSegment("NAD")
+        .writeElement("BY")
+        .writeStartElement()
+        .writeComponent(ediFileConfig.getLibEdiCode())
+        .writeComponent("")
+        .writeComponent(ediFileConfig.getLibEdiType())
+        .endElement()
+        .writeEndSegment();
+      return;
+    }
+
     writer.writeStartSegment("NAD")
       .writeElement("BY")
       .writeStartElement()
@@ -166,6 +185,17 @@ public class CompOrderEdiConverter {
       .writeStartElement()
       .writeComponent("API")
       .writeComponent(accountNumber)
+      .endElement()
+      .writeEndSegment();
+  }
+
+  private void writeDummyReference(EDIStreamWriter writer) throws EDIStreamException {
+    writer.writeStartSegment("DOC")
+      .writeStartElement()
+      .writeComponent("220")
+      .endElement()
+      .writeStartElement()
+      .writeComponent("VARIOUS")
       .endElement()
       .writeEndSegment();
   }

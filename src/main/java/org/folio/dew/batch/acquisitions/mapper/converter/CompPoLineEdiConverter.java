@@ -20,16 +20,8 @@ import org.folio.dew.batch.acquisitions.services.HoldingService;
 import org.folio.dew.batch.acquisitions.services.IdentifierTypeService;
 import org.folio.dew.batch.acquisitions.services.LocationService;
 import org.folio.dew.batch.acquisitions.services.MaterialTypeService;
-import org.folio.dew.domain.dto.CompositePurchaseOrder;
+import org.folio.dew.domain.dto.*;
 import org.folio.dew.domain.dto.CompositePoLine;
-import org.folio.dew.domain.dto.Contributor;
-import org.folio.dew.domain.dto.Cost;
-import org.folio.dew.domain.dto.FundDistribution;
-import org.folio.dew.domain.dto.Location;
-import org.folio.dew.domain.dto.Piece;
-import org.folio.dew.domain.dto.ProductIdentifier;
-import org.folio.dew.domain.dto.ReferenceNumberItem;
-import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.javamoney.moneta.Money;
 
 import java.math.BigDecimal;
@@ -134,7 +126,7 @@ public class CompPoLineEdiConverter {
     }
 
     var fundDistributions = getWriteFundDistributions(integrationType, poLine, writer, referenceQuantity, messageSegmentCount);
-    messageSegmentCount = writeVendorOrderNumber(poLine, pieces, writer, fundDistributions.messageSegmentCount());
+    messageSegmentCount = writeVendorOrderNumber(integrationType, poLine, pieces, writer, fundDistributions.messageSegmentCount());
     messageSegmentCount = writeVendorReferenceNumbers(poLine, writer, fundDistributions.referenceQuantity(), messageSegmentCount);
 
     if (integrationType == ORDERING) {
@@ -249,14 +241,13 @@ public class CompPoLineEdiConverter {
   private record PreparedFundDistributions(int messageSegmentCount, int referenceQuantity) {
   }
 
-  private int writeVendorOrderNumber(CompositePoLine poLine, List<Piece> pieces, EDIStreamWriter writer,
+  private int writeVendorOrderNumber(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType,
+                                     CompositePoLine poLine, List<Piece> pieces, EDIStreamWriter writer,
                                      int messageSegmentCount) throws EDIStreamException {
     var referenceNumbers = getVendorReferenceNumbers(poLine);
-    // Non-empty pieces list is a sign that the export is for claims
     if (CollectionUtils.isNotEmpty(pieces)) {
-      // Vendor order number is a required field for claims export, it must be included regardless of the number of references
       var vendorOrderNumber = getAndRemoveVendorOrderNumber(referenceNumbers);
-      if (vendorOrderNumber != null) {
+      if (integrationType == ORDERING && vendorOrderNumber != null) {
         messageSegmentCount++;
         writeVendorOrderNumber(vendorOrderNumber.getRefNumber(), writer);
       }

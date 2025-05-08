@@ -134,7 +134,7 @@ public class PoLineEdiConverter {
     }
 
     var fundDistributions = getWriteFundDistributions(integrationType, poLine, writer, referenceQuantity, messageSegmentCount);
-    messageSegmentCount = writeVendorOrderNumber(poLine, pieces, writer, fundDistributions.messageSegmentCount());
+    messageSegmentCount = writeVendorOrderNumber(integrationType, poLine, pieces, writer, fundDistributions.messageSegmentCount());
     messageSegmentCount = writeVendorReferenceNumbers(poLine, writer, fundDistributions.referenceQuantity(), messageSegmentCount);
 
     if (integrationType == ORDERING) {
@@ -249,14 +249,13 @@ public class PoLineEdiConverter {
   private record PreparedFundDistributions(int messageSegmentCount, int referenceQuantity) {
   }
 
-  private int writeVendorOrderNumber(PoLine poLine, List<Piece> pieces, EDIStreamWriter writer,
+  private int writeVendorOrderNumber(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType,
+                                     PoLine poLine, List<Piece> pieces, EDIStreamWriter writer,
                                      int messageSegmentCount) throws EDIStreamException {
     var referenceNumbers = getVendorReferenceNumbers(poLine);
-    // Non-empty pieces list is a sign that the export is for claims
     if (CollectionUtils.isNotEmpty(pieces)) {
-      // Vendor order number is a required field for claims export, it must be included regardless of the number of references
       var vendorOrderNumber = getAndRemoveVendorOrderNumber(referenceNumbers);
-      if (vendorOrderNumber != null) {
+      if (integrationType == ORDERING && vendorOrderNumber != null) {
         messageSegmentCount++;
         writeVendorOrderNumber(vendorOrderNumber.getRefNumber(), writer);
       }

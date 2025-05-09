@@ -66,7 +66,7 @@ public class ExportUtilsTest {
     String configName = "config";
     VendorEdiOrdersExportConfig.FileFormatEnum fileFormat = VendorEdiOrdersExportConfig.FileFormatEnum.EDI;
     String fileName = ExportUtils.generateFileName(vendorName, configName, fileFormat);
-    assertThat(fileName.matches("^vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.edi$"), is(true));
+    assertThat(fileName.matches("^edi.vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.edi$"), is(true));
   }
 
   @Test

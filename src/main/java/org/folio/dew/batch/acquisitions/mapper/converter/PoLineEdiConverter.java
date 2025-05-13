@@ -540,9 +540,8 @@ public class PoLineEdiConverter {
 
   private void writeClaims(EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("RFF")
-      .writeElement("ACT")
       .writeStartElement()
-      .writeComponent("")
+      .writeComponent("ACT")
       .writeComponent("")
       .writeComponent("")
       .writeComponent("1")

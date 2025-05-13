@@ -53,6 +53,7 @@ public class PoLineEdiConverter {
   private static final String IM_PRODUCT_ID_QUALIFIER = "IM";
   private static final String MF_PRODUCT_ID_QUALIFIER = "MF";
   private static final String EN_PRODUCT_ID_QUALIFIER = "EN";
+  private static final String SI_PRODUCT_ID_QUALIFIER = "SI";
   private static final int EAN_IDENTIFIER_LENGTH = 13;
 
   private final IdentifierTypeService identifierTypeService;
@@ -77,7 +78,7 @@ public class PoLineEdiConverter {
 
     Map<String, ProductIdentifier> productTypeProductIdentifierMap = prepareStringProductIdentifierMap(poLine);
     messageSegmentCount += writeOrderLineAndMainProductId(integrationType, productTypeProductIdentifierMap, writer, currentLineNumber);
-    messageSegmentCount = writeProductIdentifiers(writer, productTypeProductIdentifierMap, messageSegmentCount);
+    messageSegmentCount = writeProductIdentifiers(productTypeProductIdentifierMap, writer, messageSegmentCount);
     messageSegmentCount = writeContributors(poLine, writer, messageSegmentCount);
     messageSegmentCount = writeTitles(poLine, writer, messageSegmentCount);
     messageSegmentCount = writePieces(pieces, writer, messageSegmentCount);
@@ -188,7 +189,7 @@ public class PoLineEdiConverter {
     return productTypeProductIdentifierMap;
   }
 
-  private int writeProductIdentifiers(EDIStreamWriter writer, Map<String, ProductIdentifier> productTypeProductIdentifierMap,
+  private int writeProductIdentifiers(Map<String, ProductIdentifier> productTypeProductIdentifierMap, EDIStreamWriter writer,
                                       int messageSegmentCount) throws EDIStreamException {
     for (var entry : productTypeProductIdentifierMap.entrySet()) {
       messageSegmentCount++;
@@ -295,7 +296,8 @@ public class PoLineEdiConverter {
       writeMainProduct(integrationType, productTypeProductIdentifierMap, writer, currentLineNumber, IB_PRODUCT_ID_QUALIFIER, ISBN_PRODUCT_ID_TYPE);
       numberOfLinesWritten = 2;
     } else if (productTypeProductIdentifierMap.get(ISSN_PRODUCT_ID_TYPE) != null) {
-      writeMainProduct(integrationType, productTypeProductIdentifierMap, writer, currentLineNumber, IS_PRODUCT_ID_QUALIFIER, ISSN_PRODUCT_ID_TYPE);
+      var qualifier = integrationType == CLAIMING ? SI_PRODUCT_ID_QUALIFIER : IS_PRODUCT_ID_QUALIFIER;
+      writeMainProduct(integrationType, productTypeProductIdentifierMap, writer, currentLineNumber, qualifier, ISSN_PRODUCT_ID_TYPE);
       numberOfLinesWritten = 2;
     } else if (productTypeProductIdentifierMap.get(ISMN_PRODUCT_ID_TYPE) != null) {
       writeMainProduct(integrationType, productTypeProductIdentifierMap, writer, currentLineNumber, IM_PRODUCT_ID_QUALIFIER, ISMN_PRODUCT_ID_TYPE);
@@ -311,7 +313,11 @@ public class PoLineEdiConverter {
                                 Map<String, ProductIdentifier> productTypeProductIdentifierMap,
                                 EDIStreamWriter writer, int currentLineNumber, String qualifier, String productType) throws EDIStreamException {
     writeOrderLine(integrationType, productTypeProductIdentifierMap.get(productType).getProductId(), writer, currentLineNumber, qualifier);
-    writeProductId(productTypeProductIdentifierMap.get(productType).getProductId(), writer, PRODUCT_ID_FUNCTION_CODE_MAIN_PRODUCT_IDNTIFICATION, qualifier);
+    if (integrationType == CLAIMING && StringUtils.equals(SI_PRODUCT_ID_QUALIFIER, qualifier)) {
+      writeProductId(productTypeProductIdentifierMap.get(productType).getProductId(), writer);
+    } else {
+      writeProductId(productTypeProductIdentifierMap.get(productType).getProductId(), writer, PRODUCT_ID_FUNCTION_CODE_MAIN_PRODUCT_IDNTIFICATION, qualifier);
+    }
     productTypeProductIdentifierMap.remove(productType);
   }
 
@@ -349,6 +355,19 @@ public class PoLineEdiConverter {
       .writeStartElement()
       .writeComponent(productId)
       .writeComponent(qualifier)
+      .endElement()
+      .writeEndSegment();
+  }
+
+  // Product ID if SICI for Claiming (ISSN comes as SICI)
+  private void writeProductId(String productId, EDIStreamWriter writer) throws EDIStreamException {
+    writer.writeStartSegment("PIA")
+      .writeElement(PRODUCT_ID_FUNCTION_CODE_MAIN_PRODUCT_IDNTIFICATION)
+      .writeStartElement()
+      .writeComponent(productId)
+      .writeComponent(SI_PRODUCT_ID_QUALIFIER)
+      .writeComponent("")
+      .writeComponent("28")
       .endElement()
       .writeEndSegment();
   }
@@ -488,8 +507,10 @@ public class PoLineEdiConverter {
 
   private void writePONumber(CompositePurchaseOrder compPO, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("RFF")
-      .writeElement("SNA")
-      .writeElement(compPO.getPoNumber())
+      .writeStartElement()
+      .writeComponent("SNA")
+      .writeComponent(compPO.getPoNumber())
+      .endElement()
       .writeEndSegment();
   }
 
@@ -519,8 +540,12 @@ public class PoLineEdiConverter {
 
   private void writeClaims(EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("RFF")
-      .writeElement("ACT")
-      .writeElement("1")
+      .writeStartElement()
+      .writeComponent("ACT")
+      .writeComponent("")
+      .writeComponent("")
+      .writeComponent("1")
+      .endElement()
       .writeEndSegment();
   }
 

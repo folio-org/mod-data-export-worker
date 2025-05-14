@@ -25,8 +25,7 @@ import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.FileFormatEnum;
 
 public class ExportUtils {
 
-  private static final String DEFAULT_FILE_NAME_FORMAT = "%s_%s_%s.%s";
-  private static final String CLAIMING_EDI_FILE_NAME_FORMAT = "edi.%s_%s_%s.%s";
+  private static final String FILE_NAME_FORMAT = "%s.%s_%s_%s.%s";
 
   private ExportUtils() { }
 
@@ -74,16 +73,16 @@ public class ExportUtils {
   }
 
   public static String generateFileName(String vendorName, String configName, VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, FileFormatEnum fileFormat) {
-    var fileNameFormat = getFileNameFormat(integrationType, fileFormat);
+    var filePrefix = getFilePrefix(integrationType, fileFormat);
     var timestamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
-    return fileNameFormat.formatted(vendorName, configName, timestamp, fileFormat.getValue().toLowerCase());
+    return FILE_NAME_FORMAT.formatted(filePrefix, vendorName, configName, timestamp, fileFormat.getValue().toLowerCase());
   }
 
-  private static String getFileNameFormat(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, FileFormatEnum fileFormat) {
-    if (integrationType == CLAIMING && fileFormat == FileFormatEnum.EDI) {
-      return CLAIMING_EDI_FILE_NAME_FORMAT;
+  public static String getFilePrefix(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, FileFormatEnum fileFormat) {
+    if (integrationType == CLAIMING) {
+      return fileFormat == FileFormatEnum.EDI ? "edi_claims" : "csv_claims";
     }
-    return DEFAULT_FILE_NAME_FORMAT;
+    return "edi_orders";
   }
 
   public static ExportType convertIntegrationTypeToExportType(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType) {

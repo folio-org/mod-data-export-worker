@@ -66,18 +66,19 @@ public class ExportUtilsTest {
   @CsvSource({"ORDERING,EDI", "CLAIMING,EDI", "CLAIMING,CSV"})
   void generateFileNameGeneratesCorrectFileName(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, VendorEdiOrdersExportConfig.FileFormatEnum fileFormat) {
     var fileName = ExportUtils.generateFileName("vendor", "config", integrationType, fileFormat);
+    System.out.println(fileName);
     assertThat(fileName.matches(getRegexPattern(integrationType, fileFormat)), is(true));
   }
 
   private String getRegexPattern(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, VendorEdiOrdersExportConfig.FileFormatEnum fileFormat) {
     if (integrationType == VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING) {
       if (fileFormat == VendorEdiOrdersExportConfig.FileFormatEnum.EDI) {
-        return "^edi.vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.edi$";
+        return "^edi_claims.vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.edi$";
       } else {
-        return "^vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.csv$";
+        return "^csv_claims.vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.csv$";
       }
     }
-    return  "^vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.edi$";
+    return  "^edi_orders.vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.edi$";
   }
 
   @Test

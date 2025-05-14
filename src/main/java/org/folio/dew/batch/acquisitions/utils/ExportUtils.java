@@ -25,7 +25,7 @@ import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.FileFormatEnum;
 
 public class ExportUtils {
 
-  private static final String FILE_NAME_FORMAT = "%s.%s_%s_%s.%s";
+  private static final String FILE_NAME_FORMAT = "%s_%s_%s_%s.%s";
 
   private ExportUtils() { }
 

@@ -73,12 +73,12 @@ public class ExportUtilsTest {
   private String getRegexPattern(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, VendorEdiOrdersExportConfig.FileFormatEnum fileFormat) {
     if (integrationType == VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING) {
       if (fileFormat == VendorEdiOrdersExportConfig.FileFormatEnum.EDI) {
-        return "^edi_claims.vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.edi$";
+        return "^edi_claims_vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.edi$";
       } else {
-        return "^csv_claims.vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.csv$";
+        return "^csv_claims_vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.csv$";
       }
     }
-    return  "^edi_orders.vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.edi$";
+    return  "^edi_orders_vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.edi$";
   }
 
   @Test

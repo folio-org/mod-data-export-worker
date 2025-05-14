@@ -118,8 +118,9 @@ public abstract class MapToEdifactTasklet implements Tasklet {
   private String getFileName(VendorEdiOrdersExportConfig ediExportConfig) {
     var vendorName = organizationsService.getOrganizationById(ediExportConfig.getVendorId().toString()).get("code").asText();
     var configName = ediExportConfig.getConfigName();
+    var integrationType = ediExportConfig.getIntegrationType();
     var fileFormat = ediExportConfig.getFileFormat();
-    return generateFileName(vendorName, configName, fileFormat);
+    return generateFileName(vendorName, configName, integrationType, fileFormat);
   }
 
   private <T> T convertTo(Object value, Class<T> c) {

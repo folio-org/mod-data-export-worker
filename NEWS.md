@@ -1,5 +1,12 @@
 ## Unreleased v3.5.0
 
+## 2025-05-09 v3.4.4
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.3...v3.4.4)
+
+### Stories
+* [MODEXPW-584](https://folio-org.atlassian.net/browse/MODEXPW-584) Update EDI claim file format
+
 ## 2025-04-25 v3.4.3
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.2...v3.4.3)

@@ -3,6 +3,7 @@ package org.folio.dew.batch.acquisitions.utils;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.FTP_PORT;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.SERVER_ADDRESS;
 import static org.folio.dew.domain.dto.ReferenceNumberItem.RefNumberTypeEnum.ORDER_REFERENCE_NUMBER;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.FTP;
 
@@ -24,7 +25,7 @@ import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.FileFormatEnum;
 
 public class ExportUtils {
 
-  private static final String FILE_NAME_FORMAT = "%s_%s_%s.%s";
+  private static final String FILE_NAME_FORMAT = "%s_%s_%s_%s.%s";
 
   private ExportUtils() { }
 
@@ -71,11 +72,17 @@ public class ExportUtils {
     }
   }
 
-  public static String generateFileName(String vendorName, String configName, FileFormatEnum fileFormat) {
-    return FILE_NAME_FORMAT.formatted(vendorName,
-      configName,
-      new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date()),
-      fileFormat.getValue().toLowerCase()); // Enum being EDI or CSV
+  public static String generateFileName(String vendorName, String configName, VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, FileFormatEnum fileFormat) {
+    var filePrefix = getFilePrefix(integrationType, fileFormat);
+    var timestamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
+    return FILE_NAME_FORMAT.formatted(filePrefix, vendorName, configName, timestamp, fileFormat.getValue().toLowerCase());
+  }
+
+  public static String getFilePrefix(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, FileFormatEnum fileFormat) {
+    if (integrationType == CLAIMING) {
+      return fileFormat == FileFormatEnum.EDI ? "edi_claims" : "csv_claims";
+    }
+    return "edi_orders";
   }
 
   public static ExportType convertIntegrationTypeToExportType(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType) {

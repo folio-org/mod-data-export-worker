@@ -7,6 +7,8 @@ import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.ReferenceNumberItem;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.Date;
 import java.util.List;
@@ -60,13 +62,22 @@ public class ExportUtilsTest {
     assertThat(ExportUtils.getFormattedDate(null), is(""));
   }
 
-  @Test
-  void generateFileNameGeneratesCorrectFileName() {
-    String vendorName = "vendor";
-    String configName = "config";
-    VendorEdiOrdersExportConfig.FileFormatEnum fileFormat = VendorEdiOrdersExportConfig.FileFormatEnum.EDI;
-    String fileName = ExportUtils.generateFileName(vendorName, configName, fileFormat);
-    assertThat(fileName.matches("^edi.vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.edi$"), is(true));
+  @ParameterizedTest
+  @CsvSource({"ORDERING,EDI", "CLAIMING,EDI", "CLAIMING,CSV"})
+  void generateFileNameGeneratesCorrectFileName(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, VendorEdiOrdersExportConfig.FileFormatEnum fileFormat) {
+    var fileName = ExportUtils.generateFileName("vendor", "config", integrationType, fileFormat);
+    assertThat(fileName.matches(getRegexPattern(integrationType, fileFormat)), is(true));
+  }
+
+  private String getRegexPattern(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, VendorEdiOrdersExportConfig.FileFormatEnum fileFormat) {
+    if (integrationType == VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING) {
+      if (fileFormat == VendorEdiOrdersExportConfig.FileFormatEnum.EDI) {
+        return "^edi.vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.edi$";
+      } else {
+        return "^vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.csv$";
+      }
+    }
+    return  "^vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.edi$";
   }
 
   @Test

@@ -3,6 +3,7 @@ package org.folio.dew.batch.acquisitions.utils;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.FTP_PORT;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.SERVER_ADDRESS;
 import static org.folio.dew.domain.dto.ReferenceNumberItem.RefNumberTypeEnum.ORDER_REFERENCE_NUMBER;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.FTP;
 
@@ -24,7 +25,8 @@ import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.FileFormatEnum;
 
 public class ExportUtils {
 
-  private static final String FILE_NAME_FORMAT = "edi.%s_%s_%s.%s";
+  private static final String DEFAULT_FILE_NAME_FORMAT = "%s_%s_%s.%s";
+  private static final String CLAIMING_EDI_FILE_NAME_FORMAT = "edi.%s_%s_%s.%s";
 
   private ExportUtils() { }
 
@@ -71,11 +73,17 @@ public class ExportUtils {
     }
   }
 
-  public static String generateFileName(String vendorName, String configName, FileFormatEnum fileFormat) {
-    return FILE_NAME_FORMAT.formatted(vendorName,
-      configName,
-      new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date()),
-      fileFormat.getValue().toLowerCase()); // Enum being EDI or CSV
+  public static String generateFileName(String vendorName, String configName, VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, FileFormatEnum fileFormat) {
+    var fileNameFormat = getFileNameFormat(integrationType, fileFormat);
+    var timestamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
+    return fileNameFormat.formatted(vendorName, configName, timestamp, fileFormat.getValue().toLowerCase());
+  }
+
+  private static String getFileNameFormat(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, FileFormatEnum fileFormat) {
+    if (integrationType == CLAIMING && fileFormat == FileFormatEnum.EDI) {
+      return CLAIMING_EDI_FILE_NAME_FORMAT;
+    }
+    return DEFAULT_FILE_NAME_FORMAT;
   }
 
   public static ExportType convertIntegrationTypeToExportType(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType) {

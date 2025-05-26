@@ -4,6 +4,13 @@ This release contains updates for missing interfaces.
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.3.7...v3.3.8)
 
+## 2025-05-27 v3.3.9
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.3.8...v3.3.9)
+
+### Bug fixes
+* [MODEXPW-585](https://folio-org.atlassian.net/browse/MODEXPW-585) Remove size limitation on outputFormat job parameter
+
 ## 2025-01-17 v3.3.7
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.3.6...v3.3.7)

@@ -7,6 +7,13 @@
 ### Stories
 * [MODEXPW-583](https://folio-org.atlassian.net/browse/MODEXPW-583) Instance schema updating
 
+## 2025-05-27 v3.4.5
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.4...v3.4.5)
+
+### Bug fixes
+* [MODEXPW-590](https://folio-org.atlassian.net/browse/MODEXPW-590) Remove size limitation on outputFormat job parameter
+
 ## 2025-04-10 v3.4.2
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.1...v3.4.2)

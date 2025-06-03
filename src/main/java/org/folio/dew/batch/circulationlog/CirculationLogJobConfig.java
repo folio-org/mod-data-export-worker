@@ -36,7 +36,7 @@ public class CirculationLogJobConfig {
   private final AuditClient auditClient;
   private final RemoteFilesStorage remoteFilesStorage;
 
-  @Value("#{QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST}")
+  @Value("${circLogFetchPerRequest}")
   private Integer QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST;
 
   @Bean

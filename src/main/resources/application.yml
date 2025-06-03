@@ -18,8 +18,8 @@ spring:
   datasource:
     hikari:
       maximum-pool-size: ${DB_POOL_SIZE:20}
-    username: ${DB_USERNAME:folio_admin}
-    password: ${DB_PASSWORD:folio_admin}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_DATABASE:okapi_modules}
   sql:
     init:
@@ -131,4 +131,4 @@ logging:
     org.springframework.core.log.*: ERROR
     org.apache.kafka.*: ERROR
 
-QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST: ${QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST:5000}
+circLogFetchPerRequest: ${QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST:5000}

@@ -36,6 +36,9 @@ public class CirculationLogJobConfig {
   private final AuditClient auditClient;
   private final RemoteFilesStorage remoteFilesStorage;
 
+  @Value("#{QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST}")
+  private Integer QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST;
+
   @Bean
   public Job getCirculationLogJob(
       JobCompletionNotificationListener jobCompletionNotificationListener,
@@ -100,8 +103,7 @@ public class CirculationLogJobConfig {
   public CirculationLogCsvItemReader reader(
       @Value("#{jobParameters['query']}") String query,
       @Value("#{stepExecutionContext['offset']}") Long offset,
-      @Value("#{stepExecutionContext['limit']}") Long limit,
-      @Value("#{QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST}") Integer QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST) {
+      @Value("#{stepExecutionContext['limit']}") Long limit) {
     return new CirculationLogCsvItemReader(auditClient, query, offset, limit, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST);
   }
 

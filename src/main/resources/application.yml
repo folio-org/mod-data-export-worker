@@ -130,3 +130,5 @@ logging:
     org.folio.dew.client.*: debug
     org.springframework.core.log.*: ERROR
     org.apache.kafka.*: ERROR
+
+QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST: ${QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST:5000}

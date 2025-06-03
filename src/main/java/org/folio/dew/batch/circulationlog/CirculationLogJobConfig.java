@@ -100,8 +100,9 @@ public class CirculationLogJobConfig {
   public CirculationLogCsvItemReader reader(
       @Value("#{jobParameters['query']}") String query,
       @Value("#{stepExecutionContext['offset']}") Long offset,
-      @Value("#{stepExecutionContext['limit']}") Long limit) {
-    return new CirculationLogCsvItemReader(auditClient, query, offset, limit);
+      @Value("#{stepExecutionContext['limit']}") Long limit,
+      @Value("#{QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST}") Integer QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST) {
+    return new CirculationLogCsvItemReader(auditClient, query, offset, limit, QUANTITY_TO_RETRIEVE_PER_HTTP_REQUEST);
   }
 
   @Bean("circulationLog")

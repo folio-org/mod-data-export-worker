@@ -31,10 +31,6 @@
       "version": "1.0"
     },
     {
-      "id": "erm",
-      "version": "7.0"
-    },
-    {
       "id": "audit",
       "version": "1.1"
     },
@@ -187,6 +183,10 @@
     {
       "id": "custom-fields",
       "version": "3.0"
+    },
+    {
+      "id": "erm",
+      "version": "7.0"
     },
     {
       "id": "okapi",

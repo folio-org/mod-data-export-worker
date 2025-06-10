@@ -719,6 +719,6 @@ public class PoLineEdiConverter {
       total = total.add(ePrice);
     }
 
-    return total.getNumber().doubleValueExact();
+    return total.getNumber().doubleValue();
   }
 }

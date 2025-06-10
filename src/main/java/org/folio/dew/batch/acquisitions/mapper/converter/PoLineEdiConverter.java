@@ -157,7 +157,7 @@ public class PoLineEdiConverter {
   private int writeTotalUnitPrice(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, PoLine poLine, EDIStreamWriter writer,
                                   int messageSegmentCount) throws EDIStreamException {
     if (integrationType == ORDERING && (poLine.getCost().getListUnitPrice() != null || poLine.getCost().getListUnitPriceElectronic() != null)) {
-      String totalUnitPrice = calculateCostUnitsTotal(poLine.getCost());
+      Number totalUnitPrice = calculateCostUnitsTotal(poLine.getCost());
       messageSegmentCount++;
       writeUnitPrice(totalUnitPrice, writer);
     }
@@ -486,11 +486,11 @@ public class PoLineEdiConverter {
       .writeEndSegment();
   }
 
-  private void writeUnitPrice(String price, EDIStreamWriter writer) throws EDIStreamException {
+  private void writeUnitPrice(Number price, EDIStreamWriter writer) throws EDIStreamException {
     writer.writeStartSegment("PRI")
       .writeStartElement()
       .writeComponent("AAB")
-      .writeComponent(price)
+      .writeComponent(price.toString())
       .endElement()
       .writeEndSegment();
   }
@@ -701,7 +701,7 @@ public class PoLineEdiConverter {
    * @param cost Cost object of ComPoLine
    * @return unit price without discount and additional cost
    */
-  private String calculateCostUnitsTotal(Cost cost) {
+  private Number calculateCostUnitsTotal(Cost cost) {
     CurrencyUnit currency = Monetary.getCurrency(cost.getCurrency());
     MonetaryAmount total = Money.of(0, currency);
 
@@ -719,6 +719,6 @@ public class PoLineEdiConverter {
       total = total.add(ePrice);
     }
 
-    return total.toString();
+    return total.getNumber().doubleValue();
   }
 }

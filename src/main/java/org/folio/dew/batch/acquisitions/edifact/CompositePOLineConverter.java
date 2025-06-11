@@ -500,6 +500,6 @@ public class CompositePOLineConverter {
       total = total.add(ePrice);
     }
 
-    return total.getNumber();
+    return total.getNumber().doubleValue();
   }
 }

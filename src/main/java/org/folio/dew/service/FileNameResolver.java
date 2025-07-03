@@ -26,7 +26,6 @@ public class FileNameResolver {
   private ObjectMapper objectMapper;
 
   private final Map<ExportType, BiFunction<JobCommand, String, String>> resolvers = Map.of(
-    ExportType.BULK_EDIT_QUERY, bulkEditResolver(),
     ExportType.E_HOLDINGS, eHoldingsResolver(),
     ExportType.AUTH_HEADINGS_UPDATES, authHeadingsUpdatesResolver(),
     ExportType.FAILED_LINKED_BIB_UPDATES, failedLinkedBibUpdatesResolver()

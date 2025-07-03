@@ -2,7 +2,7 @@ package org.folio.dew.batch.acquisitions.jobs;
 
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
-import static org.folio.dew.utils.BulkEditProcessorHelper.convertToDate;
+import static org.folio.dew.utils.DateTimeHelper.convertToDate;
 
 import java.util.Arrays;
 import java.util.List;

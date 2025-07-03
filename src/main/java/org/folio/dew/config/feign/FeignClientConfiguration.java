@@ -1,7 +1,7 @@
 package org.folio.dew.config.feign;
 
 import feign.Contract;
-import feign.codec.ErrorDecoder;
+
 import java.util.ArrayList;
 import java.util.List;
 import org.folio.dew.client.NotesClient;
@@ -15,11 +15,6 @@ public class FeignClientConfiguration {
 
   @Autowired(required = false)
   private List<AnnotatedParameterProcessor> parameterProcessors = new ArrayList<>();
-
-  @Bean
-  public ErrorDecoder errorDecoder() {
-    return new CustomFeignErrorDecoder();
-  }
 
   @Bean
   public Contract feignContract(FormattingConversionService feignConversionService) {

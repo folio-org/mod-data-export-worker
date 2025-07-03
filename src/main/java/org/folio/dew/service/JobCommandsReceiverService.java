@@ -1,6 +1,5 @@
 package org.folio.dew.service;
 
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.CLAIMS;
 import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
@@ -14,9 +13,6 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -25,11 +21,9 @@ import org.folio.de.entity.JobCommand;
 import org.folio.de.entity.JobCommandType;
 import org.folio.dew.batch.ExportJobManagerSync;
 import org.folio.dew.batch.acquisitions.services.ResendService;
-import org.folio.dew.client.SearchClient;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.repository.JobCommandRepository;
-import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.spring.DefaultFolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
@@ -53,9 +47,6 @@ public class JobCommandsReceiverService {
 
   private final ExportJobManagerSync exportJobManagerSync;
   private final RemoteFilesStorage remoteFilesStorage;
-  private final LocalFilesStorage localFilesStorage;
-  private final BulkEditProcessingErrorsService bulkEditProcessingErrorsService;
-  private final SearchClient searchClient;
   private final FileNameResolver fileNameResolver;
   private final JobCommandRepository jobCommandRepository;
   private final ResendService resendService;
@@ -100,13 +91,6 @@ public class JobCommandsReceiverService {
 
         prepareJobParameters(jobCommand);
 
-        if (Set.of(BULK_EDIT_IDENTIFIERS, BULK_EDIT_QUERY).contains(jobCommand.getExportType())) {
-          addBulkEditJobCommand(jobCommand);
-          if (BULK_EDIT_IDENTIFIERS.equals(jobCommand.getExportType())) {
-            return;
-          }
-        }
-
         var jobKey = resolveJobKey(jobCommand);
         log.info("receiveStartJobCommand:: Resolving job with key: '{}' for command: '{}'", jobKey, jobCommand.getId());
         var job = jobMap.get(jobKey);
@@ -125,9 +109,6 @@ public class JobCommandsReceiverService {
   }
 
   private String resolveJobKey(JobCommand jobCommand) {
-    if (jobCommand.getExportType().equals(BULK_EDIT_QUERY)) {
-      return BULK_EDIT_QUERY + "-" + jobCommand.getEntityType();
-    }
     return jobCommand.getExportType().toString();
   }
 
@@ -174,16 +155,7 @@ public class JobCommandsReceiverService {
       remoteFilesStorage.removeObjects(objects);
     }
     jobCommandRepository.delete(jobCommand);
-    bulkEditProcessingErrorsService.removeTemporaryErrorStorage();
     return true;
-  }
-
-  public void addBulkEditJobCommand(JobCommand jobCommand) {
-    if (!jobCommandRepository.existsById(jobCommand.getId())) jobCommandRepository.save(jobCommand);
-  }
-
-  public Optional<JobCommand> getBulkEditJobCommandById(String id) {
-    return jobCommandRepository.findById(UUID.fromString(id));
   }
 
   public void updateJobCommand(JobCommand jobCommand) {

@@ -1,10 +1,7 @@
 package org.folio.dew.service;
 
-import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_QUERY;
 import static org.folio.dew.domain.dto.ExportType.CLAIMS;
 import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
-import static org.folio.dew.utils.Constants.BULKEDIT_DIR_NAME;
-import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
 import jakarta.annotation.PostConstruct;
 import java.net.MalformedURLException;
@@ -31,7 +28,6 @@ import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -52,9 +48,6 @@ public class JobCommandsReceiverService {
   private final ResendService resendService;
   private final List<Job> jobs;
   private Map<String, Job> jobMap;
-  @Value("${spring.application.name}")
-  private String springApplicationName;
-  private String workDir;
 
   @PostConstruct
   public void postConstruct() {
@@ -62,8 +55,6 @@ public class JobCommandsReceiverService {
     for (Job job : jobs) {
       jobMap.put(job.getName(), job);
     }
-
-    workDir = getWorkingDirectory(springApplicationName, BULKEDIT_DIR_NAME);
   }
 
   @KafkaListener(
@@ -116,10 +107,8 @@ public class JobCommandsReceiverService {
     var paramsBuilder = new JobParametersBuilder(jobCommand.getJobParameters());
 
     var jobId = jobCommand.getId().toString();
-    var outputFileName = fileNameResolver.resolve(jobCommand, workDir, jobId);
 
     paramsBuilder.addString(JobParameterNames.JOB_ID, jobId);
-    paramsBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFileName, JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
 
     addOrderExportSpecificParameters(jobCommand, paramsBuilder);
 

@@ -44,3 +44,5 @@ components:
       $ref: '../../../../folio-export-common/schemas/exportConfig.json#/ExportConfig'
     exportConfigCollection:
       $ref: '../../../../folio-export-common/schemas/exportConfigCollection.json#/ExportConfigCollection'
+    itemCollection:
+      $ref: '../../../../folio-export-common/schemas/inventory/itemCollection.json#/ItemCollection'

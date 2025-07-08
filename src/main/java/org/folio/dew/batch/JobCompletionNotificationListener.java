@@ -29,7 +29,6 @@ import org.folio.de.entity.Job;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.repository.LocalFilesStorage;
-import org.folio.dew.repository.RemoteFilesStorage;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.JobParameters;

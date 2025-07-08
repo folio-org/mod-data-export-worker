@@ -1,10 +1,8 @@
 package org.folio.dew.service;
 
-import static org.folio.dew.utils.Constants.MATCHED_RECORDS;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -67,7 +65,4 @@ public class FileNameResolver {
       String.format(NAME_FORMAT, workDir, dateFormat.format(LocalDateTime.now()), "failed_linked_bib_updates.csv");
   }
 
-  private BiFunction<JobCommand, String, String> bulkEditResolver() {
-    return (jobCommand, workDir) -> workDir + jobCommand.getId() + "/" + LocalDate.now() + MATCHED_RECORDS + "query";
-  }
 }

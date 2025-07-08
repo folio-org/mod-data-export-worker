@@ -20,16 +20,11 @@ Other [modules](https://dev.folio.org/source-code/#server-side) are described,
 with further FOLIO Developer documentation at
 [dev.folio.org](https://dev.folio.org/)
 
-### Bulk edit
-In case of no matched records found when uploading CSV file with items or users, link to download matched records is not available for user.
-The maximum value of size for uploading file is 15MB. It could be changed with spring.servlet.multipart.max-file-size application argument.
-
 ### Memory configuration
 To stable module operating the following mod-data-export-worker configuration is required: Java args -XX:MetaspaceSize=384m -XX:MaxMetaspaceSize=512m -Xmx2048m,
 AWS container: memory - 3072, memory (soft limit) - 2600, cpu - 1024.
 
 ### Environment variables
-This module uses separate storage of temporary (local) files for its work. These files are necessary for processing bulk-edit business flows. 
 Any S3-compatible storage (AWS S3, Minio Server) supported by the Minio Client can be used as such storage. Thus, in addition to the 
 AWS configuration (AWS_URL, AWS_REGION, AWS_BUCKET, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) of the permanent storage, 
 one need to configure the environment settings for s3 subpathes (S3_SUB_PATH, S3_LOCAL_SUB_PATH). 
@@ -64,4 +59,3 @@ This value should be `true` if AWS S3 is used as storage.
 | CORE_POOL_SIZE                                    | 10                            | Maximum number of threads being created for each task before the queue is utilized                                                                                                                    |
 | MAX_POOL_SIZE                                     | 10                            | Maximum number of threads that can be created after the queue is full and before rejecting the new tasks                                                                                              |
 | BUCKET_SIZE                                       | 50                            | Size of the bucket used in partitioning parameters                                                                                                                                                    |
-| DB_POOL_SIZE                                      | 20                            | Maximum number of database connections at once (once reached, any additional requests will be queued)                                                                                                 |

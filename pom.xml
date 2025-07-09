@@ -534,6 +534,32 @@
                       </configuration>
                     </execution>
                     <execution>
+                        <id>refresh-presigned-url</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${refresh-presigned-url.yaml.file}</inputSpec>
+                            <output>${project.build.directory}/generated-sources</output>
+                            <generatorName>spring</generatorName>
+                            <modelPackage>${project.groupId}.dew.domain.dto</modelPackage>
+                            <generateApis>true</generateApis>
+                            <generateApiTests>false</generateApiTests>
+                            <generateApiDocumentation>true</generateApiDocumentation>
+                            <generateModels>true</generateModels>
+                            <generateModelTests>false</generateModelTests>
+                            <generateSupportingFiles>true</generateSupportingFiles>
+                            <generateModelDocumentation>true</generateModelDocumentation>
+                            <supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>
+                            <configOptions>
+                                <java8>true</java8>
+                                <dateLibrary>java</dateLibrary>
+                                <interfaceOnly>true</interfaceOnly>
+                                <useSpringBoot3>true</useSpringBoot3>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                    <execution>
                       <id>order-export-worker</id>
                       <goals>
                         <goal>generate</goal>

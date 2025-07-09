@@ -223,6 +223,18 @@
   ],
   "provides": [
     {
+      "id": "bulk-edit",
+      "version": "4.3",
+      "handlers": [
+        {
+          "methods": [ "GET" ],
+          "pathPattern": "/refresh-presigned-url",
+          "permissionsRequired": [ "refresh-presigned-url.get" ],
+          "modulePermissions": []
+        }
+      ]
+    },
+    {
       "id": "_tenant",
       "version": "2.0",
       "interfaceType": "system",
@@ -271,6 +283,19 @@
     }
   ],
   "permissionSets": [
+    {
+      "permissionName" : "refresh-presigned-url.get",
+      "displayName" : "Get refreshed presigned url for export file",
+      "description" : "Get refreshed presigned url for export file"
+    },
+    {
+      "permissionName" : "refresh-presigned-url.all",
+      "displayName" : "refresh-presigned-url all",
+      "description" : "All permissions for refresh presigned url",
+      "subPermissions" : [
+        "refresh-presigned-url.get"
+      ]
+    }
   ],
   "launchDescriptor": {
     "dockerImage": "@artifactId@:@version@",

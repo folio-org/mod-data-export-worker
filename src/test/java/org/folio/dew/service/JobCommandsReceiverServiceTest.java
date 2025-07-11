@@ -8,7 +8,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -134,43 +133,6 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     JobCommand jobCommand = createDeleteJobRequest(id);
 
     jobCommandsReceiverService.receiveStartJobCommand(jobCommand, okapiHeaders);
-  }
-
-  @Test
-  void addBulkEditJobCommandIfJobCommandDoesNotExistTest() {
-    var jobId = UUID.randomUUID();
-    var jobCommand = new JobCommand();
-    jobCommand.setId(jobId);
-
-    when(jobCommandRepository.existsById(jobId)).thenReturn(false);
-
-    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
-
-    verify(jobCommandRepository, times(1)).save(any());
-  }
-
-  @Test
-  void addBulkEditJobCommandIfJobCommandExistTest() {
-    var jobId = UUID.randomUUID();
-    var jobCommand = new JobCommand();
-    jobCommand.setId(jobId);
-
-    when(jobCommandRepository.existsById(jobId)).thenReturn(true);
-
-    jobCommandsReceiverService.addBulkEditJobCommand(jobCommand);
-
-    verify(jobCommandRepository, times(0)).save(any());
-  }
-
-  @Test
-  void getBulkEditJobCommandByIdTest() {
-    var jobId = UUID.randomUUID();
-    var jobCommand = new JobCommand();
-    jobCommand.setId(jobId);
-
-    jobCommandsReceiverService.getBulkEditJobCommandById(jobId.toString());
-
-    verify(jobCommandRepository, times(1)).findById(jobId);
   }
 
   @Test

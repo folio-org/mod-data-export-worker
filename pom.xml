@@ -35,9 +35,6 @@
         <bursar-export.yaml.file>
           ${project.basedir}/src/main/resources/swagger.api/bursar-export.yaml
         </bursar-export.yaml.file>
-        <bulk-edit.yaml.file>
-          ${project.basedir}/src/main/resources/swagger.api/bulk-edit.yaml
-        </bulk-edit.yaml.file>
         <order-export.yaml.file>
           ${project.basedir}/src/main/resources/swagger.api/order-export.yaml
         </order-export.yaml.file>
@@ -88,8 +85,6 @@
         **/src/main/java/org/folio/dew/config/**,
         **/src/main/java/org/folio/de/entity/**
       </sonar.exclusions>
-
-      <sonar.coverage.exclusions>**/src/main/java/org/folio/dew/service/BulkEditParseService.java</sonar.coverage.exclusions>
 
         <argLine />
     </properties>
@@ -539,56 +534,30 @@
                       </configuration>
                     </execution>
                     <execution>
-                      <id>bulk-edit-worker</id>
-                      <goals>
-                        <goal>generate</goal>
-                      </goals>
-                      <configuration>
-                        <inputSpec>${bulk-edit.yaml.file}</inputSpec>
-                        <output>${project.build.directory}/generated-sources</output>
-                        <generatorName>spring</generatorName>
-                        <modelPackage>${project.groupId}.dew.domain.dto</modelPackage>
-                        <generateApis>true</generateApis>
-                        <generateApiTests>false</generateApiTests>
-                        <generateApiDocumentation>false</generateApiDocumentation>
-                        <generateModels>true</generateModels>
-                        <generateModelTests>false</generateModelTests>
-                        <generateSupportingFiles>true</generateSupportingFiles>
-                        <generateModelDocumentation>true</generateModelDocumentation>
-                        <configOptions>
-                          <java8>true</java8>
-                          <dateLibrary>java</dateLibrary>
-                          <interfaceOnly>true</interfaceOnly>
-                          <useSpringBoot3>true</useSpringBoot3>
-                          <serializableModel>true</serializableModel>
-                        </configOptions>
-                      </configuration>
-                    </execution>
-                    <execution>
-                      <id>refresh-presigned-url</id>
-                      <goals>
-                        <goal>generate</goal>
-                      </goals>
-                      <configuration>
-                        <inputSpec>${refresh-presigned-url.yaml.file}</inputSpec>
-                        <output>${project.build.directory}/generated-sources</output>
-                        <generatorName>spring</generatorName>
-                        <modelPackage>${project.groupId}.dew.domain.dto</modelPackage>
-                        <generateApis>true</generateApis>
-                        <generateApiTests>false</generateApiTests>
-                        <generateApiDocumentation>true</generateApiDocumentation>
-                        <generateModels>true</generateModels>
-                        <generateModelTests>false</generateModelTests>
-                        <generateSupportingFiles>true</generateSupportingFiles>
-                        <generateModelDocumentation>true</generateModelDocumentation>
-                        <supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>
-                        <configOptions>
-                          <java8>true</java8>
-                          <dateLibrary>java</dateLibrary>
-                          <interfaceOnly>true</interfaceOnly>
-                          <useSpringBoot3>true</useSpringBoot3>
-                        </configOptions>
-                      </configuration>
+                        <id>refresh-presigned-url</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${refresh-presigned-url.yaml.file}</inputSpec>
+                            <output>${project.build.directory}/generated-sources</output>
+                            <generatorName>spring</generatorName>
+                            <modelPackage>${project.groupId}.dew.domain.dto</modelPackage>
+                            <generateApis>true</generateApis>
+                            <generateApiTests>false</generateApiTests>
+                            <generateApiDocumentation>true</generateApiDocumentation>
+                            <generateModels>true</generateModels>
+                            <generateModelTests>false</generateModelTests>
+                            <generateSupportingFiles>true</generateSupportingFiles>
+                            <generateModelDocumentation>true</generateModelDocumentation>
+                            <supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>
+                            <configOptions>
+                                <java8>true</java8>
+                                <dateLibrary>java</dateLibrary>
+                                <interfaceOnly>true</interfaceOnly>
+                                <useSpringBoot3>true</useSpringBoot3>
+                            </configOptions>
+                        </configuration>
                     </execution>
                     <execution>
                       <id>order-export-worker</id>

@@ -1,11 +1,9 @@
 package org.folio.dew.config.feign;
 
-import static org.folio.dew.utils.Constants.CANNOT_GET_RECORD;
+import static feign.FeignException.errorStatus;
 
 import feign.Response;
 import feign.codec.ErrorDecoder;
-import org.folio.dew.domain.dto.ErrorType;
-import org.folio.dew.error.BulkEditException;
 import org.folio.dew.error.NotFoundException;
 import org.springframework.http.HttpStatus;
 
@@ -17,8 +15,6 @@ public class CustomFeignErrorDecoder implements ErrorDecoder {
     if (HttpStatus.NOT_FOUND.value() == response.status()) {
       return new NotFoundException(requestUrl);
     }
-    String reason = response.reason() != null ? response.reason() : "Unknown error";
-    return new BulkEditException(CANNOT_GET_RECORD.formatted(requestUrl, reason), ErrorType.ERROR);
+    return errorStatus(methodKey, response);
   }
-
 }

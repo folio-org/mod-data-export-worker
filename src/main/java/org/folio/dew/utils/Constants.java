@@ -46,8 +46,7 @@ public class Constants {
   public static final String MULTIPLE_SRS = "Multiple SRS records are associated with the instance. The following SRS have been identified: %s.";
   public static final String SRS_MISSING = "SRS record associated with the instance is missing.";
 
-  public static final String MODULE_NAME = "BULKEDIT";
-  public static final String BULKEDIT_DIR_NAME = "bulk_edit";
+  public static final String EXPORT_DIR_NAME = "export-data";
   public static final String EDIFACT_EXPORT_DIR_NAME = "edifact_export";
   public static final String E_HOLDINGS_EXPORT_DIR_NAME = "e_holdings_export";
   public static final String AUTHORITY_CONTROL_EXPORT_DIR_NAME = "authority_control_export";

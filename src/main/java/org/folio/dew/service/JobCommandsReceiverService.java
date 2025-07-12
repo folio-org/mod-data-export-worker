@@ -30,6 +30,7 @@ import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -50,6 +51,7 @@ public class JobCommandsReceiverService {
   private final ResendService resendService;
   private final List<Job> jobs;
   private Map<String, Job> jobMap;
+
   @Value("${spring.application.name}")
   private String springApplicationName;
   private String workDir;

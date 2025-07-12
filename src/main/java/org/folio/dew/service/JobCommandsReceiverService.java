@@ -2,6 +2,8 @@ package org.folio.dew.service;
 
 import static org.folio.dew.domain.dto.ExportType.CLAIMS;
 import static org.folio.dew.domain.dto.ExportType.EDIFACT_ORDERS_EXPORT;
+import static org.folio.dew.utils.Constants.EXPORT_DIR_NAME;
+import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
 import jakarta.annotation.PostConstruct;
 import java.net.MalformedURLException;
@@ -48,6 +50,9 @@ public class JobCommandsReceiverService {
   private final ResendService resendService;
   private final List<Job> jobs;
   private Map<String, Job> jobMap;
+  @Value("${spring.application.name}")
+  private String springApplicationName;
+  private String workDir;
 
   @PostConstruct
   public void postConstruct() {
@@ -55,6 +60,8 @@ public class JobCommandsReceiverService {
     for (Job job : jobs) {
       jobMap.put(job.getName(), job);
     }
+
+    workDir = getWorkingDirectory(springApplicationName, EXPORT_DIR_NAME);
   }
 
   @KafkaListener(
@@ -107,8 +114,10 @@ public class JobCommandsReceiverService {
     var paramsBuilder = new JobParametersBuilder(jobCommand.getJobParameters());
 
     var jobId = jobCommand.getId().toString();
+    var outputFileName = fileNameResolver.resolve(jobCommand, workDir, jobId);
 
     paramsBuilder.addString(JobParameterNames.JOB_ID, jobId);
+    paramsBuilder.addString(JobParameterNames.TEMP_OUTPUT_FILE_PATH, outputFileName, JOB_PARAMETER_DEFAULT_IDENTIFYING_VALUE);
 
     addOrderExportSpecificParameters(jobCommand, paramsBuilder);
 

@@ -1,9 +1,11 @@
 package org.folio.dew.config.feign;
 
 import feign.Contract;
-import feign.codec.ErrorDecoder;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import feign.codec.ErrorDecoder;
 import org.folio.dew.client.NotesClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.openfeign.AnnotatedParameterProcessor;

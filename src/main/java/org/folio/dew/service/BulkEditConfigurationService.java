@@ -10,9 +10,6 @@ import static org.folio.dew.domain.dto.InventoryItemStatus.NameEnum.RESTRICTED;
 import static org.folio.dew.domain.dto.InventoryItemStatus.NameEnum.UNAVAILABLE;
 import static org.folio.dew.domain.dto.InventoryItemStatus.NameEnum.UNKNOWN;
 import static org.folio.dew.domain.dto.InventoryItemStatus.NameEnum.WITHDRAWN;
-import static org.folio.dew.utils.Constants.BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE;
-import static org.folio.dew.utils.Constants.STATUSES_CONFIG_NAME;
-import static org.folio.dew.utils.Constants.MODULE_NAME;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +31,10 @@ import java.util.Map;
 public class BulkEditConfigurationService {
   private final ConfigurationClient configurationClient;
   private final ObjectMapper objectMapper;
+
+  private static final String BULK_EDIT_CONFIGURATIONS_QUERY_TEMPLATE = "module==%s and configName==%s";
+  private static final String STATUSES_CONFIG_NAME = "statuses";
+  private static final String MODULE_NAME = "BULKEDIT";
 
   private static final Map<InventoryItemStatus.NameEnum, List<InventoryItemStatus.NameEnum>> allowedStatuses = new EnumMap<>(InventoryItemStatus.NameEnum.class);
 

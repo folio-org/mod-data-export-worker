@@ -55,7 +55,7 @@
         <openapi-generator.version>6.2.1</openapi-generator.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <hypersistence-utils-hibernate-63.version>3.7.3</hypersistence-utils-hibernate-63.version>
-        <opencsv.version>5.7.1</opencsv.version>
+        <opencsv.version>5.11.2</opencsv.version>
         <feign-jackson.version>12.1</feign-jackson.version>
         <marc4j.version>2.9.2</marc4j.version>
         <streamex.version>0.8.3</streamex.version>

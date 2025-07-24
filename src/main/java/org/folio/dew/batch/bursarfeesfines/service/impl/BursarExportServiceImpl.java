@@ -107,9 +107,12 @@ public class BursarExportServiceImpl implements BursarExportService {
     int total = response.getTotalRecords();
     accounts.addAll(response.getAccounts());
     while (accounts.size() < total) {
+      log.info("Fetched {}/{} accounts", accounts.size(), total);
       response = accountClient.getAccounts("remaining > 0.0", DEFAULT_LIMIT, accounts.size());
       accounts.addAll(response.getAccounts());
     }
+
+    log.info("Fetched {} accounts!", accounts.size());
 
     return accounts;
   }
@@ -122,6 +125,7 @@ public class BursarExportServiceImpl implements BursarExportService {
       return map;
     }
 
+    log.info("Fetching {} users", userIds.size());
     List<User> users = fetchDataInBatch(new ArrayList<String>(userIds),
         partition -> userClient.getUserByQuery(String.format("id==(%s)", partition.stream()
           .collect(toQueryParameters)), bucketSize)
@@ -140,6 +144,7 @@ public class BursarExportServiceImpl implements BursarExportService {
       return map;
     }
 
+    log.info("Fetching {} items", itemIds.size());
     List<Item> items = fetchDataInBatch(new ArrayList<String>(itemIds),
         partition -> inventoryClient.getItemByQuery(String.format("id==(%s)", partition.stream()
           .collect(toQueryParameters)), bucketSize)
@@ -152,14 +157,18 @@ public class BursarExportServiceImpl implements BursarExportService {
 
   private <T, P> List<T> fetchDataInBatch(List<P> parameters, Function<List<P>, List<T>> client) {
     if (parameters.size() <= bucketSize) {
-      log.debug("Fetch data by one call");
+      log.info("Fetching data with one call");
       return client.apply(parameters);
     }
 
     final List<List<P>> partition = ListUtils.partition(parameters, bucketSize);
-    log.debug("Fetch data in several calls, bucket count {}", partition::size);
+    log.info("Fetch data across several calls, partition size {}", partition::size);
     return partition.stream()
       .map(client::apply)
+      .map(r -> {
+        log.info("Fetched {} records", r.size());
+        return r;
+      })
       .collect(ArrayList::new, List::addAll, List::addAll);
   }
 

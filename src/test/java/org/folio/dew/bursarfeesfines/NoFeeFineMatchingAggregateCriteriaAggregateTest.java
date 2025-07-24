@@ -8,11 +8,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
 import org.folio.dew.BaseBatchTest;
+import org.folio.dew.error.BursarNoAccountsToTransferException;
 import org.folio.dew.helpers.bursarfeesfines.BursarFeesFinesTestUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -146,11 +148,7 @@ class NoFeeFineMatchingAggregateCriteriaAggregateTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus(), is(ExitStatus.FAILED));
-    assertThat(jobExecution.getAllFailureExceptions()
-      .size(), is(1));
-    assertThat(jobExecution.getAllFailureExceptions()
-      .get(0)
-      .getMessage(), containsString("No accounts matched the aggregate criteria"));
+    assertThat(jobExecution.getAllFailureExceptions(), contains(instanceOf(BursarNoAccountsToTransferException.class)));
 
     wireMockServer.verify(getRequestedFor(urlEqualTo(BursarFeesFinesTestUtils.ALL_OPEN_ACCOUNTS_GET_REQUEST)));
 

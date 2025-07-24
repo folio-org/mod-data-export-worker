@@ -39,8 +39,11 @@ public class BursarTokenFormatter {
 
   public static final int NUM_DAYS_IN_WEEK = 7;
 
-  public static String formatHeaderFooterToken(BursarExportHeaderFooterToken token, int aggregateNumRows,
-      BigDecimal aggregateTotalAmount) {
+  public static String formatHeaderFooterToken(
+    BursarExportHeaderFooterToken token,
+    int aggregateNumRows,
+    BigDecimal aggregateTotalAmount
+  ) {
     if (token instanceof BursarExportTokenConstant tokenConstant) {
       return tokenConstant.getValue();
     } else if (token instanceof BursarExportTokenCurrentDate tokenDate) {
@@ -59,22 +62,20 @@ public class BursarTokenFormatter {
     if (tokenFeeAmount.getDecimal()) {
       result = new DecimalFormat("0.00").format(feeAmount);
     } else {
-      result = feeAmount.multiply(new BigDecimal("100"))
-        .setScale(0)
-        .toString();
+      result = feeAmount.multiply(new BigDecimal("100")).setScale(0).toString();
     }
 
     return applyLengthControl(result, tokenFeeAmount.getLengthControl());
   }
 
-  public static String formatFeeMetaDataToken(BursarExportTokenFeeMetadata tokenFeeMetadata,
-      AccountWithAncillaryData accountWithAncillaryData) {
+  public static String formatFeeMetaDataToken(
+    BursarExportTokenFeeMetadata tokenFeeMetadata,
+    AccountWithAncillaryData accountWithAncillaryData
+  ) {
     if (tokenFeeMetadata.getValue() == BursarExportTokenFeeMetadata.ValueEnum.ID) {
-      return accountWithAncillaryData.getAccount()
-        .getFeeFineId();
+      return accountWithAncillaryData.getAccount().getFeeFineId();
     } else if (tokenFeeMetadata.getValue() == BursarExportTokenFeeMetadata.ValueEnum.NAME) {
-      return accountWithAncillaryData.getAccount()
-        .getFeeFineType();
+      return accountWithAncillaryData.getAccount().getFeeFineType();
     } else {
       return String.format("[unexpected metadata token: %s]", tokenFeeMetadata.getValue());
     }
@@ -84,8 +85,7 @@ public class BursarTokenFormatter {
     ZonedDateTime currentDateTime;
 
     try {
-      currentDateTime = Instant.now()
-        .atZone(ZoneId.of(tokenDate.getTimezone()));
+      currentDateTime = Instant.now().atZone(ZoneId.of(tokenDate.getTimezone()));
     } catch (ZoneRulesException e) {
       log.error("Unknown timezone: ", e);
       String result = String.format("[unknown time zone: %s]", tokenDate.getTimezone());
@@ -94,7 +94,10 @@ public class BursarTokenFormatter {
     return processDateToken(currentDateTime, tokenDate.getValue(), tokenDate.getLengthControl());
   }
 
-  public static String formatFeeDateDataToken(BursarExportTokenFeeDate tokenFeeDate, AccountWithAncillaryData accountWithAncillaryData) {
+  public static String formatFeeDateDataToken(
+    BursarExportTokenFeeDate tokenFeeDate,
+    AccountWithAncillaryData accountWithAncillaryData
+  ) {
     Date accountDate = switch (tokenFeeDate.getProperty()) {
       case CREATED -> accountWithAncillaryData.getAccount().getDateCreated();
       case UPDATED -> accountWithAncillaryData.getAccount().getDateUpdated();
@@ -111,8 +114,11 @@ public class BursarTokenFormatter {
     }
 
     try {
-      return processDateToken(accountDate.toInstant()
-        .atZone(ZoneId.of(tokenFeeDate.getTimezone())), tokenFeeDate.getValue(), tokenFeeDate.getLengthControl());
+      return processDateToken(
+        accountDate.toInstant().atZone(ZoneId.of(tokenFeeDate.getTimezone())),
+        tokenFeeDate.getValue(),
+        tokenFeeDate.getLengthControl()
+      );
     } catch (ZoneRulesException e) {
       log.error("Unknown timezone: ", e);
       String result = String.format("[unknown time zone: %s]", tokenFeeDate.getTimezone());
@@ -137,23 +143,19 @@ public class BursarTokenFormatter {
   }
 
   public static String formatUserDataOptionalToken(BursarExportTokenUserDataOptional tokenUserData, User user) {
-    String result;
-    switch (tokenUserData.getValue()) {
-    case BARCODE -> result = user.getBarcode();
-    case USERNAME -> result = user.getUsername();
-    case FIRST_NAME -> result = user.getPersonal()
-      .getFirstName();
-    case MIDDLE_NAME -> result = user.getPersonal()
-      .getMiddleName();
-    case LAST_NAME -> result = user.getPersonal()
-      .getLastName();
-    case PATRON_GROUP_ID -> result = user.getPatronGroup();
-    case EXTERNAL_SYSTEM_ID -> result = user.getExternalSystemId();
-    default -> {
-      log.error("Invalid user data token: {}", tokenUserData);
-      result = tokenUserData.getPlaceholder();
-    }
-    }
+    String result = switch (tokenUserData.getValue()) {
+      case BARCODE -> user.getBarcode();
+      case USERNAME -> user.getUsername();
+      case FIRST_NAME -> user.getPersonal().getFirstName();
+      case MIDDLE_NAME -> user.getPersonal().getMiddleName();
+      case LAST_NAME -> user.getPersonal().getLastName();
+      case PATRON_GROUP_ID -> user.getPatronGroup();
+      case EXTERNAL_SYSTEM_ID -> user.getExternalSystemId();
+      default -> {
+        log.error("Invalid user data token: {}", tokenUserData);
+        yield tokenUserData.getPlaceholder();
+      }
+    };
 
     if (result == null) {
       result = tokenUserData.getPlaceholder();
@@ -162,26 +164,25 @@ public class BursarTokenFormatter {
     return applyLengthControl(result, tokenUserData.getLengthControl());
   }
 
-  public static String formatItemDataToken(BursarExportTokenItemData tokenItemData,
-      AccountWithAncillaryData accountWithAncillaryData) {
+  public static String formatItemDataToken(
+    BursarExportTokenItemData tokenItemData,
+    AccountWithAncillaryData accountWithAncillaryData
+  ) {
     Item item = accountWithAncillaryData.getItem();
     if (item == null) {
       return applyLengthControl(tokenItemData.getPlaceholder(), tokenItemData.getLengthControl());
     }
 
-    String result;
-    switch (tokenItemData.getValue()) {
-    case LOCATION_ID -> result = item.getEffectiveLocation()
-      .getId();
-    case NAME -> result = item.getTitle();
-    case BARCODE -> result = item.getBarcode();
-    case MATERIAL_TYPE -> result = item.getMaterialType()
-      .getName();
-    default -> {
-      log.error("Invalid item data token: {}", tokenItemData);
-      result = tokenItemData.getPlaceholder();
-    }
-    }
+    String result = switch (tokenItemData.getValue()) {
+      case LOCATION_ID -> item.getEffectiveLocation().getId();
+      case NAME -> item.getTitle();
+      case BARCODE -> item.getBarcode();
+      case MATERIAL_TYPE -> item.getMaterialType().getName();
+      default -> {
+        log.error("Invalid item data token: {}", tokenItemData);
+        yield tokenItemData.getPlaceholder();
+      }
+    };
 
     if (result == null) {
       result = tokenItemData.getPlaceholder();
@@ -190,7 +191,10 @@ public class BursarTokenFormatter {
     return applyLengthControl(result, tokenItemData.getLengthControl());
   }
 
-  public static String formatConditionalDataToken(BursarExportTokenConditional tokenConditional, AccountWithAncillaryData account) {
+  public static String formatConditionalDataToken(
+    BursarExportTokenConditional tokenConditional,
+    AccountWithAncillaryData account
+  ) {
     List<BursarExportTokenConditionalConditionsInner> conditions = tokenConditional.getConditions();
 
     for (BursarExportTokenConditionalConditionsInner condition : conditions) {
@@ -212,8 +216,7 @@ public class BursarTokenFormatter {
     } else if (token instanceof BursarExportTokenFeeDate tokenFeeDate) {
       return formatFeeDateDataToken(tokenFeeDate, account);
     } else if (token instanceof BursarExportTokenFeeAmount tokenFeeAmount) {
-      return formatFeeAmountToken(tokenFeeAmount, account.getAccount()
-        .getAmount());
+      return formatFeeAmountToken(tokenFeeAmount, account.getAccount().getAmount());
     } else if (token instanceof BursarExportTokenFeeMetadata tokenFeeMetadata) {
       return formatFeeMetaDataToken(tokenFeeMetadata, account);
     } else if (token instanceof BursarExportTokenUserData tokenUserData) {
@@ -228,8 +231,10 @@ public class BursarTokenFormatter {
     }
   }
 
-  public static String formatConditionalAggregatedAccountsToken(BursarExportTokenConditional tokenConditional,
-      AggregatedAccountsByUser aggregatedAccounts) {
+  public static String formatConditionalAggregatedAccountsToken(
+    BursarExportTokenConditional tokenConditional,
+    AggregatedAccountsByUser aggregatedAccounts
+  ) {
     List<BursarExportTokenConditionalConditionsInner> conditions = tokenConditional.getConditions();
 
     for (BursarExportTokenConditionalConditionsInner condition : conditions) {
@@ -241,14 +246,20 @@ public class BursarTokenFormatter {
     return formatAggregatedAccountsToken(tokenConditional.getElse(), aggregatedAccounts);
   }
 
-  public static String formatAggregatedAccountsToken(BursarExportDataToken token, AggregatedAccountsByUser aggregatedAccounts) {
+  public static String formatAggregatedAccountsToken(
+    BursarExportDataToken token,
+    AggregatedAccountsByUser aggregatedAccounts
+  ) {
     if (token instanceof BursarExportTokenConstant tokenConstant) {
       return tokenConstant.getValue();
     } else if (token instanceof BursarExportTokenConditional tokenConstantConditional) {
       return formatConditionalAggregatedAccountsToken(tokenConstantConditional, aggregatedAccounts);
     } else if (token instanceof BursarExportTokenAggregate tokenAggregate) {
-      return processAggregateToken(tokenAggregate, aggregatedAccounts.getAccounts()
-        .size(), aggregatedAccounts.findTotalAmount());
+      return processAggregateToken(
+        tokenAggregate,
+        aggregatedAccounts.getAccounts().size(),
+        aggregatedAccounts.findTotalAmount()
+      );
     } else if (token instanceof BursarExportTokenCurrentDate tokenDate) {
       return formatCurrentDateDataToken(tokenDate);
     } else if (token instanceof BursarExportTokenFeeAmount tokenFeeAmount) {
@@ -293,11 +304,9 @@ public class BursarTokenFormatter {
       StringBuilder builder = new StringBuilder(lengthControl.getLength());
       if (lengthControl.getDirection() == BursarExportTokenLengthControl.DirectionEnum.BACK) {
         builder.append(input);
-        builder.append(lengthControl.getCharacter()
-          .repeat(lengthControl.getLength() - input.length()));
+        builder.append(lengthControl.getCharacter().repeat(lengthControl.getLength() - input.length()));
       } else {
-        builder.append(lengthControl.getCharacter()
-          .repeat(lengthControl.getLength() - input.length()));
+        builder.append(lengthControl.getCharacter().repeat(lengthControl.getLength() - input.length()));
         builder.append(input);
       }
       return builder.toString();
@@ -306,64 +315,61 @@ public class BursarTokenFormatter {
 
   /*
    * Helper method to process date token into string
-   * 
+   *
    * @params tokenDate date token that needs to process into string
    */
-  public static String processDateToken(@CheckForNull ZonedDateTime dateTime, BursarExportTokenDateType dateType,
-      BursarExportTokenLengthControl lengthControl) {
+  public static String processDateToken(
+    @CheckForNull ZonedDateTime dateTime,
+    BursarExportTokenDateType dateType,
+    BursarExportTokenLengthControl lengthControl
+  ) {
     if (dateTime == null) {
       return applyLengthControl("", lengthControl);
     }
 
-    String result;
-
-    switch (dateType) {
-    case YEAR_LONG -> result = dateTime.format(DateTimeFormatter.ofPattern("yyyy"));
-    case YEAR_SHORT -> result = dateTime.format(DateTimeFormatter.ofPattern("yy"));
-    case MONTH -> result = String.valueOf(dateTime.getMonthValue());
-    case DATE -> result = String.valueOf(dateTime.getDayOfMonth());
-    case HOUR -> result = String.valueOf(dateTime.getHour());
-    case MINUTE -> result = String.valueOf(dateTime.getMinute());
-    case SECOND -> result = String.valueOf(dateTime.getSecond());
-    case QUARTER -> result = dateTime.format(DateTimeFormatter.ofPattern("Q"));
-    case WEEK_OF_YEAR_ISO -> result = String.valueOf(dateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
-    case WEEK_YEAR_ISO -> result = String.valueOf(dateTime.get(IsoFields.WEEK_BASED_YEAR));
-    case DAY_OF_YEAR -> result = String.valueOf(dateTime.getDayOfYear());
-    case YYYYMMDD -> result = dateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-    case YYYY_MM_DD -> result = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-    case MMDDYYYY -> result = dateTime.format(DateTimeFormatter.ofPattern("MMddyyyy"));
-    case DDMMYYYY -> result = dateTime.format(DateTimeFormatter.ofPattern("ddMMyyyy"));
-    default -> result = String.format("[invalid date type %s]", dateType);
-    }
+    String result = switch (dateType) {
+      case YEAR_LONG -> dateTime.format(DateTimeFormatter.ofPattern("yyyy"));
+      case YEAR_SHORT -> dateTime.format(DateTimeFormatter.ofPattern("yy"));
+      case MONTH -> String.valueOf(dateTime.getMonthValue());
+      case DATE -> String.valueOf(dateTime.getDayOfMonth());
+      case HOUR -> String.valueOf(dateTime.getHour());
+      case MINUTE -> String.valueOf(dateTime.getMinute());
+      case SECOND -> String.valueOf(dateTime.getSecond());
+      case QUARTER -> dateTime.format(DateTimeFormatter.ofPattern("Q"));
+      case WEEK_OF_YEAR_ISO -> String.valueOf(dateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
+      case WEEK_YEAR_ISO -> String.valueOf(dateTime.get(IsoFields.WEEK_BASED_YEAR));
+      case DAY_OF_YEAR -> String.valueOf(dateTime.getDayOfYear());
+      case YYYYMMDD -> dateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+      case YYYY_MM_DD -> dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+      case MMDDYYYY -> dateTime.format(DateTimeFormatter.ofPattern("MMddyyyy"));
+      case DDMMYYYY -> dateTime.format(DateTimeFormatter.ofPattern("ddMMyyyy"));
+      default -> String.format("[invalid date type %s]", dateType);
+    };
 
     return applyLengthControl(result, lengthControl);
   }
 
   /*
    * Helper method to process aggregate token into string
-   * 
+   *
    * @param tokenAggregate aggregate token that needs to process into string
    */
-  public static String processAggregateToken(BursarExportTokenAggregate tokenAggregate, int aggregateNumRows,
-      BigDecimal aggregateTotalAmount) {
-    String result;
-
-    switch (tokenAggregate.getValue()) {
-    case NUM_ROWS:
-      result = String.valueOf(aggregateNumRows);
-      break;
-    case TOTAL_AMOUNT:
-      if (tokenAggregate.getDecimal()) {
-        result = new DecimalFormat("0.00").format(aggregateTotalAmount);
-      } else {
-        result = aggregateTotalAmount.multiply(new BigDecimal("100"))
-          .setScale(0)
-          .toString();
+  public static String processAggregateToken(
+    BursarExportTokenAggregate tokenAggregate,
+    int aggregateNumRows,
+    BigDecimal aggregateTotalAmount
+  ) {
+    String result = switch (tokenAggregate.getValue()) {
+      case NUM_ROWS -> String.valueOf(aggregateNumRows);
+      case TOTAL_AMOUNT -> {
+        if (tokenAggregate.getDecimal()) {
+          yield new DecimalFormat("0.00").format(aggregateTotalAmount);
+        } else {
+          yield aggregateTotalAmount.multiply(new BigDecimal("100")).setScale(0).toString();
+        }
       }
-      break;
-    default:
-      result = String.format("[invalid aggregate type %s]", tokenAggregate.getValue());
-    }
+      default -> String.format("[invalid aggregate type %s]", tokenAggregate.getValue());
+    };
 
     return applyLengthControl(result, tokenAggregate.getLengthControl());
   }

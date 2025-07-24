@@ -13,7 +13,7 @@ import org.folio.dew.domain.dto.Account;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
-import org.folio.dew.error.BursarNoAccountsException;
+import org.folio.dew.error.BursarNoAccountsToTransferException;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -61,7 +61,7 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
 
     if (accounts.isEmpty()) {
       log.error("No accounts found, terminating job...");
-      stepExecution.addFailureException(log.throwing(new BursarNoAccountsException()));
+      stepExecution.addFailureException(log.throwing(new BursarNoAccountsToTransferException()));
       return;
     }
 

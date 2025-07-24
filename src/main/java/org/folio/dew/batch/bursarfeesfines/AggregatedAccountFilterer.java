@@ -11,7 +11,7 @@ import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUser;
-import org.folio.dew.error.BursarNoMatchedAccountsException;
+import org.folio.dew.error.BursarNoAccountsToTransferException;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.AfterStep;
@@ -57,7 +57,7 @@ public class AggregatedAccountFilterer implements ItemProcessor<AggregatedAccoun
     if (filteredAccounts.isEmpty()) {
       log.error("No accounts matched the aggregate criteria");
       stepExecution.setExitStatus(ExitStatus.FAILED);
-      stepExecution.addFailureException(log.throwing(new BursarNoMatchedAccountsException()));
+      stepExecution.addFailureException(log.throwing(new BursarNoAccountsToTransferException()));
     }
     stepExecution.getJobExecution()
       .getExecutionContext()

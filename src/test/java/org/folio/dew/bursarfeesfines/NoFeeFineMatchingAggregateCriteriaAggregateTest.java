@@ -14,7 +14,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
 import org.folio.dew.BaseBatchTest;
-import org.folio.dew.error.BursarNoMatchedAccountsException;
+import org.folio.dew.error.BursarNoAccountsToTransferException;
 import org.folio.dew.helpers.bursarfeesfines.BursarFeesFinesTestUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -148,7 +148,7 @@ class NoFeeFineMatchingAggregateCriteriaAggregateTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.launchJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus(), is(ExitStatus.FAILED));
-    assertThat(jobExecution.getAllFailureExceptions(), contains(instanceOf(BursarNoMatchedAccountsException.class)));
+    assertThat(jobExecution.getAllFailureExceptions(), contains(instanceOf(BursarNoAccountsToTransferException.class)));
 
     wireMockServer.verify(getRequestedFor(urlEqualTo(BursarFeesFinesTestUtils.ALL_OPEN_ACCOUNTS_GET_REQUEST)));
 

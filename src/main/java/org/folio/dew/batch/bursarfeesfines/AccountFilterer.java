@@ -7,7 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.bursarfeesfines.service.BursarFilterEvaluator;
 import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
-import org.folio.dew.error.BursarNoMatchedAccountsException;
+import org.folio.dew.error.BursarNoAccountsToTransferException;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.AfterStep;
@@ -42,7 +42,7 @@ public class AccountFilterer implements ItemProcessor<AccountWithAncillaryData, 
     if (filteredAccounts.isEmpty()) {
       log.error("No accounts matched the criteria");
       stepExecution.setExitStatus(ExitStatus.FAILED);
-      stepExecution.addFailureException(log.throwing(new BursarNoMatchedAccountsException()));
+      stepExecution.addFailureException(log.throwing(new BursarNoAccountsToTransferException()));
     }
     stepExecution.getJobExecution()
       .getExecutionContext()

@@ -7,11 +7,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
 import org.folio.dew.BaseBatchTest;
+import org.folio.dew.error.BursarNoAccountsToTransferException;
 import org.folio.dew.helpers.bursarfeesfines.BursarFeesFinesTestUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,11 +56,7 @@ class NoFeesFinesTest extends BaseBatchTest {
 
     // job status should be FAILED
     assertThat(jobExecution.getExitStatus(), is(ExitStatus.FAILED));
-    assertThat(jobExecution.getAllFailureExceptions()
-      .stream()
-      .map(Throwable::getMessage)
-      .filter(message -> message.contains("No accounts found"))
-      .toList(), hasSize(1));
+    assertThat(jobExecution.getAllFailureExceptions(), hasItem(instanceOf(BursarNoAccountsToTransferException.class)));
 
     // check that the ACCOUNT_GET_REQUEST endpoint was hit
     wireMockServer.verify(getRequestedFor(urlEqualTo(BursarFeesFinesTestUtils.ALL_OPEN_ACCOUNTS_GET_REQUEST)));

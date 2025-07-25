@@ -1,5 +1,11 @@
 ## Unreleased v3.5.0
 
+## 2025-07-25 v3.4.7
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.6...v3.4.7)
+
+Update schema circulationNote.
+
 ## 2025-06-11 v3.4.6
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.5...v3.4.6)

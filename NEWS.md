@@ -4,6 +4,9 @@
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.0...v3.4.1)
 
+### Technical tasks
+* [MODEXPW-605](https://folio-org.atlassian.net/browse/MODEXPW-605) Make eholdings interface optional
+
 ### Bug fixes
 * [MODEXPW-559](https://folio-org.atlassian.net/browse/MODEXPW-559) Colon separating type and code in "Statistical code" column is encoded in the file with Matching records
 * Add missed statistical-code-types interface

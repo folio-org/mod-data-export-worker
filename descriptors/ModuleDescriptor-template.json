@@ -71,10 +71,6 @@
       "version": "1.0"
     },
     {
-      "id": "eholdings",
-      "version": "4.0"
-    },
-    {
       "id": "loan-types",
       "version": "2.0"
     },
@@ -215,6 +211,10 @@
     {
       "id": "finance-storage.expense-classes",
       "version": "3.0"
+    },
+    {
+      "id": "eholdings",
+      "version": "4.0"
     }
   ],
   "provides": [

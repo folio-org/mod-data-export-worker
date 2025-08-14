@@ -35,6 +35,7 @@ import org.folio.dew.batch.acquisitions.services.MaterialTypeService;
 import org.folio.dew.config.JacksonConfiguration;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.ExportType;
+import org.folio.dew.domain.dto.Location;
 import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.PieceCollection;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
@@ -98,9 +99,9 @@ class EdifactMapperTest {
     if (type == EDIFACT_ORDERS_EXPORT) {
       when(expenseClassService.getExpenseClassCode(anyString()))
         .thenReturn("Elec");
-      when(locationService.getLocationCodeById(anyString()))
+      when(locationService.getLocationCodeById(anyString(), eq(null)))
         .thenReturn("KU/CC/DI/M");
-      when(holdingService.getPermanentLocationByHoldingId(anyString()))
+      when(holdingService.getPermanentLocationByHoldingId(anyString(), eq(null)))
         .thenReturn("fcd64ce1-6995-48f0-840e-89ffa2288371");
     }
 

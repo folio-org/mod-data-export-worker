@@ -2,7 +2,6 @@ package org.folio.dew.batch.acquisitions.services;
 
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.HoldingClient;
-import org.folio.dew.domain.dto.Location;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.scope.FolioExecutionContextSetter;
@@ -26,12 +25,11 @@ public class HoldingService {
     return holdingClient.getHoldingById(id);
   }
 
-  public String getPermanentLocationByHoldingId(Location location) {
+  public String getPermanentLocationByHoldingId(String holdingId, String tenantId) {
     JsonNode jsonObject;
-    String holdingId = location.getHoldingId().toString();
-    if (StringUtils.isNotBlank(location.getTenantId())) {
+    if (StringUtils.isNotBlank(tenantId)) {
       try (var ignored = new FolioExecutionContextSetter(
-        FolioExecutionContextUtils.prepareContextForTenant(location.getTenantId(), folioModuleMetadata, folioExecutionContext))) {
+        FolioExecutionContextUtils.prepareContextForTenant(tenantId, folioModuleMetadata, folioExecutionContext))) {
 
         jsonObject = getHoldingById(holdingId);
       }

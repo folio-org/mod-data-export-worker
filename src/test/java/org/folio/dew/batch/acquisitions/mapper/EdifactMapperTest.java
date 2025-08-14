@@ -99,9 +99,9 @@ class EdifactMapperTest {
     if (type == EDIFACT_ORDERS_EXPORT) {
       when(expenseClassService.getExpenseClassCode(anyString()))
         .thenReturn("Elec");
-      when(locationService.getLocationCodeById(anyString()))
+      when(locationService.getLocationCodeById(anyString(), eq(null)))
         .thenReturn("KU/CC/DI/M");
-      when(holdingService.getPermanentLocationByHoldingId(any(Location.class)))
+      when(holdingService.getPermanentLocationByHoldingId(anyString(), eq(null)))
         .thenReturn("fcd64ce1-6995-48f0-840e-89ffa2288371");
     }
 

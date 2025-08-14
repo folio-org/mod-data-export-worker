@@ -44,8 +44,7 @@ class HoldingServiceTest {
     var holdingJson = objectMapper.readTree("{\"permanentLocationId\": \"b241764c-1466-4e1d-a028-1a3684a5da87\"}");
     doReturn(holdingJson).when(client).getHoldingById(anyString());
 
-    Location location = new Location().holdingId(UUID.fromString("65032151-39a5-4cef-8810-5350eb316300"));
-    String locationId = holdingService.getPermanentLocationByHoldingId(location);
+    String locationId = holdingService.getPermanentLocationByHoldingId("65032151-39a5-4cef-8810-5350eb316300", null);
     assertEquals("b241764c-1466-4e1d-a028-1a3684a5da87", locationId);
   }
 
@@ -61,7 +60,7 @@ class HoldingServiceTest {
       Location location = new Location()
         .holdingId(UUID.fromString("65032151-39a5-4cef-8810-5350eb316300"))
         .tenantId("test_tenant");
-      String locationId = holdingService.getPermanentLocationByHoldingId(location);
+      String locationId = holdingService.getPermanentLocationByHoldingId(location.getHoldingId().toString(), location.getTenantId());
       assertEquals("b241764c-1466-4e1d-a028-1a3684a5da87", locationId);
     }
   }

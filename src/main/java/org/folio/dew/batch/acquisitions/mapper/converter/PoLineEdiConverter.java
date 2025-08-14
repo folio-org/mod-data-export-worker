@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class PoLineEdiConverter {
 
@@ -684,11 +685,15 @@ public class PoLineEdiConverter {
   }
 
   private String getLocationCode(Location location) {
-    if (location.getLocationId() != null) {
-      return locationService.getLocationCodeById(location.getLocationId());
-    } else if (location.getHoldingId() != null) {
-      String locationId = holdingService.getPermanentLocationByHoldingId(location);
-      return locationService.getLocationCodeById(locationId);
+    String locationId = location.getLocationId();
+    UUID holdingId = location.getHoldingId();
+    String tenantId = location.getTenantId();
+
+    if (StringUtils.isNotBlank(locationId)) {
+      return locationService.getLocationCodeById(locationId, tenantId);
+    } else if (holdingId != null) {
+      String permanentLocationId = holdingService.getPermanentLocationByHoldingId(holdingId.toString(), tenantId);
+      return locationService.getLocationCodeById(permanentLocationId, location.getTenantId());
     }
     return "";
   }

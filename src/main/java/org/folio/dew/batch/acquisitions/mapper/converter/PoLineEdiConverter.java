@@ -687,7 +687,7 @@ public class PoLineEdiConverter {
     if (location.getLocationId() != null) {
       return locationService.getLocationCodeById(location.getLocationId());
     } else if (location.getHoldingId() != null) {
-      String locationId = holdingService.getPermanentLocationByHoldingId(location.getHoldingId().toString());
+      String locationId = holdingService.getPermanentLocationByHoldingId(location);
       return locationService.getLocationCodeById(locationId);
     }
     return "";

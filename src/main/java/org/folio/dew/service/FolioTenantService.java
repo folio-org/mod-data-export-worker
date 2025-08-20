@@ -23,16 +23,13 @@ public class FolioTenantService extends TenantService {
     "SELECT EXISTS(SELECT 1 FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?)";
 
   private final KafkaService kafkaService;
-  private final BulkEditConfigurationService configurationService;
 
   public FolioTenantService(JdbcTemplate jdbcTemplate,
-                            BulkEditConfigurationService configurationService,
                             KafkaService kafkaTopicsInitializer,
                             FolioExecutionContext context,
                             FolioSpringLiquibase folioSpringLiquibase) {
     super(jdbcTemplate, context, folioSpringLiquibase);
     this.kafkaService = kafkaTopicsInitializer;
-    this.configurationService = configurationService;
   }
 
   @Override
@@ -40,7 +37,6 @@ public class FolioTenantService extends TenantService {
     try {
       kafkaService.createKafkaTopics();
       kafkaService.restartEventListeners();
-      configurationService.updateBulkEditConfiguration();
     } catch (Exception e) {
       log.error(e.getMessage(), e);
     }

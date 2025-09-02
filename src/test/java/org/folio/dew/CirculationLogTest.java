@@ -72,6 +72,7 @@ class CirculationLogTest extends BaseBatchTest {
     Assertions.assertNotEquals(after, before);
   }
 
+
   private void verifyFileOutput(JobExecution jobExecution) throws Exception {
     final ExecutionContext executionContext = jobExecution.getExecutionContext();
     final String fileInStorage = (String) executionContext.get("outputFilesInStorage");
@@ -106,4 +107,19 @@ class CirculationLogTest extends BaseBatchTest {
     return parametersBuilder.toJobParameters();
   }
 
+  @Test
+  @DisplayName("Fail test when circulation log output file content does not match expected")
+  void circulationLogJobFileMismatchTest() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(getCirculationLogJob);
+
+    final JobParameters jobParameters = prepareJobParameters();
+    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+    jobExecution.getExecutionContext().put("outputFilesInStorage", "src/test/resources/output/invalid_file.csv");
+
+    AssertionError thrown = Assertions.assertThrows(
+      AssertionError.class,
+      () -> verifyFileOutput(jobExecution)
+    );
+    assertThat(thrown.getMessage()).contains("Files are not identical!");
+  }
 }

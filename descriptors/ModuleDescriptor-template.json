@@ -153,6 +153,10 @@
     {
       "id": "classification-types",
       "version": "1.2"
+    },
+    {
+      "id": "settings",
+      "version": "1.2"
     }
   ],
   "optional": [
@@ -252,7 +256,9 @@
             "instance-authority-links.authority-statistics.collection.get",
             "configuration.entries.collection.get",
             "configuration.entries.item.post",
-            "configuration.entries.item.delete"
+            "configuration.entries.item.delete",
+            "mod-settings.entries.item.get",
+            "mod-settings.entries.collection.get"
           ]
         },
         {

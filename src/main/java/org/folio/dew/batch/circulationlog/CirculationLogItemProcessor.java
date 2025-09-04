@@ -90,8 +90,8 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
         var settingsEntry = items.get(0);
         var value = settingsEntry.get("value");
 
-        if (value instanceof String) {
-          return (String) value;
+        if (value instanceof String valueStr) {
+          return valueStr;
         } else {
           var jsonObject = objectMapper.valueToTree(value);
           if (jsonObject.has("timezone")) {
@@ -114,7 +114,7 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
     servicePointMap = servicePoints.getServicepoints().isEmpty() ?
       Collections.emptyMap() :
       servicePoints.getServicepoints().stream()
-      .collect(Collectors.toMap(ServicePoint::getId, ServicePoint::getName));
+        .collect(Collectors.toMap(ServicePoint::getId, ServicePoint::getName));
   }
 
 }

@@ -256,9 +256,7 @@
             "instance-authority-links.authority-statistics.collection.get",
             "configuration.entries.collection.get",
             "configuration.entries.item.post",
-            "configuration.entries.item.delete",
-            "mod-settings.entries.item.get",
-            "mod-settings.entries.collection.get"
+            "configuration.entries.item.delete"
           ]
         },
         {

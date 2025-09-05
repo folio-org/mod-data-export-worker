@@ -1,15 +1,13 @@
 package org.folio.dew.batch.circulationlog;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.dew.client.ConfigurationClient;
 import org.folio.dew.client.ServicePointClient;
+import org.folio.dew.client.SettingsClient;
 import org.folio.dew.domain.dto.CirculationLogExportFormat;
-import org.folio.dew.domain.dto.ConfigurationCollection;
 import org.folio.dew.domain.dto.LogRecord;
 import org.folio.dew.domain.dto.LogRecordItemsInner;
 import org.folio.dew.domain.dto.ServicePoint;
@@ -21,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
@@ -32,7 +31,7 @@ import java.util.stream.Collectors;
 public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, CirculationLogExportFormat> {
 
   private final ServicePointClient servicePointClient;
-  private final ConfigurationClient configurationClient;
+  private final SettingsClient settingsClient;
   private final ObjectMapper objectMapper;
 
   private Map<String, String> servicePointMap;
@@ -77,15 +76,34 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
   }
 
   @SneakyThrows
+  @SuppressWarnings("unchecked")
   private String fetchTimezone() {
-    final ConfigurationCollection tenantLocaleSettings =
-      configurationClient.getConfigurations("(module==ORG and configName==localeSettings)");
+    try {
+      final Map<String, Object> tenantLocaleSettings =
+        settingsClient.getSettings("scope==localeSettings and key==timezone");
 
-    if (tenantLocaleSettings.getTotalRecords() == 0) return "UTC";
+      var resultInfo = (Map<String, Object>) tenantLocaleSettings.get("resultInfo");
+      var totalRecords = (Integer) resultInfo.get("totalRecords");
 
-    var modelConfiguration = tenantLocaleSettings.getConfigs().get(0);
-    var jsonObject = (ObjectNode) objectMapper.readTree(modelConfiguration.getValue());
-    return jsonObject.get("timezone").asText();
+      if (totalRecords > 0) {
+        var items = (List<Map<String, Object>>) tenantLocaleSettings.get("items");
+        var settingsEntry = items.get(0);
+        var value = settingsEntry.get("value");
+
+        if (value instanceof String valueStr) {
+          return valueStr;
+        } else {
+          var jsonObject = objectMapper.valueToTree(value);
+          if (jsonObject.has("timezone")) {
+            return jsonObject.get("timezone").asText();
+          }
+        }
+      }
+    } catch (Exception e) {
+      log.warn("Failed to fetch timezone from mod-settings: {}", e.getMessage());
+    }
+
+    return "UTC";
   }
 
   private void fetchServicePoints() {
@@ -96,7 +114,7 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
     servicePointMap = servicePoints.getServicepoints().isEmpty() ?
       Collections.emptyMap() :
       servicePoints.getServicepoints().stream()
-      .collect(Collectors.toMap(ServicePoint::getId, ServicePoint::getName));
+        .collect(Collectors.toMap(ServicePoint::getId, ServicePoint::getName));
   }
 
 }

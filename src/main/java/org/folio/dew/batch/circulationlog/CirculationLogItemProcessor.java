@@ -80,7 +80,7 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
   private String fetchTimezone() {
     try {
       final Map<String, Object> tenantLocaleSettings =
-        settingsClient.getSettings("scope==localeSettings and key==timezone");
+        settingsClient.getSettings("scope==stripes-core.prefs.manage and key==tenantLocaleSettings");
 
       var resultInfo = (Map<String, Object>) tenantLocaleSettings.get("resultInfo");
       var totalRecords = (Integer) resultInfo.get("totalRecords");

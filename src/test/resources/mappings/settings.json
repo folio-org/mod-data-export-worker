@@ -3,11 +3,11 @@
     {
       "request": {
         "method": "GET",
-        "urlPattern": "/settings/entries\\?query=scope%3D%3DlocaleSettings%20and%20key%3D%3Dtimezone"
+        "urlPattern": "/settings/entries\\?query=scope%3D%3Dstripes-core.prefs.manage%20and%20key%3D%3DtenantLocaleSettings"
       },
       "response": {
         "status": 200,
-        "body": "{\n  \"items\": [\n    {\n      \"scope\": \"localeSettings\",\n      \"key\": \"timezone\",\n      \"value\": {\n        \"locale\": \"en-US\",\n        \"timezone\": \"Pacific/Yap\"\n      }\n    }\n  ],\n  \"totalRecords\": 1,\n  \"resultInfo\": {\n    \"totalRecords\": 1,\n    \"facets\": [],\n    \"diagnostics\": []\n  }\n}",
+        "body": "{\n  \"items\": [\n    {\n      \"scope\": \"stripes-core.prefs.manage\",\n      \"key\": \"tenantLocaleSettings\",\n      \"value\": {\n        \"locale\": \"en-US\",\n        \"timezone\": \"Pacific/Yap\"\n      }\n    }\n  ],\n  \"totalRecords\": 1,\n  \"resultInfo\": {\n    \"totalRecords\": 1,\n    \"facets\": [],\n    \"diagnostics\": []\n  }\n}",
         "headers": {
           "Content-Type": "application/json"
         }

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.folio.dew.domain.dto.authoritycontrol.exportformat.AuthorityControlExportFormat;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.S3CompatibleResource;
+import org.folio.dew.service.FolioTenantService;
 import org.folio.dew.utils.ExportFormatHelper;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.annotation.AfterStep;
@@ -30,11 +31,11 @@ public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<Author
 
   public AuthorityControlCsvFileWriter(Class<? extends AuthorityControlExportFormat> exportFormatClass,
                                        @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
-                                       LocalFilesStorage localFilesStorage) {
+                                       LocalFilesStorage localFilesStorage, FolioTenantService folioTenantService) {
     setResource(tempOutputFilePath);
 
     this.setExecutionContextName(ClassUtils.getShortName(exportFormatClass));
-    this.headersLine = getHeaderLine(exportFormatClass, lineSeparator);
+    this.headersLine = getHeaderLine(exportFormatClass, lineSeparator, folioTenantService);
     this.tempOutputFilePath = tempOutputFilePath;
     this.localFilesStorage = localFilesStorage;
   }

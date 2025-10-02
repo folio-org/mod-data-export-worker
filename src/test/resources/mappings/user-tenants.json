@@ -1,0 +1,18 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/user-tenants?tenantId=diku"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n  \"userTenants\": [],\n    \"totalRecords\": 0\n}\n",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}
+

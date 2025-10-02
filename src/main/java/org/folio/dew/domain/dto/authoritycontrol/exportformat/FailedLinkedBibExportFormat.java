@@ -1,5 +1,7 @@
 package org.folio.dew.domain.dto.authoritycontrol.exportformat;
 
+import static org.folio.dew.domain.dto.authoritycontrol.exportformat.ExportFormatHeaders.BIB_UUID;
+
 import lombok.Data;
 import org.folio.dew.domain.dto.annotation.ExportFormat;
 import org.folio.dew.domain.dto.annotation.ExportHeader;
@@ -9,7 +11,7 @@ import org.folio.dew.domain.dto.annotation.ExportHeader;
 public class FailedLinkedBibExportFormat implements AuthorityControlExportFormat {
   private String failed;
   private String bibliographicTitle;
-  @ExportHeader("Bibliographic UUID")
+  @ExportHeader(BIB_UUID)
   private String bibliographicUUID;
   private String failedBibFieldUpdate;
   private String linkedAuthorityIdentifier;

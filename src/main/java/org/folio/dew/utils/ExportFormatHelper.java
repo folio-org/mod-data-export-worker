@@ -1,34 +1,39 @@
 package org.folio.dew.utils;
 
-import lombok.experimental.UtilityClass;
-import org.folio.dew.domain.dto.annotation.ExportFormat;
-import org.folio.dew.domain.dto.annotation.ExportHeader;
-import org.springframework.beans.BeanWrapperImpl;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.apache.commons.lang3.StringUtils.splitByCharacterTypeCamelCase;
+import static org.folio.dew.domain.dto.authoritycontrol.exportformat.ExportFormatHeaders.AUTHORITY_RECORD_TYPE;
 import static org.folio.dew.utils.Constants.COMMA;
 import static org.folio.dew.utils.Constants.LINE_BREAK;
 import static org.folio.dew.utils.Constants.LINE_BREAK_REPLACEMENT;
 import static org.folio.dew.utils.Constants.QUOTE;
 import static org.folio.dew.utils.Constants.QUOTE_REPLACEMENT;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import lombok.experimental.UtilityClass;
+import org.folio.dew.domain.dto.annotation.ExportFormat;
+import org.folio.dew.domain.dto.annotation.ExportHeader;
+import org.folio.dew.service.FolioTenantService;
+import org.springframework.beans.BeanWrapperImpl;
+
 @UtilityClass
 public class ExportFormatHelper {
 
   private static final String NOT_EXPORT_FORMAT = "Class %s not annotated as export format";
-  public static String getHeaderLine(Class<?> clazz, String lineSeparator) {
-    var headers = getExportFormatHeaders(clazz);
+
+  public static String getHeaderLine(Class<?> clazz, String lineSeparator, FolioTenantService folioTenantService) {
+    var headers = new ArrayList<>(getExportFormatHeaders(clazz));
+    if (!folioTenantService.isConsortiumTenant()) {
+      headers.remove(AUTHORITY_RECORD_TYPE);
+    }
     return getHeaderLine(headers, lineSeparator);
   }
 
@@ -44,12 +49,14 @@ public class ExportFormatHelper {
     var itemValues = new ArrayList<String>();
     var bw = new BeanWrapperImpl(item);
     for (var fieldName : clazzFields) {
-      var value = bw.getPropertyValue(fieldName);
-      if (value instanceof String) {
-        var s = getStringValue((String) value);
+      var propertyValue = bw.getPropertyValue(fieldName);
+      if (propertyValue instanceof String value) {
+        var s = getStringValue(value);
         itemValues.add(s);
       } else {
-        itemValues.add(EMPTY);
+        if (!fieldName.equals("source")) {
+          itemValues.add(EMPTY);
+        }
       }
     }
     return String.join(",", itemValues);
@@ -60,7 +67,7 @@ public class ExportFormatHelper {
     var exportFormat = clazz.getAnnotation(ExportFormat.class);
     return Arrays.stream(clazz.getDeclaredFields())
       .map(field -> getFieldColumnName(exportFormat, field))
-      .collect(Collectors.toList());
+      .toList();
   }
 
   private static String getFieldColumnName(ExportFormat exportFormat, Field field) {
@@ -85,7 +92,7 @@ public class ExportFormatHelper {
   }
 
   private static String decapitalize(String string) {
-    if (string == null || string.length() == 0) {
+    if (string == null || string.isEmpty()) {
       return string;
     }
 
@@ -109,6 +116,6 @@ public class ExportFormatHelper {
   private static List<String> getClassFields(Class<?> clazz) {
     return Arrays.stream(clazz.getDeclaredFields())
       .map(Field::getName)
-      .collect(Collectors.toUnmodifiableList());
+      .toList();
   }
 }

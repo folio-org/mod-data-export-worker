@@ -15,6 +15,7 @@ import org.folio.dew.domain.dto.authority.control.InstanceDataStatDto;
 import org.folio.dew.domain.dto.authoritycontrol.exportformat.AuthUpdateHeadingExportFormat;
 import org.folio.dew.domain.dto.authoritycontrol.exportformat.FailedLinkedBibExportFormat;
 import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.service.FolioTenantService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
@@ -106,16 +107,16 @@ public class AuthorityControlJobConfig {
   @StepScope
   @Bean("authUpdateHeadingWriter")
   public AuthorityControlCsvFileWriter authUpdateHeadingWriter(
-    @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath, LocalFilesStorage localFilesStorage) {
+    @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath, LocalFilesStorage localFilesStorage, FolioTenantService folioTenantService) {
     return new AuthorityControlCsvFileWriter(AuthUpdateHeadingExportFormat.class, tempOutputFilePath,
-      localFilesStorage);
+      localFilesStorage, folioTenantService);
   }
 
   @StepScope
   @Bean("failedLinkedBibWriter")
   public AuthorityControlCsvFileWriter failedLinkedBibWriter(
-    @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath, LocalFilesStorage localFilesStorage) {
-    return new AuthorityControlCsvFileWriter(FailedLinkedBibExportFormat.class, tempOutputFilePath, localFilesStorage);
+    @Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath, LocalFilesStorage localFilesStorage, FolioTenantService folioTenantService) {
+    return new AuthorityControlCsvFileWriter(FailedLinkedBibExportFormat.class, tempOutputFilePath, localFilesStorage, folioTenantService);
   }
 
   @JobScope

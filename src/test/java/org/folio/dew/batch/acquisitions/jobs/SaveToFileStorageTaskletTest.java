@@ -20,6 +20,7 @@ import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.services.OrganizationsService;
 import org.folio.dew.repository.FTPObjectStorageRepository;
 import org.folio.dew.repository.SFTPObjectStorageRepository;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -48,6 +49,11 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
   private FTPObjectStorageRepository ftpObjectStorageRepository;
   @MockitoBean
   private OrganizationsService organizationsService;
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant("diku");
+  }
 
   @Override
   @SneakyThrows

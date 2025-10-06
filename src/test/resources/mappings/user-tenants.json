@@ -12,6 +12,19 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/user-tenants?tenantId=consortium"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"userTenants\": [{\"id\": \"c92282c4-97c0-4552-af6f-748c612c8276\",\"userId\": \"358d74f8-b5f3-4cb8-b77e-5e9e1abd50f9\",\"username\": \"consortium_admin\",\"tenantId\": \"consortium\",\"centralTenantId\": \"consortium\",\"email\": \"consortium_admin@example.org\",\"consortiumId\": \"d5f09712-185d-4804-b7c7-f033da5af246\"}],\"totalRecords\": 1}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

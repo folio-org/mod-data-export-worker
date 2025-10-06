@@ -16,6 +16,7 @@ import static org.hamcrest.Matchers.nullValue;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.error.BursarNoAccountsToTransferException;
 import org.folio.dew.helpers.bursarfeesfines.BursarFeesFinesTestUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -34,6 +35,11 @@ class NoFeeFineMatchingCriteriaTest extends BaseBatchTest {
   private static final String GET_USERS_REQUEST = "/users?query=id%3D%3D%28%28bec20636-fb68-41fd-84ea-2cf910673599%20or%202205005b-ca51-4a04-87fd-938eefa8f6de%29%29&limit=50";
 
   private static final String GET_ITEMS_REQUEST = "/inventory/items?query=id%3D%3D%28%28100d10bf-2f06-4aa0-be15-0b95b2d9f9e4%20or%20100d10bf-2f06-4aa0-be15-0b95b2d9f9e3%29%29&limit=50";
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant("diku");
+  }
 
   @Test
   @DisplayName("Run bursar export job with no fee/fine matching the filter criteria")

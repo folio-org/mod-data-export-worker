@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.repository.RemoteFilesStorage;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -19,6 +20,11 @@ public class PresignedUrlControllerTest extends BaseBatchTest {
   private static final String PREVIEW_ITEM_DATA = "src/test/resources/upload/preview_item_data.csv";
   private static final String REFRESH_PRESIGNED_URL = "/refresh-presigned-url";
   private static final String FILE_PATH = "filePath";
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant("diku");
+  }
 
   @Test
   void shouldRetrievePresignedUrl() throws Exception {

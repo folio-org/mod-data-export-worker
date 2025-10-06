@@ -23,6 +23,7 @@ import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
 import org.folio.dew.repository.JobCommandRepository;
 import org.folio.dew.repository.RemoteFilesStorage;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.JobExecutionException;
@@ -39,6 +40,11 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
   RemoteFilesStorage remoteFilesStorage;
   @MockitoBean
   FTPStorageService ftpStorageService;
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant("diku");
+  }
 
   @Test
   @DisplayName("Start CirculationLog job by kafka request")

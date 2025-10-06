@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.nullValue;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.error.BursarNoAccountsToTransferException;
 import org.folio.dew.helpers.bursarfeesfines.BursarFeesFinesTestUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -29,6 +30,11 @@ class NoFeesFinesTest extends BaseBatchTest {
 
   @Autowired
   private Job bursarExportJob;
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant("diku");
+  }
 
   @Test
   @DisplayName("Run bursar export job with no fees/fines created")

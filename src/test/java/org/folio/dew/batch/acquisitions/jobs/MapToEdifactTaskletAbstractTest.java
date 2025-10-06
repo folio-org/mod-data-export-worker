@@ -21,6 +21,7 @@ import org.folio.dew.batch.acquisitions.mapper.ExportResourceMapper;
 import org.folio.dew.batch.acquisitions.services.OrdersService;
 import org.folio.dew.batch.acquisitions.services.OrganizationsService;
 import org.folio.dew.client.DataExportSpringClient;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
@@ -57,6 +58,11 @@ abstract class MapToEdifactTaskletAbstractTest extends BaseBatchTest {
   @Autowired
   protected ObjectMapper objectMapper;
   protected Job edifactExportJob;
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant("diku");
+  }
 
   @Test
   void testEdifactExportMissingFtpPort() throws Exception {

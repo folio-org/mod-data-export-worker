@@ -3,12 +3,18 @@ package org.folio.dew.batch.acquisitions.services;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.folio.dew.BaseBatchTest;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class ExpenseClassServiceTest extends BaseBatchTest {
   @Autowired
   private ExpenseClassService expenseClassService;
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant("diku");
+  }
 
   @Test
   void getExpenseClassCode() {

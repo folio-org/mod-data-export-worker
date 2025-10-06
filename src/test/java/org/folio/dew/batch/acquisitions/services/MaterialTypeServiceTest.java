@@ -3,6 +3,7 @@ package org.folio.dew.batch.acquisitions.services;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.folio.dew.BaseBatchTest;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -10,6 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 class MaterialTypeServiceTest extends BaseBatchTest {
   @Autowired
   private MaterialTypeService materialTypeService;
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant("diku");
+  }
 
   @Test
   void getMaterialTypeName() {

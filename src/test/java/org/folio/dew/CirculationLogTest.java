@@ -5,6 +5,7 @@ import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.CirculationLogExportFormat;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -36,6 +37,11 @@ class CirculationLogTest extends BaseBatchTest {
   @Autowired private Job getCirculationLogJob;
 
   private final static String EXPECTED_CIRCULATION_OUTPUT = "src/test/resources/output/circulation_export.csv";
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant("diku");
+  }
 
   @Test
   @DisplayName("Run CirculationLogJob successfully")

@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.UUID;
 import java.util.stream.Stream;
-
 import org.folio.dew.BaseBatchTest;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -15,6 +15,11 @@ class ConfigurationServiceTest extends BaseBatchTest {
 
   @Autowired
   private ConfigurationService configurationService;
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant("diku");
+  }
 
   static Stream<Arguments> testGetAddressConfigArgs() {
     return Stream.of(

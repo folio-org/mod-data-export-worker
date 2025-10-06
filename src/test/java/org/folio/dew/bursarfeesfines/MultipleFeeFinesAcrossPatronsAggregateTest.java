@@ -16,6 +16,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import org.assertj.core.api.Assertions;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.helpers.bursarfeesfines.BursarFeesFinesTestUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -37,6 +38,11 @@ class MultipleFeeFinesAcrossPatronsAggregateTest extends BaseBatchTest {
   private static final String GET_ITEMS_REQUEST = "/inventory/items?query=id%3D%3D%28%28100d10bf-2f06-4aa0-be15-0b95b2d9f9e4%20or%20100d10bf-2f06-4aa0-be15-0b95b2d9f9e3%20or%209dcf8868-ed0b-40cf-bb93-e73b44b565f0%20or%209dcf8868-ed0b-40cf-bb93-e73b44b565f1%29%29&limit=50";
 
   private static final String EXPECTED_CHARGE_OUTPUT = "src/test/resources/output/bursar_multiple_fees_across_patrons_aggregate.dat";
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant("diku");
+  }
 
   @Test
   @DisplayName("Run bursar export aggregate with multiple fees/fines across multiple patrons")

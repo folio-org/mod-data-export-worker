@@ -48,7 +48,7 @@ class SFTPObjectStorageRepositoryTest extends BaseBatchTest {
 
   @BeforeAll
   public static void staticSetup() {
-    setUpTenant("diku");
+    setUpTenant(NON_CONSORTIUM_TENANT);
     MAPPED_PORT = sftp.getMappedPort(PORT);
     SFTP_HOST = sftp.getHost();
   }

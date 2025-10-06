@@ -74,9 +74,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @EnableAutoConfiguration
 public abstract class BaseBatchTest {
   protected static final String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjFkM2I1OGNiLTA3YjUtNWZjZC04YTJhLTNjZTA2YTBlYjkwZiIsImlhdCI6MTYxNjQyMDM5MywidGVuYW50IjoiZGlrdSJ9.2nvEYQBbJP1PewEgxixBWLHSX_eELiBEBpjufWiJZRs";
+  protected static final String NON_CONSORTIUM_TENANT = "diku";
+  protected static final String CONSORTIUM_TENANT = "consortium";
   public static final int WIRE_MOCK_PORT = TestSocketUtils.findAvailableTcpPort();
 
-  private static String tenant = "diku";
+  private static String tenant = NON_CONSORTIUM_TENANT;
   public static WireMockServer wireMockServer;
   public static PostgreSQLContainer<?> postgreDBContainer = new PostgreSQLContainer<>("postgres:16");
 

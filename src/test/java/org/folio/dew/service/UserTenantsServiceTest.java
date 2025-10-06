@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class UserTenantsServiceTest {
+  private static final String TENANT_ID = "testTenant";
 
   @Mock
   private UserTenantsClient userTenantsClient;
@@ -26,9 +27,7 @@ class UserTenantsServiceTest {
 
   @Test
   void testGetCentralTenantWithBlankTenantId() {
-    var tenantId = "";
-
-    var centralTenant = userTenantsService.getCentralTenant(tenantId);
+    var centralTenant = userTenantsService.getCentralTenant("");
 
     assertTrue(centralTenant.isEmpty());
     verifyNoInteractions(userTenantsClient);
@@ -36,32 +35,28 @@ class UserTenantsServiceTest {
 
   @Test
   void testGetCentralTenantWithNullResponse() {
-    var tenantId = "tenant1";
+    when(userTenantsClient.getUserTenants(TENANT_ID)).thenReturn(null);
 
-    when(userTenantsClient.getUserTenants(tenantId)).thenReturn(null);
-
-    var centralTenant = userTenantsService.getCentralTenant(tenantId);
+    var centralTenant = userTenantsService.getCentralTenant(TENANT_ID);
 
     assertTrue(centralTenant.isEmpty());
-    verify(userTenantsClient).getUserTenants(tenantId);
+    verify(userTenantsClient).getUserTenants(TENANT_ID);
   }
 
   @Test
   void testGetCentralTenantWithNoUserTenants() {
-    var tenantId = "tenant1";
+    when(userTenantsClient.getUserTenants(TENANT_ID)).thenReturn(new UserTenantsClient.UserTenants(emptyList()));
 
-    when(userTenantsClient.getUserTenants(tenantId)).thenReturn(new UserTenantsClient.UserTenants(emptyList()));
-
-    var centralTenant = userTenantsService.getCentralTenant(tenantId);
+    var centralTenant = userTenantsService.getCentralTenant(TENANT_ID);
 
     assertTrue(centralTenant.isEmpty());
-    verify(userTenantsClient).getUserTenants(tenantId);
+    verify(userTenantsClient).getUserTenants(TENANT_ID);
   }
 
   @Test
-  void testGetCentralTenantForMemverTenant() {
+  void testGetCentralTenantForConsortiumMemberTenant() {
     var tenantId = "centralTenant";
-    var consortiumIdValue = "consortium123";
+    var consortiumIdValue = "consortium";
 
     var centralTenant = new UserTenantsClient.UserTenant(tenantId, consortiumIdValue);
 

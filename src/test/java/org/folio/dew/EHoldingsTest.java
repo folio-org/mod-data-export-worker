@@ -71,7 +71,7 @@ class EHoldingsTest extends BaseBatchTest {
 
   @BeforeAll
   static void beforeAll() {
-    setUpTenant("diku");
+    setUpTenant(NON_CONSORTIUM_TENANT);
   }
 
   private final static String RESOURCE_ID = "1-22-333";

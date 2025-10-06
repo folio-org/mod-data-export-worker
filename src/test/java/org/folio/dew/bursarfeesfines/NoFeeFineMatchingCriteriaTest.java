@@ -38,7 +38,7 @@ class NoFeeFineMatchingCriteriaTest extends BaseBatchTest {
 
   @BeforeAll
   static void beforeAll() {
-    setUpTenant("diku");
+    setUpTenant(NON_CONSORTIUM_TENANT);
   }
 
   @Test

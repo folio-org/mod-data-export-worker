@@ -55,7 +55,7 @@ class AuthorityControlConsortiumTest extends BaseBatchTest {
 
   @BeforeAll
   static void beforeAll() {
-    setUpTenant("consortium");
+    setUpTenant(CONSORTIUM_TENANT);
   }
 
   @Test

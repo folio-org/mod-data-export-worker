@@ -3,6 +3,7 @@ package org.folio.dew.repository;
 
 import lombok.SneakyThrows;
 import org.folio.dew.BaseBatchTest;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -13,6 +14,11 @@ class RemoteFilesStorageTest extends BaseBatchTest {
 
   @Autowired
   private RemoteFilesStorage remoteFilesStorage;
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant(NON_CONSORTIUM_TENANT);
+  }
 
   @Test
   @SneakyThrows

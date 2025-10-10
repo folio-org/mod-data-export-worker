@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.services.OrganizationsService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -36,6 +37,11 @@ class ExportHistoryTaskletTest extends BaseBatchTest {
   private Job edifactExportJob;
   @MockitoBean
   private OrganizationsService organizationsService;
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant(NON_CONSORTIUM_TENANT);
+  }
 
   @Test
   @DirtiesContext

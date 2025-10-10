@@ -17,6 +17,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.services.OrganizationsService;
 import org.folio.dew.repository.RemoteFilesStorage;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -44,6 +45,12 @@ class SaveToMinioTaskletTest extends BaseBatchTest {
   private OrganizationsService organizationsService;
   @MockitoSpyBean
   private RemoteFilesStorage remoteFilesStorage;
+
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant(NON_CONSORTIUM_TENANT);
+  }
 
   @Override
   @SneakyThrows

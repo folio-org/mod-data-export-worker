@@ -29,6 +29,7 @@ import org.folio.dew.domain.dto.eholdings.Proxy;
 import org.folio.dew.domain.dto.eholdings.Tags;
 import org.folio.dew.domain.dto.eholdings.Token;
 import org.folio.dew.domain.dto.eholdings.VisibilityData;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -37,6 +38,11 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 
 class EHoldingsPackageMapperTest extends BaseBatchTest {
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant(NON_CONSORTIUM_TENANT);
+  }
 
   @ParameterizedTest
   @EnumSource(MapperTestData.class)

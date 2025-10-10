@@ -74,14 +74,15 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @EnableAutoConfiguration
 public abstract class BaseBatchTest {
   protected static final String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjFkM2I1OGNiLTA3YjUtNWZjZC04YTJhLTNjZTA2YTBlYjkwZiIsImlhdCI6MTYxNjQyMDM5MywidGVuYW50IjoiZGlrdSJ9.2nvEYQBbJP1PewEgxixBWLHSX_eELiBEBpjufWiJZRs";
-  protected static final String TENANT = "diku";
-
+  protected static final String NON_CONSORTIUM_TENANT = "diku";
+  protected static final String CONSORTIUM_TENANT = "consortium";
   public static final int WIRE_MOCK_PORT = TestSocketUtils.findAvailableTcpPort();
+
+  private static String tenant = NON_CONSORTIUM_TENANT;
   public static WireMockServer wireMockServer;
   public static PostgreSQLContainer<?> postgreDBContainer = new PostgreSQLContainer<>("postgres:16");
 
-  @Autowired
-  public MockMvc mockMvc;
+  protected static MockMvc mockMvc;
   @Autowired
   private FolioModuleMetadata folioModuleMetadata;
   @Autowired
@@ -125,12 +126,12 @@ public abstract class BaseBatchTest {
   static void beforeAll(@Autowired MockMvc mockMvc) {
     wireMockServer = new WireMockServer(WIRE_MOCK_PORT);
     wireMockServer.start();
-
-    setUpTenant(mockMvc);
+    BaseBatchTest.mockMvc = mockMvc;
   }
 
   @SneakyThrows
-  protected static void setUpTenant(MockMvc mockMvc) {
+  protected static void setUpTenant(String tenant) {
+    BaseBatchTest.tenant = tenant;
     mockMvc.perform(post("/_/tenant").content(asJsonString(new TenantAttributes().moduleTo("mod-data-export-worker")))
         .headers(defaultHeaders())
         .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
@@ -150,7 +151,7 @@ public abstract class BaseBatchTest {
     final HttpHeaders httpHeaders = new HttpHeaders();
 
     httpHeaders.setContentType(APPLICATION_JSON);
-    httpHeaders.put(XOkapiHeaders.TENANT, List.of(TENANT));
+    httpHeaders.put(XOkapiHeaders.TENANT, List.of(tenant));
     httpHeaders.add(XOkapiHeaders.URL, wireMockServer.baseUrl());
     httpHeaders.add(XOkapiHeaders.TOKEN, TOKEN);
     httpHeaders.add(XOkapiHeaders.USER_ID, UUID.randomUUID().toString());
@@ -161,7 +162,7 @@ public abstract class BaseBatchTest {
   @BeforeEach
   protected void setUp() {
     okapiHeaders = new LinkedHashMap<>();
-    okapiHeaders.put(XOkapiHeaders.TENANT, TENANT);
+    okapiHeaders.put(XOkapiHeaders.TENANT, tenant);
     okapiHeaders.put(XOkapiHeaders.TOKEN, TOKEN);
     okapiHeaders.put(XOkapiHeaders.URL, wireMockServer.baseUrl());
     okapiHeaders.put(XOkapiHeaders.USER_ID, UUID.randomUUID().toString());

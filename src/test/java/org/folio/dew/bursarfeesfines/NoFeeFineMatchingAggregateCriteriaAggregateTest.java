@@ -16,6 +16,7 @@ import static org.hamcrest.Matchers.nullValue;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.error.BursarNoAccountsToTransferException;
 import org.folio.dew.helpers.bursarfeesfines.BursarFeesFinesTestUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -38,6 +39,11 @@ class NoFeeFineMatchingAggregateCriteriaAggregateTest extends BaseBatchTest {
   private static final String GET_ITEMS_REQUEST = "/inventory/items?query=id%3D%3D%28%28100d10bf-2f06-4aa0-be15-0b95b2d9f9e4%20or%20100d10bf-2f06-4aa0-be15-0b95b2d9f9e3%29%29&limit=50";
 
   private static final String EXPECTED_ALL_OPEN_ACCOUNTS_JSON_OUTPUT = "src/test/resources/output/bursar_all_open_accounts_json_output.json";
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant(NON_CONSORTIUM_TENANT);
+  }
 
   @Test
   @DisplayName("Run bursar export that has fee/fines matching initial criteria but not aggregate criteria")

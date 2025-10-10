@@ -16,6 +16,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import org.assertj.core.api.Assertions;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.helpers.bursarfeesfines.BursarFeesFinesTestUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -37,6 +38,11 @@ class OneFeeFineMatchingCriteriaTest extends BaseBatchTest {
 
   @Autowired
   private Job bursarExportJob;
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant(NON_CONSORTIUM_TENANT);
+  }
 
   @Test
   @DisplayName("Run bursar export job with only fee/fine matching the filter criteria")

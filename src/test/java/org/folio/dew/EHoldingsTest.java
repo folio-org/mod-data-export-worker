@@ -16,6 +16,7 @@ import org.folio.dew.repository.EHoldingsPackageRepository;
 import org.folio.dew.repository.EHoldingsResourceRepository;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.FileNameResolver;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -67,6 +68,11 @@ class EHoldingsTest extends BaseBatchTest {
   private RemoteFilesStorage remoteFilesStorage;
   @MockitoSpyBean
   private KafkaService kafkaService;
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant(NON_CONSORTIUM_TENANT);
+  }
 
   private final static String RESOURCE_ID = "1-22-333";
   private final static String PACKAGE_ID = "1-22";

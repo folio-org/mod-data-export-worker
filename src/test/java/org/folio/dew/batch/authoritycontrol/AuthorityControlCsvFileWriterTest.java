@@ -14,6 +14,7 @@ import java.util.List;
 import lombok.SneakyThrows;
 import org.folio.dew.domain.dto.authoritycontrol.exportformat.AuthUpdateHeadingExportFormat;
 import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.dew.service.FolioTenantService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,12 +27,15 @@ class AuthorityControlCsvFileWriterTest {
   private final String TEMP_FILE = "test.csv";
   @Mock
   private LocalFilesStorage localFilesStorage;
+  @Mock
+  private FolioTenantService folioTenantService;
   private AuthorityControlCsvFileWriter authorityControlCsvFileWriter;
 
   @SneakyThrows
   @BeforeEach
   void setUp() {
-    authorityControlCsvFileWriter = new AuthorityControlCsvFileWriter(AuthUpdateHeadingExportFormat.class, TEMP_FILE, localFilesStorage);
+    authorityControlCsvFileWriter = new AuthorityControlCsvFileWriter(AuthUpdateHeadingExportFormat.class, TEMP_FILE,
+      localFilesStorage, folioTenantService);
     lenient().doNothing().when(localFilesStorage).append(anyString(), any());
   }
 

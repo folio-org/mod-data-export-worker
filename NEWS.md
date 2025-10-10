@@ -1,4 +1,6 @@
 ## Unreleased v3.5.0
+### Stories
+* [MODEXPW-576](https://folio-org.atlassian.net/browse/MODEXPW-576) Enhance "MARC authority headings update" Report with Record Type Column Based on Consortium Environment.
 
 ## 2025-03-27 v3.4.1
 

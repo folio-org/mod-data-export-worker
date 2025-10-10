@@ -16,6 +16,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import org.apache.commons.io.FileUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.helpers.bursarfeesfines.BursarFeesFinesTestUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -39,6 +40,11 @@ class UseMostOuputTokensTest extends BaseBatchTest {
   private static final String GET_ITEMS_REQUEST = "/inventory/items?query=id%3D%3D%28%28100d10bf-2f06-4aa0-be15-0b95b2d9f9e4%20or%20100d10bf-2f06-4aa0-be15-0b95b2d9f9e3%29%29&limit=50";
 
   private static final String EXPECTED_CHARGE_OUTPUT = "src/test/resources/output/bursar_most_output_tokens.dat";
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant(NON_CONSORTIUM_TENANT);
+  }
 
   @Test
   @DisplayName("Run bursar export that creates output file that uses most output tokens")

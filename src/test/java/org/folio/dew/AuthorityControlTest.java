@@ -26,6 +26,7 @@ import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.FileNameResolver;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -62,6 +63,11 @@ class AuthorityControlTest extends BaseBatchTest {
   private RemoteFilesStorage remoteFilesStorage;
   @MockitoSpyBean
   private KafkaService kafkaService;
+
+  @BeforeAll
+  static void beforeAll() {
+    setUpTenant(NON_CONSORTIUM_TENANT);
+  }
 
   @Test
   @DisplayName("Run AuthHeadingJob export successfully")

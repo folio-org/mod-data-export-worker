@@ -3,7 +3,12 @@
     {
       "request": {
         "method": "GET",
-        "url": "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T00%3A00Z&toDate=2023-12-01T23%3A59%3A59.999999999Z"
+        "url": "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T00%3A00Z&toDate=2023-12-01T23%3A59%3A59.999999999Z",
+        "headers": {
+          "x-okapi-tenant": {
+            "equalTo": "diku"
+          }
+        }
       },
       "response": {
         "status": 200,
@@ -16,7 +21,12 @@
     {
       "request": {
         "method": "GET",
-        "url": "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T00%3A00Z&toDate=2023-08-01T12%3A00Z"
+        "url": "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2023-01-01T00%3A00Z&toDate=2023-08-01T12%3A00Z",
+        "headers": {
+          "x-okapi-tenant": {
+            "equalTo": "diku"
+          }
+        }
       },
       "response": {
         "status": 200,
@@ -29,7 +39,12 @@
     {
       "request": {
         "method": "GET",
-        "url": "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2022-01-01T00%3A00Z&toDate=2022-12-01T23%3A59%3A59.999999999Z"
+        "url": "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2022-01-01T00%3A00Z&toDate=2022-12-01T23%3A59%3A59.999999999Z",
+        "headers": {
+          "x-okapi-tenant": {
+            "equalTo": "diku"
+          }
+        }
       },
       "response": {
         "status": 200,
@@ -42,7 +57,12 @@
     {
       "request": {
         "method": "GET",
-        "url": "/links/stats/instance?limit=2&status=ERROR"
+        "url": "/links/stats/instance?limit=2&status=ERROR",
+        "headers": {
+          "x-okapi-tenant": {
+            "equalTo": "diku"
+          }
+        }
       },
       "response": {
         "status": 200,
@@ -55,7 +75,12 @@
     {
       "request": {
         "method": "GET",
-        "url": "/links/stats/instance?limit=2&status=ERROR&toDate=2023-08-01T12%3A00Z"
+        "url": "/links/stats/instance?limit=2&status=ERROR&toDate=2023-08-01T12%3A00Z",
+        "headers": {
+          "x-okapi-tenant": {
+            "equalTo": "diku"
+          }
+        }
       },
       "response": {
         "status": 200,

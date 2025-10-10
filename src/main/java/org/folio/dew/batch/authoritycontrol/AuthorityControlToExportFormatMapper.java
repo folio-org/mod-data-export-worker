@@ -1,24 +1,30 @@
 package org.folio.dew.batch.authoritycontrol;
 
-import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDto;
-import org.folio.dew.domain.dto.authority.control.InstanceDataStatDto;
-import org.folio.dew.domain.dto.authority.control.Metadata;
-import org.folio.dew.domain.dto.authoritycontrol.exportformat.AuthUpdateHeadingExportFormat;
-import org.folio.dew.domain.dto.authoritycontrol.exportformat.FailedLinkedBibExportFormat;
-import org.springframework.stereotype.Component;
-
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.folio.dew.utils.Constants.DATE_TIME_PATTERN;
 
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDto;
+import org.folio.dew.domain.dto.authority.control.InstanceDataStatDto;
+import org.folio.dew.domain.dto.authority.control.Metadata;
+import org.folio.dew.domain.dto.authoritycontrol.exportformat.AuthUpdateHeadingExportFormat;
+import org.folio.dew.domain.dto.authoritycontrol.exportformat.FailedLinkedBibExportFormat;
+import org.folio.dew.service.FolioTenantService;
+import org.springframework.stereotype.Component;
+
 @Component
 public class AuthorityControlToExportFormatMapper {
   private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
   private static final String UNKNOWN_USER = "Unknown User";
+
+  private final FolioTenantService folioTenantService;
+
+  public AuthorityControlToExportFormatMapper(FolioTenantService folioTenantService) {
+    this.folioTenantService = folioTenantService;
+  }
 
   public AuthUpdateHeadingExportFormat convertToAuthUpdateHeadingsExportFormat(AuthorityDataStatDto dto) {
     var exportFormat = new AuthUpdateHeadingExportFormat();
@@ -33,7 +39,9 @@ public class AuthorityControlToExportFormatMapper {
     exportFormat.setIdentifier(dto.getNaturalIdNew());
     exportFormat.setAuthoritySourceFileName(dto.getSourceFileNew());
     exportFormat.setNumberOfBibliographicRecordsLinked(dto.getLbTotal().toString());
-
+    if (folioTenantService.isConsortiumTenant()) {
+      exportFormat.setSource(Boolean.TRUE.equals(dto.getShared()) ? "shared" : "local");
+    }
     return exportFormat;
   }
 

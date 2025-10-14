@@ -17,7 +17,7 @@ public class CirculationLogCsvPartitioner extends CsvPartitioner {
 
   @Override
   protected Long getLimit() {
-    return Long.valueOf(auditClient.getCirculationAuditLogs(query, 0, 1, null).getTotalRecords());
+    return Long.valueOf(auditClient.getCirculationAuditLogs(query, 0, 0, null).getTotalRecords());
   }
 
 }

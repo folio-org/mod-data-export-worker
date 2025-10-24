@@ -1,148 +1,86 @@
 package org.folio.dew.repository;
 
-import io.minio.ComposeObjectArgs;
-import io.minio.ComposeSource;
-import io.minio.GetPresignedObjectUrlArgs;
-import io.minio.ListObjectsArgs;
-import io.minio.MinioClient;
-import io.minio.ObjectWriteArgs;
-import io.minio.RemoveObjectsArgs;
-import io.minio.Result;
-import io.minio.errors.ErrorResponseException;
-import io.minio.errors.InsufficientDataException;
-import io.minio.errors.InternalException;
-import io.minio.errors.InvalidResponseException;
-import io.minio.errors.ServerException;
-import io.minio.errors.XmlParserException;
-import io.minio.http.Method;
-import io.minio.messages.DeleteError;
-import io.minio.messages.DeleteObject;
-
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import io.minio.messages.Item;
-import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.config.properties.RemoteFilesStorageProperties;
+import org.folio.s3.client.PutObjectAdditionalOptions;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Repository;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.List;
+
+import lombok.extern.log4j.Log4j2;
 
 @Repository
 @Log4j2
-public class RemoteFilesStorage extends BaseFilesStorage {
+public class RemoteFilesStorage extends AbstractFilesStorage {
 
   public static final String CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME = "attachment";
-  public static final String CONTENT_DISPOSITION_HEADER_WITH_FILENAME = CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME + "; filename=\"%s\"";
+  public static final String CONTENT_DISPOSITION_HEADER_WITH_FILENAME = CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME
+      + "; filename=\"%s\"";
 
-  private final MinioClient client;
   @Autowired
   private LocalFilesStorage localFilesStorage;
-  private final String bucket;
-  private final String region;
-  private final int urlExpirationTimeInSeconds;
 
   public RemoteFilesStorage(RemoteFilesStorageProperties properties) {
     super(properties);
-    this.bucket = properties.getBucket();
-    this.region = properties.getRegion();
-    this.urlExpirationTimeInSeconds = properties.getUrlExpirationTimeInSeconds();
-    this.client = getMinioClient();
   }
 
-  public String uploadObject(String object, String filename, String downloadFilename, String contentType, boolean isSourceShouldBeDeleted)
-      throws IOException {
+  public String uploadObject(String object, String filename, String downloadFilename, String contentType,
+      boolean isSourceShouldBeDeleted) throws IOException {
     log.info("Uploading object {},filename {},downloadFilename {},contentType {}.", object, filename, downloadFilename,
         contentType);
 
-    var result = write(object, localFilesStorage.readAllBytes(filename), prepareHeaders(downloadFilename, contentType));
+    byte[] bytes = localFilesStorage.readAllBytes(filename);
+    var result = write(object, new ByteArrayInputStream(bytes), bytes.length,
+        prepareAdditionalOptions(downloadFilename, contentType));
 
     if (isSourceShouldBeDeleted) {
-      localFilesStorage.delete(filename);
+      localFilesStorage.remove(filename);
       log.info("Deleted temp file {}.", filename);
     }
 
     return result;
   }
 
-  public boolean containsFile(String fileName)
-    throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException,
-    InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-    fileName = getS3Path(fileName);
-    for (Result<Item> itemResult : client.listObjects(ListObjectsArgs.builder().bucket(bucket).prefix(getS3Path(fileName)).build())) {
-      if (fileName.equals(itemResult.get().objectName())) {
-        return true;
-      }
-    }
-    return false;
+  public boolean containsFile(String fileName) {
+    return this.exists(fileName);
   }
 
-  public String composeObject(String destObject, List<String> sourceObjects, String downloadFilename,
-      String contentType)
-      throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
-      ServerException, InternalException, XmlParserException, ErrorResponseException {
-    destObject = getS3Path(destObject);
-    List<ComposeSource> sources = sourceObjects.stream()
-        .map(so -> ComposeSource.builder().bucket(bucket).object(getS3Path(so)).build())
-        .collect(Collectors.toList());
-    log.info("Composing object {},sources [{}],downloadFilename {},contentType {}.", destObject,
-        sources.stream().map(s -> String.format("bucket %s,object %s", s.bucket(), s.object())).collect(Collectors.joining(",")),
-        downloadFilename, contentType);
-    var result = client.composeObject(
-        createArgs(ComposeObjectArgs.builder().sources(sources), destObject, downloadFilename, contentType)).object();
+  public String composeObject(String destObject, List<String> sourceObjects, String downloadFilename, String contentType) {
+    log.info("Composing object {} from {}", destObject, sourceObjects);
+    String result = compose(destObject, sourceObjects, prepareAdditionalOptions(downloadFilename, contentType));
 
     removeObjects(sourceObjects);
 
     return result;
   }
 
-  public Iterable<Result<DeleteError>> removeObjects(List<String> objects) {
+  public void removeObjects(List<String> objects) {
     log.info("Deleting objects [{}].", StringUtils.join(objects, ","));
-    return client.removeObjects(RemoveObjectsArgs.builder()
-        .bucket(bucket)
-        .objects(objects.stream().map(this::getS3Path).map(DeleteObject::new).toList())
-        .build());
+    remove(objects.toArray(s -> new String[s]));
   }
 
-  public String objectToPresignedObjectUrl(String object)
-    throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException,
-    ServerException, InternalException, XmlParserException, ErrorResponseException {
-    String result = client.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
-      .method(Method.GET)
-      .bucket(bucket)
-      .object(getS3Path(object))
-      .region(region)
-      .expiry(urlExpirationTimeInSeconds, TimeUnit.SECONDS)
-      .build());
+  public String objectToPresignedObjectUrl(String object) {
+    String result = getPresignedUrl(object);
     log.info("Created presigned URL {}.", result);
     return result;
   }
 
-  private <T extends ObjectWriteArgs, B extends ObjectWriteArgs.Builder<B, T>> T createArgs(B builder, String object,
-      String downloadFilename, String contentType) {
-    Map<String, String> headers = prepareHeaders(downloadFilename, contentType);
-    return builder.headers(headers).object(object).bucket(bucket).build();
-  }
+  private PutObjectAdditionalOptions prepareAdditionalOptions(String downloadFilename, String contentType) {
+    PutObjectAdditionalOptions.PutObjectAdditionalOptionsBuilder builder = PutObjectAdditionalOptions.builder();
 
-  private Map<String, String> prepareHeaders(String downloadFilename, String contentType) {
-    Map<String, String> headers = new HashMap<>(2);
     if (StringUtils.isNotBlank(downloadFilename)) {
-      headers.put(HttpHeaders.CONTENT_DISPOSITION, String.format(CONTENT_DISPOSITION_HEADER_WITH_FILENAME, downloadFilename));
+      builder = builder.contentDisposition(String.format(CONTENT_DISPOSITION_HEADER_WITH_FILENAME, downloadFilename));
     } else {
-      headers.put(HttpHeaders.CONTENT_DISPOSITION, CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME);
+      builder = builder.contentDisposition(CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME);
     }
     if (StringUtils.isNotBlank(contentType)) {
-      headers.put(HttpHeaders.CONTENT_TYPE, contentType);
+      builder = builder.contentType(contentType);
     }
-    return headers;
+
+    return builder.build();
   }
 
 }

@@ -25,13 +25,10 @@ public class DataExportCsvItemReader extends CsvItemReader<ItemIdentifier> {
   @Override
   protected List<ItemIdentifier> getItems(int offset, int limit) {
     try {
-      try (var lines = localFilesStorage.lines(fileName)) {
-        return lines
-          .skip(offset)
-          .limit(limit)
-          .map(ItemIdentifier::new)
-          .collect(Collectors.toList());
-      }
+      return localFilesStorage.readLines(fileName, offset, limit)
+        .stream()
+        .map(ItemIdentifier::new)
+        .collect(Collectors.toList());
     } catch (Exception e) {
       throw new FileOperationException(e.getMessage());
     }

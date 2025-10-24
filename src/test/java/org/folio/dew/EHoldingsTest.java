@@ -87,7 +87,7 @@ class EHoldingsTest extends BaseBatchTest {
     "src/test/resources/output/eholdings_package_export_with_3_titles.csv";
   private final static String EXPECTED_PACKAGE_WITH_SAME_TITLE_NAMES_OUTPUT =
     "src/test/resources/output/eholdings_package_export_with_same_title_names.csv";
-  private static final String FILE_PATH = "remote/mod-data-export-worker/e_holdings_export/diku/";
+  private static final String FILE_PATH = "mod-data-export-worker/e_holdings_export/diku/";
 
   @Test
   @DisplayName("Run EHoldingsJob export resource without provider load successfully")

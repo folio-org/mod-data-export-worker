@@ -13,7 +13,7 @@ import java.net.URI;
 import java.net.URL;
 
 @AllArgsConstructor
-public class S3CompatibleResource<R extends S3CompatibleStorage> implements WritableResource {
+public class S3CompatibleResource<R extends AbstractFilesStorage> implements WritableResource {
 
   private String path;
   private R storage;
@@ -78,6 +78,6 @@ public class S3CompatibleResource<R extends S3CompatibleStorage> implements Writ
 
   @Override
   public InputStream getInputStream() throws IOException {
-    return storage.newInputStream(path);
+    return storage.read(path);
   }
 }

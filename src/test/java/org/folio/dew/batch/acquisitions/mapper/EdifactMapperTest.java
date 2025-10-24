@@ -35,7 +35,6 @@ import org.folio.dew.batch.acquisitions.services.MaterialTypeService;
 import org.folio.dew.config.JacksonConfiguration;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.ExportType;
-import org.folio.dew.domain.dto.Location;
 import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.PieceCollection;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;

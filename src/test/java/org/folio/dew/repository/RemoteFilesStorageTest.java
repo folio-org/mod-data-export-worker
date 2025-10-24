@@ -28,7 +28,7 @@ class RemoteFilesStorageTest extends BaseBatchTest {
 
     var uploadedPath = remoteFilesStorage.write(path, content);
 
-    assertEquals("remote/directory/data.csv", uploadedPath);
+    assertEquals("directory/data.csv", uploadedPath);
     assertTrue(remoteFilesStorage.containsFile(path));
     assertTrue(remoteFilesStorage.containsFile(uploadedPath));
   }

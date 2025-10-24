@@ -36,7 +36,7 @@ class AuthorityControlCsvFileWriterTest {
   void setUp() {
     authorityControlCsvFileWriter = new AuthorityControlCsvFileWriter(AuthUpdateHeadingExportFormat.class, TEMP_FILE,
       localFilesStorage, folioTenantService);
-    lenient().doNothing().when(localFilesStorage).append(anyString(), any());
+    lenient().doNothing().when(localFilesStorage).append(anyString(), any(byte[].class));
   }
 
   @Test
@@ -46,7 +46,7 @@ class AuthorityControlCsvFileWriterTest {
     authorityControlCsvFileWriter.beforeStep();
 
     //Then
-    verify(localFilesStorage).append(eq(TEMP_FILE), any());
+    verify(localFilesStorage).append(eq(TEMP_FILE), any(byte[].class));
   }
 
   @Test
@@ -58,7 +58,7 @@ class AuthorityControlCsvFileWriterTest {
     authorityControlCsvFileWriter.afterStep();
 
     //Then
-    verify(localFilesStorage, never()).append(eq(TEMP_FILE), any());
+    verify(localFilesStorage, never()).append(eq(TEMP_FILE), any(byte[].class));
   }
 
   @Test
@@ -86,6 +86,6 @@ class AuthorityControlCsvFileWriterTest {
     authorityControlCsvFileWriter.write(new Chunk<>(items));
 
     //Then
-    verify(localFilesStorage).append(eq(TEMP_FILE), any());
+    verify(localFilesStorage).append(eq(TEMP_FILE), any(byte[].class));
   }
 }

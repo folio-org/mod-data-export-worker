@@ -43,7 +43,7 @@ class AuthorityControlConsortiumTest extends BaseBatchTest {
   private static final String EXPECTED_AUTH_HEADING_UPDATE_OUTPUT =
     "src/test/resources/output/authority_control/auth_heading_update_consortium.csv";
   private static final String EXPECTED_S3_FILE_PATH =
-    "remote/mod-data-export-worker/authority_control_export/consortium/";
+    "mod-data-export-worker/authority_control_export/consortium/";
   @Autowired
   private Job getAuthHeadingJob;
   @Autowired

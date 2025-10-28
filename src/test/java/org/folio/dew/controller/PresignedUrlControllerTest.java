@@ -30,7 +30,7 @@ public class PresignedUrlControllerTest extends BaseBatchTest {
   void shouldRetrievePresignedUrl() throws Exception {
     var jobId = UUID.randomUUID();
     var filePath = jobId + PATH_SEPARATOR + FilenameUtils.getName(PREVIEW_ITEM_DATA);
-    remoteFilesStorage.upload(filePath, PREVIEW_ITEM_DATA);
+    remoteFilesStorage.upload(PREVIEW_ITEM_DATA, filePath);
 
     var headers = defaultHeaders();
 

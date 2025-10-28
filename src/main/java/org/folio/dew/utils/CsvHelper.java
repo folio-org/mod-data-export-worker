@@ -12,7 +12,7 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 
 import org.apache.commons.lang3.StringUtils;
-import org.folio.dew.repository.BaseFilesStorage;
+import org.folio.dew.repository.AbstractFilesStorage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,8 +28,8 @@ import java.util.stream.Collectors;
 public class CsvHelper {
   private static final int BATCH_SIZE = 1000;
 
-  public static <T, R extends BaseFilesStorage> List<T> readRecordsFromStorage(R storage, String fileName, Class<T> clazz, boolean skipHeaders) throws IOException {
-    try (var reader = new BufferedReader(new InputStreamReader(storage.newInputStream(fileName)))) {
+  public static <T, R extends AbstractFilesStorage> List<T> readRecordsFromStorage(R storage, String fileName, Class<T> clazz, boolean skipHeaders) throws IOException {
+    try (var reader = new BufferedReader(new InputStreamReader(storage.read(fileName)))) {
       return new CsvToBeanBuilder<T>(reader)
         .withType(clazz)
         .withSkipLines(skipHeaders ? 1 : 0)
@@ -38,9 +38,9 @@ public class CsvHelper {
     }
   }
 
-  public static <T, R extends BaseFilesStorage> List<T> readRecordsFromRemoteFilesStorage(R storage, String fileName, int limit, Class<T> clazz)
+  public static <T, R extends AbstractFilesStorage> List<T> readRecordsFromRemoteFilesStorage(R storage, String fileName, int limit, Class<T> clazz)
     throws IOException {
-    try (var reader = new BufferedReader(new InputStreamReader(storage.newInputStream(fileName)))) {
+    try (var reader = new BufferedReader(new InputStreamReader(storage.read(fileName)))) {
       var linesString = reader.lines().skip(1).limit(limit).collect(Collectors.joining("\n"));
       return new CsvToBeanBuilder<T>(new StringReader(linesString))
         .withType(clazz)
@@ -49,13 +49,13 @@ public class CsvHelper {
     }
   }
 
-  public static <T, R extends BaseFilesStorage> void saveRecordsToStorage(R storage, List<T> beans, Class<T> clazz, String fileName)
+  public static <T, R extends AbstractFilesStorage> void saveRecordsToStorage(R storage, List<T> beans, Class<T> clazz, String fileName)
     throws CsvRequiredFieldEmptyException, CsvDataTypeMismatchException, IOException {
     var strategy = new RecordColumnMappingStrategy<T>();
     strategy.setType(clazz);
 
     if (storage.exists(fileName)) {
-      storage.delete(fileName);
+      storage.remove(fileName);
     }
 
     if (beans.size() > BATCH_SIZE) {
@@ -86,10 +86,8 @@ public class CsvHelper {
     }
   }
 
-  public static <R extends BaseFilesStorage> long countLines(R storage, String path) throws IOException {
-    try (var lines = storage.lines(path)) {
-      return lines.count();
-    }
+  public static <R extends AbstractFilesStorage> long countLines(R storage, String path) throws IOException {
+    return storage.numLines(path);
   }
 
 

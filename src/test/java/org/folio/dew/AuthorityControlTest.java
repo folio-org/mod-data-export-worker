@@ -52,7 +52,7 @@ class AuthorityControlTest extends BaseBatchTest {
     "src/test/resources/output/authority_control/auth_heading_update.csv";
   private static final String EXPECTED_AUTH_HEADING_UPDATE_EMPTY_OUTPUT =
     "src/test/resources/output/authority_control/auth_heading_update_empty.csv";
-  private static final String EXPECTED_S3_FILE_PATH = "remote/mod-data-export-worker/authority_control_export/diku/";
+  private static final String EXPECTED_S3_FILE_PATH = "mod-data-export-worker/authority_control_export/diku/";
   @Autowired
   private Job getAuthHeadingJob;
   @Autowired

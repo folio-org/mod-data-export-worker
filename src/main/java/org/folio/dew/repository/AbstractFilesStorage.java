@@ -13,6 +13,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.SequenceInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -45,13 +46,23 @@ public abstract class AbstractFilesStorage implements FolioS3Client {
   }
 
   @Override
-  public String append(String path, InputStream is) {
-    return client.append(sanitizePath(path), is);
+  public String append(String path, InputStream newData) {
+      try {
+          if (!exists(path)) {
+              return write(path, newData);
+          }
+          InputStream existingData = read(path);
+          try (SequenceInputStream combinedStream = new SequenceInputStream(existingData, newData)) {
+              return write(path, combinedStream);
+          }
+      } catch (IOException e) {
+          throw log.throwing(new S3ClientException("Error appending data to file: " + path, e));
+      }
   }
 
   public void append(String path, byte[] bytes) {
     append(path, new ByteArrayInputStream(bytes));
-  }
+}
 
   @Override
   public String write(String path, InputStream is) {

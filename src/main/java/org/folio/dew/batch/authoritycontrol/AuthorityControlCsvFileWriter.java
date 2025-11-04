@@ -74,7 +74,7 @@ public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<Author
   }
 
   private void writeString(String str) throws IOException {
-    localFilesStorage.append(tempOutputFilePath, str.getBytes(StandardCharsets.UTF_8));
+    localFilesStorage.write(tempOutputFilePath, str.getBytes(StandardCharsets.UTF_8));
   }
 
   private void setResource(String tempOutputFilePath) {

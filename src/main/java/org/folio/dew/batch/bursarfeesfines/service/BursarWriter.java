@@ -60,9 +60,9 @@ public class BursarWriter extends AbstractItemStreamItemWriter<String> implement
 
     localFilesStorage.write(resource.getFilename(), header.getBytes(StandardCharsets.UTF_8));
 
-    localFilesStorage.append(resource.getFilename(), lines.toString()
+    localFilesStorage.write(resource.getFilename(), lines.toString()
       .getBytes(StandardCharsets.UTF_8));
 
-    localFilesStorage.append(resource.getFilename(), footer.getBytes(StandardCharsets.UTF_8));
+    localFilesStorage.write(resource.getFilename(), footer.getBytes(StandardCharsets.UTF_8));
   }
 }

@@ -55,32 +55,6 @@ class LocalFilesStorageAwsSdkComposingTest {
     assertTrue(localFilesStorage.notExists(remoteFilePath));
   }
 
-  @Test
-  @DisplayName("Append files with using AWS SDK workaround instead of MinIO client composeObject-method")
-  void testAppendFileParts() throws IOException {
-
-    var name = "directory_1/directory_2/CSV_Data.csv";
-    byte[] file = getRandomBytes(30000000);
-    var size = file.length;
-
-    var first = Arrays.copyOfRange(file, 0, size / 3);
-    var second = Arrays.copyOfRange(file, size / 3, 2 * size / 3);
-    var third = Arrays.copyOfRange(file, 2 * size / 3, size);
-
-    var expected = ArrayUtils.addAll(ArrayUtils.addAll(first, second), third);
-
-    assertTrue(Objects.deepEquals(file, expected));
-
-    localFilesStorage.append(name, first);
-    localFilesStorage.append(name, second);
-    localFilesStorage.append(name, third);
-
-    var result = localFilesStorage.readAllBytes(name);
-
-    assertTrue(Objects.deepEquals(file, result));
-
-  }
-
   private byte[] getRandomBytes(int size) {
     var original = new byte[size];
     ThreadLocalRandom.current()

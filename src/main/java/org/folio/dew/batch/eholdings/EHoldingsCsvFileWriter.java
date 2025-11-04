@@ -132,7 +132,7 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
   }
 
   private void writeString(String str) throws IOException {
-    localFilesStorage.append(tempOutputFilePath, str.getBytes(StandardCharsets.UTF_8));
+    localFilesStorage.write(tempOutputFilePath, str.getBytes(StandardCharsets.UTF_8));
   }
 
   private String getHeader(List<String> fieldNames) {

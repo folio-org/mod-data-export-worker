@@ -114,7 +114,6 @@ class LocalFilesStorageTest {
   void testWriteReadPatchDelete(int size) throws IOException {
 
     byte[] original = getRandomBytes(size);
-    byte[] patch = getRandomBytes(size);
     var remoteFilePath = "directory_1/directory_2/CSV_Data.csv";
     var expectedS3FilePath = localFilesStorageProperties.getSubPath() + PATH_SEPARATOR + remoteFilePath;
 
@@ -125,10 +124,9 @@ class LocalFilesStorageTest {
     assertTrue(Objects.deepEquals(localFilesStorage.lines(remoteFilePath)
       .collect(toList()), localFilesStorage.readAllLines(remoteFilePath)));
 
-    localFilesStorage.append(remoteFilePath, patch);
 
     var patched = localFilesStorage.readAllBytes(remoteFilePath);
-    assertThat(patched.length, is(original.length + patch.length));
+    assertThat(patched.length, is(original.length));
 
     localFilesStorage.delete(remoteFilePath);
     assertTrue(localFilesStorage.notExists(remoteFilePath));

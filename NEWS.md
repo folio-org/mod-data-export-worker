@@ -1,5 +1,12 @@
 ## Unreleased v3.5.0
 
+## 2025-11-05 v3.4.8
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.7...v3.4.8)
+
+### Bug fixes
+* [MODEXPW-607](https://folio-org.atlassian.net/browse/MODEXPW-607) Fix Circulation Log count query
+
 ## 2025-06-11 v3.4.7
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.6...v3.4.7)

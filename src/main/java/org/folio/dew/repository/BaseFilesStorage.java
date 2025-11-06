@@ -160,9 +160,8 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    *
    * @param path - the path to the file on S3-compatible storage
    * @return a new input stream
-   * @throws IOException - if an I/O error occurs reading from the file
    */
-  public InputStream newInputStream(String path) throws IOException {
+  public InputStream newInputStream(String path) {
     return client.read(getS3Path(path));
   }
 

@@ -4,6 +4,8 @@ import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.UUID;
 
 import org.apache.commons.io.FilenameUtils;
@@ -30,7 +32,7 @@ public class PresignedUrlControllerTest extends BaseBatchTest {
   void shouldRetrievePresignedUrl() throws Exception {
     var jobId = UUID.randomUUID();
     var filePath = jobId + PATH_SEPARATOR + FilenameUtils.getName(PREVIEW_ITEM_DATA);
-    remoteFilesStorage.upload(filePath, PREVIEW_ITEM_DATA);
+    remoteFilesStorage.write(filePath, Files.readAllBytes(Path.of(PREVIEW_ITEM_DATA)));
 
     var headers = defaultHeaders();
 

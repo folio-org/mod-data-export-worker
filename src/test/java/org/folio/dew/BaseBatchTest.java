@@ -176,7 +176,7 @@ public abstract class BaseBatchTest {
     var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, localHeaders);
     folioExecutionContextSetter = new FolioExecutionContextSetter(defaultFolioExecutionContext);
 
-    remoteFilesStorage.createBucketIfNotExists();
+//    remoteFilesStorage.createBucketIfNotExists();
   }
 
   @AfterEach

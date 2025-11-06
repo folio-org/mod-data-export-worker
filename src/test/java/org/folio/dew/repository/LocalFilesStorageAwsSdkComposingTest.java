@@ -1,9 +1,8 @@
 package org.folio.dew.repository;
 
-import org.apache.commons.lang3.ArrayUtils;
+import java.nio.charset.StandardCharsets;
 import org.folio.dew.config.properties.LocalFilesStorageProperties;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +10,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -49,7 +47,7 @@ class LocalFilesStorageAwsSdkComposingTest {
 
     assertTrue(Objects.deepEquals(localFilesStorage.readAllBytes(remoteFilePath), original));
     assertTrue(Objects.deepEquals(localFilesStorage.lines(remoteFilePath)
-      .collect(toList()), localFilesStorage.readAllLines(remoteFilePath)));
+      .collect(toList()), new String(original, StandardCharsets.UTF_8).lines().toList()));
 
     localFilesStorage.delete(remoteFilePath);
     assertTrue(localFilesStorage.notExists(remoteFilePath));

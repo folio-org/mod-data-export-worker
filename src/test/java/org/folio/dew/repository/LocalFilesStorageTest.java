@@ -3,6 +3,7 @@ package org.folio.dew.repository;
 import io.minio.ObjectWriteArgs;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.config.properties.LocalFilesStorageProperties;
+import org.folio.s3.exception.S3ClientException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,9 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
@@ -23,11 +22,9 @@ import static java.util.stream.Collectors.toList;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 @Log4j2
 @SpringBootTest(classes = {LocalFilesStorageProperties.class, LocalFilesStorage.class})
@@ -85,28 +82,6 @@ class LocalFilesStorageTest {
     original.forEach(p -> assertFalse(localFilesStorage.exists(p)));
   }
 
-  @ParameterizedTest
-  @ValueSource(ints = {1024, 2048})
-  @DisplayName("Buffered writer test")
-  void testBufferedWriter(int size) {
-    var path = "directory/resource.csv";
-    var expected = new String(getRandomBytes(size));
-    try(BufferedWriter writer = localFilesStorage.writer(path)) {
-      writer.write(expected);
-    } catch (IOException e) {
-      fail("Writer exception");
-    }
-
-    try(InputStream is = localFilesStorage.newInputStream(path)) {
-      var actual = new String(is.readAllBytes());
-      assertEquals(expected, actual);
-    } catch (IOException e) {
-      fail("Read resource exception");
-    }
-
-    // Clean crated files
-    localFilesStorage.delete(path);
-  }
 
   @ParameterizedTest
   @DisplayName("Create file, update it (append bytes[]), read and delete")
@@ -121,9 +96,6 @@ class LocalFilesStorageTest {
     assertTrue(localFilesStorage.exists(remoteFilePath));
 
     assertTrue(Objects.deepEquals(localFilesStorage.readAllBytes(remoteFilePath), original));
-    assertTrue(Objects.deepEquals(localFilesStorage.lines(remoteFilePath)
-      .collect(toList()), localFilesStorage.readAllLines(remoteFilePath)));
-
 
     var patched = localFilesStorage.readAllBytes(remoteFilePath);
     assertThat(patched.length, is(original.length));
@@ -135,9 +107,8 @@ class LocalFilesStorageTest {
   @Test
   @DisplayName("Files operations on non-existing file")
   void testNonExistingFileOperations() {
-    assertThrows(IOException.class, () -> localFilesStorage.readAllLines(NON_EXISTING_PATH));
-    assertThrows(IOException.class, () -> localFilesStorage.lines(NON_EXISTING_PATH));
-    assertThrows(IOException.class, () -> {
+    assertThrows(S3ClientException.class, () -> localFilesStorage.lines(NON_EXISTING_PATH));
+    assertThrows(S3ClientException.class, () -> {
       try(var is = localFilesStorage.newInputStream(NON_EXISTING_PATH)){
         log.info("InputStream setup");
       }

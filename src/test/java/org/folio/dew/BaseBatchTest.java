@@ -143,11 +143,13 @@ public abstract class BaseBatchTest {
     r.add("application.minio-local.region",   () -> region);
     r.add("application.minio-local.accessKey",() -> access);
     r.add("application.minio-local.secretKey",() -> secret);
+    r.add("application.minio-remote.subPath",() -> "local");
 
     r.add("application.minio-remote.endpoint", () -> endpoint);
     r.add("application.minio-remote.region",   () -> region);
     r.add("application.minio-remote.accessKey",() -> access);
     r.add("application.minio-remote.secretKey",() -> secret);
+    r.add("application.minio-remote.subPath",() -> "remote");
   }
 
   @BeforeAll

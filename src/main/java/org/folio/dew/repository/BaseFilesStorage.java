@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 
 @Log4j2
 public class BaseFilesStorage implements S3CompatibleStorage {
@@ -52,6 +51,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     final String endpoint = properties.getEndpoint();
     final String regionName = properties.getRegion();
     final String secretKey = properties.getSecretKey();
+    final String subPath = properties.getSubPath();
     boolean isComposeWithAwsSdk = properties.isComposeWithAwsSdk();
     final boolean isForcePathStyle = properties.isForcePathStyle();
 
@@ -66,6 +66,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
         .bucket(bucket)
         .awsSdk(isComposeWithAwsSdk)
         .forcePathStyle(isForcePathStyle)
+        .subPath(subPath)
         .region(regionName)
         .build());
 
@@ -90,7 +91,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
         .contentDisposition(headers.get(HttpHeaders.CONTENT_DISPOSITION))
         .contentType(headers.get(HttpHeaders.CONTENT_TYPE))
         .build();
-    return client.write(getS3Path(path), new ByteArrayInputStream(bytes), bytes.length, options);
+    return client.write(path, new ByteArrayInputStream(bytes), bytes.length, options);
   }
 
   public String write(String path, byte[] bytes) throws IOException {
@@ -104,7 +105,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @throws FileOperationException if an I/O error occurs
    */
   public void delete(String path) {
-    client.remove(walk(getS3Path(path)).toArray(String[]::new));
+    client.remove(walk(path).toArray(String[]::new));
   }
 
   /**
@@ -114,7 +115,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @throws FileOperationException if an I/O error occurs
    */
   public void delete(List<String> objects) {
-    client.remove(objects.stream().map(this::getS3Path).toArray(String[]::new));
+    client.remove(objects.toArray(String[]::new));
   }
 
   /**
@@ -126,7 +127,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @throws FileOperationException if an I/O error occurs
    */
   public Stream<String> walk(String path) {
-    return getInternalStructure(getS3Path(path));
+    return getInternalStructure(path);
   }
 
   /**
@@ -137,7 +138,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    */
   public boolean exists(String path)  {
     try {
-      var paths =  client.list(getS3Path(path));
+      var paths =  client.list(path);
       return !paths.isEmpty() && Objects.nonNull(paths.getFirst());
     } catch (Exception e) {
       log.error("Error file existing verification, path: {}", path, e);
@@ -161,7 +162,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @return a new input stream
    */
   public InputStream newInputStream(String path) {
-    return client.read(getS3Path(path));
+    return client.read(path);
   }
 
   /**
@@ -213,7 +214,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
 
   public String compose(String destObject, List<String> sourceObjects, String downloadFilename,
       String contentType) {
-    destObject = getS3Path(destObject);
+    sourceObjects = sourceObjects.stream().map(x -> x.substring(1)).toList();
 
     var headers = prepareHeaders(downloadFilename, contentType);
     var result = client.compose(destObject, sourceObjects, PutObjectAdditionalOptions.builder()
@@ -225,7 +226,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
   }
 
   public String objectToPresignedObjectUrl(String object) {
-    return client.getPresignedUrl(getS3Path(object), Method.GET, urlExpirationTimeInSeconds, TimeUnit.SECONDS);
+    return client.getPresignedUrl(object, Method.GET, urlExpirationTimeInSeconds, TimeUnit.SECONDS);
   }
 
   Map<String, String> prepareHeaders(String downloadFilename, String contentType) {
@@ -243,15 +244,5 @@ public class BaseFilesStorage implements S3CompatibleStorage {
 
   private Stream<String> getInternalStructure(String path)  {
     return client.listRecursive(path).stream();
-  }
-
-  private String getS3Path(String path) {
-    if (StringUtils.isBlank(subPath) || StringUtils.startsWith(path, subPath + PATH_SEPARATOR)) {
-      return path;
-    }
-    if (path.startsWith(PATH_SEPARATOR)) {
-      return subPath + path;
-    }
-    return subPath + PATH_SEPARATOR + path;
   }
 }

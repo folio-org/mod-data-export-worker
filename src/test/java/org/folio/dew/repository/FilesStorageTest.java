@@ -20,7 +20,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static java.util.List.of;
 import static java.util.stream.Collectors.toList;
-import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -44,12 +43,11 @@ class FilesStorageTest extends BaseIntegration {
   @ValueSource(ints = {1024, ObjectWriteArgs.MIN_MULTIPART_SIZE + 1 })
   @DisplayName("Create files and read internal objects structure")
   void testWriteRead(int size) throws IOException {
-    var subPath = localFilesStorageProperties.getSubPath() + PATH_SEPARATOR;
     byte[] content = getRandomBytes(size);
     var original = of("directory_1/CSV_Data_1.csv", "directory_1/directory_2/CSV_Data_2.csv",
         "directory_1/directory_2/directory_3/CSV_Data_3.csv");
-    var expectedS3Pathes = of(subPath + "directory_1/CSV_Data_1.csv", subPath + "directory_1/directory_2/CSV_Data_2.csv",
-      subPath + "directory_1/directory_2/directory_3/CSV_Data_3.csv");
+    var expectedS3Pathes = of("directory_1/CSV_Data_1.csv", "directory_1/directory_2/CSV_Data_2.csv",
+      "directory_1/directory_2/directory_3/CSV_Data_3.csv");
     List<String> actual;
     try {
       actual = original.stream()
@@ -67,14 +65,14 @@ class FilesStorageTest extends BaseIntegration {
 
     assertTrue(Objects.deepEquals(expectedS3Pathes, actual));
 
-    assertTrue(Objects.deepEquals(localFilesStorage.walk(subPath + "directory_1/")
+    assertTrue(Objects.deepEquals(localFilesStorage.walk("directory_1/")
       .collect(toList()),
-        of(subPath + "directory_1/CSV_Data_1.csv", subPath + "directory_1/directory_2/CSV_Data_2.csv",
-          subPath + "directory_1/directory_2/directory_3/CSV_Data_3.csv")));
+        of("directory_1/CSV_Data_1.csv", "directory_1/directory_2/CSV_Data_2.csv",
+          "directory_1/directory_2/directory_3/CSV_Data_3.csv")));
 
-    assertTrue(Objects.deepEquals(localFilesStorage.walk(subPath + "directory_1/directory_2/")
+    assertTrue(Objects.deepEquals(localFilesStorage.walk("directory_1/directory_2/")
       .collect(toList()),
-        of(subPath + "directory_1/directory_2/CSV_Data_2.csv", subPath + "directory_1/directory_2/directory_3/CSV_Data_3.csv")));
+        of("directory_1/directory_2/CSV_Data_2.csv", "directory_1/directory_2/directory_3/CSV_Data_3.csv")));
 
     original.forEach(p -> assertTrue(localFilesStorage.exists(p)));
 
@@ -92,9 +90,9 @@ class FilesStorageTest extends BaseIntegration {
 
     byte[] original = getRandomBytes(size);
     var remoteFilePath = "directory_1/directory_2/CSV_Data.csv";
-    var expectedS3FilePath = localFilesStorageProperties.getSubPath() + PATH_SEPARATOR + remoteFilePath;
+//    var expectedS3FilePath = localFilesStorageProperties.getSubPath() + PATH_SEPARATOR + remoteFilePath;
 
-    assertThat(localFilesStorage.write(remoteFilePath, original), is(expectedS3FilePath));
+    assertThat(localFilesStorage.write(remoteFilePath, original), is(remoteFilePath));
     assertTrue(localFilesStorage.exists(remoteFilePath));
 
     assertTrue(Objects.deepEquals(localFilesStorage.readAllBytes(remoteFilePath), original));
@@ -129,7 +127,7 @@ class FilesStorageTest extends BaseIntegration {
 
     var uploadedPath = localFilesStorage.write(path, content);
 
-    assertEquals("local/directory/data.csv", uploadedPath);
+    assertEquals("directory/data.csv", uploadedPath);
     assertTrue(localFilesStorage.exists(path));
     assertTrue(localFilesStorage.exists(uploadedPath));
   }

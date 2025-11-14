@@ -1,6 +1,7 @@
 package org.folio.dew.repository;
 
 import io.minio.ObjectWriteArgs;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.config.properties.LocalFilesStorageProperties;
 import org.folio.s3.exception.S3ClientException;
@@ -22,6 +23,7 @@ import static java.util.stream.Collectors.toList;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Log4j2
 @SpringBootTest(classes = {LocalFilesStorageProperties.class, LocalFilesStorage.class})
 @EnableConfigurationProperties
-class LocalFilesStorageTest {
+class FilesStorageTest extends BaseIntegration {
   private static final String NON_EXISTING_PATH = "non-existing-path";
 
   @Autowired
@@ -117,6 +119,19 @@ class LocalFilesStorageTest {
     localFilesStorage.delete(NON_EXISTING_PATH);
 
     assertFalse(localFilesStorage.exists(NON_EXISTING_PATH));
+  }
+
+  @Test
+  @SneakyThrows
+  void testContainsFile() {
+    byte[] content = "content".getBytes();
+    var path = "directory/data.csv";
+
+    var uploadedPath = localFilesStorage.write(path, content);
+
+    assertEquals("local/directory/data.csv", uploadedPath);
+    assertTrue(localFilesStorage.exists(path));
+    assertTrue(localFilesStorage.exists(uploadedPath));
   }
 
   private byte[] getRandomBytes(int size) {

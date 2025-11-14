@@ -86,16 +86,15 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @throws IOException - if an I/O error occurs
    */
   public String write(String path, byte[] bytes, Map<String, String> headers) throws IOException {
-
     var options = PutObjectAdditionalOptions.builder()
         .contentDisposition(headers.get(HttpHeaders.CONTENT_DISPOSITION))
         .contentType(headers.get(HttpHeaders.CONTENT_TYPE))
         .build();
-    return client.write(getS3Path(path), new ByteArrayInputStream(bytes), 0L, options);
+    return client.write(getS3Path(path), new ByteArrayInputStream(bytes), bytes.length, options);
   }
 
   public String write(String path, byte[] bytes) throws IOException {
-    return client.write(getS3Path(path), new ByteArrayInputStream(bytes));
+    return write(path, bytes, new HashMap<>());
   }
 
   /**

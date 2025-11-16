@@ -1,5 +1,7 @@
 package org.folio.dew.batch;
 
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,7 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
   private S storage;
   @Setter
   private LineAggregator<T> lineAggregator;
+  private final Map<String, String> HEADERS = new HashMap<>();
 
   public AbstractStorageStreamWriter(String tempOutputFilePath, LocalFilesStorage localFilesStorage) {
     // TODO Should be implemented for MarcWriter
@@ -48,13 +51,7 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
 
     setLineAggregator(aggregator);
 
-    if (StringUtils.isNotBlank(columnHeaders)) {
-      try {
-        storage.write(tempOutputFilePath, (columnHeaders + '\n').getBytes(StandardCharsets.UTF_8));
-      } catch (IOException e) {
-        throw new FileOperationException(e);
-      }
-    }
+    HEADERS.put(tempOutputFilePath, columnHeaders + '\n');
 
     setResource(new S3CompatibleResource<>(tempOutputFilePath, storage));
 
@@ -71,10 +68,13 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
 
   @Override
   public void write(Chunk<? extends T> items) throws Exception {
+    var filename = resource.getFilename();
     var sb = new StringBuilder();
+    sb.append(HEADERS.get(filename));
     for (T item : items) {
       sb.append(lineAggregator.aggregate(item)).append('\n');
     }
-    storage.write(resource.getFilename(), sb.toString().getBytes(StandardCharsets.UTF_8));
+    storage.write(filename, sb.toString().getBytes(StandardCharsets.UTF_8));
+    HEADERS.remove(filename);
   }
 }

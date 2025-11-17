@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.folio.de.entity.EHoldingsPackage;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
@@ -132,7 +133,13 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
   }
 
   private void writeString(String str) throws IOException {
-    localFilesStorage.write(tempOutputFilePath, str.getBytes(StandardCharsets.UTF_8));
+    byte[] bytesHeader = new byte[0];
+    try {
+      bytesHeader = localFilesStorage.readAllBytes(tempOutputFilePath);
+    } catch (IOException e) {
+      // Just ignore it if there's nothing to append to.
+    }
+    localFilesStorage.write(tempOutputFilePath, ArrayUtils.addAll(bytesHeader, str.getBytes(StandardCharsets.UTF_8)));
   }
 
   private String getHeader(List<String> fieldNames) {

@@ -51,7 +51,6 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     final String endpoint = properties.getEndpoint();
     final String regionName = properties.getRegion();
     final String secretKey = properties.getSecretKey();
-    final String subPath = properties.getSubPath();
     boolean isComposeWithAwsSdk = properties.isComposeWithAwsSdk();
     final boolean isForcePathStyle = properties.isForcePathStyle();
 
@@ -214,7 +213,6 @@ public class BaseFilesStorage implements S3CompatibleStorage {
 
   public String compose(String destObject, List<String> sourceObjects, String downloadFilename,
       String contentType) {
-    sourceObjects = sourceObjects.stream().map(x -> x.substring(1)).toList();
 
     var headers = prepareHeaders(downloadFilename, contentType);
     var result = client.compose(destObject, sourceObjects, PutObjectAdditionalOptions.builder()

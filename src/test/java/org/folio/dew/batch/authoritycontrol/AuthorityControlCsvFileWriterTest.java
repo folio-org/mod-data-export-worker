@@ -37,6 +37,7 @@ class AuthorityControlCsvFileWriterTest {
     authorityControlCsvFileWriter = new AuthorityControlCsvFileWriter(AuthUpdateHeadingExportFormat.class, TEMP_FILE,
       localFilesStorage, folioTenantService);
     lenient().when(localFilesStorage.write(anyString(), any())).thenReturn("/path");
+    lenient().when(localFilesStorage.readAllBytes(anyString())).thenReturn("header".getBytes(StandardCharsets.UTF_8));
   }
 
   @Test
@@ -70,7 +71,8 @@ class AuthorityControlCsvFileWriterTest {
     authorityControlCsvFileWriter.afterStep();
 
     //Then
-    verify(localFilesStorage).write(TEMP_FILE, "No records found".getBytes(StandardCharsets.UTF_8));
+    verify(localFilesStorage).write(TEMP_FILE, ("header\n"
+        + "No records found").getBytes(StandardCharsets.UTF_8));
   }
 
   @Test

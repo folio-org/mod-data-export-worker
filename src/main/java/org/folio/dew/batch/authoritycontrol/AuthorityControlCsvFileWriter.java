@@ -74,6 +74,17 @@ public class AuthorityControlCsvFileWriter extends AbstractFileItemWriter<Author
   }
 
   private void writeString(String str) throws IOException {
+
+    try {
+      var header = new String(localFilesStorage.readAllBytes(tempOutputFilePath));
+      if (header.charAt(header.length() - 1) != '\n') {
+        str = header + "\n" + str;
+      } else {
+        str = header + str;
+      }
+    } catch (IOException e) {
+      // Just ignore it if there's nothing to append to.
+    }
     localFilesStorage.write(tempOutputFilePath, str.getBytes(StandardCharsets.UTF_8));
   }
 

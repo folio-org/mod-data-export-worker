@@ -10,7 +10,6 @@ import org.springframework.batch.core.partition.support.StepExecutionAggregator;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 @Component
 @Log4j2
@@ -24,7 +23,7 @@ public class CsvFileAssembler implements StepExecutionAggregator {
   public void aggregate(StepExecution stepExecution, Collection<StepExecution> finishedStepExecutions) {
     var csvFilePartObjectNames = finishedStepExecutions.stream()
         .map(e -> e.getExecutionContext().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH))
-        .collect(Collectors.toList());
+        .toList();
     var destCsvObject = FilenameUtils.getName(
         stepExecution.getJobExecution().getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + ".csv");
     try {
@@ -41,7 +40,7 @@ public class CsvFileAssembler implements StepExecutionAggregator {
 
         var jsonFilePartObjectNames = finishedStepExecutions.stream()
           .map(e -> e.getExecutionContext().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + ".json")
-          .collect(Collectors.toList());
+          .toList();
         var destJsonObject = prefix + FilenameUtils.getName(
           stepExecution.getJobExecution().getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + ".json");
         var jsonUrl = remoteFilesStorage.objectToPresignedObjectUrl(

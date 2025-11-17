@@ -44,8 +44,7 @@ class LocalFilesStorageAwsSdkComposingTest extends BaseIntegration {
     assertTrue(localFilesStorage.exists(remoteFilePath));
 
     assertTrue(Objects.deepEquals(localFilesStorage.readAllBytes(remoteFilePath), original));
-    assertTrue(Objects.deepEquals(localFilesStorage.lines(remoteFilePath)
-      .collect(toList()), new String(original, StandardCharsets.UTF_8).lines().toList()));
+    assertTrue(Objects.deepEquals(localFilesStorage.lines(remoteFilePath).toList(), new String(original, StandardCharsets.UTF_8).lines().toList()));
 
     localFilesStorage.delete(remoteFilePath);
     assertTrue(localFilesStorage.notExists(remoteFilePath));

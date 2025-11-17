@@ -6,7 +6,6 @@ import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.LocalFilesStorage;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class DataExportCsvItemReader extends CsvItemReader<ItemIdentifier> {
 
@@ -30,7 +29,7 @@ public class DataExportCsvItemReader extends CsvItemReader<ItemIdentifier> {
           .skip(offset)
           .limit(limit)
           .map(ItemIdentifier::new)
-          .collect(Collectors.toList());
+          .toList();
       }
     } catch (Exception e) {
       throw new FileOperationException(e.getMessage());

@@ -84,7 +84,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       return;
     }
     var files = localFilesStorage.walk(path)
-      .filter(name -> FilenameUtils.getName(name).startsWith(fileNameStart)).collect(Collectors.toList());
+      .filter(name -> FilenameUtils.getName(name).startsWith(fileNameStart)).toList();
     if (files.isEmpty()) {
       return;
     }

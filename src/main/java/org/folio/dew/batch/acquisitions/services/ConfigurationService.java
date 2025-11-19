@@ -2,16 +2,13 @@ package org.folio.dew.batch.acquisitions.services;
 
 import java.util.UUID;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.dew.client.ConfigurationClient;
-import org.folio.dew.domain.dto.ModelConfiguration;
-import org.folio.dew.error.NotFoundException;
+import org.folio.dew.client.SettingsClient;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +18,7 @@ public class ConfigurationService {
 
   private static final Logger logger = LogManager.getLogger();
 
-  private final ConfigurationClient configurationClient;
+  private final SettingsClient settingsClient;
   private final ObjectMapper objectMapper;
 
   @Cacheable(cacheNames = "addressConfiguration")
@@ -30,22 +27,19 @@ public class ConfigurationService {
       logger.warn("getAddressConfig:: shipToConfigId is null");
       return "";
     }
-    ModelConfiguration config;
     try {
-      config = configurationClient.getConfigById(shipToConfigId.toString());
-    } catch (NotFoundException e) {
-      logger.warn("getAddressConfig:: Cannot find config by id: '{}'", shipToConfigId);
-      return "";
-    }
-    if (config.getValue() == null) {
-      logger.warn("getAddressConfig:: Address on the config with id '{}' is not found", shipToConfigId);
-      return "";
-    }
-    try {
-      JsonNode valueJsonObject = objectMapper.readTree(config.getValue());
+      var settingEntry = settingsClient.getSettingById(shipToConfigId.toString());
+
+      if (settingEntry == null || !settingEntry.containsKey("value")) {
+        logger.warn("getAddressConfig:: Address on the config with id '{}' is not found", shipToConfigId);
+        return "";
+      }
+
+      var value = settingEntry.get("value");
+      JsonNode valueJsonObject = objectMapper.valueToTree(value);
       return valueJsonObject.has("address") ? valueJsonObject.get("address").asText() : "";
-    } catch (JsonProcessingException e) {
-      logger.error("getAddressConfig:: Cannot convert config value: {} to json", config, e);
+    } catch (Exception e) {
+      logger.warn("getAddressConfig:: Cannot find config by id: '{}'", shipToConfigId, e);
       return "";
     }
   }

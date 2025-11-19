@@ -3,11 +3,11 @@
     {
       "request": {
         "method": "GET",
-        "url": "/configurations/entries?query=%28module%3D%3DORG%20and%20configName%3D%3DlocaleSettings%29"
+        "url": "/settings/entries/1947e709-8d60-42e2-8dde-7566ae446d24"
       },
       "response": {
         "status": 200,
-        "body": "{\n    \"configs\": [\n        {\n            \"id\": \"8b6fcaae-e5bc-4878-a68d-56c11eea68c0\",\n            \"module\": \"ORG\",\n            \"configName\": \"localeSettings\",\n            \"enabled\": true,\n            \"value\": \"{\\\"locale\\\":\\\"en-US\\\",\\\"timezone\\\":\\\"Pacific/Yap\\\"}\",\n            \"metadata\": {\n                \"createdDate\": \"2021-07-07T14:45:26.120+00:00\",\n                \"createdByUserId\": \"36fa42eb-55e0-57e0-ad3b-1dc8b6a6bb31\",\n                \"updatedDate\": \"2021-07-07T14:46:23.639+00:00\",\n                \"updatedByUserId\": \"36fa42eb-55e0-57e0-ad3b-1dc8b6a6bb31\"\n            }\n        }\n    ],\n    \"totalRecords\": 1,\n    \"resultInfo\": {\n        \"totalRecords\": 1,\n        \"facets\": [],\n        \"diagnostics\": []\n    }\n}",
+        "body": "{\n  \"id\": \"1947e709-8d60-42e2-8dde-7566ae446d24\",\n  \"scope\": \"ui-tenant-settings.addresses.manage\",\n  \"key\": \"ADDRESS_1723093000876\",\n  \"value\": {\n    \"name\": \"Name 1\",\n    \"address\": \"Address 123\"\n  },\n  \"metadata\": {\n    \"createdDate\": \"2024-08-08T04:56:41.232+00:00\",\n    \"createdByUserId\": \"0c79340d-ad6e-4c9a-8384-bac681d24f8c\",\n    \"updatedDate\": \"2024-08-08T04:56:51.654+00:00\",\n    \"updatedByUserId\": \"0c79340d-ad6e-4c9a-8384-bac681d24f8c\"\n  }\n}\n",
         "headers": {
           "Content-Type": "application/json"
         }
@@ -16,20 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/configurations/entries/1947e709-8d60-42e2-8dde-7566ae446d24"
-      },
-      "response": {
-        "status": 200,
-        "body": "{\n  \"id\": \"1947e709-8d60-42e2-8dde-7566ae446d24\",\n  \"module\": \"TENANT\",\n  \"configName\": \"tenant.addresses\",\n  \"code\": \"ADDRESS_1723093000876\",\n  \"enabled\": true,\n  \"value\": \"{\\\"name\\\":\\\"Name 1\\\",\\\"address\\\":\\\"Address 123\\\"}\",\n  \"metadata\": {\n    \"createdDate\": \"2024-08-08T04:56:41.232+00:00\",\n    \"createdByUserId\": \"0c79340d-ad6e-4c9a-8384-bac681d24f8c\",\n    \"updatedDate\": \"2024-08-08T04:56:51.654+00:00\",\n    \"updatedByUserId\": \"0c79340d-ad6e-4c9a-8384-bac681d24f8c\"\n  }\n}\n",
-        "headers": {
-          "Content-Type": "application/json"
-        }
-      }
-    },
-    {
-      "request": {
-        "method": "GET",
-        "url": "/configurations/entries/116a38c2-cac3-4f08-816b-afebfebe453d"
+        "url": "/settings/entries/116a38c2-cac3-4f08-816b-afebfebe453d"
       },
       "response": {
         "status": 200,
@@ -42,7 +29,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/configurations/entries/c5cefe49-e4d4-433e-b286-24ffd935b043"
+        "url": "/settings/entries/c5cefe49-e4d4-433e-b286-24ffd935b043"
       },
       "response": {
         "status": 404,
@@ -55,42 +42,11 @@
     {
       "request": {
         "method": "GET",
-        "url": "/configurations/entries/8ea92aa2-7b11-4f0e-9ed2-ab8fe281f37f"
+        "url": "/settings/entries/8ea92aa2-7b11-4f0e-9ed2-ab8fe281f37f"
       },
       "response": {
         "status": 200,
-        "body": "{\n  \"id\": \"1947e709-8d60-42e2-8dde-7566ae446d24\",\n  \"module\": \"TENANT\",\n  \"configName\": \"tenant.addresses\",\n  \"code\": \"ADDRESS_1723093000876\",\n  \"enabled\": true,\n  \"value\": \"{\\\"name\\\":\\\"Name 1\\\"}\",\n  \"metadata\": {\n    \"createdDate\": \"2024-08-08T04:56:41.232+00:00\",\n    \"createdByUserId\": \"0c79340d-ad6e-4c9a-8384-bac681d24f8c\",\n    \"updatedDate\": \"2024-08-08T04:56:51.654+00:00\",\n    \"updatedByUserId\": \"0c79340d-ad6e-4c9a-8384-bac681d24f8c\"\n  }\n}\n",
-        "headers": {
-          "Content-Type": "application/json"
-        }
-      }
-    },
-    {
-      "scenarioName": "First call should return empty collection",
-      "requiredScenarioState": "Started",
-      "newScenarioState": "Configuration is present",
-      "request": {
-        "method": "GET",
-        "url": "/configurations/entries?query=module%3D%3DBULKEDIT%20and%20configName%3D%3Dstatuses"
-      },
-      "response": {
-        "status": 200,
-        "body": "{\n    \"configs\": [],\n    \"totalRecords\": 0,\n    \"resultInfo\": {\n        \"totalRecords\": 0,\n        \"facets\": [],\n        \"diagnostics\": []\n    }\n}",
-        "headers": {
-          "Content-Type": "application/json"
-        }
-      }
-    },
-    {
-      "scenarioName": "First call should return empty collection",
-      "requiredScenarioState": "Configuration is present",
-      "request": {
-        "method": "GET",
-        "url": "/configurations/entries?query=module%3D%3DBULKEDIT%20and%20configName%3D%3Dstatuses"
-      },
-      "response": {
-        "status": 200,
-        "body": "{\n    \"configs\": [\n        {\n            \"id\": \"a143fe98-cc6a-4006-82c5-66672b9ce4fa\",\n            \"module\": \"BULKEDIT\",\n            \"configName\": \"statuses\",\n            \"default\": true,\n            \"enabled\": true,\n            \"value\": \"{\\\"Missing\\\":[\\\"Available\\\",\\\"Withdrawn\\\",\\\"In process (non-requestable)\\\",\\\"Intellectual item\\\",\\\"Long missing\\\",\\\"Restricted\\\",\\\"Unavailable\\\",\\\"Unknown\\\"],\\\"Long missing\\\":[\\\"Available\\\",\\\"Missing\\\",\\\"Withdrawn\\\",\\\"In process (non-requestable)\\\",\\\"Intellectual item\\\",\\\"Restricted\\\",\\\"Unavailable\\\",\\\"Unknown\\\"],\\\"Unknown\\\":[\\\"Available\\\",\\\"Missing\\\",\\\"Withdrawn\\\",\\\"In process (non-requestable)\\\",\\\"Intellectual item\\\",\\\"Long missing\\\",\\\"Restricted\\\",\\\"Unavailable\\\"],\\\"Restricted\\\":[\\\"Available\\\",\\\"Missing\\\",\\\"Withdrawn\\\",\\\"In process (non-requestable)\\\",\\\"Intellectual item\\\",\\\"Long missing\\\",\\\"Unavailable\\\",\\\"Unknown\\\"],\\\"In process (non-requestable)\\\":[\\\"Available\\\",\\\"Missing\\\",\\\"Withdrawn\\\",\\\"Intellectual item\\\",\\\"Long missing\\\",\\\"Restricted\\\",\\\"Unavailable\\\",\\\"Unknown\\\"],\\\"Available\\\":[\\\"Missing\\\",\\\"Withdrawn\\\",\\\"In process (non-requestable)\\\",\\\"Intellectual item\\\",\\\"Long missing\\\",\\\"Restricted\\\",\\\"Unavailable\\\",\\\"Unknown\\\"],\\\"Withdrawn\\\":[\\\"Available\\\",\\\"Missing\\\",\\\"In process (non-requestable)\\\",\\\"Intellectual item\\\",\\\"Long missing\\\",\\\"Restricted\\\",\\\"Unavailable\\\",\\\"Unknown\\\"],\\\"Intellectual item\\\":[\\\"Available\\\",\\\"Missing\\\",\\\"Withdrawn\\\",\\\"In process (non-requestable)\\\",\\\"Long missing\\\",\\\"Restricted\\\",\\\"Unavailable\\\",\\\"Unknown\\\"],\\\"Unavailable\\\":[\\\"Available\\\",\\\"Missing\\\",\\\"Withdrawn\\\",\\\"In process (non-requestable)\\\",\\\"Intellectual item\\\",\\\"Long missing\\\",\\\"Restricted\\\",\\\"Unknown\\\"]}\",\n            \"metadata\": {\n                \"createdDate\": \"2022-04-17T14:45:46.622+00:00\",\n                \"createdByUserId\": \"3096e76a-aac3-5ee2-b7e3-05db58f5b83e\",\n                \"updatedDate\": \"2022-04-17T14:45:46.622+00:00\",\n                \"updatedByUserId\": \"3096e76a-aac3-5ee2-b7e3-05db58f5b83e\"\n            }\n        }\n    ],\n    \"totalRecords\": 1,\n    \"resultInfo\": {\n        \"totalRecords\": 1,\n        \"facets\": [],\n        \"diagnostics\": []\n    }\n}",
+        "body": "{\n  \"id\": \"8ea92aa2-7b11-4f0e-9ed2-ab8fe281f37f\",\n  \"scope\": \"ui-tenant-settings.addresses.manage\",\n  \"key\": \"ADDRESS_1723093000876\",\n  \"value\": {\n    \"name\": \"Name 1\"\n  },\n  \"metadata\": {\n    \"createdDate\": \"2024-08-08T04:56:41.232+00:00\",\n    \"createdByUserId\": \"0c79340d-ad6e-4c9a-8384-bac681d24f8c\",\n    \"updatedDate\": \"2024-08-08T04:56:51.654+00:00\",\n    \"updatedByUserId\": \"0c79340d-ad6e-4c9a-8384-bac681d24f8c\"\n  }\n}\n",
         "headers": {
           "Content-Type": "application/json"
         }

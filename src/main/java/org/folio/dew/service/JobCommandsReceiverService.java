@@ -152,7 +152,7 @@ public class JobCommandsReceiverService {
       }
     }).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
     if (!objects.isEmpty()) {
-      remoteFilesStorage.removeObjects(objects);
+      remoteFilesStorage.delete(objects);
     }
     jobCommandRepository.delete(jobCommand);
     return true;

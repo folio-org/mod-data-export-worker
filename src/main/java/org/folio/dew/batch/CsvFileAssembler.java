@@ -10,7 +10,6 @@ import org.springframework.batch.core.partition.support.StepExecutionAggregator;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 @Component
 @Log4j2
@@ -24,12 +23,12 @@ public class CsvFileAssembler implements StepExecutionAggregator {
   public void aggregate(StepExecution stepExecution, Collection<StepExecution> finishedStepExecutions) {
     var csvFilePartObjectNames = finishedStepExecutions.stream()
         .map(e -> e.getExecutionContext().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH))
-        .collect(Collectors.toList());
+        .toList();
     var destCsvObject = FilenameUtils.getName(
         stepExecution.getJobExecution().getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + ".csv");
     try {
       if ("CIRCULATION_LOG".equals(stepExecution.getJobExecution().getJobInstance().getJobName())) {
-        var csvUrl = remoteFilesStorage.composeObject(destCsvObject, csvFilePartObjectNames, null, TEXT_CSV);
+        var csvUrl = remoteFilesStorage.compose(destCsvObject, csvFilePartObjectNames, null, TEXT_CSV);
         ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.CIRCULATION_LOG_FILE_NAME, destCsvObject, ";");
         ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, csvUrl, ";");
       } else {
@@ -37,15 +36,15 @@ public class CsvFileAssembler implements StepExecutionAggregator {
 
         destCsvObject = prefix + destCsvObject;
         var csvUrl = remoteFilesStorage.objectToPresignedObjectUrl(
-          remoteFilesStorage.composeObject(destCsvObject, csvFilePartObjectNames, null, TEXT_CSV));
+          remoteFilesStorage.compose(destCsvObject, csvFilePartObjectNames, null, TEXT_CSV));
 
         var jsonFilePartObjectNames = finishedStepExecutions.stream()
           .map(e -> e.getExecutionContext().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + ".json")
-          .collect(Collectors.toList());
+          .toList();
         var destJsonObject = prefix + FilenameUtils.getName(
           stepExecution.getJobExecution().getJobParameters().getString(JobParameterNames.TEMP_OUTPUT_FILE_PATH) + ".json");
         var jsonUrl = remoteFilesStorage.objectToPresignedObjectUrl(
-          remoteFilesStorage.composeObject(destJsonObject, jsonFilePartObjectNames, null, TEXT_CSV));
+          remoteFilesStorage.compose(destJsonObject, jsonFilePartObjectNames, null, TEXT_CSV));
 
         ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.OUTPUT_FILES_IN_STORAGE, csvUrl + ";;" + jsonUrl, ";");
       }

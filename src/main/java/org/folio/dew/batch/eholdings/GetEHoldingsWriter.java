@@ -4,8 +4,6 @@ import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_MAX_TI
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_TOTAL_RESOURCES;
 
 import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceDTO;
 import org.folio.dew.repository.EHoldingsResourceRepository;
@@ -40,7 +38,7 @@ public class GetEHoldingsWriter implements ItemWriter<EHoldingsResourceDTO> {
 
   @Override
   public void write(Chunk<? extends EHoldingsResourceDTO> list) throws Exception {
-    var resources = list.getItems().stream().map(EHoldingsResourceMapper::convertToEntity).collect(Collectors.toList());
+    var resources = list.getItems().stream().map(EHoldingsResourceMapper::convertToEntity).toList();
     resources.forEach(r -> r.setJobExecutionId(jobId));
     repository.saveAll(resources);
     jobExecution.getExecutionContext().putInt(CONTEXT_TOTAL_RESOURCES,

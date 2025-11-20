@@ -11,10 +11,6 @@
       "version": "13.0 14.0"
     },
     {
-      "id": "configuration",
-      "version": "2.0"
-    },
-    {
       "id": "feesfines",
       "version": "18.0 19.1"
     },
@@ -253,10 +249,7 @@
             "users.collection.get",
             "transfers.collection.get",
             "inventory-storage.service-points.collection.get",
-            "instance-authority-links.authority-statistics.collection.get",
-            "configuration.entries.collection.get",
-            "configuration.entries.item.post",
-            "configuration.entries.item.delete"
+            "instance-authority-links.authority-statistics.collection.get"
           ]
         },
         {

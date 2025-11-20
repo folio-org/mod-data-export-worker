@@ -60,7 +60,7 @@ class EHoldingsCsvFileWriterTest {
     lenient().when(jobExecution.getExecutionContext()).thenReturn(executionContext);
     lenient().when(executionContext.getInt(anyString(), anyInt())).thenReturn(100);
     lenient().when(exportConfig.getRecordId()).thenReturn("recordId");
-    lenient().doNothing().when(localFilesStorage).append(anyString(), any());
+    lenient().doNothing().when(localFilesStorage).append(anyString(), any(byte[].class));
     EHoldingsPackageExportFormat exportFormat = new EHoldingsPackageExportFormat();
     exportFormat.setPackageId("packageId");
     exportFormat.setPackageName("packageName");
@@ -82,7 +82,7 @@ class EHoldingsCsvFileWriterTest {
 
     eHoldingsCsvFileWriter.beforeStep(stepExecution);
 
-    verify(localFilesStorage, times(localFileStorageInvocations)).append(anyString(), any());
+    verify(localFilesStorage, times(localFileStorageInvocations)).append(anyString(), any(byte[].class));
     verify(packageRepository, times(packageRepositoryInvocations)).findById(any());
     verify(mapper, times(mapperInvocations)).convertToExportFormat(any(EHoldingsPackage.class));
   }
@@ -102,7 +102,7 @@ class EHoldingsCsvFileWriterTest {
     eHoldingsCsvFileWriter.write(new Chunk<>(items));
 
     //Then
-    verify(localFilesStorage, times(localFileStorageInvocations)).append(anyString(), any());
+    verify(localFilesStorage, times(localFileStorageInvocations)).append(anyString(), any(byte[].class));
   }
 
   private static Stream<Arguments> provideParameters() {

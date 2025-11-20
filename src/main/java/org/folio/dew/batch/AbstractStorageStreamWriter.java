@@ -1,12 +1,12 @@
 package org.folio.dew.batch;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.error.FileOperationException;
+import org.folio.dew.repository.AbstractFilesStorage;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.S3CompatibleResource;
-import org.folio.dew.repository.S3CompatibleStorage;
+import org.folio.s3.exception.S3ClientException;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
@@ -14,15 +14,10 @@ import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.item.file.transform.LineAggregator;
 import org.springframework.core.io.WritableResource;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import static org.folio.dew.utils.Constants.LINE_SEPARATOR;
-import static org.folio.dew.utils.Constants.LINE_SEPARATOR_REPLACEMENT;
 
 @Slf4j
-public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> implements ItemWriter<T> {
+public class AbstractStorageStreamWriter<T, S extends AbstractFilesStorage> implements ItemWriter<T> {
 
   private WritableResource resource;
   private S storage;
@@ -52,7 +47,7 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
     if (StringUtils.isNotBlank(columnHeaders)) {
       try {
         storage.write(tempOutputFilePath, (columnHeaders + '\n').getBytes(StandardCharsets.UTF_8));
-      } catch (IOException e) {
+      } catch (S3ClientException e) {
         throw new FileOperationException(e);
       }
     }
@@ -78,7 +73,7 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
     return lineAggregator;
   }
 
-  public S3CompatibleStorage getStorage() {
+  public AbstractFilesStorage getStorage() {
     return storage;
   }
 

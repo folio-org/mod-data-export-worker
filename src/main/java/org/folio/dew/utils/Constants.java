@@ -10,6 +10,7 @@ public class Constants {
 
   public static final String ROLLBACK_FILE = "rollBackFile";
   public static final String PATH_SEPARATOR = "/";
+  public static final String TMP_PATH_PREFIX = "tmp"; // used for temporary S3 storage of local files
   public static final String MATCHED_RECORDS = "-Matched-Records-";
   public static final String CHANGED_RECORDS = "-Changed-Records-";
   public static final String UPDATED_PREFIX = "UPDATED-";

@@ -1,6 +1,7 @@
 package org.folio.dew.config.properties;
 
 import lombok.Data;
+import org.folio.s3.client.S3ClientProperties;
 
 @Data
 public class MinioClientProperties {
@@ -50,4 +51,18 @@ public class MinioClientProperties {
    * Presigned url expiration time (in seconds).
    */
   private int urlExpirationTimeInSeconds;
+
+  public S3ClientProperties toS3ClientProperties() {
+    return S3ClientProperties
+      .builder()
+      .endpoint(endpoint)
+      .region(region)
+      .bucket(bucket)
+      .accessKey(accessKey)
+      .secretKey(secretKey)
+      .awsSdk(composeWithAwsSdk)
+      .forcePathStyle(forcePathStyle)
+      .subPath(subPath)
+      .build();
+  }
 }

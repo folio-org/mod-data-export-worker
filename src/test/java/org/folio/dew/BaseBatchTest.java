@@ -133,23 +133,23 @@ public abstract class BaseBatchTest {
   }
 
   @DynamicPropertySource
-  static void properties(DynamicPropertyRegistry r) {
+  static void properties(DynamicPropertyRegistry dynamicPropertyRegistry) {
     String endpoint = localstack.getEndpointOverride(S3).toString();
     String region   = localstack.getRegion();
     String access   = localstack.getAccessKey();
     String secret   = localstack.getSecretKey();
 
-    r.add("application.minio-local.endpoint", () -> endpoint);
-    r.add("application.minio-local.region",   () -> region);
-    r.add("application.minio-local.accessKey",() -> access);
-    r.add("application.minio-local.secretKey",() -> secret);
-    r.add("application.minio-remote.subPath",() -> "local");
+    dynamicPropertyRegistry.add("application.minio-local.endpoint", () -> endpoint);
+    dynamicPropertyRegistry.add("application.minio-local.region",   () -> region);
+    dynamicPropertyRegistry.add("application.minio-local.accessKey",() -> access);
+    dynamicPropertyRegistry.add("application.minio-local.secretKey",() -> secret);
+    dynamicPropertyRegistry.add("application.minio-remote.subPath",() -> "local");
 
-    r.add("application.minio-remote.endpoint", () -> endpoint);
-    r.add("application.minio-remote.region",   () -> region);
-    r.add("application.minio-remote.accessKey",() -> access);
-    r.add("application.minio-remote.secretKey",() -> secret);
-    r.add("application.minio-remote.subPath",() -> "remote");
+    dynamicPropertyRegistry.add("application.minio-remote.endpoint", () -> endpoint);
+    dynamicPropertyRegistry.add("application.minio-remote.region",   () -> region);
+    dynamicPropertyRegistry.add("application.minio-remote.accessKey",() -> access);
+    dynamicPropertyRegistry.add("application.minio-remote.secretKey",() -> secret);
+    dynamicPropertyRegistry.add("application.minio-remote.subPath",() -> "remote");
   }
 
   @BeforeAll

@@ -19,7 +19,6 @@ import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static java.util.List.of;
-import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -58,7 +57,7 @@ class FilesStorageTest extends BaseIntegration {
             throw new RuntimeException(ex);
           }
         })
-        .collect(toList());
+        .toList();
     } catch(Exception e) {
       throw new IOException(e);
     }
@@ -66,12 +65,12 @@ class FilesStorageTest extends BaseIntegration {
     assertTrue(Objects.deepEquals(expectedS3Pathes, actual));
 
     assertTrue(Objects.deepEquals(localFilesStorage.walk("directory_1/")
-      .collect(toList()),
+      .toList(),
         of("directory_1/CSV_Data_1.csv", "directory_1/directory_2/CSV_Data_2.csv",
           "directory_1/directory_2/directory_3/CSV_Data_3.csv")));
 
     assertTrue(Objects.deepEquals(localFilesStorage.walk("directory_1/directory_2/")
-      .collect(toList()),
+      .toList(),
         of("directory_1/directory_2/CSV_Data_2.csv", "directory_1/directory_2/directory_3/CSV_Data_3.csv")));
 
     original.forEach(p -> assertTrue(localFilesStorage.exists(p)));
@@ -90,7 +89,6 @@ class FilesStorageTest extends BaseIntegration {
 
     byte[] original = getRandomBytes(size);
     var remoteFilePath = "directory_1/directory_2/CSV_Data.csv";
-//    var expectedS3FilePath = localFilesStorageProperties.getSubPath() + PATH_SEPARATOR + remoteFilePath;
 
     assertThat(localFilesStorage.write(remoteFilePath, original), is(remoteFilePath));
     assertTrue(localFilesStorage.exists(remoteFilePath));

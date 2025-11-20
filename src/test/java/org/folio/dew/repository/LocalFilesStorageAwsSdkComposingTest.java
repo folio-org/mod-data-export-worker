@@ -16,7 +16,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import io.minio.ObjectWriteArgs;
 import lombok.extern.log4j.Log4j2;
 
-import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertTrue;

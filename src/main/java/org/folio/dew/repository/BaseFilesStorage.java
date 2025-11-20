@@ -228,7 +228,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
   }
 
   Map<String, String> prepareHeaders(String downloadFilename, String contentType) {
-    Map<String, String> headers = new HashMap<>(2);
+    Map<String, String> headers = HashMap.newHashMap(2);
     if (StringUtils.isNotBlank(downloadFilename)) {
       headers.put(HttpHeaders.CONTENT_DISPOSITION, String.format(CONTENT_DISPOSITION_HEADER_WITH_FILENAME, downloadFilename));
     } else {

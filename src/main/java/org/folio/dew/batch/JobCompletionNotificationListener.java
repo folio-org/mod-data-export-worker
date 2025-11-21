@@ -83,13 +83,13 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
     if (StringUtils.isBlank(path) || StringUtils.isBlank(fileNameStart)) {
       return;
     }
-    var files = localFilesStorage.walk(path)
+    var files = localFilesStorage.listRecursive(path).stream()
       .filter(name -> FilenameUtils.getName(name).startsWith(fileNameStart)).collect(Collectors.toList());
     if (files.isEmpty()) {
       return;
     }
     for (String f : files) {
-        localFilesStorage.delete(f);
+      localFilesStorage.removeRecursive(f);
     }
     log.info("Deleted temp files {} of job {}.", files, jobId);
   }

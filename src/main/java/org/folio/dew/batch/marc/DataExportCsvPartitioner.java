@@ -3,6 +3,9 @@ package org.folio.dew.batch.marc;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.CsvPartitioner;
 import org.folio.dew.repository.LocalFilesStorage;
+import org.folio.s3.exception.S3ClientException;
+
+import java.io.IOException;
 
 @Log4j2
 public class DataExportCsvPartitioner extends CsvPartitioner {
@@ -19,9 +22,9 @@ public class DataExportCsvPartitioner extends CsvPartitioner {
 
   @Override
   protected Long getLimit() {
-    try (var lines = localFilesStorage.lines(fileName)) {
-      return lines.count();
-    } catch (Exception e) {
+    try {
+      return localFilesStorage.numLines(fileName);
+    } catch (IOException | S3ClientException e) {
       log.error("Error reading file {}, reason: {}", fileName, e.getMessage());
       return 0L;
     }

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 @Log4j2
-public class LocalFilesStorage extends BaseFilesStorage{
+public class LocalFilesStorage extends AbstractFilesStorage{
   public LocalFilesStorage(LocalFilesStorageProperties properties) {
     super(properties);
   }

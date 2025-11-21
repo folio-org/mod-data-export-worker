@@ -1,5 +1,11 @@
 ## Unreleased v3.5.0
 
+## 2025-11-21 v3.4.10
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.9...v3.4.10)
+
+Sunflower backport - add "sourceUri" field to Instance schema.
+
 ## 2025-11-06 v3.4.9
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.7...v3.4.9)

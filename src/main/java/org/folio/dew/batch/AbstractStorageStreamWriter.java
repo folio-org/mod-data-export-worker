@@ -1,7 +1,9 @@
 package org.folio.dew.batch;
 
+import java.io.IOException;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.LocalFilesStorage;
@@ -14,18 +16,15 @@ import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.item.file.transform.LineAggregator;
 import org.springframework.core.io.WritableResource;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import static org.folio.dew.utils.Constants.LINE_SEPARATOR;
-import static org.folio.dew.utils.Constants.LINE_SEPARATOR_REPLACEMENT;
 
 @Slf4j
 public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> implements ItemWriter<T> {
 
+  @Getter
   private WritableResource resource;
   private S storage;
+  @Setter
   private LineAggregator<T> lineAggregator;
 
   public AbstractStorageStreamWriter(String tempOutputFilePath, LocalFilesStorage localFilesStorage) {
@@ -62,20 +61,8 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
     log.info("Creating file {}.", tempOutputFilePath);
   }
 
-  public WritableResource getResource() {
-    return resource;
-  }
-
   public void setResource(S3CompatibleResource<S> resource) {
     this.resource = resource;
-  }
-
-  public void setLineAggregator(LineAggregator<T> lineAggregator) {
-    this.lineAggregator = lineAggregator;
-  }
-
-  public LineAggregator<T> getLineAggregator() {
-    return lineAggregator;
   }
 
   public S3CompatibleStorage getStorage() {
@@ -84,10 +71,13 @@ public class AbstractStorageStreamWriter<T, S extends S3CompatibleStorage> imple
 
   @Override
   public void write(Chunk<? extends T> items) throws Exception {
+    var filename = resource.getFilename();
     var sb = new StringBuilder();
+    var header =new String(storage.readAllBytes(filename));
+    sb.append(header);
     for (T item : items) {
       sb.append(lineAggregator.aggregate(item)).append('\n');
     }
-    storage.append(resource.getFilename(), sb.toString().getBytes(StandardCharsets.UTF_8));
+    storage.write(filename, sb.toString().getBytes(StandardCharsets.UTF_8));
   }
 }

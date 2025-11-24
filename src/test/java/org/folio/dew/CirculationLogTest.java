@@ -76,7 +76,7 @@ class CirculationLogTest extends BaseBatchTest {
     final ExecutionContext executionContext = jobExecution.getExecutionContext();
     final String fileInStorage = (String) executionContext.get("outputFilesInStorage");
     final String fileName = executionContext.getString(CIRCULATION_LOG_FILE_NAME);
-    final String expectedNameInStorage = "remote/" + fileName;
+    final String expectedNameInStorage = fileName;
 
     final FileSystemResource actualChargeFeesFinesOutput = actualFileOutput(fileInStorage);
     FileSystemResource expectedCharges = new FileSystemResource(EXPECTED_CIRCULATION_OUTPUT);

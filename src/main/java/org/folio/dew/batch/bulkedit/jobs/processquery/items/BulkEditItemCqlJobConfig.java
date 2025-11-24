@@ -86,6 +86,7 @@ public class BulkEditItemCqlJobConfig {
       .reader(bulkEditCqlItemReader)
       .processor(processor)
       .writer(itemWriter)
+      .listener(itemWriter)
       .faultTolerant()
       .allowStartIfComplete(false)
       .throttleLimit(POOL_SIZE)

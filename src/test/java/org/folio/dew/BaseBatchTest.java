@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -70,13 +71,17 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.springframework.test.util.TestSocketUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
     "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
@@ -130,8 +135,14 @@ public abstract class BaseBatchTest {
   @MockitoBean
   public ElectronicAccessRelationshipClient relationshipClient;
 
+
+  public static final LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:4.10.0"))
+      .withServices(S3)
+      .withEnv("EAGER_SERVICE_LOADING", "1");
+
   static {
     postgreDBContainer.start();
+    localstack.start();
   }
 
   protected Map<String, Object> okapiHeaders = new HashMap<>();
@@ -146,6 +157,27 @@ public abstract class BaseBatchTest {
         "spring.datasource.username=" + postgreDBContainer.getUsername(),
         "spring.datasource.password=" + postgreDBContainer.getPassword());
     }
+  }
+
+
+  @DynamicPropertySource
+  static void properties(DynamicPropertyRegistry dynamicPropertyRegistry) {
+    String endpoint = localstack.getEndpointOverride(S3).toString();
+    String region   = localstack.getRegion();
+    String access   = localstack.getAccessKey();
+    String secret   = localstack.getSecretKey();
+
+    dynamicPropertyRegistry.add("application.minio-local.endpoint", () -> endpoint);
+    dynamicPropertyRegistry.add("application.minio-local.region",   () -> region);
+    dynamicPropertyRegistry.add("application.minio-local.accessKey",() -> access);
+    dynamicPropertyRegistry.add("application.minio-local.secretKey",() -> secret);
+    dynamicPropertyRegistry.add("application.minio-remote.subPath",() -> "local");
+
+    dynamicPropertyRegistry.add("application.minio-remote.endpoint", () -> endpoint);
+    dynamicPropertyRegistry.add("application.minio-remote.region",   () -> region);
+    dynamicPropertyRegistry.add("application.minio-remote.accessKey",() -> access);
+    dynamicPropertyRegistry.add("application.minio-remote.secretKey",() -> secret);
+    dynamicPropertyRegistry.add("application.minio-remote.subPath",() -> "remote");
   }
 
   @BeforeAll
@@ -201,8 +233,6 @@ public abstract class BaseBatchTest {
 
     var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, localHeaders);
     folioExecutionContextSetter = new FolioExecutionContextSetter(defaultFolioExecutionContext);
-
-    remoteFilesStorage.createBucketIfNotExists();
 
     when(searchClient.getConsortiumItemCollection(any()))
       .thenAnswer(batchIdsDro -> {

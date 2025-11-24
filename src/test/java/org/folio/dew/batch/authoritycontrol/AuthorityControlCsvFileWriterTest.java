@@ -32,7 +32,8 @@ class AuthorityControlCsvFileWriterTest {
   @BeforeEach
   void setUp() {
     authorityControlCsvFileWriter = new AuthorityControlCsvFileWriter(AuthUpdateHeadingExportFormat.class, TEMP_FILE, localFilesStorage);
-    lenient().doNothing().when(localFilesStorage).append(anyString(), any());
+    lenient().when(localFilesStorage.write(anyString(), any())).thenReturn("/path");
+    lenient().when(localFilesStorage.readAllBytes(anyString())).thenReturn("header".getBytes(StandardCharsets.UTF_8));
   }
 
   @Test
@@ -42,7 +43,7 @@ class AuthorityControlCsvFileWriterTest {
     authorityControlCsvFileWriter.beforeStep();
 
     //Then
-    verify(localFilesStorage).append(eq(TEMP_FILE), any());
+    verify(localFilesStorage).write(eq(TEMP_FILE), any());
   }
 
   @Test
@@ -54,7 +55,7 @@ class AuthorityControlCsvFileWriterTest {
     authorityControlCsvFileWriter.afterStep();
 
     //Then
-    verify(localFilesStorage, never()).append(eq(TEMP_FILE), any());
+    verify(localFilesStorage, never()).write(eq(TEMP_FILE), any());
   }
 
   @Test
@@ -66,7 +67,8 @@ class AuthorityControlCsvFileWriterTest {
     authorityControlCsvFileWriter.afterStep();
 
     //Then
-    verify(localFilesStorage).append(TEMP_FILE, "No records found".getBytes(StandardCharsets.UTF_8));
+    verify(localFilesStorage).write(TEMP_FILE, ("header\n"
+        + "No records found").getBytes(StandardCharsets.UTF_8));
   }
 
   @Test
@@ -82,6 +84,6 @@ class AuthorityControlCsvFileWriterTest {
     authorityControlCsvFileWriter.write(new Chunk<>(items));
 
     //Then
-    verify(localFilesStorage).append(eq(TEMP_FILE), any());
+    verify(localFilesStorage).write(eq(TEMP_FILE), any());
   }
 }

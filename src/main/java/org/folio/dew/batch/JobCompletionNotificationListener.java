@@ -115,7 +115,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       if (jobExecution.getJobInstance().getJobName().contains(BULK_EDIT_UPDATE.getValue())) {
         String updatedFilePath = jobExecution.getJobParameters().getString(UPDATED_FILE_NAME);
         String filePath = requireNonNull(isNull(updatedFilePath) ? jobExecution.getJobParameters().getString(FILE_NAME) : updatedFilePath);
-        if (localFilesStorage.notExists(filePath) && remoteFilesStorage.containsFile(filePath)) {
+        if (localFilesStorage.notExists(filePath) && remoteFilesStorage.exists(filePath)) {
           int totalUsers = CsvHelper.readRecordsFromStorage(remoteFilesStorage, filePath, UserFormat.class, true).size();
           jobExecution.getExecutionContext().putInt(TOTAL_RECORDS, totalUsers);
         } else {
@@ -223,7 +223,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       return;
     }
     var files = localFilesStorage.walk(path)
-      .filter(name -> FilenameUtils.getName(name).startsWith(fileNameStart)).collect(Collectors.toList());
+        .filter(name -> FilenameUtils.getName(name).startsWith(fileNameStart)).toList();
     if (files.isEmpty()) {
       return;
     }
@@ -327,7 +327,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       if (isEmpty(path) || noRecordsFound(path)) {
         return EMPTY; // To prevent downloading empty file.
       }
-      if (localFilesStorage.notExists(path) && remoteFilesStorage.containsFile(path)) {
+      if (localFilesStorage.notExists(path) && remoteFilesStorage.exists(path)) {
         return remoteFilesStorage.objectToPresignedObjectUrl(path);
       }
       var obj = prepareObject(jobExecution, path);
@@ -348,7 +348,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
       if (isEmpty(path) || noRecordsFound(path)) {
         return EMPTY; // To prevent downloading empty file.
       }
-      if (localFilesStorage.notExists(path) && remoteFilesStorage.containsFile(path)) {
+      if (localFilesStorage.notExists(path) && remoteFilesStorage.exists(path)) {
         return remoteFilesStorage.objectToPresignedObjectUrl(path);
       }
       return remoteFilesStorage.objectToPresignedObjectUrl(
@@ -377,7 +377,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
   }
 
   private boolean noRecordsFound(String path) throws Exception {
-    if (localFilesStorage.notExists(path) && !remoteFilesStorage.containsFile(path)) {
+    if (localFilesStorage.notExists(path) && !remoteFilesStorage.exists(path)) {
       log.error("Path to found records does not exist: {}", path);
       return true;
     }

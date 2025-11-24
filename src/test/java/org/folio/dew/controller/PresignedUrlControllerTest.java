@@ -1,5 +1,7 @@
 package org.folio.dew.controller;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.repository.RemoteFilesStorage;
@@ -23,7 +25,7 @@ public class PresignedUrlControllerTest extends BaseBatchTest {
   void shouldRetrievePresignedUrl() throws Exception {
     var jobId = UUID.randomUUID();
     var filePath = jobId + PATH_SEPARATOR + FilenameUtils.getName(PREVIEW_ITEM_DATA);
-    remoteFilesStorage.upload(filePath, PREVIEW_ITEM_DATA);
+    remoteFilesStorage.write(filePath, Files.readAllBytes(Path.of(PREVIEW_ITEM_DATA)));
 
     var headers = defaultHeaders();
 

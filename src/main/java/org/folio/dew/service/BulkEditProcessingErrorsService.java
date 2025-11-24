@@ -8,6 +8,8 @@ import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.PATH_TO_ERRORS;
 import static org.folio.dew.utils.SystemHelper.validatePath;
 
+import java.io.ByteArrayInputStream;
+import java.io.SequenceInputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
@@ -65,10 +67,23 @@ public class BulkEditProcessingErrorsService {
     for (var errorMessage: errorMessages) {
       var errorLine = "%s%s%s%s%s%s".formatted(errorType, COMMA_SEPARATOR, StringUtils.strip(affectedIdentifier, "\""), COMMA_SEPARATOR, errorMessage, System.lineSeparator());
       var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
-      try {
-        localFilesStorage.append(pathToCSVFile, errorLine.getBytes(StandardCharsets.UTF_8));
-      } catch (IOException ioException) {
-        log.error(FAILED_TO_SAVE_ERROR_FILE_PLACEHOLDER, csvFileName, jobId, ioException);
+      // !!!!!!!!!!
+      if (localFilesStorage.exists(pathToCSVFile)) {
+        try(
+            var original = localFilesStorage.newInputStream(pathToCSVFile);
+            var inputStream = new ByteArrayInputStream(errorLine.getBytes(StandardCharsets.UTF_8));
+            var result = new SequenceInputStream(original, inputStream)
+        ) {
+          localFilesStorage.write(pathToCSVFile, result.readAllBytes());
+        } catch (IOException ioException) {
+          log.error(FAILED_TO_SAVE_ERROR_FILE_PLACEHOLDER, csvFileName, jobId, ioException);
+        }
+      } else {
+        try {
+          localFilesStorage.write(pathToCSVFile, errorLine.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException ioException) {
+          log.error(FAILED_TO_SAVE_ERROR_FILE_PLACEHOLDER, csvFileName, jobId, ioException);
+        }
       }
     }
   }
@@ -85,10 +100,23 @@ public class BulkEditProcessingErrorsService {
     var csvFileName = getCsvFileName(jobId, fileName);
     var errorLine = "%s%s%s%s%s%s".formatted(errorType, COMMA_SEPARATOR, StringUtils.strip(affectedIdentifier, "\""), COMMA_SEPARATOR, errorMessage, System.lineSeparator());
     var pathToCSVFile = getPathToCsvFile(jobId, csvFileName);
-    try {
-      localFilesStorage.append(pathToCSVFile, errorLine.getBytes(StandardCharsets.UTF_8));
-    } catch (IOException ioException) {
-      log.error(FAILED_TO_SAVE_ERROR_FILE_PLACEHOLDER, csvFileName, jobId, ioException);
+// !!!!!!!!!!
+    if (localFilesStorage.exists(pathToCSVFile)) {
+      try(
+          var original = localFilesStorage.newInputStream(pathToCSVFile);
+          var inputStream = new ByteArrayInputStream(errorLine.getBytes(StandardCharsets.UTF_8));
+          var result = new SequenceInputStream(original, inputStream)
+      ) {
+        localFilesStorage.write(pathToCSVFile, result.readAllBytes());
+      } catch (IOException ioException) {
+        log.error(FAILED_TO_SAVE_ERROR_FILE_PLACEHOLDER, csvFileName, jobId, ioException);
+      }
+    } else {
+      try {
+        localFilesStorage.write(pathToCSVFile, errorLine.getBytes(StandardCharsets.UTF_8));
+      } catch (IOException ioException) {
+        log.error(FAILED_TO_SAVE_ERROR_FILE_PLACEHOLDER, csvFileName, jobId, ioException);
+      }
     }
   }
 

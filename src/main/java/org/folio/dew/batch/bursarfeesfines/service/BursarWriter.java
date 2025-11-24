@@ -58,11 +58,10 @@ public class BursarWriter extends AbstractItemStreamItemWriter<String> implement
       .map(token -> BursarTokenFormatter.formatHeaderFooterToken(token, items.size(), aggregateTotalAmount))
       .collect(Collectors.joining());
 
-    localFilesStorage.write(resource.getFilename(), header.getBytes(StandardCharsets.UTF_8));
+    String result = header
+        + lines
+        + footer;
 
-    localFilesStorage.append(resource.getFilename(), lines.toString()
-      .getBytes(StandardCharsets.UTF_8));
-
-    localFilesStorage.append(resource.getFilename(), footer.getBytes(StandardCharsets.UTF_8));
+    localFilesStorage.write(resource.getFilename(), result.getBytes(StandardCharsets.UTF_8));
   }
 }

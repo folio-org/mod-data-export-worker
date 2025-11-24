@@ -1,171 +1,78 @@
 package org.folio.dew.repository;
 
-import io.minio.BucketExistsArgs;
-import io.minio.ComposeObjectArgs;
-import io.minio.ComposeSource;
-import io.minio.GetObjectArgs;
-import io.minio.ListObjectsArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import io.minio.RemoveObjectArgs;
-import io.minio.StatObjectArgs;
-import io.minio.UploadObjectArgs;
-import io.minio.credentials.IamAwsProvider;
-import io.minio.credentials.Provider;
-import io.minio.credentials.StaticProvider;
-
+import io.minio.http.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.config.properties.MinioClientProperties;
 import org.folio.dew.error.FileOperationException;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
-import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
-import software.amazon.awssdk.services.s3.model.CompletedPart;
-import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
-import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import org.folio.s3.client.FolioS3Client;
+import org.folio.s3.client.PutObjectAdditionalOptions;
+import org.folio.s3.client.S3ClientFactory;
+import org.folio.s3.client.S3ClientProperties;
+import org.folio.s3.exception.S3ClientException;
+import org.springframework.http.HttpHeaders;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.URI;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
-import static io.minio.ObjectWriteArgs.MIN_MULTIPART_SIZE;
-import static java.lang.String.format;
-import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 
 @Log4j2
 public class BaseFilesStorage implements S3CompatibleStorage {
 
+  public static final String CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME = "attachment";
+  public static final String CONTENT_DISPOSITION_HEADER_WITH_FILENAME = CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME + "; filename=\"%s\"";
+
+
   private static final String SET_VALUE = "<set>";
   private static final String NOT_SET_VALUE = "<not set>";
-  private final MinioClient client;
-  private S3Client s3Client;
-  private final String bucket;
-  private final String region;
-  private final String subPath;
-
-  private final boolean isComposeWithAwsSdk;
+  final FolioS3Client client;
+  final String bucket;
+  private final int urlExpirationTimeInSeconds;
 
   public BaseFilesStorage(MinioClientProperties properties) {
+
+    bucket = properties.getBucket();
+    urlExpirationTimeInSeconds = properties.getUrlExpirationTimeInSeconds();
+    String subPath = properties.getSubPath();
+
     final String accessKey = properties.getAccessKey();
     final String endpoint = properties.getEndpoint();
     final String regionName = properties.getRegion();
-    final String bucketName = properties.getBucket();
     final String secretKey = properties.getSecretKey();
-    subPath = properties.getSubPath();
-    isComposeWithAwsSdk = properties.isComposeWithAwsSdk();
+    boolean isComposeWithAwsSdk = properties.isComposeWithAwsSdk();
     final boolean isForcePathStyle = properties.isForcePathStyle();
-    log.info("Creating MinIO client endpoint {},region {},bucket {},accessKey {},secretKey {}, subPath {}, isComposedWithAwsSdk {}.", endpoint, regionName, bucketName,
-      StringUtils.isNotBlank(accessKey) ? SET_VALUE : NOT_SET_VALUE, StringUtils.isNotBlank(secretKey) ? SET_VALUE : NOT_SET_VALUE,
-      StringUtils.isNotBlank(subPath) ? SET_VALUE : NOT_SET_VALUE, isComposeWithAwsSdk);
 
-    var builder = MinioClient.builder().endpoint(endpoint);
-    if (StringUtils.isNotBlank(regionName)) {
-      builder.region(regionName);
-    }
+    log.info("Creating S3 client endpoint {},region {},bucket {},accessKey {},secretKey {}, subPath {}, isComposedWithAwsSdk {}.", endpoint, regionName, bucket,
+        StringUtils.isNotBlank(accessKey) ? SET_VALUE : NOT_SET_VALUE, StringUtils.isNotBlank(secretKey) ? SET_VALUE : NOT_SET_VALUE,
+        StringUtils.isNotBlank(subPath) ? SET_VALUE : NOT_SET_VALUE, isComposeWithAwsSdk);
 
-    Provider provider;
-    if (StringUtils.isNotBlank(accessKey) && StringUtils.isNotBlank(secretKey)) {
-      provider = new StaticProvider(accessKey, secretKey, null);
-    } else {
-      provider = new IamAwsProvider(null, null);
-    }
-    log.info("{} MinIO credentials provider created.", provider.getClass().getSimpleName());
-    builder.credentialsProvider(provider);
-
-    client = builder.build();
-
-    this.bucket = bucketName;
-    this.region = regionName;
-
-    createBucketIfNotExists();
-
-    if (isComposeWithAwsSdk) {
-      AwsCredentialsProvider credentialsProvider;
-
-      if (StringUtils.isNotBlank(accessKey) && StringUtils.isNotBlank(secretKey)) {
-        var awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
-        credentialsProvider = StaticCredentialsProvider.create(awsCredentials);
-      } else {
-        credentialsProvider = DefaultCredentialsProvider.create();
-      }
-
-      s3Client = S3Client.builder()
+    client = S3ClientFactory.getS3Client(S3ClientProperties.builder()
+        .endpoint(endpoint)
+        .secretKey(secretKey)
+        .accessKey(accessKey)
+        .bucket(bucket)
+        .awsSdk(isComposeWithAwsSdk)
         .forcePathStyle(isForcePathStyle)
-        .endpointOverride(URI.create(endpoint))
-        .region(Region.of(regionName))
-        .credentialsProvider(credentialsProvider)
-        .build();
-    }
+        .subPath(subPath)
+        .region(regionName)
+        .build());
 
-  }
-
-  public MinioClient getMinioClient() {
-    return client;
-  }
-
-  public void createBucketIfNotExists() {
     try {
-      if (StringUtils.isNotBlank(bucket) && !client.bucketExists(BucketExistsArgs.builder().bucket(bucket).region(region).build())) {
-        client.makeBucket(MakeBucketArgs.builder()
-          .bucket(bucket)
-          .region(region)
-          .build());
-        log.info("Created {} bucket.", bucket);
-      } else {
-        log.info("Bucket has already exist.");
-      }
-    } catch(Exception e) {
-      log.error("Error creating bucket: " + bucket, e);
-    }
-  }
-
-  /**
-   * Upload file on S3-compatible storage
-   *
-   * @param path - the path to the file on S3-compatible storage
-   * @param filename – path to uploaded file
-   * @return the path to the file
-   * @throws IOException - if an I/O error occurs
-   */
-  public String upload(String path, String filename) throws IOException {
-    path = getS3Path(path);
-    try {
-      return client.uploadObject(UploadObjectArgs.builder()
-          .bucket(bucket)
-          .region(region)
-          .object(path)
-          .filename(filename)
-          .build())
-        .object();
-    } catch (Exception e) {
-      throw new IOException("Cannot upload file: " + path, e);
+      client.createBucketIfNotExists();
+    } catch (S3ClientException e) {
+      log.error("Error creating bucket: {} during RemoteStorageClient initialization", bucket);
     }
   }
 
@@ -179,29 +86,11 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @throws IOException - if an I/O error occurs
    */
   public String write(String path, byte[] bytes, Map<String, String> headers) throws IOException {
-    path = getS3Path(path);
-    if (isComposeWithAwsSdk) {
-      log.info("Writing with using AWS SDK client");
-      s3Client.putObject(PutObjectRequest.builder().bucket(bucket)
-          .key(path).build(),
-        RequestBody.fromBytes(bytes));
-      return path;
-    } else {
-      log.info("Writing with using Minio client");
-      try(var is = new ByteArrayInputStream(bytes)) {
-        return client.putObject(PutObjectArgs.builder()
-            .bucket(bucket)
-            .region(region)
-            .object(path)
-            .headers(headers)
-            .stream(is, -1, MIN_MULTIPART_SIZE)
-            .build())
-          .object();
-      } catch (Exception e) {
-        throw new IOException("Cannot write file: " + path, e);
-      }
-
-    }
+    var options = PutObjectAdditionalOptions.builder()
+        .contentDisposition(headers.get(HttpHeaders.CONTENT_DISPOSITION))
+        .contentType(headers.get(HttpHeaders.CONTENT_TYPE))
+        .build();
+    return client.write(path, new ByteArrayInputStream(bytes), bytes.length, options);
   }
 
   public String write(String path, byte[] bytes) throws IOException {
@@ -211,142 +100,16 @@ public class BaseFilesStorage implements S3CompatibleStorage {
   /**
    * Writes file to a file on S3-compatible storage
    *
-   * @param path - the path to the file on S3-compatible storage
+   * @param destPath - the path to the file on S3-compatible storage
    * @param inputPath – path to the file to write
-   * @param headers - headers
    * @return the path to the file
    * @throws IOException - if an I/O error occurs
    */
-  public String writeFile(String path, Path inputPath, Map<String, String> headers) throws IOException {
-    path = getS3Path(path);
-    if (isComposeWithAwsSdk) {
-      log.info("Writing file using AWS SDK client");
-      s3Client.putObject(PutObjectRequest.builder().bucket(bucket)
-          .key(path).build(),
-        RequestBody.fromFile(inputPath));
-      return path;
-    } else {
-      log.info("Writing file using Minio client");
-      try (var is = Files.newInputStream(inputPath)) {
-        return client.putObject(PutObjectArgs.builder()
-            .bucket(bucket)
-            .region(region)
-            .object(path)
-            .headers(headers)
-            .stream(is, -1, MIN_MULTIPART_SIZE)
-            .build())
-          .object();
-      } catch (Exception e) {
-        throw new IOException("Cannot write file: " + path, e);
-      }
-
-    }
-  }
-
   public String writeFile(String destPath, Path inputPath) throws IOException {
-    return writeFile(destPath, inputPath, new HashMap<>());
-  }
-
-  /**
-   * Appends byte[] to existing on the storage file.
-   *
-   * @param path - the path to the file on S3-compatible storage
-   * @param bytes - the byte array with the bytes to write
-   * @throws IOException if an I/O error occurs
-   */
-  public void append(String path, byte[] bytes) throws IOException {
-    path = getS3Path(path);
-    try {
-      if (notExists(path)) {
-        log.info("Appending non-existing file");
-        write(path, bytes);
-      } else {
-        var size = client.statObject(StatObjectArgs.builder()
-          .bucket(bucket)
-          .region(region)
-          .object(path).build()).size();
-
-        log.info("Appending to {} with size {}", path, size);
-        if (size > MIN_MULTIPART_SIZE) {
-
-          if (isComposeWithAwsSdk) {
-
-            var createMultipartUploadRequest = CreateMultipartUploadRequest.builder()
-              .bucket(bucket)
-              .key(path)
-              .build();
-
-            var uploadId = s3Client.createMultipartUpload(createMultipartUploadRequest).uploadId();
-
-            var uploadPartRequest1 = UploadPartCopyRequest.builder()
-              .sourceBucket(bucket)
-              .sourceKey(path)
-              .uploadId(uploadId)
-              .destinationBucket(bucket)
-              .destinationKey(path)
-              .partNumber(1).build();
-
-            var uploadPartRequest2 = UploadPartRequest.builder()
-              .bucket(bucket)
-              .key(path)
-              .uploadId(uploadId)
-              .partNumber(2).build();
-
-            var originalEtag  = s3Client.uploadPartCopy(uploadPartRequest1).copyPartResult().eTag();
-            var appendedEtag = s3Client.uploadPart(uploadPartRequest2, RequestBody.fromBytes(bytes)).eTag();
-
-            var original = CompletedPart.builder()
-              .partNumber(1)
-              .eTag(originalEtag).build();
-            var appended = CompletedPart.builder()
-              .partNumber(2)
-              .eTag(appendedEtag).build();
-
-            var completedMultipartUpload = CompletedMultipartUpload.builder()
-              .parts(original, appended)
-              .build();
-
-            var completeMultipartUploadRequest =
-              CompleteMultipartUploadRequest.builder()
-                .bucket(bucket)
-                .key(path)
-                .uploadId(uploadId)
-                .multipartUpload(completedMultipartUpload)
-                .build();
-
-            s3Client.completeMultipartUpload(completeMultipartUploadRequest);
-
-          } else {
-
-            var temporaryFileName = path + "_temp";
-            write(temporaryFileName, bytes);
-
-            client.composeObject(ComposeObjectArgs.builder()
-              .bucket(bucket)
-              .region(region)
-              .object(path)
-              .sources(List.of(ComposeSource.builder()
-                  .bucket(bucket)
-                  .region(region)
-                  .object(path)
-                  .build(),
-                ComposeSource.builder()
-                  .bucket(bucket)
-                  .region(region)
-                  .object(temporaryFileName)
-                  .build()))
-              .build());
-
-            delete(temporaryFileName);
-
-          }
-
-        } else {
-          write(path, ArrayUtils.addAll(readAllBytes(path), bytes));
-        }
-      }
+    try (var is = Files.newInputStream(inputPath)) {
+      return client.write(destPath, is);
     } catch (Exception e) {
-      throw new IOException("Cannot append data for path: " + path, e);
+      throw new IOException("Cannot write file: " + destPath, e);
     }
   }
 
@@ -357,24 +120,17 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @throws FileOperationException if an I/O error occurs
    */
   public void delete(String path) {
-    path = getS3Path(path);
-    try {
-      var paths = walk(path).collect(Collectors.toList());
+    client.remove(walk(path).toArray(String[]::new));
+  }
 
-      paths.forEach(p -> {
-        try {
-          client.removeObject(RemoveObjectArgs.builder()
-            .bucket(bucket)
-            .region(region)
-            .object(p)
-            .build());
-        } catch (Exception e) {
-          log.error(format("Cannot delete file: %s", p), e.getMessage());
-        }
-      });
-    } catch (Exception e) {
-      throw new FileOperationException("Cannot delete file: " + path, e);
-    }
+  /**
+   * Deletes a file
+   *
+   * @param objects - the path to the file to delete
+   * @throws FileOperationException if an I/O error occurs
+   */
+  public void delete(List<String> objects) {
+    client.remove(objects.toArray(String[]::new));
   }
 
   /**
@@ -386,7 +142,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @throws FileOperationException if an I/O error occurs
    */
   public Stream<String> walk(String path) {
-    return getInternalStructure(getS3Path(path), true);
+    return getInternalStructure(path);
   }
 
   /**
@@ -396,18 +152,11 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    * @return true if file exists, otherwise - false
    */
   public boolean exists(String path)  {
-    path = getS3Path(path);
-    var iterator = client.listObjects(ListObjectsArgs.builder()
-        .bucket(bucket)
-        .region(region)
-        .prefix(path)
-        .maxKeys(1)
-        .build())
-      .iterator();
     try {
-      return iterator.hasNext() && Objects.nonNull(iterator.next().get());
+      var paths =  client.list(path);
+      return !paths.isEmpty() && Objects.nonNull(paths.getFirst());
     } catch (Exception e) {
-      log.error("Error file existing verification, path: " + path, e);
+      log.error("Error file existing verification, path: {}", path, e);
       return false;
     }
   }
@@ -426,19 +175,9 @@ public class BaseFilesStorage implements S3CompatibleStorage {
    *
    * @param path - the path to the file on S3-compatible storage
    * @return a new input stream
-   * @throws IOException - if an I/O error occurs reading from the file
    */
-  public InputStream newInputStream(String path) throws IOException {
-    path = getS3Path(path);
-    try {
-      return client.getObject(GetObjectArgs.builder()
-        .bucket(bucket)
-        .region(region)
-        .object(path)
-        .build());
-    } catch (Exception e) {
-      throw new IOException("Error creating input stream for path: " + path, e);
-    }
+  public InputStream newInputStream(String path) {
+    return client.read(path);
   }
 
   /**
@@ -488,83 +227,36 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     }
   }
 
-  /**
-   * Read all lines from a file
-   *
-   * @param path - the path to the file on S3-compatible storage
-   * @return
-  the lines from the file as a List
-   * @throws IOException - if an I/O error occurs reading from the file
-   */
-  public List<String> readAllLines(String path) throws IOException {
-    try (var lines = lines(path)) {
-      return lines.collect(Collectors.toList());
-    } catch(Exception e) {
-      throw new IOException("Error reading file: " + path, e);
-    }
+  public String compose(String destObject, List<String> sourceObjects, String downloadFilename,
+      String contentType) {
+
+    var headers = prepareHeaders(downloadFilename, contentType);
+    var result = client.compose(destObject, sourceObjects, PutObjectAdditionalOptions.builder()
+        .contentType(headers.get(HttpHeaders.CONTENT_TYPE))
+        .contentDisposition(HttpHeaders.CONTENT_DISPOSITION).build());
+
+    client.remove(sourceObjects.toArray(new String[0]));
+    return result;
   }
 
-  public OutputStream newOutputStream(String path) {
-
-
-    return new OutputStream() {
-
-      byte[] buffer = new byte[0];
-
-      @Override
-      public void write(int b) {
-        buffer = ArrayUtils.add(buffer, (byte) b);
-      }
-
-      @Override
-      public void flush() {
-//        throw new NotImplementedException("Method isn't implemented yet");
-      }
-
-      @Override
-      public void close() {
-        try {
-          BaseFilesStorage.this.write(path, buffer);
-        } catch (IOException e) {
-          throw new FileOperationException("Error closing stream and writes bytes to path: " + path, e);
-        } finally {
-          buffer = new byte[0];
-        }
-      }
-    };
+  public String objectToPresignedObjectUrl(String object) {
+    return client.getPresignedUrl(object, Method.GET, urlExpirationTimeInSeconds, TimeUnit.SECONDS);
   }
 
-  public BufferedWriter writer(String path) {
-    return new BufferedWriter(new OutputStreamWriter(newOutputStream(path)));
+  Map<String, String> prepareHeaders(String downloadFilename, String contentType) {
+    Map<String, String> headers = HashMap.newHashMap(2);
+    if (StringUtils.isNotBlank(downloadFilename)) {
+      headers.put(HttpHeaders.CONTENT_DISPOSITION, String.format(CONTENT_DISPOSITION_HEADER_WITH_FILENAME, downloadFilename));
+    } else {
+      headers.put(HttpHeaders.CONTENT_DISPOSITION, CONTENT_DISPOSITION_HEADER_WITHOUT_FILENAME);
+    }
+    if (StringUtils.isNotBlank(contentType)) {
+      headers.put(HttpHeaders.CONTENT_TYPE, contentType);
+    }
+    return headers;
   }
 
-  private Stream<String> getInternalStructure(String path, boolean isRecursive)  {
-    try {
-      return StreamSupport.stream(client.listObjects(ListObjectsArgs.builder()
-        .bucket(bucket)
-        .region(region)
-        .prefix(path)
-        .recursive(isRecursive)
-        .build()).spliterator(), false).map(item -> {
-        try {
-          return item.get().objectName();
-        } catch (Exception e) {
-          throw new FileOperationException(e);
-        }
-      });
-    } catch(Exception e) {
-      log.error("Cannot read folder: " + path, e);
-      return null;
-    }
-  }
-
-  public String getS3Path(String path) {
-    if (StringUtils.isBlank(subPath) || StringUtils.startsWith(path, subPath + PATH_SEPARATOR)) {
-      return path;
-    }
-    if (path.startsWith(PATH_SEPARATOR)) {
-      return subPath + path;
-    }
-    return subPath + PATH_SEPARATOR + path;
+  private Stream<String> getInternalStructure(String path)  {
+    return client.listRecursive(path).stream();
   }
 }

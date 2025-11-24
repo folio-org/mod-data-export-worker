@@ -42,7 +42,7 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
     var pathToCsvFile = "E" + File.separator + BulkEditProcessingErrorsService.STORAGE + File.separator + jobId + File.separator + csvFileName;
     bulkEditProcessingErrorsService.saveErrorInCSV(jobId, affectedIdentifier, reasonForError, fileName);
     assertTrue(localFilesStorage.exists(pathToCsvFile));
-    List<String> lines = localFilesStorage.readAllLines(pathToCsvFile);
+    List<String> lines = localFilesStorage.lines(pathToCsvFile).toList();
     String expectedLine = "ERROR," + affectedIdentifier + "," + reasonForError.getMessage();
     assertEquals(expectedLine, lines.get(0));
     assertThat(lines, hasSize(1));
@@ -50,7 +50,7 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
     // Second attempt to verify file name calculation logic
     bulkEditProcessingErrorsService.saveErrorInCSV(jobId, affectedIdentifier, reasonForError, fileName);
     assertTrue(localFilesStorage.exists(pathToCsvFile));
-    lines = localFilesStorage.readAllLines(pathToCsvFile);
+    lines = localFilesStorage.lines(pathToCsvFile).toList();
     assertThat(lines, hasSize(2));
 
     removeStorage();
@@ -67,7 +67,7 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
     var pathToCsvFile = "E" + File.separator + BulkEditProcessingErrorsService.STORAGE + File.separator + jobId + File.separator + csvFileName;
     bulkEditProcessingErrorsService.saveErrorInCSV(jobId, affectedIdentifier, errorMessage, fileName, ErrorType.ERROR);
     assertTrue(localFilesStorage.exists(pathToCsvFile));
-    List<String> lines = localFilesStorage.readAllLines(pathToCsvFile);
+    List<String> lines = localFilesStorage.lines(pathToCsvFile).toList();
     String expectedLine = "ERROR," + affectedIdentifier + "," + errorMessage;
     assertEquals(expectedLine, lines.get(0));
     assertThat(lines, hasSize(1));

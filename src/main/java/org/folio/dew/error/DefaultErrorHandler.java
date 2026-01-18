@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.util.Collections;
-import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class DefaultErrorHandler {
@@ -69,7 +68,7 @@ public class DefaultErrorHandler {
   public ResponseEntity<Errors> handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
     var parameters = e.getBindingResult().getAllErrors().stream()
       .map(this::processValidationError)
-      .collect(Collectors.toList());
+      .toList();
     return new ResponseEntity<>(new Errors()
       .errors(Collections.singletonList(new Error()
         .message("Invalid request body")

@@ -6,9 +6,13 @@ import static org.folio.dew.utils.WriterHelper.enrichHoldingsJson;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermissions;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.folio.dew.domain.dto.Formatable;
@@ -50,12 +54,27 @@ public class AbstractStorageStreamAndJsonWriter<O, T extends Formatable<O>, S ex
   @Override
   public void beforeStep(StepExecution stepExecution) {
     try {
-      csvTmpFile = Files.createTempFile("dew-csw-", ".tmp");
-      jsonTmpFile = Files.createTempFile("dew-json-", ".tmp");
+      Path tmpDir = createPrivateTmpDir();
+      csvTmpFile = Files.createTempFile(tmpDir, "dew-csv-", ".tmp");
+      jsonTmpFile = Files.createTempFile(tmpDir, "dew-json-", ".tmp");
     } catch (IOException e) {
       throw new IllegalStateException("Error creating tmp files for resources", e);
     }
   }
+
+  private Path createPrivateTmpDir() throws IOException {
+    Path parent = Path.of(System.getProperty("java.io.tmpdir"));
+    FileAttribute<?>[] attrs = new FileAttribute[0];
+
+    FileSystem fs = FileSystems.getDefault();
+    if (fs.supportedFileAttributeViews().contains("posix")) {
+      attrs = new FileAttribute[]{
+          PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"))
+      };
+    }
+    return Files.createTempDirectory(parent, "dew-", attrs);
+  }
+
 
   @Override
   public void write(Chunk<? extends T> items) throws Exception {

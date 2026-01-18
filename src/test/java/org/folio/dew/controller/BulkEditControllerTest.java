@@ -1,6 +1,7 @@
 package org.folio.dew.controller;
 
 import static java.lang.String.format;
+import static org.awaitility.Awaitility.await;
 import static org.folio.dew.domain.dto.EntityType.USER;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_IDENTIFIERS;
 import static org.folio.dew.domain.dto.ExportType.BULK_EDIT_UPDATE;
@@ -32,6 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.de.entity.JobCommand;
@@ -163,10 +165,9 @@ class BulkEditControllerTest extends BaseBatchTest {
       .andReturn();
 
     assertThat(result.getResponse().getContentAsString(), equalTo("3"));
-    // Lets wait for async invocation to complete
-    Thread.sleep(3000);
-    verify(exportJobManagerSync, times(1)).launchJob(any());
-  }
+    await()
+        .atMost(5, TimeUnit.SECONDS)
+        .untilAsserted(() -> verify(exportJobManagerSync, times(1)).launchJob(any()));  }
 
   @Test
   @DisplayName("Upload empty file - BAD REQUEST")

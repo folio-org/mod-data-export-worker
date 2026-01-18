@@ -2,6 +2,7 @@ package org.folio.dew.service;
 
 import static org.folio.dew.utils.Constants.EUREKA_PLATFORM;
 
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
@@ -29,6 +30,7 @@ public class ModuleTenantService {
   private static final String MOD_USERS = "mod-users";
   private static final String MOD_USERS_NOT_FOUND_ERROR = "Module id not found for name: " + MOD_USERS;
   private static final String MOD_USERS_REGEXP = "^mod-users-\\d.*$";
+  private static final Pattern MOD_USERS_PATTERN = Pattern.compile(MOD_USERS_REGEXP);
 
   @Setter
   @Value("${application.platform}")
@@ -48,7 +50,7 @@ public class ModuleTenantService {
     var tenantId = folioExecutionContext.getTenantId();
     var modules = okapiClient.getModuleIds(URI.create(URL_PREFIX), tenantId, MOD_USERS);
     if (!modules.isEmpty()) {
-      return Optional.of(modules.get(0).getId());
+      return Optional.of(modules.getFirst().getId());
     }
     return Optional.empty();
   }
@@ -59,6 +61,9 @@ public class ModuleTenantService {
   }
 
   private Optional<String> filterModUsersModuleId(List<ModuleForTenant> modules) {
-    return modules.stream().map(ModuleForTenant::getId).filter(id -> id.matches(MOD_USERS_REGEXP)).findFirst();
+    return modules.stream()
+        .map(ModuleForTenant::getId)
+        .filter(id -> MOD_USERS_PATTERN.matcher(id).matches())
+        .findFirst();
   }
 }

@@ -155,18 +155,19 @@ public class BulkEditFileAssembler implements StepExecutionAggregator {
   }
 
   private void removePartFiles(List<String> partFiles) {
-    ExecutorService exec = Executors.newCachedThreadPool();
-    exec.execute(() -> {
-      partFiles.forEach(file -> {
-        try {
-          Files.delete(Path.of(file));
-        } catch (IOException e) {
-          log.error("Error occurred while deleting the part files", e);
-          throw new FileOperationException(e);
-        }
+    try (ExecutorService exec = Executors.newCachedThreadPool()) {
+      exec.execute(() -> {
+        partFiles.forEach(file -> {
+          try {
+            Files.delete(Path.of(file));
+          } catch (IOException e) {
+            log.error("Error occurred while deleting the part files", e);
+            throw new FileOperationException(e);
+          }
+        });
+        log.info("All {} part files have been deleted successfully.", partFiles.size());
       });
-      log.info("All {} part files have been deleted successfully.", partFiles.size());
-    });
+    }
   }
 
   private boolean atLeastOneMarcExists(StepExecution stepExecution) {

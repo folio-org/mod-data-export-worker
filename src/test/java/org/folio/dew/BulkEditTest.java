@@ -746,16 +746,16 @@ class BulkEditTest extends BaseBatchTest {
       throws IOException, JSONException {
     var expectedContent = IOUtils.toString(expectedJsonFile.getInputStream(), Charset.forName("UTF-8"));
     var actualContent = IOUtils.toString(actualJsonResult.getInputStream(), Charset.forName("UTF-8"));
-    String actualUpdated = "";
+    StringBuilder actualUpdated = new StringBuilder();
     var jsons = actualContent.split("\n");
     Arrays.sort(jsons);
     for (String json : jsons) {
       var actualJsonItem = new JSONObject(json);
       actualJsonItem.remove("createdDate");
       actualJsonItem.remove("updatedDate");
-      actualUpdated += actualJsonItem + "\n";
+      actualUpdated.append(actualJsonItem).append("\n");
     }
-    assertEquals(expectedContent.trim(), actualUpdated.trim().replaceAll("\\\\", ""));
+    assertEquals(expectedContent.trim(), actualUpdated.toString().trim().replaceAll("\\\\", ""));
   }
 
   @SneakyThrows

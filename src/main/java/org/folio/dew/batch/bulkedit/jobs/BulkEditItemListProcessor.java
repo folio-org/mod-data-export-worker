@@ -7,6 +7,7 @@ import org.folio.dew.domain.dto.ExtendedItemCollection;
 import org.folio.dew.domain.dto.ItemFormat;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -19,7 +20,7 @@ public class BulkEditItemListProcessor implements ItemProcessor<ExtendedItemColl
   private final BulkEditItemProcessor bulkEditItemProcessor;
 
   @Override
-  public List<ItemFormat> process(ExtendedItemCollection extendedItemCollection) {
+  public List<ItemFormat> process(@NonNull ExtendedItemCollection extendedItemCollection) {
     return extendedItemCollection.getExtendedItems().stream()
       .map(bulkEditItemProcessor::process)
       .toList();

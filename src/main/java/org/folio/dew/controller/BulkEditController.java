@@ -22,17 +22,15 @@ import static org.folio.dew.utils.CsvHelper.countLines;
 import static org.folio.dew.utils.SystemHelper.getTempDirWithSeparatorSuffix;
 import static org.folio.spring.scope.FolioExecutionScopeExecutionContextManager.getRunnableWithCurrentFolioContext;
 
-import io.swagger.annotations.ApiParam;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
@@ -53,9 +51,7 @@ import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -129,14 +125,15 @@ public class BulkEditController implements JobIdApi {
   }
 
   private String saveTemporaryIdentifiersFile(UUID jobId, MultipartFile file) throws IOException {
-    var tempDir = getTempDirWithSeparatorSuffix() + springApplicationName + PATH_SEPARATOR + jobId;
-    var tempFilePath = tempDir + PATH_SEPARATOR + file.getOriginalFilename();
-    var path = Path.of(tempFilePath);
+    var tempDir = Path.of(getTempDirWithSeparatorSuffix(), springApplicationName, jobId.toString());
+    Files.createDirectories(tempDir);
+    var originalFilename = Objects.requireNonNull(file.getOriginalFilename(), "File name must not be null");
+    var sanitizedFilename = Path.of(originalFilename).getFileName().toString();
+    var path = tempDir.resolve(sanitizedFilename).normalize();
     Files.deleteIfExists(path);
-    Files.createDirectories(Path.of(tempDir));
     Files.write(path, file.getBytes());
-    log.info("Saved temporary identifiers file: {}", tempFilePath);
-    return tempFilePath;
+    log.info("Saved temporary identifiers file: {}", path);
+    return path.toString();
   }
 
   @Override
@@ -162,7 +159,7 @@ public class BulkEditController implements JobIdApi {
   }
 
   @Override
-  public ResponseEntity<Errors> getErrorsPreviewByJobId(@ApiParam(value = "UUID of the JobCommand", required = true) @PathVariable("jobId") UUID jobId, @NotNull @ApiParam(value = "The numbers of users to return", required = true) @Valid @RequestParam(value = "limit") Integer limit) {
+  public ResponseEntity<Errors> getErrorsPreviewByJobId(UUID jobId, Integer limit) {
     var jobCommand = getJobCommandById(jobId.toString());
     var fileName = jobCommand.getId() + PATH_SEPARATOR + FilenameUtils.getName(jobCommand.getJobParameters().getString(FILE_NAME));
     log.info("downloadHoldingsPreviewByJobId:: fileName={}", fileName);

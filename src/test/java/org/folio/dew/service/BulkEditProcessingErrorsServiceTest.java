@@ -106,7 +106,7 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
 
   @Test
   @DisplayName("Read errors from csv file")
-  void readErrorsFromCsvTest() throws BulkEditException, IOException {
+  void readErrorsFromCsvTest() throws BulkEditException {
     int numOfErrorLines = 3;
     int errorsPreviewLimit = 2;
     var jobId = UUID.randomUUID().toString();
@@ -121,7 +121,7 @@ class BulkEditProcessingErrorsServiceTest extends BaseBatchTest {
     removeStorage();
   }
 
-  private void removeStorage() throws IOException {
+  private void removeStorage() {
     localFilesStorage.delete("E" + File.separator + BulkEditProcessingErrorsService.STORAGE);
   }
 

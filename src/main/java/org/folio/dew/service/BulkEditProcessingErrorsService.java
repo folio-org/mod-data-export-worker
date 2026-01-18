@@ -3,7 +3,6 @@ package org.folio.dew.service;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.isNull;
-import static java.util.stream.Collectors.toList;
 import static org.folio.dew.utils.Constants.PATH_SEPARATOR;
 import static org.folio.dew.utils.Constants.PATH_TO_ERRORS;
 import static org.folio.dew.utils.SystemHelper.validatePath;
@@ -131,7 +130,7 @@ public class BulkEditProcessingErrorsService {
           .map(s -> s.split(COMMA_SEPARATOR, 3))
           .map(message -> new Error().message("%s%s%s".formatted(message[IDX_ERROR_IDENTIFIER], COMMA_SEPARATOR, message[IDX_ERROR_MSG]))
             .type(ErrorType.fromValue(message[IDX_ERROR_TYPE])))
-          .collect(toList());
+          .toList();
         log.info("Errors file {} processing completed", csvFileName);
         var totalErrors = errors.stream().filter(e -> e.getType() == ErrorType.ERROR).count();
         var totalWarnings = errors.stream().filter(e -> e.getType() == ErrorType.WARNING).count();
@@ -210,7 +209,7 @@ public class BulkEditProcessingErrorsService {
       names = localFilesStorage.walk(pathToStorage).map(x -> {
         var n = x.split("/");
         return n[n.length - 1];
-      }).collect(Collectors.toList());
+      }).toList();
     }
     if (names.isEmpty()) {
       return LocalDate.now().format(CSV_NAME_DATE_FORMAT) + "-Matching-Records-Errors-" + fileName;

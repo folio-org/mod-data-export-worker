@@ -36,6 +36,7 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -68,7 +69,7 @@ public class BulkEditInstanceProcessor implements ItemProcessor<ItemIdentifier, 
   private final Set<String> fetchedInstanceIds = ConcurrentHashMap.newKeySet();
 
   @Override
-  public List<InstanceFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
+  public List<InstanceFormat> process(@NonNull ItemIdentifier itemIdentifier) throws BulkEditException {
     log.debug("Instance processor current thread: {}", Thread.currentThread().getName());
     try {
       if (!permissionsValidator.isBulkEditReadPermissionExists(folioExecutionContext.getTenantId(), EntityType.INSTANCE)) {

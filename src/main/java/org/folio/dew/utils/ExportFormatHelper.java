@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.join;
@@ -45,11 +44,9 @@ public class ExportFormatHelper {
     var bw = new BeanWrapperImpl(item);
     for (var fieldName : clazzFields) {
       var value = bw.getPropertyValue(fieldName);
-      if (value instanceof String) {
-        var s = getStringValue((String) value);
+      if (value instanceof String str) {
+        var s = getStringValue(str);
         itemValues.add(s);
-      } else {
-        itemValues.add(EMPTY);
       }
     }
     return String.join(",", itemValues);
@@ -60,7 +57,7 @@ public class ExportFormatHelper {
     var exportFormat = clazz.getAnnotation(ExportFormat.class);
     return Arrays.stream(clazz.getDeclaredFields())
       .map(field -> getFieldColumnName(exportFormat, field))
-      .collect(Collectors.toList());
+      .toList();
   }
 
   private static String getFieldColumnName(ExportFormat exportFormat, Field field) {
@@ -85,7 +82,7 @@ public class ExportFormatHelper {
   }
 
   private static String decapitalize(String string) {
-    if (string == null || string.length() == 0) {
+    if (string == null || string.isEmpty()) {
       return string;
     }
 
@@ -109,6 +106,6 @@ public class ExportFormatHelper {
   private static List<String> getClassFields(Class<?> clazz) {
     return Arrays.stream(clazz.getDeclaredFields())
       .map(Field::getName)
-      .collect(Collectors.toUnmodifiableList());
+      .toList();
   }
 }

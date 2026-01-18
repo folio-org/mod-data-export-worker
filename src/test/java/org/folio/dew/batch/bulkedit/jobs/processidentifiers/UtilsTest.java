@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class UtilsTest {
+class UtilsTest {
 
   @Test
   void testEncode() {

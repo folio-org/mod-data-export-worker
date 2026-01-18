@@ -35,14 +35,13 @@ public class JsonFileWriter<T, U extends Formatable<T>> extends JsonFileItemWrit
     var iterator = items.iterator();
     while (iterator.hasNext()) {
       var item = iterator.next();
-      if (item instanceof HoldingsFormat hf) {
-        lines.append(enrichHoldingsJson(hf, objectMapper));
-      }  else if (item instanceof InstanceFormat instanceFormat) {
-        lines.append(WriterHelper.enrichInstancesJson(instanceFormat, objectMapper));
-      } else if (item instanceof ItemFormat itemFormat) {
-        lines.append(WriterHelper.enrichItemsJson(itemFormat, objectMapper));
-      } else {
-        lines.append(marshaller.marshal(item.getOriginal()));
+      switch (item) {
+        case HoldingsFormat hf -> lines.append(enrichHoldingsJson(hf, objectMapper));
+        case InstanceFormat instanceFormat ->
+            lines.append(WriterHelper.enrichInstancesJson(instanceFormat, objectMapper));
+        case ItemFormat itemFormat ->
+            lines.append(WriterHelper.enrichItemsJson(itemFormat, objectMapper));
+        default -> lines.append(marshaller.marshal(item.getOriginal()));
       }
       lines.append(NEW_LINE);
     }

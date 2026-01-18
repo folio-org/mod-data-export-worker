@@ -6,7 +6,6 @@ import org.folio.dew.repository.S3CompatibleStorage;
 import org.springframework.batch.item.Chunk;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class CsvAndJsonListWriter<O, T extends Formatable<O>, R extends S3CompatibleStorage> extends AbstractStorageStreamWriter<List<T>, R> {
   private final CsvAndJsonWriter<O, T, R> delegate;
@@ -19,7 +18,7 @@ public class CsvAndJsonListWriter<O, T extends Formatable<O>, R extends S3Compat
 
   @Override
   public void write(Chunk<? extends List<T>> lists) throws Exception {
-    var chunk = new Chunk<>(lists.getItems().stream().flatMap(List::stream).collect(Collectors.toList()));
+    var chunk = new Chunk<>(lists.getItems().stream().flatMap(List::stream).toList());
     delegate.write(chunk);
   }
 }

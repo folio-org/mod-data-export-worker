@@ -13,7 +13,6 @@ import org.folio.dew.domain.dto.ErrorServiceArgs;
 import org.folio.dew.domain.dto.ExtendedHoldingsRecord;
 import org.folio.dew.domain.dto.HoldingsFormat;
 import org.folio.dew.domain.dto.HoldingsNote;
-import org.folio.dew.domain.dto.HoldingsRecord;
 import org.folio.dew.domain.dto.HoldingsStatement;
 import org.folio.dew.domain.dto.Tags;
 import org.folio.dew.service.ElectronicAccessService;
@@ -106,10 +105,4 @@ public class HoldingsMapper {
     }
     return isEmpty(tags.getTagList()) ? EMPTY : String.join(ARRAY_DELIMITER, escaper.escape(tags.getTagList()));
   }
-
-
-  public HoldingsRecord mapToHoldingsRecord(HoldingsFormat holdingsFormat) {
-    return new HoldingsRecord();
-  }
-
 }

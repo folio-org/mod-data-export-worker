@@ -1,5 +1,11 @@
 ## Unreleased v3.5.0
 
+## 2026-01-19 v3.4.11
+
+Sunflower backport - including folio-s3-library improvements
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.10...v3.4.11)
+
 ## 2025-11-21 v3.4.10
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.9...v3.4.10)

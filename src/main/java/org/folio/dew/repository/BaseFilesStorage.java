@@ -26,6 +26,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
+import software.amazon.awssdk.services.s3.model.CompletedPart;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 
 
 @Log4j2
@@ -111,6 +118,17 @@ public class BaseFilesStorage implements S3CompatibleStorage {
     } catch (Exception e) {
       throw new IOException("Cannot write file: " + destPath, e);
     }
+  }
+
+  /**
+   * Appends byte[] to existing on the storage file.
+   *
+   * @param path - the path to the file on S3-compatible storage
+   * @param bytes - the byte array with the bytes to write
+   * @throws IOException if an I/O error occurs
+   */
+  public void append(String path, byte[] bytes) throws IOException {
+    client.append(path, new ByteArrayInputStream(bytes));
   }
 
   /**

@@ -44,8 +44,6 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -82,7 +80,7 @@ public class BulkEditHoldingsProcessor extends FolioExecutionContextManager impl
   private Set<String> fetchedHoldingsIds = ConcurrentHashMap.newKeySet();
 
   @Override
-  public List<HoldingsFormat> process(@NonNull ItemIdentifier itemIdentifier) throws BulkEditException {
+  public List<HoldingsFormat> process(ItemIdentifier itemIdentifier) throws BulkEditException {
     if (identifiersToCheckDuplication.contains(itemIdentifier)) {
       throw new BulkEditException("Duplicate entry", ErrorType.WARNING);
     }

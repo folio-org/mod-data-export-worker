@@ -18,7 +18,7 @@ public abstract class BaseIntegration {
 
   @Container
   public static final LocalStackContainer localstack
-      = new LocalStackContainer(DockerImageName.parse("localstack/localstack:4.10.0"))
+      = new LocalStackContainer(DockerImageName.parse("localstack/localstack:s3-latest"))
       .withServices(S3)
       .waitingFor(
           Wait.forHttp("/_localstack/health")

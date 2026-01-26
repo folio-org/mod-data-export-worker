@@ -1,4 +1,8 @@
-## Unreleased v3.5.0
+## 2026-01-26 v3.4.12
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.10...v3.4.12)
+
+Sunflower fix - revert changes in v3.4.11
 
 ## 2025-11-21 v3.4.10
 

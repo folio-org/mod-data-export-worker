@@ -60,43 +60,43 @@ public class BursarExportServiceImpl implements BursarExportService {
   /** Take the found fine accounts and mark them as transferred */
   @Override
   public void transferAccounts(List<AccountWithAncillaryData> accounts, BursarExportJob bursarFeeFines) {
-    Set<AccountWithAncillaryData> transferredAccountsSet = new HashSet<>();
-    Set<AccountWithAncillaryData> nonTransferredAccountsSet = new HashSet<>(accounts);
+    // Set<AccountWithAncillaryData> transferredAccountsSet = new HashSet<>();
+    // Set<AccountWithAncillaryData> nonTransferredAccountsSet = new HashSet<>(accounts);
 
-    for (BursarExportTransferCriteriaConditionsInner bursarExportTransferCriteriaConditionsInner : bursarFeeFines.getTransferInfo()
-      .getConditions()) {
-      List<AccountWithAncillaryData> accountsToBeTransferred = accounts.stream()
-        .filter(account -> BursarFilterEvaluator.evaluate(account, bursarExportTransferCriteriaConditionsInner.getCondition()))
-        .toList();
+    // for (BursarExportTransferCriteriaConditionsInner bursarExportTransferCriteriaConditionsInner : bursarFeeFines.getTransferInfo()
+    //   .getConditions()) {
+    //   List<AccountWithAncillaryData> accountsToBeTransferred = accounts.stream()
+    //     .filter(account -> BursarFilterEvaluator.evaluate(account, bursarExportTransferCriteriaConditionsInner.getCondition()))
+    //     .toList();
 
-      if (!accountsToBeTransferred.isEmpty()) {
-        transferredAccountsSet.addAll(accountsToBeTransferred);
+    //   if (!accountsToBeTransferred.isEmpty()) {
+    //     transferredAccountsSet.addAll(accountsToBeTransferred);
 
-        String accountName = getTransferAccountName(bursarExportTransferCriteriaConditionsInner.getAccount()
-          .toString());
+    //     String accountName = getTransferAccountName(bursarExportTransferCriteriaConditionsInner.getAccount()
+    //       .toString());
 
-        log.info("transferring accounts for filter condition: " + bursarExportTransferCriteriaConditionsInner.getCondition()
-          .toString());
-        TransferRequest transferRequest = toTransferRequest(accountsToBeTransferred, accountName);
-        log.info("Transferring {}.", transferRequest);
-        bulkClient.transferAccount(transferRequest);
-      }
-    }
+    //     log.info("transferring accounts for filter condition: " + bursarExportTransferCriteriaConditionsInner.getCondition()
+    //       .toString());
+    //     TransferRequest transferRequest = toTransferRequest(accountsToBeTransferred, accountName);
+    //     log.info("Transferring {}.", transferRequest);
+    //     bulkClient.transferAccount(transferRequest);
+    //   }
+    // }
 
-    // transfer non-transferred accounts to account specified in else
-    nonTransferredAccountsSet.removeAll(transferredAccountsSet);
+    // // transfer non-transferred accounts to account specified in else
+    // nonTransferredAccountsSet.removeAll(transferredAccountsSet);
 
-    if (!nonTransferredAccountsSet.isEmpty()) {
-      String accountName = getTransferAccountName(bursarFeeFines.getTransferInfo()
-        .getElse()
-        .getAccount()
-        .toString());
+    // if (!nonTransferredAccountsSet.isEmpty()) {
+    //   String accountName = getTransferAccountName(bursarFeeFines.getTransferInfo()
+    //     .getElse()
+    //     .getAccount()
+    //     .toString());
 
-      TransferRequest transferRequest = toTransferRequest(nonTransferredAccountsSet.stream()
-        .toList(), accountName);
-      log.info("Creating {}.", transferRequest);
-      bulkClient.transferAccount(transferRequest);
-    }
+    //   TransferRequest transferRequest = toTransferRequest(nonTransferredAccountsSet.stream()
+    //     .toList(), accountName);
+    //   log.info("Creating {}.", transferRequest);
+    //   bulkClient.transferAccount(transferRequest);
+    // }
   }
 
   @Override

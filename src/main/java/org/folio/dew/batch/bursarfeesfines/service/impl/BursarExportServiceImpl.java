@@ -103,12 +103,12 @@ public class BursarExportServiceImpl implements BursarExportService {
   public List<Account> getAllAccounts() {
     List<Account> accounts = new ArrayList<>();
 
-    AccountdataCollection response = accountClient.getAccounts("remaining > 0.0", DEFAULT_LIMIT);
+    AccountdataCollection response = accountClient.getAccounts("userId==da319ad6-5969-48c9-bd94-1aa173cdab76", DEFAULT_LIMIT);
     int total = response.getTotalRecords();
     accounts.addAll(response.getAccounts());
     while (accounts.size() < total) {
       log.info("Fetched {}/{} accounts", accounts.size(), total);
-      response = accountClient.getAccounts("remaining > 0.0", DEFAULT_LIMIT, accounts.size());
+      response = accountClient.getAccounts("userId==da319ad6-5969-48c9-bd94-1aa173cdab76", DEFAULT_LIMIT, accounts.size());
       accounts.addAll(response.getAccounts());
     }
 
@@ -162,7 +162,7 @@ public class BursarExportServiceImpl implements BursarExportService {
     }
 
     final List<List<P>> partition = ListUtils.partition(parameters, bucketSize);
-    log.info("Fetch data across several calls, partition size {}", partition::size);
+    log.info("Fetch data across several calls, {} calls of max {} each", partition.size(), bucketSize);
     return partition.stream()
       .map(client::apply)
       .map(r -> {

@@ -2,6 +2,9 @@
 ### Stories
 * [MODEXPW-576](https://folio-org.atlassian.net/browse/MODEXPW-576) Enhance "MARC authority headings update" Report with Record Type Column Based on Consortium Environment.
 
+### Bug fixes
+* [MODEXPW-617](https://folio-org.atlassian.net/browse/MODEXPW-617) Update Apache Kafka topic template to prevent ambiguous env name matches.
+
 ## 2025-03-27 v3.4.1
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.0...v3.4.1)

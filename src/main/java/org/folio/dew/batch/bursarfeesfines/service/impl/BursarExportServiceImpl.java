@@ -162,7 +162,7 @@ public class BursarExportServiceImpl implements BursarExportService {
     }
 
     final List<List<P>> partition = ListUtils.partition(parameters, bucketSize);
-    log.info("Fetch data across several calls, partition size {}", partition::size);
+    log.info("Fetching data across several calls, {} calls of max {} each", partition.size(), bucketSize);
     return partition.stream()
       .map(client::apply)
       .map(r -> {

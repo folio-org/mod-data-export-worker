@@ -30,7 +30,7 @@ import org.springframework.core.io.FileSystemResource;
 
 import java.time.LocalDate;
 
-class UseMostOuputTokensTest extends BaseBatchTest {
+class UseMostOutputTokensTest extends BaseBatchTest {
 
   @Autowired
   private Job bursarExportJob;
@@ -67,8 +67,6 @@ class UseMostOuputTokensTest extends BaseBatchTest {
                   },
                   "feeFineType": "Test ff type1",
                   "feeFineOwner": "Bursar owner",
-                  "dateCreated": "2021-03-30T19:53:50.289+00:00",
-                  "dateUpdated": "2021-03-30T19:53:50.289+00:00",
                   "metadata": {
                     "createdDate": "2021-03-30T19:53:50.289+00:00",
                     "createdByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305",
@@ -92,12 +90,10 @@ class UseMostOuputTokensTest extends BaseBatchTest {
                   },
                   "feeFineType": "Test ff type1",
                   "feeFineOwner": "Bursar owner",
-                  "dateCreated": "2021-03-30T19:53:50.289+00:00",
-                  "dateUpdated": "2021-03-30T19:53:50.289+00:00",
                   "metadata": {
-                    "dateCreated": "2021-03-30T19:53:50.289+00:00",
+                    "createdDate": "2021-03-30T19:53:50.289+00:00",
                     "createdByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305",
-                    "dateUpdated": "2021-03-30T19:53:50.289+00:00",
+                    "updatedDate": "2021-03-30T19:53:50.289+00:00",
                     "updatedByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305"
                   },
                   "userId": "2205005b-ca51-4a04-87fd-938eefa8f6de",

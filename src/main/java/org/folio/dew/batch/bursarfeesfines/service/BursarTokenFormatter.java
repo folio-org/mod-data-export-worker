@@ -98,7 +98,6 @@ public class BursarTokenFormatter {
     BursarExportTokenFeeDate tokenFeeDate,
     AccountWithAncillaryData accountWithAncillaryData
   ) {
-    log.info("=========== formatFeeDateDataToken Formatting {} with {}", tokenFeeDate, accountWithAncillaryData);
     Date accountDate = switch (tokenFeeDate.getProperty()) {
       case CREATED -> accountWithAncillaryData.getAccount().getMetadata().getCreatedDate();
       case UPDATED -> accountWithAncillaryData.getAccount().getMetadata().getUpdatedDate();

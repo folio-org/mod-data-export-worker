@@ -30,7 +30,7 @@ import org.springframework.core.io.FileSystemResource;
 
 import java.time.LocalDate;
 
-class UseMostOuputTokensTest extends BaseBatchTest {
+class UseMostOutputTokensTest extends BaseBatchTest {
 
   @Autowired
   private Job bursarExportJob;

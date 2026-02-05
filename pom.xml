@@ -676,6 +676,9 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
+                  <includes>
+                    <include>**/UseMostOutputTokensTest.java</include>
+                  </includes>
                   <forkCount>1</forkCount>
                   <reuseForks>true</reuseForks>
                     <argLine>

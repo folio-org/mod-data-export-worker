@@ -99,8 +99,8 @@ public class BursarTokenFormatter {
     AccountWithAncillaryData accountWithAncillaryData
   ) {
     Date accountDate = switch (tokenFeeDate.getProperty()) {
-      case CREATED -> accountWithAncillaryData.getAccount().getDateCreated();
-      case UPDATED -> accountWithAncillaryData.getAccount().getDateUpdated();
+      case CREATED -> accountWithAncillaryData.getAccount().getMetadata().getCreatedDate();
+      case UPDATED -> accountWithAncillaryData.getAccount().getMetadata().getUpdatedDate();
       case DUE -> accountWithAncillaryData.getAccount().getDueDate();
       case RETURNED -> accountWithAncillaryData.getAccount().getReturnedDate();
       default -> {

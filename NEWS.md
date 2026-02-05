@@ -4,6 +4,7 @@
 
 ### Bug fixes
 * [MODEXPW-617](https://folio-org.atlassian.net/browse/MODEXPW-617) Update Apache Kafka topic template to prevent ambiguous env name matches.
+* [MODEXPW-620](https://folio-org.atlassian.net/browse/MODEXPW-620) Fix Bursar export filtering by age.
 
 ## 2025-03-27 v3.4.1
 

@@ -1,3 +1,8 @@
+## 2026-02-06 v3.4.14
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.13...v3.4.14)
+### Bug fixes
+* [MODEXPW-617](https://folio-org.atlassian.net/browse/MODEXPW-617) Update Apache Kafka topic template to prevent ambiguous env name matches.
+
 ## 2026-02-06 v3.4.13
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.12...v3.4.13)

@@ -1,5 +1,7 @@
 package org.folio.dew.repository;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import io.minio.BucketExistsArgs;
 import io.minio.ComposeObjectArgs;
 import io.minio.ComposeSource;
@@ -17,6 +19,7 @@ import io.minio.credentials.StaticProvider;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ArrayUtils;
@@ -71,6 +74,7 @@ public class BaseFilesStorage implements S3CompatibleStorage {
   private final String subPath;
 
   private final boolean isComposeWithAwsSdk;
+  private final Cache<String, Object> fileLocks;
 
   public BaseFilesStorage(MinioClientProperties properties) {
     final String accessKey = properties.getAccessKey();
@@ -124,6 +128,10 @@ public class BaseFilesStorage implements S3CompatibleStorage {
         .build();
     }
 
+    fileLocks = CacheBuilder.newBuilder()
+        .expireAfterWrite(Duration.ofHours(6))
+        .maximumSize(500)
+        .build();
   }
 
   public MinioClient getMinioClient() {
@@ -250,99 +258,102 @@ public class BaseFilesStorage implements S3CompatibleStorage {
   /**
    * Appends byte[] to existing on the storage file.
    *
-   * @param path - the path to the file on S3-compatible storage
+   * @param s3path - the path to the file on S3-compatible storage
    * @param bytes - the byte array with the bytes to write
    * @throws IOException if an I/O error occurs
    */
-  public void append(String path, byte[] bytes) throws IOException {
-    path = getS3Path(path);
+  public void append(String s3path, byte[] bytes) throws IOException {
+    var path = getS3Path(s3path);
     try {
-      if (notExists(path)) {
-        log.info("Appending non-existing file");
-        write(path, bytes);
-      } else {
-        var size = client.statObject(StatObjectArgs.builder()
-          .bucket(bucket)
-          .region(region)
-          .object(path).build()).size();
-
-        log.info("Appending to {} with size {}", path, size);
-        if (size > MIN_MULTIPART_SIZE) {
-
-          if (isComposeWithAwsSdk) {
-
-            var createMultipartUploadRequest = CreateMultipartUploadRequest.builder()
-              .bucket(bucket)
-              .key(path)
-              .build();
-
-            var uploadId = s3Client.createMultipartUpload(createMultipartUploadRequest).uploadId();
-
-            var uploadPartRequest1 = UploadPartCopyRequest.builder()
-              .sourceBucket(bucket)
-              .sourceKey(path)
-              .uploadId(uploadId)
-              .destinationBucket(bucket)
-              .destinationKey(path)
-              .partNumber(1).build();
-
-            var uploadPartRequest2 = UploadPartRequest.builder()
-              .bucket(bucket)
-              .key(path)
-              .uploadId(uploadId)
-              .partNumber(2).build();
-
-            var originalEtag  = s3Client.uploadPartCopy(uploadPartRequest1).copyPartResult().eTag();
-            var appendedEtag = s3Client.uploadPart(uploadPartRequest2, RequestBody.fromBytes(bytes)).eTag();
-
-            var original = CompletedPart.builder()
-              .partNumber(1)
-              .eTag(originalEtag).build();
-            var appended = CompletedPart.builder()
-              .partNumber(2)
-              .eTag(appendedEtag).build();
-
-            var completedMultipartUpload = CompletedMultipartUpload.builder()
-              .parts(original, appended)
-              .build();
-
-            var completeMultipartUploadRequest =
-              CompleteMultipartUploadRequest.builder()
-                .bucket(bucket)
-                .key(path)
-                .uploadId(uploadId)
-                .multipartUpload(completedMultipartUpload)
-                .build();
-
-            s3Client.completeMultipartUpload(completeMultipartUploadRequest);
-
-          } else {
-
-            var temporaryFileName = path + "_temp";
-            write(temporaryFileName, bytes);
-
-            client.composeObject(ComposeObjectArgs.builder()
+      var lock = fileLocks.get(path, Object::new);
+      synchronized (lock) {
+        if (notExists(path)) {
+          log.info("Appending non-existing file");
+          write(path, bytes);
+        } else {
+          var size = client.statObject(StatObjectArgs.builder()
               .bucket(bucket)
               .region(region)
-              .object(path)
-              .sources(List.of(ComposeSource.builder()
+              .object(path).build()).size();
+
+          log.info("Appending to {} with size {}", path, size);
+          if (size > MIN_MULTIPART_SIZE) {
+
+            if (isComposeWithAwsSdk) {
+
+              var createMultipartUploadRequest = CreateMultipartUploadRequest.builder()
+                  .bucket(bucket)
+                  .key(path)
+                  .build();
+
+              var uploadId = s3Client.createMultipartUpload(createMultipartUploadRequest).uploadId();
+
+              var uploadPartRequest1 = UploadPartCopyRequest.builder()
+                  .sourceBucket(bucket)
+                  .sourceKey(path)
+                  .uploadId(uploadId)
+                  .destinationBucket(bucket)
+                  .destinationKey(path)
+                  .partNumber(1).build();
+
+              var uploadPartRequest2 = UploadPartRequest.builder()
+                  .bucket(bucket)
+                  .key(path)
+                  .uploadId(uploadId)
+                  .partNumber(2).build();
+
+              var originalEtag = s3Client.uploadPartCopy(uploadPartRequest1).copyPartResult().eTag();
+              var appendedEtag = s3Client.uploadPart(uploadPartRequest2, RequestBody.fromBytes(bytes)).eTag();
+
+              var original = CompletedPart.builder()
+                  .partNumber(1)
+                  .eTag(originalEtag).build();
+              var appended = CompletedPart.builder()
+                  .partNumber(2)
+                  .eTag(appendedEtag).build();
+
+              var completedMultipartUpload = CompletedMultipartUpload.builder()
+                  .parts(original, appended)
+                  .build();
+
+              var completeMultipartUploadRequest =
+                  CompleteMultipartUploadRequest.builder()
+                      .bucket(bucket)
+                      .key(path)
+                      .uploadId(uploadId)
+                      .multipartUpload(completedMultipartUpload)
+                      .build();
+
+              s3Client.completeMultipartUpload(completeMultipartUploadRequest);
+
+            } else {
+
+              var temporaryFileName = path + "_temp";
+              write(temporaryFileName, bytes);
+
+              client.composeObject(ComposeObjectArgs.builder()
                   .bucket(bucket)
                   .region(region)
                   .object(path)
-                  .build(),
-                ComposeSource.builder()
-                  .bucket(bucket)
-                  .region(region)
-                  .object(temporaryFileName)
-                  .build()))
-              .build());
+                  .sources(List.of(ComposeSource.builder()
+                          .bucket(bucket)
+                          .region(region)
+                          .object(path)
+                          .build(),
+                      ComposeSource.builder()
+                          .bucket(bucket)
+                          .region(region)
+                          .object(temporaryFileName)
+                          .build()))
+                  .build());
 
-            delete(temporaryFileName);
+              delete(temporaryFileName);
 
+            }
+
+          } else {
+            write(path, ArrayUtils.addAll(readAllBytes(path), bytes));
           }
-
-        } else {
-          write(path, ArrayUtils.addAll(readAllBytes(path), bytes));
         }
       }
     } catch (Exception e) {

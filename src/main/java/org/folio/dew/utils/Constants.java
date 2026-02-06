@@ -101,6 +101,9 @@ public class Constants {
 
   public static final int MIN_YEAR_FOR_BIRTH_DATE = 1900;
 
+  public static final String FIXED_FIELD = "008";
+  public static final int FIXED_FIELD_LENGTH = 40;
+
   public static String getWorkingDirectory(String springApplicationName, String dirName) {
     return springApplicationName + PATH_SEPARATOR + dirName + PATH_SEPARATOR;
   }

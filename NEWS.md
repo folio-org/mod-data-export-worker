@@ -1,3 +1,10 @@
+## 2026-02-06 v3.4.13
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.12...v3.4.13)
+
+### Stories
+* [MODEXPW-623](https://folio-org.atlassian.net/browse/MODEXPW-623) Sunflower - Notify user if invalid MARC record prevents bulk edit
+
 ## 2026-01-26 v3.4.12
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.10...v3.4.12)

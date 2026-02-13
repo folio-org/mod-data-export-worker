@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
-
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.EntitiesLinksStatsClient;
 import org.folio.dew.config.properties.AuthorityControlJobProperties;
@@ -17,7 +16,6 @@ import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
 import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDto;
 import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDtoCollection;
 import org.folio.dew.service.FolioTenantService;
-import org.folio.dew.service.UserTenantsService;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.folio.spring.scope.FolioExecutionContextService;
@@ -31,9 +29,7 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
   private final FolioTenantService folioTenantService;
   private final FolioExecutionContext context;
   private final FolioExecutionContextService executionService;
-  private final UserTenantsService userTenantsService;
   private final String consortiumTenant;
-  //private final String consortiumId;
 
   private List<AuthorityDataStatDto> stats;
 
@@ -42,15 +38,12 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
                                       AuthorityControlJobProperties jobProperties,
                                       FolioTenantService folioTenantService,
                                       FolioExecutionContext context,
-                                      FolioExecutionContextService executionService,
-                                      UserTenantsService userTenantsService) {
+                                      FolioExecutionContextService executionService) {
     super(entitiesLinksStatsClient, exportConfig, jobProperties);
     this.folioTenantService = folioTenantService;
     this.context = context;
     this.executionService = executionService;
-    this.userTenantsService = userTenantsService;
     this.consortiumTenant = this.folioTenantService.getConsortiumTenant();
-    //this.consortiumId = this.userTenantsService.getConsortiumId(context.getTenantId()).orElse(null);
   }
 
   @Override
@@ -71,6 +64,9 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
           XOkapiHeaders.URL, List.of(context.getOkapiUrl()));
         centralTenantStats = executionService.execute(consortiumTenant, headers, () ->
           entitiesLinksStatsClient.getAuthorityStats(limit, UPDATE_HEADING, fromDate(), toConsortiumDate()));
+        if (centralTenantStats != null && centralTenantStats.getStats() != null && !centralTenantStats.getStats().isEmpty()) {
+          centralTenantStats.getStats().forEach(stat -> stat.setShared(true));
+        }
       }
 
       List<AuthorityDataStatDto> mergedStats;

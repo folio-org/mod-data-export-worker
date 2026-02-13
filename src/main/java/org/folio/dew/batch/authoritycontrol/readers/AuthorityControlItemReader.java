@@ -16,11 +16,12 @@ import org.springframework.batch.item.support.AbstractItemCountingItemStreamItem
 public abstract class AuthorityControlItemReader<T extends DataStatDTO>
   extends AbstractItemCountingItemStreamItemReader<T> {
   protected final EntitiesLinksStatsClient entitiesLinksStatsClient;
-  private final int limit;
-  private OffsetDateTime fromDate;
-  private OffsetDateTime toDate;
-  private int currentChunkOffset;
-  private List<T> currentChunk;
+  protected final int limit;
+  protected OffsetDateTime fromDate;
+  protected OffsetDateTime toDate;
+  protected int currentChunkOffset;
+  protected List<T> currentChunk;
+  protected OffsetDateTime toConsortiumDate;
 
   protected AuthorityControlItemReader(EntitiesLinksStatsClient entitiesLinksStatsClient,
                                        AuthorityControlExportConfig exportConfig,
@@ -30,6 +31,7 @@ public abstract class AuthorityControlItemReader<T extends DataStatDTO>
     }
     if (exportConfig.getToDate() != null) {
       this.toDate = OffsetDateTime.of(exportConfig.getToDate(), LocalTime.MAX, ZoneOffset.UTC);
+      this.toConsortiumDate = this.toDate;
     }
     this.entitiesLinksStatsClient = entitiesLinksStatsClient;
     this.limit = jobProperties.getEntitiesLinksChunkSize();
@@ -54,7 +56,6 @@ public abstract class AuthorityControlItemReader<T extends DataStatDTO>
     if (currentChunk.isEmpty()) {
       return null;
     }
-
     return currentChunk.get(currentChunkOffset++);
   }
 
@@ -66,6 +67,10 @@ public abstract class AuthorityControlItemReader<T extends DataStatDTO>
 
   protected String toDate() {
     return Objects.isNull(toDate) ? null : toDate.toString();
+  }
+
+  protected String toConsortiumDate() {
+    return Objects.isNull(toConsortiumDate) ? null : toConsortiumDate.toString();
   }
 
   @Override

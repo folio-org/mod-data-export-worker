@@ -15,6 +15,7 @@ import static org.mockito.Mockito.times;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.File;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import lombok.SneakyThrows;
 import org.folio.de.entity.JobCommand;
@@ -43,7 +44,7 @@ class AuthorityControlConsortiumTest extends BaseBatchTest {
   private static final String EXPECTED_AUTH_HEADING_UPDATE_OUTPUT =
     "src/test/resources/output/authority_control/auth_heading_update_consortium.csv";
   private static final String EXPECTED_S3_FILE_PATH =
-    "mod-data-export-worker/authority_control_export/consortium/";
+    "mod-data-export-worker/authority_control_export/college/";
   @Autowired
   private Job getAuthHeadingJob;
   @Autowired
@@ -55,7 +56,7 @@ class AuthorityControlConsortiumTest extends BaseBatchTest {
 
   @BeforeAll
   static void beforeAll() {
-    setUpTenant(CONSORTIUM_TENANT);
+    setUpConsortiumTenant(CONSORTIUM_TENANT, List.of(CONSORTIUM_MEMBER_TENANT), CONSORTIUM_MEMBER_TENANT);
   }
 
   @Test
@@ -73,7 +74,7 @@ class AuthorityControlConsortiumTest extends BaseBatchTest {
     wireMockServer.verify(getRequestedFor(urlEqualTo(
       "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2024-01-01T00%3A00Z&toDate=2024-12-01T23%3A59%3A59.999999999Z")));
     wireMockServer.verify(getRequestedFor(urlEqualTo(
-      "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2024-01-01T00%3A00Z&toDate=2024-08-01T12%3A00Z")));
+      "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2024-01-01T00%3A00Z&toDate=2024-08-01T11%3A00Z")));
     verifyJobEvent();
   }
 

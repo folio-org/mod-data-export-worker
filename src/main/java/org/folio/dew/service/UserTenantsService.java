@@ -41,7 +41,6 @@ public class UserTenantsService {
     var userTenantsResponse = userTenantsClient.getUserTenants(tenantId);
     if (userTenantsResponse != null) {
       return userTenantsResponse.userTenants().stream()
-        .filter(userTenant -> userTenant.centralTenantId().equals(tenantId))
         .findFirst()
         .map(UserTenantsClient.UserTenant::consortiumId);
     }

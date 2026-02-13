@@ -63,7 +63,9 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
         var userId = Optional.ofNullable(context.getUserId())
           .map(UUID::toString)
           .orElse(null);
-        Map<String, Collection<String>> headers = Map.of(XOkapiHeaders.USER_ID, List.of(userId));
+        Map<String, Collection<String>> headers = Map.of(
+          XOkapiHeaders.USER_ID, List.of(userId),
+          XOkapiHeaders.URL, List.of(context.getOkapiUrl()));
         centralTenantStats = executionService.execute(consortiumId, headers, () ->
           entitiesLinksStatsClient.getAuthorityStats(limit, UPDATE_HEADING, fromDate(), toConsortiumDate()));
       }

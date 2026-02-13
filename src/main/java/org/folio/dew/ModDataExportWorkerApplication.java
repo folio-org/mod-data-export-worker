@@ -6,7 +6,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {
+  "org.folio.dew",
+  "org.folio.spring.scope"
+})
 @EnableFeignClients(basePackages = "org.folio.dew.client")
 @EnableBatchProcessing(isolationLevelForCreate = "ISOLATION_READ_COMMITTED")
 @EntityScan("org.folio.de.entity")

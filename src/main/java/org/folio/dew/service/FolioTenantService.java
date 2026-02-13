@@ -63,7 +63,9 @@ public class FolioTenantService extends TenantService {
    * Check if current context tenant is a part of consortium
    * */
   public boolean isConsortiumTenant() {
-    var centralTenant =  userTenantsService.getCentralTenant(context.getTenantId());
-    return centralTenant.isPresent() && StringUtils.isNotEmpty(centralTenant.get());
+    var centralTenant = userTenantsService.getCentralTenant(context.getTenantId());
+    var result = centralTenant.isPresent() && StringUtils.isNotEmpty(centralTenant.get());
+    log.info("Tenant {} is consortium tenant: {}", context.getTenantId(), centralTenant.orElse(null));
+    return result;
   }
 }

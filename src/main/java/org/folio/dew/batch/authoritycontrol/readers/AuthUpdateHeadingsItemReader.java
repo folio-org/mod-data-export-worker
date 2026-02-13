@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
+
+import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.EntitiesLinksStatsClient;
 import org.folio.dew.config.properties.AuthorityControlJobProperties;
 import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
@@ -22,6 +24,7 @@ import org.folio.spring.scope.FolioExecutionContextService;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 
+@Log4j2
 @StepScope
 @Component
 public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<AuthorityDataStatDto> {
@@ -54,6 +57,8 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
   @Override
   protected AuthorityDataStatDtoCollection getCollection(int limit) {
     if (consortiumId != null) {
+      log.info("Reading authority update headings stats for consortium tenant with id {}, consortium id {}",
+        context.getTenantId(), consortiumId);
       AuthorityDataStatDtoCollection memberTenantStats = null;
       if (toDate() != null) {
         memberTenantStats = entitiesLinksStatsClient.getAuthorityStats(limit, UPDATE_HEADING, fromDate(), toDate());

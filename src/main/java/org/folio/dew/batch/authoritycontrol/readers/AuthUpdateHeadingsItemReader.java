@@ -2,8 +2,12 @@ package org.folio.dew.batch.authoritycontrol.readers;
 
 import static org.folio.dew.domain.dto.authority.control.AuthorityDataStatDto.ActionEnum.UPDATE_HEADING;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 import org.folio.dew.client.EntitiesLinksStatsClient;
 import org.folio.dew.config.properties.AuthorityControlJobProperties;
@@ -13,6 +17,7 @@ import org.folio.dew.domain.dto.authority.control.AuthorityDataStatDtoCollection
 import org.folio.dew.service.FolioTenantService;
 import org.folio.dew.service.UserTenantsService;
 import org.folio.spring.FolioExecutionContext;
+import org.folio.spring.integration.XOkapiHeaders;
 import org.folio.spring.scope.FolioExecutionContextService;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
@@ -55,7 +60,11 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
       }
       AuthorityDataStatDtoCollection centralTenantStats = null;
       if (toConsortiumDate() != null) {
-        centralTenantStats = executionService.execute(consortiumId, context, () ->
+        var userId = Optional.ofNullable(context.getUserId())
+          .map(UUID::toString)
+          .orElse(null);
+        Map<String, Collection<String>> headers = Map.of(XOkapiHeaders.USER_ID, List.of(userId));
+        centralTenantStats = executionService.execute(consortiumId, headers, () ->
           entitiesLinksStatsClient.getAuthorityStats(limit, UPDATE_HEADING, fromDate(), toConsortiumDate()));
       }
 

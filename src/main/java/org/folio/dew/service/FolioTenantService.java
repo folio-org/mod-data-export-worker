@@ -68,4 +68,9 @@ public class FolioTenantService extends TenantService {
     log.info("Tenant {} is consortium tenant: {}", context.getTenantId(), centralTenant.orElse(null));
     return result;
   }
+
+  public String getConsortiumTenant() {
+    var centralTenant = userTenantsService.getCentralTenant(context.getTenantId());
+    return centralTenant.orElse(null);
+  }
 }

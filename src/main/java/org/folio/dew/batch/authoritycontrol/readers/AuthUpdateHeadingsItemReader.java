@@ -32,7 +32,7 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
   private final FolioExecutionContext context;
   private final FolioExecutionContextService executionService;
   private final UserTenantsService userTenantsService;
-  private final boolean isConsortiumTenant;
+  private final String consortiumTenant;
   private final String consortiumId;
 
   private List<AuthorityDataStatDto> stats;
@@ -49,14 +49,13 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
     this.context = context;
     this.executionService = executionService;
     this.userTenantsService = userTenantsService;
-    this.isConsortiumTenant = this.folioTenantService.isConsortiumTenant();
-    this.consortiumId =
-      isConsortiumTenant ? this.userTenantsService.getConsortiumId(context.getTenantId()).orElse(null) : null;
+    this.consortiumTenant = this.folioTenantService.getConsortiumTenant();
+    this.consortiumId = this.userTenantsService.getConsortiumId(context.getTenantId()).orElse(null);
   }
 
   @Override
   protected AuthorityDataStatDtoCollection getCollection(int limit) {
-    if (consortiumId != null) {
+    if (consortiumTenant != null && !consortiumTenant.equals(context.getTenantId())) {
       log.info("Reading authority update headings stats for consortium tenant with id {}, consortium id {}",
         context.getTenantId(), consortiumId);
       AuthorityDataStatDtoCollection memberTenantStats = null;

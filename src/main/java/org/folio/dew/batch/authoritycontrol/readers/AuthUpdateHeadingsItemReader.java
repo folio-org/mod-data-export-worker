@@ -33,7 +33,7 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
   private final FolioExecutionContextService executionService;
   private final UserTenantsService userTenantsService;
   private final String consortiumTenant;
-  private final String consortiumId;
+  //private final String consortiumId;
 
   private List<AuthorityDataStatDto> stats;
 
@@ -50,14 +50,13 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
     this.executionService = executionService;
     this.userTenantsService = userTenantsService;
     this.consortiumTenant = this.folioTenantService.getConsortiumTenant();
-    this.consortiumId = this.userTenantsService.getConsortiumId(context.getTenantId()).orElse(null);
+    //this.consortiumId = this.userTenantsService.getConsortiumId(context.getTenantId()).orElse(null);
   }
 
   @Override
   protected AuthorityDataStatDtoCollection getCollection(int limit) {
     if (consortiumTenant != null && !consortiumTenant.equals(context.getTenantId())) {
-      log.info("Reading authority update headings stats for consortium tenant with id {}, consortium id {}",
-        context.getTenantId(), consortiumId);
+      log.info("Reading authority update headings stats for consortium tenant with id {}", context.getTenantId());
       AuthorityDataStatDtoCollection memberTenantStats = null;
       if (toDate() != null) {
         memberTenantStats = entitiesLinksStatsClient.getAuthorityStats(limit, UPDATE_HEADING, fromDate(), toDate());
@@ -70,7 +69,7 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
         Map<String, Collection<String>> headers = Map.of(
           XOkapiHeaders.USER_ID, List.of(userId),
           XOkapiHeaders.URL, List.of(context.getOkapiUrl()));
-        centralTenantStats = executionService.execute(consortiumId, headers, () ->
+        centralTenantStats = executionService.execute(consortiumTenant, headers, () ->
           entitiesLinksStatsClient.getAuthorityStats(limit, UPDATE_HEADING, fromDate(), toConsortiumDate()));
       }
 

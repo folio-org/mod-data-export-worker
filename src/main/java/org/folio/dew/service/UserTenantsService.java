@@ -32,4 +32,19 @@ public class UserTenantsService {
       .findFirst()
       .map(UserTenantsClient.UserTenant::centralTenantId);
   }
+
+  public Optional<String> getConsortiumId(String tenantId) {
+    if (StringUtils.isBlank(tenantId)) {
+      return Optional.empty();
+    }
+
+    var userTenantsResponse = userTenantsClient.getUserTenants(tenantId);
+    if (userTenantsResponse != null) {
+      return userTenantsResponse.userTenants().stream()
+        .filter(userTenant -> userTenant.centralTenantId().equals(tenantId))
+        .findFirst()
+        .map(UserTenantsClient.UserTenant::consortiumId);
+    }
+    return Optional.empty();
+  }
 }

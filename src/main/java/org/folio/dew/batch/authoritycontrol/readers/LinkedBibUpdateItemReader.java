@@ -21,6 +21,9 @@ public class LinkedBibUpdateItemReader extends AuthorityControlItemReader<Instan
 
   @Override
   protected InstanceDataStatDtoCollection getCollection(int limit) {
+    if (toDate() == null) {
+      return null;
+    }
     return entitiesLinksStatsClient.getInstanceStats(limit, LinkStatus.ERROR, fromDate(), toDate());
   }
 }

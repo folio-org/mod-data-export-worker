@@ -19,6 +19,7 @@ public abstract class AuthorityControlItemReader<T extends DataStatDTO>
   private final int limit;
   private OffsetDateTime fromDate;
   private OffsetDateTime toDate;
+  private OffsetDateTime toConsortiumDate;
   private int currentChunkOffset;
   private List<T> currentChunk;
 
@@ -30,6 +31,7 @@ public abstract class AuthorityControlItemReader<T extends DataStatDTO>
     }
     if (exportConfig.getToDate() != null) {
       this.toDate = OffsetDateTime.of(exportConfig.getToDate(), LocalTime.MAX, ZoneOffset.UTC);
+      this.toConsortiumDate = this.toDate;
     }
     this.entitiesLinksStatsClient = entitiesLinksStatsClient;
     this.limit = jobProperties.getEntitiesLinksChunkSize();
@@ -42,13 +44,20 @@ public abstract class AuthorityControlItemReader<T extends DataStatDTO>
   @SuppressWarnings("unchecked")
   protected T doRead() {
     if (currentChunk == null || currentChunkOffset >= currentChunk.size()) {
-      if (toDate == null && currentChunk != null) {
-        return null;
+      if (toDate == null && toConsortiumDate == null && currentChunk != null) {
+        var collection = getCollection(limit);
+        if (collection == null || collection.getStats() == null || collection.getStats().isEmpty()) {
+          return null;
+        }
+        currentChunk = (List<T>) collection.getStats();
+        currentChunkOffset = 0;
+      } else {
+        var collection = getCollection(limit);
+        currentChunk = (List<T>) collection.getStats();
+        toDate = collection.getNext();
+        toConsortiumDate = collection.getConsortiumNext();
+        currentChunkOffset = 0;
       }
-      var collection = getCollection(limit);
-      currentChunk = (List<T>) collection.getStats();
-      toDate = collection.getNext();
-      currentChunkOffset = 0;
     }
 
     if (currentChunk.isEmpty()) {
@@ -66,6 +75,10 @@ public abstract class AuthorityControlItemReader<T extends DataStatDTO>
 
   protected String toDate() {
     return Objects.isNull(toDate) ? null : toDate.toString();
+  }
+
+  protected String toConsortiumDate() {
+    return Objects.isNull(toConsortiumDate) ? null : toConsortiumDate.toString();
   }
 
   @Override

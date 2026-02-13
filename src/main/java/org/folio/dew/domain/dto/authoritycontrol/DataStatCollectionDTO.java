@@ -8,4 +8,6 @@ public interface DataStatCollectionDTO {
   List<? extends DataStatDTO> getStats();
 
   OffsetDateTime getNext();
+
+  OffsetDateTime getConsortiumNext();
 }

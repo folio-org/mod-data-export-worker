@@ -135,7 +135,7 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
     }
     if (overflowStats.size() > limit) {
       var resultStats = new ArrayList<>(overflowStats.subList(0, limit));
-      overflowStats.subList(0, limit).clear();
+      overflowStats = new ArrayList<>(overflowStats.subList(limit, overflowStats.size()));
       return getMergedAuthorityStats(resultStats, null, null);
     }
     var result = getMergedAuthorityStats(overflowStats, null, null);

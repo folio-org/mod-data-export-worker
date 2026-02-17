@@ -49,6 +49,9 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
     if (toDate() == null) {
       return null;
     }
+    if (isConsortiumTenant()) {
+      return getAuthorityStatsFromCentralTenant(limit);
+    }
     return entitiesLinksStatsClient.getAuthorityStats(limit, UPDATE_HEADING, fromDate(), toDate());
   }
 
@@ -77,6 +80,14 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
     return currentChunk.get(currentChunkOffset++);
   }
 
+  private AuthorityDataStatDtoCollection getAuthorityStatsFromCentralTenant(int limit) {
+    var result = entitiesLinksStatsClient.getAuthorityStats(limit, UPDATE_HEADING, fromDate(), toDate());
+    if (result != null && result.getStats() != null && !result.getStats().isEmpty()) {
+      result.getStats().forEach(stat -> stat.setShared(true));
+    }
+    return result;
+  }
+
   private AuthorityDataStatDtoCollection getConsortiumAuthorityStats(int limit) {
     var memberTenantStats = fetchMemberTenantStats(limit);
     var centralTenantStats = fetchCentralTenantStats(limit);
@@ -93,6 +104,10 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
 
   private boolean isConsortiumMemberTenant() {
     return consortiumTenant != null && !consortiumTenant.equals(context.getTenantId());
+  }
+
+  private boolean isConsortiumTenant() {
+    return consortiumTenant != null && consortiumTenant.equals(context.getTenantId());
   }
 
   private AuthorityDataStatDtoCollection fetchMemberTenantStats(int limit) {

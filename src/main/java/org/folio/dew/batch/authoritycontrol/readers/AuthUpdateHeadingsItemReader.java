@@ -26,7 +26,7 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
   private final FolioExecutionContextService executionService;
   private final String consortiumTenant;
 
-  private List<AuthorityDataStatDto> overflowStats;
+  private List<AuthorityDataStatDto> overflowStats = new ArrayList<>();
 
   public AuthUpdateHeadingsItemReader(EntitiesLinksStatsClient entitiesLinksStatsClient,
                                       AuthorityControlExportConfig exportConfig,
@@ -130,7 +130,7 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
   }
 
   private AuthorityDataStatDtoCollection getDataFromOverflowStats(int limit) {
-    if (overflowStats == null) {
+    if (overflowStats == null || overflowStats.isEmpty()) {
       return getMergedAuthorityStats(null, null, null);
     }
     if (overflowStats.size() > limit) {

@@ -53,6 +53,60 @@
           "Content-Type": "application/json"
         }
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2025-02-14T00%3A00Z&toDate=2025-02-17T23%3A59%3A59.999999999Z",
+        "headers": {
+          "x-okapi-tenant": {
+            "equalTo": "college"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"stats\": [{\"id\": \"497f6eca-6276-4993-bfeb-53cbbbba6f08\",\"authorityId\": \"f4d72275-fbca-44d0-9214-72647a812332\",\"action\": \"UPDATE_HEADING\",\"naturalIdOld\": \"n1234567\",\"naturalIdNew\": \"n1234567\",\"headingOld\": \"Charles III, King upd2\",\"headingNew\": \"Charles III, King upd3\",\"headingTypeOld\": \"150\",\"headingTypeNew\": \"110\",\"sourceFileOld\": \"Not specified\",\"sourceFileNew\": \"LC Name Authority file (LCNAF)\",\"metadata\": {\"startedAt\": \"2025-02-16T12:00:01Z\",\"completedAt\": \"2022-02-16T15:00:00Z\",\"startedByUserId\": \"c8f721bd-38ac-411d-82c8-a5902fb19deb\",\"startedByUserFirstName\": \"Folio\",\"startedByUserLastName\": \"Test\"}},{\"id\": \"500f6eca-6276-4993-bfeb-53cbbbba6f08\",\"authorityId\": \"f4d72275-fbca-44d0-9214-72647a812332\",\"action\": \"UPDATE_HEADING\",\"naturalIdOld\": \"n1234567\",\"naturalIdNew\": \"n1234567\",\"headingOld\": \"Charles III, King upd1\",\"headingNew\": \"Charles III, King upd2\",\"headingTypeOld\": \"150\",\"headingTypeNew\": \"111\",\"sourceFileOld\": \"Not specified\",\"sourceFileNew\": \"LC Name Authority file (LCNAF)\",\"metadata\": {\"startedAt\": \"2025-02-16T12:00:00Z\",\"completedAt\": \"2025-02-16T15:00:00Z\",\"startedByUserId\": \"c8f721bd-38ac-411d-82c8-a5902fb19deb\",\"startedByUserFirstName\": \"Folio\",\"startedByUserLastName\": \"Admin\"}} ], \"next\": \"2025-02-15T11:00:00.000000Z\"}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2025-02-14T00%3A00Z&toDate=2025-02-15T11%3A00Z",
+        "headers": {
+          "x-okapi-tenant": {
+            "equalTo": "college"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"stats\": [{\"id\": \"497f6eca-6276-4993-bfeb-53cbbbba6f08\",\"authorityId\": \"f4d72275-fbca-44d0-9214-72647a812332\",\"action\": \"UPDATE_HEADING\",\"naturalIdOld\": \"n12345678\",\"naturalIdNew\": \"n12345678\",\"headingOld\": \"Charles III, King\",\"headingNew\": \"Charles III, King upd1\",\"headingTypeOld\": \"150\",\"headingTypeNew\": \"110\",\"sourceFileOld\": \"Not specified\",\"sourceFileNew\": \"LC Name Authority file (LCNAF)\",\"metadata\": {\"startedAt\": \"2025-02-15T12:05:00Z\",\"completedAt\": \"2025-02-15T15:00:00Z\",\"startedByUserId\": \"c8f721bd-38ac-411d-82c8-a5902fb19deb\",\"startedByUserFirstName\": \"Folio\",\"startedByUserLastName\": \"Test\"}}], \"next\": null}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2025-02-14T00%3A00Z&toDate=2025-02-17T23%3A59%3A59.999999999Z",
+        "headers": {
+          "x-okapi-tenant": {
+            "equalTo": "consortium"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"stats\": []}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
     }
   ]
 }

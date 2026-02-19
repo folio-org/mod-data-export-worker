@@ -17,10 +17,10 @@ public abstract class AuthorityControlItemReader<T extends DataStatDTO>
   extends AbstractItemCountingItemStreamItemReader<T> {
   protected final EntitiesLinksStatsClient entitiesLinksStatsClient;
   protected final int limit;
-  protected OffsetDateTime fromDate;
+  private int currentChunkOffset;
+  private List<T> currentChunk;
+  private OffsetDateTime fromDate;
   protected OffsetDateTime toDate;
-  protected int currentChunkOffset;
-  protected List<T> currentChunk;
   protected OffsetDateTime toConsortiumDate;
 
   protected AuthorityControlItemReader(EntitiesLinksStatsClient entitiesLinksStatsClient,

@@ -2,8 +2,9 @@ package org.folio.dew.batch.authoritycontrol.readers;
 
 import static org.folio.dew.domain.dto.authority.control.AuthorityDataStatDto.ActionEnum.UPDATE_HEADING;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.OffsetDateTime;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import org.folio.dew.client.EntitiesLinksStatsClient;
 import org.folio.dew.config.properties.AuthorityControlJobProperties;
 import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
@@ -21,12 +22,13 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
 
   private final FolioExecutionContext context;
   private final FolioExecutionContextService executionService;
-  private final String consortiumTenant;
+  private final String consortiumCentralTenant;
   private final boolean isConsortiumMemberTenant;
-  private final boolean isConsortiumTenant;
+  private final boolean isConsortiumCentralTenant;
+  private OffsetDateTime toConsortiumDate;
 
-  private final List<AuthorityDataStatDto> memberTenantStats = new ArrayList<>();
-  private final List<AuthorityDataStatDto> consortiumTenantStats = new ArrayList<>();
+  private final Deque<AuthorityDataStatDto> memberTenantStats = new ArrayDeque<>();
+  private final Deque<AuthorityDataStatDto> centralTenantStats = new ArrayDeque<>();
 
   public AuthUpdateHeadingsItemReader(EntitiesLinksStatsClient entitiesLinksStatsClient,
                                       AuthorityControlExportConfig exportConfig,
@@ -37,9 +39,10 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
     super(entitiesLinksStatsClient, exportConfig, jobProperties);
     this.context = context;
     this.executionService = executionService;
-    this.consortiumTenant = folioTenantService.getConsortiumTenant();
-    this.isConsortiumMemberTenant = consortiumTenant != null && !consortiumTenant.equals(this.context.getTenantId());
-    this.isConsortiumTenant = consortiumTenant != null && consortiumTenant.equals(this.context.getTenantId());
+    this.consortiumCentralTenant = folioTenantService.getConsortiumCentralTenant();
+    this.isConsortiumMemberTenant = consortiumCentralTenant != null && !consortiumCentralTenant.equals(this.context.getTenantId());
+    this.isConsortiumCentralTenant = consortiumCentralTenant != null && consortiumCentralTenant.equals(this.context.getTenantId());
+    this.toConsortiumDate = this.toDate;
   }
 
   @Override
@@ -52,46 +55,38 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
 
   @Override
   protected AuthorityDataStatDtoCollection getCollection(int limit) {
-    if (isConsortiumTenant) {
-      return getAuthorityStatsFromCentralTenant(limit);
+    var authorityStats = entitiesLinksStatsClient.getAuthorityStats(limit, UPDATE_HEADING, fromDate(), toDate());
+    if (isConsortiumCentralTenant && authorityStats != null && !authorityStats.getStats().isEmpty()) {
+      authorityStats.getStats().forEach(stat -> stat.setShared(true));
     }
-    return entitiesLinksStatsClient.getAuthorityStats(limit, UPDATE_HEADING, fromDate(), toDate());
+    return authorityStats;
   }
 
   private AuthorityDataStatDto getConsortiumAuthorityDataStat(int limit) {
     if (memberTenantStats.isEmpty()) {
       loadNextMemberTenantStatsPage(limit);
     }
-    if (consortiumTenantStats.isEmpty()) {
+    if (centralTenantStats.isEmpty()) {
       loadNextCentralTenantStatsPage(limit);
     }
     // if there are no stats in both member and central tenant return null to finish reading
-    if (memberTenantStats.isEmpty() && consortiumTenantStats.isEmpty()) {
+    if (memberTenantStats.isEmpty() && centralTenantStats.isEmpty()) {
       return null;
     }
 
     if (memberTenantStats.isEmpty()) {
-      return consortiumTenantStats.removeFirst();
+      return centralTenantStats.pollFirst();
+    }
+    if (centralTenantStats.isEmpty()) {
+      return memberTenantStats.pollFirst();
     }
 
-    if (consortiumTenantStats.isEmpty()) {
-      return memberTenantStats.removeFirst();
-    }
+    var memberStat = memberTenantStats.peekFirst();
+    var centralStat = centralTenantStats.peekFirst();
 
-    var memberStat = memberTenantStats.getFirst();
-    var consortiumStat = consortiumTenantStats.getFirst();
-
-    return memberStat.getMetadata().getStartedAt().isAfter(consortiumStat.getMetadata().getStartedAt())
-      ? memberTenantStats.removeFirst()
-      : consortiumTenantStats.removeFirst();
-  }
-
-  private AuthorityDataStatDtoCollection getAuthorityStatsFromCentralTenant(int limit) {
-    var authorityStats = entitiesLinksStatsClient.getAuthorityStats(limit, UPDATE_HEADING, fromDate(), toDate());
-    if (authorityStats != null && authorityStats.getStats() != null && !authorityStats.getStats().isEmpty()) {
-      authorityStats.getStats().forEach(stat -> stat.setShared(true));
-    }
-    return authorityStats;
+    return memberStat.getMetadata().getStartedAt().isAfter(centralStat.getMetadata().getStartedAt())
+      ? memberTenantStats.pollFirst()
+      : centralTenantStats.pollFirst();
   }
 
   private void loadNextMemberTenantStatsPage(int limit) {
@@ -105,15 +100,19 @@ public class AuthUpdateHeadingsItemReader extends AuthorityControlItemReader<Aut
   }
 
   private void loadNextCentralTenantStatsPage(int limit) {
-    if (toConsortiumDate() != null) {
-      var authorityStats = executionService.execute(consortiumTenant, context, () ->
-        entitiesLinksStatsClient.getAuthorityStats(limit, UPDATE_HEADING, fromDate(), toConsortiumDate()));
+    if (formatConsortiumDate() != null) {
+      var authorityStats = executionService.execute(consortiumCentralTenant, context, () ->
+        entitiesLinksStatsClient.getAuthorityStats(limit, UPDATE_HEADING, fromDate(), formatConsortiumDate()));
 
       if (authorityStats != null && !authorityStats.getStats().isEmpty()) {
         authorityStats.getStats().forEach(stat -> stat.setShared(true));
         toConsortiumDate = authorityStats.getNext();
-        consortiumTenantStats.addAll(authorityStats.getStats());
+        centralTenantStats.addAll(authorityStats.getStats());
       }
     }
+  }
+
+  private String formatConsortiumDate() {
+    return toConsortiumDate == null ? null : toConsortiumDate.toString();
   }
 }

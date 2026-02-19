@@ -21,7 +21,6 @@ public abstract class AuthorityControlItemReader<T extends DataStatDTO>
   private List<T> currentChunk;
   private OffsetDateTime fromDate;
   protected OffsetDateTime toDate;
-  protected OffsetDateTime toConsortiumDate;
 
   protected AuthorityControlItemReader(EntitiesLinksStatsClient entitiesLinksStatsClient,
                                        AuthorityControlExportConfig exportConfig,
@@ -31,7 +30,6 @@ public abstract class AuthorityControlItemReader<T extends DataStatDTO>
     }
     if (exportConfig.getToDate() != null) {
       this.toDate = OffsetDateTime.of(exportConfig.getToDate(), LocalTime.MAX, ZoneOffset.UTC);
-      this.toConsortiumDate = this.toDate;
     }
     this.entitiesLinksStatsClient = entitiesLinksStatsClient;
     this.limit = jobProperties.getEntitiesLinksChunkSize();
@@ -67,10 +65,6 @@ public abstract class AuthorityControlItemReader<T extends DataStatDTO>
 
   protected String toDate() {
     return Objects.isNull(toDate) ? null : toDate.toString();
-  }
-
-  protected String toConsortiumDate() {
-    return Objects.isNull(toConsortiumDate) ? null : toConsortiumDate.toString();
   }
 
   @Override

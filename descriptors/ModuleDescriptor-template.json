@@ -153,6 +153,10 @@
     {
       "id": "settings",
       "version": "1.2"
+    },
+    {
+      "id": "locale",
+      "version": "1.0"
     }
   ],
   "optional": [
@@ -249,7 +253,8 @@
             "users.collection.get",
             "transfers.collection.get",
             "inventory-storage.service-points.collection.get",
-            "instance-authority-links.authority-statistics.collection.get"
+            "instance-authority-links.authority-statistics.collection.get",
+            "locale.item.get"
           ]
         },
         {

@@ -45,8 +45,8 @@ public class LocaleClient {
     public ZoneId getZoneId() {
       try {
         return ZoneId.of(timezone);
-      } catch (DateTimeException e) {
-        log.error("Invalid timezone '{}', defaulting to UTC.", timezone, e);
+      } catch (DateTimeException | NullPointerException e) {
+        log.error("Invalid or missing timezone '{}', defaulting to UTC.", timezone, e);
         return ZoneId.of("UTC");
       }
     }
@@ -55,10 +55,23 @@ public class LocaleClient {
   public LocaleSettings getLocaleSettings() {
     try {
       String response = underlyingClient.getLocaleSettings();
-      return objectMapper.readValue(response, LocaleSettings.class);
-    } catch (JsonProcessingException | FeignException | NullPointerException e) {
-      log.error("Failed to retrieve locale information. Defaulting to en-US, USD, UTC, latn.", e);
-      return new LocaleSettings("en-US", "USD", "UTC", "latn");
+      LocaleSettings settings = objectMapper.readValue(response, LocaleSettings.class);
+      log.info("Retrieved tenant locale settings from /locale: locale='{}', timezone='{}', currency='{}', numberingSystem='{}'.",
+        settings.locale(), settings.timezone(), settings.currency(), settings.numberingSystem());
+      return settings;
+    } catch (FeignException e) {
+      log.warn("Failed to call /locale (status={}): {}. Falling back to defaults.", e.status(), e.getMessage());
+      return defaultLocaleSettings();
+    } catch (JsonProcessingException e) {
+      log.warn("Failed to parse /locale response. Falling back to defaults.", e);
+      return defaultLocaleSettings();
+    } catch (NullPointerException e) {
+      log.warn("Missing locale settings payload from /locale. Falling back to defaults.", e);
+      return defaultLocaleSettings();
     }
+  }
+
+  private LocaleSettings defaultLocaleSettings() {
+    return new LocaleSettings("en-US", "USD", "UTC", "latn");
   }
 }

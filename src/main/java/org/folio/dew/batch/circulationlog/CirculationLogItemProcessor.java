@@ -1,6 +1,7 @@
 package org.folio.dew.batch.circulationlog;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.LocaleClient;
 import org.folio.dew.client.ServicePointClient;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 @Component
 @StepScope
 @RequiredArgsConstructor
+@Log4j2
 public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, CirculationLogExportFormat> {
 
   private final ServicePointClient servicePointClient;
@@ -62,8 +64,18 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
   private void initTenantSpecificDateFormat() {
     if (format != null) return;
 
+    var localeSettings = localeClient.getLocaleSettings();
+    var zoneId = localeSettings.getZoneId();
+
+    log.info("Initializing circulation log date format with locale settings: locale='{}', timezone='{}', currency='{}', numberingSystem='{}', resolvedZoneId='{}'.",
+      localeSettings.locale(),
+      localeSettings.timezone(),
+      localeSettings.currency(),
+      localeSettings.numberingSystem(),
+      zoneId.getId());
+
     var dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-    dateFormat.setTimeZone(TimeZone.getTimeZone(localeClient.getLocaleSettings().getZoneId()));
+    dateFormat.setTimeZone(TimeZone.getTimeZone(zoneId));
 
     format = dateFormat;
   }

@@ -1,16 +1,15 @@
 package org.folio.dew;
 
+import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import org.apache.commons.io.FileUtils;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.CirculationLogExportFormat;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.MethodOrderer;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -38,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CirculationLogTest extends BaseBatchTest {
 
   @Autowired private Job getCirculationLogJob;
@@ -50,8 +48,12 @@ class CirculationLogTest extends BaseBatchTest {
     setUpTenant(NON_CONSORTIUM_TENANT);
   }
 
+  @BeforeEach
+  void beforeEach() {
+    wireMockServer.resetRequests();
+  }
+
   @Test
-  @Order(1)
   @DisplayName("Run CirculationLogJob successfully")
   void circulationLogJobTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(getCirculationLogJob);
@@ -72,7 +74,6 @@ class CirculationLogTest extends BaseBatchTest {
   }
 
   @Test
-  @Order(2)
   @DisplayName("Check that date setting in 24 hours format instead of 12h and test pass successfully")
   void successfulSetDateIn24hFormatInsteadOf12hTest() throws ParseException {
     CirculationLogExportFormat circulationLogExportFormat = new CirculationLogExportFormat();
@@ -125,7 +126,6 @@ class CirculationLogTest extends BaseBatchTest {
   }
 
   @Test
-  @Order(3)
   @DisplayName("Fail test when circulation log output file content does not match expected")
   void circulationLogJobFileMismatchTest() throws Exception {
     JobLauncherTestUtils testLauncher = createTestLauncher(getCirculationLogJob);
@@ -142,45 +142,48 @@ class CirculationLogTest extends BaseBatchTest {
   }
 
   @Test
-  @Order(90)
   @DisplayName("Run CirculationLogJob successfully when /locale returns unauthorized")
   void circulationLogJobUsesDefaultLocaleWhenLocaleApiUnauthorized() throws Exception {
-    wireMockServer.stubFor(get(urlEqualTo("/locale"))
+    StubMapping localeStub = wireMockServer.stubFor(get(urlEqualTo("/locale"))
       .atPriority(3)
       .willReturn(aResponse().withStatus(401)));
+    try {
+      JobLauncherTestUtils testLauncher = createTestLauncher(getCirculationLogJob);
+      JobExecution jobExecution = testLauncher.launchJob(prepareJobParameters());
 
-    JobLauncherTestUtils testLauncher = createTestLauncher(getCirculationLogJob);
-    JobExecution jobExecution = testLauncher.launchJob(prepareJobParameters());
-
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-    wireMockServer.verify(getRequestedFor(urlEqualTo("/locale")));
-    wireMockServer.verify(0, getRequestedFor(urlMatching("/settings/entries\\?query=.*tenantLocaleSettings.*")));
+      assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+      wireMockServer.verify(getRequestedFor(urlEqualTo("/locale")));
+      wireMockServer.verify(0, getRequestedFor(urlMatching("/settings/entries\\?query=.*tenantLocaleSettings.*")));
+    } finally {
+      wireMockServer.removeStubMapping(localeStub);
+    }
   }
 
   @Test
-  @Order(91)
   @DisplayName("Run CirculationLogJob successfully when /locale returns invalid json")
   void circulationLogJobUsesDefaultLocaleWhenLocaleApiReturnsInvalidJson() throws Exception {
-    wireMockServer.stubFor(get(urlEqualTo("/locale"))
+    StubMapping localeStub = wireMockServer.stubFor(get(urlEqualTo("/locale"))
       .atPriority(2)
       .willReturn(aResponse()
         .withStatus(200)
         .withHeader("Content-Type", "application/json")
         .withBody("invalid json")));
+    try {
+      JobLauncherTestUtils testLauncher = createTestLauncher(getCirculationLogJob);
+      JobExecution jobExecution = testLauncher.launchJob(prepareJobParameters());
 
-    JobLauncherTestUtils testLauncher = createTestLauncher(getCirculationLogJob);
-    JobExecution jobExecution = testLauncher.launchJob(prepareJobParameters());
-
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-    wireMockServer.verify(getRequestedFor(urlEqualTo("/locale")));
-    wireMockServer.verify(0, getRequestedFor(urlMatching("/settings/entries\\?query=.*tenantLocaleSettings.*")));
+      assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+      wireMockServer.verify(getRequestedFor(urlEqualTo("/locale")));
+      wireMockServer.verify(0, getRequestedFor(urlMatching("/settings/entries\\?query=.*tenantLocaleSettings.*")));
+    } finally {
+      wireMockServer.removeStubMapping(localeStub);
+    }
   }
 
   @Test
-  @Order(92)
   @DisplayName("Run CirculationLogJob successfully when /locale returns invalid timezone")
   void circulationLogJobUsesUtcWhenLocaleApiReturnsInvalidTimezone() throws Exception {
-    wireMockServer.stubFor(get(urlEqualTo("/locale"))
+    StubMapping localeStub = wireMockServer.stubFor(get(urlEqualTo("/locale"))
       .atPriority(1)
       .willReturn(aResponse()
         .withStatus(200)
@@ -193,12 +196,15 @@ class CirculationLogTest extends BaseBatchTest {
             "numberingSystem": "latn"
           }
           """)));
+    try {
+      JobLauncherTestUtils testLauncher = createTestLauncher(getCirculationLogJob);
+      JobExecution jobExecution = testLauncher.launchJob(prepareJobParameters());
 
-    JobLauncherTestUtils testLauncher = createTestLauncher(getCirculationLogJob);
-    JobExecution jobExecution = testLauncher.launchJob(prepareJobParameters());
-
-    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-    wireMockServer.verify(getRequestedFor(urlEqualTo("/locale")));
-    wireMockServer.verify(0, getRequestedFor(urlMatching("/settings/entries\\?query=.*tenantLocaleSettings.*")));
+      assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+      wireMockServer.verify(getRequestedFor(urlEqualTo("/locale")));
+      wireMockServer.verify(0, getRequestedFor(urlMatching("/settings/entries\\?query=.*tenantLocaleSettings.*")));
+    } finally {
+      wireMockServer.removeStubMapping(localeStub);
+    }
   }
 }

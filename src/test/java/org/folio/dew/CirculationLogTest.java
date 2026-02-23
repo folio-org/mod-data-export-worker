@@ -26,6 +26,7 @@ import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.dew.domain.dto.JobParameterNames.CIRCULATION_LOG_FILE_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -59,6 +60,8 @@ class CirculationLogTest extends BaseBatchTest {
       getRequestedFor(
         urlEqualTo(
           "/audit-data/circulation/logs?query&offset=0&limit=0")));
+    wireMockServer.verify(getRequestedFor(urlEqualTo("/locale")));
+    wireMockServer.verify(0, getRequestedFor(urlMatching("/settings/entries\\?query=.*tenantLocaleSettings.*")));
   }
 
   @Test

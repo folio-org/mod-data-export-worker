@@ -1,0 +1,17 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "urlPattern": "/locale"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n  \"locale\": \"en-US\",\n  \"currency\": \"USD\",\n  \"timezone\": \"Pacific/Yap\",\n  \"numberingSystem\": \"latn\"\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

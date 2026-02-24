@@ -13,6 +13,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
+import org.apache.commons.io.FileUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.error.BursarNoAccountsToTransferException;
 import org.folio.dew.helpers.bursarfeesfines.BursarFeesFinesTestUtils;
@@ -27,7 +28,6 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
-import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 
 class NoFeeFineMatchingAggregateCriteriaAggregateTest extends BaseBatchTest {
 

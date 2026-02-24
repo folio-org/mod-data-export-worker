@@ -49,11 +49,11 @@ class CirculationLogItemProcessorTest {
   void process_allFields_returnsMappedFormat() {
     initProcessor("UTC");
 
-    LogRecord record = createLogRecord(List.of(
+    LogRecord rec = createLogRecord(List.of(
       new LogRecordItemsInner().itemBarcode("ITEM-1"),
       new LogRecordItemsInner().itemBarcode("ITEM-2")));
 
-    CirculationLogExportFormat result = processor.process(record);
+    CirculationLogExportFormat result = processor.process(rec);
 
     assertThat(result.getUserBarcode()).isEqualTo(USER_BARCODE);
     assertThat(result.getAction()).isEqualTo(ActionType.CHECK_OUT.getValue());

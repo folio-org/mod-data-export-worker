@@ -6,7 +6,6 @@ import static org.mockito.Mockito.when;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.folio.dew.client.TenantAddressesClient;
@@ -36,39 +35,22 @@ class ConfigurationServiceTest {
 
   @Test
   void getAddressConfig_matchingAddress_returnsAddress() {
-    when(tenantAddressesClient.getTenantAddresses())
-      .thenReturn(createResponse(CONFIG_ID.toString(), EXPECTED_ADDRESS));
+    when(tenantAddressesClient.getById(CONFIG_ID.toString()))
+      .thenReturn(createAddressNode(EXPECTED_ADDRESS));
 
     assertThat(configurationService.getAddressConfig(CONFIG_ID)).isEqualTo(EXPECTED_ADDRESS);
   }
 
   @Test
-  void getAddressConfig_noMatchingId_returnsEmpty() {
-    when(tenantAddressesClient.getTenantAddresses())
-      .thenReturn(createResponse("other-id", "Other Address"));
-
-    assertThat(configurationService.getAddressConfig(CONFIG_ID)).isEmpty();
-  }
-
-  @Test
   void getAddressConfig_nullResponse_returnsEmpty() {
-    when(tenantAddressesClient.getTenantAddresses()).thenReturn(null);
-
-    assertThat(configurationService.getAddressConfig(CONFIG_ID)).isEmpty();
-  }
-
-  @Test
-  void getAddressConfig_emptyAddressArray_returnsEmpty() {
-    ObjectNode response = MAPPER.createObjectNode();
-    response.putArray("addresses");
-    when(tenantAddressesClient.getTenantAddresses()).thenReturn(response);
+    when(tenantAddressesClient.getById(CONFIG_ID.toString())).thenReturn(null);
 
     assertThat(configurationService.getAddressConfig(CONFIG_ID)).isEmpty();
   }
 
   @Test
   void getAddressConfig_clientThrowsException_returnsEmpty() {
-    when(tenantAddressesClient.getTenantAddresses())
+    when(tenantAddressesClient.getById(CONFIG_ID.toString()))
       .thenThrow(new RuntimeException("Connection error"));
 
     assertThat(configurationService.getAddressConfig(CONFIG_ID)).isEmpty();
@@ -76,12 +58,9 @@ class ConfigurationServiceTest {
 
   // -- Helper --
 
-  private static ObjectNode createResponse(String id, String address) {
-    ObjectNode response = MAPPER.createObjectNode();
-    ArrayNode addresses = response.putArray("addresses");
-    ObjectNode entry = addresses.addObject();
-    entry.put("id", id);
+  private static ObjectNode createAddressNode(String address) {
+    ObjectNode entry = MAPPER.createObjectNode();
     entry.put("address", address);
-    return response;
+    return entry;
   }
 }

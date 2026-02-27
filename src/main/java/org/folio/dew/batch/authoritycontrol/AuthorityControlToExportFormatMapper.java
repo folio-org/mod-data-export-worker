@@ -38,7 +38,6 @@ public class AuthorityControlToExportFormatMapper {
     exportFormat.setOriginalHeadingType(dto.getHeadingTypeOld());
     exportFormat.setIdentifier(dto.getNaturalIdNew());
     exportFormat.setAuthoritySourceFileName(dto.getSourceFileNew());
-    exportFormat.setNumberOfBibliographicRecordsLinked(dto.getLbTotal().toString());
     if (folioTenantService.isConsortiumTenant()) {
       exportFormat.setSource(Boolean.TRUE.equals(dto.getShared()) ? "shared" : "local");
     }

@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import lombok.SneakyThrows;
+import org.apache.commons.io.FileUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
@@ -37,7 +38,6 @@ import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 
 class AuthorityControlConsortiumTest extends BaseBatchTest {
 

@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.FileUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.ExportType;
@@ -41,7 +42,6 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 
 @Log4j2
 class AuthorityControlTest extends BaseBatchTest {

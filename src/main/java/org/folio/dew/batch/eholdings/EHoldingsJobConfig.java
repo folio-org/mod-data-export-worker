@@ -10,17 +10,16 @@ import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceDTO;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
-import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.listener.ExecutionContextPromotionListener;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.support.CompositeItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.support.CompositeItemProcessor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -49,8 +48,6 @@ public class EHoldingsJobConfig {
     @Qualifier("saveEHoldingsStep") Step saveEHoldingsStep,
     @Qualifier("cleanupEHoldingsStep") Step cleanupEHoldingsStep) {
     return new JobBuilder(ExportType.E_HOLDINGS.toString(), jobRepository)
-      .repository(jobRepository)
-      .incrementer(new RunIdIncrementer())
       .listener(jobCompletionNotificationListener)
       .start(prepareEHoldingsStep)
       .next(getEHoldingsStep)
@@ -73,7 +70,7 @@ public class EHoldingsJobConfig {
 
   @Bean("getEHoldingsStep")
   public Step getEHoldingsStep(@Qualifier("eHoldingsItemProcessor")
-                               ItemProcessor<EHoldingsResourceDTO, EHoldingsResourceDTO> processor,
+                                 ItemProcessor<EHoldingsResourceDTO, EHoldingsResourceDTO> processor,
                                @Qualifier("getEHoldingsPromotionListener")
                                ExecutionContextPromotionListener getEHoldingsPromotionListener,
                                EHoldingsItemReader eHoldingsItemReader,
@@ -82,7 +79,8 @@ public class EHoldingsJobConfig {
                                JobRepository jobRepository,
                                PlatformTransactionManager transactionManager) {
     return new StepBuilder("getEHoldingsStep", jobRepository)
-      .<EHoldingsResourceDTO, EHoldingsResourceDTO>chunk(jobProperties.getJobChunkSize(), transactionManager)
+      .<EHoldingsResourceDTO, EHoldingsResourceDTO>chunk(jobProperties.getJobChunkSize())
+      .transactionManager(transactionManager)
       .reader(eHoldingsItemReader)
       .processor(processor)
       .writer(getEHoldingsWriter)
@@ -99,7 +97,8 @@ public class EHoldingsJobConfig {
                                 JobRepository jobRepository,
                                 PlatformTransactionManager transactionManager) {
     return new StepBuilder("saveEHoldingsStep", jobRepository)
-      .<EHoldingsResourceDTO, EHoldingsResourceExportFormat>chunk(jobProperties.getJobChunkSize(), transactionManager)
+      .<EHoldingsResourceDTO, EHoldingsResourceExportFormat>chunk(jobProperties.getJobChunkSize())
+      .transactionManager(transactionManager)
       .reader(databaseEHoldingsReader)
       .processor(resourceProcessor)
       .writer(flatFileItemWriter)

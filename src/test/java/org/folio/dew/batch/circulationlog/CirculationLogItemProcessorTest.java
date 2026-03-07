@@ -20,6 +20,7 @@ import org.folio.dew.domain.dto.LogRecordItemsInner;
 import org.folio.dew.domain.dto.LoggedObjectType;
 import org.folio.dew.domain.dto.ServicePoint;
 import org.folio.dew.domain.dto.Servicepoints;
+import org.folio.dew.domain.dto.circulationlog.Locale;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -93,7 +94,8 @@ class CirculationLogItemProcessorTest {
   // -- Helpers --
 
   private void initProcessor(String timezoneId) {
-    ObjectNode locale = MAPPER.createObjectNode().put("timezone", timezoneId);
+    var locale = new Locale();
+    locale.setTimezone(timezoneId);
     when(servicePointClient.get("name<>null", 1000)).thenReturn(createServicepoints());
     when(localeClient.getLocale()).thenReturn(locale);
     processor.initStep(MetaDataInstanceFactory.createStepExecution());

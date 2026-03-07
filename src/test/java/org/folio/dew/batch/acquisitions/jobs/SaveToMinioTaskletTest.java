@@ -16,17 +16,18 @@ import java.util.UUID;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.services.OrganizationsService;
+import org.folio.dew.domain.dto.acquisitions.edifact.Organization;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
@@ -58,16 +59,17 @@ class SaveToMinioTaskletTest extends BaseBatchTest {
   protected void setUp() {
     super.setUp();
 
-    JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
-    doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
+    var vendor = new Organization();
+    vendor.setCode("GOBI");
+    doReturn(vendor).when(organizationsService).getOrganizationById(anyString());
   }
 
   @Test
   @DirtiesContext
   void minioUploadSuccessful() throws IOException {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
 
-    JobExecution jobExecution = testLauncher.launchStep("saveToMinIOStep", getJobParameters(), getExecutionContext());
+    JobExecution jobExecution = testLauncher.startStep("saveToMinIOStep", getJobParameters(), getExecutionContext());
 
     assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
   }
@@ -76,10 +78,10 @@ class SaveToMinioTaskletTest extends BaseBatchTest {
   @DirtiesContext
   void minioUploadFails()
     throws IOException {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
     doThrow(new NullPointerException()).when(remoteFilesStorage).write(anyString(), any(byte[].class));
 
-    JobExecution jobExecution = testLauncher.launchStep("saveToMinIOStep", getJobParameters(), getExecutionContext());
+    JobExecution jobExecution = testLauncher.startStep("saveToMinIOStep", getJobParameters(), getExecutionContext());
 
     assertEquals(ExitStatus.FAILED.getExitCode(), jobExecution.getExitStatus().getExitCode());
   }
@@ -101,11 +103,4 @@ class SaveToMinioTaskletTest extends BaseBatchTest {
     return executionContext;
   }
 
-  protected JobLauncherTestUtils createTestLauncher(Job job) {
-    JobLauncherTestUtils testLauncher = new JobLauncherTestUtils();
-    testLauncher.setJob(job);
-    testLauncher.setJobLauncher(jobLauncher);
-    testLauncher.setJobRepository(jobRepository);
-    return testLauncher;
-  }
 }

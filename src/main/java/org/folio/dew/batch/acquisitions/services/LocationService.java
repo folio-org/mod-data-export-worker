@@ -2,15 +2,16 @@ package org.folio.dew.batch.acquisitions.services;
 
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.client.LocationClient;
+import org.folio.dew.domain.dto.acquisitions.edifact.Location;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.folio.spring.utils.FolioExecutionContextUtils;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import lombok.RequiredArgsConstructor;
+
+import static java.util.Optional.ofNullable;
 
 @Service
 @RequiredArgsConstructor
@@ -19,26 +20,26 @@ public class LocationService {
   private final FolioModuleMetadata folioModuleMetadata;
   private final FolioExecutionContext folioExecutionContext;
 
-  private JsonNode getLocation(String id) {
+  private Location getLocation(String id) {
     return locationClient.getLocation(id);
   }
 
   public String getLocationCodeById(String locationId, String tenantId) {
-    JsonNode jsonObject;
+    Location location;
     if (StringUtils.isNotBlank(tenantId)) {
       try (var ignored = new FolioExecutionContextSetter(
         FolioExecutionContextUtils.prepareContextForTenant(tenantId, folioModuleMetadata, folioExecutionContext))) {
 
-        jsonObject = getLocation(locationId);
+        location = getLocation(locationId);
       }
     } else {
-      jsonObject = getLocation(locationId);
+      location = getLocation(locationId);
     }
 
     String locationCode = "";
 
-    if (jsonObject != null && !jsonObject.isEmpty()) {
-      locationCode = jsonObject.get("code").asText();
+    if (location != null) {
+      locationCode = ofNullable(location.getCode()).orElse("");
     }
 
     return locationCode;

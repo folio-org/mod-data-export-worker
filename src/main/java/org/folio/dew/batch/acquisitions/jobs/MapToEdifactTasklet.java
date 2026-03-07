@@ -30,10 +30,9 @@ import org.folio.dew.domain.dto.PurchaseOrder;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.acquisitions.edifact.ExportHolder;
 import org.folio.dew.error.NotFoundException;
-import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
+import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.step.tasklet.Tasklet;
-import org.springframework.batch.repeat.RepeatStatus;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,6 +40,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.xlate.edi.stream.EDIStreamException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 
 @RequiredArgsConstructor
 @Log4j2
@@ -116,7 +116,7 @@ public abstract class MapToEdifactTasklet implements Tasklet {
   }
 
   private String getFileName(VendorEdiOrdersExportConfig ediExportConfig) {
-    var vendorName = organizationsService.getOrganizationById(ediExportConfig.getVendorId().toString()).get("code").asText();
+    var vendorName = organizationsService.getOrganizationById(ediExportConfig.getVendorId().toString()).getCode();
     var configName = ediExportConfig.getConfigName();
     var integrationType = ediExportConfig.getIntegrationType();
     var fileFormat = ediExportConfig.getFileFormat();

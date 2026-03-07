@@ -25,11 +25,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -66,9 +67,11 @@ abstract class MapToEdifactTaskletAbstractTest extends BaseBatchTest {
 
   @Test
   void testEdifactExportMissingFtpPort() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
-    JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT_MISSING_PORT)));
-    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0).getStatus();
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobExecution jobExecution = testLauncher.startStep(MAP_TO_EDIFACT_STEP,
+            getJobParameters(getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT_MISSING_PORT)),
+            new ExecutionContext());
+    var status = new ArrayList<>(jobExecution.getStepExecutions()).getFirst().getStatus();
 
     assertEquals(BatchStatus.FAILED, status);
     assertThat(jobExecution.getExitStatus().getExitCode()).isEqualTo(ExitStatus.FAILED.getExitCode());
@@ -77,10 +80,12 @@ abstract class MapToEdifactTaskletAbstractTest extends BaseBatchTest {
 
   @Test
   void testEdifactExportPurchaseOrdersNotFound() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
     doReturn(List.of()).when(ordersService).getPoLinesByQuery(anyString());
 
-    JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT)));
+    JobExecution jobExecution = testLauncher.startStep(MAP_TO_EDIFACT_STEP,
+            getJobParameters(getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT)),
+            new ExecutionContext());
 
     assertThat(jobExecution.getExitStatus().getExitCode()).isEqualTo(ExitStatus.FAILED.getExitCode());
     assertThat(jobExecution.getExitStatus().getExitDescription()).contains("Entities not found: PurchaseOrder");

@@ -1,16 +1,15 @@
 package org.folio.dew.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.folio.dew.config.feign.FeignClientConfiguration;
-import org.springframework.cloud.openfeign.FeignClient;
+import org.folio.dew.domain.dto.acquisitions.edifact.TenantAddress;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
 
 
-@FeignClient(name = "tenant-addresses", configuration = FeignClientConfiguration.class)
+@HttpExchange(url = "tenant-addresses", accept = MediaType.APPLICATION_JSON_VALUE)
 public interface TenantAddressesClient {
 
-  @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-  JsonNode getById(@PathVariable("id") String id);
+  @GetExchange(value = "/{id}")
+  TenantAddress getById(@PathVariable("id") String id);
 }

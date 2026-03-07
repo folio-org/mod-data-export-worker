@@ -22,12 +22,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -92,13 +92,13 @@ class EHoldingsTest extends BaseBatchTest {
   @Test
   @DisplayName("Run EHoldingsJob export resource without provider load successfully")
   void eHoldingsJobResourceTest() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
     var exportConfig = buildExportConfig(RESOURCE_ID, RESOURCE);
     exportConfig.getPackageFields().remove("providerLevelToken");
 
     final JobParameters jobParameters = prepareJobParameters(exportConfig);
 
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+    JobExecution jobExecution = testLauncher.startJob(jobParameters);
 
     verifyFile(jobExecution, EXPECTED_RESOURCE_OUTPUT);
 
@@ -119,11 +119,11 @@ class EHoldingsTest extends BaseBatchTest {
   @Test
   @DisplayName("Run EHoldingsJob export package successfully")
   void eHoldingsJobPackageTest() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
     var exportConfig = buildExportConfig(PACKAGE_ID, PACKAGE);
 
     final JobParameters jobParameters = prepareJobParameters(exportConfig);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+    JobExecution jobExecution = testLauncher.startJob(jobParameters);
 
     verifyFile(jobExecution, EXPECTED_PACKAGE_OUTPUT);
 
@@ -144,11 +144,11 @@ class EHoldingsTest extends BaseBatchTest {
   @Test
   @DisplayName("Run EHoldingsJob export package with 3 titles successfully")
   void eHoldingsJobPackageWith3TitlesTest() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
     var exportConfig = buildExportConfig(PACKAGE_WITH_3_TITLES_ID, PACKAGE);
 
     final JobParameters jobParameters = prepareJobParameters(exportConfig);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+    JobExecution jobExecution = testLauncher.startJob(jobParameters);
 
     verifyFile(jobExecution, EXPECTED_PACKAGE_WITH_3_TITLES_OUTPUT);
 
@@ -169,11 +169,11 @@ class EHoldingsTest extends BaseBatchTest {
   @Test
   @DisplayName("Run EHoldingsJob export package without resources successfully")
   void eHoldingsJobSinglePackageTest() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
     var exportConfig = buildExportConfig(SINGLE_PACKAGE_ID, PACKAGE);
 
     final JobParameters jobParameters = prepareJobParameters(exportConfig);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+    JobExecution jobExecution = testLauncher.startJob(jobParameters);
 
     verifyFile(jobExecution, EXPECTED_SINGLE_PACKAGE_OUTPUT);
 
@@ -196,11 +196,11 @@ class EHoldingsTest extends BaseBatchTest {
   void eHoldingsJobPackageConcurrentTest() throws Exception {
     populateOtherJobsDataInDatabase();
 
-    JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
     var exportConfig = buildExportConfig(PACKAGE_ID, PACKAGE);
 
     final JobParameters jobParameters = prepareJobParameters(exportConfig);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+    JobExecution jobExecution = testLauncher.startJob(jobParameters);
     verifyFile(jobExecution, EXPECTED_PACKAGE_OUTPUT);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
@@ -222,13 +222,13 @@ class EHoldingsTest extends BaseBatchTest {
   @Test
   @DisplayName("Run EHoldingsJob export package with same title names successfully")
   void eHoldingsJobPackageWithSameTitleNamesTest() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
     var exportConfig = buildExportConfig(PACKAGE_WITH_SAME_TITLE_NAMES_ID, PACKAGE);
     exportConfig.getTitleFields().removeAll(asList("titleAgreements", "titleNotes"));
     exportConfig.getPackageFields().removeAll(asList("packageAgreements", "packageNotes"));
 
     final JobParameters jobParameters = prepareJobParameters(exportConfig);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+    JobExecution jobExecution = testLauncher.startJob(jobParameters);
 
     verifyFile(jobExecution, EXPECTED_PACKAGE_WITH_SAME_TITLE_NAMES_OUTPUT);
 
@@ -285,8 +285,8 @@ class EHoldingsTest extends BaseBatchTest {
     Mockito.verify(kafkaService, times(2)).send(eq(KafkaService.Topic.JOB_UPDATE), anyString(), jobCaptor.capture());
 
     var job = jobCaptor.getValue();
-    final String filePath = job.getFiles().get(0);
-    final String fileName = job.getFileNames().get(0);
+    final String filePath = job.getFiles().getFirst();
+    final String fileName = job.getFileNames().getFirst();
 
     assertEquals(FILE_PATH + fileName, filePath);
   }

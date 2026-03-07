@@ -34,6 +34,7 @@ import lombok.SneakyThrows;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.ExportJobManagerSync;
 import org.folio.dew.client.UserTenantsClient;
+import org.folio.dew.config.HttpClientConfiguration;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.spring.DefaultFolioExecutionContext;
@@ -45,18 +46,18 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.springframework.batch.core.Job;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.FileSystemResource;
@@ -77,14 +78,14 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-    "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+    "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
+        "spring.liquibase.enabled=true"})
 @ContextConfiguration(initializers = BaseBatchTest.DockerPostgreDataSourceInitializer.class)
 @Testcontainers
 @AutoConfigureMockMvc
+@ImportAutoConfiguration(HttpClientConfiguration.class)
 @EmbeddedKafka(topics = { "diku.data-export.job.command" })
 @EnableBatchProcessing
-@EnableAutoConfiguration
 public abstract class BaseBatchTest {
   protected static final String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjFkM2I1OGNiLTA3YjUtNWZjZC04YTJhLTNjZTA2YTBlYjkwZiIsImlhdCI6MTYxNjQyMDM5MywidGVuYW50IjoiZGlrdSJ9.2nvEYQBbJP1PewEgxixBWLHSX_eELiBEBpjufWiJZRs";
   protected static final String NON_CONSORTIUM_TENANT = "diku";
@@ -100,7 +101,7 @@ public abstract class BaseBatchTest {
   @Autowired
   private FolioModuleMetadata folioModuleMetadata;
   @Autowired
-  protected JobLauncher jobLauncher;
+  protected JobOperator jobOperator;
   @Autowired
   protected JobRepository jobRepository;
   @Autowired
@@ -230,11 +231,9 @@ public abstract class BaseBatchTest {
     folioExecutionContextSetter.close();
   }
 
-  protected JobLauncherTestUtils createTestLauncher(Job job) {
-    JobLauncherTestUtils testLauncher = new JobLauncherTestUtils();
+  protected JobOperatorTestUtils createTestLauncher(Job job) {
+    JobOperatorTestUtils testLauncher = new JobOperatorTestUtils(jobOperator, jobRepository);
     testLauncher.setJob(job);
-    testLauncher.setJobLauncher(jobLauncher);
-    testLauncher.setJobRepository(jobRepository);
     return testLauncher;
   }
 

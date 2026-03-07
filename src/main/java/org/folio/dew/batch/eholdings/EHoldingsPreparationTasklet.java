@@ -19,14 +19,16 @@ import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.eholdings.EHoldingsPackageDTO;
 import org.folio.dew.repository.EHoldingsPackageRepository;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.configuration.annotation.JobScope;
+import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.scope.context.ChunkContext;
+import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.step.tasklet.Tasklet;
-import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 @Component
 @JobScope

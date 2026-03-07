@@ -9,12 +9,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 
@@ -46,10 +46,10 @@ class CirculationLogTest extends BaseBatchTest {
   @Test
   @DisplayName("Run CirculationLogJob successfully")
   void circulationLogJobTest() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(getCirculationLogJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(getCirculationLogJob);
 
     final JobParameters jobParameters = prepareJobParameters();
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+    JobExecution jobExecution = testLauncher.startJob(jobParameters);
 
     verifyFileOutput(jobExecution);
 
@@ -58,7 +58,7 @@ class CirculationLogTest extends BaseBatchTest {
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(
-          "/audit-data/circulation/logs?query&offset=0&limit=0")));
+          "/audit-data/circulation/logs?query=&offset=0&limit=0")));
   }
 
   @Test
@@ -116,10 +116,10 @@ class CirculationLogTest extends BaseBatchTest {
   @Test
   @DisplayName("Fail test when circulation log output file content does not match expected")
   void circulationLogJobFileMismatchTest() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(getCirculationLogJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(getCirculationLogJob);
 
     final JobParameters jobParameters = prepareJobParameters();
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+    JobExecution jobExecution = testLauncher.startJob(jobParameters);
     jobExecution.getExecutionContext().put("outputFilesInStorage", "src/test/resources/output/invalid_file.csv");
 
     AssertionError thrown = Assertions.assertThrows(

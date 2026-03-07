@@ -4,14 +4,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.services.OrganizationsService;
+import org.folio.dew.domain.dto.acquisitions.edifact.Organization;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
@@ -46,13 +47,14 @@ class ExportHistoryTaskletTest extends BaseBatchTest {
   @Test
   @DirtiesContext
   void testCreateExportHistoryFailedWhenFileNotFound() throws IOException {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
-    JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
-    doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    Organization vendor = new Organization();
+    vendor.setCode("GOBI");
+    doReturn(vendor).when(organizationsService).getOrganizationById(anyString());
 
-    JobExecution jobExecution = testLauncher.launchStep("createExportHistoryRecordsStep", getJobParameters());
+    JobExecution jobExecution = testLauncher.startStep("createExportHistoryRecordsStep", getJobParameters(), new ExecutionContext());
 
-    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0)
+    var status = new ArrayList<>(jobExecution.getStepExecutions()).getFirst()
       .getStatus()
       .name();
     assertEquals("FAILED", status);
@@ -61,13 +63,14 @@ class ExportHistoryTaskletTest extends BaseBatchTest {
   @Test
   @DirtiesContext
   void testCreateExportHistoryWithCompleteStatus() throws IOException {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
-    JsonNode vendorJson = objectMapper.readTree("{\"code\": \"GOBI\"}");
-    doReturn(vendorJson).when(organizationsService).getOrganizationById(anyString());
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    Organization vendor = new Organization();
+    vendor.setCode("GOBI");
+    doReturn(vendor).when(organizationsService).getOrganizationById(anyString());
 
-    JobExecution jobExecution1 = testLauncher.launchStep("createExportHistoryRecordsStep", getJobParameters(), getExecutionContext());
+    JobExecution jobExecution1 = testLauncher.startStep("createExportHistoryRecordsStep", getJobParameters(), getExecutionContext());
 
-    var status = new ArrayList<>(jobExecution1.getStepExecutions()).get(0)
+    var status = new ArrayList<>(jobExecution1.getStepExecutions()).getFirst()
       .getStatus()
       .name();
     assertEquals("COMPLETED", status);
@@ -90,11 +93,4 @@ class ExportHistoryTaskletTest extends BaseBatchTest {
     return paramsBuilder.toJobParameters();
   }
 
-  protected JobLauncherTestUtils createTestLauncher(Job job) {
-    JobLauncherTestUtils testLauncher = new JobLauncherTestUtils();
-    testLauncher.setJob(job);
-    testLauncher.setJobLauncher(jobLauncher);
-    testLauncher.setJobRepository(jobRepository);
-    return testLauncher;
-  }
 }

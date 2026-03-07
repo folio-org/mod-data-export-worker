@@ -1,14 +1,15 @@
 package org.folio.dew.client;
 
-import org.springframework.cloud.openfeign.FeignClient;
+import org.folio.dew.domain.dto.acquisitions.edifact.IdentifierType;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
 
 
-@FeignClient(name = "identifier-types")
+@HttpExchange(url = "identifier-types")
 public interface IdentifierTypeClient {
-  @GetMapping(value = "/{identifierTypeId}", produces = MediaType.APPLICATION_JSON_VALUE) JsonNode getIdentifierType(@PathVariable String identifierTypeId);
+  @GetExchange(value = "/{identifierTypeId}", accept = MediaType.APPLICATION_JSON_VALUE)
+  IdentifierType getIdentifierType(@PathVariable String identifierTypeId);
 }

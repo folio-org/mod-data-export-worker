@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.4</version>
+        <version>4.0.2</version>
         <relativePath /> <!-- lookup parent from repository -->
     </parent>
 
@@ -47,13 +47,12 @@
         <refresh-presigned-url.yaml.file>
           ${project.basedir}/src/main/resources/swagger.api/refresh-presigned-url.yaml
         </refresh-presigned-url.yaml.file>
-        <folio-spring-base.version>10.0.0-SNAPSHOT</folio-spring-base.version>
+        <folio-spring-base.version>10.0.0-RC1</folio-spring-base.version>
         <folio-service-tools.version>4.1.1</folio-service-tools.version>
         <folio-spring-cql.version>9.0.0</folio-spring-cql.version>
         <folio-module-descriptor-validator.version>1.0.0</folio-module-descriptor-validator.version>
         <openapi-generator.version>6.2.1</openapi-generator.version>
         <commons-collections4.version>4.5.0</commons-collections4.version>
-        <hypersistence-utils-hibernate-63.version>3.7.3</hypersistence-utils-hibernate-63.version>
         <opencsv.version>5.11.2</opencsv.version>
         <feign-jackson.version>12.1</feign-jackson.version>
         <marc4j.version>2.9.2</marc4j.version>
@@ -62,7 +61,7 @@
         <!-- Test properties-->
         <junit-extensions.version>2.4.0</junit-extensions.version>
         <spring-cloud-starter-bootstrap.version>4.2.0</spring-cloud-starter-bootstrap.version>
-        <wiremock.version>2.27.2</wiremock.version>
+        <wiremock.version>3.13.0</wiremock.version>
         <localstack.version>1.20.5</localstack.version>
         <marc4j.version>2.9.1</marc4j.version>
         <testcontainers.version>2.0.3</testcontainers.version>
@@ -144,6 +143,11 @@
       </dependency>
 
       <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-kafka</artifactId>
+      </dependency>
+
+      <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-cache</artifactId>
       </dependency>
@@ -188,12 +192,6 @@
         <groupId>commons-net</groupId>
         <artifactId>commons-net</artifactId>
         <version>3.11.1</version>
-      </dependency>
-
-      <dependency>
-        <groupId>io.hypersistence</groupId>
-        <artifactId>hypersistence-utils-hibernate-63</artifactId>
-        <version>${hypersistence-utils-hibernate-63.version}</version>
       </dependency>
 
       <dependency>
@@ -280,16 +278,15 @@
         <version>2.7.1</version>
         <scope>test</scope>
       </dependency>
-      <dependency>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-starter-bootstrap</artifactId>
-        <version>${spring-cloud-starter-bootstrap.version}</version>
-        <scope>test</scope>
-      </dependency>
+<!--      <dependency>-->
+<!--        <groupId>org.springframework.cloud</groupId>-->
+<!--        <artifactId>spring-cloud-starter-bootstrap</artifactId>-->
+<!--        <version>${spring-cloud-starter-bootstrap.version}</version>-->
+<!--        <scope>test</scope>-->
+<!--      </dependency>-->
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-test</artifactId>
-        <version>3.4.0</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>
@@ -346,9 +343,14 @@
           <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.tomakehurst</groupId>
+            <groupId>org.wiremock</groupId>
             <artifactId>wiremock-standalone</artifactId>
             <version>${wiremock.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

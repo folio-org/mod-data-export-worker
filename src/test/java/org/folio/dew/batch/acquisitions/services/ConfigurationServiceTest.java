@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.folio.dew.client.TenantAddressesClient;
+import org.folio.dew.domain.dto.acquisitions.edifact.TenantAddress;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -58,9 +59,9 @@ class ConfigurationServiceTest {
 
   // -- Helper --
 
-  private static ObjectNode createAddressNode(String address) {
-    ObjectNode entry = MAPPER.createObjectNode();
-    entry.put("address", address);
+  private static TenantAddress createAddressNode(String address) {
+    TenantAddress entry = new TenantAddress();
+    entry.setAddress(address);
     return entry;
   }
 }

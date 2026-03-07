@@ -10,7 +10,7 @@ import org.springframework.web.service.annotation.HttpExchange;
 public interface AuditClient {
 
   @GetExchange(value = "/circulation/logs", accept = MediaType.APPLICATION_JSON_VALUE)
-  LogRecordCollection getCirculationAuditLogs(@RequestParam String query, @RequestParam int offset, @RequestParam int limit,
+  LogRecordCollection getCirculationAuditLogs(@RequestParam(required = false) String query, @RequestParam int offset, @RequestParam int limit,
       @RequestParam(required = false) String lang);
 
 }

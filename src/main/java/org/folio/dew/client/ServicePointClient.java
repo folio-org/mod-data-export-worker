@@ -14,6 +14,6 @@ public interface ServicePointClient {
   ServicePoint getById(@PathVariable String id);
 
   @GetExchange
-  Servicepoints get(@RequestParam String query, @RequestParam long limit);
+  Servicepoints get(@RequestParam(required = false) String query, @RequestParam long limit);
 
 }

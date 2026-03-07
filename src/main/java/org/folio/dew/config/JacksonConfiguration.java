@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.job.parameters.JobParameter;
+import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -38,7 +39,8 @@ public class JacksonConfiguration {
             .registerModule(
                 new SimpleModule()
                     .addDeserializer(ExitStatus.class, new ExitStatusDeserializer())
-                    .addDeserializer(JobParameter.class, new JobParameterDeserializer()))
+                    .addDeserializer(JobParameter.class, new JobParameterDeserializer())
+                    .addDeserializer(JobParameters.class, new JobParametersDeserializer()))
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     EDI_OBJECT_MAPPER =
         new ObjectMapper().findAndRegisterModules();
@@ -68,6 +70,50 @@ public class JacksonConfiguration {
     @Override
     public ExitStatus deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
       return EXIT_STATUSES.get(((JsonNode) jp.getCodec().readTree(jp)).get("exitCode").asText());
+    }
+
+  }
+
+  static class JobParametersDeserializer extends StdDeserializer<JobParameters> {
+
+    public JobParametersDeserializer() {
+      this(null);
+    }
+
+    public JobParametersDeserializer(Class<?> vc) {
+      super(vc);
+    }
+
+    @Override
+    public JobParameters deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+      JsonNode node = jp.getCodec().readTree(jp);
+      Set<JobParameter<?>> paramSet = new HashSet<>();
+
+      JsonNode parametersNode = node.get("parameters");
+      if (parametersNode != null && parametersNode.isObject()) {
+        parametersNode.fields().forEachRemaining(entry -> {
+          JsonNode paramNode = entry.getValue();
+          String type = paramNode.has("type") ? paramNode.get("type").asText() : "java.lang.String";
+          boolean identifying = !paramNode.has("identifying") || paramNode.get("identifying").asBoolean(true);
+          var valueNode = paramNode.get("value");
+          try {
+            Class<Object> clazz = (Class<Object>) Class.forName(type);
+            Object value = switch (clazz.getSimpleName()) {
+              case "Double" -> valueNode.asDouble();
+              case "Long" -> valueNode.asLong();
+              case "Integer" -> valueNode.asInt();
+              case "Boolean" -> valueNode.asBoolean();
+              case "Date" -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").parse(valueNode.asText());
+              default -> valueNode.asText();
+            };
+            paramSet.add(new JobParameter<>(entry.getKey(), value, clazz, identifying));
+          } catch (ClassNotFoundException | ParseException e) {
+            throw new RuntimeException("Failed to deserialize JobParameter: " + entry.getKey(), e);
+          }
+        });
+      }
+
+      return new JobParameters(paramSet);
     }
 
   }

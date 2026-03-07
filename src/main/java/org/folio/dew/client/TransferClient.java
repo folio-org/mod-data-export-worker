@@ -10,6 +10,6 @@ import org.springframework.web.service.annotation.HttpExchange;
 public interface TransferClient {
 
   @GetExchange
-  TransferdataCollection get(@RequestParam String query, @RequestParam long limit);
+  TransferdataCollection get(@RequestParam(required = false) String query, @RequestParam long limit);
 
 }

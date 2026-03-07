@@ -9,8 +9,8 @@ import org.springframework.web.service.annotation.HttpExchange;
 @HttpExchange(url = "accounts")
 public interface AccountClient {
   @GetExchange(accept = MediaType.APPLICATION_JSON_VALUE)
-  AccountdataCollection getAccounts(@RequestParam String query, @RequestParam long limit);
+  AccountdataCollection getAccounts(@RequestParam(required = false) String query, @RequestParam long limit);
 
   @GetExchange(accept = MediaType.APPLICATION_JSON_VALUE)
-  AccountdataCollection getAccounts(@RequestParam String query, @RequestParam long limit, @RequestParam long offset);
+  AccountdataCollection getAccounts(@RequestParam(required = false) String query, @RequestParam long limit, @RequestParam long offset);
 }

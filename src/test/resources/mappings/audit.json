@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/audit-data/circulation/logs?query&offset=0&limit=0"
+        "url": "/audit-data/circulation/logs?query=&offset=0&limit=0"
       },
       "response": {
         "status": 200,
@@ -16,7 +16,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/audit-data/circulation/logs?query&offset=0&limit=10000"
+        "url": "/audit-data/circulation/logs?query=&offset=0&limit=10000"
       },
       "response": {
         "status": 200,

@@ -4,13 +4,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
-import org.folio.dew.config.feign.FeignClientConfiguration;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
 
-@FeignClient(name = "erm", configuration = FeignClientConfiguration.class)
+@HttpExchange(url = "erm")
 public interface AgreementClient {
   String ITEMS_REFERENCE_FILTER = "items.reference";
 
@@ -18,7 +17,7 @@ public interface AgreementClient {
     return ITEMS_REFERENCE_FILTER + "=" + id;
   }
 
-  @GetMapping(value = "/sas", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetExchange(value = "/sas", accept = MediaType.APPLICATION_JSON_VALUE)
   List<Agreement> getAssignedAgreements(@RequestParam(value = "filters") String filters);
 
   @Data

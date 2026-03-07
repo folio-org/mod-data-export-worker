@@ -2,7 +2,8 @@ package org.folio.dew.batch;
 
 import java.util.List;
 import java.util.UUID;
-import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
+
+import org.springframework.batch.infrastructure.item.support.AbstractItemCountingItemStreamItemReader;
 
 public abstract class CsvItemReader<T> extends AbstractItemCountingItemStreamItemReader<T> {
 

@@ -20,12 +20,13 @@ import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.ExportHistory;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
-import org.springframework.batch.core.StepContribution;
-import org.springframework.batch.core.StepExecution;
+
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
+import org.springframework.batch.core.step.StepContribution;
+import org.springframework.batch.core.step.StepExecution;
 import org.springframework.batch.core.step.tasklet.Tasklet;
-import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -59,7 +60,7 @@ public class ExportHistoryTasklet implements Tasklet {
     var vendorId = ediExportConfig.getVendorId().toString();
     var exportMethod = ediExportConfig.getConfigName();
     var vendor = organizationsService.getOrganizationById(vendorId);
-    var vendorName = vendor.get("code").asText();
+    var vendorName = vendor.getCode();
     var stepExecutionContext = chunkContext.getStepContext().getStepExecution();
     var poLineIds = getPoLineIdsFromExecutionContext(stepExecutionContext);
     var fileName = ExecutionContextUtils.getExecutionVariable(stepExecutionContext, ACQ_EXPORT_FILE_NAME).toString();

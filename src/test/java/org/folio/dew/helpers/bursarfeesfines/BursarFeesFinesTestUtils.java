@@ -27,8 +27,6 @@ import org.folio.dew.domain.dto.BursarExportTransferCriteriaConditionsInner;
 import org.folio.dew.domain.dto.BursarExportTransferCriteriaElse;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.JobParameterNames;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -37,6 +35,8 @@ import java.util.List;
 import java.util.UUID;
 
 import lombok.experimental.UtilityClass;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 
 @UtilityClass
 public class BursarFeesFinesTestUtils {

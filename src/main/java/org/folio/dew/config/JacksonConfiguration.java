@@ -8,23 +8,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.hypersistence.utils.hibernate.type.util.ObjectMapperSupplier;
 
 import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.JobParameter;
+import org.springframework.batch.core.job.parameters.JobParameter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Configuration
-public class JacksonConfiguration implements ObjectMapperSupplier {
+public class JacksonConfiguration {
 
   private static final ObjectMapper OBJECT_MAPPER;
   private static final ObjectMapper EDI_OBJECT_MAPPER;
@@ -74,7 +76,7 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
 
     private static final String VALUE_PARAMETER_PROPERTY = "value";
 
-    private static final Map<String, JobParameter> uniqueDeserializedJobParams = new HashMap<>();
+    private static final Set<JobParameter<?>> uniqueDeserializedJobParams = new HashSet<>();
 
     public JobParameterDeserializer() {
       this(null);
@@ -109,7 +111,7 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
           return checkForExisted(value, clazz, identifying);
         }
 
-        return new JobParameter<>(value, clazz, identifying);
+        return new JobParameter<>(clazzSimpleName, value, clazz, identifying);
       } catch (ClassNotFoundException e) {
         throw new RuntimeException("Cannot create Job parameter with the class " + type, e);
       } catch (ParseException e) {
@@ -166,16 +168,17 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
      * Such the workaround makes able to avoid issues, passing spring-batch-5.1.1 JobParameters generation and jackson-databind-2.15.4 deserialization flows.
      * */
     private JobParameter<?> checkForExisted(Serializable value, Class<Object> clazz, boolean identifying) {
-      var existed = uniqueDeserializedJobParams.get(String.valueOf(value));
-      if (existed == null){
-        var jobParameter = new JobParameter<>(value, clazz, identifying);
-        uniqueDeserializedJobParams.put(String.valueOf(value), jobParameter);
+      var existed = uniqueDeserializedJobParams.stream().filter(jp -> jp.value().equals(String.valueOf(value))).findFirst();
+      if (existed.isEmpty()){
+        var jobParameter = new JobParameter<>(clazz.getSimpleName(), value, clazz, identifying);
+        uniqueDeserializedJobParams.add(jobParameter);
         return jobParameter;
       }
-      return existed;
+      return existed.get();
     }
   }
 
+  @Primary
   @Bean
   public ObjectMapper objectMapper() {
     return OBJECT_MAPPER;
@@ -186,7 +189,6 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
     return EDI_OBJECT_MAPPER;
   }
 
-  @Override
   public ObjectMapper get() {
     return OBJECT_MAPPER;
   }

@@ -10,10 +10,11 @@ import org.folio.dew.domain.dto.CirculationLogExportFormat;
 import org.folio.dew.domain.dto.LogRecord;
 import org.folio.dew.domain.dto.LogRecordItemsInner;
 import org.folio.dew.domain.dto.ServicePoint;
-import org.springframework.batch.core.StepExecution;
+import org.folio.dew.domain.dto.circulationlog.Locale;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.core.step.StepExecution;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
@@ -21,6 +22,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 @Component
 @StepScope
@@ -74,10 +77,10 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
 
   private String fetchTimezone() {
     try {
-      JsonNode localeSettings = localeClient.getLocale();
+      Locale localeSettings = localeClient.getLocale();
 
-      if (localeSettings != null && localeSettings.has("timezone")) {
-        return localeSettings.get("timezone").asText("UTC");
+      if (localeSettings != null) {
+        return ofNullable(localeSettings.getTimezone()).orElse("UTC");
       }
       log.warn("Timezone not found in locale settings, using default UTC");
     } catch (Exception e) {

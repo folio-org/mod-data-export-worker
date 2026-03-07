@@ -25,13 +25,15 @@ import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.PoLineCollection;
 import org.folio.dew.domain.dto.PurchaseOrder;
 import org.folio.dew.domain.dto.PurchaseOrderCollection;
+import org.folio.dew.domain.dto.acquisitions.edifact.Organization;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -62,12 +64,14 @@ class MapToEdifactClaimsTaskletTest extends MapToEdifactTaskletAbstractTest {
 
     pieceIds = pieces.stream().map(Piece::getId).toList();
     doReturn(pieces).when(ordersService).getPiecesByIdsAndReceivingStatus(pieceIds, Piece.ReceivingStatusEnum.CLAIM_SENT);
-    doReturn(objectMapper.readTree("{\"code\": \"GOBI\"}")).when(organizationsService).getOrganizationById(anyString());
+    var organization = new Organization();
+    organization.setCode("GOBI");
+    doReturn(organization).when(organizationsService).getOrganizationById(anyString());
   }
 
   @Test
   void testEdifactClaimsExport() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
     String poLineQuery = convertIdsToCqlQuery(pieces.stream().map(Piece::getPoLineId).toList());
 
     doReturn(poLines).when(ordersService).getPoLinesByQuery(poLineQuery);
@@ -75,7 +79,7 @@ class MapToEdifactClaimsTaskletTest extends MapToEdifactTaskletAbstractTest {
     doReturn("test1").when(edifactMapper).convertForExport(any(), any(), any(), anyString());
 
     var exportConfig = getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT, pieceIds);
-    JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig));
+    JobExecution jobExecution = testLauncher.startStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig), new ExecutionContext());
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
     verify(ordersService).getPiecesByIdsAndReceivingStatus(pieceIds, Piece.ReceivingStatusEnum.CLAIM_SENT);
@@ -85,11 +89,11 @@ class MapToEdifactClaimsTaskletTest extends MapToEdifactTaskletAbstractTest {
 
   @Test
   void testEdifactClaimsExportNoPiecesFound() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
     doReturn(List.of()).when(ordersService).getPiecesByIdsAndReceivingStatus(pieceIds, Piece.ReceivingStatusEnum.CLAIM_SENT);
 
     var exportConfig = getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT, pieceIds);
-    JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig));
+    JobExecution jobExecution = testLauncher.startStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig), new ExecutionContext());
 
     assertThat(jobExecution.getExitStatus().getExitCode()).isEqualTo(ExitStatus.FAILED.getExitCode());
     assertThat(jobExecution.getExitStatus().getExitDescription()).contains("Entities not found: Piece");
@@ -98,11 +102,10 @@ class MapToEdifactClaimsTaskletTest extends MapToEdifactTaskletAbstractTest {
 
   @Test
   void testEdifactClaimsExportMissingRequiredFields() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
     var exportConfig = getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT, List.of());
-
-    JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig));
-    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0).getStatus();
+    JobExecution jobExecution = testLauncher.startStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig), new ExecutionContext());
+    var status = new ArrayList<>(jobExecution.getStepExecutions()).getFirst().getStatus();
 
     assertEquals(BatchStatus.FAILED, status);
     assertThat(jobExecution.getExitStatus().getExitCode()).isEqualTo(ExitStatus.FAILED.getExitCode());

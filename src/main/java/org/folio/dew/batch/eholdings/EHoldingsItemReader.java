@@ -18,7 +18,7 @@ import org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceDTO;
 import org.folio.dew.domain.dto.eholdings.ResourcesData;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
+import org.springframework.batch.infrastructure.item.support.AbstractItemCountingItemStreamItemReader;
 import org.springframework.stereotype.Component;
 
 @Component

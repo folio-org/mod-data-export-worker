@@ -13,10 +13,10 @@ import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUser;
 import org.folio.dew.error.BursarNoAccountsToTransferException;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.AfterStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.core.step.StepExecution;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 

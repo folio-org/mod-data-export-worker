@@ -1,7 +1,7 @@
 package org.folio.dew.batch;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
+import org.springframework.batch.infrastructure.item.file.transform.BeanWrapperFieldExtractor;
 
 public class CsvFieldExtractor<T> extends BeanWrapperFieldExtractor<T> {
   private final FieldProcessor fieldProcessor;

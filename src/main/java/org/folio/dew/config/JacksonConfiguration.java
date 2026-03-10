@@ -13,6 +13,7 @@ import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.job.parameters.JobParameter;
 import org.springframework.batch.core.job.parameters.JobParameters;
@@ -27,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Configuration
+@Log4j2
 public class JacksonConfiguration {
 
   private static final ObjectMapper OBJECT_MAPPER;
@@ -90,6 +92,7 @@ public class JacksonConfiguration {
       Set<JobParameter<?>> paramSet = new HashSet<>();
 
       JsonNode parametersNode = node.get("parameters");
+      log.info("node: {}, parametersNode: {}", node, parametersNode);
       if (parametersNode != null && parametersNode.isObject()) {
         parametersNode.fields().forEachRemaining(entry -> {
           JsonNode paramNode = entry.getValue();

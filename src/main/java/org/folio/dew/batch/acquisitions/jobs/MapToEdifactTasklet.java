@@ -46,6 +46,8 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public abstract class MapToEdifactTasklet implements Tasklet {
 
+  private final ExportResourceMapper edifactMapper;
+  private final ExportResourceMapper csvMapper;
   private final ObjectMapper ediObjectMapper;
   private final OrganizationsService organizationsService;
   protected final OrdersService ordersService;
@@ -131,8 +133,13 @@ public abstract class MapToEdifactTasklet implements Tasklet {
     }
   }
 
-  protected abstract ExportResourceMapper getExportResourceMapper(VendorEdiOrdersExportConfig ediOrdersExportConfig);
-
+  protected ExportResourceMapper getExportResourceMapper(VendorEdiOrdersExportConfig ediOrdersExportConfig) {
+    return switch (ediOrdersExportConfig.getFileFormat()) {
+      case EDI -> edifactMapper;
+      case CSV -> csvMapper;
+      default -> edifactMapper;
+    };
+  }
   protected abstract List<String> getExportConfigMissingFields(VendorEdiOrdersExportConfig ediOrdersExportConfig);
 
   protected abstract ExportHolder buildEdifactExportHolder(VendorEdiOrdersExportConfig ediExportConfig, Map<String, Object> jobParameters)

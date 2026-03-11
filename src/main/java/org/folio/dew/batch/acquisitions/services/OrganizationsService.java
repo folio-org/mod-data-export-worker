@@ -4,8 +4,6 @@ import org.folio.dew.client.OrganizationsClient;
 import org.folio.dew.domain.dto.acquisitions.edifact.Organization;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 

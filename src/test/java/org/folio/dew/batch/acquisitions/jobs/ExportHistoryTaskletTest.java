@@ -1,6 +1,5 @@
 package org.folio.dew.batch.acquisitions.jobs;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.services.OrganizationsService;

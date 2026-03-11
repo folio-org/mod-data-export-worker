@@ -158,10 +158,9 @@ public class HttpClientConfiguration {
     return builder
         .requestInterceptor(
             (request, body, execution) -> {
-              log.info("Request URL: {}", request.getURI());
+              log.debug("Request URL: {}", request.getURI());
               request.getHeaders().add(HttpHeaders.ACCEPT_ENCODING, "identity");
-              var resp = execution.execute(request, body);
-              return resp;
+              return execution.execute(request, body);
             })
         .defaultStatusHandler(HttpStatusCode::isError, errorHandler::handle)
         .build();

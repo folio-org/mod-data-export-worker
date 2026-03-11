@@ -3,9 +3,6 @@ package org.folio.dew.batch.circulationlog;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -35,8 +32,6 @@ class CirculationLogItemProcessorTest {
   private static final String SP_NAME = "Main Circ Desk";
   private static final String USER_BARCODE = "1234567890";
   private static final Date EVENT_DATE = new Date(1700000000000L);
-
-  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   @Mock
   private ServicePointClient servicePointClient;

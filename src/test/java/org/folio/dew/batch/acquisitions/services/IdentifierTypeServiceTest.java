@@ -13,7 +13,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,7 +32,7 @@ class IdentifierTypeServiceTest {
   }
 
   @Test
-  void getIdentifierTypeNameFromJson() throws JsonProcessingException {
+  void getIdentifierTypeNameFromJson() {
     var identifierType = new IdentifierType();
     identifierType.setName("ISSN");
     when(client.getIdentifierType(anyString())).thenReturn(identifierType);

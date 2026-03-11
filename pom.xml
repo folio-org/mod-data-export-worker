@@ -274,12 +274,6 @@
         <version>2.7.1</version>
         <scope>test</scope>
       </dependency>
-<!--      <dependency>-->
-<!--        <groupId>org.springframework.cloud</groupId>-->
-<!--        <artifactId>spring-cloud-starter-bootstrap</artifactId>-->
-<!--        <version>${spring-cloud-starter-bootstrap.version}</version>-->
-<!--        <scope>test</scope>-->
-<!--      </dependency>-->
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-test</artifactId>

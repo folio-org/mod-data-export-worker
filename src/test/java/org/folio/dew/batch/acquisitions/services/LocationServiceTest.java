@@ -1,6 +1,5 @@
 package org.folio.dew.batch.acquisitions.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.folio.dew.client.LocationClient;
 import org.folio.dew.domain.dto.acquisitions.edifact.Location;
@@ -36,7 +35,7 @@ class LocationServiceTest {
   private ObjectMapper objectMapper;
 
   @Test
-  void getLocationCodeById() throws JsonProcessingException {
+  void getLocationCodeById() {
     var location = new Location();
     location.setCode("KU/CC/DI/P");
     doReturn(location).when(client).getLocation(anyString());
@@ -46,7 +45,7 @@ class LocationServiceTest {
   }
 
   @Test
-  void getLocationCodeByIdWithTenant() throws JsonProcessingException {
+  void getLocationCodeByIdWithTenant() {
     var location = new Location();
     location.setCode("KU/CC/DI/P");
     doReturn(location).when(client).getLocation(anyString());

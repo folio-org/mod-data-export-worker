@@ -5,9 +5,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import org.folio.dew.client.TenantAddressesClient;
 import org.folio.dew.domain.dto.acquisitions.edifact.TenantAddress;
 import org.junit.jupiter.api.Test;
@@ -19,7 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ConfigurationServiceTest {
 
-  private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final UUID CONFIG_ID = UUID.fromString("1947e709-8d60-42e2-8dde-7566ae446d24");
   private static final String EXPECTED_ADDRESS = "Address 123";
 

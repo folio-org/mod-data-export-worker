@@ -41,7 +41,7 @@ class HoldingServiceTest {
   private ObjectMapper objectMapper;
 
   @Test
-  void getPermanentLocationIdFromJson() throws JsonProcessingException {
+  void getPermanentLocationIdFromJson() {
     var holdings = new Holdings();
     holdings.setPermanentLocationId(UUID.fromString("b241764c-1466-4e1d-a028-1a3684a5da87"));
     doReturn(holdings).when(client).getHoldingById(anyString());
@@ -51,7 +51,7 @@ class HoldingServiceTest {
   }
 
   @Test
-  void getPermanentLocationIdFromJsonWithTenantId() throws JsonProcessingException {
+  void getPermanentLocationIdFromJsonWithTenantId() {
     var holdings = new Holdings();
     holdings.setPermanentLocationId(UUID.fromString("b241764c-1466-4e1d-a028-1a3684a5da87"));
     doReturn(holdings).when(client).getHoldingById(anyString());

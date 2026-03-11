@@ -7,7 +7,7 @@ import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 
-import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.EMAIL;
 
 
@@ -20,12 +20,12 @@ public class SendToEmailTaskletDecider extends ExportStepDecider {
 
   @Override
   public ExportStepDecision decide(VendorEdiOrdersExportConfig exportConfig, JobExecution jobExecution, StepExecution stepExecution) {
-    // Always execute if the integration type is ORDERING, or execute for other integration type if the transmission method is Email
-    if (exportConfig.getIntegrationType() == ORDERING || exportConfig.getTransmissionMethod() == EMAIL) {
+    // Always execute if the integration type is CLAIMING, or execute for other integration type if the transmission method is Email
+    if (exportConfig.getIntegrationType() == CLAIMING || exportConfig.getTransmissionMethod() == EMAIL) {
       log.info("decide:: Processing step: {}", stepName);
       return ExportStepDecision.PROCESS;
     }
-    log.info("decide:: Integration type is not ORDERING or Transmission method is not FTP, skipping the step: {}", stepName);
+    log.info("decide:: Integration type is not CLAIMING or Transmission method is not Email, skipping the step: {}", stepName);
     return ExportStepDecision.SKIP;
   }
 

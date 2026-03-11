@@ -22,7 +22,7 @@ import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.spring.FolioExecutionContext;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 

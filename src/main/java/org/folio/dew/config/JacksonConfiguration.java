@@ -8,23 +8,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.hypersistence.utils.hibernate.type.util.ObjectMapperSupplier;
 
 import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.JobParameter;
+import org.springframework.batch.core.job.parameters.JobParameter;
+import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Configuration
-public class JacksonConfiguration implements ObjectMapperSupplier {
+@Log4j2
+public class JacksonConfiguration {
 
   private static final ObjectMapper OBJECT_MAPPER;
   private static final ObjectMapper EDI_OBJECT_MAPPER;
@@ -36,7 +41,8 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
             .registerModule(
                 new SimpleModule()
                     .addDeserializer(ExitStatus.class, new ExitStatusDeserializer())
-                    .addDeserializer(JobParameter.class, new JobParameterDeserializer()))
+                    .addDeserializer(JobParameter.class, new JobParameterDeserializer())
+                    .addDeserializer(JobParameters.class, new JobParametersDeserializer()))
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     EDI_OBJECT_MAPPER =
         new ObjectMapper().findAndRegisterModules();
@@ -70,11 +76,56 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
 
   }
 
+  static class JobParametersDeserializer extends StdDeserializer<JobParameters> {
+
+    public JobParametersDeserializer() {
+      this(null);
+    }
+
+    public JobParametersDeserializer(Class<?> vc) {
+      super(vc);
+    }
+
+    @Override
+    public JobParameters deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+      JsonNode node = jp.getCodec().readTree(jp);
+      Set<JobParameter<?>> paramSet = new HashSet<>();
+
+      JsonNode parametersNode = node.get("parameters");
+      log.info("node: {}, parametersNode: {}", node, parametersNode);
+      if (parametersNode != null && parametersNode.isObject()) {
+        parametersNode.fields().forEachRemaining(entry -> {
+          JsonNode paramNode = entry.getValue();
+          String type = paramNode.has("type") ? paramNode.get("type").asText() : "java.lang.String";
+          boolean identifying = !paramNode.has("identifying") || paramNode.get("identifying").asBoolean(true);
+          var valueNode = paramNode.get("value");
+          try {
+            Class<Object> clazz = (Class<Object>) Class.forName(type);
+            Object value = switch (clazz.getSimpleName()) {
+              case "Double" -> valueNode.asDouble();
+              case "Long" -> valueNode.asLong();
+              case "Integer" -> valueNode.asInt();
+              case "Boolean" -> valueNode.asBoolean();
+              case "Date" -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").parse(valueNode.asText());
+              default -> valueNode.asText();
+            };
+            paramSet.add(new JobParameter<>(entry.getKey(), value, clazz, identifying));
+          } catch (ClassNotFoundException | ParseException e) {
+            throw new RuntimeException("Failed to deserialize JobParameter: " + entry.getKey(), e);
+          }
+        });
+      }
+
+      return new JobParameters(paramSet);
+    }
+
+  }
+
   static class JobParameterDeserializer extends StdDeserializer<JobParameter<?>> {
 
     private static final String VALUE_PARAMETER_PROPERTY = "value";
 
-    private static final Map<String, JobParameter> uniqueDeserializedJobParams = new HashMap<>();
+    private static final Set<JobParameter<?>> uniqueDeserializedJobParams = new HashSet<>();
 
     public JobParameterDeserializer() {
       this(null);
@@ -109,7 +160,7 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
           return checkForExisted(value, clazz, identifying);
         }
 
-        return new JobParameter<>(value, clazz, identifying);
+        return new JobParameter<>(clazzSimpleName, value, clazz, identifying);
       } catch (ClassNotFoundException e) {
         throw new RuntimeException("Cannot create Job parameter with the class " + type, e);
       } catch (ParseException e) {
@@ -166,16 +217,17 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
      * Such the workaround makes able to avoid issues, passing spring-batch-5.1.1 JobParameters generation and jackson-databind-2.15.4 deserialization flows.
      * */
     private JobParameter<?> checkForExisted(Serializable value, Class<Object> clazz, boolean identifying) {
-      var existed = uniqueDeserializedJobParams.get(String.valueOf(value));
-      if (existed == null){
-        var jobParameter = new JobParameter<>(value, clazz, identifying);
-        uniqueDeserializedJobParams.put(String.valueOf(value), jobParameter);
+      var existed = uniqueDeserializedJobParams.stream().filter(jp -> jp.value().equals(String.valueOf(value))).findFirst();
+      if (existed.isEmpty()){
+        var jobParameter = new JobParameter<>(clazz.getSimpleName(), value, clazz, identifying);
+        uniqueDeserializedJobParams.add(jobParameter);
         return jobParameter;
       }
-      return existed;
+      return existed.get();
     }
   }
 
+  @Primary
   @Bean
   public ObjectMapper objectMapper() {
     return OBJECT_MAPPER;
@@ -186,7 +238,6 @@ public class JacksonConfiguration implements ObjectMapperSupplier {
     return EDI_OBJECT_MAPPER;
   }
 
-  @Override
   public ObjectMapper get() {
     return OBJECT_MAPPER;
   }

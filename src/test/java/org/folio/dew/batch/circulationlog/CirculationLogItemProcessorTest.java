@@ -3,9 +3,6 @@ package org.folio.dew.batch.circulationlog;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -20,6 +17,7 @@ import org.folio.dew.domain.dto.LogRecordItemsInner;
 import org.folio.dew.domain.dto.LoggedObjectType;
 import org.folio.dew.domain.dto.ServicePoint;
 import org.folio.dew.domain.dto.Servicepoints;
+import org.folio.dew.domain.dto.circulationlog.Locale;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -34,8 +32,6 @@ class CirculationLogItemProcessorTest {
   private static final String SP_NAME = "Main Circ Desk";
   private static final String USER_BARCODE = "1234567890";
   private static final Date EVENT_DATE = new Date(1700000000000L);
-
-  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   @Mock
   private ServicePointClient servicePointClient;
@@ -93,7 +89,8 @@ class CirculationLogItemProcessorTest {
   // -- Helpers --
 
   private void initProcessor(String timezoneId) {
-    ObjectNode locale = MAPPER.createObjectNode().put("timezone", timezoneId);
+    var locale = new Locale();
+    locale.setTimezone(timezoneId);
     when(servicePointClient.get("name<>null", 1000)).thenReturn(createServicepoints());
     when(localeClient.getLocale()).thenReturn(locale);
     processor.initStep(MetaDataInstanceFactory.createStepExecution());

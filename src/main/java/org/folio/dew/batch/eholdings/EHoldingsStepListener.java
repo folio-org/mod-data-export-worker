@@ -12,7 +12,7 @@ import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.spring.FolioExecutionContext;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.step.StepExecution;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 

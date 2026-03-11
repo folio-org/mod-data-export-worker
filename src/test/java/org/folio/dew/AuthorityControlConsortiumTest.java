@@ -31,10 +31,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -68,7 +68,7 @@ class AuthorityControlConsortiumTest extends BaseBatchTest {
     var testLauncher = createTestLauncher(getAuthHeadingJob);
     var jobParameters = prepareJobParameters(exportConfig);
 
-    var jobExecution = testLauncher.launchJob(jobParameters);
+    var jobExecution = testLauncher.startJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
@@ -87,7 +87,7 @@ class AuthorityControlConsortiumTest extends BaseBatchTest {
     var testLauncher = createTestLauncher(getAuthHeadingJob);
     var jobParameters = prepareJobParameters(exportConfig);
 
-    var jobExecution = testLauncher.launchJob(jobParameters);
+    var jobExecution = testLauncher.startJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 

@@ -11,7 +11,7 @@ import org.folio.dew.config.properties.AuthorityControlJobProperties;
 import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
 import org.folio.dew.domain.dto.authoritycontrol.DataStatCollectionDTO;
 import org.folio.dew.domain.dto.authoritycontrol.DataStatDTO;
-import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
+import org.springframework.batch.infrastructure.item.support.AbstractItemCountingItemStreamItemReader;
 
 public abstract class AuthorityControlItemReader<T extends DataStatDTO>
   extends AbstractItemCountingItemStreamItemReader<T> {

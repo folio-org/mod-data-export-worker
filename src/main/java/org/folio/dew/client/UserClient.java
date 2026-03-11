@@ -1,21 +1,20 @@
 package org.folio.dew.client;
 
-import org.folio.dew.config.feign.FeignClientConfiguration;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.UserCollection;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
 
-@FeignClient(name = "users", configuration = FeignClientConfiguration.class)
+@HttpExchange(url = "users", accept = MediaType.APPLICATION_JSON_VALUE)
 public interface UserClient {
 
-  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetExchange
   UserCollection getUserByQuery(@RequestParam("query") String query, @RequestParam long limit);
 
-  @GetMapping(value = "/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetExchange(value = "/{userId}")
   User getUserById(@PathVariable String userId);
 
 }

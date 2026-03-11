@@ -3,14 +3,16 @@ package org.folio.dew.batch;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.domain.dto.Formatable;
-import org.springframework.batch.item.file.FlatFileItemWriter;
-import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
-import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
+import org.springframework.batch.infrastructure.item.file.FlatFileItemWriter;
+import org.springframework.batch.infrastructure.item.file.transform.BeanWrapperFieldExtractor;
+import org.springframework.batch.infrastructure.item.file.transform.DelimitedLineAggregator;
+import org.springframework.batch.infrastructure.item.file.transform.PassThroughLineAggregator;
 import org.springframework.core.io.FileSystemResource;
 
 @Log4j2
 public class CsvFileWriter<T, U extends Formatable<T>> extends FlatFileItemWriter<U> {
   public CsvFileWriter(String tempOutputFilePath, String columnHeaders, String[] extractedFieldNames, FieldProcessor fieldProcessor) {
+    super(new PassThroughLineAggregator<>());
 
     if (StringUtils.isBlank(tempOutputFilePath)) {
       throw new IllegalArgumentException("tempOutputFilePath is blank");

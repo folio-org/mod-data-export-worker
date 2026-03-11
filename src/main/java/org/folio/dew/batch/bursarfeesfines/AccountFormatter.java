@@ -7,10 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.folio.dew.batch.bursarfeesfines.service.BursarTokenFormatter;
 import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
-import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.core.step.StepExecution;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 

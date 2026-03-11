@@ -1,22 +1,24 @@
 package org.folio.dew.client;
 
 import java.util.List;
+import java.util.Optional;
+
 import lombok.Data;
 import lombok.Getter;
-import org.folio.dew.config.feign.FeignClientConfiguration;
 import org.folio.dew.domain.dto.eholdings.Note;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
 
-@FeignClient(name = "note-links", configuration = FeignClientConfiguration.class)
+@HttpExchange(url = "note-links")
 public interface NotesClient {
 
-  @GetMapping(value = "/domain/{domain}/type/{type}/id/{id}?status=assigned&orderBy=updatedDate",
-              produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetExchange(value = "/domain/{domain}/type/{type}/id/{id}?status=assigned&orderBy=updatedDate",
+          accept = MediaType.APPLICATION_JSON_VALUE)
   NoteCollection getAssignedNotes(@PathVariable("domain") NoteLinkDomain domain,
                                   @PathVariable("type") NoteLinkType type,
                                   @PathVariable("id") String entityId);

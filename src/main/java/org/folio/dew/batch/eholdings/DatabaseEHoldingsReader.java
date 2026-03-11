@@ -8,9 +8,9 @@ import org.folio.de.entity.EHoldingsResource;
 import org.folio.dew.config.properties.EHoldingsJobProperties;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceDTO;
 import org.folio.dew.repository.EHoldingsResourceRepository;
-import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.step.StepExecution;
 import org.springframework.stereotype.Component;
 
 @Component

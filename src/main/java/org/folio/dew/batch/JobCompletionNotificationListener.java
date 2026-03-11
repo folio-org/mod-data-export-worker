@@ -29,9 +29,9 @@ import org.folio.de.entity.Job;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.repository.LocalFilesStorage;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobExecutionListener;
-import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.listener.JobExecutionListener;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -54,7 +54,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
 
   @SneakyThrows
   private void processJobUpdate(JobExecution jobExecution, boolean after) {
-    log.info("processJobUpdate:: process job update with id {}", jobExecution.getJobId());
+    log.info("processJobUpdate:: process job update with id {}", jobExecution.getJobInstanceId());
     var jobParameters = jobExecution.getJobParameters();
     var jobId = jobParameters.getString(JobParameterNames.JOB_ID);
     if (StringUtils.isBlank(jobId)) {

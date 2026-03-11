@@ -1,15 +1,15 @@
 package org.folio.dew.client;
 
 import org.folio.dew.domain.dto.TransferdataCollection;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
 
-@FeignClient(name = "transfers")
+@HttpExchange(url = "transfers", accept = MediaType.APPLICATION_JSON_VALUE)
 public interface TransferClient {
 
-  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  TransferdataCollection get(@RequestParam String query, @RequestParam long limit);
+  @GetExchange
+  TransferdataCollection get(@RequestParam(required = false) String query, @RequestParam long limit);
 
 }

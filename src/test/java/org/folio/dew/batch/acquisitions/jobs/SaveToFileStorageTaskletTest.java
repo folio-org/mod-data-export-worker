@@ -18,6 +18,7 @@ import java.util.UUID;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.services.OrganizationsService;
+import org.folio.dew.domain.dto.acquisitions.edifact.Organization;
 import org.folio.dew.repository.FTPObjectStorageRepository;
 import org.folio.dew.repository.SFTPObjectStorageRepository;
 import org.junit.jupiter.api.BeforeAll;
@@ -25,12 +26,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
@@ -61,7 +62,9 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
   protected void setUp() {
     super.setUp();
 
-    doReturn(objectMapper.readTree("{\"code\": \"GOBI\"}")).when(organizationsService).getOrganizationById(anyString());
+    Organization organization = new Organization();
+    organization.setCode("GOBI");
+    doReturn(organization).when(organizationsService).getOrganizationById(anyString());
     doReturn(true).when(sftpObjectStorageRepository).upload(anyString(), anyString(), anyString(), anyInt(), anyString(), anyString(), any());
     doNothing().when(ftpObjectStorageRepository).upload(anyString(), anyString(), anyString(), anyString(), anyString(), any());
   }
@@ -70,11 +73,11 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
   @CsvSource(value = {"SFTP Upload,edifact/edifactOrdersExport.json", "FTP Upload,edifact/edifactFTPOrdersExport.json"}, delimiter = ',')
   @DirtiesContext
   void testUploadSuccessful(String testName, String edifactOrdersExport) throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
 
     var jobParameters = getJobParameters(edifactOrdersExport);
     ExecutionContext executionContext = getExecutionContext();
-    JobExecution jobExecution = testLauncher.launchStep("saveToFTPStep", jobParameters, executionContext);
+    JobExecution jobExecution = testLauncher.startStep("saveToFTPStep", jobParameters, executionContext);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
@@ -93,14 +96,6 @@ class SaveToFileStorageTaskletTest extends BaseBatchTest {
     executionContext.put(ACQ_EXPORT_FILE_NAME, "testEdiFile.edi");
     executionContext.put(ACQ_EXPORT_FILE, RandomStringUtils.secure().next(100));
     return executionContext;
-  }
-
-  protected JobLauncherTestUtils createTestLauncher(Job job) {
-    JobLauncherTestUtils testLauncher = new JobLauncherTestUtils();
-    testLauncher.setJob(job);
-    testLauncher.setJobLauncher(jobLauncher);
-    testLauncher.setJobRepository(jobRepository);
-    return testLauncher;
   }
 
 }

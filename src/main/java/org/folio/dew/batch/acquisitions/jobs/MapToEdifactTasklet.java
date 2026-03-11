@@ -131,6 +131,8 @@ public abstract class MapToEdifactTasklet implements Tasklet {
     }
   }
 
+  protected abstract ExportResourceMapper getExportResourceMapper(VendorEdiOrdersExportConfig ediOrdersExportConfig);
+
   protected abstract List<String> getExportConfigMissingFields(VendorEdiOrdersExportConfig ediOrdersExportConfig);
 
   protected abstract ExportHolder buildEdifactExportHolder(VendorEdiOrdersExportConfig ediExportConfig, Map<String, Object> jobParameters)

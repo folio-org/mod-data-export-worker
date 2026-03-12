@@ -1,8 +1,8 @@
 package org.folio.dew.client;
 
 
+import org.folio.dew.config.feign.FeignClientConfiguration;
 import org.folio.dew.domain.dto.email.EmailEntity;
-import org.folio.spring.config.FeignClientConfiguration;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -6,7 +6,8 @@ import feign.codec.Encoder;
 import feign.jackson.JacksonEncoder;
 import org.springframework.context.annotation.Bean;
 
-public class FeignEncoderConfiguration {
+public class
+FeignEncoderConfiguration {
   @Bean
   public Encoder feignEncoder() {
     return new JacksonEncoder(customFeignObjectMapper());

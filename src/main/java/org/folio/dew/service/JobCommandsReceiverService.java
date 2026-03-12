@@ -9,6 +9,8 @@ import jakarta.annotation.PostConstruct;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,8 @@ public class JobCommandsReceiverService {
 
   @Value("${spring.application.name}")
   private String springApplicationName;
+  @Value("${folio.okapi-url:}")
+  private String okapiUrl;
   private String workDir;
 
   @PostConstruct
@@ -73,7 +77,7 @@ public class JobCommandsReceiverService {
     topicPattern = "${application.kafka.topic-pattern}",
     groupId = "${application.kafka.group-id}")
   public void receiveStartJobCommand(@Payload JobCommand jobCommand, @Headers Map<String, Object> messageHeaders) {
-    var defaultFolioExecutionContext = DefaultFolioExecutionContext.fromMessageHeaders(folioModuleMetadata, messageHeaders);
+    var defaultFolioExecutionContext = buildFolioExecutionContext(messageHeaders);
 
     try (var context = new FolioExecutionContextSetter(defaultFolioExecutionContext)) {
       log.info("Received {}.", jobCommand);
@@ -106,6 +110,16 @@ public class JobCommandsReceiverService {
         log.error(e.toString(), e);
       }
     }
+  }
+
+  private DefaultFolioExecutionContext buildFolioExecutionContext(Map<String, Object> messageHeaders) {
+    var baseContext = DefaultFolioExecutionContext.fromMessageHeaders(folioModuleMetadata, messageHeaders);
+    if (StringUtils.isBlank(okapiUrl)) {
+      return baseContext;
+    }
+    Map<String, Collection<String>> headers = new HashMap<>(baseContext.getOkapiHeaders());
+    headers.put("x-okapi-url", List.of(okapiUrl));
+    return new DefaultFolioExecutionContext(folioModuleMetadata, headers);
   }
 
   private String resolveJobKey(JobCommand jobCommand) {

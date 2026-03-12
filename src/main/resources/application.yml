@@ -116,6 +116,7 @@ application:
   platform: ${PLATFORM:okapi}
 
 folio:
+  okapi-url: ${OKAPI_URL:http://mod-data-export-worker-sc.eureka:8081}
   tenant:
     validation:
       enabled: true

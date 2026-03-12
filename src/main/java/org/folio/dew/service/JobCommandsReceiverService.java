@@ -114,12 +114,16 @@ public class JobCommandsReceiverService {
 
   private DefaultFolioExecutionContext buildFolioExecutionContext(Map<String, Object> messageHeaders) {
     var baseContext = DefaultFolioExecutionContext.fromMessageHeaders(folioModuleMetadata, messageHeaders);
+    log.info("buildFolioExecutionContext:: configured okapiUrl='{}', baseContext.okapiUrl='{}'",
+      okapiUrl, baseContext.getOkapiUrl());
     if (StringUtils.isBlank(okapiUrl)) {
       return baseContext;
     }
     Map<String, Collection<String>> headers = new HashMap<>(baseContext.getOkapiHeaders());
     headers.put("x-okapi-url", List.of(okapiUrl));
-    return new DefaultFolioExecutionContext(folioModuleMetadata, headers);
+    var ctx = new DefaultFolioExecutionContext(folioModuleMetadata, headers);
+    log.info("buildFolioExecutionContext:: overridden context okapiUrl='{}'", ctx.getOkapiUrl());
+    return ctx;
   }
 
   private String resolveJobKey(JobCommand jobCommand) {

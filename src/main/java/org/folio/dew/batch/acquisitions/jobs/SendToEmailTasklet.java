@@ -9,6 +9,7 @@ import org.folio.dew.client.EmailClient;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.email.Attachment;
 import org.folio.dew.domain.dto.email.EmailEntity;
+import org.folio.spring.FolioExecutionContext;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -28,6 +29,7 @@ public class SendToEmailTasklet implements Tasklet {
 
   private final ObjectMapper ediObjectMapper;
   private final EmailClient emailClient;
+  private final FolioExecutionContext folioExecutionContext;
 
   @Override
   @SneakyThrows
@@ -53,6 +55,8 @@ public class SendToEmailTasklet implements Tasklet {
 
     emailEntity.setAttachments(java.util.List.of(attachment));
 
+    log.info("SendToEmailTasklet:: okapiUrl='{}', tenant='{}'",
+      folioExecutionContext.getOkapiUrl(), folioExecutionContext.getTenantId());
     emailClient.sendEmail(emailEntity);
 
     return RepeatStatus.FINISHED;

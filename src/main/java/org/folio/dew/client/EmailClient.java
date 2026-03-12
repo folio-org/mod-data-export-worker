@@ -8,7 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "email", configuration = FeignClientConfiguration.class)
+@FeignClient(name = "email", url = "http://email", configuration = FeignClientConfiguration.class)
 public interface EmailClient {
 
   @PostMapping(value = "/email", consumes = MediaType.APPLICATION_JSON_VALUE)

@@ -13,7 +13,7 @@ public class TemplateProcessingRequest {
   @Builder.Default
   private String lang = "en";
   @Builder.Default
-  private String outputFormat = "text/plain";
+  private String outputFormat = "text/html";
   private ClaimsContext context;
 
   @Data

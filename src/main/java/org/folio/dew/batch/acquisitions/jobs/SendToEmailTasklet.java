@@ -59,6 +59,7 @@ public class SendToEmailTasklet implements Tasklet {
     var templateResult = resolveTemplate(exportConfig, fileName);
     emailEntity.setHeader(templateResult[0]);
     emailEntity.setBody(templateResult[1]);
+    emailEntity.setOutputFormat(templateResult[2]);
 
     var attachment = new Attachment();
     attachment.setName(fileName);
@@ -80,7 +81,7 @@ public class SendToEmailTasklet implements Tasklet {
 
     if (templateId == null) {
       log.warn("SendToEmailTasklet:: no emailTemplate configured, using empty subject and body");
-      return new String[]{"", ""};
+      return new String[]{"", "", ""};
     }
 
     int pieceCount = Optional.ofNullable(exportConfig.getClaimPieceIds())
@@ -101,9 +102,10 @@ public class SendToEmailTasklet implements Tasklet {
       templateId, exportConfig.getConfigName(), fileName, pieceCount);
     JsonNode response = templateEngineClient.processTemplate(request);
     JsonNode result = response.path("result");
-    log.info("SendToEmailTasklet:: template-engine response: header='{}', body='{}'",
-      result.path("header").asText(""), result.path("body").asText(""));
-    return new String[]{result.path("header").asText(""), result.path("body").asText("")};
+    String outputFormat = response.path("meta").path("outputFormat").asText(request.getOutputFormat());
+    log.info("SendToEmailTasklet:: template-engine response: header='{}', body='{}', outputFormat='{}'",
+      result.path("header").asText(""), result.path("body").asText(""), outputFormat);
+    return new String[]{result.path("header").asText(""), result.path("body").asText(""), outputFormat};
   }
 
 }

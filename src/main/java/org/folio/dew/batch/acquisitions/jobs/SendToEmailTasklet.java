@@ -97,8 +97,12 @@ public class SendToEmailTasklet implements Tasklet {
         .build())
       .build();
 
+    log.info("SendToEmailTasklet:: calling template-engine with templateId='{}', configName='{}', fileName='{}', pieceCount={}",
+      templateId, exportConfig.getConfigName(), fileName, pieceCount);
     JsonNode response = templateEngineClient.processTemplate(request);
     JsonNode result = response.path("result");
+    log.info("SendToEmailTasklet:: template-engine response: header='{}', body='{}'",
+      result.path("header").asText(""), result.path("body").asText(""));
     return new String[]{result.path("header").asText(""), result.path("body").asText("")};
   }
 

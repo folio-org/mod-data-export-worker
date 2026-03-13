@@ -8,10 +8,10 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "template-engine", configuration = FeignClientConfiguration.class)
+@FeignClient(name = "template-request", configuration = FeignClientConfiguration.class)
 public interface TemplateEngineClient {
 
-  @PostMapping(value = "/template-request", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
   JsonNode processTemplate(@RequestBody TemplateProcessingRequest request);
 
 }

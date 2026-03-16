@@ -92,7 +92,6 @@ public class JacksonConfiguration {
       Set<JobParameter<?>> paramSet = new HashSet<>();
 
       JsonNode parametersNode = node.get("parameters");
-      log.info("node: {}, parametersNode: {}", node, parametersNode);
       if (parametersNode != null && parametersNode.isObject()) {
         parametersNode.fields().forEachRemaining(entry -> {
           JsonNode paramNode = entry.getValue();

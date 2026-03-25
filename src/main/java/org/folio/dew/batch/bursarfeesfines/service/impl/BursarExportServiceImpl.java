@@ -63,7 +63,8 @@ public class BursarExportServiceImpl implements BursarExportService {
     Set<AccountWithAncillaryData> transferredAccountsSet = new HashSet<>();
     Set<AccountWithAncillaryData> nonTransferredAccountsSet = new HashSet<>(accounts);
 
-    for (BursarExportTransferCriteriaConditionsInner bursarExportTransferCriteriaConditionsInner : bursarFeeFines.getTransferInfo()
+    for (BursarExportTransferCriteriaConditionsInner bursarExportTransferCriteriaConditionsInner : bursarFeeFines
+      .getTransferInfo()
       .getConditions()) {
       List<AccountWithAncillaryData> accountsToBeTransferred = accounts.stream()
         .filter(account -> BursarFilterEvaluator.evaluate(account, bursarExportTransferCriteriaConditionsInner.getCondition()))
@@ -75,11 +76,18 @@ public class BursarExportServiceImpl implements BursarExportService {
         String accountName = getTransferAccountName(bursarExportTransferCriteriaConditionsInner.getAccount()
           .toString());
 
-        log.info("transferring accounts for filter condition: " + bursarExportTransferCriteriaConditionsInner.getCondition()
-          .toString());
-        TransferRequest transferRequest = toTransferRequest(accountsToBeTransferred, accountName);
-        log.info("Transferring {}.", transferRequest);
-        bulkClient.transferAccount(transferRequest);
+        log.info(
+          "transferring accounts for filter condition: " +
+          bursarExportTransferCriteriaConditionsInner.getCondition().toString()
+        );
+        List<TransferRequest> transferRequests = toTransferRequests(accountsToBeTransferred, accountName);
+        log.info(
+          "Dispatching {} transfer requests for {} accounts to accountName {}",
+          transferRequests.size(),
+          accountsToBeTransferred.size(),
+          accountName
+        );
+        dispatchTransferRequests(transferRequests);
       }
     }
 
@@ -87,15 +95,33 @@ public class BursarExportServiceImpl implements BursarExportService {
     nonTransferredAccountsSet.removeAll(transferredAccountsSet);
 
     if (!nonTransferredAccountsSet.isEmpty()) {
-      String accountName = getTransferAccountName(bursarFeeFines.getTransferInfo()
-        .getElse()
-        .getAccount()
-        .toString());
+      String accountName = getTransferAccountName(bursarFeeFines.getTransferInfo().getElse().getAccount().toString());
 
-      TransferRequest transferRequest = toTransferRequest(nonTransferredAccountsSet.stream()
-        .toList(), accountName);
-      log.info("Creating {}.", transferRequest);
-      bulkClient.transferAccount(transferRequest);
+      List<TransferRequest> transferRequests = toTransferRequests(
+        nonTransferredAccountsSet.stream().toList(),
+        accountName
+      );
+      log.info(
+        "Dispatching {} transfer requests for {} accounts to fallback accountName {}",
+        transferRequests.size(),
+        nonTransferredAccountsSet.size(),
+        accountName
+      );
+      dispatchTransferRequests(transferRequests);
+    }
+  }
+
+  private void dispatchTransferRequests(List<TransferRequest> transferRequests) {
+    log.info("Dispatching {} transfer requests", transferRequests.size());
+    for (int i = 0; i < transferRequests.size(); i += bucketSize) {
+      TransferRequest request = transferRequests.get(i);
+      log.info(
+        "Dispatching transfer request {}/{} containing {} accounts",
+        i + 1,
+        transferRequests.size(),
+        request.getAccountIds().size()
+      );
+      bulkClient.transferAccount(request);
     }
   }
 
@@ -172,29 +198,37 @@ public class BursarExportServiceImpl implements BursarExportService {
       .collect(ArrayList::new, List::addAll, List::addAll);
   }
 
-  private TransferRequest toTransferRequest(List<AccountWithAncillaryData> accounts, String accountName) {
-    BigDecimal remainingAmount = BigDecimal.ZERO;
-    List<String> accountIds = new ArrayList<>();
-    for (AccountWithAncillaryData accountWithAncillaryData : accounts) {
-      remainingAmount = remainingAmount.add(accountWithAncillaryData.getAccount()
-        .getRemaining());
-      accountIds.add(accountWithAncillaryData.getAccount()
-        .getId());
-    }
+  private List<TransferRequest> toTransferRequests(List<AccountWithAncillaryData> accounts, String accountName) {
+    return ListUtils
+      .partition(accounts, bucketSize)
+      .stream()
+      .map(partition -> {
+        BigDecimal remainingAmount = BigDecimal.ZERO;
+        List<String> accountIds = new ArrayList<>();
+        for (AccountWithAncillaryData accountWithAncillaryData : partition) {
+          remainingAmount = remainingAmount.add(accountWithAncillaryData.getAccount().getRemaining());
+          accountIds.add(accountWithAncillaryData.getAccount().getId());
+        }
 
-    if (remainingAmount.doubleValue() <= 0) {
-      throw new IllegalArgumentException(
-          String.format("Transfer amount should be positive for account(s) %s", StringUtils.join(accounts, ",")));
-    }
+        if (remainingAmount.doubleValue() <= 0) {
+          throw new IllegalArgumentException(
+            String.format(
+              "Total transfer amount should be positive for account(s) %s",
+              StringUtils.join(partition, ",")
+            )
+          );
+        }
 
-    TransferRequest transferRequest = new TransferRequest();
-    transferRequest.setAmount(remainingAmount.doubleValue());
-    transferRequest.setPaymentMethod(accountName);
-    transferRequest.setServicePointId(getSystemServicePoint().getId());
-    transferRequest.setNotifyPatron(false);
-    transferRequest.setUserName(USER_NAME);
-    transferRequest.setAccountIds(accountIds);
-    return transferRequest;
+        TransferRequest transferRequest = new TransferRequest();
+        transferRequest.setAmount(remainingAmount.doubleValue());
+        transferRequest.setPaymentMethod(accountName);
+        transferRequest.setServicePointId(getSystemServicePoint().getId());
+        transferRequest.setNotifyPatron(false);
+        transferRequest.setUserName(USER_NAME);
+        transferRequest.setAccountIds(accountIds);
+        return transferRequest;
+      })
+      .toList();
   }
 
   /**
@@ -219,7 +253,7 @@ public class BursarExportServiceImpl implements BursarExportService {
 
   /**
    * Get the transfer account name given a transfer account id
-   * 
+   *
    * @param transferAccountID transfer account ID
    * @return transfer account name
    */

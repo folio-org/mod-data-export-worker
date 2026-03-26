@@ -98,7 +98,7 @@ public class BursarExportServiceImpl implements BursarExportService {
       String accountName = getTransferAccountName(bursarFeeFines.getTransferInfo().getElse().getAccount().toString());
 
       List<TransferRequest> transferRequests = toTransferRequests(
-        nonTransferredAccountsSet.stream().toList(),
+        new ArrayList<>(nonTransferredAccountsSet),
         accountName
       );
       log.info(

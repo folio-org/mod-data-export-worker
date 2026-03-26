@@ -43,7 +43,7 @@ public class BursarExportServiceImpl implements BursarExportService {
   private static final String SERVICE_POINT_CODE = "system";
   private static final String USER_NAME = "System";
   private static final long DEFAULT_LIMIT = 10000L;
-  private final Collector<CharSequence, ?, String> toQueryParameters = joining(" or ", "(", ")");
+  private static final Collector<CharSequence, ?, String> TO_QUERY_PARAMETERS = joining(" or ", "(", ")");
 
   // provided by env
   @Value("${application.bucket.size}")
@@ -154,7 +154,7 @@ public class BursarExportServiceImpl implements BursarExportService {
     log.info("Fetching {} users", userIds.size());
     List<User> users = fetchDataInBatch(new ArrayList<String>(userIds),
         partition -> userClient.getUserByQuery(String.format("id==(%s)", partition.stream()
-          .collect(toQueryParameters)), bucketSize)
+          .collect(TO_QUERY_PARAMETERS)), bucketSize)
           .getUsers());
 
     users.forEach(user -> map.put(user.getId(), user));
@@ -173,7 +173,7 @@ public class BursarExportServiceImpl implements BursarExportService {
     log.info("Fetching {} items", itemIds.size());
     List<Item> items = fetchDataInBatch(new ArrayList<String>(itemIds),
         partition -> inventoryClient.getItemByQuery(String.format("id==(%s)", partition.stream()
-          .collect(toQueryParameters)), bucketSize)
+          .collect(TO_QUERY_PARAMETERS)), bucketSize)
           .getItems());
 
     items.forEach(item -> map.put(item.getId(), item));

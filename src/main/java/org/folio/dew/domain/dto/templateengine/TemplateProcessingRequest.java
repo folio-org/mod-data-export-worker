@@ -14,15 +14,4 @@ public class TemplateProcessingRequest {
   private String lang = "en";
   @Builder.Default
   private String outputFormat = "text/html";
-  private ClaimsContext context;
-
-  @Data
-  @Builder
-  public static class ClaimsContext {
-    private String configName;
-    private String fileName;
-    private String exportDate;
-    private int pieceCount;
-  }
-
 }

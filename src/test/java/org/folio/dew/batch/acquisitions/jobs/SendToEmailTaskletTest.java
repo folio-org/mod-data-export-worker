@@ -80,6 +80,18 @@ class SendToEmailTaskletTest extends BaseBatchTest {
 
   @Test
   @DirtiesContext
+  void testSendEmailSuccessful_forOrderingIntegrationType() throws Exception {
+    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+
+    var jobParameters = getJobParameters("edifact/edifactEmailOrdersExportOrdering.json");
+    ExecutionContext executionContext = getExecutionContext();
+    JobExecution jobExecution = testLauncher.launchStep("sendToEmailStep", jobParameters, executionContext);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+  }
+
+  @Test
+  @DirtiesContext
   void testSendEmail_shouldFail_whenTemplateEngineThrows() throws Exception {
     doThrow(new RuntimeException("template-engine unavailable")).when(templateEngineClient).processTemplate(any());
     JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);

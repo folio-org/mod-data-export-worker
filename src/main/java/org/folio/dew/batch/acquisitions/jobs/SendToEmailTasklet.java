@@ -22,7 +22,6 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -76,18 +75,8 @@ public class SendToEmailTasklet implements Tasklet {
       .map(EdiEmail::getEmailTemplate)
       .orElse(null);
 
-    int pieceCount = Optional.ofNullable(exportConfig.getClaimPieceIds())
-      .map(List::size)
-      .orElse(0);
-
     var request = TemplateProcessingRequest.builder()
       .templateId(templateId)
-      .context(TemplateProcessingRequest.ClaimsContext.builder()
-        .configName(exportConfig.getConfigName())
-        .fileName(fileName)
-        .exportDate(LocalDate.now().toString())
-        .pieceCount(pieceCount)
-        .build())
       .build();
 
     try {

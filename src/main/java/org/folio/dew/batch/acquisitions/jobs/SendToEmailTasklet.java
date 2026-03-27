@@ -1,8 +1,8 @@
 package org.folio.dew.batch.acquisitions.jobs;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.batch.ExecutionContextUtils;
@@ -14,6 +14,7 @@ import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.email.Attachment;
 import org.folio.dew.domain.dto.email.EmailEntity;
 import org.folio.dew.domain.dto.templateengine.TemplateProcessingRequest;
+import org.folio.dew.domain.dto.templateengine.TemplateProcessingResponse;
 import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -80,10 +81,12 @@ public class SendToEmailTasklet implements Tasklet {
       .build();
 
     try {
-      JsonNode response = ediObjectMapper.readTree(templateEngineClient.processTemplate(request));
-      JsonNode result = response.path("result");
-      String outputFormat = response.path("meta").path("outputFormat").asText(request.getOutputFormat());
-      return new String[]{result.path("header").asText(), result.path("body").asText(), outputFormat};
+      TemplateProcessingResponse response = templateEngineClient.processTemplate(request);
+      String outputFormat = response.getMeta() != null && response.getMeta().getOutputFormat() != null
+        ? response.getMeta().getOutputFormat() : request.getOutputFormat();
+      String header = response.getResult() != null ? response.getResult().getHeader() : "";
+      String body = response.getResult() != null ? response.getResult().getBody() : "";
+      return new String[]{header, body, outputFormat};
     } catch (Exception e) {
       log.error(TEMPLATE_ENGINE_ERROR_MESSAGE, e);
       throw new EdifactException(TEMPLATE_ENGINE_ERROR_MESSAGE);

@@ -20,6 +20,7 @@ import org.folio.dew.batch.acquisitions.services.OrganizationsService;
 import org.folio.dew.domain.dto.acquisitions.edifact.Organization;
 import org.folio.dew.client.EmailClient;
 import org.folio.dew.client.TemplateEngineClient;
+import org.folio.dew.domain.dto.templateengine.TemplateProcessingResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,9 +65,16 @@ class SendToEmailTaskletTest extends BaseBatchTest {
     organization.setCode("GOBI");
     doReturn(organization).when(organizationsService).getOrganizationById(any());
     doNothing().when(emailClient).sendEmail(any());
-    doReturn(objectMapper.readTree(
-      "{\"result\":{\"header\":\"Test Subject\",\"body\":\"Test Body\"},\"meta\":{\"outputFormat\":\"text/html\"}}"
-    )).when(templateEngineClient).processTemplate(any());
+
+    var templateResult = new TemplateProcessingResponse();
+    var result = new TemplateProcessingResponse.Result();
+    result.setHeader("Test Subject");
+    result.setBody("Test Body");
+    var meta = new TemplateProcessingResponse.Meta();
+    meta.setOutputFormat("text/html");
+    templateResult.setResult(result);
+    templateResult.setMeta(meta);
+    doReturn(templateResult).when(templateEngineClient).processTemplate(any());
   }
 
   @Test

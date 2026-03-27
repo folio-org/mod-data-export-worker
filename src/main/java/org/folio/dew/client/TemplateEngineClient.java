@@ -3,6 +3,7 @@ package org.folio.dew.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.folio.dew.domain.dto.templateengine.TemplateProcessingRequest;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PostExchange;
 
@@ -10,6 +11,6 @@ import org.springframework.web.service.annotation.PostExchange;
 public interface TemplateEngineClient {
 
   @PostExchange
-  JsonNode processTemplate(TemplateProcessingRequest request);
+  JsonNode processTemplate(@RequestBody TemplateProcessingRequest request);
 
 }

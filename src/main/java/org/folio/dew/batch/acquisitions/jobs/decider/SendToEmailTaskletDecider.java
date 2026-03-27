@@ -25,7 +25,7 @@ public class SendToEmailTaskletDecider extends ExportStepDecider {
       log.info("decide:: Processing step: {}", stepName);
       return ExportStepDecision.PROCESS;
     }
-    log.info("decide:: Integration type is not CLAIMING or Transmission method is not Email, skipping the step: {}", stepName);
+    log.info("decide:: Transmission method is not Email, skipping the step: {}", stepName);
     return ExportStepDecision.SKIP;
   }
 

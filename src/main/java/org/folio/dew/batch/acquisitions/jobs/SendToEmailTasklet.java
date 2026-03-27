@@ -80,7 +80,7 @@ public class SendToEmailTasklet implements Tasklet {
       .build();
 
     try {
-      JsonNode response = templateEngineClient.processTemplate(request);
+      JsonNode response = ediObjectMapper.readTree(templateEngineClient.processTemplate(request));
       JsonNode result = response.path("result");
       String outputFormat = response.path("meta").path("outputFormat").asText(request.getOutputFormat());
       return new String[]{result.path("header").asText(), result.path("body").asText(), outputFormat};

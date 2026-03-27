@@ -6,7 +6,7 @@ import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.step.StepExecution;
 import org.springframework.stereotype.Component;
 
 @Log4j2

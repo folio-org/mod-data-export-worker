@@ -4,12 +4,12 @@ import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTy
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.FTP;
 
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.StepExecution;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.log4j.Log4j2;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.step.StepExecution;
 
 @Log4j2
 public class SaveToFileStorageTaskletDecider extends ExportStepDecider {

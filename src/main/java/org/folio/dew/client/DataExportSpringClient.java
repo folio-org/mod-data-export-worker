@@ -1,15 +1,15 @@
 package org.folio.dew.client;
 
 import org.folio.dew.domain.dto.ExportConfigCollection;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
 
-@FeignClient(name = "data-export-spring")
+@HttpExchange(url = "data-export-spring")
 public interface DataExportSpringClient {
 
-  @GetMapping(value = "/configs", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetExchange(value = "/configs", accept = MediaType.APPLICATION_JSON_VALUE)
   ExportConfigCollection getExportConfigs(@RequestParam("query") String query);
 
 }

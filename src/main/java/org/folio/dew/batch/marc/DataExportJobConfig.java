@@ -10,14 +10,13 @@ import org.folio.dew.domain.dto.ItemIdentifier;
 import org.folio.dew.error.NonSupportedEntityException;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.marc4j.marc.Record;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
-import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,8 +36,6 @@ public class DataExportJobConfig {
       Step dataExportStep,
       JobRepository jobRepository) {
     return new JobBuilder("MARC_EXPORT", jobRepository) // TODO change to ExportType.MARC_EXPORT.toString() after schema update
-        .repository(jobRepository)
-        .incrementer(new RunIdIncrementer())
         .listener(jobCompletionNotificationListener)
         .flow(dataExportStep)
         .end()
@@ -70,13 +67,13 @@ public class DataExportJobConfig {
     PlatformTransactionManager transactionManager
   ) {
     return new StepBuilder("dataExportPartitionStep", jobRepository)
-      .<ItemIdentifier, Record>chunk(100, transactionManager)
+      .<ItemIdentifier, Record>chunk(100)
+      .transactionManager(transactionManager)
       .reader(dataExportCsvItemReader)
       .processor(processor)
       .writer(recordWriter)
       .faultTolerant()
       .allowStartIfComplete(false)
-      .throttleLimit(POOL_SIZE)
       .listener(csvPartStepExecutionListener)
       .build();
   }
@@ -112,15 +109,11 @@ public class DataExportJobConfig {
   public ItemProcessor<ItemIdentifier, Record> processor(
     @Value("#{jobParameters['entityType']}") String entityType) {
     // TODO change to entityType values after schema update
-    switch (entityType) {
-    case "INSTANCE":
-      return new MarcInstanceExportProcessor();
-    case "HOLDINGS":
-      return new MarcHoldingsExportProcessor();
-    case "AUTHORITY":
-      return new MarcAuthorityExportProcessor();
-    default:
-      throw new NonSupportedEntityException(entityType + " is not supported");
-    }
+    return switch (entityType) {
+      case "INSTANCE" -> new MarcInstanceExportProcessor();
+      case "HOLDINGS" -> new MarcHoldingsExportProcessor();
+      case "AUTHORITY" -> new MarcAuthorityExportProcessor();
+      default -> throw new NonSupportedEntityException(entityType + " is not supported");
+    };
   }
 }

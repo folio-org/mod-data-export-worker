@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.folio.dew.client.HoldingClient;
 import org.folio.dew.domain.dto.Location;
+import org.folio.dew.domain.dto.acquisitions.edifact.Holdings;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.utils.FolioExecutionContextUtils;
@@ -40,18 +41,20 @@ class HoldingServiceTest {
   private ObjectMapper objectMapper;
 
   @Test
-  void getPermanentLocationIdFromJson() throws JsonProcessingException {
-    var holdingJson = objectMapper.readTree("{\"permanentLocationId\": \"b241764c-1466-4e1d-a028-1a3684a5da87\"}");
-    doReturn(holdingJson).when(client).getHoldingById(anyString());
+  void getPermanentLocationIdFromJson() {
+    var holdings = new Holdings();
+    holdings.setPermanentLocationId(UUID.fromString("b241764c-1466-4e1d-a028-1a3684a5da87"));
+    doReturn(holdings).when(client).getHoldingById(anyString());
 
     String locationId = holdingService.getPermanentLocationByHoldingId("65032151-39a5-4cef-8810-5350eb316300", null);
     assertEquals("b241764c-1466-4e1d-a028-1a3684a5da87", locationId);
   }
 
   @Test
-  void getPermanentLocationIdFromJsonWithTenantId() throws JsonProcessingException {
-    var holdingJson = objectMapper.readTree("{\"permanentLocationId\": \"b241764c-1466-4e1d-a028-1a3684a5da87\"}");
-    doReturn(holdingJson).when(client).getHoldingById(anyString());
+  void getPermanentLocationIdFromJsonWithTenantId() {
+    var holdings = new Holdings();
+    holdings.setPermanentLocationId(UUID.fromString("b241764c-1466-4e1d-a028-1a3684a5da87"));
+    doReturn(holdings).when(client).getHoldingById(anyString());
 
     try (MockedStatic<FolioExecutionContextUtils> mocked = mockStatic(FolioExecutionContextUtils.class)) {
       mocked.when(() -> FolioExecutionContextUtils.prepareContextForTenant(anyString(), any(FolioModuleMetadata.class), any(FolioExecutionContext.class)))

@@ -9,12 +9,11 @@ import org.folio.dew.batch.acquisitions.jobs.decider.ExportHistoryTaskletDecider
 import org.folio.dew.batch.acquisitions.jobs.decider.SaveToFileStorageTaskletDecider;
 import org.folio.dew.batch.acquisitions.jobs.decider.SendToEmailTaskletDecider;
 import org.folio.dew.domain.dto.ExportType;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
+import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.job.flow.JobExecutionDecider;
-import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,7 +42,7 @@ public class EdifactExportJobConfig {
     var ftpStepDecider = optionalStepDeciders.get(saveToFTPStep.getName());
     var emailStepDecider = optionalStepDeciders.get(sendToEmailStep.getName());
     var exportHistoryStepDecider = optionalStepDeciders.get(createExportHistoryRecordsStep.getName());
-    return jobBuilder.incrementer(new RunIdIncrementer())
+    return jobBuilder
       .listener(ediExportJobCompletionListener)
       .start(mapToFileStep)
       .next(saveToMinIOStep)

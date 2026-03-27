@@ -3,12 +3,12 @@ package org.folio.dew.batch.acquisitions.jobs.decider;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.ORDERING;
 
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.StepExecution;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.log4j.Log4j2;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.step.StepExecution;
 
 @Log4j2
 public class ExportHistoryTaskletDecider extends ExportStepDecider {

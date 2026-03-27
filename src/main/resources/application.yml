@@ -29,7 +29,6 @@ spring:
       ddl-auto: none
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
-        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -47,10 +46,6 @@ spring:
     multipart:
       max-file-size: ${MAX_UPLOADED_FILE_SIZE:40MB}
       max-request-size: ${MAX_UPLOADED_FILE_SIZE:40MB}
-  cloud:
-    openfeign:
-      okhttp:
-        enabled: true
 management:
   endpoints:
     web:
@@ -65,11 +60,6 @@ management:
     metrics:
       export:
         enabled: false
-feign:
-  client:
-    config:
-      default:
-        loggerLevel: basic
 application:
   kafka:
     topic-configuration:
@@ -120,6 +110,8 @@ folio:
   tenant:
     validation:
       enabled: true
+  exchange:
+    enabled: true
 logging:
   level:
     org.folio.dew.client.*: debug

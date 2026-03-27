@@ -9,10 +9,10 @@ import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.StepExecution;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.step.StepExecution;
 
 @CopilotGenerated
 class SaveToFileStorageTaskletDeciderTest {

@@ -16,15 +16,15 @@ import org.folio.dew.domain.dto.authoritycontrol.exportformat.AuthUpdateHeadingE
 import org.folio.dew.domain.dto.authoritycontrol.exportformat.FailedLinkedBibExportFormat;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.service.FolioTenantService;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
-import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -43,7 +43,6 @@ public class AuthorityControlJobConfig {
                                JobCompletionNotificationListener jobCompletionNotificationListener,
                                @Qualifier("getAuthHeadingStep") Step getAuthHeadingStep) {
     return new JobBuilder(ExportType.AUTH_HEADINGS_UPDATES.toString(), jobRepository)
-      .incrementer(new RunIdIncrementer())
       .listener(jobCompletionNotificationListener)
       .start(getAuthHeadingStep)
       .build();
@@ -54,7 +53,6 @@ public class AuthorityControlJobConfig {
                                    JobCompletionNotificationListener jobCompletionNotificationListener,
                                    @Qualifier("getFailedLinkedBibStep") Step getFailedLinkedBibStep) {
     return new JobBuilder(ExportType.FAILED_LINKED_BIB_UPDATES.toString(), jobRepository)
-      .incrementer(new RunIdIncrementer())
       .listener(jobCompletionNotificationListener)
       .start(getFailedLinkedBibStep)
       .build();
@@ -68,10 +66,11 @@ public class AuthorityControlJobConfig {
                                  JobRepository jobRepository,
                                  PlatformTransactionManager transactionManager) {
     return new StepBuilder("getAuthHeadingStep", jobRepository)
-      .<AuthorityDataStatDto, AuthUpdateHeadingExportFormat>chunk(jobProperties.getJobChunkSize(), transactionManager)
+      .<AuthorityDataStatDto, AuthUpdateHeadingExportFormat>chunk(jobProperties.getJobChunkSize())
+      .transactionManager(transactionManager)
       .reader(authUpdateHeadingsItemReader)
       .processor(authUpdateHeadingProcessor)
-      .writer(writer)
+      .writer((ItemWriter<AuthUpdateHeadingExportFormat>) (ItemWriter<?>) writer)
       .listener(authorityControlStepListener)
       .build();
   }
@@ -84,10 +83,11 @@ public class AuthorityControlJobConfig {
                                      JobRepository jobRepository,
                                      PlatformTransactionManager transactionManager) {
     return new StepBuilder("getFailedLinkedBibStep", jobRepository)
-      .<InstanceDataStatDto, FailedLinkedBibExportFormat>chunk(jobProperties.getJobChunkSize(), transactionManager)
+      .<InstanceDataStatDto, FailedLinkedBibExportFormat>chunk(jobProperties.getJobChunkSize())
+      .transactionManager(transactionManager)
       .reader(linkedBibUpdateItemReader)
       .processor(failedLinkedBibProcessor)
-      .writer(writer)
+      .writer((ItemWriter<FailedLinkedBibExportFormat>) (ItemWriter<?>) writer)
       .listener(authorityControlStepListener)
       .build();
   }

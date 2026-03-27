@@ -9,11 +9,11 @@ import org.folio.dew.error.FileOperationException;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.S3CompatibleResource;
 import org.folio.dew.repository.S3CompatibleStorage;
-import org.springframework.batch.item.Chunk;
-import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
-import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
-import org.springframework.batch.item.file.transform.LineAggregator;
+import org.springframework.batch.infrastructure.item.Chunk;
+import org.springframework.batch.infrastructure.item.ItemWriter;
+import org.springframework.batch.infrastructure.item.file.transform.BeanWrapperFieldExtractor;
+import org.springframework.batch.infrastructure.item.file.transform.DelimitedLineAggregator;
+import org.springframework.batch.infrastructure.item.file.transform.LineAggregator;
 import org.springframework.core.io.WritableResource;
 
 import java.nio.charset.StandardCharsets;

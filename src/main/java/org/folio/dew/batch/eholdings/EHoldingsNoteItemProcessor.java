@@ -9,8 +9,10 @@ import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceDTO;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 @Component
 @StepScope

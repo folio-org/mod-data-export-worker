@@ -1,8 +1,8 @@
 package org.folio.dew.batch.acquisitions.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.folio.dew.client.LocationClient;
+import org.folio.dew.domain.dto.acquisitions.edifact.Location;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.utils.FolioExecutionContextUtils;
@@ -35,18 +35,20 @@ class LocationServiceTest {
   private ObjectMapper objectMapper;
 
   @Test
-  void getLocationCodeById() throws JsonProcessingException {
-    var locationJson = objectMapper.readTree("{\"code\": \"KU/CC/DI/P\"}");
-    doReturn(locationJson).when(client).getLocation(anyString());
+  void getLocationCodeById() {
+    var location = new Location();
+    location.setCode("KU/CC/DI/P");
+    doReturn(location).when(client).getLocation(anyString());
 
     String locationCode = locationService.getLocationCodeById("b241764c-1466-4e1d-a028-1a3684a5da87", null);
     assertEquals("KU/CC/DI/P", locationCode);
   }
 
   @Test
-  void getLocationCodeByIdWithTenant() throws JsonProcessingException {
-    var locationJson = objectMapper.readTree("{\"code\": \"KU/CC/DI/P\"}");
-    doReturn(locationJson).when(client).getLocation(anyString());
+  void getLocationCodeByIdWithTenant() {
+    var location = new Location();
+    location.setCode("KU/CC/DI/P");
+    doReturn(location).when(client).getLocation(anyString());
 
     try (MockedStatic<FolioExecutionContextUtils> mocked = mockStatic(FolioExecutionContextUtils.class)) {
       mocked.when(() -> FolioExecutionContextUtils.prepareContextForTenant(anyString(), any(FolioModuleMetadata.class), any(FolioExecutionContext.class)))

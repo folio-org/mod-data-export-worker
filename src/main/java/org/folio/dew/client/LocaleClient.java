@@ -1,15 +1,14 @@
 package org.folio.dew.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.folio.dew.config.feign.FeignClientConfiguration;
-import org.springframework.cloud.openfeign.FeignClient;
+import org.folio.dew.domain.dto.circulationlog.Locale;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
 
 
-@FeignClient(name = "locale", configuration = FeignClientConfiguration.class)
+@HttpExchange(url = "locale")
 public interface LocaleClient {
 
-  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  JsonNode getLocale();
+  @GetExchange(accept = MediaType.APPLICATION_JSON_VALUE)
+  Locale getLocale();
 }

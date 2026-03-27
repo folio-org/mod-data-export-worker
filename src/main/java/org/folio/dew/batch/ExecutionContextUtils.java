@@ -3,8 +3,8 @@ package org.folio.dew.batch;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.step.StepExecution;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ExecutionContextUtils {

@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.JobParameterNames;
-import org.springframework.batch.core.partition.support.Partitioner;
-import org.springframework.batch.item.ExecutionContext;
+import org.springframework.batch.core.partition.Partitioner;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
 
 @Log4j2
 public abstract class CsvPartitioner implements Partitioner {

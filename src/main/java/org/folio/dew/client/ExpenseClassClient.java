@@ -1,15 +1,15 @@
 package org.folio.dew.client;
 
-import org.springframework.cloud.openfeign.FeignClient;
+import org.folio.dew.domain.dto.acquisitions.edifact.ExpenseClass;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
 
-@FeignClient(name = "finance")
+@HttpExchange(url = "finance")
 public interface ExpenseClassClient {
-  @GetMapping(value = "/expense-classes/{expenseClassId}", produces = MediaType.APPLICATION_JSON_VALUE)
-  JsonNode getExpenseClass(@PathVariable String expenseClassId);
+  @GetExchange(value = "/expense-classes/{expenseClassId}", accept = MediaType.APPLICATION_JSON_VALUE)
+  ExpenseClass getExpenseClass(@PathVariable String expenseClassId);
 
 }

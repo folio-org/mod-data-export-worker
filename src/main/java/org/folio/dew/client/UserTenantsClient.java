@@ -1,16 +1,16 @@
 package org.folio.dew.client;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-
 import java.util.List;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "user-tenants")
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
+
+@HttpExchange(url = "user-tenants", accept = MediaType.APPLICATION_JSON_VALUE)
 public interface UserTenantsClient {
 
-  @GetMapping(produces = APPLICATION_JSON_VALUE)
+  @GetExchange
   UserTenants getUserTenants(@RequestParam("tenantId") String tenantId);
 
   record UserTenants(List<UserTenant> userTenants) {

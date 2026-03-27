@@ -17,18 +17,19 @@ import java.util.UUID;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.services.OrganizationsService;
+import org.folio.dew.domain.dto.acquisitions.edifact.Organization;
 import org.folio.dew.client.EmailClient;
 import org.folio.dew.client.TemplateEngineClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
@@ -59,7 +60,9 @@ class SendToEmailTaskletTest extends BaseBatchTest {
   protected void setUp() {
     super.setUp();
 
-    doReturn(objectMapper.readTree("{\"code\": \"GOBI\"}")).when(organizationsService).getOrganizationById(any());
+    Organization organization = new Organization();
+    organization.setCode("GOBI");
+    doReturn(organization).when(organizationsService).getOrganizationById(any());
     doNothing().when(emailClient).sendEmail(any());
     doReturn(objectMapper.readTree(
       "{\"result\":{\"header\":\"Test Subject\",\"body\":\"Test Body\"},\"meta\":{\"outputFormat\":\"text/html\"}}"
@@ -69,11 +72,11 @@ class SendToEmailTaskletTest extends BaseBatchTest {
   @Test
   @DirtiesContext
   void testSendEmailSuccessful() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
 
     var jobParameters = getJobParameters("edifact/edifactEmailOrdersExport.json");
     ExecutionContext executionContext = getExecutionContext();
-    JobExecution jobExecution = testLauncher.launchStep("sendToEmailStep", jobParameters, executionContext);
+    JobExecution jobExecution = testLauncher.startStep("sendToEmailStep", jobParameters, executionContext);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
@@ -81,11 +84,11 @@ class SendToEmailTaskletTest extends BaseBatchTest {
   @Test
   @DirtiesContext
   void testSendEmailSuccessful_forOrderingIntegrationType() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
 
     var jobParameters = getJobParameters("edifact/edifactEmailOrdersExportOrdering.json");
     ExecutionContext executionContext = getExecutionContext();
-    JobExecution jobExecution = testLauncher.launchStep("sendToEmailStep", jobParameters, executionContext);
+    JobExecution jobExecution = testLauncher.startStep("sendToEmailStep", jobParameters, executionContext);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
@@ -94,11 +97,11 @@ class SendToEmailTaskletTest extends BaseBatchTest {
   @DirtiesContext
   void testSendEmail_shouldFail_whenTemplateEngineThrows() throws Exception {
     doThrow(new RuntimeException("template-engine unavailable")).when(templateEngineClient).processTemplate(any());
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
 
     var jobParameters = getJobParameters("edifact/edifactEmailOrdersExport.json");
     ExecutionContext executionContext = getExecutionContext();
-    JobExecution jobExecution = testLauncher.launchStep("sendToEmailStep", jobParameters, executionContext);
+    JobExecution jobExecution = testLauncher.startStep("sendToEmailStep", jobParameters, executionContext);
 
     assertThat(jobExecution.getExitStatus().getExitCode()).isEqualTo(ExitStatus.FAILED.getExitCode());
   }
@@ -107,11 +110,11 @@ class SendToEmailTaskletTest extends BaseBatchTest {
   @DirtiesContext
   void testSendEmail_shouldFail_whenEmailClientThrows() throws Exception {
     doThrow(new RuntimeException("email service unavailable")).when(emailClient).sendEmail(any());
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
 
     var jobParameters = getJobParameters("edifact/edifactEmailOrdersExport.json");
     ExecutionContext executionContext = getExecutionContext();
-    JobExecution jobExecution = testLauncher.launchStep("sendToEmailStep", jobParameters, executionContext);
+    JobExecution jobExecution = testLauncher.startStep("sendToEmailStep", jobParameters, executionContext);
 
     assertThat(jobExecution.getExitStatus().getExitCode()).isEqualTo(ExitStatus.FAILED.getExitCode());
   }
@@ -130,12 +133,5 @@ class SendToEmailTaskletTest extends BaseBatchTest {
     return executionContext;
   }
 
-  protected JobLauncherTestUtils createTestLauncher(Job job) {
-    JobLauncherTestUtils testLauncher = new JobLauncherTestUtils();
-    testLauncher.setJob(job);
-    testLauncher.setJobLauncher(jobLauncher);
-    testLauncher.setJobRepository(jobRepository);
-    return testLauncher;
-  }
 
 }

@@ -1,17 +1,14 @@
 package org.folio.dew.client;
 
-
-import org.folio.dew.config.feign.FeignClientConfiguration;
 import org.folio.dew.domain.dto.email.EmailEntity;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.service.annotation.HttpExchange;
+import org.springframework.web.service.annotation.PostExchange;
 
-@FeignClient(name = "email", configuration = FeignClientConfiguration.class)
+@HttpExchange(url = "email", contentType = MediaType.APPLICATION_JSON_VALUE)
 public interface EmailClient {
 
-  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-  void sendEmail(@RequestBody EmailEntity email);
+  @PostExchange
+  void sendEmail(EmailEntity email);
 
 }

@@ -46,6 +46,10 @@ public class EdifactExportJobConfig {
       .listener(ediExportJobCompletionListener)
       .start(mapToFileStep)
       .next(saveToMinIOStep)
+      // FTP, Email, and Export History are optional steps, each guarded by a decider.
+      // FTP and Email are mutually exclusive via transmissionMethod; Export History
+      // is exclusive to Ordering. All three steps are chained sequentially and each
+      // decider independently returns PROCESS or SKIP.
       .next(ftpStepDecider)
         .on(PROCESS.getStatus()).to(saveToFTPStep)
         .from(saveToFTPStep).on("*").to(emailStepDecider)

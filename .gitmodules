@@ -1,4 +1,4 @@
 [submodule "folio-export-common"]
 	path = folio-export-common
 	url = https://github.com/slub/folio-export-common.git
-	branch = send-email
+	branch = MODEXPW-625

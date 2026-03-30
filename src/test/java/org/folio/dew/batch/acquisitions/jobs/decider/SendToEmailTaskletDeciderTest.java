@@ -25,15 +25,16 @@ class SendToEmailTaskletDeciderTest {
   }
 
   @Test
-  void decide_shouldProcess_whenIntegrationTypeIsClaiming() {
+  void decide_shouldSkip_whenTransmissionMethodIsFileDownload() {
     VendorEdiOrdersExportConfig config = new VendorEdiOrdersExportConfig();
     config.setIntegrationType(IntegrationTypeEnum.CLAIMING);
+    config.setTransmissionMethod(TransmissionMethodEnum.FILE_DOWNLOAD);
     JobExecution jobExecution = mock(JobExecution.class);
     StepExecution stepExecution = mock(StepExecution.class);
 
     ExportStepDecision decision = decider.decide(config, jobExecution, stepExecution);
 
-    assertEquals(ExportStepDecision.PROCESS, decision);
+    assertEquals(ExportStepDecision.SKIP, decision);
   }
 
   @Test
@@ -50,7 +51,20 @@ class SendToEmailTaskletDeciderTest {
   }
 
   @Test
-  void decide_shouldSkip_whenIntegrationTypeIsNotClaimingAndTransmissionMethodIsNotEmail() {
+  void decide_shouldProcess_whenIntegrationTypeIsClaimingAndTransmissionMethodIsEmail() {
+    VendorEdiOrdersExportConfig config = new VendorEdiOrdersExportConfig();
+    config.setIntegrationType(IntegrationTypeEnum.CLAIMING);
+    config.setTransmissionMethod(TransmissionMethodEnum.EMAIL);
+    JobExecution jobExecution = mock(JobExecution.class);
+    StepExecution stepExecution = mock(StepExecution.class);
+
+    ExportStepDecision decision = decider.decide(config, jobExecution, stepExecution);
+
+    assertEquals(ExportStepDecision.PROCESS, decision);
+  }
+
+  @Test
+  void decide_shouldSkip_whenTransmissionMethodIsFtp() {
     VendorEdiOrdersExportConfig config = new VendorEdiOrdersExportConfig();
     config.setIntegrationType(IntegrationTypeEnum.ORDERING);
     config.setTransmissionMethod(TransmissionMethodEnum.FTP);

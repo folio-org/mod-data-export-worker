@@ -7,11 +7,13 @@ import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.FILE_FOR
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.INTEGRATION_TYPE;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.TRANSMISSION_METHOD;
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.generateFileName;
+import static org.folio.dew.batch.acquisitions.utils.ExportUtils.validateEmailFields;
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.validateField;
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.validateFtpFields;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.EMAIL;
 
 import java.util.List;
 import java.util.Map;
@@ -76,7 +78,12 @@ public abstract class MapToEdifactTasklet implements Tasklet {
     validateField(INTEGRATION_TYPE.getName(), ediExportConfig.getIntegrationType(), Objects::nonNull, missingFields);
     validateField(TRANSMISSION_METHOD.getName(), ediExportConfig.getTransmissionMethod(), Objects::nonNull, missingFields);
     validateField(FILE_FORMAT.getName(), ediExportConfig.getFileFormat(), Objects::nonNull, missingFields);
-    validateFtpFields(ediExportConfig, missingFields);
+
+    if (ediExportConfig.getTransmissionMethod() == EMAIL) {
+      validateEmailFields(ediExportConfig, missingFields);
+    } else {
+      validateFtpFields(ediExportConfig, missingFields);
+    }
 
     if (!missingFields.isEmpty()) {
       throw new EdifactException("Export configuration is incomplete, missing required fields: %s".formatted(missingFields));

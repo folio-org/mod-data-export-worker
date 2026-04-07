@@ -44,7 +44,6 @@ public class TransferFeesFinesTasklet implements Tasklet {
       .get("filteredAccounts");
 
     if (CollectionUtils.isEmpty(filteredAccounts)) {
-      log.warn("No accounts to transfer for this export job; skipping transfer step.");
       return RepeatStatus.FINISHED;
     }
 

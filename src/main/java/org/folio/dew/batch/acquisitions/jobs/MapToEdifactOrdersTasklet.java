@@ -5,6 +5,7 @@ import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.LIB_EDI_
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.VENDOR_EDI_CODE;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.VENDOR_EDI_TYPE;
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.validateField;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.FileFormatEnum.EDI;
 import static org.folio.dew.utils.QueryUtils.combineCqlExpressions;
 import static org.folio.dew.utils.QueryUtils.convertFieldListToEnclosedCqlQuery;
 import static org.folio.dew.utils.QueryUtils.getCqlExpressionForFieldNullValue;
@@ -42,22 +43,27 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
 
   private final DataExportSpringClient dataExportSpringClient;
   private final ExportResourceMapper edifactMapper;
+  private final ExportResourceMapper orderCsvMapper;
 
   public MapToEdifactOrdersTasklet(ObjectMapper ediObjectMapper, OrganizationsService organizationsService, OrdersService ordersService,
-                                   DataExportSpringClient dataExportSpringClient, ExportResourceMapper edifactMapper) {
+                                   DataExportSpringClient dataExportSpringClient, ExportResourceMapper edifactMapper,
+                                   ExportResourceMapper orderCsvMapper) {
     super(ediObjectMapper, organizationsService, ordersService);
     this.dataExportSpringClient = dataExportSpringClient;
     this.edifactMapper = edifactMapper;
+    this.orderCsvMapper = orderCsvMapper;
   }
 
   @Override
   protected List<String> getExportConfigMissingFields(VendorEdiOrdersExportConfig ediOrdersExportConfig) {
     List<String> missingFields = new ArrayList<>();
-    var ediConfig = ediOrdersExportConfig.getEdiConfig();
-    validateField(LIB_EDI_TYPE.getName(), ediConfig.getLibEdiType(), Objects::nonNull, missingFields);
-    validateField(LIB_EDI_CODE.getName(), ediConfig.getLibEdiCode(), StringUtils::isNotBlank, missingFields);
-    validateField(VENDOR_EDI_TYPE.getName(), ediConfig.getVendorEdiType(), Objects::nonNull, missingFields);
-    validateField(VENDOR_EDI_CODE.getName(), ediConfig.getVendorEdiCode(), StringUtils::isNotBlank, missingFields);
+    if (ediOrdersExportConfig.getFileFormat() == EDI) {
+      var ediConfig = ediOrdersExportConfig.getEdiConfig();
+      validateField(LIB_EDI_TYPE.getName(), ediConfig.getLibEdiType(), Objects::nonNull, missingFields);
+      validateField(LIB_EDI_CODE.getName(), ediConfig.getLibEdiCode(), StringUtils::isNotBlank, missingFields);
+      validateField(VENDOR_EDI_TYPE.getName(), ediConfig.getVendorEdiType(), Objects::nonNull, missingFields);
+      validateField(VENDOR_EDI_CODE.getName(), ediConfig.getVendorEdiCode(), StringUtils::isNotBlank, missingFields);
+    }
     return missingFields;
   }
 
@@ -70,7 +76,10 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
 
   @Override
   protected ExportResourceMapper getExportResourceMapper(VendorEdiOrdersExportConfig ediOrdersExportConfig) {
-    return edifactMapper;
+    return switch (ediOrdersExportConfig.getFileFormat()) {
+      case EDI -> edifactMapper;
+      case CSV -> orderCsvMapper;
+    };
   }
 
   protected String getPoLineQuery(VendorEdiOrdersExportConfig ediConfig) {

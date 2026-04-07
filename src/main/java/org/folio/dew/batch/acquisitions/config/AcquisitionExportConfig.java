@@ -2,6 +2,7 @@ package org.folio.dew.batch.acquisitions.config;
 
 import org.folio.dew.batch.acquisitions.mapper.CsvMapper;
 import org.folio.dew.batch.acquisitions.mapper.ExportResourceMapper;
+import org.folio.dew.batch.acquisitions.mapper.OrderCsvMapper;
 import org.folio.dew.batch.acquisitions.mapper.converter.CompOrderEdiConverter;
 import org.folio.dew.batch.acquisitions.mapper.converter.PoLineEdiConverter;
 import org.folio.dew.batch.acquisitions.mapper.EdifactMapper;
@@ -39,6 +40,11 @@ public class AcquisitionExportConfig {
   @Bean
   ExportResourceMapper csvMapper(OrdersService ordersService) {
     return new CsvMapper(ordersService);
+  }
+
+  @Bean
+  ExportResourceMapper orderCsvMapper() {
+    return new OrderCsvMapper();
   }
 
 }

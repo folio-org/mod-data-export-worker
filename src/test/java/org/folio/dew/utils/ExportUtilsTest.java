@@ -63,7 +63,7 @@ public class ExportUtilsTest {
   }
 
   @ParameterizedTest
-  @CsvSource({"ORDERING,EDI", "CLAIMING,EDI", "CLAIMING,CSV"})
+  @CsvSource({"ORDERING,EDI", "ORDERING,CSV", "CLAIMING,EDI", "CLAIMING,CSV"})
   void generateFileNameGeneratesCorrectFileName(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, VendorEdiOrdersExportConfig.FileFormatEnum fileFormat) {
     var fileName = ExportUtils.generateFileName("vendor", "config", integrationType, fileFormat);
     System.out.println(fileName);
@@ -77,6 +77,9 @@ public class ExportUtilsTest {
       } else {
         return "^csv_claims_vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.csv$";
       }
+    }
+    if (fileFormat == VendorEdiOrdersExportConfig.FileFormatEnum.CSV) {
+      return "^csv_orders_vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.csv$";
     }
     return  "^edi_orders_vendor_config_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.edi$";
   }

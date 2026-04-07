@@ -30,10 +30,6 @@ public class TransferFeesFinesTasklet implements Tasklet {
       .getExecutionContext()
       .get("jobConfig", BursarExportJob.class);
 
-    log.info("==========================================");
-    log.info("Got jobconfig with dryRun: {}; {}", jobConfig.getDryRun(), jobConfig);
-    log.info("==========================================");
-
     if (Boolean.TRUE.equals(jobConfig.getDryRun())) {
       log.warn("Bursar export is configured as a dry run; no transfer will be performed.");
       return RepeatStatus.FINISHED;

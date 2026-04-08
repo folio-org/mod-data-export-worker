@@ -20,7 +20,6 @@ public class SendToEmailTaskletDecider extends ExportStepDecider {
 
   @Override
   public ExportStepDecision decide(VendorEdiOrdersExportConfig exportConfig, JobExecution jobExecution, StepExecution stepExecution) {
-    // Always execute if the transmission method is Email
     if (exportConfig.getTransmissionMethod() == EMAIL) {
       log.info("decide:: Processing step: {}", stepName);
       return ExportStepDecision.PROCESS;

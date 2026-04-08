@@ -1,6 +1,6 @@
 package org.folio.dew.batch.acquisitions.config;
 
-import org.folio.dew.batch.acquisitions.mapper.CsvMapper;
+import org.folio.dew.batch.acquisitions.mapper.ClaimCsvMapper;
 import org.folio.dew.batch.acquisitions.mapper.ExportResourceMapper;
 import org.folio.dew.batch.acquisitions.mapper.OrderCsvMapper;
 import org.folio.dew.batch.acquisitions.mapper.converter.CompOrderEdiConverter;
@@ -38,8 +38,8 @@ public class AcquisitionExportConfig {
   }
 
   @Bean
-  ExportResourceMapper csvMapper(OrdersService ordersService) {
-    return new CsvMapper(ordersService);
+  ExportResourceMapper claimCsvMapper(OrdersService ordersService) {
+    return new ClaimCsvMapper(ordersService);
   }
 
   @Bean

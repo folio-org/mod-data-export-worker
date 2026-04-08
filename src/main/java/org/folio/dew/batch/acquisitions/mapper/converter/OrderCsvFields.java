@@ -1,22 +1,20 @@
 package org.folio.dew.batch.acquisitions.mapper.converter;
 
-import static org.folio.dew.batch.acquisitions.utils.ExportUtils.getVendorAccountNumber;
-import static org.folio.dew.batch.acquisitions.utils.ExportUtils.getVendorOrderNumber;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.folio.dew.domain.dto.Contributor;
+import org.folio.dew.domain.dto.Cost;
+import org.folio.dew.domain.dto.FundDistribution;
+import org.folio.dew.domain.dto.ProductIdentifier;
+import org.folio.dew.domain.dto.acquisitions.edifact.OrderCsvEntry;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.folio.dew.domain.dto.Contributor;
-import org.folio.dew.domain.dto.Cost;
-import org.folio.dew.domain.dto.Details;
-import org.folio.dew.domain.dto.FundDistribution;
-import org.folio.dew.domain.dto.ProductIdentifier;
-import org.folio.dew.domain.dto.acquisitions.edifact.OrderCsvEntry;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import static org.folio.dew.batch.acquisitions.utils.ExportUtils.getVendorAccountNumber;
+import static org.folio.dew.batch.acquisitions.utils.ExportUtils.getVendorOrderNumber;
 
 @AllArgsConstructor
 public enum OrderCsvFields implements ExtractableField<OrderCsvEntry, String> {

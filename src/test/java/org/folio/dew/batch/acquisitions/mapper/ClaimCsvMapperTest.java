@@ -33,21 +33,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @Log4j2
 @ExtendWith(MockitoExtension.class)
-class CsvMapperTest {
+class ClaimCsvMapperTest {
 
   private static final Map<ExportType, String> EXPORT_CSV_PATHS = Map.of(
     CLAIMS, "edifact/acquisitions/csv_claims_result.csv"
   );
 
   private ObjectMapper objectMapper;
-  private ExportResourceMapper csvMapper;
+  private ExportResourceMapper claimCsvMapper;
 
   @Mock
   private OrdersService ordersService;
 
   @BeforeEach
   void setUp() {
-    csvMapper = new CsvMapper(ordersService);
+    claimCsvMapper = new ClaimCsvMapper(ordersService);
     objectMapper = new JacksonConfiguration().objectMapper();
 
     when(ordersService.getTitleById(anyString())).thenReturn(new OrdersTitle().title("Test title"));
@@ -60,7 +60,7 @@ class CsvMapperTest {
     List<CompositePurchaseOrder> compPOs = getTestOrdersFromJson(type);
     List<Piece> pieces = getTestPiecesFromJson(type);
 
-    String csvOutput = csvMapper.convertForExport(compPOs, pieces, getTestEdiConfig(), jobName);
+    String csvOutput = claimCsvMapper.convertForExport(compPOs, pieces, getTestEdiConfig(), jobName);
 
     assertFalse(csvOutput.isEmpty());
     validateCsvOutput(type, csvOutput);

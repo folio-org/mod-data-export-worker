@@ -2,6 +2,7 @@ package org.folio.dew.batch.acquisitions.jobs;
 
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import org.folio.dew.batch.acquisitions.jobs.decider.ExportHistoryTaskletDecider;
@@ -14,10 +15,8 @@ import org.springframework.batch.core.job.flow.JobExecutionDecider;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,31 +26,19 @@ import static org.folio.dew.batch.acquisitions.jobs.decider.ExportStepDecision.S
 
 @Configuration
 @Log4j2
+@RequiredArgsConstructor
 public class EdifactExportJobConfig {
 
   public static final String POL_MEM_KEY = "poLineIds";
 
-  private final Step saveToMinIOStep;
-  private final Step saveToFTPStep;
-  private final Step sendToEmailStep;
-  private final Step createExportHistoryRecordsStep;
-  private final Map<String, JobExecutionDecider> optionalStepDeciders;
-
-  public EdifactExportJobConfig(@Lazy @Qualifier("saveToMinIOStep") Step saveToMinIOStep,
-                                @Lazy @Qualifier("saveToFTPStep") Step saveToFTPStep,
-                                @Lazy @Qualifier("sendToEmailStep") Step sendToEmailStep,
-                                @Lazy @Qualifier("createExportHistoryRecordsStep") Step createExportHistoryRecordsStep,
-                                @Lazy Map<String, JobExecutionDecider> optionalStepDeciders) {
-    this.saveToMinIOStep = saveToMinIOStep;
-    this.saveToFTPStep = saveToFTPStep;
-    this.sendToEmailStep = sendToEmailStep;
-    this.createExportHistoryRecordsStep = createExportHistoryRecordsStep;
-    this.optionalStepDeciders = optionalStepDeciders;
-  }
-
   private Job constructEdifactExportJob(JobBuilder jobBuilder,
                                         EdiExportJobCompletionListener ediExportJobCompletionListener,
-                                        Step mapToFileStep) {
+                                        Step mapToFileStep,
+                                        Step saveToMinIOStep,
+                                        Step saveToFTPStep,
+                                        Step sendToEmailStep,
+                                        Step createExportHistoryRecordsStep,
+                                        Map<String, JobExecutionDecider> optionalStepDeciders) {
     var ftpStepDecider = optionalStepDeciders.get(saveToFTPStep.getName());
     var emailStepDecider = optionalStepDeciders.get(sendToEmailStep.getName());
     var exportHistoryStepDecider = optionalStepDeciders.get(createExportHistoryRecordsStep.getName());
@@ -79,17 +66,19 @@ public class EdifactExportJobConfig {
   }
 
   @Bean
-  public Job edifactOrdersExportJob(EdiExportJobCompletionListener ediExportJobCompletionListener,
-                                    JobRepository jobRepository, Step mapToEdifactOrdersStep) {
+  public Job edifactOrdersExportJob(EdiExportJobCompletionListener ediExportJobCompletionListener, JobRepository jobRepository,
+                                    Step mapToEdifactOrdersStep, Step saveToMinIOStep, Step saveToFTPStep, Step sendToEmailStep,
+                                    Step createExportHistoryRecordsStep, Map<String, JobExecutionDecider> deciders) {
     return constructEdifactExportJob(new JobBuilder(ExportType.EDIFACT_ORDERS_EXPORT.getValue(), jobRepository),
-      ediExportJobCompletionListener, mapToEdifactOrdersStep);
+      ediExportJobCompletionListener, mapToEdifactOrdersStep, saveToMinIOStep, saveToFTPStep, sendToEmailStep, createExportHistoryRecordsStep, deciders);
   }
 
   @Bean
-  public Job edifactClaimsExportJob(EdiExportJobCompletionListener ediExportJobCompletionListener,
-                                    JobRepository jobRepository, Step mapToEdifactClaimsStep) {
+  public Job edifactClaimsExportJob(EdiExportJobCompletionListener ediExportJobCompletionListener, JobRepository jobRepository,
+                                    Step mapToEdifactClaimsStep, Step saveToMinIOStep, Step saveToFTPStep, Step sendToEmailStep,
+                                    Step createExportHistoryRecordsStep, Map<String, JobExecutionDecider> deciders) {
     return constructEdifactExportJob(new JobBuilder(ExportType.CLAIMS.getValue(), jobRepository),
-      ediExportJobCompletionListener, mapToEdifactClaimsStep);
+      ediExportJobCompletionListener, mapToEdifactClaimsStep, saveToMinIOStep, saveToFTPStep, sendToEmailStep, createExportHistoryRecordsStep, deciders);
   }
 
   @Bean

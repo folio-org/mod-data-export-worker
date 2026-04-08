@@ -60,7 +60,7 @@ public class SendToEmailTasklet implements Tasklet {
     emailEntity.setFrom(exportConfig.getEdiEmail().getEmailFrom());
     emailEntity.setTo(exportConfig.getEdiEmail().getEmailTo());
 
-    var templateResult = resolveTemplate(exportConfig, fileName);
+    var templateResult = resolveTemplate(exportConfig);
     emailEntity.setHeader(templateResult[0]);
     emailEntity.setBody(templateResult[1]);
     emailEntity.setOutputFormat(templateResult[2]);
@@ -71,7 +71,7 @@ public class SendToEmailTasklet implements Tasklet {
     return RepeatStatus.FINISHED;
   }
 
-  private String[] resolveTemplate(VendorEdiOrdersExportConfig exportConfig, String fileName) {
+  private String[] resolveTemplate(VendorEdiOrdersExportConfig exportConfig) {
     UUID templateId = Optional.ofNullable(exportConfig.getEdiEmail())
       .map(EdiEmail::getEmailTemplate)
       .orElse(null);

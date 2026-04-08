@@ -14,6 +14,7 @@ import org.springframework.batch.core.job.flow.JobExecutionDecider;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -36,10 +37,10 @@ public class EdifactExportJobConfig {
   private final Step createExportHistoryRecordsStep;
   private final Map<String, JobExecutionDecider> optionalStepDeciders;
 
-  public EdifactExportJobConfig(@Lazy Step saveToMinIOStep,
-                                @Lazy Step saveToFTPStep,
-                                @Lazy Step sendToEmailStep,
-                                @Lazy Step createExportHistoryRecordsStep,
+  public EdifactExportJobConfig(@Lazy @Qualifier("saveToMinIOStep") Step saveToMinIOStep,
+                                @Lazy @Qualifier("saveToFTPStep") Step saveToFTPStep,
+                                @Lazy @Qualifier("sendToEmailStep") Step sendToEmailStep,
+                                @Lazy @Qualifier("createExportHistoryRecordsStep") Step createExportHistoryRecordsStep,
                                 @Lazy Map<String, JobExecutionDecider> optionalStepDeciders) {
     this.saveToMinIOStep = saveToMinIOStep;
     this.saveToFTPStep = saveToFTPStep;

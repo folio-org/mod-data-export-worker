@@ -3,7 +3,6 @@ package org.folio.dew.batch.acquisitions.mapper.converter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.folio.dew.domain.dto.Contributor;
-import org.folio.dew.domain.dto.Cost;
 import org.folio.dew.domain.dto.FundDistribution;
 import org.folio.dew.domain.dto.ProductIdentifier;
 import org.folio.dew.domain.dto.acquisitions.edifact.OrderCsvEntry;
@@ -30,7 +29,7 @@ public enum OrderCsvFields implements ExtractableField<OrderCsvEntry, String> {
   QUANTITY("Quantity", OrderCsvFields::extractQuantity),
   UNIT_PRICE("Unit price", OrderCsvFields::extractUnitPrice),
   ESTIMATED_PRICE("Estimated price", OrderCsvFields::extractEstimatedPrice),
-  CURRENCY("Currency", entry -> Optional.ofNullable(entry.poLine().getCost()).map(Cost::getCurrency).orElse(null)),
+  CURRENCY("Currency", entry -> entry.poLine().getCost().getCurrency()),
   FUND_CODES("Fund codes", OrderCsvFields::extractFundCodes),
   CONTRIBUTORS("Contributors", OrderCsvFields::extractContributors),
   RUSH("Rush", entry -> Optional.ofNullable(entry.poLine().getRush()).map(String::valueOf).orElse(null));
@@ -54,9 +53,6 @@ public enum OrderCsvFields implements ExtractableField<OrderCsvEntry, String> {
 
   private static String extractQuantity(OrderCsvEntry entry) {
     var cost = entry.poLine().getCost();
-    if (cost == null) {
-      return null;
-    }
     int qty = Optional.ofNullable(cost.getQuantityPhysical()).orElse(0)
       + Optional.ofNullable(cost.getQuantityElectronic()).orElse(0);
     return String.valueOf(qty);
@@ -64,17 +60,13 @@ public enum OrderCsvFields implements ExtractableField<OrderCsvEntry, String> {
 
   private static String extractUnitPrice(OrderCsvEntry entry) {
     var cost = entry.poLine().getCost();
-    if (cost == null) {
-      return null;
-    }
     var price = Optional.ofNullable(cost.getListUnitPrice())
       .or(() -> Optional.ofNullable(cost.getListUnitPriceElectronic()));
     return price.map(String::valueOf).orElse(null);
   }
 
   private static String extractEstimatedPrice(OrderCsvEntry entry) {
-    return Optional.ofNullable(entry.poLine().getCost())
-      .map(Cost::getPoLineEstimatedPrice)
+    return Optional.ofNullable(entry.poLine().getCost().getPoLineEstimatedPrice())
       .map(String::valueOf)
       .orElse(null);
   }

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collector;
@@ -95,7 +96,10 @@ public class BursarExportServiceImpl implements BursarExportService {
     nonTransferredAccountsSet.removeAll(transferredAccountsSet);
 
     if (!nonTransferredAccountsSet.isEmpty()) {
-      String accountName = getTransferAccountName(bursarFeeFines.getTransferInfo().getElse().getAccount().toString());
+      String accountName = Optional.ofNullable(bursarFeeFines.getTransferInfo().getElse().getAccount())
+        .map(Object::toString)
+        .map(this::getTransferAccountName)
+        .orElse("");
 
       List<TransferRequest> transferRequests = toTransferRequests(
         new ArrayList<>(nonTransferredAccountsSet),

@@ -29,8 +29,8 @@ public class BursarFilterEvaluator {
     if (filter instanceof BursarExportFilterPass) {
       return true;
     } else if (filter instanceof BursarExportFilterAge filterAge) {
-      if (account.getAccount()
-        .getDateCreated() == null) {
+      if (account.getAccount().getMetadata().getCreatedDate() == null) {
+        log.info("Account {} has metadata.createdDate=null, passing the age filter", account.getAccount().getId());
         return true;
       }
       return evaluateFilterAge(account, filterAge);
@@ -76,7 +76,8 @@ public class BursarFilterEvaluator {
   private static boolean evaluateFilterAge(AccountWithAncillaryData account, BursarExportFilterAge filter) {
     int numDaysFilter = filter.getNumDays();
     long accountAge = ChronoUnit.DAYS.between(account.getAccount()
-      .getDateCreated()
+      .getMetadata()
+      .getCreatedDate()
       .toInstant(), Instant.now());
 
     switch (filter.getCondition()) {

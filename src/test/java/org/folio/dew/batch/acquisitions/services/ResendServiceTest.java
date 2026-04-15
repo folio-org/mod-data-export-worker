@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.folio.de.entity.Job;
@@ -27,10 +27,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.JobParameter;
-import org.springframework.batch.core.JobParameters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.batch.core.job.parameters.JobParameter;
+import org.springframework.batch.core.job.parameters.JobParameters;
 
 @CopilotGenerated(partiallyGenerated = true)
 @ExtendWith(MockitoExtension.class)
@@ -64,7 +64,7 @@ class ResendServiceTest {
     var jobId = UUID.randomUUID();
     JobCommand jobCommand = new JobCommand();
     jobCommand.setId(jobId);
-    jobCommand.setJobParameters(new JobParameters(Map.of(EDIFACT_ORDERS_EXPORT_KEY, new JobParameter<>("", String.class))));
+    jobCommand.setJobParameters(new JobParameters(Set.of(new JobParameter<>(EDIFACT_ORDERS_EXPORT_KEY, "", String.class))));
 
     VendorEdiOrdersExportConfig config = new VendorEdiOrdersExportConfig();
     config.setTransmissionMethod(TransmissionMethodEnum.FILE_DOWNLOAD);
@@ -82,7 +82,7 @@ class ResendServiceTest {
     var jobId = UUID.randomUUID();
     JobCommand jobCommand = new JobCommand();
     jobCommand.setId(jobId);
-    jobCommand.setJobParameters(new JobParameters(Map.of(EDIFACT_ORDERS_EXPORT_KEY, new JobParameter<>("", String.class))));
+    jobCommand.setJobParameters(new JobParameters(Set.of(new JobParameter<>(EDIFACT_ORDERS_EXPORT_KEY, "", String.class))));
 
     VendorEdiOrdersExportConfig config = new VendorEdiOrdersExportConfig();
     config.setTransmissionMethod(TransmissionMethodEnum.FTP);
@@ -99,9 +99,9 @@ class ResendServiceTest {
   @Test
   void resendExportedFile_shouldCompleteSuccessfully_whenAllConditionsAreMet() throws Exception {
     var fileName = "fileName";
-    Map<String, JobParameter<?>> jobParamMap = Map.of(
-      EDIFACT_ORDERS_EXPORT_KEY, new JobParameter<>("", String.class),
-      FILE_NAME_KEY, new JobParameter<>(fileName, String.class)
+    Set<JobParameter<?>> jobParamMap = Set.of(
+      new JobParameter<>(EDIFACT_ORDERS_EXPORT_KEY, "", String.class),
+      new JobParameter<>(FILE_NAME_KEY, fileName, String.class)
     );
     JobCommand jobCommand = new JobCommand();
     jobCommand.setId(UUID.randomUUID());

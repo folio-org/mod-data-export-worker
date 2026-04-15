@@ -5,11 +5,12 @@ import org.apache.commons.io.FilenameUtils;
 import org.folio.dew.batch.BaseStepListener;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportUtils;
+import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.domain.dto.JobParameterNames;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.step.StepExecution;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +35,8 @@ public class BursarExportStepListener extends BaseStepListener {
     var remoteFilesStorage = super.getRemoteFilesStorage();
 
     var jobExecution = stepExecution.getJobExecution();
+    BursarExportJob jobConfig = jobExecution.getExecutionContext()
+      .get("jobConfig", BursarExportJob.class);
     String downloadFilename = jobExecution.getExecutionContext()
       .getString("filename");
     String filename = jobExecution.getJobParameters()
@@ -58,7 +61,7 @@ public class BursarExportStepListener extends BaseStepListener {
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.BURSAR_FEES_FINES_FILE_NAME, key, ";");
 
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, JobParameterNames.JOB_DESCRIPTION,
-        String.format(BursarExportUtils.getJobDescriptionPart(), stepExecution.getWriteCount()), "\n");
+        BursarExportUtils.getJobDescription(jobConfig, stepExecution.getWriteCount()), "\n");
 
     return exitStatus;
   }

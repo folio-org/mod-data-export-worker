@@ -3,23 +3,25 @@ package org.folio.dew.batch.acquisitions.services;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.dew.client.SettingsClient;
+import org.folio.dew.client.TenantAddressesClient;
+import org.folio.dew.domain.dto.acquisitions.edifact.TenantAddress;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+
+import static java.util.Optional.ofNullable;
 
 @Service
 @RequiredArgsConstructor
 public class ConfigurationService {
 
   private static final Logger logger = LogManager.getLogger();
+  private static final String ADDRESS = "address";
 
-  private final SettingsClient settingsClient;
-  private final ObjectMapper objectMapper;
+  private final TenantAddressesClient tenantAddressesClient;
 
   @Cacheable(cacheNames = "addressConfiguration")
   public String getAddressConfig(UUID shipToConfigId) {
@@ -28,18 +30,17 @@ public class ConfigurationService {
       return "";
     }
     try {
-      var settingEntry = settingsClient.getSettingById(shipToConfigId.toString());
+      TenantAddress addressResponse = tenantAddressesClient.getById(shipToConfigId.toString());
 
-      if (settingEntry == null || !settingEntry.containsKey("value")) {
-        logger.warn("getAddressConfig:: Address on the config with id '{}' is not found", shipToConfigId);
+      if (addressResponse == null) {
+        logger.warn("getAddressConfig:: No address found for id '{}'", shipToConfigId);
         return "";
       }
 
-      var value = settingEntry.get("value");
-      JsonNode valueJsonObject = objectMapper.valueToTree(value);
-      return valueJsonObject.has("address") ? valueJsonObject.get("address").asText() : "";
+      logger.info("getAddressConfig:: Found address with id '{}'", shipToConfigId);
+      return ofNullable(addressResponse.getAddress()).orElse("");
     } catch (Exception e) {
-      logger.warn("getAddressConfig:: Cannot find config by id: '{}'", shipToConfigId, e);
+      logger.warn("getAddressConfig:: Cannot find address by id: '{}'", shipToConfigId, e);
       return "";
     }
   }

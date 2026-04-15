@@ -1,6 +1,5 @@
 package org.folio.de.entity;
 
-import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import lombok.Data;
 import org.folio.dew.domain.dto.EntityType;
 import org.folio.dew.domain.dto.ExportType;
@@ -9,7 +8,8 @@ import org.folio.dew.domain.dto.IdentifierType;
 import org.folio.dew.domain.dto.JobStatus;
 import org.folio.dew.domain.dto.Progress;
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 
@@ -44,18 +44,18 @@ public class Job {
   @Enumerated(EnumType.STRING)
   private ExportType type;
 
-  @Type(JsonBinaryType.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(columnDefinition = "jsonb")
   private ExportTypeSpecificParameters exportTypeSpecificParameters;
 
   @Enumerated(EnumType.STRING)
   private JobStatus status;
 
-  @Type(JsonBinaryType.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(columnDefinition = "jsonb")
   private List<String> files = null;
 
-  @Type(JsonBinaryType.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(columnDefinition = "jsonb")
   private List<String> fileNames = null;
 
@@ -82,7 +82,7 @@ public class Job {
   @Enumerated(EnumType.STRING)
   private BatchStatus batchStatus;
 
-  @Type(JsonBinaryType.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(columnDefinition = "jsonb")
   private ExitStatus exitStatus;
 
@@ -92,7 +92,7 @@ public class Job {
   @Enumerated(EnumType.STRING)
   private EntityType entityType;
 
-  @Type(JsonBinaryType.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(columnDefinition = "jsonb")
   private Progress progress;
 

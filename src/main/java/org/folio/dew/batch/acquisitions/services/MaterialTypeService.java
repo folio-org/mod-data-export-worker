@@ -1,31 +1,23 @@
 package org.folio.dew.batch.acquisitions.services;
 
+import lombok.extern.log4j.Log4j2;
 import org.folio.dew.client.MaterialTypeClient;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import lombok.RequiredArgsConstructor;
 
+import static java.util.Objects.isNull;
+
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class MaterialTypeService {
   private final MaterialTypeClient materialTypeClient;
 
-  private JsonNode getMaterialType(String id) {
-    return materialTypeClient.getMaterialType(id);
-  }
-
   @Cacheable(cacheNames = "materialTypeNames")
   public String getMaterialTypeName(String id) {
-    JsonNode jsonObject = getMaterialType(id);
-    String materialType = "";
-
-    if (jsonObject != null && !jsonObject.isEmpty()) {
-      materialType = jsonObject.get("name").asText();
-    }
-
-    return materialType;
+    var materialType = materialTypeClient.getMaterialType(id);
+    return isNull(materialType) ? "" : materialType.getName();
   }
 }

@@ -20,7 +20,6 @@ public class AuthUpdateHeadingExportFormat implements AuthorityControlExportForm
   @ExportHeader(NEW_1XX)
   private String newHeadingType;
   private String authoritySourceFileName;
-  private String numberOfBibliographicRecordsLinked;
   @ExportHeader(AUTHORITY_RECORD_TYPE)
   private String source;
   private String updater;

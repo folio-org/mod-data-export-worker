@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.FileUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.ExportType;
@@ -32,16 +33,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 
 @Log4j2
 class AuthorityControlTest extends BaseBatchTest {
@@ -74,10 +74,10 @@ class AuthorityControlTest extends BaseBatchTest {
   void authHeadingJobTest() throws Exception {
     var exportConfig = buildExportConfig("2023-01-01", "2023-12-01");
 
-    final JobLauncherTestUtils testLauncher = createTestLauncher(getAuthHeadingJob);
+    final JobOperatorTestUtils testLauncher = createTestLauncher(getAuthHeadingJob);
     final JobParameters jobParameters = prepareJobParameters(AUTH_HEADINGS_UPDATES, exportConfig);
 
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+    JobExecution jobExecution = testLauncher.startJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
@@ -96,10 +96,10 @@ class AuthorityControlTest extends BaseBatchTest {
   void authHeadingJobTest_whenNoStatsFound() throws Exception {
     var exportConfig = buildExportConfig("2022-01-01", "2022-12-01");
 
-    final JobLauncherTestUtils testLauncher = createTestLauncher(getAuthHeadingJob);
+    final JobOperatorTestUtils testLauncher = createTestLauncher(getAuthHeadingJob);
     final JobParameters jobParameters = prepareJobParameters(AUTH_HEADINGS_UPDATES, exportConfig);
 
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+    JobExecution jobExecution = testLauncher.startJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
@@ -114,10 +114,11 @@ class AuthorityControlTest extends BaseBatchTest {
   @Test
   @DisplayName("Run FailedLinkedBibJob export successfully")
   void failedLinkedBibJobTest() throws Exception {
-    final JobLauncherTestUtils testLauncher = createTestLauncher(getFailedLinkedBibJob);
-    final JobParameters jobParameters = prepareJobParameters(FAILED_LINKED_BIB_UPDATES, null);
+    final JobOperatorTestUtils testLauncher = createTestLauncher(getFailedLinkedBibJob);
+    final JobParameters jobParameters = prepareJobParameters(FAILED_LINKED_BIB_UPDATES,
+            null);
 
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+    JobExecution jobExecution = testLauncher.startJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
@@ -152,8 +153,8 @@ class AuthorityControlTest extends BaseBatchTest {
     Mockito.verify(kafkaService, times(2)).send(eq(KafkaService.Topic.JOB_UPDATE), anyString(), jobCaptor.capture());
 
     var job = jobCaptor.getValue();
-    final String filePath = job.getFiles().get(0);
-    final String fileName = job.getFileNames().get(0);
+    final String filePath = job.getFiles().getFirst();
+    final String fileName = job.getFileNames().getFirst();
 
     assertEquals(EXPECTED_S3_FILE_PATH + fileName, filePath);
   }

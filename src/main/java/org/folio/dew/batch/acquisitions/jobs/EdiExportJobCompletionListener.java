@@ -17,14 +17,14 @@ import org.folio.de.entity.Job;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.listener.JobExecutionListenerSupport;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.listener.JobExecutionListener;
 import org.springframework.stereotype.Component;
 
 @Component
 @Log4j2
 @RequiredArgsConstructor
-public class EdiExportJobCompletionListener extends JobExecutionListenerSupport {
+public class EdiExportJobCompletionListener implements JobExecutionListener {
 
   private static final String PATHS_DELIMITER = ";";
 
@@ -42,7 +42,7 @@ public class EdiExportJobCompletionListener extends JobExecutionListenerSupport 
 
   @SneakyThrows
   private void processJobUpdate(JobExecution jobExecution, boolean after) {
-    log.info("processJobUpdate:: process job update with id {}", jobExecution.getJobId());
+    log.info("processJobUpdate:: process job update with id {}", jobExecution.getJobInstanceId());
     var jobParameters = jobExecution.getJobParameters();
     var jobId = jobParameters.getString(JobParameterNames.JOB_ID);
     if (StringUtils.isBlank(jobId)) {

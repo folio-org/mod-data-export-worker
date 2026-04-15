@@ -9,21 +9,20 @@ import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUser;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.folio.dew.repository.S3CompatibleResource;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecutionListener;
-import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.FlowBuilder;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.job.flow.Flow;
-import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.listener.ExecutionContextPromotionListener;
+import org.springframework.batch.core.listener.JobExecutionListener;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.support.CompositeItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemReader;
+import org.springframework.batch.infrastructure.item.ItemWriter;
+import org.springframework.batch.infrastructure.item.support.CompositeItemProcessor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -39,7 +38,7 @@ public class BursarExportJobConfig {
 
   @Bean
   public Job bursarExportJob(Step prepareContext, Step exportStepRegular, Step exportStepAggregate, Step transferStep,
-      JobRepository jobRepository, JobExecutionListener jobCompletionNotificationListener) {
+                             JobRepository jobRepository, JobExecutionListener jobCompletionNotificationListener) {
     Flow regularFlow = new FlowBuilder<Flow>("mainFlow").start(exportStepRegular)
       .next(transferStep)
       .build();
@@ -48,7 +47,7 @@ public class BursarExportJobConfig {
       .next(transferStep)
       .build();
 
-    return new JobBuilder(ExportType.BURSAR_FEES_FINES.toString(), jobRepository).incrementer(new RunIdIncrementer())
+    return new JobBuilder(ExportType.BURSAR_FEES_FINES.toString(), jobRepository)
       .listener(jobCompletionNotificationListener)
       .start(prepareContext)
       .on("IS AGGREGATE")
@@ -91,9 +90,9 @@ public class BursarExportJobConfig {
 
   @Bean
   public Step exportStepAggregate(ItemReader<AggregatedAccountsByUser> reader,
-      ItemProcessor<AggregatedAccountsByUser, AggregatedAccountsByUser> filterer,
-      ItemProcessor<AggregatedAccountsByUser, String> formatter, @Qualifier("bursarWriter") ItemWriter<String> writer,
-      BursarExportStepListener listener, JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+                                  ItemProcessor<AggregatedAccountsByUser, AggregatedAccountsByUser> filterer,
+                                  ItemProcessor<AggregatedAccountsByUser, String> formatter, @Qualifier("bursarWriter") ItemWriter<String> writer,
+                                  BursarExportStepListener listener, JobRepository jobRepository, PlatformTransactionManager transactionManager) {
     log.info("Starting aggregate bursar export flow");
     CompositeItemProcessor<AggregatedAccountsByUser, String> compositeProcessor = new CompositeItemProcessor<>();
     compositeProcessor.setDelegates(Arrays.asList(filterer, formatter));
@@ -129,8 +128,6 @@ public class BursarExportJobConfig {
   @StepScope
   public BursarWriter writer(@Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
       @Value("#{jobExecutionContext['filename']}") String finalFilename, LocalFilesStorage localFilesStorage) {
-    log.error("BursarExportJobConfig.writer needs updating!!");
-
     String filename = tempOutputFilePath + '_' + finalFilename;
     WritableResource exportFileResource = new S3CompatibleResource<>(filename, localFilesStorage);
 

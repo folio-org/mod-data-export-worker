@@ -11,16 +11,16 @@ import org.folio.dew.config.properties.AuthorityControlJobProperties;
 import org.folio.dew.domain.dto.authority.control.AuthorityControlExportConfig;
 import org.folio.dew.domain.dto.authoritycontrol.DataStatCollectionDTO;
 import org.folio.dew.domain.dto.authoritycontrol.DataStatDTO;
-import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
+import org.springframework.batch.infrastructure.item.support.AbstractItemCountingItemStreamItemReader;
 
 public abstract class AuthorityControlItemReader<T extends DataStatDTO>
   extends AbstractItemCountingItemStreamItemReader<T> {
   protected final EntitiesLinksStatsClient entitiesLinksStatsClient;
-  private final int limit;
-  private OffsetDateTime fromDate;
-  private OffsetDateTime toDate;
+  protected final int limit;
   private int currentChunkOffset;
   private List<T> currentChunk;
+  private OffsetDateTime fromDate;
+  protected OffsetDateTime toDate;
 
   protected AuthorityControlItemReader(EntitiesLinksStatsClient entitiesLinksStatsClient,
                                        AuthorityControlExportConfig exportConfig,
@@ -54,7 +54,6 @@ public abstract class AuthorityControlItemReader<T extends DataStatDTO>
     if (currentChunk.isEmpty()) {
       return null;
     }
-
     return currentChunk.get(currentChunkOffset++);
   }
 

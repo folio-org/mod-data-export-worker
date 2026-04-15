@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import org.folio.dew.client.IdentifierTypeClient;
+import org.folio.dew.domain.dto.acquisitions.edifact.IdentifierType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,7 +13,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,9 +32,10 @@ class IdentifierTypeServiceTest {
   }
 
   @Test
-  void getIdentifierTypeNameFromJson() throws JsonProcessingException {
-    var identifierTypeJson = objectMapper.readTree("{\"name\": \"ISSN\"}");
-    when(client.getIdentifierType(anyString())).thenReturn(identifierTypeJson);
+  void getIdentifierTypeNameFromJson() {
+    var identifierType = new IdentifierType();
+    identifierType.setName("ISSN");
+    when(client.getIdentifierType(anyString())).thenReturn(identifierType);
     String identifierTypeName = identifierTypeService.getIdentifierTypeName("913300b2-03ed-469a-8179-c1092c991227");
     assertEquals("ISSN", identifierTypeName);
   }

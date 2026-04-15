@@ -20,11 +20,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 
@@ -305,11 +305,11 @@ class MultipleFeeFinesMatchingCriteriaTest extends BaseBatchTest {
               } ]
             }""")));
 
-    JobLauncherTestUtils testLauncher = createTestLauncher(bursarExportJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(bursarExportJob);
 
     final JobParameters jobParameters = BursarFeesFinesTestUtils.prepareMultipleFeeFinesMatchingJobParameters(springApplicationName,
         objectMapper);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+    JobExecution jobExecution = testLauncher.startJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
     assertThat(jobExecution.getFailureExceptions()
@@ -334,8 +334,10 @@ class MultipleFeeFinesMatchingCriteriaTest extends BaseBatchTest {
       .withRequestBody(matchingJsonPath("$.paymentMethod", equalTo("Transfer2bursar")))
       .withRequestBody(matchingJsonPath("$.notifyPatron", equalTo("false")))
       .withRequestBody(matchingJsonPath("$.userName", equalTo("System")))
-      .withRequestBody(matchingJsonPath("$.accountIds",
-          equalTo("[ \"3d68adf3-abae-4792-a865-aa4a077ba909\", \"807becbc-c3e6-4871-bf38-d140597e41cb\" ]"))));
+      .withRequestBody(matchingJsonPath("$.accountIds[0]",
+          equalTo("3d68adf3-abae-4792-a865-aa4a077ba909")))
+      .withRequestBody(matchingJsonPath("$.accountIds[1]",
+          equalTo("807becbc-c3e6-4871-bf38-d140597e41cb"))));
 
     // check file content
     final ExecutionContext executionContext = jobExecution.getExecutionContext();

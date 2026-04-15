@@ -15,8 +15,10 @@ import static org.mockito.Mockito.times;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.File;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import lombok.SneakyThrows;
+import org.apache.commons.io.FileUtils;
 import org.folio.de.entity.JobCommand;
 import org.folio.dew.config.kafka.KafkaService;
 import org.folio.dew.domain.dto.JobParameterNames;
@@ -29,21 +31,22 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 
 class AuthorityControlConsortiumTest extends BaseBatchTest {
 
-  private static final String EXPECTED_AUTH_HEADING_UPDATE_OUTPUT =
+  private static final String EXPECTED_CONSORTIUM_OUTPUT =
     "src/test/resources/output/authority_control/auth_heading_update_consortium.csv";
+  private static final String EXPECTED_CONSORTIUM_MEMBER_TENANT_OUTPUT =
+    "src/test/resources/output/authority_control/auth_heading_update_consortium_member_tenant.csv";
   private static final String EXPECTED_S3_FILE_PATH =
-    "mod-data-export-worker/authority_control_export/consortium/";
+    "mod-data-export-worker/authority_control_export/college/";
   @Autowired
   private Job getAuthHeadingJob;
   @Autowired
@@ -55,41 +58,60 @@ class AuthorityControlConsortiumTest extends BaseBatchTest {
 
   @BeforeAll
   static void beforeAll() {
-    setUpTenant(CONSORTIUM_TENANT);
+    setUpConsortiumTenant(CONSORTIUM_TENANT, List.of(CONSORTIUM_MEMBER_TENANT), CONSORTIUM_MEMBER_TENANT);
   }
 
   @Test
   @DisplayName("Run AuthHeadingJob export in the consortium tenant successfully")
-  void authHeadingJobTest() throws Exception {
+  void authHeadingJobTestReceiveStatsFromMemberAndCentralTenantTest() throws Exception {
     var exportConfig = buildExportConfig("2024-01-01", "2024-12-01");
     var testLauncher = createTestLauncher(getAuthHeadingJob);
     var jobParameters = prepareJobParameters(exportConfig);
 
-    var jobExecution = testLauncher.launchJob(jobParameters);
+    var jobExecution = testLauncher.startJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
-    verifyFile(jobExecution);
+    verifyFile(jobExecution, EXPECTED_CONSORTIUM_OUTPUT);
     wireMockServer.verify(getRequestedFor(urlEqualTo(
       "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2024-01-01T00%3A00Z&toDate=2024-12-01T23%3A59%3A59.999999999Z")));
     wireMockServer.verify(getRequestedFor(urlEqualTo(
-      "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2024-01-01T00%3A00Z&toDate=2024-08-01T12%3A00Z")));
+      "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2024-01-01T00%3A00Z&toDate=2024-08-01T11%3A00Z")));
     verifyJobEvent();
   }
 
-  private void verifyFile(JobExecution jobExecution) throws Exception {
+  @Test
+  @DisplayName("Run AuthHeadingJob export in the consortium tenant successfully")
+  void authHeadingJobReceiveStatsOnlyFromMemberTenantTest() throws Exception {
+    var exportConfig = buildExportConfig("2025-02-14", "2025-02-17");
+    var testLauncher = createTestLauncher(getAuthHeadingJob);
+    var jobParameters = prepareJobParameters(exportConfig);
+
+    var jobExecution = testLauncher.startJob(jobParameters);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
+    verifyFile(jobExecution, EXPECTED_CONSORTIUM_MEMBER_TENANT_OUTPUT);
+    wireMockServer.verify(getRequestedFor(urlEqualTo(
+      "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2025-02-14T00%3A00Z&toDate=2025-02-17T23%3A59%3A59.999999999Z")));
+    wireMockServer.verify(getRequestedFor(urlEqualTo(
+      "/links/stats/authority?limit=2&action=UPDATE_HEADING&fromDate=2025-02-14T00%3A00Z&toDate=2025-02-15T11%3A00Z")));
+    verifyJobEvent();
+  }
+
+  private void verifyFile(JobExecution jobExecution, String expectedReportOutput) throws Exception {
     var executionContext = jobExecution.getExecutionContext();
     var fileInStorage = executionContext.getString(OUTPUT_FILES_IN_STORAGE);
     var fileName = executionContext.getString(AUTHORITY_CONTROL_FILE_NAME);
 
     assertEquals(EXPECTED_S3_FILE_PATH + fileName, fileInStorage);
-    verifyFileOutput(fileInStorage);
+    verifyFileOutput(fileInStorage, expectedReportOutput);
   }
 
-  private void verifyFileOutput(String fileInStorage) throws Exception {
+  private void verifyFileOutput(String fileInStorage, String expectedReportOutput) throws Exception {
     var presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(fileInStorage);
     var actualOutput = actualFileOutput(presignedUrl);
-    var expectedOutput = new FileSystemResource(EXPECTED_AUTH_HEADING_UPDATE_OUTPUT);
+    var expectedOutput = new FileSystemResource(expectedReportOutput);
     assertTrue(FileUtils.contentEqualsIgnoreEOL(expectedOutput.getFile(), actualOutput.getFile(), "UTF-8")
       , "Files are not identical!");
   }

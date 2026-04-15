@@ -10,11 +10,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.repository.LocalFilesStorage;
-import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.item.Chunk;
-import org.springframework.batch.item.file.ResourceAwareItemWriterItemStream;
-import org.springframework.batch.item.file.transform.LineAggregator;
-import org.springframework.batch.item.support.AbstractItemStreamItemWriter;
+import org.springframework.batch.core.step.StepExecution;
+import org.springframework.batch.infrastructure.item.Chunk;
+import org.springframework.batch.infrastructure.item.file.ResourceAwareItemWriterItemStream;
+import org.springframework.batch.infrastructure.item.file.transform.LineAggregator;
+import org.springframework.batch.infrastructure.item.support.AbstractItemStreamItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.WritableResource;
 

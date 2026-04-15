@@ -26,6 +26,7 @@ import org.folio.dew.domain.dto.BursarExportTokenUserDataOptional;
 import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.ItemLocation;
 import org.folio.dew.domain.dto.MaterialType;
+import org.folio.dew.domain.dto.Metadata;
 import org.folio.dew.domain.dto.Personal;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
@@ -53,12 +54,12 @@ class BursarTokenFormatterTest {
 
   @BeforeAll
   static void setUp() {
-    account = new Account();
+    account = new Account().metadata(new Metadata());
     account.setAmount(BigDecimal.valueOf(123.45));
     account.setFeeFineId("test_id");
     account.setFeeFineType("test_type");
-    account.setDateCreated(Date.from(Instant.parse("2023-02-01T00:01:02.000Z")));
-    account.setDateUpdated(Date.from(Instant.parse("2023-03-01T00:01:02.000Z")));
+    account.getMetadata().setCreatedDate(Date.from(Instant.parse("2023-02-01T00:01:02.000Z")));
+    account.getMetadata().setUpdatedDate(Date.from(Instant.parse("2023-03-01T00:01:02.000Z")));
     account.setDueDate(Date.from(Instant.parse("2023-04-01T00:01:02.000Z")));
     account.setReturnedDate(Date.from(Instant.parse("2023-05-01T00:01:02.000Z")));
 

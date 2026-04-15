@@ -12,12 +12,11 @@ import org.folio.dew.domain.dto.CirculationLogExportFormat;
 import org.folio.dew.domain.dto.ExportType;
 import org.folio.dew.domain.dto.LogRecord;
 import org.folio.dew.repository.RemoteFilesStorage;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
-import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,8 +41,6 @@ public class CirculationLogJobConfig {
       @Qualifier("getCirculationLogStep") Step getCirculationLogStep,
       JobRepository jobRepository) {
     return new JobBuilder(ExportType.CIRCULATION_LOG.toString(), jobRepository)
-        .repository(jobRepository)
-        .incrementer(new RunIdIncrementer())
         .listener(jobCompletionNotificationListener)
         .flow(getCirculationLogStep)
         .end()
@@ -84,13 +81,13 @@ public class CirculationLogJobConfig {
       JobRepository jobRepository,
       PlatformTransactionManager transactionManager) {
     return new StepBuilder("getCirculationLogPartStep", jobRepository)
-        .<LogRecord, CirculationLogExportFormat>chunk(100, transactionManager)
+        .<LogRecord, CirculationLogExportFormat>chunk(100)
+        .transactionManager(transactionManager)
         .reader(circulationLogCsvItemReader)
         .processor(circulationLogItemProcessor)
         .writer(flatFileItemWriter)
         .faultTolerant()
         .allowStartIfComplete(false)
-        .throttleLimit(NUMBER_OF_CONCURRENT_TASK_EXECUTIONS)
         .listener(csvPartStepExecutionListener)
         .build();
   }

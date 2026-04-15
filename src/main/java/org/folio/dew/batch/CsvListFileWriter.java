@@ -4,10 +4,11 @@ import static java.util.Objects.nonNull;
 
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.Formatable;
-import org.springframework.batch.item.Chunk;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.batch.item.ItemStream;
-import org.springframework.batch.item.file.FlatFileItemWriter;
+import org.springframework.batch.infrastructure.item.Chunk;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
+import org.springframework.batch.infrastructure.item.ItemStream;
+import org.springframework.batch.infrastructure.item.file.FlatFileItemWriter;
+import org.springframework.batch.infrastructure.item.file.transform.PassThroughLineAggregator;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.util.Assert;
 
@@ -18,6 +19,7 @@ public class CsvListFileWriter<T, U extends Formatable<T>> extends FlatFileItemW
   private CsvFileWriter<T, U> delegate;
 
   public CsvListFileWriter(String tempOutputFilePath, String columnHeaders, String[] extractedFieldNames, FieldProcessor fieldProcessor) {
+    super(new PassThroughLineAggregator<>());
     delegate = new CsvFileWriter<>(tempOutputFilePath, columnHeaders, extractedFieldNames, fieldProcessor);
     setResource(new FileSystemResource(tempOutputFilePath));
   }

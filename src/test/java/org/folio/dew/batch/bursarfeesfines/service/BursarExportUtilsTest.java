@@ -5,7 +5,11 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 
 import java.util.regex.Pattern;
+import org.folio.dew.domain.dto.BursarExportJob;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class BursarExportUtilsTest {
 
@@ -16,9 +20,17 @@ class BursarExportUtilsTest {
     assertThat(BursarExportUtils.getFilename(), matchesPattern(pattern));
   }
 
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(booleans = { false })
+  void testGetJobDescriptionWithoutDryRun(Boolean dryRun) {
+    String expected = "# of accounts: 123";
+    assertThat(BursarExportUtils.getJobDescription(new BursarExportJob().dryRun(dryRun), 123L), is(expected));
+  }
+
   @Test
-  void testGetJobDescriptionPart() {
-    String expected = "# of accounts: %d";
-    assertThat(BursarExportUtils.getJobDescriptionPart(), is(expected));
+  void testGetJobDescriptionWithDryRun() {
+    String expected = "[TESTING MODE] # of accounts: 123";
+    assertThat(BursarExportUtils.getJobDescription(new BursarExportJob().dryRun(true), 123L), is(expected));
   }
 }

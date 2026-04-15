@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
 import org.folio.de.entity.JobCommand;
 import org.folio.de.entity.JobCommandType;
@@ -26,10 +27,10 @@ import org.folio.dew.repository.RemoteFilesStorage;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.batch.core.JobExecutionException;
-import org.springframework.batch.core.JobParameter;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.job.JobExecutionException;
+import org.springframework.batch.core.job.parameters.JobParameter;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 class JobCommandsReceiverServiceTest extends BaseBatchTest {
@@ -244,7 +245,7 @@ class JobCommandsReceiverServiceTest extends BaseBatchTest {
     jobCommand.setType(JobCommandType.DELETE);
     jobCommand.setId(id);
     jobCommand.setJobParameters(
-        new JobParameters(Collections.singletonMap(JobParameterNames.OUTPUT_FILES_IN_STORAGE, new JobParameter("https://x-host.com/560b33d8-7220-4c97-bfd1-dbc5b9c49537_duplicate.csv", String.class))));
+        new JobParameters(Set.of(new JobParameter<>(JobParameterNames.OUTPUT_FILES_IN_STORAGE, "https://x-host.com/560b33d8-7220-4c97-bfd1-dbc5b9c49537_duplicate.csv", String.class))));
     return jobCommand;
   }
 

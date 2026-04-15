@@ -19,13 +19,15 @@ import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.PoLineCollection;
 import org.folio.dew.domain.dto.PurchaseOrder;
 import org.folio.dew.domain.dto.PurchaseOrderCollection;
+import org.folio.dew.domain.dto.acquisitions.edifact.Organization;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -52,12 +54,14 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
     orders = objectMapper.readValue(getMockData(SAMPLE_PURCHASE_ORDERS_PATH), PurchaseOrderCollection.class).getPurchaseOrders();
     poLines = objectMapper.readValue(getMockData(SAMPLE_PO_LINES_PATH), PoLineCollection.class).getPoLines();
 
-    doReturn(objectMapper.readTree("{\"code\": \"GOBI\"}")).when(organizationsService).getOrganizationById(anyString());
+    Organization organization = new Organization();
+    organization.setCode("GOBI");
+    doReturn(organization).when(organizationsService).getOrganizationById(anyString());
   }
 
   @Test
   void testEdifactOrdersExport() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
     String cqlString = "(purchaseOrder.workflowStatus==Open)" +
       " AND (purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1)" +
       " AND (cql.allRecords=1 NOT purchaseOrder.manualPo==true)" +
@@ -69,7 +73,7 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
     doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
     doReturn("test1").when(edifactMapper).convertForExport(any(), any(), any(), anyString());
 
-    JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT)));
+    JobExecution jobExecution = testLauncher.startStep(MAP_TO_EDIFACT_STEP, getJobParameters(getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT)), new ExecutionContext());
 
     Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
     verify(ordersService).getPoLinesByQuery(cqlString);
@@ -78,7 +82,7 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
 
   @Test
   void testEdifactOrdersExportDefaultConfig() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
     String cqlString = "(purchaseOrder.workflowStatus==Open)" +
       " AND (purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1)" +
       " AND (cql.allRecords=1 NOT purchaseOrder.manualPo==true)" +
@@ -88,14 +92,14 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
     String configSql = "configName==EDIFACT_ORDERS_EXPORT_d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1*";
     ExportConfigCollection exportConfigCollection = new ExportConfigCollection();
     exportConfigCollection.setTotalRecords(1);
-    poLines.get(0).getVendorDetail().setVendorAccount(null);
+    poLines.getFirst().getVendorDetail().setVendorAccount(null);
     doReturn(poLines).when(ordersService).getPoLinesByQuery(cqlString);
     doReturn(exportConfigCollection).when(dataExportSpringClient).getExportConfigs(configSql);
     doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
     doReturn("test1").when(edifactMapper).convertForExport(any(), any(), any(), anyString());
 
     var exportConfig = getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT, true);
-    JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig));
+    JobExecution jobExecution = testLauncher.startStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig), new ExecutionContext());
 
     Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
     verify(ordersService).getPoLinesByQuery(cqlString);
@@ -104,7 +108,7 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
 
   @Test
   void testEdifactOrdersExportDefaultConfigWithTwoExportConfigs() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
     String cqlString = "(purchaseOrder.workflowStatus==Open)" +
       " AND (purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1)" +
       " AND (cql.allRecords=1 NOT purchaseOrder.manualPo==true)" +
@@ -114,14 +118,14 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
       " AND (cql.allRecords=1 NOT vendorDetail.vendorAccount==(\"org1\" or \"org2\"))";
     String configSql = "configName==EDIFACT_ORDERS_EXPORT_d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1*";
     ExportConfigCollection exportConfigCollection = objectMapper.readValue(getMockData(DATA_EXPORT_CONFIGS_PATH), ExportConfigCollection.class);
-    poLines.get(0).getVendorDetail().setVendorAccount(null);
+    poLines.getFirst().getVendorDetail().setVendorAccount(null);
     doReturn(poLines).when(ordersService).getPoLinesByQuery(cqlString);
     doReturn(exportConfigCollection).when(dataExportSpringClient).getExportConfigs(configSql);
     doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
     doReturn("test1").when(edifactMapper).convertForExport(any(), any(), any(), anyString());
 
     var exportConfig = getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT, true);
-    JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig));
+    JobExecution jobExecution = testLauncher.startStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig), new ExecutionContext());
 
     Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
     verify(ordersService).getPoLinesByQuery(cqlString);
@@ -130,9 +134,9 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
 
   @Test
   void testEdifactOrdersExportMissingRequiredFields() throws Exception {
-    JobLauncherTestUtils testLauncher = createTestLauncher(edifactExportJob);
-    JobExecution jobExecution = testLauncher.launchStep(MAP_TO_EDIFACT_STEP, getJobParameters(getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT_MISSING_FIELDS)));
-    var status = new ArrayList<>(jobExecution.getStepExecutions()).get(0).getStatus();
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    JobExecution jobExecution = testLauncher.startStep(MAP_TO_EDIFACT_STEP, getJobParameters(getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT_MISSING_FIELDS)), new ExecutionContext());
+    var status = new ArrayList<>(jobExecution.getStepExecutions()).getFirst().getStatus();
 
     assertEquals(BatchStatus.FAILED, status);
     assertThat(jobExecution.getExitStatus().getExitCode()).isEqualTo(ExitStatus.FAILED.getExitCode());

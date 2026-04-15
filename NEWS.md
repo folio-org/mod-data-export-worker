@@ -1,6 +1,12 @@
 ## Unreleased v3.5.0
 ### Stories
 * [MODEXPW-576](https://folio-org.atlassian.net/browse/MODEXPW-576) Enhance "MARC authority headings update" Report with Record Type Column Based on Consortium Environment.
+* [MODEXPW-619](https://folio-org.atlassian.net/browse/MODEXPW-619) Remove the Linked bib fields column for the Authority headings change report
+* [MODEXPW-624](https://folio-org.atlassian.net/browse/MODEXPW-624) Support running bursar exports as a dry run (no transferring accounts).
+
+### Bug fixes
+* [MODEXPW-617](https://folio-org.atlassian.net/browse/MODEXPW-617) Update Apache Kafka topic template to prevent ambiguous env name matches.
+* [MODEXPW-620](https://folio-org.atlassian.net/browse/MODEXPW-620) Fix Bursar export filtering by age.
 
 ## 2025-03-27 v3.4.1
 

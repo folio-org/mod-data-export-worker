@@ -1,40 +1,63 @@
 package org.folio.dew.batch.acquisitions.services;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import java.util.UUID;
-import java.util.stream.Stream;
-import org.folio.dew.BaseBatchTest;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
 
-class ConfigurationServiceTest extends BaseBatchTest {
+import org.folio.dew.client.TenantAddressesClient;
+import org.folio.dew.domain.dto.acquisitions.edifact.TenantAddress;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-  @Autowired
+@ExtendWith(MockitoExtension.class)
+class ConfigurationServiceTest {
+
+  private static final UUID CONFIG_ID = UUID.fromString("1947e709-8d60-42e2-8dde-7566ae446d24");
+  private static final String EXPECTED_ADDRESS = "Address 123";
+
+  @Mock
+  private TenantAddressesClient tenantAddressesClient;
+
+  @InjectMocks
   private ConfigurationService configurationService;
 
-  @BeforeAll
-  static void beforeAll() {
-    setUpTenant(NON_CONSORTIUM_TENANT);
+  @Test
+  void getAddressConfig_nullId_returnsEmpty() {
+    assertThat(configurationService.getAddressConfig(null)).isEmpty();
   }
 
-  static Stream<Arguments> testGetAddressConfigArgs() {
-    return Stream.of(
-      Arguments.of(null, ""), // No config id
-      Arguments.of("1947e709-8d60-42e2-8dde-7566ae446d24", "Address 123"), // Config with address
-      Arguments.of("8ea92aa2-7b11-4f0e-9ed2-ab8fe281f37f", ""), // Config without address
-      Arguments.of("116a38c2-cac3-4f08-816b-afebfebe453d", ""), // Config without a body
-      Arguments.of("c5cefe49-e4d4-433e-b286-24ffd935b043", "")  // No config
-    );
+  @Test
+  void getAddressConfig_matchingAddress_returnsAddress() {
+    when(tenantAddressesClient.getById(CONFIG_ID.toString()))
+      .thenReturn(createAddressNode(EXPECTED_ADDRESS));
+
+    assertThat(configurationService.getAddressConfig(CONFIG_ID)).isEqualTo(EXPECTED_ADDRESS);
   }
 
-  @ParameterizedTest
-  @MethodSource("testGetAddressConfigArgs")
-  void testGetAddressConfig(String addressConfigId, String expectedAddress) {
-    var configId = addressConfigId != null ? UUID.fromString(addressConfigId) : null;
-    assertEquals(expectedAddress, configurationService.getAddressConfig(configId));
+  @Test
+  void getAddressConfig_nullResponse_returnsEmpty() {
+    when(tenantAddressesClient.getById(CONFIG_ID.toString())).thenReturn(null);
+
+    assertThat(configurationService.getAddressConfig(CONFIG_ID)).isEmpty();
+  }
+
+  @Test
+  void getAddressConfig_clientThrowsException_returnsEmpty() {
+    when(tenantAddressesClient.getById(CONFIG_ID.toString()))
+      .thenThrow(new RuntimeException("Connection error"));
+
+    assertThat(configurationService.getAddressConfig(CONFIG_ID)).isEmpty();
+  }
+
+  // -- Helper --
+
+  private static TenantAddress createAddressNode(String address) {
+    TenantAddress entry = new TenantAddress();
+    entry.setAddress(address);
+    return entry;
   }
 }

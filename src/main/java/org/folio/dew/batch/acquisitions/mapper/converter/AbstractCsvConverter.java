@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import org.folio.dew.utils.CsvHelper;
-import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
+import org.springframework.batch.infrastructure.item.file.transform.DelimitedLineAggregator;
 
 public abstract class AbstractCsvConverter<T> {
 

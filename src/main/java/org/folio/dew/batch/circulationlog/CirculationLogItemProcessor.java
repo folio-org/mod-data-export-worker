@@ -1,28 +1,29 @@
 package org.folio.dew.batch.circulationlog;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.client.LocaleClient;
 import org.folio.dew.client.ServicePointClient;
-import org.folio.dew.client.SettingsClient;
 import org.folio.dew.domain.dto.CirculationLogExportFormat;
 import org.folio.dew.domain.dto.LogRecord;
 import org.folio.dew.domain.dto.LogRecordItemsInner;
 import org.folio.dew.domain.dto.ServicePoint;
-import org.springframework.batch.core.StepExecution;
+import org.folio.dew.domain.dto.circulationlog.Locale;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.core.step.StepExecution;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 @Component
 @StepScope
@@ -31,8 +32,7 @@ import java.util.stream.Collectors;
 public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, CirculationLogExportFormat> {
 
   private final ServicePointClient servicePointClient;
-  private final SettingsClient settingsClient;
-  private final ObjectMapper objectMapper;
+  private final LocaleClient localeClient;
 
   private Map<String, String> servicePointMap;
   private SimpleDateFormat format;
@@ -75,32 +75,16 @@ public class CirculationLogItemProcessor implements ItemProcessor<LogRecord, Cir
     format = dateFormat;
   }
 
-  @SneakyThrows
-  @SuppressWarnings("unchecked")
   private String fetchTimezone() {
     try {
-      final Map<String, Object> tenantLocaleSettings =
-        settingsClient.getSettings("scope==stripes-core.prefs.manage and key==tenantLocaleSettings");
+      Locale localeSettings = localeClient.getLocale();
 
-      var resultInfo = (Map<String, Object>) tenantLocaleSettings.get("resultInfo");
-      var totalRecords = (Integer) resultInfo.get("totalRecords");
-
-      if (totalRecords > 0) {
-        var items = (List<Map<String, Object>>) tenantLocaleSettings.get("items");
-        var settingsEntry = items.get(0);
-        var value = settingsEntry.get("value");
-
-        if (value instanceof String valueStr) {
-          return valueStr;
-        } else {
-          var jsonObject = objectMapper.valueToTree(value);
-          if (jsonObject.has("timezone")) {
-            return jsonObject.get("timezone").asText();
-          }
-        }
+      if (localeSettings != null) {
+        return ofNullable(localeSettings.getTimezone()).orElse("UTC");
       }
+      log.warn("Timezone not found in locale settings, using default UTC");
     } catch (Exception e) {
-      log.warn("Failed to fetch timezone from mod-settings: {}", e.getMessage());
+      log.warn("Failed to fetch timezone from locale endpoint: {}", e.getMessage());
     }
 
     return "UTC";

@@ -29,7 +29,6 @@ spring:
       ddl-auto: none
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
-        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -47,10 +46,6 @@ spring:
     multipart:
       max-file-size: ${MAX_UPLOADED_FILE_SIZE:40MB}
       max-request-size: ${MAX_UPLOADED_FILE_SIZE:40MB}
-  cloud:
-    openfeign:
-      okhttp:
-        enabled: true
 management:
   endpoints:
     web:
@@ -65,11 +60,6 @@ management:
     metrics:
       export:
         enabled: false
-feign:
-  client:
-    config:
-      default:
-        loggerLevel: basic
 application:
   kafka:
     topic-configuration:
@@ -77,7 +67,7 @@ application:
         partitions: ${DATA_EXPORT_JOB_UPDATE_TOPIC_PARTITIONS:50}
       "edi-export-history.create":
         partitions: ${EDI_EXPORT_HISTORY_TOPIC_PARTITIONS:1}
-    topic-pattern: ${ENV:folio}.(.*\.)?data-export.job.command
+    topic-pattern: ${ENV:folio}\.(.*\.)?data-export\.job.command
     group-id: ${ENV:folio}-mod-data-export-worker-events-group
   minio-remote:
     endpoint: ${S3_URL:http://127.0.0.1:9000/}
@@ -119,6 +109,8 @@ folio:
   tenant:
     validation:
       enabled: true
+  exchange:
+    enabled: true
 logging:
   level:
     org.folio.dew.client.*: debug

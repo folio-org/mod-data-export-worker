@@ -20,17 +20,17 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 
 import java.time.LocalDate;
 
-class UseMostOuputTokensTest extends BaseBatchTest {
+class UseMostOutputTokensTest extends BaseBatchTest {
 
   @Autowired
   private Job bursarExportJob;
@@ -67,8 +67,6 @@ class UseMostOuputTokensTest extends BaseBatchTest {
                   },
                   "feeFineType": "Test ff type1",
                   "feeFineOwner": "Bursar owner",
-                  "dateCreated": "2021-03-30T19:53:50.289+00:00",
-                  "dateUpdated": "2021-03-30T19:53:50.289+00:00",
                   "metadata": {
                     "createdDate": "2021-03-30T19:53:50.289+00:00",
                     "createdByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305",
@@ -92,12 +90,10 @@ class UseMostOuputTokensTest extends BaseBatchTest {
                   },
                   "feeFineType": "Test ff type1",
                   "feeFineOwner": "Bursar owner",
-                  "dateCreated": "2021-03-30T19:53:50.289+00:00",
-                  "dateUpdated": "2021-03-30T19:53:50.289+00:00",
                   "metadata": {
-                    "dateCreated": "2021-03-30T19:53:50.289+00:00",
+                    "createdDate": "2021-03-30T19:53:50.289+00:00",
                     "createdByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305",
-                    "dateUpdated": "2021-03-30T19:53:50.289+00:00",
+                    "updatedDate": "2021-03-30T19:53:50.289+00:00",
                     "updatedByUserId": "61187964-6bb3-526f-bdaa-e20e8e2f9305"
                   },
                   "userId": "2205005b-ca51-4a04-87fd-938eefa8f6de",
@@ -232,11 +228,11 @@ class UseMostOuputTokensTest extends BaseBatchTest {
             {
             }""")));
 
-    JobLauncherTestUtils testLauncher = createTestLauncher(bursarExportJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(bursarExportJob);
 
     final JobParameters jobParameters = BursarFeesFinesTestUtils.prepareUseMostOutputTokensTest(springApplicationName,
         objectMapper);
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+    JobExecution jobExecution = testLauncher.startJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
     assertThat(jobExecution.getFailureExceptions()

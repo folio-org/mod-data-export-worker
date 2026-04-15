@@ -1,5 +1,10 @@
 package org.folio.dew;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static org.apache.http.HttpStatus.SC_OK;
+import static org.folio.spring.integration.XOkapiHeaders.TENANT;
+import static org.folio.spring.integration.XOkapiHeaders.URL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -10,6 +15,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -27,6 +33,8 @@ import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.folio.dew.batch.ExportJobManager;
 import org.folio.dew.batch.ExportJobManagerSync;
+import org.folio.dew.client.UserTenantsClient;
+import org.folio.dew.config.HttpClientConfiguration;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.spring.DefaultFolioExecutionContext;
@@ -38,22 +46,22 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.springframework.batch.core.Job;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -69,18 +77,19 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-    "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+    "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
+        "spring.liquibase.enabled=true"})
 @ContextConfiguration(initializers = BaseBatchTest.DockerPostgreDataSourceInitializer.class)
 @Testcontainers
 @AutoConfigureMockMvc
+@ImportAutoConfiguration(HttpClientConfiguration.class)
 @EmbeddedKafka(topics = { "diku.data-export.job.command" })
 @EnableBatchProcessing
-@EnableAutoConfiguration
 public abstract class BaseBatchTest {
   protected static final String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjFkM2I1OGNiLTA3YjUtNWZjZC04YTJhLTNjZTA2YTBlYjkwZiIsImlhdCI6MTYxNjQyMDM5MywidGVuYW50IjoiZGlrdSJ9.2nvEYQBbJP1PewEgxixBWLHSX_eELiBEBpjufWiJZRs";
   protected static final String NON_CONSORTIUM_TENANT = "diku";
   protected static final String CONSORTIUM_TENANT = "consortium";
+  protected static final String CONSORTIUM_MEMBER_TENANT = "college";
   public static final int WIRE_MOCK_PORT = TestSocketUtils.findAvailableTcpPort();
 
   private static String tenant = NON_CONSORTIUM_TENANT;
@@ -91,7 +100,7 @@ public abstract class BaseBatchTest {
   @Autowired
   private FolioModuleMetadata folioModuleMetadata;
   @Autowired
-  protected JobLauncher jobLauncher;
+  protected JobOperator jobOperator;
   @Autowired
   protected JobRepository jobRepository;
   @Autowired
@@ -173,6 +182,15 @@ public abstract class BaseBatchTest {
       .registerModule(new JavaTimeModule());
 
   @SneakyThrows
+  protected static void setUpConsortiumTenant(String centralTenantId,
+                                              List<String> memberTenantIds,
+                                              String currentTenant) {
+    BaseBatchTest.tenant = currentTenant;
+    setUpNewTenant(centralTenantId);
+    setUpConsortiumMemberTenants(centralTenantId, memberTenantIds);
+  }
+
+  @SneakyThrows
   public static String asJsonString(Object value) {
     return OBJECT_MAPPER.writeValueAsString(value);
   }
@@ -212,11 +230,9 @@ public abstract class BaseBatchTest {
     folioExecutionContextSetter.close();
   }
 
-  protected JobLauncherTestUtils createTestLauncher(Job job) {
-    JobLauncherTestUtils testLauncher = new JobLauncherTestUtils();
+  protected JobOperatorTestUtils createTestLauncher(Job job) {
+    JobOperatorTestUtils testLauncher = new JobOperatorTestUtils(jobOperator, jobRepository);
     testLauncher.setJob(job);
-    testLauncher.setJobLauncher(jobLauncher);
-    testLauncher.setJobRepository(jobRepository);
     return testLauncher;
   }
 
@@ -242,4 +258,47 @@ public abstract class BaseBatchTest {
     wireMockServer.stop();
   }
 
+  @SneakyThrows
+  private static void setUpConsortiumMemberTenants(String centralTenantId,
+                                                   List<String> memberTenantIds) {
+    memberTenantIds.forEach(BaseBatchTest::setUpNewTenant);
+    var consortiumId = UUID.randomUUID().toString();
+    var userTenants = new UserTenantsClient.UserTenants(
+      List.of(new UserTenantsClient.UserTenant(centralTenantId, consortiumId)));
+    mockGet("/user-tenants", OBJECT_MAPPER.writeValueAsString(userTenants), SC_OK, wireMockServer);
+    var consortiumTenantList = memberTenantIds.stream()
+      .map(s -> new ConsortiumTenant(s, false))
+      .collect(Collectors.toList());
+    consortiumTenantList.add(new ConsortiumTenant(centralTenantId, true));
+    var consortiumTenants = new ConsortiumTenants(consortiumTenantList);
+    mockGet("/consortia/" + consortiumId + "/tenants", OBJECT_MAPPER.writeValueAsString(consortiumTenants), SC_OK,
+      wireMockServer);
+  }
+
+  @SneakyThrows
+  private static void setUpNewTenant(String tenant) {
+    var httpHeaders = new HttpHeaders();
+    httpHeaders.setContentType(APPLICATION_JSON);
+    httpHeaders.add(TENANT, tenant);
+    httpHeaders.add(XOkapiHeaders.USER_ID, UUID.randomUUID().toString());
+    httpHeaders.add(URL, wireMockServer.baseUrl());
+
+    mockMvc.perform(post("/_/tenant").content(asJsonString(new TenantAttributes().moduleTo("mod-data-export-worker")))
+      .headers(httpHeaders)
+      .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
+    mockGet("/user-tenants", "{\"userTenants\": [],\"totalRecords\": 0}", SC_OK, wireMockServer);
+  }
+
+  private static void mockGet(String url, String body, int status, WireMockServer mockServer) {
+    mockServer.stubFor(WireMock.get(urlPathEqualTo(url))
+      .willReturn(aResponse().withBody(body)
+        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+        .withStatus(status)));
+  }
+
+  record ConsortiumTenant(String id, boolean isCentral) {
+  }
+
+  record ConsortiumTenants(List<ConsortiumTenant> tenants) {
+  }
 }

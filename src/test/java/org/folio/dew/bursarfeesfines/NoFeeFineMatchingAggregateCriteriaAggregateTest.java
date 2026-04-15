@@ -13,6 +13,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
+import org.apache.commons.io.FileUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.error.BursarNoAccountsToTransferException;
 import org.folio.dew.helpers.bursarfeesfines.BursarFeesFinesTestUtils;
@@ -20,14 +21,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
-import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 
 class NoFeeFineMatchingAggregateCriteriaAggregateTest extends BaseBatchTest {
 
@@ -146,12 +146,12 @@ class NoFeeFineMatchingAggregateCriteriaAggregateTest extends BaseBatchTest {
             {
             }""")));
 
-    JobLauncherTestUtils testLauncher = createTestLauncher(bursarExportJob);
+    JobOperatorTestUtils testLauncher = createTestLauncher(bursarExportJob);
 
     final JobParameters jobParameters = BursarFeesFinesTestUtils
       .prepareNoFeeFineMatchingAggregateCriteriaAggregateTest(springApplicationName, objectMapper);
 
-    JobExecution jobExecution = testLauncher.launchJob(jobParameters);
+    JobExecution jobExecution = testLauncher.startJob(jobParameters);
 
     assertThat(jobExecution.getExitStatus(), is(ExitStatus.FAILED));
     assertThat(jobExecution.getAllFailureExceptions(), contains(instanceOf(BursarNoAccountsToTransferException.class)));

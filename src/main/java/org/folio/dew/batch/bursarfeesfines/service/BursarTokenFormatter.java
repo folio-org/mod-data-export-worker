@@ -10,6 +10,8 @@ import java.time.temporal.IsoFields;
 import java.time.zone.ZoneRulesException;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+
 import javax.annotation.CheckForNull;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
@@ -99,8 +101,8 @@ public class BursarTokenFormatter {
     AccountWithAncillaryData accountWithAncillaryData
   ) {
     Date accountDate = switch (tokenFeeDate.getProperty()) {
-      case CREATED -> accountWithAncillaryData.getAccount().getDateCreated();
-      case UPDATED -> accountWithAncillaryData.getAccount().getDateUpdated();
+      case CREATED -> accountWithAncillaryData.getAccount().getMetadata().getCreatedDate();
+      case UPDATED -> accountWithAncillaryData.getAccount().getMetadata().getUpdatedDate();
       case DUE -> accountWithAncillaryData.getAccount().getDueDate();
       case RETURNED -> accountWithAncillaryData.getAccount().getReturnedDate();
       default -> {
@@ -130,7 +132,7 @@ public class BursarTokenFormatter {
   public static String formatUserDataToken(BursarExportTokenUserData tokenUserData, User user) {
     String result;
     if (tokenUserData.getValue() == BursarExportTokenUserData.ValueEnum.FOLIO_ID) {
-      result = user.getId();
+      result = Optional.ofNullable(user).map(User::getId).orElse(null);
     } else {
       result = String.format("[unexpected user data token: %s]", tokenUserData.getValue());
     }

@@ -12,7 +12,7 @@
     <groupId>org.folio</groupId>
     <artifactId>mod-data-export-worker</artifactId>
     <description>Data Export Worker module</description>
-    <version>3.5.0-SNAPSHOT</version>
+    <version>3.6.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <licenses>
@@ -47,8 +47,8 @@
         <refresh-presigned-url.yaml.file>
           ${project.basedir}/src/main/resources/swagger.api/refresh-presigned-url.yaml
         </refresh-presigned-url.yaml.file>
-        <folio-spring-base.version>10.0.0-RC1</folio-spring-base.version>
-        <folio-service-tools.version>4.1.1</folio-service-tools.version>
+        <folio-spring-base.version>10.0.0</folio-spring-base.version>
+        <folio-service-tools.version>6.0.0</folio-service-tools.version>
         <folio-spring-cql.version>9.0.0</folio-spring-cql.version>
         <folio-module-descriptor-validator.version>1.0.0</folio-module-descriptor-validator.version>
         <openapi-generator.version>6.2.1</openapi-generator.version>
@@ -67,7 +67,7 @@
         <testcontainers.version>2.0.3</testcontainers.version>
         <testcontainers.extensions.version>1.21.4</testcontainers.extensions.version>
         <aws.sdk.version>2.40.2</aws.sdk.version>
-        <folio-s3-client.version>3.0.0-SNAPSHOT</folio-s3-client.version>
+        <folio-s3-client.version>3.0.0</folio-s3-client.version>
         <hamcrest-all.version>1.3</hamcrest-all.version>
         <mockito-inline.version>5.2.0</mockito-inline.version>
 

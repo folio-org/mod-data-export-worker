@@ -65,7 +65,7 @@ public class ExportUtils {
   }
 
   public static void validateFtpFields(VendorEdiOrdersExportConfig ediExportConfig, List<String> missingFields) {
-    if (ediExportConfig.getIntegrationType() == ORDERING || ediExportConfig.getTransmissionMethod() == FTP) {
+    if (ediExportConfig.getTransmissionMethod() == FTP) {
       var ftpConfig = ediExportConfig.getEdiFtp();
       validateField(FTP_PORT.getName(), ftpConfig.getFtpPort(), Objects::nonNull, missingFields);
       validateField(SERVER_ADDRESS.getName(), ftpConfig.getServerAddress(), StringUtils::isNotEmpty, missingFields);
@@ -82,7 +82,7 @@ public class ExportUtils {
     if (integrationType == CLAIMING) {
       return fileFormat == FileFormatEnum.EDI ? "edi_claims" : "csv_claims";
     }
-    return "edi_orders";
+    return fileFormat == FileFormatEnum.EDI ? "edi_orders" : "csv_orders";
   }
 
   public static ExportType convertIntegrationTypeToExportType(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType) {

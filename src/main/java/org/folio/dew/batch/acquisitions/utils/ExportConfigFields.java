@@ -16,7 +16,10 @@ public enum ExportConfigFields {
   LIB_EDI_CODE("libEdiCode"),
   VENDOR_EDI_TYPE("vendorEdiType"),
   VENDOR_EDI_CODE("vendorEdiCode"),
-  CLAIM_PIECE_IDS("claimPieceIds");
+  CLAIM_PIECE_IDS("claimPieceIds"),
+  EMAIL_FROM("emailFrom"),
+  EMAIL_TO("emailTo"),
+  EMAIL_TEMPLATE("emailTemplate");
 
   private final String name;
 

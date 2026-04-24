@@ -9,52 +9,26 @@ import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.step.StepExecution;
 
-@CopilotGenerated
-class SaveToFileStorageTaskletDeciderTest {
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-  private SaveToFileStorageTaskletDecider decider;
+@CopilotGenerated
+class SendToEmailTaskletDeciderTest {
+
+  private SendToEmailTaskletDecider decider;
 
   @BeforeEach
   void setUp() {
-    decider = new SaveToFileStorageTaskletDecider(new ObjectMapper(), "saveToFTPStep");
+    decider = new SendToEmailTaskletDecider(new ObjectMapper(), "sendToEmailStep");
   }
 
   @Test
-  void decide_shouldProcess_whenTransmissionMethodIsFtpAndIntegrationTypeIsOrdering() {
-    VendorEdiOrdersExportConfig config = new VendorEdiOrdersExportConfig();
-    config.setIntegrationType(IntegrationTypeEnum.ORDERING);
-    config.setTransmissionMethod(TransmissionMethodEnum.FTP);
-    JobExecution jobExecution = mock(JobExecution.class);
-    StepExecution stepExecution = mock(StepExecution.class);
-
-    ExportStepDecision decision = decider.decide(config, jobExecution, stepExecution);
-
-    assertEquals(ExportStepDecision.PROCESS, decision);
-  }
-
-  @Test
-  void decide_shouldProcess_whenTransmissionMethodIsFtpAndIntegrationTypeIsClaiming() {
+  void decide_shouldSkip_whenTransmissionMethodIsFileDownload() {
     VendorEdiOrdersExportConfig config = new VendorEdiOrdersExportConfig();
     config.setIntegrationType(IntegrationTypeEnum.CLAIMING);
-    config.setTransmissionMethod(TransmissionMethodEnum.FTP);
-    JobExecution jobExecution = mock(JobExecution.class);
-    StepExecution stepExecution = mock(StepExecution.class);
-
-    ExportStepDecision decision = decider.decide(config, jobExecution, stepExecution);
-
-    assertEquals(ExportStepDecision.PROCESS, decision);
-  }
-
-  @Test
-  void decide_shouldSkip_whenTransmissionMethodIsEmail() {
-    VendorEdiOrdersExportConfig config = new VendorEdiOrdersExportConfig();
-    config.setIntegrationType(IntegrationTypeEnum.ORDERING);
-    config.setTransmissionMethod(TransmissionMethodEnum.EMAIL);
+    config.setTransmissionMethod(TransmissionMethodEnum.FILE_DOWNLOAD);
     JobExecution jobExecution = mock(JobExecution.class);
     StepExecution stepExecution = mock(StepExecution.class);
 
@@ -64,10 +38,36 @@ class SaveToFileStorageTaskletDeciderTest {
   }
 
   @Test
-  void decide_shouldSkip_whenTransmissionMethodIsNotFtp() {
+  void decide_shouldProcess_whenTransmissionMethodIsEmail() {
+    VendorEdiOrdersExportConfig config = new VendorEdiOrdersExportConfig();
+    config.setIntegrationType(IntegrationTypeEnum.ORDERING);
+    config.setTransmissionMethod(TransmissionMethodEnum.EMAIL);
+    JobExecution jobExecution = mock(JobExecution.class);
+    StepExecution stepExecution = mock(StepExecution.class);
+
+    ExportStepDecision decision = decider.decide(config, jobExecution, stepExecution);
+
+    assertEquals(ExportStepDecision.PROCESS, decision);
+  }
+
+  @Test
+  void decide_shouldProcess_whenIntegrationTypeIsClaimingAndTransmissionMethodIsEmail() {
     VendorEdiOrdersExportConfig config = new VendorEdiOrdersExportConfig();
     config.setIntegrationType(IntegrationTypeEnum.CLAIMING);
-    config.setTransmissionMethod(TransmissionMethodEnum.FILE_DOWNLOAD);
+    config.setTransmissionMethod(TransmissionMethodEnum.EMAIL);
+    JobExecution jobExecution = mock(JobExecution.class);
+    StepExecution stepExecution = mock(StepExecution.class);
+
+    ExportStepDecision decision = decider.decide(config, jobExecution, stepExecution);
+
+    assertEquals(ExportStepDecision.PROCESS, decision);
+  }
+
+  @Test
+  void decide_shouldSkip_whenTransmissionMethodIsFtp() {
+    VendorEdiOrdersExportConfig config = new VendorEdiOrdersExportConfig();
+    config.setIntegrationType(IntegrationTypeEnum.ORDERING);
+    config.setTransmissionMethod(TransmissionMethodEnum.FTP);
     JobExecution jobExecution = mock(JobExecution.class);
     StepExecution stepExecution = mock(StepExecution.class);
 

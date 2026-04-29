@@ -3,6 +3,7 @@ package org.folio.dew.batch.acquisitions.jobs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_ORDERS;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.folio.dew.utils.TestUtils.getMockData;
@@ -138,6 +139,7 @@ class SendToEmailTaskletTest extends BaseBatchTest {
     ExecutionContext executionContext = new ExecutionContext();
     executionContext.put(ACQ_EXPORT_FILE_NAME, "testEdiFile.edi");
     executionContext.put(ACQ_EXPORT_FILE, RandomStringUtils.secure().next(100));
+    executionContext.put(ACQ_EXPORT_ORDERS, "[]");
     return executionContext;
   }
 

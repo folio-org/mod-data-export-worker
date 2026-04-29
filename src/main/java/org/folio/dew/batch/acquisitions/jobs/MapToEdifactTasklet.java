@@ -12,6 +12,7 @@ import static org.folio.dew.batch.acquisitions.utils.ExportUtils.validateField;
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.validateFtpFields;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_ORDERS;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.EMAIL;
 
@@ -66,10 +67,10 @@ public abstract class MapToEdifactTasklet implements Tasklet {
     String jobName = jobParameters.get(JobParameterNames.JOB_NAME).toString();
     var edifactStringResult = getExportResourceMapper(ediExportConfig).convertForExport(holder.orders(), holder.pieces(), ediExportConfig, jobName);
 
-    // save edifact file content and name in memory
     var stepExecution = chunkContext.getStepContext().getStepExecution();
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, ACQ_EXPORT_FILE, edifactStringResult, "");
     ExecutionContextUtils.addToJobExecutionContext(stepExecution, ACQ_EXPORT_FILE_NAME, getFileName(ediExportConfig), "");
+    ExecutionContextUtils.addToJobExecutionContext(stepExecution, ACQ_EXPORT_ORDERS, ediObjectMapper.writeValueAsString(holder.orders()), "");
     return RepeatStatus.FINISHED;
   }
 

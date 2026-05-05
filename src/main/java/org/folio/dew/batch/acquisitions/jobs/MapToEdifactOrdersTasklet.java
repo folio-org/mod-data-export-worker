@@ -1,5 +1,6 @@
 package org.folio.dew.batch.acquisitions.jobs;
 
+import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.ACCOUNT_NO_LIST;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.LIB_EDI_CODE;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.LIB_EDI_TYPE;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.VENDOR_EDI_CODE;
@@ -63,6 +64,9 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
       validateField(LIB_EDI_CODE.getName(), ediConfig.getLibEdiCode(), StringUtils::isNotBlank, missingFields);
       validateField(VENDOR_EDI_TYPE.getName(), ediConfig.getVendorEdiType(), Objects::nonNull, missingFields);
       validateField(VENDOR_EDI_CODE.getName(), ediConfig.getVendorEdiCode(), StringUtils::isNotBlank, missingFields);
+      if (!Boolean.TRUE.equals(ediOrdersExportConfig.getIsDefaultConfig())) {
+        validateField(ACCOUNT_NO_LIST.getName(), ediConfig.getAccountNoList(), CollectionUtils::isNotEmpty, missingFields);
+      }
     }
     return missingFields;
   }
@@ -108,7 +112,10 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
         ? negateQuery(convertFieldListToEnclosedCqlQuery(extractAllAccountNoLists(configs), "vendorDetail.vendorAccount", true))
         : "";
     }
-    return convertFieldListToEnclosedCqlQuery(ediConfig.getEdiConfig().getAccountNoList(), "vendorDetail.vendorAccount", true);
+    var accountNoList = ediConfig.getEdiConfig().getAccountNoList();
+    return CollectionUtils.isEmpty(accountNoList)
+      ? ""
+      : convertFieldListToEnclosedCqlQuery(accountNoList, "vendorDetail.vendorAccount", true);
   }
 
   private Set<String> extractAllAccountNoLists(ExportConfigCollection configs) {

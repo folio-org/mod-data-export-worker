@@ -1,4 +1,41 @@
-## Unreleased v3.5.0
+## Unreleased v3.6.0
+
+## 2026-04-16 v3.5.0
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.4.14...v3.5.0)
+
+### Bugs
+[MODEXPW-607](https://folio-org.atlassian.net/browse/MODEXPW-607) Amount of circulation log records returned by filter and exported do not match for annual export
+[MODEXPW-596](https://folio-org.atlassian.net/browse/MODEXPW-596) Remove currency code from EDI Order PRI+AAB line
+[MODEXPW-559](https://folio-org.atlassian.net/browse/MODEXPW-559) Colon separating type and code in "Statistical code" column is encoded in the file with Matching records
+
+### Stories
+[MODEXPW-611](https://folio-org.atlassian.net/browse/MODEXPW-611) Remove mod-configuration usage to get tenant addresses
+[MODEXPW-603](https://folio-org.atlassian.net/browse/MODEXPW-603) Support EDIFACT export of orders with member tenant locations when Central Ordering is enabled
+[MODEXPW-598](https://folio-org.atlassian.net/browse/MODEXPW-598) Remove Bulk edit job references
+[MODEXPW-594](https://folio-org.atlassian.net/browse/MODEXPW-594) Upgrade Spring Boot version
+[MODEXPW-588](https://folio-org.atlassian.net/browse/MODEXPW-588) Move mod-data-export-spring, mod-data-export-worker and folio_export-manager from app-platform-complete due to their dependency on app-acquisitions interfaces
+[MODEXPW-584](https://folio-org.atlassian.net/browse/MODEXPW-584) Update EDI claim file format
+[MODEXPW-583](https://folio-org.atlassian.net/browse/MODEXPW-583) Instance schema updating - new field "deleted"
+[MODEXPW-574](https://folio-org.atlassian.net/browse/MODEXPW-574) Rendering Instance record Classifications in UI and downloadable files
+[MODEXPW-573](https://folio-org.atlassian.net/browse/MODEXPW-573) Rendering Instance record Subjects in UI and downloadable files
+[MODORDERS-1269](https://folio-org.atlassian.net/browse/MODORDERS-1269) Remove alerts and reporting codes from order lines, use a single order line schema
+[MODORDSTOR-448](https://folio-org.atlassian.net/browse/MODORDSTOR-448) Make user limit as string field & apply migration
+
+### Tech debts
+[MODEXPW-600](https://folio-org.atlassian.net/browse/MODEXPW-600) Bump opencsv from 5.7.1 to 5.11.2 fixing commons-beanutils CVE-2025-48734
+[MODEXPW-581](https://folio-org.atlassian.net/browse/MODEXPW-581) Duplicate entry errors are not reported when upload file with more than 5000 of identifiers in Bulk edit
+[MODEXPW-579](https://folio-org.atlassian.net/browse/MODEXPW-579) Remove unused openssh sshpass (sftp) from Dockerfile
+
+### Technical tasks
+[FOLIO-4308](https://folio-org.atlassian.net/browse/FOLIO-4308) Init app-agreements
+[MODEXPW-606](https://folio-org.atlassian.net/browse/MODEXPW-606) Move status configuration from data-export-worker to mod-bulk-ops
+[MODEXPW-605](https://folio-org.atlassian.net/browse/MODEXPW-605) Make eholdings interface optional
+[MODEXPW-604](https://folio-org.atlassian.net/browse/MODEXPW-604) [Bursar] Clarify exception messaging for the case where no accounts are found
+[MODEXPW-601](https://folio-org.atlassian.net/browse/MODEXPW-601) Update for Split Search & Browse APIs
+[MODEXPW-595](https://folio-org.atlassian.net/browse/MODEXPW-595) Use mod-settings to get Language & locale setting selections
+[MODEXPW-593](https://folio-org.atlassian.net/browse/MODEXPW-593) Setup dependabot for your module
+
 ### Stories
 * [MODEXPW-576](https://folio-org.atlassian.net/browse/MODEXPW-576) Enhance "MARC authority headings update" Report with Record Type Column Based on Consortium Environment.
 * [MODEXPW-619](https://folio-org.atlassian.net/browse/MODEXPW-619) Remove the Linked bib fields column for the Authority headings change report

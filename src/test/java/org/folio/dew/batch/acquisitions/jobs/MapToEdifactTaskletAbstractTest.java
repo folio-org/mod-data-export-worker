@@ -56,6 +56,9 @@ abstract class MapToEdifactTaskletAbstractTest extends BaseBatchTest {
   @MockitoBean
   @Qualifier("edifactMapper")
   protected ExportResourceMapper edifactMapper;
+  @MockitoBean
+  @Qualifier("orderCsvMapper")
+  protected ExportResourceMapper orderCsvMapper;
   @Autowired
   protected ObjectMapper objectMapper;
   protected Job edifactExportJob;

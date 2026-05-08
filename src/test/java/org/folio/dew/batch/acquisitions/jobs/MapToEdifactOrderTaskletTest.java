@@ -37,6 +37,7 @@ import lombok.SneakyThrows;
 class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
 
   private static final String DATA_EXPORT_CONFIGS_PATH = "edifact/dataExportConfigs.json";
+  private static final String SAMPLE_CSV_ORDERS_EXPORT = "edifact/edifactOrdersExportCsv.json";
   private static final String SAMPLE_EDI_ORDERS_EXPORT_MISSING_FIELDS = "edifact/edifactOrdersExportWithoutRequiredFields.json";
 
   @Autowired
@@ -141,6 +142,49 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
     assertEquals(BatchStatus.FAILED, status);
     assertThat(jobExecution.getExitStatus().getExitCode()).isEqualTo(ExitStatus.FAILED.getExitCode());
     assertThat(jobExecution.getExitStatus().getExitDescription()).contains("Export configuration is incomplete, missing required fields: [libEdiCode, vendorEdiType]");
+  }
+
+  @Test
+  void testCsvOrdersExport() throws Exception {
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    String cqlString = "(purchaseOrder.workflowStatus==Open)" +
+      " AND (purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1)" +
+      " AND (cql.allRecords=1 NOT purchaseOrder.manualPo==true)" +
+      " AND (automaticExport==true)" +
+      " AND (cql.allRecords=1 NOT lastEDIExportDate=\"\")" +
+      " AND (acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\"))" +
+      " AND (vendorDetail.vendorAccount==(\"BRXXXXX-01\"))";
+    doReturn(poLines).when(ordersService).getPoLinesByQuery(cqlString);
+    doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
+    doReturn("csv-content").when(orderCsvMapper).convertForExport(any(), any(), any(), anyString());
+
+    JobExecution jobExecution = testLauncher.startStep(MAP_TO_EDIFACT_STEP, getJobParameters(getEdifactExportConfig(SAMPLE_CSV_ORDERS_EXPORT)), new ExecutionContext());
+
+    Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+    verify(ordersService).getPoLinesByQuery(cqlString);
+    verify(ordersService).getPurchaseOrdersByIds(anyList());
+    verify(orderCsvMapper).convertForExport(any(), any(), any(), anyString());
+  }
+
+  @Test
+  void testCsvOrdersExportDoesNotRequireEdiFields() throws Exception {
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    // Use CSV config without EDI-specific fields - should not fail validation
+    var csvConfig = getEdifactExportConfig(SAMPLE_CSV_ORDERS_EXPORT);
+    // Remove EDI-specific fields that would cause validation failure for EDI format
+    var ediConfig = (ObjectNode) csvConfig.get("ediConfig");
+    ediConfig.remove("libEdiType");
+    ediConfig.remove("libEdiCode");
+    ediConfig.remove("vendorEdiType");
+    ediConfig.remove("vendorEdiCode");
+
+    doReturn(poLines).when(ordersService).getPoLinesByQuery(anyString());
+    doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
+    doReturn("csv-content").when(orderCsvMapper).convertForExport(any(), any(), any(), anyString());
+
+    JobExecution jobExecution = testLauncher.startStep(MAP_TO_EDIFACT_STEP, getJobParameters(csvConfig), new ExecutionContext());
+
+    Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 
   protected ObjectNode getEdifactExportConfig(String path, boolean isDefaultConfig) throws IOException {

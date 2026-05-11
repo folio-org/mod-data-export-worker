@@ -2,28 +2,39 @@ package org.folio.dew.batch.acquisitions.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.dew.utils.TestUtils.getMockData;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 
 import java.io.IOException;
 import java.util.List;
 
+import org.folio.dew.batch.acquisitions.services.IdentifierTypeService;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.templateengine.OrderEmailContext;
 import org.folio.dew.domain.dto.templateengine.OrderLineContext;
 import org.folio.dew.domain.dto.templateengine.OrderWrapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@ExtendWith(MockitoExtension.class)
 class OrderEmailContextMapperTest {
+
+  @Mock
+  private IdentifierTypeService identifierTypeService;
 
   private OrderEmailContextMapper mapper;
   private ObjectMapper objectMapper;
 
   @BeforeEach
   void setUp() {
-    mapper = new OrderEmailContextMapper();
+    mapper = new OrderEmailContextMapper(identifierTypeService);
     objectMapper = new ObjectMapper();
+    lenient().when(identifierTypeService.getIdentifierTypeName(anyString())).thenReturn("ISBN");
   }
 
   @Test
@@ -51,6 +62,9 @@ class OrderEmailContextMapperTest {
     OrderLineContext line = lines.get(0).orderLine();
     assertThat(line.getPoLineNumber()).isEqualTo("10000-1");
     assertThat(line.getTitle()).isEqualTo("Futures, biometrics and neuroscience research Luiz Moutinho, Mladen Sokele, editors");
+    assertThat(line.getContributors()).isEqualTo("Moutinho, Luiz");
+    assertThat(line.getProductIdentifier()).isEqualTo("9783319643991");
+    assertThat(line.getProductIdentifierType()).isEqualTo("ISBN");
     assertThat(line.getPublisher()).isEqualTo("Palgrave Macmillan");
     assertThat(line.getListUnitPrice()).isEqualTo("2.0");
     assertThat(line.getCurrency()).isEqualTo("USD");

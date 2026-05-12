@@ -3,6 +3,7 @@ package org.folio.dew.batch.acquisitions.mapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.dew.batch.acquisitions.services.ConfigurationService;
 import org.folio.dew.batch.acquisitions.services.IdentifierTypeService;
 import org.folio.dew.batch.acquisitions.utils.ExportUtils;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
 public class OrderEmailContextMapper {
 
   private final IdentifierTypeService identifierTypeService;
+  private final ConfigurationService configurationService;
 
   public OrderEmailContext buildContext(List<CompositePurchaseOrder> orders) {
     var orderWrappers = orders.stream()
@@ -47,14 +49,14 @@ public class OrderEmailContextMapper {
 
   private OrderContext mapOrder(CompositePurchaseOrder order) {
     return OrderContext.builder()
-      .poNumber(order.getPoNumber())
-      .orderDate(ExportUtils.getFormattedDate(order.getDateOrdered()))
-      .orderType(Optional.ofNullable(order.getOrderType()).map(CompositePurchaseOrder.OrderTypeEnum::getValue).orElse(null))
-      .createdBy(Optional.ofNullable(order.getMetadata()).map(m -> m.getCreatedByUsername()).orElse(null))
+      .poNumber(StringUtils.defaultString(order.getPoNumber()))
+      .orderDate(StringUtils.defaultString(ExportUtils.getFormattedDate(order.getDateOrdered())))
+      .orderType(Optional.ofNullable(order.getOrderType()).map(CompositePurchaseOrder.OrderTypeEnum::getValue).orElse(""))
+      .createdBy(Optional.ofNullable(order.getMetadata()).map(m -> m.getCreatedByUsername()).orElse(""))
       .totalEstimatedPrice(formatDecimal(order.getTotalEstimatedPrice()))
-      .shipTo(Optional.ofNullable(order.getShipTo()).map(Object::toString).orElse(null))
-      .billTo(Optional.ofNullable(order.getBillTo()).map(Object::toString).orElse(null))
-      .note(joinNotes(order.getNotes()))
+      .shipTo(configurationService.getAddressConfig(order.getShipTo()))
+      .billTo(configurationService.getAddressConfig(order.getBillTo()))
+      .notes(joinNotes(order.getNotes()))
       .build();
   }
 
@@ -63,12 +65,12 @@ public class OrderEmailContextMapper {
     var physQty = Optional.ofNullable(cost).map(Cost::getQuantityPhysical).orElse(0);
     var elecQty = Optional.ofNullable(cost).map(Cost::getQuantityElectronic).orElse(0);
     return OrderLineContext.builder()
-      .poLineNumber(line.getPoLineNumber())
-      .title(line.getTitleOrPackage())
+      .poLineNumber(StringUtils.defaultString(line.getPoLineNumber()))
+      .title(StringUtils.defaultString(line.getTitleOrPackage()))
       .contributors(mapContributors(line.getContributors()))
-      .publisher(line.getPublisher())
-      .publicationDate(line.getPublicationDate())
-      .edition(line.getEdition())
+      .publisher(StringUtils.defaultString(line.getPublisher()))
+      .publicationDate(StringUtils.defaultString(line.getPublicationDate()))
+      .edition(StringUtils.defaultString(line.getEdition()))
       .productIdentifier(mapProductIdentifiers(line.getDetails()))
       .productIdentifierType(mapProductIdentifierTypes(line.getDetails()))
       .materialType(resolveMaterialType(line.getPhysical(), line.getEresource()))
@@ -78,24 +80,24 @@ public class OrderEmailContextMapper {
       .quantityElectronic(elecQty)
       .quantity(physQty + elecQty)
       .estimatedPrice(formatDecimal(Optional.ofNullable(cost).map(Cost::getPoLineEstimatedPrice).orElse(null)))
-      .currency(Optional.ofNullable(cost).map(Cost::getCurrency).orElse(null))
+      .currency(Optional.ofNullable(cost).map(Cost::getCurrency).orElse(""))
       .fundCodes(mapFundCodes(line.getFundDistribution()))
       .vendorRefNumber(mapVendorRefNumber(line.getVendorDetail()))
-      .instructions(Optional.ofNullable(line.getVendorDetail()).map(VendorDetail::getInstructions).orElse(null))
+      .instructions(Optional.ofNullable(line.getVendorDetail()).map(VendorDetail::getInstructions).orElse(""))
       .build();
   }
 
   private String formatDecimal(BigDecimal value) {
-    return value != null ? value.toPlainString() : null;
+    return value != null ? value.toPlainString() : "";
   }
 
   private String joinNotes(List<String> notes) {
-    return CollectionUtils.isEmpty(notes) ? null : String.join("; ", notes);
+    return CollectionUtils.isEmpty(notes) ? "" : String.join("; ", notes);
   }
 
   private String mapContributors(List<Contributor> contributors) {
     if (CollectionUtils.isEmpty(contributors)) {
-      return null;
+      return "";
     }
     return contributors.stream()
       .map(Contributor::getContributor)
@@ -105,7 +107,7 @@ public class OrderEmailContextMapper {
 
   private String mapProductIdentifiers(Details details) {
     if (details == null || CollectionUtils.isEmpty(details.getProductIds())) {
-      return null;
+      return "";
     }
     return details.getProductIds().stream()
       .map(ProductIdentifier::getProductId)
@@ -115,7 +117,7 @@ public class OrderEmailContextMapper {
 
   private String mapProductIdentifierTypes(Details details) {
     if (details == null || CollectionUtils.isEmpty(details.getProductIds())) {
-      return null;
+      return "";
     }
     return details.getProductIds().stream()
       .map(ProductIdentifier::getProductIdType)
@@ -132,12 +134,12 @@ public class OrderEmailContextMapper {
     if (eresource != null && StringUtils.isNotBlank(eresource.getMaterialType())) {
       return eresource.getMaterialType();
     }
-    return null;
+    return "";
   }
 
   private String mapFundCodes(List<FundDistribution> fundDistributions) {
     if (CollectionUtils.isEmpty(fundDistributions)) {
-      return null;
+      return "";
     }
     return fundDistributions.stream()
       .map(FundDistribution::getCode)
@@ -151,6 +153,6 @@ public class OrderEmailContextMapper {
       .filter(refs -> !refs.isEmpty())
       .map(refs -> refs.get(0))
       .map(ReferenceNumberItem::getRefNumber)
-      .orElse(null);
+      .orElse("");
   }
 }

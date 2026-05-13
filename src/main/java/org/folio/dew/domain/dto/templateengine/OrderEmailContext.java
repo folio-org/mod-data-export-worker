@@ -9,5 +9,6 @@ import java.util.List;
 @Builder
 public class OrderEmailContext {
 
+  private OrganizationContext organization;
   private List<OrderWrapper> orders;
 }

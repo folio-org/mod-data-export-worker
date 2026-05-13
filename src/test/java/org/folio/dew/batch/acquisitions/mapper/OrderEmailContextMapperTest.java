@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import org.folio.dew.batch.acquisitions.services.ConfigurationService;
 import org.folio.dew.batch.acquisitions.services.IdentifierTypeService;
+import org.folio.dew.batch.acquisitions.services.UserService;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.templateengine.OrderEmailContext;
 import org.folio.dew.domain.dto.templateengine.OrderLineContext;
@@ -37,22 +38,26 @@ class OrderEmailContextMapperTest {
   private IdentifierTypeService identifierTypeService;
   @Mock
   private ConfigurationService configurationService;
+  @Mock
+  private UserService userService;
 
   private OrderEmailContextMapper mapper;
   private ObjectMapper objectMapper;
 
   @BeforeEach
   void setUp() {
-    mapper = new OrderEmailContextMapper(identifierTypeService, configurationService);
+    mapper = new OrderEmailContextMapper(identifierTypeService, configurationService, userService);
     objectMapper = new ObjectMapper();
     lenient().when(identifierTypeService.getIdentifierTypeName(anyString())).thenReturn("ISBN");
     lenient().when(configurationService.getAddressConfig(any())).thenReturn("");
+    lenient().when(userService.getUserName(anyString())).thenReturn("");
   }
 
   @Test
   void buildContext_mapsOrderFields() throws IOException {
     when(configurationService.getAddressConfig(SHIP_TO_UUID)).thenReturn(SHIP_TO_ADDRESS);
     when(configurationService.getAddressConfig(BILL_TO_UUID)).thenReturn(BILL_TO_ADDRESS);
+    when(userService.getUserName("7a626480-284e-5b55-9cf2-db32f93956cf")).thenReturn("John Doe");
     var order = loadOrder("edifact/acquisitions/composite_purchase_order.json");
 
     OrderEmailContext ctx = mapper.buildContext(List.of(order));
@@ -62,7 +67,7 @@ class OrderEmailContextMapperTest {
     assertThat(wrapper.order().getPoNumber()).isEqualTo("10000");
     assertThat(wrapper.order().getOrderDate()).isEqualTo("2021-01-15");
     assertThat(wrapper.order().getOrderType()).isEqualTo("One-Time");
-    assertThat(wrapper.order().getCreatedBy()).isEqualTo("jdoe");
+    assertThat(wrapper.order().getCreatedBy()).isEqualTo("John Doe");
     assertThat(wrapper.order().getTotalEstimatedPrice()).isEqualTo("1.8");
     assertThat(wrapper.order().getShipTo()).isEqualTo(SHIP_TO_ADDRESS);
     assertThat(wrapper.order().getBillTo()).isEqualTo(BILL_TO_ADDRESS);

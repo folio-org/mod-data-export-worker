@@ -5,18 +5,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.acquisitions.services.ConfigurationService;
 import org.folio.dew.batch.acquisitions.services.IdentifierTypeService;
+import org.folio.dew.batch.acquisitions.services.UserService;
 import org.folio.dew.batch.acquisitions.utils.ExportUtils;
-import org.folio.dew.domain.dto.CompositePurchaseOrder;
-import org.folio.dew.domain.dto.Contributor;
-import org.folio.dew.domain.dto.Cost;
-import org.folio.dew.domain.dto.Details;
-import org.folio.dew.domain.dto.Eresource;
-import org.folio.dew.domain.dto.FundDistribution;
-import org.folio.dew.domain.dto.Physical;
-import org.folio.dew.domain.dto.PoLine;
-import org.folio.dew.domain.dto.ProductIdentifier;
-import org.folio.dew.domain.dto.ReferenceNumberItem;
-import org.folio.dew.domain.dto.VendorDetail;
+import org.folio.dew.domain.dto.*;
 import org.folio.dew.domain.dto.templateengine.OrderContext;
 import org.folio.dew.domain.dto.templateengine.OrderEmailContext;
 import org.folio.dew.domain.dto.templateengine.OrderLineContext;
@@ -35,6 +26,7 @@ public class OrderEmailContextMapper {
 
   private final IdentifierTypeService identifierTypeService;
   private final ConfigurationService configurationService;
+  private final UserService userService;
 
   public OrderEmailContext buildContext(List<CompositePurchaseOrder> orders) {
     var orderWrappers = orders.stream()
@@ -52,7 +44,7 @@ public class OrderEmailContextMapper {
       .poNumber(StringUtils.defaultString(order.getPoNumber()))
       .orderDate(StringUtils.defaultString(ExportUtils.getFormattedDate(order.getDateOrdered())))
       .orderType(Optional.ofNullable(order.getOrderType()).map(CompositePurchaseOrder.OrderTypeEnum::getValue).orElse(""))
-      .createdBy(Optional.ofNullable(order.getMetadata()).map(m -> m.getCreatedByUsername()).orElse(""))
+      .createdBy(userService.getUserName(Optional.ofNullable(order.getMetadata()).map(Metadata::getCreatedByUserId).map(Object::toString).orElse("")))
       .totalEstimatedPrice(formatDecimal(order.getTotalEstimatedPrice()))
       .shipTo(configurationService.getAddressConfig(order.getShipTo()))
       .billTo(configurationService.getAddressConfig(order.getBillTo()))
@@ -151,7 +143,7 @@ public class OrderEmailContextMapper {
     return Optional.ofNullable(vendorDetail)
       .map(VendorDetail::getReferenceNumbers)
       .filter(refs -> !refs.isEmpty())
-      .map(refs -> refs.get(0))
+      .map(List::getFirst)
       .map(ReferenceNumberItem::getRefNumber)
       .orElse("");
   }

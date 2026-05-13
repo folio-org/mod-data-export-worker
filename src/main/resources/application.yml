@@ -106,6 +106,7 @@ application:
   platform: ${PLATFORM:okapi}
 
 folio:
+  okapi-url: ${OKAPI_URL:http://okapi:9130}
   tenant:
     validation:
       enabled: true

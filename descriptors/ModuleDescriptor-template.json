@@ -161,6 +161,14 @@
       "version": "2.0"
     },
     {
+      "id": "email",
+      "version": "1.1"
+    },
+    {
+      "id": "template-engine",
+      "version": "2.2"
+    },
+    {
       "id": "users-keycloak",
       "version": "1.0"
     },

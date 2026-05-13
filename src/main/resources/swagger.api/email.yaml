@@ -1,0 +1,11 @@
+openapi: 3.0.0
+info:
+  title: Email
+  version: v1
+paths: {}
+components:
+  schemas:
+    EmailEntity:
+      $ref: '../../../../folio-export-common/schemas/email/email_entity.json'
+    Attachment:
+      $ref: '../../../../folio-export-common/schemas/email/attachment.json'

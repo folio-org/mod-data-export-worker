@@ -1,4 +1,6 @@
 ## Unreleased v3.6.0
+### Stories
+[MODEXPW-634](https://folio-org.atlassian.net/browse/MODEXPW-634) Use contains lookup to retrieve agreement lines for all titles in a package in a single query
 
 ## 2026-04-16 v3.5.0
 

@@ -74,21 +74,21 @@ class EHoldingsTest extends BaseBatchTest {
     setUpTenant(NON_CONSORTIUM_TENANT);
   }
 
-  private final static String RESOURCE_ID = "1-22-333";
-  private final static String PACKAGE_ID = "1-22";
-  private final static String SINGLE_PACKAGE_ID = "1-23";
-  private final static String PACKAGE_WITH_3_TITLES_ID = "1-21";
-  private final static String PACKAGE_WITH_SAME_TITLE_NAMES_ID = "1-24";
-  private final static String PACKAGE_WITH_TITLE_AGREEMENTS_ID = "1-255";
-  private final static String EXPECTED_RESOURCE_OUTPUT = "src/test/resources/output/eholdings_resource_export.csv";
-  private final static String EXPECTED_PACKAGE_OUTPUT = "src/test/resources/output/eholdings_package_export.csv";
-  private final static String EXPECTED_SINGLE_PACKAGE_OUTPUT =
+  private static final String RESOURCE_ID = "1-22-333";
+  private static final String PACKAGE_ID = "1-22";
+  private static final String SINGLE_PACKAGE_ID = "1-23";
+  private static final String PACKAGE_WITH_3_TITLES_ID = "1-21";
+  private static final String PACKAGE_WITH_SAME_TITLE_NAMES_ID = "1-24";
+  private static final String PACKAGE_WITH_TITLE_AGREEMENTS_ID = "1-255";
+  private static final String EXPECTED_RESOURCE_OUTPUT = "src/test/resources/output/eholdings_resource_export.csv";
+  private static final String EXPECTED_PACKAGE_OUTPUT = "src/test/resources/output/eholdings_package_export.csv";
+  private static final String EXPECTED_SINGLE_PACKAGE_OUTPUT =
     "src/test/resources/output/eholdings_single_package_export.csv";
-  private final static String EXPECTED_PACKAGE_WITH_3_TITLES_OUTPUT =
+  private static final String EXPECTED_PACKAGE_WITH_3_TITLES_OUTPUT =
     "src/test/resources/output/eholdings_package_export_with_3_titles.csv";
-  private final static String EXPECTED_PACKAGE_WITH_SAME_TITLE_NAMES_OUTPUT =
+  private static final String EXPECTED_PACKAGE_WITH_SAME_TITLE_NAMES_OUTPUT =
     "src/test/resources/output/eholdings_package_export_with_same_title_names.csv";
-  private final static String EXPECTED_PACKAGE_WITH_TITLE_AGREEMENTS_OUTPUT =
+  private static final String EXPECTED_PACKAGE_WITH_TITLE_AGREEMENTS_OUTPUT =
     "src/test/resources/output/eholdings_package_export_with_title_agreements.csv";
   private static final String FILE_PATH = "mod-data-export-worker/e_holdings_export/diku/";
 

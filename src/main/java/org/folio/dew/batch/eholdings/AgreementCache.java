@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 @Log4j2
 public class AgreementCache {
 
+  @SuppressWarnings("java:S3749")
   private final Map<String, List<AgreementClient.Agreement>> agreementsByResourceId = new HashMap<>();
 
   public void put(String resourceId, AgreementClient.Agreement agreement) {

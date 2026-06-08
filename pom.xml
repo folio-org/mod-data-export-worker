@@ -58,6 +58,9 @@
         <marc4j.version>2.9.2</marc4j.version>
         <streamex.version>0.8.3</streamex.version>
 
+        <!-- overrides Spring Boot BOM default; can be removed once Spring Boot ships this version -->
+        <kafka.version>4.2.0</kafka.version>
+
         <!-- Test properties-->
         <junit-extensions.version>2.4.0</junit-extensions.version>
         <spring-cloud-starter-bootstrap.version>4.2.0</spring-cloud-starter-bootstrap.version>

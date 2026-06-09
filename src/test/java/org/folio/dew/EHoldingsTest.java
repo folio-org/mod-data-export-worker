@@ -48,7 +48,6 @@ import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -84,12 +83,6 @@ class EHoldingsTest extends BaseBatchTest {
   @BeforeAll
   static void beforeAll() {
     setUpTenant(NON_CONSORTIUM_TENANT);
-  }
-
-  @BeforeEach
-  void cleanUpEHoldingsTables() {
-    resourceRepository.deleteAll();
-    packageRepository.deleteAll();
   }
 
   private static final String RESOURCE_ID = "1-22-333";

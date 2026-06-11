@@ -15,6 +15,7 @@
 [MODEXPW-607](https://folio-org.atlassian.net/browse/MODEXPW-607) Amount of circulation log records returned by filter and exported do not match for annual export
 [MODEXPW-596](https://folio-org.atlassian.net/browse/MODEXPW-596) Remove currency code from EDI Order PRI+AAB line
 [MODEXPW-559](https://folio-org.atlassian.net/browse/MODEXPW-559) Colon separating type and code in "Statistical code" column is encoded in the file with Matching records
+[MODEXPW-637](https://folio-org.atlassian.net/browse/MODEXPW-637) Fix spring batch configuration to use jdbc repository
 
 ### Stories
 [MODEXPW-611](https://folio-org.atlassian.net/browse/MODEXPW-611) Remove mod-configuration usage to get tenant addresses

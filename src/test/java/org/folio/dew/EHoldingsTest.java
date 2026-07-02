@@ -1,6 +1,33 @@
 package org.folio.dew;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACKAGE;
+import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESOURCE;
+import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.File;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
 import org.folio.de.entity.EHoldingsPackage;
@@ -16,6 +43,10 @@ import org.folio.dew.repository.EHoldingsPackageRepository;
 import org.folio.dew.repository.EHoldingsResourceRepository;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.FileNameResolver;
+import org.folio.spring.DefaultFolioExecutionContext;
+import org.folio.spring.FolioModuleMetadata;
+import org.folio.spring.integration.XOkapiHeaders;
+import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,28 +63,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-import java.io.File;
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACKAGE;
-import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESOURCE;
-import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
-import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-
 @Log4j2
 class EHoldingsTest extends BaseBatchTest {
   @Autowired
@@ -66,6 +75,8 @@ class EHoldingsTest extends BaseBatchTest {
   private EHoldingsResourceRepository resourceRepository;
   @Autowired
   private RemoteFilesStorage remoteFilesStorage;
+  @Autowired
+  private FolioModuleMetadata folioModuleMetadata;
   @MockitoSpyBean
   private KafkaService kafkaService;
 
@@ -272,6 +283,51 @@ class EHoldingsTest extends BaseBatchTest {
     assertEquals(0, ((Collection<?>) packages).size());
     assertEquals(0, ((Collection<?>) resources).size());
     verifyJobEvent();
+  }
+
+  @Test
+  @DisplayName("Run 3 EHoldingsJob package exports concurrently without shared-state interference")
+  void eHoldingsJobPackage3ConcurrentJobsTest() throws Exception {
+    var params1 = prepareJobParameters(buildExportConfig(PACKAGE_ID, PACKAGE));
+    var params2 = prepareJobParameters(buildExportConfig(PACKAGE_WITH_3_TITLES_ID, PACKAGE));
+    var params3 = prepareJobParameters(buildExportConfig(SINGLE_PACKAGE_ID, PACKAGE));
+
+    var launcher1 = createTestLauncher(getEHoldingsJob);
+    var launcher2 = createTestLauncher(getEHoldingsJob);
+    var launcher3 = createTestLauncher(getEHoldingsJob);
+
+    // Capture Folio context headers once on the test thread for propagation to worker threads
+    Map<String, Collection<String>> folioHeaders = okapiHeaders.entrySet().stream()
+      .filter(e -> e.getKey().startsWith(XOkapiHeaders.OKAPI_HEADERS_PREFIX))
+      .collect(Collectors.toMap(Map.Entry::getKey, e -> List.of(String.valueOf(e.getValue()))));
+
+    ExecutorService executor = Executors.newFixedThreadPool(3);
+    try {
+      CompletableFuture<JobExecution> future1 = CompletableFuture
+        .supplyAsync(() -> runJobWithFolioContext(launcher1, params1, folioHeaders), executor);
+      CompletableFuture<JobExecution> future2 = CompletableFuture
+        .supplyAsync(() -> runJobWithFolioContext(launcher2, params2, folioHeaders), executor);
+      CompletableFuture<JobExecution> future3 = CompletableFuture
+        .supplyAsync(() -> runJobWithFolioContext(launcher3, params3, folioHeaders), executor);
+
+      CompletableFuture.allOf(future1, future2, future3).get(120, TimeUnit.SECONDS);
+
+      assertThat(future1.get().getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+      assertThat(future2.get().getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+      assertThat(future3.get().getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+    } finally {
+      executor.shutdown();
+    }
+  }
+
+  @SneakyThrows
+  private JobExecution runJobWithFolioContext(JobOperatorTestUtils launcher,
+                                              JobParameters params,
+                                              Map<String, Collection<String>> folioHeaders) {
+    var ctx = new DefaultFolioExecutionContext(folioModuleMetadata, folioHeaders);
+    try (var ignored = new FolioExecutionContextSetter(ctx)) {
+      return launcher.startJob(params);
+    }
   }
 
   private void populateOtherJobsDataInDatabase(){

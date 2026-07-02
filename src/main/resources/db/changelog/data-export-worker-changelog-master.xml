@@ -12,4 +12,5 @@
   <include file="changes/alter_batch_job_execution_params_table.xml" relativeToChangelogFile="true"/>
   <include file="changes/alter_batch_step_execution_table.xml" relativeToChangelogFile="true"/>
   <include file="changes/convert_batch_job_execution_param_value_type.xml" relativeToChangelogFile="true"/>
+  <include file="changes/rename_batch_job_seq.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

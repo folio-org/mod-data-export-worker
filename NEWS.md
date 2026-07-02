@@ -1,4 +1,9 @@
-## Unreleased v3.6.0
+## 2026-07-02 v3.5.2
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.5.1...v3.5.2)
+
+### Bugs
+[MODEXPW-637](https://folio-org.atlassian.net/browse/MODEXPW-637) Fix spring batch configuration to use jdbc repository
 
 ## 2026-06-04 v3.5.1
 

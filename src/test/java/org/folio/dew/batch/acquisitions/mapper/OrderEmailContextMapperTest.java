@@ -3,6 +3,7 @@ package org.folio.dew.batch.acquisitions.mapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.folio.dew.batch.acquisitions.services.ConfigurationService;
 import org.folio.dew.batch.acquisitions.services.ContributorNameTypeService;
+import org.folio.dew.batch.acquisitions.services.CustomFieldsService;
 import org.folio.dew.batch.acquisitions.services.IdentifierTypeService;
 import org.folio.dew.batch.acquisitions.services.OrganizationsService;
 import org.folio.dew.batch.acquisitions.services.UserService;
@@ -10,6 +11,7 @@ import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.acquisitions.edifact.Organization;
 import org.folio.dew.domain.dto.acquisitions.edifact.OrganizationAddress;
 import org.folio.dew.domain.dto.acquisitions.edifact.TenantAddress;
+import org.folio.dew.domain.dto.templateengine.context.CustomFieldContext;
 import org.folio.dew.domain.dto.templateengine.context.OrderEmailContext;
 import org.folio.dew.domain.dto.templateengine.context.OrderLineContext;
 import org.folio.dew.domain.dto.templateengine.context.UserContext;
@@ -21,12 +23,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -49,19 +53,22 @@ class OrderEmailContextMapperTest {
   private UserService userService;
   @Mock
   private OrganizationsService organizationsService;
+  @Mock
+  private CustomFieldsService customFieldsService;
 
   private OrderEmailContextMapper mapper;
   private ObjectMapper objectMapper;
 
   @BeforeEach
   void setUp() {
-    mapper = new OrderEmailContextMapper(identifierTypeService, contributorNameTypeService, configurationService, userService, organizationsService);
+    mapper = new OrderEmailContextMapper(identifierTypeService, contributorNameTypeService, configurationService, userService, organizationsService, customFieldsService);
     objectMapper = new ObjectMapper();
     lenient().when(identifierTypeService.getIdentifierTypeName(anyString())).thenReturn("ISBN");
     lenient().when(contributorNameTypeService.getContributorNameTypeName(anyString())).thenReturn("Personal name");
     lenient().when(configurationService.getTenantAddress(any())).thenReturn(null);
     lenient().when(userService.getUserContext(anyString())).thenReturn(UserContext.builder().build());
     lenient().when(organizationsService.getOrganizationById(anyString())).thenReturn(new Organization());
+    lenient().when(customFieldsService.resolve(any(), anyString())).thenReturn(Map.of());
   }
 
   @Test
@@ -148,6 +155,21 @@ class OrderEmailContextMapperTest {
     var fund = line.getFundDistribution().get(0);
     assertThat(fund.getCode()).isEqualTo("USHIST");
     assertThat(line.getVendorDetail().getInstructions()).isEqualTo("Handle with care");
+  }
+
+  @Test
+  void buildContext_resolvesCustomFieldsForOrderAndLine() throws IOException {
+    var orderCf = Map.of("po_cf", CustomFieldContext.builder().name("PO field").type("TEXTBOX_SHORT").value("po-value").build());
+    var lineCf = Map.of("line_cf", CustomFieldContext.builder().name("Line field").type("TEXTBOX_SHORT").value("line-value").build());
+    when(customFieldsService.resolve(any(), eq("purchase_order"))).thenReturn(orderCf);
+    when(customFieldsService.resolve(any(), eq("po_line"))).thenReturn(lineCf);
+    var order = loadOrder("edifact/acquisitions/composite_purchase_order_email_context.json");
+
+    OrderEmailContext ctx = mapper.buildContext(List.of(order));
+
+    var wrapper = ctx.getOrders().get(0);
+    assertThat(wrapper.order().getCustomFields()).isEqualTo(orderCf);
+    assertThat(wrapper.orderLines().get(0).orderLine().getCustomFields()).isEqualTo(lineCf);
   }
 
   @Test

@@ -6,15 +6,14 @@ import static org.folio.dew.utils.Constants.EXPORT_DIR_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
 import jakarta.annotation.PostConstruct;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
@@ -163,12 +162,12 @@ public class JobCommandsReceiverService {
 
     List<String> objects = Arrays.stream(filesStr.split(";")).distinct().map(f -> {
       try {
-        return StringUtils.stripStart(new URL(f).getPath(), "/");
-      } catch (MalformedURLException e) {
+        return StringUtils.stripStart(new URI(f).getPath(), "/");
+      } catch (URISyntaxException e) {
         log.error(e.getMessage(), e);
         return null;
       }
-    }).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+    }).filter(StringUtils::isNotBlank).distinct().toList();
     if (!objects.isEmpty()) {
       remoteFilesStorage.delete(objects);
     }

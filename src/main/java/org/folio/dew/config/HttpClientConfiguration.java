@@ -6,6 +6,7 @@ import org.folio.dew.client.AccountBulkClient;
 import org.folio.dew.client.AccountClient;
 import org.folio.dew.client.AgreementClient;
 import org.folio.dew.client.AuditClient;
+import org.folio.dew.client.ContributorNameTypeClient;
 import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.client.EmailClient;
 import org.folio.dew.client.EntitiesLinksStatsClient;
@@ -112,6 +113,11 @@ public class HttpClientConfiguration {
   @Bean
   public IdentifierTypeClient identifierTypeClient(HttpServiceProxyFactory factory) {
     return factory.createClient(IdentifierTypeClient.class);
+  }
+
+  @Bean
+  public ContributorNameTypeClient contributorNameTypeClient(HttpServiceProxyFactory factory) {
+    return factory.createClient(ContributorNameTypeClient.class);
   }
 
   @Bean

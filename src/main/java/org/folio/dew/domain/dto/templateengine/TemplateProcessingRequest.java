@@ -14,4 +14,5 @@ public class TemplateProcessingRequest {
   private String lang = "en";
   @Builder.Default
   private String outputFormat = "text/html";
+  private Object context;
 }

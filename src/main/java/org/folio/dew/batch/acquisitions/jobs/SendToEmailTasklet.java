@@ -73,6 +73,7 @@ public class SendToEmailTasklet implements Tasklet {
     emailEntity.setNotificationId(jobId);
     emailEntity.setFrom(ediEmail.getEmailFrom());
     emailEntity.setTo(ediEmail.getEmailTo());
+    emailEntity.setBcc(ediEmail.getEmailBcc());
 
     var templateResult = resolveTemplate(ediEmail, orders);
     emailEntity.setHeader(templateResult[0]);

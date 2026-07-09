@@ -27,6 +27,9 @@ public class EHoldingsPackageExportFormat {
   private String packageLevelToken;
   private String packageProxy;
   private String packageAccess;
+  private String hideInPublicationFinder;
+  private String hideInFullTextFinder;
+  private String excludeFromMARCExport;
   private String packageAccessStatusType;
   private String packageTags;
   private String packageAgreements;

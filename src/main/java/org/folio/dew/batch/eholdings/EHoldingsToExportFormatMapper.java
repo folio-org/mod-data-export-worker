@@ -34,6 +34,7 @@ import org.folio.dew.domain.dto.eholdings.Identifier.TypeEnum;
 import org.folio.dew.domain.dto.eholdings.Note;
 import org.folio.dew.domain.dto.eholdings.PackageAltName;
 import org.folio.dew.domain.dto.eholdings.PackageAttributes;
+import org.folio.dew.domain.dto.eholdings.PackageVisibility;
 import org.folio.dew.domain.dto.eholdings.Proxy;
 import org.folio.dew.domain.dto.eholdings.Subject;
 import org.folio.dew.domain.dto.eholdings.Tags;
@@ -124,6 +125,9 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setPackageHoldingsStatus(mapHoldingsStatus(packageAtr.getIsSelected()));
     exportFormat.setPackageAutomaticallySelect(convertBoolToStr(packageAtr.getAllowKbToAddTitles()));
     exportFormat.setPackageAccess(mapPackageAccess(packageAtr.getIsFreeAccess()));
+    exportFormat.setHideInPublicationFinder(mapVisibilityCategory(packageAtr.getVisibility(), "PF"));
+    exportFormat.setHideInFullTextFinder(mapVisibilityCategory(packageAtr.getVisibility(), "FTF"));
+    exportFormat.setExcludeFromMARCExport(mapVisibilityCategory(packageAtr.getVisibility(), "MARC"));
     exportFormat.setPackageAccessStatusType(mapAccessType(ePackage.getIncluded()));
     exportFormat.setPackageNotes(convertNotes(eHoldingsPackageDTO.getNotes()));
     exportFormat.setPackageAgreements(convertAgreements(eHoldingsPackageDTO.getAgreements()));
@@ -297,9 +301,27 @@ public class EHoldingsToExportFormatMapper {
       .collect(Collectors.joining("; "));
   }
 
+  private String mapVisibilityCategory(List<PackageVisibility> visibility, String category) {
+    if (isNull(visibility) || visibility.isEmpty()) {
+      return EMPTY;
+    }
+    return visibility.stream()
+      .filter(v -> v.getCategory() != null && category.equals(v.getCategory().getValue()))
+      .findFirst()
+      .map(v -> {
+        var result = Boolean.TRUE.equals(v.getHidden()) ? "Yes" : "No";
+        var reason = v.getReason();
+        if (reason != null && !reason.isBlank()) {
+          result += String.format(" (%s)", reason);
+        }
+        return result;
+      })
+      .orElse(EMPTY);
+  }
+
   private String mapPackageAccess(Boolean isFreeAccess) {
     if (isNull(isFreeAccess)) {
-      return "null";
+      return EMPTY;
     }
     return isFreeAccess ? "Public" : "Controlled";
   }

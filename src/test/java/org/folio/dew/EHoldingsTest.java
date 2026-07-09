@@ -333,12 +333,12 @@ class EHoldingsTest extends BaseBatchTest {
   private void populateOtherJobsDataInDatabase(){
     var packageFromAnotherJob = new EHoldingsPackage();
     packageFromAnotherJob.setId("1-22");
-    packageFromAnotherJob.setJobExecutionId(2L);
+    packageFromAnotherJob.setJobExecutionId(Long.MAX_VALUE);
     packageRepository.save(packageFromAnotherJob);
 
     var resourceFromAnotherJob = new EHoldingsResource();
     resourceFromAnotherJob.setId("1-22-3334");
-    resourceFromAnotherJob.setJobExecutionId(2L);
+    resourceFromAnotherJob.setJobExecutionId(Long.MAX_VALUE);
     resourceFromAnotherJob.setName("ABC of Diabetes (ABC Series)");
     resourceRepository.save(resourceFromAnotherJob);
   }

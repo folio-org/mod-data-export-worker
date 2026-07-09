@@ -32,6 +32,7 @@ import org.folio.dew.domain.dto.eholdings.Identifier;
 import org.folio.dew.domain.dto.eholdings.Identifier.SubtypeEnum;
 import org.folio.dew.domain.dto.eholdings.Identifier.TypeEnum;
 import org.folio.dew.domain.dto.eholdings.Note;
+import org.folio.dew.domain.dto.eholdings.PackageAltName;
 import org.folio.dew.domain.dto.eholdings.PackageAttributes;
 import org.folio.dew.domain.dto.eholdings.Proxy;
 import org.folio.dew.domain.dto.eholdings.Subject;
@@ -109,6 +110,11 @@ public class EHoldingsToExportFormatMapper {
 
     exportFormat.setPackageId(ePackage.getData().getId());
     exportFormat.setPackageName(packageAtr.getName());
+    exportFormat.setPackageDisplayName(packageAtr.getCustomDisplayName());
+    exportFormat.setManagedAlternativeNames(mapAltNames(packageAtr.getManagedAltNames()));
+    exportFormat.setCustomAlternativeNames(mapAltNames(packageAtr.getCustomAltNames()));
+    exportFormat.setManagedDescription(packageAtr.getManagedDescription());
+    exportFormat.setCustomDescription(packageAtr.getCustomDescription());
     exportFormat.setPackageType(packageAtr.getPackageType());
     exportFormat.setPackageContentType(packageAtr.getContentType().getValue());
     exportFormat.setPackageCustomCoverage(mapCoverage(packageAtr.getCustomCoverage()));
@@ -116,8 +122,8 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setPackageProxy(mapProxy(packageAtr.getProxy()));
     exportFormat.setPackageTags(mapTags(packageAtr.getTags()));
     exportFormat.setPackageHoldingsStatus(mapHoldingsStatus(packageAtr.getIsSelected()));
-    exportFormat.setPackageShowToPatrons(mapShowToPatrons(packageAtr.getVisibilityData()));
     exportFormat.setPackageAutomaticallySelect(convertBoolToStr(packageAtr.getAllowKbToAddTitles()));
+    exportFormat.setPackageAccess(mapPackageAccess(packageAtr.getIsFreeAccess()));
     exportFormat.setPackageAccessStatusType(mapAccessType(ePackage.getIncluded()));
     exportFormat.setPackageNotes(convertNotes(eHoldingsPackageDTO.getNotes()));
     exportFormat.setPackageAgreements(convertAgreements(eHoldingsPackageDTO.getAgreements()));
@@ -148,6 +154,7 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setCustomEmbargo(mapEmbargo(resourceAtr.getCustomEmbargoPeriod()));
     exportFormat.setTitleShowToPatrons(mapShowToPatrons(resourceAtr.getVisibilityData()));
     exportFormat.setTitleProxy(mapProxy(resourceAtr.getProxy()));
+    exportFormat.setTitleProxiedUrl(mapProxiedUrl(resourceAtr.getProxy()));
     exportFormat.setUrl(resourceAtr.getUrl());
     exportFormat.setSubjects(mapSubjects(resourceAtr.getSubjects()));
     exportFormat.setCustomValue1(resourceAtr.getUserDefinedField1());
@@ -279,6 +286,29 @@ public class EHoldingsToExportFormatMapper {
       .filter(identifier -> identifier.getSubtype().equals(subtype))
       .map(Identifier::getId)
       .collect(Collectors.joining(PIPE_DELIMITER));
+  }
+
+  private String mapAltNames(List<PackageAltName> altNames) {
+    if (isNull(altNames) || altNames.isEmpty()) {
+      return EMPTY;
+    }
+    return altNames.stream()
+      .map(PackageAltName::getAltName)
+      .collect(Collectors.joining("; "));
+  }
+
+  private String mapPackageAccess(Boolean isFreeAccess) {
+    if (isNull(isFreeAccess)) {
+      return "null";
+    }
+    return isFreeAccess ? "Public" : "Controlled";
+  }
+
+  private String mapProxiedUrl(Proxy proxy) {
+    if (isNull(proxy) || isNull(proxy.getProxiedUrl())) {
+      return EMPTY;
+    }
+    return proxy.getProxiedUrl();
   }
 
   private String mapShowToPatrons(VisibilityData visibility) {

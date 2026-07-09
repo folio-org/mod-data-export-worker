@@ -14,14 +14,19 @@ public class EHoldingsPackageExportFormat {
   //Package fields
   private String packageId;
   private String packageName;
+  private String packageDisplayName;
+  private String managedAlternativeNames;
+  private String customAlternativeNames;
+  private String managedDescription;
+  private String customDescription;
   private String packageType;
   private String packageHoldingsStatus;
   private String packageContentType;
   private String packageCustomCoverage;
-  private String packageShowToPatrons;
   private String packageAutomaticallySelect;
   private String packageLevelToken;
   private String packageProxy;
+  private String packageAccess;
   private String packageAccessStatusType;
   private String packageTags;
   private String packageAgreements;

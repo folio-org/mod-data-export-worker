@@ -241,7 +241,7 @@ public class EHoldingsToExportFormatMapper {
   }
 
   private String mapProxy(Proxy proxy) {
-    if (proxy.getId().equals("<n>")) {
+    if (isNull(proxy) || isNull(proxy.getId()) || proxy.getId().equals("<n>")) {
       return "None";
     }
     var inherited = Boolean.TRUE.equals(proxy.getInherited()) ? "(inherited)" : "";

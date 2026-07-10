@@ -30,6 +30,7 @@ public class EHoldingsResourceExportFormat {
   private String customEmbargo;
   private String titleShowToPatrons;
   private String titleProxy;
+  private String titleProxiedUrl;
   private String url;
   private String titleAccessStatusType;
   private String customValue1;

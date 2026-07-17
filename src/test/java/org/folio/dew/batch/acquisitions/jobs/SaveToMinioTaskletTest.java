@@ -1,10 +1,12 @@
 package org.folio.dew.batch.acquisitions.jobs;
 
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_TRANSMISSION_METHOD;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -67,9 +69,23 @@ class SaveToMinioTaskletTest extends BaseBatchTest {
   void minioUploadSuccessful() throws IOException {
     JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
 
-    JobExecution jobExecution = testLauncher.startStep("saveToMinIOStep", getJobParameters(), getExecutionContext());
+    JobExecution jobExecution = testLauncher.startStep("saveToMinIOStep", getJobParameters("edifact/edifactOrdersExport.json"), getExecutionContext());
 
     assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
+    // FTP transmission method must not be stamped by the MinIO step
+    assertNull(jobExecution.getExecutionContext().get(ACQ_EXPORT_TRANSMISSION_METHOD));
+  }
+
+  @Test
+  @DirtiesContext
+  void minioUploadStampsFileDownloadTransmissionMethod() throws IOException {
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
+
+    JobExecution jobExecution = testLauncher.startStep("saveToMinIOStep",
+      getJobParameters("edifact/edifactFileDownloadOrdersExport.json"), getExecutionContext());
+
+    assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
+    assertEquals("File download", jobExecution.getExecutionContext().getString(ACQ_EXPORT_TRANSMISSION_METHOD));
   }
 
   @Test
@@ -79,16 +95,16 @@ class SaveToMinioTaskletTest extends BaseBatchTest {
     JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
     doThrow(new NullPointerException()).when(remoteFilesStorage).write(anyString(), any(byte[].class));
 
-    JobExecution jobExecution = testLauncher.startStep("saveToMinIOStep", getJobParameters(), getExecutionContext());
+    JobExecution jobExecution = testLauncher.startStep("saveToMinIOStep", getJobParameters("edifact/edifactOrdersExport.json"), getExecutionContext());
 
     assertEquals(ExitStatus.FAILED.getExitCode(), jobExecution.getExitStatus().getExitCode());
   }
 
 
-  private JobParameters getJobParameters() throws IOException {
+  private JobParameters getJobParameters(String edifactOrdersExport) throws IOException {
     JobParametersBuilder paramsBuilder = new JobParametersBuilder();
 
-    paramsBuilder.addString(EDIFACT_ORDERS_EXPORT, getMockData("edifact/edifactOrdersExport.json"));
+    paramsBuilder.addString(EDIFACT_ORDERS_EXPORT, getMockData(edifactOrdersExport));
     paramsBuilder.addString(ACQ_EXPORT_FILE, RandomStringUtils.secure().next(100, true, true));
     paramsBuilder.addString(JOB_ID, UUID.randomUUID().toString());
 

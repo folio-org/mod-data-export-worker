@@ -32,7 +32,9 @@ import org.folio.dew.domain.dto.eholdings.Identifier;
 import org.folio.dew.domain.dto.eholdings.Identifier.SubtypeEnum;
 import org.folio.dew.domain.dto.eholdings.Identifier.TypeEnum;
 import org.folio.dew.domain.dto.eholdings.Note;
+import org.folio.dew.domain.dto.eholdings.PackageAltName;
 import org.folio.dew.domain.dto.eholdings.PackageAttributes;
+import org.folio.dew.domain.dto.eholdings.PackageVisibility;
 import org.folio.dew.domain.dto.eholdings.Proxy;
 import org.folio.dew.domain.dto.eholdings.Subject;
 import org.folio.dew.domain.dto.eholdings.Tags;
@@ -109,6 +111,11 @@ public class EHoldingsToExportFormatMapper {
 
     exportFormat.setPackageId(ePackage.getData().getId());
     exportFormat.setPackageName(packageAtr.getName());
+    exportFormat.setPackageDisplayName(packageAtr.getCustomDisplayName());
+    exportFormat.setManagedAlternativeNames(mapAltNames(packageAtr.getManagedAltNames()));
+    exportFormat.setCustomAlternativeNames(mapAltNames(packageAtr.getCustomAltNames()));
+    exportFormat.setManagedDescription(packageAtr.getManagedDescription());
+    exportFormat.setCustomDescription(packageAtr.getCustomDescription());
     exportFormat.setPackageType(packageAtr.getPackageType());
     exportFormat.setPackageContentType(packageAtr.getContentType().getValue());
     exportFormat.setPackageCustomCoverage(mapCoverage(packageAtr.getCustomCoverage()));
@@ -116,8 +123,11 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setPackageProxy(mapProxy(packageAtr.getProxy()));
     exportFormat.setPackageTags(mapTags(packageAtr.getTags()));
     exportFormat.setPackageHoldingsStatus(mapHoldingsStatus(packageAtr.getIsSelected()));
-    exportFormat.setPackageShowToPatrons(mapShowToPatrons(packageAtr.getVisibilityData()));
     exportFormat.setPackageAutomaticallySelect(convertBoolToStr(packageAtr.getAllowKbToAddTitles()));
+    exportFormat.setPackageAccess(mapPackageAccess(packageAtr.getIsFreeAccess()));
+    exportFormat.setHideInPublicationFinder(mapVisibilityCategory(packageAtr.getVisibility(), "PF"));
+    exportFormat.setHideInFullTextFinder(mapVisibilityCategory(packageAtr.getVisibility(), "FTF"));
+    exportFormat.setExcludeFromMARCExport(mapVisibilityCategory(packageAtr.getVisibility(), "MARC"));
     exportFormat.setPackageAccessStatusType(mapAccessType(ePackage.getIncluded()));
     exportFormat.setPackageNotes(convertNotes(eHoldingsPackageDTO.getNotes()));
     exportFormat.setPackageAgreements(convertAgreements(eHoldingsPackageDTO.getAgreements()));
@@ -148,6 +158,7 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setCustomEmbargo(mapEmbargo(resourceAtr.getCustomEmbargoPeriod()));
     exportFormat.setTitleShowToPatrons(mapShowToPatrons(resourceAtr.getVisibilityData()));
     exportFormat.setTitleProxy(mapProxy(resourceAtr.getProxy()));
+    exportFormat.setTitleProxiedUrl(mapProxiedUrl(resourceAtr.getProxy()));
     exportFormat.setUrl(resourceAtr.getUrl());
     exportFormat.setSubjects(mapSubjects(resourceAtr.getSubjects()));
     exportFormat.setCustomValue1(resourceAtr.getUserDefinedField1());
@@ -230,7 +241,7 @@ public class EHoldingsToExportFormatMapper {
   }
 
   private String mapProxy(Proxy proxy) {
-    if (proxy.getId().equals("<n>")) {
+    if (isNull(proxy) || isNull(proxy.getId()) || proxy.getId().equals("<n>")) {
       return "None";
     }
     var inherited = Boolean.TRUE.equals(proxy.getInherited()) ? "(inherited)" : "";
@@ -279,6 +290,47 @@ public class EHoldingsToExportFormatMapper {
       .filter(identifier -> identifier.getSubtype().equals(subtype))
       .map(Identifier::getId)
       .collect(Collectors.joining(PIPE_DELIMITER));
+  }
+
+  private String mapAltNames(List<PackageAltName> altNames) {
+    if (isNull(altNames) || altNames.isEmpty()) {
+      return EMPTY;
+    }
+    return altNames.stream()
+      .map(PackageAltName::getAltName)
+      .collect(Collectors.joining("; "));
+  }
+
+  private String mapVisibilityCategory(List<PackageVisibility> visibility, String category) {
+    if (isNull(visibility) || visibility.isEmpty()) {
+      return EMPTY;
+    }
+    return visibility.stream()
+      .filter(v -> v.getCategory() != null && category.equals(v.getCategory().getValue()))
+      .findFirst()
+      .map(v -> {
+        var result = Boolean.TRUE.equals(v.getHidden()) ? "Yes" : "No";
+        var reason = v.getReason();
+        if (reason != null && !reason.isBlank()) {
+          result += String.format(" (%s)", reason);
+        }
+        return result;
+      })
+      .orElse(EMPTY);
+  }
+
+  private String mapPackageAccess(Boolean isFreeAccess) {
+    if (isNull(isFreeAccess)) {
+      return EMPTY;
+    }
+    return isFreeAccess ? "Public" : "Controlled";
+  }
+
+  private String mapProxiedUrl(Proxy proxy) {
+    if (isNull(proxy) || isNull(proxy.getProxiedUrl())) {
+      return EMPTY;
+    }
+    return proxy.getProxiedUrl();
   }
 
   private String mapShowToPatrons(VisibilityData visibility) {

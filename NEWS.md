@@ -1,5 +1,8 @@
 ## Unreleased v3.6.0
 
+### Stories
+[MODEXPW-630](https://folio-org.atlassian.net/browse/MODEXPW-630) eholdings export: Add additional export fields
+
 ## 2026-06-04 v3.5.1
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.5.0...v3.5.1)

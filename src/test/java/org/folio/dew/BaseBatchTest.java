@@ -116,7 +116,7 @@ public abstract class BaseBatchTest {
   @Value("${spring.application.name}")
   protected String springApplicationName;
 
-  public static final LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:s3-latest"))
+  public static final LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:s3-community-archive"))
       .withServices(S3)
       .withEnv("EAGER_SERVICE_LOADING", "1");
 

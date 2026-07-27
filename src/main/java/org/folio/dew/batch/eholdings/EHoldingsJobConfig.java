@@ -141,9 +141,14 @@ public class EHoldingsJobConfig {
   @Bean("eHoldingsItemProcessor")
   public ItemProcessor<EHoldingsResourceDTO, EHoldingsResourceDTO> itemProcessor(
     EHoldingsAgreementItemProcessor eHoldingsAgreementItemProcessor,
-    EHoldingsNoteItemProcessor eHoldingsNoteItemProcessor) {
+    EHoldingsNoteItemProcessor eHoldingsNoteItemProcessor,
+    AgreementCache agreementCache) {
     var itemProcessor = new CompositeItemProcessor<EHoldingsResourceDTO, EHoldingsResourceDTO>();
-    itemProcessor.setDelegates(List.of(eHoldingsNoteItemProcessor, eHoldingsAgreementItemProcessor));
+    if (agreementCache.isEmpty()) {
+      itemProcessor.setDelegates(List.of(eHoldingsNoteItemProcessor));
+    } else {
+      itemProcessor.setDelegates(List.of(eHoldingsNoteItemProcessor, eHoldingsAgreementItemProcessor));
+    }
     return itemProcessor;
   }
 

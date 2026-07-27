@@ -1,6 +1,33 @@
 package org.folio.dew;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACKAGE;
+import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESOURCE;
+import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.File;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
 import org.folio.de.entity.EHoldingsPackage;
@@ -16,6 +43,10 @@ import org.folio.dew.repository.EHoldingsPackageRepository;
 import org.folio.dew.repository.EHoldingsResourceRepository;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.dew.service.FileNameResolver;
+import org.folio.spring.DefaultFolioExecutionContext;
+import org.folio.spring.FolioModuleMetadata;
+import org.folio.spring.integration.XOkapiHeaders;
+import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,28 +63,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-import java.io.File;
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.PACKAGE;
-import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESOURCE;
-import static org.folio.dew.domain.dto.JobParameterNames.E_HOLDINGS_FILE_NAME;
-import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-
 @Log4j2
 class EHoldingsTest extends BaseBatchTest {
   @Autowired
@@ -66,6 +75,8 @@ class EHoldingsTest extends BaseBatchTest {
   private EHoldingsResourceRepository resourceRepository;
   @Autowired
   private RemoteFilesStorage remoteFilesStorage;
+  @Autowired
+  private FolioModuleMetadata folioModuleMetadata;
   @MockitoSpyBean
   private KafkaService kafkaService;
 
@@ -74,19 +85,22 @@ class EHoldingsTest extends BaseBatchTest {
     setUpTenant(NON_CONSORTIUM_TENANT);
   }
 
-  private final static String RESOURCE_ID = "1-22-333";
-  private final static String PACKAGE_ID = "1-22";
-  private final static String SINGLE_PACKAGE_ID = "1-23";
-  private final static String PACKAGE_WITH_3_TITLES_ID = "1-21";
-  private final static String PACKAGE_WITH_SAME_TITLE_NAMES_ID = "1-24";
-  private final static String EXPECTED_RESOURCE_OUTPUT = "src/test/resources/output/eholdings_resource_export.csv";
-  private final static String EXPECTED_PACKAGE_OUTPUT = "src/test/resources/output/eholdings_package_export.csv";
-  private final static String EXPECTED_SINGLE_PACKAGE_OUTPUT =
+  private static final String RESOURCE_ID = "1-22-333";
+  private static final String PACKAGE_ID = "1-22";
+  private static final String SINGLE_PACKAGE_ID = "1-23";
+  private static final String PACKAGE_WITH_3_TITLES_ID = "1-21";
+  private static final String PACKAGE_WITH_SAME_TITLE_NAMES_ID = "1-24";
+  private static final String PACKAGE_WITH_TITLE_AGREEMENTS_ID = "1-255";
+  private static final String EXPECTED_RESOURCE_OUTPUT = "src/test/resources/output/eholdings_resource_export.csv";
+  private static final String EXPECTED_PACKAGE_OUTPUT = "src/test/resources/output/eholdings_package_export.csv";
+  private static final String EXPECTED_SINGLE_PACKAGE_OUTPUT =
     "src/test/resources/output/eholdings_single_package_export.csv";
-  private final static String EXPECTED_PACKAGE_WITH_3_TITLES_OUTPUT =
+  private static final String EXPECTED_PACKAGE_WITH_3_TITLES_OUTPUT =
     "src/test/resources/output/eholdings_package_export_with_3_titles.csv";
-  private final static String EXPECTED_PACKAGE_WITH_SAME_TITLE_NAMES_OUTPUT =
+  private static final String EXPECTED_PACKAGE_WITH_SAME_TITLE_NAMES_OUTPUT =
     "src/test/resources/output/eholdings_package_export_with_same_title_names.csv";
+  private static final String EXPECTED_PACKAGE_WITH_TITLE_AGREEMENTS_OUTPUT =
+    "src/test/resources/output/eholdings_package_export_with_title_agreements.csv";
   private static final String FILE_PATH = "mod-data-export-worker/e_holdings_export/diku/";
 
   @Test
@@ -158,6 +172,31 @@ class EHoldingsTest extends BaseBatchTest {
       getRequestedFor(
         urlEqualTo(
           "/eholdings/packages/1-21/resources?filter%5Bname%5D=%2A&sort=name&page=1&count=1")));
+
+    var packages = packageRepository.findAll();
+    var resources = resourceRepository.findAll();
+    assertEquals(0, ((Collection<?>) packages).size());
+    assertEquals(0, ((Collection<?>) resources).size());
+    verifyJobEvent();
+  }
+
+  @Test
+  @DisplayName("Run EHoldingsJob export package with title agreements successfully")
+  void eHoldingsJobPackageWithTitleAgreementsTest() throws Exception {
+    JobOperatorTestUtils testLauncher = createTestLauncher(getEHoldingsJob);
+    var exportConfig = buildExportConfig(PACKAGE_WITH_TITLE_AGREEMENTS_ID, PACKAGE);
+
+    final JobParameters jobParameters = prepareJobParameters(exportConfig);
+    JobExecution jobExecution = testLauncher.startJob(jobParameters);
+
+    verifyFile(jobExecution, EXPECTED_PACKAGE_WITH_TITLE_AGREEMENTS_OUTPUT);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+
+    wireMockServer.verify(
+      getRequestedFor(
+        urlEqualTo(
+          "/eholdings/packages/1-255/resources?filter%5Bname%5D=%2A&sort=name&page=1&count=1")));
 
     var packages = packageRepository.findAll();
     var resources = resourceRepository.findAll();
@@ -246,15 +285,60 @@ class EHoldingsTest extends BaseBatchTest {
     verifyJobEvent();
   }
 
+  @Test
+  @DisplayName("Run 3 EHoldingsJob package exports concurrently without shared-state interference")
+  void eHoldingsJobPackage3ConcurrentJobsTest() throws Exception {
+    var params1 = prepareJobParameters(buildExportConfig(PACKAGE_ID, PACKAGE));
+    var params2 = prepareJobParameters(buildExportConfig(PACKAGE_WITH_3_TITLES_ID, PACKAGE));
+    var params3 = prepareJobParameters(buildExportConfig(SINGLE_PACKAGE_ID, PACKAGE));
+
+    var launcher1 = createTestLauncher(getEHoldingsJob);
+    var launcher2 = createTestLauncher(getEHoldingsJob);
+    var launcher3 = createTestLauncher(getEHoldingsJob);
+
+    // Capture Folio context headers once on the test thread for propagation to worker threads
+    Map<String, Collection<String>> folioHeaders = okapiHeaders.entrySet().stream()
+      .filter(e -> e.getKey().startsWith(XOkapiHeaders.OKAPI_HEADERS_PREFIX))
+      .collect(Collectors.toMap(Map.Entry::getKey, e -> List.of(String.valueOf(e.getValue()))));
+
+    ExecutorService executor = Executors.newFixedThreadPool(3);
+    try {
+      CompletableFuture<JobExecution> future1 = CompletableFuture
+        .supplyAsync(() -> runJobWithFolioContext(launcher1, params1, folioHeaders), executor);
+      CompletableFuture<JobExecution> future2 = CompletableFuture
+        .supplyAsync(() -> runJobWithFolioContext(launcher2, params2, folioHeaders), executor);
+      CompletableFuture<JobExecution> future3 = CompletableFuture
+        .supplyAsync(() -> runJobWithFolioContext(launcher3, params3, folioHeaders), executor);
+
+      CompletableFuture.allOf(future1, future2, future3).get(120, TimeUnit.SECONDS);
+
+      assertThat(future1.get().getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+      assertThat(future2.get().getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+      assertThat(future3.get().getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+    } finally {
+      executor.shutdown();
+    }
+  }
+
+  @SneakyThrows
+  private JobExecution runJobWithFolioContext(JobOperatorTestUtils launcher,
+                                              JobParameters params,
+                                              Map<String, Collection<String>> folioHeaders) {
+    var ctx = new DefaultFolioExecutionContext(folioModuleMetadata, folioHeaders);
+    try (var ignored = new FolioExecutionContextSetter(ctx)) {
+      return launcher.startJob(params);
+    }
+  }
+
   private void populateOtherJobsDataInDatabase(){
     var packageFromAnotherJob = new EHoldingsPackage();
     packageFromAnotherJob.setId("1-22");
-    packageFromAnotherJob.setJobExecutionId(2L);
+    packageFromAnotherJob.setJobExecutionId(Long.MAX_VALUE);
     packageRepository.save(packageFromAnotherJob);
 
     var resourceFromAnotherJob = new EHoldingsResource();
     resourceFromAnotherJob.setId("1-22-3334");
-    resourceFromAnotherJob.setJobExecutionId(2L);
+    resourceFromAnotherJob.setJobExecutionId(Long.MAX_VALUE);
     resourceFromAnotherJob.setName("ABC of Diabetes (ABC Series)");
     resourceRepository.save(resourceFromAnotherJob);
   }
@@ -277,6 +361,10 @@ class EHoldingsTest extends BaseBatchTest {
     final String presignedUrl = remoteFilesStorage.objectToPresignedObjectUrl(fileInStorage);
     final FileSystemResource actualOutput = actualFileOutput(presignedUrl);
     FileSystemResource expectedOutput = new FileSystemResource(expectedFile);
+    if (!FileUtils.contentEqualsIgnoreEOL(expectedOutput.getFile(), actualOutput.getFile(), "UTF-8")) {
+      log.error("ACTUAL OUTPUT:\n{}", FileUtils.readFileToString(actualOutput.getFile(), "UTF-8"));
+      log.error("EXPECTED OUTPUT:\n{}", FileUtils.readFileToString(expectedOutput.getFile(), "UTF-8"));
+    }
     assertTrue(FileUtils.contentEqualsIgnoreEOL(expectedOutput.getFile(), actualOutput.getFile(), "UTF-8"), "Files are not identical!");
   }
 

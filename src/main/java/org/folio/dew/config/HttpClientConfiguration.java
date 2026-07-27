@@ -6,7 +6,9 @@ import org.folio.dew.client.AccountBulkClient;
 import org.folio.dew.client.AccountClient;
 import org.folio.dew.client.AgreementClient;
 import org.folio.dew.client.AuditClient;
+import org.folio.dew.client.ContributorNameTypeClient;
 import org.folio.dew.client.DataExportSpringClient;
+import org.folio.dew.client.EmailClient;
 import org.folio.dew.client.EntitiesLinksStatsClient;
 import org.folio.dew.client.ExpenseClassClient;
 import org.folio.dew.client.HoldingClient;
@@ -21,6 +23,7 @@ import org.folio.dew.client.OrdersStorageClient;
 import org.folio.dew.client.OrganizationsClient;
 import org.folio.dew.client.ServicePointClient;
 import org.folio.dew.client.TenantAddressesClient;
+import org.folio.dew.client.TemplateEngineClient;
 import org.folio.dew.client.TransferClient;
 import org.folio.dew.client.UserClient;
 import org.folio.dew.client.UserTenantsClient;
@@ -113,6 +116,11 @@ public class HttpClientConfiguration {
   }
 
   @Bean
+  public ContributorNameTypeClient contributorNameTypeClient(HttpServiceProxyFactory factory) {
+    return factory.createClient(ContributorNameTypeClient.class);
+  }
+
+  @Bean
   public InventoryClient inventoryClient(HttpServiceProxyFactory factory) {
     return factory.createClient(InventoryClient.class);
   }
@@ -150,6 +158,16 @@ public class HttpClientConfiguration {
   @Bean
   public ServicePointClient servicePointClient(HttpServiceProxyFactory factory) {
     return factory.createClient(ServicePointClient.class);
+  }
+
+  @Bean
+  public EmailClient emailClient(HttpServiceProxyFactory factory) {
+    return factory.createClient(EmailClient.class);
+  }
+
+  @Bean
+  public TemplateEngineClient templateEngineClient(HttpServiceProxyFactory factory) {
+    return factory.createClient(TemplateEngineClient.class);
   }
 
   @Primary

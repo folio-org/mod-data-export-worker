@@ -1,5 +1,8 @@
 package org.folio.dew.batch.acquisitions.utils;
 
+import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.EMAIL_FROM;
+import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.EMAIL_TEMPLATE;
+import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.EMAIL_TO;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.FTP_PORT;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.SERVER_ADDRESS;
 import static org.folio.dew.domain.dto.ReferenceNumberItem.RefNumberTypeEnum.ORDER_REFERENCE_NUMBER;
@@ -65,11 +68,18 @@ public class ExportUtils {
   }
 
   public static void validateFtpFields(VendorEdiOrdersExportConfig ediExportConfig, List<String> missingFields) {
-    if (ediExportConfig.getIntegrationType() == ORDERING || ediExportConfig.getTransmissionMethod() == FTP) {
+    if (ediExportConfig.getTransmissionMethod() == FTP) {
       var ftpConfig = ediExportConfig.getEdiFtp();
       validateField(FTP_PORT.getName(), ftpConfig.getFtpPort(), Objects::nonNull, missingFields);
       validateField(SERVER_ADDRESS.getName(), ftpConfig.getServerAddress(), StringUtils::isNotEmpty, missingFields);
     }
+  }
+
+  public static void validateEmailFields(VendorEdiOrdersExportConfig ediExportConfig, List<String> missingFields) {
+      var emailConfig = ediExportConfig.getEdiEmail();
+      validateField(EMAIL_FROM.getName(), emailConfig.getEmailFrom(), StringUtils::isNotEmpty, missingFields);
+      validateField(EMAIL_TO.getName(), emailConfig.getEmailTo(), StringUtils::isNotEmpty, missingFields);
+      validateField(EMAIL_TEMPLATE.getName(), emailConfig.getEmailTemplate(), Objects::nonNull, missingFields);
   }
 
   public static String generateFileName(String vendorName, String configName, VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType, FileFormatEnum fileFormat) {
@@ -82,7 +92,7 @@ public class ExportUtils {
     if (integrationType == CLAIMING) {
       return fileFormat == FileFormatEnum.EDI ? "edi_claims" : "csv_claims";
     }
-    return "edi_orders";
+    return fileFormat == FileFormatEnum.EDI ? "edi_orders" : "csv_orders";
   }
 
   public static ExportType convertIntegrationTypeToExportType(VendorEdiOrdersExportConfig.IntegrationTypeEnum integrationType) {

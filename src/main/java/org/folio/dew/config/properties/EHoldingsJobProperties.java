@@ -27,4 +27,9 @@ public class EHoldingsJobProperties {
   @Min(1)
   @Max(100)
   private int kbEbscoChunkSize;
+
+  /**
+   * Page size for bulk entitlements lookup.
+   */
+  private int entitlementsPerPage;
 }

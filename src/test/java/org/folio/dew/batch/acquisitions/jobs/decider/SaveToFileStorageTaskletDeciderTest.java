@@ -25,9 +25,10 @@ class SaveToFileStorageTaskletDeciderTest {
   }
 
   @Test
-  void decide_shouldProcess_whenIntegrationTypeIsOrdering() {
+  void decide_shouldProcess_whenTransmissionMethodIsFtpAndIntegrationTypeIsOrdering() {
     VendorEdiOrdersExportConfig config = new VendorEdiOrdersExportConfig();
     config.setIntegrationType(IntegrationTypeEnum.ORDERING);
+    config.setTransmissionMethod(TransmissionMethodEnum.FTP);
     JobExecution jobExecution = mock(JobExecution.class);
     StepExecution stepExecution = mock(StepExecution.class);
 
@@ -37,7 +38,7 @@ class SaveToFileStorageTaskletDeciderTest {
   }
 
   @Test
-  void decide_shouldProcess_whenTransmissionMethodIsFtp() {
+  void decide_shouldProcess_whenTransmissionMethodIsFtpAndIntegrationTypeIsClaiming() {
     VendorEdiOrdersExportConfig config = new VendorEdiOrdersExportConfig();
     config.setIntegrationType(IntegrationTypeEnum.CLAIMING);
     config.setTransmissionMethod(TransmissionMethodEnum.FTP);
@@ -50,7 +51,20 @@ class SaveToFileStorageTaskletDeciderTest {
   }
 
   @Test
-  void decide_shouldSkip_whenIntegrationTypeIsNotOrderingAndTransmissionMethodIsNotFtp() {
+  void decide_shouldSkip_whenTransmissionMethodIsEmail() {
+    VendorEdiOrdersExportConfig config = new VendorEdiOrdersExportConfig();
+    config.setIntegrationType(IntegrationTypeEnum.ORDERING);
+    config.setTransmissionMethod(TransmissionMethodEnum.EMAIL);
+    JobExecution jobExecution = mock(JobExecution.class);
+    StepExecution stepExecution = mock(StepExecution.class);
+
+    ExportStepDecision decision = decider.decide(config, jobExecution, stepExecution);
+
+    assertEquals(ExportStepDecision.SKIP, decision);
+  }
+
+  @Test
+  void decide_shouldSkip_whenTransmissionMethodIsNotFtp() {
     VendorEdiOrdersExportConfig config = new VendorEdiOrdersExportConfig();
     config.setIntegrationType(IntegrationTypeEnum.CLAIMING);
     config.setTransmissionMethod(TransmissionMethodEnum.FILE_DOWNLOAD);

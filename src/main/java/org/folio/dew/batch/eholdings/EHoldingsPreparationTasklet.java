@@ -6,6 +6,7 @@ import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_TOTAL_
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PACKAGE_AGREEMENTS;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PACKAGE_NOTES;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_PROVIDER_TOKEN;
+import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.LOAD_FIELD_TITLE_AGREEMENTS;
 import static org.folio.dew.client.AgreementClient.getFiltersParam;
 import static org.folio.dew.client.KbEbscoClient.ACCESS_TYPE;
 import static org.folio.dew.client.NotesClient.NoteLinkDomain.EHOLDINGS;
@@ -28,8 +29,6 @@ import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
 @Component
 @JobScope
 @Log4j2
@@ -41,12 +40,14 @@ public class EHoldingsPreparationTasklet implements Tasklet {
   private final KbEbscoClient kbEbscoClient;
   private final NotesClient notesClient;
   private final AgreementClient agreementClient;
+  private final TitleAgreementLineLoader titleAgreementLineLoader;
 
   private final EHoldingsExportConfig.RecordTypeEnum recordType;
   private final String recordId;
   private final boolean loadNotes;
   private final boolean loadAgreements;
   private final boolean loadProvider;
+  private final boolean loadTitleAgreements;
 
   private final EHoldingsPackageDTO eHoldingsPackageDTO;
 
@@ -56,6 +57,7 @@ public class EHoldingsPreparationTasklet implements Tasklet {
   public EHoldingsPreparationTasklet(KbEbscoClient kbEbscoClient,
                                      NotesClient notesClient,
                                      AgreementClient agreementClient,
+                                     TitleAgreementLineLoader titleAgreementLineLoader,
                                      EHoldingsExportConfig exportConfig,
                                      EHoldingsPackageRepository repository) {
     validateExportFields(exportConfig);
@@ -64,6 +66,7 @@ public class EHoldingsPreparationTasklet implements Tasklet {
     this.notesClient = notesClient;
     this.kbEbscoClient = kbEbscoClient;
     this.agreementClient = agreementClient;
+    this.titleAgreementLineLoader = titleAgreementLineLoader;
     this.recordId = exportConfig.getRecordId();
     this.recordType = exportConfig.getRecordType();
     this.eHoldingsPackageDTO = EHoldingsPackageDTO.builder().build();
@@ -72,6 +75,9 @@ public class EHoldingsPreparationTasklet implements Tasklet {
     this.loadNotes = packageFields != null && packageFields.contains(LOAD_FIELD_PACKAGE_NOTES);
     this.loadProvider = packageFields != null && packageFields.contains(LOAD_FIELD_PROVIDER_TOKEN);
     this.loadAgreements = packageFields != null && packageFields.contains(LOAD_FIELD_PACKAGE_AGREEMENTS);
+
+    var titleFields = exportConfig.getTitleFields();
+    this.loadTitleAgreements = titleFields != null && titleFields.contains(LOAD_FIELD_TITLE_AGREEMENTS);
   }
 
   @Override
@@ -83,6 +89,7 @@ public class EHoldingsPreparationTasklet implements Tasklet {
     if (loadNotes) loadNotes();
     if (loadProvider) loadProvider();
     if (loadAgreements) loadAgreements();
+    if (loadTitleAgreements) titleAgreementLineLoader.loadTitleAgreementLines(packageId);
     log.trace("Record is read.");
 
     log.trace("Writing the record to a database.");

@@ -1,0 +1,94 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "urlPath": "/erm/entitlements",
+        "queryParameters": {
+          "filters": { "equalTo": "reference=~1-255-&&authority=EKB-TITLE" },
+          "fetchExternalResources": { "equalTo": "false" },
+          "stats": { "equalTo": "true" },
+          "perPage": { "equalTo": "2" },
+          "page": { "equalTo": "1" }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "body": "{\"total\":3,\"totalPages\":2,\"pageSize\":2,\"page\":1,\"results\":[{\"reference\":\"1-255-3301\",\"authority\":\"EKB-TITLE\",\"owner\":{\"id\":\"e947c05f-b791-4389-8bfd-3b40ba80c5e3\",\"name\":\"Title agreement 1\",\"startDate\":\"2022-06-01\",\"agreementStatus\":{\"id\":\"2c91809c814621890181462896dc0025\",\"value\":\"active\",\"label\":\"Active\"}}},{\"reference\":\"1-255-3301\",\"authority\":\"EKB-TITLE\",\"owner\":{\"id\":\"e947c05f-b791-4389-8bfd-3b40ba80c5e3\",\"name\":\"Title agreement 2\",\"startDate\":\"2022-06-01\",\"agreementStatus\":{\"id\":\"2c91809c814621890181462896dc0025\",\"value\":\"active\",\"label\":\"Active\"}}}]}"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPath": "/erm/entitlements",
+        "queryParameters": {
+          "filters": { "equalTo": "reference=~1-255-&&authority=EKB-TITLE" },
+          "fetchExternalResources": { "equalTo": "false" },
+          "stats": { "equalTo": "true" },
+          "perPage": { "equalTo": "2" },
+          "page": { "equalTo": "2" }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "body": "{\"total\":3,\"totalPages\":2,\"pageSize\":2,\"page\":2,\"results\":[{\"reference\":\"1-255-3301\",\"authority\":\"EKB-TITLE\",\"owner\":{\"id\":\"e947c05f-b791-4389-8bfd-3b40ba80c5e3\",\"name\":\"Title agreement 3\",\"startDate\":\"2022-06-01\",\"agreementStatus\":{\"id\":\"2c91809c814621890181462896dc0025\",\"value\":\"active\",\"label\":\"Active\"}}}]}"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPath": "/erm/entitlements",
+        "queryParameters": {
+          "filters": { "equalTo": "reference=~1-22-&&authority=EKB-TITLE" },
+          "fetchExternalResources": { "equalTo": "false" },
+          "stats": { "equalTo": "true" },
+          "perPage": { "equalTo": "2" },
+          "page": { "equalTo": "1" }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "body": "{\"total\":1,\"pageSize\":2,\"page\":1,\"results\":[{\"reference\":\"1-22-333\",\"authority\":\"EKB-TITLE\",\"owner\":{\"id\":\"e947c05f-b791-4389-8bfd-3b40ba80c5e3\",\"name\":\"Test\",\"startDate\":\"2022-06-01\",\"agreementStatus\":{\"id\":\"2c91809c814621890181462896dc0025\",\"value\":\"active\",\"label\":\"Active\"}}}]}"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPath": "/erm/entitlements",
+        "queryParameters": {
+          "filters": { "equalTo": "reference=~1-21-&&authority=EKB-TITLE" },
+          "fetchExternalResources": { "equalTo": "false" },
+          "stats": { "equalTo": "true" },
+          "perPage": { "equalTo": "2" },
+          "page": { "equalTo": "1" }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "body": "{\"total\":3,\"pageSize\":2,\"page\":1,\"results\":[{\"reference\":\"1-21-3301\",\"authority\":\"EKB-TITLE\",\"owner\":{\"id\":\"e947c05f-b791-4389-8bfd-3b40ba80c5e3\",\"name\":\"Test\",\"startDate\":\"2022-06-01\",\"agreementStatus\":{\"id\":\"2c91809c814621890181462896dc0025\",\"value\":\"active\",\"label\":\"Active\"}}},{\"reference\":\"1-21-3302\",\"authority\":\"EKB-TITLE\",\"owner\":{\"id\":\"e947c05f-b791-4389-8bfd-3b40ba80c5e3\",\"name\":\"Test\",\"startDate\":\"2022-06-01\",\"agreementStatus\":{\"id\":\"2c91809c814621890181462896dc0025\",\"value\":\"active\",\"label\":\"Active\"}}},{\"reference\":\"1-21-3303\",\"authority\":\"EKB-TITLE\",\"owner\":{\"id\":\"e947c05f-b791-4389-8bfd-3b40ba80c5e3\",\"name\":\"Test\",\"startDate\":\"2022-06-01\",\"agreementStatus\":{\"id\":\"2c91809c814621890181462896dc0025\",\"value\":\"active\",\"label\":\"Active\"}}}]}"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPath": "/erm/entitlements",
+        "queryParameters": {
+          "filters": { "equalTo": "reference=~1-23-&&authority=EKB-TITLE" },
+          "fetchExternalResources": { "equalTo": "false" },
+          "stats": { "equalTo": "true" },
+          "perPage": { "equalTo": "2" },
+          "page": { "equalTo": "1" }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "body": "{\"total\":0,\"pageSize\":2,\"page\":1,\"results\":[]}"
+      }
+    }
+  ]
+}

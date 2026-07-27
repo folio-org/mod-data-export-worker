@@ -1,0 +1,31 @@
+{
+  "vendorId": "e54f0eb5-36c6-43c8-a219-dabbafb0176c",
+  "configName": "EDIFACT Email",
+  "configDescription": "EDI configuration for testing email export",
+  "integrationType": "Ordering",
+  "transmissionMethod": "Email",
+  "fileFormat": "EDI",
+  "ediConfig": {
+    "accountNoList": [
+      "BRXXXXX-01"
+    ],
+    "defaultAcquisitionMethods": [
+      "306489dd-0053-49ee-a068-c316444a8f55"
+    ],
+    "ediNamingConvention": "*.edi",
+    "libEdiCode": "7659876",
+    "libEdiType": "31B/US-SAN",
+    "vendorEdiCode": "1694510",
+    "vendorEdiType": "31B/US-SAN",
+    "notes": "no EDI invoices for our tech services invoices",
+    "sendAccountNumber": true,
+    "supportOrder": true,
+    "supportInvoice": true
+  },
+  "ediEmail": {
+    "emailFrom": "sender@example.com",
+    "emailTo": "vendor@example.com",
+    "emailTemplate": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  },
+  "isDefaultConfig": false
+}

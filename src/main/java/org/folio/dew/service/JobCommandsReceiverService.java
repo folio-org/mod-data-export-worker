@@ -6,13 +6,14 @@ import static org.folio.dew.utils.Constants.EXPORT_DIR_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
 
 import jakarta.annotation.PostConstruct;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
@@ -54,6 +55,8 @@ public class JobCommandsReceiverService {
 
   @Value("${spring.application.name}")
   private String springApplicationName;
+  @Value("${folio.okapi-url:}")
+  private String okapiUrl;
   private String workDir;
 
   @PostConstruct
@@ -73,7 +76,7 @@ public class JobCommandsReceiverService {
     topicPattern = "${application.kafka.topic-pattern}",
     groupId = "${application.kafka.group-id}")
   public void receiveStartJobCommand(@Payload JobCommand jobCommand, @Headers Map<String, Object> messageHeaders) {
-    var defaultFolioExecutionContext = DefaultFolioExecutionContext.fromMessageHeaders(folioModuleMetadata, messageHeaders);
+    var defaultFolioExecutionContext = buildFolioExecutionContext(messageHeaders);
 
     try (var context = new FolioExecutionContextSetter(defaultFolioExecutionContext)) {
       log.info("Received {}.", jobCommand);
@@ -106,6 +109,20 @@ public class JobCommandsReceiverService {
         log.error(e.toString(), e);
       }
     }
+  }
+
+  private DefaultFolioExecutionContext buildFolioExecutionContext(Map<String, Object> messageHeaders) {
+    var baseContext = DefaultFolioExecutionContext.fromMessageHeaders(folioModuleMetadata, messageHeaders);
+    log.info("buildFolioExecutionContext:: configured okapiUrl='{}', baseContext.okapiUrl='{}'",
+      okapiUrl, baseContext.getOkapiUrl());
+    if (StringUtils.isBlank(okapiUrl)) {
+      return baseContext;
+    }
+    Map<String, Collection<String>> headers = new HashMap<>(baseContext.getOkapiHeaders());
+    headers.put("x-okapi-url", List.of(okapiUrl));
+    var ctx = new DefaultFolioExecutionContext(folioModuleMetadata, headers);
+    log.info("buildFolioExecutionContext:: overridden context okapiUrl='{}'", ctx.getOkapiUrl());
+    return ctx;
   }
 
   private String resolveJobKey(JobCommand jobCommand) {
@@ -145,12 +162,12 @@ public class JobCommandsReceiverService {
 
     List<String> objects = Arrays.stream(filesStr.split(";")).distinct().map(f -> {
       try {
-        return StringUtils.stripStart(new URL(f).getPath(), "/");
-      } catch (MalformedURLException e) {
+        return StringUtils.stripStart(new URI(f).getPath(), "/");
+      } catch (URISyntaxException e) {
         log.error(e.getMessage(), e);
         return null;
       }
-    }).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+    }).filter(StringUtils::isNotBlank).distinct().toList();
     if (!objects.isEmpty()) {
       remoteFilesStorage.delete(objects);
     }

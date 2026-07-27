@@ -1,0 +1,30 @@
+package org.folio.dew.batch.acquisitions.jobs.decider;
+
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.log4j.Log4j2;
+import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.step.StepExecution;
+
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.EMAIL;
+
+
+@Log4j2
+public class SendToEmailTaskletDecider extends ExportStepDecider {
+
+  public SendToEmailTaskletDecider(ObjectMapper objectMapper, String stepName) {
+    super(objectMapper, stepName);
+  }
+
+  @Override
+  public ExportStepDecision decide(VendorEdiOrdersExportConfig exportConfig, JobExecution jobExecution, StepExecution stepExecution) {
+    if (exportConfig.getTransmissionMethod() == EMAIL) {
+      log.info("decide:: Processing step: {}", stepName);
+      return ExportStepDecision.PROCESS;
+    }
+    log.info("decide:: Transmission method is not Email, skipping the step: {}", stepName);
+    return ExportStepDecision.SKIP;
+  }
+
+}

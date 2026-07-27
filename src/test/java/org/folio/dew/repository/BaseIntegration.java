@@ -16,7 +16,7 @@ public abstract class BaseIntegration {
 
   @Container
   public static final LocalStackContainer localstack
-      = new LocalStackContainer(DockerImageName.parse("localstack/localstack:s3-latest"))
+      = new LocalStackContainer(DockerImageName.parse("localstack/localstack:s3-community-archive"))
       .withServices(S3)
       .withEnv("EAGER_SERVICE_LOADING", "1");
 

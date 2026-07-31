@@ -28,7 +28,6 @@ import org.folio.dew.domain.dto.eholdings.ProviderData;
 import org.folio.dew.domain.dto.eholdings.Proxy;
 import org.folio.dew.domain.dto.eholdings.Tags;
 import org.folio.dew.domain.dto.eholdings.Token;
-import org.folio.dew.domain.dto.eholdings.VisibilityData;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -104,10 +103,6 @@ class EHoldingsPackageMapperTest extends BaseBatchTest {
     customCoverage.setBeginCoverage("");
     customCoverage.setEndCoverage("");
 
-    var visibilityData = new VisibilityData();
-    visibilityData.isHidden(false);
-    visibilityData.setReason("");
-
     var packageToken = new Token();
     packageToken.setFactName("[[proxyid]]");
     packageToken.setPrompt("ISBN");
@@ -133,7 +128,6 @@ class EHoldingsPackageMapperTest extends BaseBatchTest {
     packageAttributes.setProviderName("API DEV CORPORATE CUSTOMER");
     packageAttributes.setSelectedCount(2);
     packageAttributes.setTitleCount(2);
-    packageAttributes.setVisibilityData(visibilityData);
     packageAttributes.setAllowKbToAddTitles(false);
     packageAttributes.setPackageToken(packageToken);
     packageAttributes.setProxy(proxy);

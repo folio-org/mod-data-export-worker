@@ -265,7 +265,8 @@
             "users.collection.get",
             "transfers.collection.get",
             "inventory-storage.service-points.collection.get",
-            "instance-authority-links.authority-statistics.collection.get"
+            "instance-authority-links.authority-statistics.collection.get",
+            "custom-fields.collection.get"
           ]
         },
         {

@@ -7,9 +7,12 @@ import org.folio.dew.client.AccountClient;
 import org.folio.dew.client.AgreementClient;
 import org.folio.dew.client.AuditClient;
 import org.folio.dew.client.ContributorNameTypeClient;
+import org.folio.dew.client.CustomFieldsClient;
 import org.folio.dew.client.DataExportSpringClient;
 import org.folio.dew.client.EmailClient;
 import org.folio.dew.client.EntitiesLinksStatsClient;
+import org.folio.dew.client.EntitlementsClient;
+import org.folio.dew.client.TenantsClient;
 import org.folio.dew.client.ExpenseClassClient;
 import org.folio.dew.client.HoldingClient;
 import org.folio.dew.client.IdentifierTypeClient;
@@ -48,6 +51,21 @@ public class HttpClientConfiguration {
   @Bean
   public NotesClient notesClient(HttpServiceProxyFactory factory) {
     return factory.createClient(NotesClient.class);
+  }
+
+  @Bean
+  public CustomFieldsClient customFieldsClient(HttpServiceProxyFactory factory) {
+    return factory.createClient(CustomFieldsClient.class);
+  }
+
+  @Bean
+  public EntitlementsClient entitlementsClient(HttpServiceProxyFactory factory) {
+    return factory.createClient(EntitlementsClient.class);
+  }
+
+  @Bean
+  public TenantsClient tenantsClient(HttpServiceProxyFactory factory) {
+    return factory.createClient(TenantsClient.class);
   }
 
   @Bean

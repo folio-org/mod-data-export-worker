@@ -2,6 +2,7 @@
 
 ### Stories
 [MODEXPW-630](https://folio-org.atlassian.net/browse/MODEXPW-630) eholdings export: Add additional export fields
+[MODEXPW-648](https://folio-org.atlassian.net/browse/MODEXPW-648) eholdings export: Use eholdings v5.0 API interface
 
 ## 2026-06-04 v3.5.1
 

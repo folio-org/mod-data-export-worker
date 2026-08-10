@@ -156,8 +156,9 @@ class CustomFieldsServiceTest {
       .thenReturn(Map.of("kept", text("kept", "Kept", "TEXTBOX_SHORT")));
 
     var result = service.resolve(raw("kept", "shown"), ENTITY_TYPE);
+    var context = CustomFieldContext.builder().build();
 
-    assertThatThrownBy(() -> result.put("x", CustomFieldContext.builder().build()))
+    assertThatThrownBy(() -> result.put("x", context))
       .isInstanceOf(UnsupportedOperationException.class);
   }
 

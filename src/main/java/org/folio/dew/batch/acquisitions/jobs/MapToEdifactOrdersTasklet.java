@@ -9,6 +9,7 @@ import static org.folio.dew.batch.acquisitions.utils.ExportUtils.validateField;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.FileFormatEnum.EDI;
 import static org.folio.dew.utils.QueryUtils.combineCqlExpressions;
 import static org.folio.dew.utils.QueryUtils.convertFieldListToEnclosedCqlQuery;
+import static org.folio.dew.utils.QueryUtils.convertIdsToCqlQuery;
 import static org.folio.dew.utils.QueryUtils.getCqlExpressionForFieldNullValue;
 import static org.folio.dew.utils.QueryUtils.negateQuery;
 
@@ -88,14 +89,19 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
 
   protected String getPoLineQuery(VendorEdiOrdersExportConfig ediConfig) {
     var acqMethods = ediConfig.getEdiConfig().getDefaultAcquisitionMethods();
+    var poLineIds = ediConfig.getPoLineIds();
+    // Manual export: caller provided the po line ids explicitly, so the automatic export flags are ignored,
+    // while all other filters of the export configuration still apply
+    var isManualExport = CollectionUtils.isNotEmpty(poLineIds);
     var resultQuery = combineCqlExpressions("AND",
       // Order filters
       "purchaseOrder.workflowStatus==Open", // order status is Open
       "purchaseOrder.vendor==%s".formatted(ediConfig.getVendorId()), // vendor id matches
-      negateQuery("purchaseOrder.manualPo==true"), // not a manual order
+      isManualExport ? "" : negateQuery("purchaseOrder.manualPo==true"), // not a manual order
 
       // Order line filters
-      "automaticExport==true", // line with automatic export
+      isManualExport ? convertIdsToCqlQuery(poLineIds) : "", // line explicitly requested for export
+      isManualExport ? "" : "automaticExport==true", // line with automatic export
       getCqlExpressionForFieldNullValue("lastEDIExportDate"), // has not been exported yet
       convertFieldListToEnclosedCqlQuery(acqMethods, "acquisitionMethod", true), // acquisitionMethod in default list
       getVendorAccountFilter(ediConfig) // vendor account no filter

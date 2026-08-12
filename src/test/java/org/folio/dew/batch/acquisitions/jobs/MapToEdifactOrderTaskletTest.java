@@ -39,6 +39,8 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
   private static final String DATA_EXPORT_CONFIGS_PATH = "edifact/dataExportConfigs.json";
   private static final String SAMPLE_CSV_ORDERS_EXPORT = "edifact/edifactOrdersExportCsv.json";
   private static final String SAMPLE_EDI_ORDERS_EXPORT_MISSING_FIELDS = "edifact/edifactOrdersExportWithoutRequiredFields.json";
+  private static final String PO_LINE_ID_1 = "50fb922c-3fa9-494e-a972-f541df9b877e";
+  private static final String PO_LINE_ID_2 = "0009662b-8b80-4001-b704-ca10971f222d";
 
   @Autowired
   Job edifactOrdersExportJob;
@@ -187,8 +189,59 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
     Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
   }
 
+  @Test
+  void testEdifactOrdersExportManualByPoLineIds() throws Exception {
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    // Manual export: id restriction added, automaticExport and manualPo dropped, all other config filters kept
+    String cqlString = "(purchaseOrder.workflowStatus==Open)" +
+      " AND (purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1)" +
+      " AND (id==(" + PO_LINE_ID_1 + " or " + PO_LINE_ID_2 + "))" +
+      " AND (cql.allRecords=1 NOT lastEDIExportDate=\"\")" +
+      " AND (acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\"))" +
+      " AND (vendorDetail.vendorAccount==(\"BRXXXXX-01\"))";
+    doReturn(poLines).when(ordersService).getPoLinesByQuery(cqlString);
+    doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
+    doReturn("test1").when(edifactMapper).convertForExport(any(), any(), any(), anyString());
+
+    var exportConfig = getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT, List.of(PO_LINE_ID_1, PO_LINE_ID_2));
+    JobExecution jobExecution = testLauncher.startStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig), new ExecutionContext());
+
+    Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+    verify(ordersService).getPoLinesByQuery(cqlString);
+    verify(ordersService).getPurchaseOrdersByIds(anyList());
+  }
+
+  @Test
+  void testEdifactOrdersExportWithEmptyPoLineIdsKeepsAutomaticExportQuery() throws Exception {
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    String cqlString = "(purchaseOrder.workflowStatus==Open)" +
+      " AND (purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1)" +
+      " AND (cql.allRecords=1 NOT purchaseOrder.manualPo==true)" +
+      " AND (automaticExport==true)" +
+      " AND (cql.allRecords=1 NOT lastEDIExportDate=\"\")" +
+      " AND (acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\"))" +
+      " AND (vendorDetail.vendorAccount==(\"BRXXXXX-01\"))";
+    doReturn(poLines).when(ordersService).getPoLinesByQuery(cqlString);
+    doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
+    doReturn("test1").when(edifactMapper).convertForExport(any(), any(), any(), anyString());
+
+    var exportConfig = getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT, List.of());
+    JobExecution jobExecution = testLauncher.startStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig), new ExecutionContext());
+
+    Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+    verify(ordersService).getPoLinesByQuery(cqlString);
+    verify(ordersService).getPurchaseOrdersByIds(anyList());
+  }
+
   protected ObjectNode getEdifactExportConfig(String path, boolean isDefaultConfig) throws IOException {
     return getEdifactExportConfig(path).put("isDefaultConfig", isDefaultConfig);
+  }
+
+  protected ObjectNode getEdifactExportConfig(String path, List<String> poLineIds) throws IOException {
+    var exportConfig = getEdifactExportConfig(path);
+    var poLineIdsNode = exportConfig.putArray("poLineIds");
+    poLineIds.forEach(poLineIdsNode::add);
+    return exportConfig;
   }
 
 }

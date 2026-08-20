@@ -1,3 +1,10 @@
+## 2026-08-20 v3.5.3
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.5.2...v3.5.3)
+
+### Technical tasks
+[MODEXPW-646](https://folio-org.atlassian.net/browse/MODEXPW-646) Bump folio-s3-client from 3.0.0 to 3.0.2 to fix security vulnerabilities
+
 ## 2026-07-02 v3.5.2
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.5.1...v3.5.2)

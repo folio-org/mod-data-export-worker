@@ -112,16 +112,13 @@ class EHoldingsCsvFileWriterTest {
   @Test
   @SneakyThrows
   void shouldWritePackageColumnsInCanonicalOrderRegardlessOfInputOrder() {
-    // packageName (index 4) before packageId (index 8) in canonical order — pass reversed
     when(exportConfig.getPackageFields()).thenReturn(List.of("packageId", "packageName"));
-    // titleName (index 1) before titleId (index 0) — wait, titleId is first; pass reversed
     when(exportConfig.getTitleFields()).thenReturn(List.of("titleName", "titleId"));
 
     var captor = ArgumentCaptor.forClass(byte[].class);
 
     eHoldingsCsvFileWriter.beforeStep(stepExecution);
 
-    // 3 writes: package header, package row, title header
     verify(localFilesStorage, times(3)).write(anyString(), captor.capture());
     var packageHeader = new String(captor.getAllValues().get(0), StandardCharsets.UTF_8).trim();
     var titleHeader = new String(captor.getAllValues().get(2), StandardCharsets.UTF_8).trim();

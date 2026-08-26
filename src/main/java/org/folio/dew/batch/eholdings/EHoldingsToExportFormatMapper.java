@@ -121,6 +121,7 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setPackageCustomCoverage(mapCoverage(packageAtr.getCustomCoverage()));
     exportFormat.setPackageLevelToken(mapToken(packageAtr.getPackageToken()));
     exportFormat.setPackageProxy(mapProxy(packageAtr.getProxy()));
+    exportFormat.setPackageUrl(packageAtr.getUrl());
     exportFormat.setPackageTags(mapTags(packageAtr.getTags()));
     exportFormat.setPackageHoldingsStatus(mapHoldingsStatus(packageAtr.getIsSelected()));
     exportFormat.setPackageAutomaticallySelect(convertBoolToStr(packageAtr.getAllowKbToAddTitles()));

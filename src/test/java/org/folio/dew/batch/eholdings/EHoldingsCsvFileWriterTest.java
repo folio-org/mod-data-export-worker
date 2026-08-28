@@ -1,5 +1,6 @@
 package org.folio.dew.batch.eholdings;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -8,6 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -20,10 +22,12 @@ import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
 import org.folio.dew.repository.EHoldingsPackageRepository;
 import org.folio.dew.repository.LocalFilesStorage;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.batch.core.job.JobExecution;
@@ -103,6 +107,24 @@ class EHoldingsCsvFileWriterTest {
 
     //Then
     verify(localFilesStorage, times(localFileStorageInvocations)).write(anyString(), any());
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldWritePackageColumnsInCanonicalOrderRegardlessOfInputOrder() {
+    when(exportConfig.getPackageFields()).thenReturn(List.of("packageId", "packageName"));
+    when(exportConfig.getTitleFields()).thenReturn(List.of("titleName", "titleId"));
+
+    var captor = ArgumentCaptor.forClass(byte[].class);
+
+    eHoldingsCsvFileWriter.beforeStep(stepExecution);
+
+    verify(localFilesStorage, times(3)).write(anyString(), captor.capture());
+    var packageHeader = new String(captor.getAllValues().get(0), StandardCharsets.UTF_8).trim();
+    var titleHeader = new String(captor.getAllValues().get(2), StandardCharsets.UTF_8).trim();
+
+    assertThat(packageHeader).isEqualTo("Package Name,Package Id");
+    assertThat(titleHeader).isEqualTo("Title Id,Title Name");
   }
 
   private static Stream<Arguments> provideParameters() {

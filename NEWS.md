@@ -3,6 +3,7 @@
 ### Stories
 [MODEXPW-630](https://folio-org.atlassian.net/browse/MODEXPW-630) eholdings export: Add additional export fields
 [MODEXPW-648](https://folio-org.atlassian.net/browse/MODEXPW-648) eholdings export: Use eholdings v5.0 API interface
+[MODEXPW-644](https://folio-org.atlassian.net/browse/MODEXPW-644) eholdings export: Reorder fields, add packageUrl field, preserve export format field order regardless API input
 
 ## 2026-06-04 v3.5.1
 

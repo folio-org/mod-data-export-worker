@@ -62,8 +62,8 @@ class EHoldingsToExportFormatMapperTest {
 
     var result = mapper.convertToExportFormat(buildPackage(null, List.of(alt1, alt2), List.of(alt3, alt4), null));
 
-    assertThat(result.getCustomAlternativeNames()).isEqualTo("Alt 1; Alt 2");
-    assertThat(result.getManagedAlternativeNames()).isEqualTo("Alt 3; Alt 4");
+    assertThat(result.getCustomAlternativeNames()).isEqualTo("Alt 1 | Alt 2");
+    assertThat(result.getManagedAlternativeNames()).isEqualTo("Alt 3 | Alt 4");
   }
 
   @Test

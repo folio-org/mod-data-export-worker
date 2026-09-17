@@ -32,7 +32,8 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -44,6 +45,8 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 @Log4j2
 public class OrderEmailContextMapper {
+
+  private static final DateTimeFormatter CREATED_AT_FORMATTER = new DateTimeFormatterBuilder().appendInstant(3).toFormatter();
 
   private final IdentifierTypeService identifierTypeService;
   private final ContributorNameTypeService contributorNameTypeService;
@@ -60,10 +63,14 @@ public class OrderEmailContextMapper {
           .toList()))
       .toList();
     return OrderEmailContext.builder()
-      .createdAt(Instant.now().truncatedTo(ChronoUnit.MILLIS).toString())
+      .createdAt(formatCreatedAt(Instant.now()))
       .organization(mapOrganization(orders))
       .orders(orderWrappers)
       .build();
+  }
+
+  static String formatCreatedAt(Instant instant) {
+    return CREATED_AT_FORMATTER.format(instant);
   }
 
   private OrganizationContext mapOrganization(List<CompositePurchaseOrder> orders) {

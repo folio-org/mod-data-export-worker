@@ -22,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -196,6 +197,11 @@ class OrderEmailContextMapperTest {
     OrderEmailContext ctx = mapper.buildContext(List.of());
 
     assertThat(ctx.getCreatedAt()).matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z");
+  }
+
+  @Test
+  void formatCreatedAt_wholeSecond_keepsMilliseconds() {
+    assertThat(OrderEmailContextMapper.formatCreatedAt(Instant.parse("2026-08-12T10:15:30Z"))).isEqualTo("2026-08-12T10:15:30.000Z");
   }
 
   @Test

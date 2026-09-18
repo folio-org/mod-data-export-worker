@@ -83,6 +83,10 @@ public class SendToEmailTasklet implements Tasklet {
     emailEntity.setAttachments(List.of(buildAttachment(fileName, edifactOrderAsString, exportConfig.getFileFormat())));
 
     sendEmail(emailEntity);
+
+    // This step only runs when the decider selected EMAIL, so the send succeeding means the export was delivered by email.
+    ExecutionContextUtils.setJobExecutionContext(stepExecution, ACQ_EXPORT_TRANSMISSION_METHOD, exportConfig.getTransmissionMethod().getValue());
+
     return RepeatStatus.FINISHED;
   }
 

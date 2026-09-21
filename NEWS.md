@@ -1,15 +1,15 @@
 ## Unreleased v3.6.0
 
 ### Stories
-[MODEXPW-625](https://folio-org.atlassian.net/browse/MODEXPW-625) Enable Email Delivery for EDIFACT Export Jobs
-[MODEXPW-628](https://folio-org.atlassian.net/browse/MODEXPW-628) Add CSV file format support for ordering export
-[MODEXPW-635](https://folio-org.atlassian.net/browse/MODEXPW-635) Expose template tokens in EDIFACT email export
 [MODEXPW-630](https://folio-org.atlassian.net/browse/MODEXPW-630) eholdings export: Add additional export fields
 [MODEXPW-648](https://folio-org.atlassian.net/browse/MODEXPW-648) eholdings export: Use eholdings v5.0 API interface
-[MODEXPW-642](https://folio-org.atlassian.net/browse/MODEXPW-642) Support BCC recipients in EDIFACT email export
 [MODEXPW-644](https://folio-org.atlassian.net/browse/MODEXPW-644) eholdings export: Reorder fields, add packageUrl field, preserve export format field order regardless API input
 [MODEXPW-655](https://folio-org.atlassian.net/browse/MODEXPW-655) eholdings export: Use pipe (|) as separator for multi-value fields
 [MODEXPW-643](https://folio-org.atlassian.net/browse/MODEXPW-643) Populate exportTransmissionMethod on ExportHistory for order exports
+[MODEXPW-642](https://folio-org.atlassian.net/browse/MODEXPW-642) Support BCC recipients in EDIFACT email export
+[MODEXPW-635](https://folio-org.atlassian.net/browse/MODEXPW-635) Expose template tokens in EDIFACT email export
+[MODEXPW-628](https://folio-org.atlassian.net/browse/MODEXPW-628) Add CSV file format support for ordering export
+[MODEXPW-625](https://folio-org.atlassian.net/browse/MODEXPW-625) Enable Email Delivery for EDIFACT Export Jobs
 
 ## 2026-06-04 v3.5.1
 

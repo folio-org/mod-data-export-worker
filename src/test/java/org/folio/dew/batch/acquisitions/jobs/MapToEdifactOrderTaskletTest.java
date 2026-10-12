@@ -192,7 +192,7 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
   @Test
   void testEdifactOrdersExportManualByPoLineIds() throws Exception {
     JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
-    // Manual export: id restriction added, automaticExport and manualPo dropped, all other config filters kept
+    // Manual execution by a user: id restriction added, automaticExport and manualPo dropped, all other config filters kept
     String cqlString = "(purchaseOrder.workflowStatus==Open)" +
       " AND (purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1)" +
       " AND (id==(" + PO_LINE_ID_1 + " or " + PO_LINE_ID_2 + "))" +
@@ -204,7 +204,7 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
     doReturn("test1").when(edifactMapper).convertForExport(any(), any(), any(), anyString());
 
     var exportConfig = getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT, List.of(PO_LINE_ID_1, PO_LINE_ID_2));
-    JobExecution jobExecution = testLauncher.startStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig), new ExecutionContext());
+    JobExecution jobExecution = testLauncher.startStep(MAP_TO_EDIFACT_STEP, getManualExecutionJobParameters(exportConfig), new ExecutionContext());
 
     Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
     verify(ordersService).getPoLinesByQuery(cqlString);
@@ -226,6 +226,29 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
     doReturn("test1").when(edifactMapper).convertForExport(any(), any(), any(), anyString());
 
     var exportConfig = getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT, List.of());
+    JobExecution jobExecution = testLauncher.startStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig), new ExecutionContext());
+
+    Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+    verify(ordersService).getPoLinesByQuery(cqlString);
+    verify(ordersService).getPurchaseOrdersByIds(anyList());
+  }
+
+  @Test
+  void testEdifactOrdersExportWithoutManualExecutionIgnoresPoLineIds() throws Exception {
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    // Not a manual execution (scheduled run, POST /jobs): po line ids on the config are ignored, the automatic export filters apply
+    String cqlString = "(purchaseOrder.workflowStatus==Open)" +
+      " AND (purchaseOrder.vendor==d0fb5aa0-cdf1-11e8-a8d5-f2801f1b9fd1)" +
+      " AND (cql.allRecords=1 NOT purchaseOrder.manualPo==true)" +
+      " AND (automaticExport==true)" +
+      " AND (cql.allRecords=1 NOT lastEDIExportDate=\"\")" +
+      " AND (acquisitionMethod==(\"306489dd-0053-49ee-a068-c316444a8f55\"))" +
+      " AND (vendorDetail.vendorAccount==(\"BRXXXXX-01\"))";
+    doReturn(poLines).when(ordersService).getPoLinesByQuery(cqlString);
+    doReturn(orders).when(ordersService).getPurchaseOrdersByIds(anyList());
+    doReturn("test1").when(edifactMapper).convertForExport(any(), any(), any(), anyString());
+
+    var exportConfig = getEdifactExportConfig(SAMPLE_EDI_ORDERS_EXPORT, List.of(PO_LINE_ID_1, PO_LINE_ID_2));
     JobExecution jobExecution = testLauncher.startStep(MAP_TO_EDIFACT_STEP, getJobParameters(exportConfig), new ExecutionContext());
 
     Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);

@@ -3,9 +3,12 @@ package org.folio.dew.batch.acquisitions.jobs;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.acquisitions.services.OrganizationsService;
+import org.folio.dew.config.kafka.KafkaService;
+import org.folio.dew.domain.dto.ExportHistory;
 import org.folio.dew.domain.dto.acquisitions.edifact.Organization;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameters;
@@ -16,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,13 +27,18 @@ import java.util.UUID;
 
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_TRANSMISSION_METHOD;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_NAME;
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
 class ExportHistoryTaskletTest extends BaseBatchTest {
   @Autowired
@@ -37,6 +46,8 @@ class ExportHistoryTaskletTest extends BaseBatchTest {
   private Job edifactExportJob;
   @MockitoBean
   private OrganizationsService organizationsService;
+  @MockitoSpyBean
+  private KafkaService kafkaService;
 
   @BeforeAll
   static void beforeAll() {
@@ -67,17 +78,40 @@ class ExportHistoryTaskletTest extends BaseBatchTest {
     vendor.setCode("GOBI");
     doReturn(vendor).when(organizationsService).getOrganizationById(anyString());
 
-    JobExecution jobExecution1 = testLauncher.startStep("createExportHistoryRecordsStep", getJobParameters(), getExecutionContext());
+    JobExecution jobExecution1 = testLauncher.startStep("createExportHistoryRecordsStep", getJobParameters(), getExecutionContext(null));
 
     var status = new ArrayList<>(jobExecution1.getStepExecutions()).getFirst()
       .getStatus()
       .name();
     assertEquals("COMPLETED", status);
+    assertNull(captureExportHistory().getExportTransmissionMethod());
   }
 
-  protected ExecutionContext getExecutionContext() {
+  @Test
+  @DirtiesContext
+  void testCreateExportHistoryRecordsTransmissionMethod() throws IOException {
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
+    Organization vendor = new Organization();
+    vendor.setCode("GOBI");
+    doReturn(vendor).when(organizationsService).getOrganizationById(anyString());
+
+    testLauncher.startStep("createExportHistoryRecordsStep", getJobParameters(), getExecutionContext("FTP"));
+
+    assertEquals(ExportHistory.ExportTransmissionMethodEnum.FTP, captureExportHistory().getExportTransmissionMethod());
+  }
+
+  private ExportHistory captureExportHistory() {
+    var captor = ArgumentCaptor.forClass(ExportHistory.class);
+    verify(kafkaService).send(eq(KafkaService.Topic.EXPORT_HISTORY_CREATE), any(), captor.capture());
+    return captor.getValue();
+  }
+
+  protected ExecutionContext getExecutionContext(String transmissionMethod) {
     ExecutionContext result = new ExecutionContext();
     result.put(ACQ_EXPORT_FILE_NAME, "test_file");
+    if (transmissionMethod != null) {
+      result.put(ACQ_EXPORT_TRANSMISSION_METHOD, transmissionMethod);
+    }
     return result;
   }
 

@@ -49,18 +49,18 @@ public class EdifactExportJobConfig {
       // FTP, Email, and Export History are optional steps, each guarded by a decider.
       // FTP and Email are mutually exclusive via transmissionMethod; Export History
       // is exclusive to Ordering. All three steps are chained sequentially and each
-      // decider independently returns PROCESS or SKIP.
+      // decider independently returns PROCESS or SKIP. A failed FTP or Email step fails the job
+      // (next() routes COMPLETED onwards and everything else to FAILED), so no export history is
+      // created for a file that was not delivered.
       .next(ftpStepDecider)
         .on(PROCESS.getStatus()).to(saveToFTPStep)
-        .from(saveToFTPStep).on("*").to(emailStepDecider)
         .from(ftpStepDecider).on(SKIP.getStatus()).to(emailStepDecider)
-      .next(emailStepDecider)
-        .on(PROCESS.getStatus()).to(sendToEmailStep)
-        .from(sendToEmailStep).on("*").to(exportHistoryStepDecider)
-        .from(emailStepDecider).on(SKIP.getStatus()).to(exportHistoryStepDecider)
-      .next(exportHistoryStepDecider)
-        .on(PROCESS.getStatus()).to(createExportHistoryRecordsStep)
-        .from(exportHistoryStepDecider).on(SKIP.getStatus()).end()
+        .from(saveToFTPStep).next(emailStepDecider)
+          .on(PROCESS.getStatus()).to(sendToEmailStep)
+          .from(emailStepDecider).on(SKIP.getStatus()).to(exportHistoryStepDecider)
+          .from(sendToEmailStep).next(exportHistoryStepDecider)
+            .on(PROCESS.getStatus()).to(createExportHistoryRecordsStep)
+            .from(exportHistoryStepDecider).on(SKIP.getStatus()).end()
       .end()
       .build();
   }

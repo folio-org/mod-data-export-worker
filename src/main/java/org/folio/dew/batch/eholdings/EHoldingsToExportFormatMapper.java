@@ -68,7 +68,7 @@ public class EHoldingsToExportFormatMapper {
   public List<String> convertNotes(List<Note> notes) {
     return notes == null ? emptyList() : notes.stream()
       .map(this::noteToString)
-      .collect(Collectors.toList());
+      .toList();
   }
 
   public String convertAgreements(List<Agreement> agreements) {
@@ -121,6 +121,7 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setPackageCustomCoverage(mapCoverage(packageAtr.getCustomCoverage()));
     exportFormat.setPackageLevelToken(mapToken(packageAtr.getPackageToken()));
     exportFormat.setPackageProxy(mapProxy(packageAtr.getProxy()));
+    exportFormat.setPackageUrl(packageAtr.getUrl());
     exportFormat.setPackageTags(mapTags(packageAtr.getTags()));
     exportFormat.setPackageHoldingsStatus(mapHoldingsStatus(packageAtr.getIsSelected()));
     exportFormat.setPackageAutomaticallySelect(convertBoolToStr(packageAtr.getAllowKbToAddTitles()));
@@ -298,7 +299,7 @@ public class EHoldingsToExportFormatMapper {
     }
     return altNames.stream()
       .map(PackageAltName::getAltName)
-      .collect(Collectors.joining("; "));
+      .collect(Collectors.joining(PIPE_DELIMITER));
   }
 
   private String mapVisibilityCategory(List<PackageVisibility> visibility, String category) {
@@ -323,7 +324,7 @@ public class EHoldingsToExportFormatMapper {
     if (isNull(isFreeAccess)) {
       return EMPTY;
     }
-    return isFreeAccess ? "Public" : "Controlled";
+    return Boolean.TRUE.equals(isFreeAccess) ? "Public" : "Controlled";
   }
 
   private String mapProxiedUrl(Proxy proxy) {

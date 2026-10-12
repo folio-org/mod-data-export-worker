@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_ORDERS;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_TRANSMISSION_METHOD;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
 import static org.folio.dew.utils.TestUtils.getMockData;
@@ -88,6 +89,7 @@ class SendToEmailTaskletTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.startStep("sendToEmailStep", jobParameters, executionContext);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+    assertThat(jobExecution.getExecutionContext().getString(ACQ_EXPORT_TRANSMISSION_METHOD)).isEqualTo("Email");
   }
 
   @Test

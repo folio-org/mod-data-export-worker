@@ -91,9 +91,15 @@ OrderEmailContext
     │   ├── shipTo                           # resolved from shipTo UUID via tenant-addresses
     │   │   ├── id
     │   │   └── address
-    │   └── billTo                           # resolved from billTo UUID via tenant-addresses
-    │       ├── id
-    │       └── address
+    │   ├── billTo                           # resolved from billTo UUID via tenant-addresses
+    │   │   ├── id
+    │   │   └── address
+    │   └── customFields{}                   # map keyed by custom-field refId — email export only (omitted when none)
+    │       └── <refId>
+    │           ├── name                     # custom-field display name
+    │           ├── type                     # definition type (e.g. SINGLE_SELECT_DROPDOWN, SINGLE_CHECKBOX, TEXTBOX_LONG)
+    │           ├── value                    # scalar value — see Custom fields note below
+    │           └── values[]                 # array value  — see Custom fields note below
     └── orderLines[]                         # multiple entries
         └── orderLine
             ├── poLineNumber
@@ -123,11 +129,27 @@ OrderEmailContext
             │   └── currency
             ├── fundDistribution[]           # multiple entries
             │   └── code                     # code taken as-is from the PO line; fundId is not resolved
-            └── vendorDetail 
-                └── instructions             # vendor instructions
+            ├── vendorDetail
+            │   └── instructions             # vendor instructions
+            └── customFields{}               # map keyed by custom-field refId — email export only (omitted when none)
+                └── <refId>
+                    ├── name                 # custom-field display name
+                    ├── type                 # definition type (e.g. SINGLE_SELECT_DROPDOWN, SINGLE_CHECKBOX, TEXTBOX_LONG)
+                    ├── value                # scalar value — see Custom fields note below
+                    └── values[]             # array value  — see Custom fields note below
 ```
 > **Null/empty policy:** missing values are rendered as safe defaults rather than
 > `null`, so templates can reference any field without null checks.
+>
+> **Custom fields:** `customFields` is a map keyed by the field's `refId`, populated only for
+> the email export (the whole map is omitted when the record has no custom-field values). Each
+> entry carries `name`, `type`, and exactly one of `value` (single-value fields) or `values[]`
+> (multi-value fields):
+> - single-select → `value` = `{ id, label }` (`id` = stored option-id, `label` = resolved option label)
+> - checkbox → `value` = boolean; textbox / date / number → `value` = string
+> - multi-select → `values[]` of `{ id, label }`; repeatable text → `values[]` of strings
+>
+> Hidden custom fields (definition `visible: false`) and fields whose definition cannot be resolved are omitted.
 
 #### Example payload
 
@@ -163,6 +185,13 @@ OrderEmailContext
         "billTo": {
           "id": "22222222-2222-2222-2222-222222222222",
           "address": "Accounts Payable, PO Box 42, Springfield IL"
+        },
+        "customFields": {
+          "order_channel": {
+            "name": "Order channel",
+            "type": "SINGLE_SELECT_DROPDOWN",
+            "value": { "id": "opt_1", "label": "Web" }
+          }
         }
       },
       "orderLines": [
@@ -210,6 +239,36 @@ OrderEmailContext
             ],
             "vendorDetail": {
               "instructions": "Deliver to loading dock, ring bell on arrival"
+            },
+            "customFields": {
+              "binding": {
+                "name": "Binding",
+                "type": "SINGLE_SELECT_DROPDOWN",
+                "value": { "id": "opt_2", "label": "Paperback" }
+              },
+              "genres": {
+                "name": "Genres",
+                "type": "MULTI_SELECT_DROPDOWN",
+                "values": [
+                  { "id": "opt_1", "label": "Fiction" },
+                  { "id": "opt_3", "label": "Reference" }
+                ]
+              },
+              "keywords": {
+                "name": "Keywords",
+                "type": "TEXTBOX_SHORT",
+                "values": ["folio", "library"]
+              },
+              "urgent": {
+                "name": "Urgent",
+                "type": "SINGLE_CHECKBOX",
+                "value": true
+              },
+              "expected_release": {
+                "name": "Expected release",
+                "type": "DATE_PICKER",
+                "value": "2026-07-06"
+              }
             }
           }
         }

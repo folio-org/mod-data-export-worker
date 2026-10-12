@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -19,4 +20,5 @@ public class OrderLineContext {
   private CostContext cost;
   private List<FundDistributionContext> fundDistribution;
   private VendorDetailContext vendorDetail;
+  private Map<String, CustomFieldContext> customFields;
 }

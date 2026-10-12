@@ -231,6 +231,14 @@
     {
       "id": "instance-authority-links-statistics",
       "version": "2.1 3.0"
+    },
+    {
+      "id": "entitlements",
+      "version": "1.0"
+    },
+    {
+      "id": "tenants",
+      "version": "1.0"
     }
   ],
   "provides": [

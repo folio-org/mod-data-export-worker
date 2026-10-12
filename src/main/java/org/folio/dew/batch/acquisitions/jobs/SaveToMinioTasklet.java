@@ -2,6 +2,8 @@ package org.folio.dew.batch.acquisitions.jobs;
 
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_TRANSMISSION_METHOD;
+import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.JobParameterNames.OUTPUT_FILES_IN_STORAGE;
 import static org.folio.dew.utils.Constants.EDIFACT_EXPORT_DIR_NAME;
 import static org.folio.dew.utils.Constants.getWorkingDirectory;
@@ -10,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.exceptions.EdifactException;
+import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.repository.RemoteFilesStorage;
 import org.folio.spring.FolioExecutionContext;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -20,6 +23,8 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -36,6 +41,7 @@ public class SaveToMinioTasklet implements Tasklet {
 
   private final RemoteFilesStorage remoteFilesStorage;
   private final FolioExecutionContext folioExecutionContext;
+  private final ObjectMapper ediObjectMapper;
 
   @Value("${spring.application.name}")
   protected String springApplicationName;
@@ -55,6 +61,12 @@ public class SaveToMinioTasklet implements Tasklet {
       throw new EdifactException(REMOTE_STORAGE_ERROR_MESSAGE);
     }
     ExecutionContextUtils.addToJobExecutionContext(contribution.getStepExecution(), OUTPUT_FILES_IN_STORAGE, uploadedFilePath, ";");
+
+    var exportConfig = ediObjectMapper.readValue(
+      (String) chunkContext.getStepContext().getJobParameters().get(EDIFACT_ORDERS_EXPORT), VendorEdiOrdersExportConfig.class);
+    if (exportConfig.getTransmissionMethod() == VendorEdiOrdersExportConfig.TransmissionMethodEnum.FILE_DOWNLOAD) {
+      ExecutionContextUtils.setJobExecutionContext(stepExecution, ACQ_EXPORT_TRANSMISSION_METHOD, exportConfig.getTransmissionMethod().getValue());
+    }
 
     return RepeatStatus.FINISHED;
   }

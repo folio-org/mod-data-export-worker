@@ -18,8 +18,10 @@ import static org.folio.dew.utils.Constants.QUOTE;
 import static org.folio.dew.utils.Constants.QUOTE_REPLACEMENT;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,6 +30,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.folio.de.entity.EHoldingsPackage;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
+import org.folio.dew.domain.dto.eholdings.EHoldingsPackageExportFormat;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
 import org.folio.dew.repository.EHoldingsPackageRepository;
 import org.folio.dew.repository.LocalFilesStorage;
@@ -46,6 +49,15 @@ import org.springframework.util.ClassUtils;
 @Component
 @StepScope
 public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsResourceExportFormat> {
+
+  private static final List<String> PACKAGE_FIELD_ORDER = Arrays.stream(EHoldingsPackageExportFormat.class.getDeclaredFields())
+    .map(Field::getName)
+    .toList();
+
+  private static final List<String> TITLE_FIELD_ORDER = Arrays.stream(EHoldingsResourceExportFormat.class.getDeclaredFields())
+    .map(Field::getName)
+    .toList();
+
   private int maxPackageNotesLength;
   private int maxTitleNotesLength;
   private final String tempOutputFilePath;
@@ -84,7 +96,7 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
     writePackage(stepExecution.getJobExecutionId());
 
     if (CollectionUtils.isNotEmpty(exportConfig.getTitleFields())) {
-      var resourceHeaders = getHeader(exportConfig.getTitleFields()) + lineSeparator;
+      var resourceHeaders = getHeader(inCanonicalOrder(exportConfig.getTitleFields(), TITLE_FIELD_ORDER)) + lineSeparator;
       writeString(resourceHeaders);
     }
   }
@@ -100,7 +112,7 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
   @Override
   protected String doWrite(Chunk<? extends EHoldingsResourceExportFormat> items) {
     return items.getItems().stream()
-      .map(item -> getItemRow(maxTitleNotesLength, item, exportConfig.getTitleFields()))
+      .map(item -> getItemRow(maxTitleNotesLength, item, inCanonicalOrder(exportConfig.getTitleFields(), TITLE_FIELD_ORDER)))
       .collect(Collectors.joining(lineSeparator, EMPTY, lineSeparator));
   }
 
@@ -115,7 +127,8 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
 
     var packageFields = exportConfig.getPackageFields();
     if (CollectionUtils.isNotEmpty(packageFields)) {
-      var packageHeader = getHeader(packageFields) + lineSeparator;
+      var orderedFields = inCanonicalOrder(packageFields, PACKAGE_FIELD_ORDER);
+      var packageHeader = getHeader(orderedFields) + lineSeparator;
       writeString(packageHeader);
 
       var recordId = exportConfig.getRecordId();
@@ -126,8 +139,7 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
       var eHoldingsPackage = packageRepository.findById(packageComposedId).orElse(null);
       var packageExportFormat = mapper.convertToExportFormat(eHoldingsPackage);
 
-      var packageRow =
-        getItemRow(maxPackageNotesLength, packageExportFormat, exportConfig.getPackageFields()) + lineSeparator;
+      var packageRow = getItemRow(maxPackageNotesLength, packageExportFormat, orderedFields) + lineSeparator;
       writeString(packageRow);
     }
   }
@@ -140,6 +152,10 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
       // Just ignore it if there's nothing to append to.
     }
     localFilesStorage.write(tempOutputFilePath, ArrayUtils.addAll(bytesHeader, str.getBytes(StandardCharsets.UTF_8)));
+  }
+
+  private static List<String> inCanonicalOrder(List<String> requested, List<String> canonicalOrder) {
+    return canonicalOrder.stream().filter(requested::contains).toList();
   }
 
   private String getHeader(List<String> fieldNames) {

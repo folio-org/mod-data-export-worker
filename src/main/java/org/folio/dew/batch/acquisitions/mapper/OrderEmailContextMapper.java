@@ -6,6 +6,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.acquisitions.services.ConfigurationService;
 import org.folio.dew.batch.acquisitions.services.ContributorNameTypeService;
+import org.folio.dew.batch.acquisitions.services.CustomFieldsService;
 import org.folio.dew.batch.acquisitions.services.IdentifierTypeService;
 import org.folio.dew.batch.acquisitions.services.OrganizationsService;
 import org.folio.dew.batch.acquisitions.services.UserService;
@@ -32,7 +33,8 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -45,11 +47,16 @@ import java.util.function.Predicate;
 @Log4j2
 public class OrderEmailContextMapper {
 
+  private static final DateTimeFormatter CREATED_AT_FORMATTER = new DateTimeFormatterBuilder().appendInstant(3).toFormatter();
+  private static final String ENTITY_TYPE_PURCHASE_ORDER = "purchase_order";
+  private static final String ENTITY_TYPE_PO_LINE = "po_line";
+
   private final IdentifierTypeService identifierTypeService;
   private final ContributorNameTypeService contributorNameTypeService;
   private final ConfigurationService configurationService;
   private final UserService userService;
   private final OrganizationsService organizationsService;
+  private final CustomFieldsService customFieldsService;
 
   public OrderEmailContext buildContext(List<CompositePurchaseOrder> orders) {
     var orderWrappers = orders.stream()
@@ -60,10 +67,14 @@ public class OrderEmailContextMapper {
           .toList()))
       .toList();
     return OrderEmailContext.builder()
-      .createdAt(Instant.now().truncatedTo(ChronoUnit.MILLIS).toString())
+      .createdAt(formatCreatedAt(Instant.now()))
       .organization(mapOrganization(orders))
       .orders(orderWrappers)
       .build();
+  }
+
+  static String formatCreatedAt(Instant instant) {
+    return CREATED_AT_FORMATTER.format(instant);
   }
 
   private OrganizationContext mapOrganization(List<CompositePurchaseOrder> orders) {
@@ -131,6 +142,7 @@ public class OrderEmailContextMapper {
       .metadata(mapOrderMetadata(order.getMetadata()))
       .shipTo(mapTenantAddress(order.getShipTo()))
       .billTo(mapTenantAddress(order.getBillTo()))
+      .customFields(customFieldsService.resolve(order.getCustomFields(), ENTITY_TYPE_PURCHASE_ORDER))
       .build();
   }
 
@@ -172,6 +184,7 @@ public class OrderEmailContextMapper {
       .cost(mapCost(line.getCost()))
       .fundDistribution(mapList(line.getFundDistribution(), this::mapFundDistribution))
       .vendorDetail(mapVendorDetail(line.getVendorDetail()))
+      .customFields(customFieldsService.resolve(line.getCustomFields(), ENTITY_TYPE_PO_LINE))
       .build();
   }
 

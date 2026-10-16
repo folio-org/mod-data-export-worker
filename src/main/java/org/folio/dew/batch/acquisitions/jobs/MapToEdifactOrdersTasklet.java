@@ -6,9 +6,11 @@ import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.LIB_EDI_
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.VENDOR_EDI_CODE;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.VENDOR_EDI_TYPE;
 import static org.folio.dew.batch.acquisitions.utils.ExportUtils.validateField;
+import static org.folio.dew.domain.dto.JobParameterNames.MANUAL_EXECUTION;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.FileFormatEnum.EDI;
 import static org.folio.dew.utils.QueryUtils.combineCqlExpressions;
 import static org.folio.dew.utils.QueryUtils.convertFieldListToEnclosedCqlQuery;
+import static org.folio.dew.utils.QueryUtils.convertIdsToCqlQuery;
 import static org.folio.dew.utils.QueryUtils.getCqlExpressionForFieldNullValue;
 import static org.folio.dew.utils.QueryUtils.negateQuery;
 
@@ -73,7 +75,7 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
 
   @Override
   protected ExportHolder buildEdifactExportHolder(VendorEdiOrdersExportConfig ediExportConfig, Map<String, Object> jobParameters) {
-    var poLineQuery = getPoLineQuery(ediExportConfig);
+    var poLineQuery = getPoLineQuery(ediExportConfig, isManualExecution(jobParameters));
     var compOrders = getCompositeOrders(poLineQuery);
     return new ExportHolder(compOrders, List.of());
   }
@@ -86,22 +88,34 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
     };
   }
 
-  protected String getPoLineQuery(VendorEdiOrdersExportConfig ediConfig) {
+  protected String getPoLineQuery(VendorEdiOrdersExportConfig ediConfig, boolean isManualExecution) {
     var acqMethods = ediConfig.getEdiConfig().getDefaultAcquisitionMethods();
+
     var resultQuery = combineCqlExpressions("AND",
       // Order filters
       "purchaseOrder.workflowStatus==Open", // order status is Open
       "purchaseOrder.vendor==%s".formatted(ediConfig.getVendorId()), // vendor id matches
-      negateQuery("purchaseOrder.manualPo==true"), // not a manual order
+      isManualExecution ? "" : negateQuery("purchaseOrder.manualPo==true"), // not a manual order
 
       // Order line filters
-      "automaticExport==true", // line with automatic export
+      isManualExecution ? convertIdsToCqlQuery(ediConfig.getPoLineIds()) : "", // line explicitly requested for export
+      isManualExecution ? "" : "automaticExport==true", // line with automatic export
       getCqlExpressionForFieldNullValue("lastEDIExportDate"), // has not been exported yet
       convertFieldListToEnclosedCqlQuery(acqMethods, "acquisitionMethod", true), // acquisitionMethod in default list
       getVendorAccountFilter(ediConfig) // vendor account no filter
     );
     log.info("getPoLineQuery:: Fetching purchase order lines with query: {}", resultQuery);
     return resultQuery;
+  }
+
+  /**
+   * Manual execution: a user ran the export configuration for explicitly provided po line ids
+   * (mod-data-export-spring {@code POST /configs/{id}/execute}), so the automatic export flags are ignored,
+   * while all other filters of the export configuration still apply.
+   * Without the {@code manualExecution} job parameter (scheduled run, {@code POST /jobs}) po line ids are ignored.
+   */
+  private static boolean isManualExecution(Map<String, Object> jobParameters) {
+    return Boolean.TRUE.toString().equals(jobParameters.get(MANUAL_EXECUTION));
   }
 
   private String getVendorAccountFilter(VendorEdiOrdersExportConfig ediConfig) {

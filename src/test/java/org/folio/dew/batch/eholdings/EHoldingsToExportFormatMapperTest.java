@@ -17,6 +17,7 @@ import org.folio.dew.domain.dto.eholdings.EmbargoPeriod;
 import org.folio.dew.domain.dto.eholdings.PackageAltName;
 import org.folio.dew.domain.dto.eholdings.PackageAttributes;
 import org.folio.dew.domain.dto.eholdings.PackageData;
+import org.folio.dew.domain.dto.eholdings.PackageSubject;
 import org.folio.dew.domain.dto.eholdings.PackageVisibility;
 import org.folio.dew.domain.dto.eholdings.PackageVisibility.CategoryEnum;
 import org.folio.dew.domain.dto.eholdings.Proxy;
@@ -64,6 +65,37 @@ class EHoldingsToExportFormatMapperTest {
 
     assertThat(result.getCustomAlternativeNames()).isEqualTo("Alt 1 | Alt 2");
     assertThat(result.getManagedAlternativeNames()).isEqualTo("Alt 3 | Alt 4");
+  }
+
+  @Test
+  void shouldSplitSubjectsIntoManagedAndCustomJoinedWithPipe() {
+    var subjects = List.of(
+      buildSubject("Science", false),
+      buildSubject("Genetics", true),
+      buildSubject("Technology", null));
+
+    var result = mapper.convertToExportFormat(buildPackage(null, null, null, null, subjects));
+
+    assertThat(result.getManagedSubjects()).isEqualTo("Science | Technology");
+    assertThat(result.getCustomSubjects()).isEqualTo("Genetics");
+  }
+
+  @Test
+  void shouldReturnEmptyCustomSubjectsWhenOnlyManagedPresent() {
+    var result = mapper.convertToExportFormat(
+      buildPackage(null, null, null, null, List.of(buildSubject("Science", false))));
+
+    assertThat(result.getManagedSubjects()).isEqualTo("Science");
+    assertThat(result.getCustomSubjects()).isEmpty();
+  }
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  void shouldReturnEmptySubjectsForNullOrEmptyInput(List<PackageSubject> subjects) {
+    var result = mapper.convertToExportFormat(buildPackage(null, null, null, null, subjects));
+
+    assertThat(result.getManagedSubjects()).isEmpty();
+    assertThat(result.getCustomSubjects()).isEmpty();
   }
 
   @Test
@@ -166,12 +198,28 @@ class EHoldingsToExportFormatMapperTest {
     return vis;
   }
 
-  @SneakyThrows
   private EHoldingsPackage buildPackage(Boolean isFreeAccess,
                                         List<PackageAltName> customAltNames,
                                         List<PackageAltName> managedAltNames,
                                         List<PackageVisibility> visibility) {
+    return buildPackage(isFreeAccess, customAltNames, managedAltNames, visibility, null);
+  }
+
+  private PackageSubject buildSubject(String name, Boolean isCustom) {
+    var subject = new PackageSubject();
+    subject.setName(name);
+    subject.setIsCustom(isCustom);
+    return subject;
+  }
+
+  @SneakyThrows
+  private EHoldingsPackage buildPackage(Boolean isFreeAccess,
+                                        List<PackageAltName> customAltNames,
+                                        List<PackageAltName> managedAltNames,
+                                        List<PackageVisibility> visibility,
+                                        List<PackageSubject> subjects) {
     var attrs = getPackageAttributes(isFreeAccess, customAltNames, managedAltNames, visibility);
+    attrs.setSubjects(subjects);
 
     var packageData = new PackageData();
     packageData.setId("1-22");

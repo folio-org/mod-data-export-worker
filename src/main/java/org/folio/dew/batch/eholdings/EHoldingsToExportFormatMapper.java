@@ -34,6 +34,7 @@ import org.folio.dew.domain.dto.eholdings.Identifier.TypeEnum;
 import org.folio.dew.domain.dto.eholdings.Note;
 import org.folio.dew.domain.dto.eholdings.PackageAltName;
 import org.folio.dew.domain.dto.eholdings.PackageAttributes;
+import org.folio.dew.domain.dto.eholdings.PackageSubject;
 import org.folio.dew.domain.dto.eholdings.PackageVisibility;
 import org.folio.dew.domain.dto.eholdings.Proxy;
 import org.folio.dew.domain.dto.eholdings.Subject;
@@ -116,6 +117,8 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setCustomAlternativeNames(mapAltNames(packageAtr.getCustomAltNames()));
     exportFormat.setManagedDescription(packageAtr.getManagedDescription());
     exportFormat.setCustomDescription(packageAtr.getCustomDescription());
+    exportFormat.setManagedSubjects(mapPackageSubjects(packageAtr.getSubjects(), false));
+    exportFormat.setCustomSubjects(mapPackageSubjects(packageAtr.getSubjects(), true));
     exportFormat.setPackageType(packageAtr.getPackageType());
     exportFormat.setPackageContentType(packageAtr.getContentType().getValue());
     exportFormat.setPackageCustomCoverage(mapCoverage(packageAtr.getCustomCoverage()));
@@ -299,6 +302,16 @@ public class EHoldingsToExportFormatMapper {
     }
     return altNames.stream()
       .map(PackageAltName::getAltName)
+      .collect(Collectors.joining(PIPE_DELIMITER));
+  }
+
+  private String mapPackageSubjects(List<PackageSubject> subjects, boolean custom) {
+    if (isNull(subjects) || subjects.isEmpty()) {
+      return EMPTY;
+    }
+    return subjects.stream()
+      .filter(subject -> Boolean.TRUE.equals(subject.getIsCustom()) == custom)
+      .map(PackageSubject::getName)
       .collect(Collectors.joining(PIPE_DELIMITER));
   }
 

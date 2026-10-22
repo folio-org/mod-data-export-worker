@@ -23,6 +23,8 @@ public class EHoldingsPackageExportFormat {
   private String packageAccess;
   private String managedDescription;
   private String customDescription;
+  private String managedSubjects;
+  private String customSubjects;
   private String packageHoldingsStatus;
   private String packageCustomCoverage;
   private String hideInPublicationFinder;

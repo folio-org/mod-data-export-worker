@@ -18,6 +18,7 @@
 * [MODEXPW-651](https://folio-org.atlassian.net/browse/MODEXPW-651) Always format email context createdAt with millisecond precision
 * [MODEXPW-660](https://folio-org.atlassian.net/browse/MODEXPW-660) Fail EDIFACT export job when FTP or email delivery fails
 * [MODEXPW-663](https://folio-org.atlassian.net/browse/MODEXPW-663) Skip vendor account filter of the default orders integration when no integration has account numbers
+* [MODEXPW-664](https://folio-org.atlassian.net/browse/MODEXPW-664) Ignore account numbers left on default integrations in the default orders integration's vendor account filter
 
 ## 2026-06-04 v3.5.1
 

@@ -122,8 +122,9 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
     if (Boolean.TRUE.equals(ediConfig.getIsDefaultConfig())) {
       var configQuery = "configName==%s_%s*".formatted(ExportType.EDIFACT_ORDERS_EXPORT, ediConfig.getVendorId());
       var configs = dataExportSpringClient.getExportConfigs(configQuery);
-      return configs.getTotalRecords() > 1
-        ? negateQuery(convertFieldListToEnclosedCqlQuery(extractAllAccountNoLists(configs), "vendorDetail.vendorAccount", true))
+      var accounts = extractAllAccountNoLists(configs);
+      return configs.getTotalRecords() > 1 && !accounts.isEmpty()
+        ? negateQuery(convertFieldListToEnclosedCqlQuery(accounts, "vendorDetail.vendorAccount", true))
         : "";
     }
     var accountNoList = ediConfig.getEdiConfig().getAccountNoList();

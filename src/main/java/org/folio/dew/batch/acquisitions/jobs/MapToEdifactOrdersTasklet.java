@@ -122,8 +122,9 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
     if (Boolean.TRUE.equals(ediConfig.getIsDefaultConfig())) {
       var configQuery = "configName==%s_%s*".formatted(ExportType.EDIFACT_ORDERS_EXPORT, ediConfig.getVendorId());
       var configs = dataExportSpringClient.getExportConfigs(configQuery);
-      return configs.getTotalRecords() > 1
-        ? negateQuery(convertFieldListToEnclosedCqlQuery(extractAllAccountNoLists(configs), "vendorDetail.vendorAccount", true))
+      var accounts = extractAllAccountNoLists(configs);
+      return configs.getTotalRecords() > 1 && !accounts.isEmpty()
+        ? negateQuery(convertFieldListToEnclosedCqlQuery(accounts, "vendorDetail.vendorAccount", true))
         : "";
     }
     var accountNoList = ediConfig.getEdiConfig().getAccountNoList();
@@ -132,9 +133,16 @@ public class MapToEdifactOrdersTasklet extends MapToEdifactTasklet {
       : convertFieldListToEnclosedCqlQuery(accountNoList, "vendorDetail.vendorAccount", true);
   }
 
+  /**
+   * Account numbers of the vendor's non-default integrations. Default integrations are skipped:
+   * an account number list left over from before an integration was switched to default is hidden in the UI
+   * but still stored, and would otherwise exclude the default integration's own po lines.
+   */
   private Set<String> extractAllAccountNoLists(ExportConfigCollection configs) {
     return configs.getConfigs().stream()
-      .map(config -> config.getExportTypeSpecificParameters().getVendorEdiOrdersExportConfig().getEdiConfig())
+      .map(config -> config.getExportTypeSpecificParameters().getVendorEdiOrdersExportConfig())
+      .filter(config -> !Boolean.TRUE.equals(config.getIsDefaultConfig()))
+      .map(VendorEdiOrdersExportConfig::getEdiConfig)
       .map(config -> Objects.nonNull(config) && CollectionUtils.isNotEmpty(config.getAccountNoList())
         ? config.getAccountNoList()
         : List.<String>of())

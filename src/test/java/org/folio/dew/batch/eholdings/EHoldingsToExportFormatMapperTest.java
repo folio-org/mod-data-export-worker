@@ -146,6 +146,43 @@ class EHoldingsToExportFormatMapperTest {
     assertThat(mapper.convertToExportFormat(buildMinimalResource(proxy)).getTitleProxiedUrl()).isEmpty();
   }
 
+  @Test
+  void shouldMapTitleVisibilityByCategoryWithReasonAppended() {
+    var resource = buildMinimalResource(new Proxy());
+    resource.getResourcesData().getAttributes().setVisibility(List.of(
+      buildVisibility(CategoryEnum.PF, true, "Set by System"),
+      buildVisibility(CategoryEnum.FTF, false, null),
+      buildVisibility(CategoryEnum.MARC, true, "because")
+    ));
+
+    var result = mapper.convertToExportFormat(resource);
+
+    assertThat(result.getHideInPublicationFinder()).isEqualTo("Yes (Set by System)");
+    assertThat(result.getHideInFullTextFinder()).isEqualTo("No");
+    assertThat(result.getExcludeFromMARCExport()).isEqualTo("Yes (because)");
+  }
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  void shouldReturnEmptyTitleVisibilityForNullOrEmptyInput(List<PackageVisibility> visibility) {
+    var resource = buildMinimalResource(new Proxy());
+    resource.getResourcesData().getAttributes().setVisibility(visibility);
+
+    var result = mapper.convertToExportFormat(resource);
+
+    assertThat(result.getHideInPublicationFinder()).isEmpty();
+    assertThat(result.getHideInFullTextFinder()).isEmpty();
+    assertThat(result.getExcludeFromMARCExport()).isEmpty();
+  }
+
+  @Test
+  void shouldMapTitleUrl() {
+    var resource = buildMinimalResource(new Proxy());
+    resource.getResourcesData().getAttributes().setUrl("https://title.example.com");
+
+    assertThat(mapper.convertToExportFormat(resource).getTitleUrl()).isEqualTo("https://title.example.com");
+  }
+
   private static Stream<Proxy> nullProxiedUrlProxy() {
     return Stream.of(new Proxy()); // proxy present but proxiedUrl is null
   }

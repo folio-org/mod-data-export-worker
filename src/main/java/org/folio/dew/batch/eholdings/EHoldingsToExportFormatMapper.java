@@ -35,11 +35,11 @@ import org.folio.dew.domain.dto.eholdings.Note;
 import org.folio.dew.domain.dto.eholdings.PackageAltName;
 import org.folio.dew.domain.dto.eholdings.PackageAttributes;
 import org.folio.dew.domain.dto.eholdings.PackageSubject;
-import org.folio.dew.domain.dto.eholdings.PackageVisibility;
 import org.folio.dew.domain.dto.eholdings.Proxy;
 import org.folio.dew.domain.dto.eholdings.Subject;
 import org.folio.dew.domain.dto.eholdings.Tags;
 import org.folio.dew.domain.dto.eholdings.Token;
+import org.folio.dew.domain.dto.eholdings.Visibility;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -316,7 +316,7 @@ public class EHoldingsToExportFormatMapper {
       .collect(Collectors.joining(PIPE_DELIMITER));
   }
 
-  private String mapVisibilityCategory(List<PackageVisibility> visibility, String category) {
+  private String mapVisibilityCategory(List<Visibility> visibility, String category) {
     if (isNull(visibility) || visibility.isEmpty()) {
       return EMPTY;
     }

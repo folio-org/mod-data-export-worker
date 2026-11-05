@@ -113,7 +113,7 @@ class EHoldingsCsvFileWriterTest {
   @SneakyThrows
   void shouldWritePackageColumnsInCanonicalOrderRegardlessOfInputOrder() {
     when(exportConfig.getPackageFields()).thenReturn(List.of("packageId", "packageName"));
-    when(exportConfig.getTitleFields()).thenReturn(List.of("titleName", "titleId"));
+    when(exportConfig.getTitleFields()).thenReturn(List.of("titleId", "titleName"));
 
     var captor = ArgumentCaptor.forClass(byte[].class);
 
@@ -124,7 +124,7 @@ class EHoldingsCsvFileWriterTest {
     var titleHeader = new String(captor.getAllValues().get(2), StandardCharsets.UTF_8).trim();
 
     assertThat(packageHeader).isEqualTo("Package Name,Package Id");
-    assertThat(titleHeader).isEqualTo("Title Id,Title Name");
+    assertThat(titleHeader).isEqualTo("Title Name,Title Id");
   }
 
   private static Stream<Arguments> provideParameters() {

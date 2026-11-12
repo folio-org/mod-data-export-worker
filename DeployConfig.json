@@ -4,7 +4,7 @@
     "resources": [
       {
         "name": "cpu",
-        "value": "64",
+        "value": "128",
         "description": "CPU request/limit for container"
       },
       {
@@ -14,7 +14,7 @@
       },
       {
         "name": "memoryReservation",
-        "value": "2600",
+        "value": "2800",
         "description": "Memory reservation for container"
       }
     ],
@@ -312,12 +312,12 @@
     "resources": [
       {
         "name": "cpu",
-        "value": "64",
+        "value": "128",
         "description": "CPU request/limit for container"
       },
       {
         "name": "memory",
-        "value": "1500",
+        "value": "1024",
         "description": "Memory hard limit for container"
       },
       {

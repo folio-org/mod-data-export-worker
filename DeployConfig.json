@@ -158,7 +158,7 @@
       },
       {
         "name": "EDI_EXPORT_HISTORY_TOPIC_PARTITIONS",
-        "value": "1",
+        "value": "2",
         "description": "Number of partitions for the edi-export-history.create Kafka topic",
         "type": "KAFKA",
         "essential": false

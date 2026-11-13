@@ -1,0 +1,384 @@
+{
+  "description": "mod-data-export-worker configuration template",
+  "moduleDefaults": {
+    "resources": [
+      {
+        "name": "cpu",
+        "value": "128",
+        "description": "CPU request/limit for container"
+      },
+      {
+        "name": "memory",
+        "value": "3072",
+        "description": "Memory hard limit for container"
+      },
+      {
+        "name": "memoryReservation",
+        "value": "2600",
+        "description": "Memory reservation for container"
+      }
+    ],
+    "java": [
+      {
+        "name": "xmx",
+        "value": "2048m",
+        "description": "Maximum Java heap size"
+      },
+      {
+        "name": "MaxMetaspaceSize",
+        "value": "512m",
+        "description": "Maximum Java metaspace size"
+      },
+      {
+        "name": "MetaspaceSize",
+        "value": "384m",
+        "description": "Initial Java metaspace size"
+      }
+    ],
+    "deployment": {
+      "isHaSupported": true,
+      "replicasRecommendedCount": 2,
+      "description": "Deployment configuration for the backend module. Adjust replicas based on expected load and HA requirements. Set to false if only single instance is supported or required."
+    },
+    "kong": {
+      "timeouts": {
+        "connect": "60s",
+        "send": "60s",
+        "read": "60s"
+      },
+      "description": "Custom Kong proxy timeouts. Use this only if different from default Kong configuration"
+    },
+    "EnvVars": [
+      {
+        "name": "DB_DATABASE",
+        "value": null,
+        "description": "Database name",
+        "type": "DB",
+        "essential": true
+      },
+      {
+        "name": "DB_HOST",
+        "value": null,
+        "description": "Database host",
+        "type": "DB",
+        "essential": true
+      },
+      {
+        "name": "DB_MAXPOOLSIZE",
+        "value": "5",
+        "description": "Maximum database connection pool size",
+        "type": "DB",
+        "essential": false
+      },
+      {
+        "name": "DB_PASSWORD",
+        "value": null,
+        "description": "Database password",
+        "type": "DB",
+        "essential": true
+      },
+      {
+        "name": "DB_PORT",
+        "value": null,
+        "description": "Database port",
+        "type": "DB",
+        "essential": true
+      },
+      {
+        "name": "DB_USERNAME",
+        "value": null,
+        "description": "Database username",
+        "type": "DB",
+        "essential": true
+      },
+
+      {
+        "name": "ENV",
+        "value": null,
+        "description": "Environment; also used as prefix for Kafka topic and consumer group names",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "JAVA_ARGS",
+        "value": null,
+        "description": "Java arguments",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "JAVA_OPTS",
+        "value": null,
+        "description": "Java options",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "LOG4J_CONFIGURATION_FILE",
+        "value": null,
+        "description": "Log4j configuration file",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "MAX_UPLOADED_FILE_SIZE",
+        "value": "40MB",
+        "description": "Specifies multipart upload file size",
+        "type": "CONFIG",
+        "essential": false
+      },
+
+      {
+        "name": "KAFKA_HOST",
+        "value": null,
+        "description": "Kafka host",
+        "type": "KAFKA",
+        "essential": true
+      },
+      {
+        "name": "KAFKA_PORT",
+        "value": null,
+        "description": "Kafka port",
+        "type": "KAFKA",
+        "essential": true
+      },
+      {
+        "name": "KAFKA_CONCURRENCY_LEVEL",
+        "value": "30",
+        "description": "Number of concurrent Kafka listener threads",
+        "type": "KAFKA",
+        "essential": false
+      },
+      {
+        "name": "DATA_EXPORT_JOB_UPDATE_TOPIC_PARTITIONS",
+        "value": "50",
+        "description": "Number of partitions for the data-export.job.update Kafka topic",
+        "type": "KAFKA",
+        "essential": false
+      },
+      {
+        "name": "EDI_EXPORT_HISTORY_TOPIC_PARTITIONS",
+        "value": "2",
+        "description": "Number of partitions for the edi-export-history.create Kafka topic",
+        "type": "KAFKA",
+        "essential": false
+      },
+
+      {
+        "name": "S3_ACCESS_KEY_ID",
+        "value": null,
+        "description": "S3 access key",
+        "type": "S3",
+        "essential": true
+      },
+      {
+        "name": "S3_BUCKET",
+        "value": null,
+        "description": "S3 bucket",
+        "type": "S3",
+        "essential": true
+      },
+      {
+        "name": "S3_IS_AWS",
+        "value": false,
+        "description": "Specify if AWS S3 is used as files storage",
+        "type": "S3",
+        "essential": true
+      },
+      {
+        "name": "S3_REGION",
+        "value": null,
+        "description": "S3 region",
+        "type": "S3",
+        "essential": true
+      },
+      {
+        "name": "S3_SECRET_ACCESS_KEY",
+        "value": null,
+        "description": "S3 secret key",
+        "type": "S3",
+        "essential": true
+      },
+      {
+        "name": "S3_SUB_PATH",
+        "value": "mod-data-export-worker/remote",
+        "description": "S3 subpath for remote (long-term) file storage",
+        "type": "S3",
+        "essential": false
+      },
+      {
+        "name": "S3_LOCAL_SUB_PATH",
+        "value": "mod-data-export-worker/local",
+        "description": "S3 subpath for local (temporary) file storage",
+        "type": "S3",
+        "essential": false
+      },
+      {
+        "name": "S3_URL",
+        "value": null,
+        "description": "S3 url",
+        "type": "S3",
+        "essential": true
+      },
+      {
+        "name": "URL_EXPIRATION_TIME",
+        "value": "604800",
+        "description": "Pre-signed URL expiration time in seconds (default 7 days)",
+        "type": "S3",
+        "essential": false
+      },
+
+      {
+        "name": "OKAPI_URL",
+        "value": null,
+        "description": "Okapi url",
+        "type": "FUNCTIONAL",
+        "essential": true
+      },
+      {
+        "name": "PLATFORM",
+        "value": "eureka",
+        "description": "Specifies if okapi or eureka platform",
+        "type": "FUNCTIONAL",
+        "essential": true
+      },
+      {
+        "name": "BUCKET_SIZE",
+        "value": "50",
+        "description": "Number of records fetched per request during export processing",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "CHUNKS",
+        "value": "100",
+        "description": "Number of records per chunk during export batch processing",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "CORE_POOL_SIZE",
+        "value": "10",
+        "description": "Core pool size for the async task executor",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "MAX_POOL_SIZE",
+        "value": "10",
+        "description": "Maximum pool size for the async task executor",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "E_HOLDINGS_BATCH_JOB_CHUNK_SIZE",
+        "value": "100",
+        "description": "Chunk size for e-holdings batch export jobs",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "E_HOLDINGS_BATCH_KB_EBSCO_CHUNK_SIZE",
+        "value": "100",
+        "description": "Chunk size for KB/EBSCO records in e-holdings batch export",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "E_HOLDINGS_BATCH_ENTITLEMENTS_PER_PAGE",
+        "value": "100",
+        "description": "Number of entitlements per page fetched during e-holdings batch export",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "AUTHORITY_CONTROL_BATCH_JOB_CHUNK_SIZE",
+        "value": "100",
+        "description": "Chunk size for authority control batch export jobs",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "AUTHORITY_CONTROL_BATCH_ENTITIES_LINKS_CHUNK_SIZE",
+        "value": "100",
+        "description": "Chunk size for entity links in authority control batch export",
+        "type": "FUNCTIONAL",
+        "essential": false
+      }
+    ]
+  },
+
+  "sidecarDefaults": {
+    "resources": [
+      {
+        "name": "cpu",
+        "value": "128",
+        "description": "CPU request/limit for container"
+      },
+      {
+        "name": "memory",
+        "value": "1024",
+        "description": "Memory hard limit for container"
+      },
+      {
+        "name": "memoryReservation",
+        "value": "768",
+        "description": "Memory reservation for container"
+      }
+    ],
+    "java": [
+      {
+        "name": "xms",
+        "value": "128m",
+        "description": "Initial Java heap size"
+      },
+      {
+        "name": "xmx",
+        "value": "256m",
+        "description": "Maximum Java heap size"
+      },
+      {
+        "name": "MaxMetaspaceSize",
+        "value": "128m",
+        "description": "Maximum Java metaspace size"
+      }
+    ],
+    "EnvVars": [
+      {
+        "name": "ENV",
+        "value": null,
+        "description": "Environment",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "JAVA_OPTS",
+        "value": null,
+        "description": "Additional JVM options for the sidecar process",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "MODULE_NAME",
+        "value": "mod-data-export-worker",
+        "description": "Name of the backend module the sidecar fronts",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "MODULE_URL",
+        "value": null,
+        "description": "Internal URL (host:port) at which the mod-data-export-worker backend container is reachable from its sidecar",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "MODULE_VERSION",
+        "value": null,
+        "description": "Version of the mod-data-export-worker module deployed alongside this sidecar",
+        "type": "CONFIG",
+        "essential": true
+      }
+    ]
+  }
+}

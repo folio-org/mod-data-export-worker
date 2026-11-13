@@ -18,12 +18,12 @@ import org.folio.dew.domain.dto.eholdings.PackageAltName;
 import org.folio.dew.domain.dto.eholdings.PackageAttributes;
 import org.folio.dew.domain.dto.eholdings.PackageData;
 import org.folio.dew.domain.dto.eholdings.PackageSubject;
-import org.folio.dew.domain.dto.eholdings.PackageVisibility;
-import org.folio.dew.domain.dto.eholdings.PackageVisibility.CategoryEnum;
 import org.folio.dew.domain.dto.eholdings.Proxy;
 import org.folio.dew.domain.dto.eholdings.PublicationType;
 import org.folio.dew.domain.dto.eholdings.ResourcesAttributes;
 import org.folio.dew.domain.dto.eholdings.ResourcesData;
+import org.folio.dew.domain.dto.eholdings.Visibility;
+import org.folio.dew.domain.dto.eholdings.Visibility.CategoryEnum;
 import org.folio.dew.domain.dto.eholdings.VisibilityData;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
@@ -118,7 +118,7 @@ class EHoldingsToExportFormatMapperTest {
   @SuppressWarnings("unchecked")
   void shouldReturnEmptyForNullOrEmptyInput(List<?> list) {
     var result = mapper.convertToExportFormat(
-      buildPackage(null, (List<PackageAltName>) list, (List<PackageAltName>) list, (List<PackageVisibility>) list));
+      buildPackage(null, (List<PackageAltName>) list, (List<PackageAltName>) list, (List<Visibility>) list));
 
     assertThat(result.getManagedAlternativeNames()).isEmpty();
     assertThat(result.getCustomAlternativeNames()).isEmpty();
@@ -144,6 +144,43 @@ class EHoldingsToExportFormatMapperTest {
   @MethodSource("nullProxiedUrlProxy")
   void shouldReturnEmptyProxiedUrlForNullOrMissingUrl(Proxy proxy) {
     assertThat(mapper.convertToExportFormat(buildMinimalResource(proxy)).getTitleProxiedUrl()).isEmpty();
+  }
+
+  @Test
+  void shouldMapTitleVisibilityByCategoryWithReasonAppended() {
+    var resource = buildMinimalResource(new Proxy());
+    resource.getResourcesData().getAttributes().setVisibility(List.of(
+      buildVisibility(CategoryEnum.PF, true, "Set by System"),
+      buildVisibility(CategoryEnum.FTF, false, null),
+      buildVisibility(CategoryEnum.MARC, true, "because")
+    ));
+
+    var result = mapper.convertToExportFormat(resource);
+
+    assertThat(result.getHideInPublicationFinder()).isEqualTo("Yes (Set by System)");
+    assertThat(result.getHideInFullTextFinder()).isEqualTo("No");
+    assertThat(result.getExcludeFromMARCExport()).isEqualTo("Yes (because)");
+  }
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  void shouldReturnEmptyTitleVisibilityForNullOrEmptyInput(List<Visibility> visibility) {
+    var resource = buildMinimalResource(new Proxy());
+    resource.getResourcesData().getAttributes().setVisibility(visibility);
+
+    var result = mapper.convertToExportFormat(resource);
+
+    assertThat(result.getHideInPublicationFinder()).isEmpty();
+    assertThat(result.getHideInFullTextFinder()).isEmpty();
+    assertThat(result.getExcludeFromMARCExport()).isEmpty();
+  }
+
+  @Test
+  void shouldMapTitleUrl() {
+    var resource = buildMinimalResource(new Proxy());
+    resource.getResourcesData().getAttributes().setUrl("https://title.example.com");
+
+    assertThat(mapper.convertToExportFormat(resource).getTitleUrl()).isEqualTo("https://title.example.com");
   }
 
   private static Stream<Proxy> nullProxiedUrlProxy() {
@@ -190,8 +227,8 @@ class EHoldingsToExportFormatMapperTest {
     return attrs;
   }
 
-  private PackageVisibility buildVisibility(CategoryEnum category, boolean hidden, String reason) {
-    var vis = new PackageVisibility();
+  private Visibility buildVisibility(CategoryEnum category, boolean hidden, String reason) {
+    var vis = new Visibility();
     vis.setCategory(category);
     vis.setHidden(hidden);
     vis.setReason(reason);
@@ -201,7 +238,7 @@ class EHoldingsToExportFormatMapperTest {
   private EHoldingsPackage buildPackage(Boolean isFreeAccess,
                                         List<PackageAltName> customAltNames,
                                         List<PackageAltName> managedAltNames,
-                                        List<PackageVisibility> visibility) {
+                                        List<Visibility> visibility) {
     return buildPackage(isFreeAccess, customAltNames, managedAltNames, visibility, null);
   }
 
@@ -216,7 +253,7 @@ class EHoldingsToExportFormatMapperTest {
   private EHoldingsPackage buildPackage(Boolean isFreeAccess,
                                         List<PackageAltName> customAltNames,
                                         List<PackageAltName> managedAltNames,
-                                        List<PackageVisibility> visibility,
+                                        List<Visibility> visibility,
                                         List<PackageSubject> subjects) {
     var attrs = getPackageAttributes(isFreeAccess, customAltNames, managedAltNames, visibility);
     attrs.setSubjects(subjects);
@@ -241,7 +278,7 @@ class EHoldingsToExportFormatMapperTest {
   }
 
   private static @NonNull PackageAttributes getPackageAttributes(Boolean isFreeAccess, List<PackageAltName> customAltNames,
-                                                                 List<PackageAltName> managedAltNames, List<PackageVisibility> visibility) {
+                                                                 List<PackageAltName> managedAltNames, List<Visibility> visibility) {
     var coverage = new Coverage();
     coverage.setBeginCoverage("");
     coverage.setEndCoverage("");

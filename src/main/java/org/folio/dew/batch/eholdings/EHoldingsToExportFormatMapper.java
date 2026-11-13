@@ -35,12 +35,11 @@ import org.folio.dew.domain.dto.eholdings.Note;
 import org.folio.dew.domain.dto.eholdings.PackageAltName;
 import org.folio.dew.domain.dto.eholdings.PackageAttributes;
 import org.folio.dew.domain.dto.eholdings.PackageSubject;
-import org.folio.dew.domain.dto.eholdings.PackageVisibility;
 import org.folio.dew.domain.dto.eholdings.Proxy;
 import org.folio.dew.domain.dto.eholdings.Subject;
 import org.folio.dew.domain.dto.eholdings.Tags;
 import org.folio.dew.domain.dto.eholdings.Token;
-import org.folio.dew.domain.dto.eholdings.VisibilityData;
+import org.folio.dew.domain.dto.eholdings.Visibility;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -160,10 +159,12 @@ public class EHoldingsToExportFormatMapper {
     exportFormat.setCoverageStatement(resourceAtr.getCoverageStatement());
     exportFormat.setManagedEmbargo(mapEmbargo(resourceAtr.getManagedEmbargoPeriod()));
     exportFormat.setCustomEmbargo(mapEmbargo(resourceAtr.getCustomEmbargoPeriod()));
-    exportFormat.setTitleShowToPatrons(mapShowToPatrons(resourceAtr.getVisibilityData()));
+    exportFormat.setHideInPublicationFinder(mapVisibilityCategory(resourceAtr.getVisibility(), "PF"));
+    exportFormat.setHideInFullTextFinder(mapVisibilityCategory(resourceAtr.getVisibility(), "FTF"));
+    exportFormat.setExcludeFromMARCExport(mapVisibilityCategory(resourceAtr.getVisibility(), "MARC"));
     exportFormat.setTitleProxy(mapProxy(resourceAtr.getProxy()));
     exportFormat.setTitleProxiedUrl(mapProxiedUrl(resourceAtr.getProxy()));
-    exportFormat.setUrl(resourceAtr.getUrl());
+    exportFormat.setTitleUrl(resourceAtr.getUrl());
     exportFormat.setSubjects(mapSubjects(resourceAtr.getSubjects()));
     exportFormat.setCustomValue1(resourceAtr.getUserDefinedField1());
     exportFormat.setCustomValue2(resourceAtr.getUserDefinedField2());
@@ -315,7 +316,7 @@ public class EHoldingsToExportFormatMapper {
       .collect(Collectors.joining(PIPE_DELIMITER));
   }
 
-  private String mapVisibilityCategory(List<PackageVisibility> visibility, String category) {
+  private String mapVisibilityCategory(List<Visibility> visibility, String category) {
     if (isNull(visibility) || visibility.isEmpty()) {
       return EMPTY;
     }
@@ -345,15 +346,5 @@ public class EHoldingsToExportFormatMapper {
       return EMPTY;
     }
     return proxy.getProxiedUrl();
-  }
-
-  private String mapShowToPatrons(VisibilityData visibility) {
-    var result = Boolean.TRUE.equals(visibility.getIsHidden()) ? "No" : "Yes";
-    var reason = visibility.getReason();
-
-    if (reason != null && !reason.isBlank()) {
-      result += String.format(" (%s)", reason);
-    }
-    return result;
   }
 }

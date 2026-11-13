@@ -1,3 +1,11 @@
+## 2026-11-13 v3.5.4
+
+[Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.5.3...v3.5.4)
+
+### Technical tasks
+[MODEXPW-662](https://folio-org.atlassian.net/browse/MODEXPW-662) Trillium CSP#1 - Upgrade to SpringBoot 4.1
+[MODEXPW-654](https://folio-org.atlassian.net/browse/MODEXPW-654) Add DeployConfig.json to mod-data-export-worker (ADR-0013 Configuration Management)
+
 ## 2026-08-20 v3.5.3
 
 [Full Changelog](https://github.com/folio-org/mod-data-export-worker/compare/v3.5.2...v3.5.3)

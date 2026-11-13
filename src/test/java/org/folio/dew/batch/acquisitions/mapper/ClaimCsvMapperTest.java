@@ -5,6 +5,7 @@ import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -51,6 +52,7 @@ class ClaimCsvMapperTest {
     objectMapper = new JacksonConfiguration().objectMapper();
 
     when(ordersService.getTitleById(anyString())).thenReturn(new OrdersTitle().title("Test title"));
+    when(ordersService.getPieceTitle(any(), any())).thenCallRealMethod();
   }
 
   @ParameterizedTest

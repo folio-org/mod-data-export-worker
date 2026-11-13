@@ -41,9 +41,7 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -83,11 +81,9 @@ public class TemplateContextMapper {
 
   public ClaimingTemplateContext buildClaimContext(List<CompositePurchaseOrder> orders, List<Piece> pieces) {
     var piecesByPoLineId = pieces.stream().collect(groupingBy(Piece::getPoLineId));
-    // titleId -> title, so that a package title is looked up only once per context
-    var titles = new HashMap<String, String>();
     return fillContext(ClaimingTemplateContext.builder(), orders,
         line -> fillOrderLine(ClaimOrderLineContext.builder(), line)
-          .pieces(mapPieces(line, piecesByPoLineId.getOrDefault(line.getId(), List.of()), titles))
+          .pieces(mapPieces(line, piecesByPoLineId.getOrDefault(line.getId(), List.of())))
           .build())
       .build();
   }
@@ -224,16 +220,16 @@ public class TemplateContextMapper {
     return builder;
   }
 
-  private List<PieceContext> mapPieces(PoLine line, List<Piece> pieces, Map<String, String> titles) {
+  private List<PieceContext> mapPieces(PoLine line, List<Piece> pieces) {
     return pieces.stream()
       .sorted(PIECE_ORDER)
-      .map(piece -> mapPiece(line, piece, titles))
+      .map(piece -> mapPiece(line, piece))
       .toList();
   }
 
-  private PieceContext mapPiece(PoLine line, Piece piece, Map<String, String> titles) {
+  private PieceContext mapPiece(PoLine line, Piece piece) {
     return PieceContext.builder()
-      .title(resolvePieceTitle(line, piece, titles))
+      .title(StringUtils.defaultString(ordersService.getPieceTitle(line, piece)))
       .displaySummary(StringUtils.defaultString(piece.getDisplaySummary()))
       .enumeration(StringUtils.defaultString(piece.getEnumeration()))
       .chronology(StringUtils.defaultString(piece.getChronology()))
@@ -242,25 +238,6 @@ public class TemplateContextMapper {
       .receiptDate(getFormattedDate(piece.getReceiptDate()))
       .externalNote(StringUtils.defaultString(piece.getExternalNote()))
       .build();
-  }
-
-  // Same rule as the claims CSV: a package PO line takes the title of the piece's title record
-  private String resolvePieceTitle(PoLine line, Piece piece, Map<String, String> titles) {
-    var lineTitle = StringUtils.defaultString(line.getTitleOrPackage());
-    if (!Boolean.TRUE.equals(line.getIsPackage()) || StringUtils.isBlank(piece.getTitleId())) {
-      return lineTitle;
-    }
-    var title = titles.computeIfAbsent(piece.getTitleId(), this::resolveTitle);
-    return StringUtils.isBlank(title) ? lineTitle : title;
-  }
-
-  private String resolveTitle(String titleId) {
-    try {
-      return StringUtils.defaultString(ordersService.getTitleById(titleId).getTitle());
-    } catch (Exception e) {
-      log.warn("resolveTitle:: Cannot resolve title '{}' for template context", titleId, e);
-      return "";
-    }
   }
 
   private <S, T> List<T> mapList(List<S> source, Function<S, T> mapper) {

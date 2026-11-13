@@ -81,4 +81,19 @@ public class OrdersService {
     return title;
   }
 
+  /**
+   * Title of a piece as shown to the vendor: a package PO line takes the title of the piece's title record,
+   * any other PO line its {@code titleOrPackage}. A failed lookup is not handled here, so the export fails.
+   * <p>
+   * Cached by {@code titleId}: a title record belongs to exactly one PO line, so the result depends on the
+   * title id only. The cache is needed because a call to the cached {@link #getTitleById} from inside this
+   * class bypasses the Spring proxy.
+   */
+  @Cacheable(cacheNames = "pieceTitles", key = "#piece.titleId", condition = "#piece.titleId != null")
+  public String getPieceTitle(PoLine poLine, Piece piece) {
+    return Boolean.TRUE.equals(poLine.getIsPackage())
+      ? getTitleById(piece.getTitleId()).getTitle()
+      : poLine.getTitleOrPackage();
+  }
+
 }

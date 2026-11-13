@@ -38,13 +38,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -84,6 +83,7 @@ class TemplateContextMapperTest {
     lenient().when(userService.getUserContext(anyString())).thenReturn(UserContext.builder().build());
     lenient().when(organizationsService.getOrganizationById(anyString())).thenReturn(new Organization());
     lenient().when(customFieldsService.resolve(any(), anyString())).thenReturn(Map.of());
+    lenient().when(ordersService.getPieceTitle(any(), any())).thenCallRealMethod();
   }
 
   @Test
@@ -426,7 +426,7 @@ class TemplateContextMapperTest {
   }
 
   @Test
-  void buildClaimContext_packageLine_resolvesTitleOncePerTitleId() throws IOException {
+  void buildClaimContext_packageLine_takesTitleOfTitleRecord() throws IOException {
     var order = loadOrder("edifact/acquisitions/composite_purchase_order_email_context.json");
     var line = order.getPoLines().get(0).isPackage(true);
     var titleId = UUID.randomUUID().toString();
@@ -438,19 +438,20 @@ class TemplateContextMapperTest {
 
     var pieces = ((ClaimOrderLineContext) ctx.getOrders().get(0).orderLines().get(0).orderLine()).getPieces();
     assertThat(pieces).extracting(PieceContext::getTitle).containsExactly("Package title", "Package title");
-    verify(ordersService, times(1)).getTitleById(titleId);
   }
 
   @Test
-  void buildClaimContext_titleLookupFails_fallsBackToOrderLineTitle() throws IOException {
+  void buildClaimContext_titleLookupFails_throws() throws IOException {
     var order = loadOrder("edifact/acquisitions/composite_purchase_order_email_context.json");
     var line = order.getPoLines().get(0).isPackage(true);
     var titleId = UUID.randomUUID().toString();
     when(ordersService.getTitleById(titleId)).thenThrow(new RuntimeException("orders-storage unavailable"));
 
-    var pieceContext = singlePiece(mapper.buildClaimContext(List.of(order), List.of(piece(line, "Heft 1", null).titleId(titleId))));
+    var pieces = List.of(piece(line, "Heft 1", null).titleId(titleId));
 
-    assertThat(pieceContext.getTitle()).isEqualTo(line.getTitleOrPackage());
+    assertThatThrownBy(() -> mapper.buildClaimContext(List.of(order), pieces))
+      .isInstanceOf(RuntimeException.class)
+      .hasMessage("orders-storage unavailable");
   }
 
   @Test

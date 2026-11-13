@@ -5,7 +5,6 @@ import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -18,6 +17,7 @@ import java.util.Map;
 import lombok.extern.log4j.Log4j2;
 
 import org.folio.dew.batch.acquisitions.services.OrdersService;
+import org.folio.dew.client.OrdersStorageClient;
 import org.folio.dew.config.JacksonConfiguration;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.ExportType;
@@ -44,15 +44,14 @@ class ClaimCsvMapperTest {
   private ExportResourceMapper claimCsvMapper;
 
   @Mock
-  private OrdersService ordersService;
+  private OrdersStorageClient ordersStorageClient;
 
   @BeforeEach
   void setUp() {
-    claimCsvMapper = new ClaimCsvMapper(ordersService);
+    claimCsvMapper = new ClaimCsvMapper(new OrdersService(ordersStorageClient));
     objectMapper = new JacksonConfiguration().objectMapper();
 
-    when(ordersService.getTitleById(anyString())).thenReturn(new OrdersTitle().title("Test title"));
-    when(ordersService.getPieceTitle(any(), any())).thenCallRealMethod();
+    when(ordersStorageClient.getTitleById(anyString())).thenReturn(new OrdersTitle().title("Test title"));
   }
 
   @ParameterizedTest

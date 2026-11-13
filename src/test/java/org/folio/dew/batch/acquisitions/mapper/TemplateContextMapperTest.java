@@ -8,6 +8,7 @@ import org.folio.dew.batch.acquisitions.services.IdentifierTypeService;
 import org.folio.dew.batch.acquisitions.services.OrdersService;
 import org.folio.dew.batch.acquisitions.services.OrganizationsService;
 import org.folio.dew.batch.acquisitions.services.UserService;
+import org.folio.dew.client.OrdersStorageClient;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.OrdersTitle;
 import org.folio.dew.domain.dto.Piece;
@@ -68,14 +69,14 @@ class TemplateContextMapperTest {
   @Mock
   private CustomFieldsService customFieldsService;
   @Mock
-  private OrdersService ordersService;
+  private OrdersStorageClient ordersStorageClient;
 
   private TemplateContextMapper mapper;
   private ObjectMapper objectMapper;
 
   @BeforeEach
   void setUp() {
-    mapper = new TemplateContextMapper(identifierTypeService, contributorNameTypeService, configurationService, userService, organizationsService, customFieldsService, ordersService);
+    mapper = new TemplateContextMapper(identifierTypeService, contributorNameTypeService, configurationService, userService, organizationsService, customFieldsService, new OrdersService(ordersStorageClient));
     objectMapper = new ObjectMapper();
     lenient().when(identifierTypeService.getIdentifierTypeName(anyString())).thenReturn("ISBN");
     lenient().when(contributorNameTypeService.getContributorNameTypeName(anyString())).thenReturn("Personal name");
@@ -83,7 +84,6 @@ class TemplateContextMapperTest {
     lenient().when(userService.getUserContext(anyString())).thenReturn(UserContext.builder().build());
     lenient().when(organizationsService.getOrganizationById(anyString())).thenReturn(new Organization());
     lenient().when(customFieldsService.resolve(any(), anyString())).thenReturn(Map.of());
-    lenient().when(ordersService.getPieceTitle(any(), any())).thenCallRealMethod();
   }
 
   @Test
@@ -366,8 +366,9 @@ class TemplateContextMapperTest {
     ClaimingTemplateContext ctx = mapper.buildClaimContext(List.of(order), List.of(issue4, other, issue3));
 
     var lines = ctx.getOrders().get(0).orderLines();
-    assertThat(lines).hasSize(2);
-    assertThat(lines).allSatisfy(wrapper -> assertThat(wrapper.orderLine()).isInstanceOf(ClaimOrderLineContext.class));
+    assertThat(lines)
+      .hasSize(2)
+      .allSatisfy(wrapper -> assertThat(wrapper.orderLine()).isInstanceOf(ClaimOrderLineContext.class));
     assertThat(displaySummaries((ClaimOrderLineContext) lines.get(0).orderLine())).containsExactly("Heft 3", "Heft 4");
     assertThat(displaySummaries((ClaimOrderLineContext) lines.get(1).orderLine())).containsExactly("Band 1");
   }
@@ -430,7 +431,7 @@ class TemplateContextMapperTest {
     var order = loadOrder("edifact/acquisitions/composite_purchase_order_email_context.json");
     var line = order.getPoLines().get(0).isPackage(true);
     var titleId = UUID.randomUUID().toString();
-    when(ordersService.getTitleById(titleId)).thenReturn(new OrdersTitle().title("Package title"));
+    when(ordersStorageClient.getTitleById(titleId)).thenReturn(new OrdersTitle().title("Package title"));
     var piece1 = piece(line, "Heft 1", null).titleId(titleId);
     var piece2 = piece(line, "Heft 2", null).titleId(titleId);
 
@@ -445,11 +446,12 @@ class TemplateContextMapperTest {
     var order = loadOrder("edifact/acquisitions/composite_purchase_order_email_context.json");
     var line = order.getPoLines().get(0).isPackage(true);
     var titleId = UUID.randomUUID().toString();
-    when(ordersService.getTitleById(titleId)).thenThrow(new RuntimeException("orders-storage unavailable"));
+    when(ordersStorageClient.getTitleById(titleId)).thenThrow(new RuntimeException("orders-storage unavailable"));
 
+    var orders = List.of(order);
     var pieces = List.of(piece(line, "Heft 1", null).titleId(titleId));
 
-    assertThatThrownBy(() -> mapper.buildClaimContext(List.of(order), pieces))
+    assertThatThrownBy(() -> mapper.buildClaimContext(orders, pieces))
       .isInstanceOf(RuntimeException.class)
       .hasMessage("orders-storage unavailable");
   }

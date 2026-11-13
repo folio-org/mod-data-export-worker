@@ -6,21 +6,25 @@ import lombok.RequiredArgsConstructor;
 
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.batch.ExecutionContextUtils;
 import org.folio.dew.batch.acquisitions.exceptions.EdifactException;
-import org.folio.dew.batch.acquisitions.mapper.OrderEmailContextMapper;
+import org.folio.dew.batch.acquisitions.mapper.TemplateContextMapper;
 import org.folio.dew.client.EmailClient;
 import org.folio.dew.client.TemplateEngineClient;
 import org.folio.dew.domain.dto.CompositePurchaseOrder;
 import org.folio.dew.domain.dto.EdiEmail;
+import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.VendorEdiOrdersExportConfig;
 import org.folio.dew.domain.dto.email.Attachment;
 import org.folio.dew.domain.dto.email.EmailEntity;
+import org.folio.dew.domain.dto.templateengine.context.BaseTemplateContext;
 import org.folio.dew.domain.dto.templateengine.TemplateProcessingRequest;
 import org.folio.dew.domain.dto.templateengine.TemplateProcessingResponse;
 import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
+import org.springframework.batch.core.step.StepExecution;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
@@ -32,6 +36,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.folio.dew.domain.dto.JobParameterNames.*;
+import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING;
 
 @Log4j2
 @StepScope
@@ -43,11 +48,12 @@ public class SendToEmailTasklet implements Tasklet {
   private static final String TEMPLATE_ENGINE_ERROR_MESSAGE = "Failed to retrieve the email template";
   private static final String EMAIL_NOT_CONFIGURED_ERROR_MESSAGE = "Failed because no email configuration has been provided";
   private static final String TEMPLATE_NOT_CONFIGURED_ERROR_MESSAGE = "Failed because no email template has been configured";
+  private static final String NO_CLAIMED_PIECES_ERROR_MESSAGE = "Failed because no claimed pieces were found";
 
   private final ObjectMapper ediObjectMapper;
   private final EmailClient emailClient;
   private final TemplateEngineClient templateEngineClient;
-  private final OrderEmailContextMapper orderEmailContextMapper;
+  private final TemplateContextMapper templateContextMapper;
 
   @Override
   @SneakyThrows
@@ -75,7 +81,11 @@ public class SendToEmailTasklet implements Tasklet {
     emailEntity.setTo(ediEmail.getEmailTo());
     emailEntity.setBcc(ediEmail.getEmailBcc());
 
-    var templateResult = resolveTemplate(ediEmail, orders);
+    var context = exportConfig.getIntegrationType() == CLAIMING
+      ? templateContextMapper.buildClaimContext(orders, readClaimedPieces(stepExecution))
+      : templateContextMapper.buildContext(orders);
+
+    var templateResult = resolveTemplate(ediEmail, context);
     emailEntity.setHeader(templateResult[0]);
     emailEntity.setBody(templateResult[1]);
     emailEntity.setOutputFormat(templateResult[2]);
@@ -90,7 +100,21 @@ public class SendToEmailTasklet implements Tasklet {
     return RepeatStatus.FINISHED;
   }
 
-  private String[] resolveTemplate(EdiEmail ediEmail, List<CompositePurchaseOrder> orders) {
+  // A claim email without the claimed pieces must not be sent, so the step (and the job) fails instead
+  @SneakyThrows
+  private List<Piece> readClaimedPieces(StepExecution stepExecution) {
+    var piecesJson = (String) ExecutionContextUtils.getExecutionVariable(stepExecution, ACQ_EXPORT_PIECES);
+    List<Piece> pieces = StringUtils.isBlank(piecesJson)
+      ? List.of()
+      : ediObjectMapper.readValue(piecesJson, new TypeReference<List<Piece>>() {});
+    if (pieces.isEmpty()) {
+      log.error(NO_CLAIMED_PIECES_ERROR_MESSAGE);
+      throw new EdifactException(NO_CLAIMED_PIECES_ERROR_MESSAGE);
+    }
+    return pieces;
+  }
+
+  private String[] resolveTemplate(EdiEmail ediEmail, BaseTemplateContext context) {
     UUID templateId = Optional.ofNullable(ediEmail.getEmailTemplate())
       .orElseThrow(() -> {
         log.error(TEMPLATE_NOT_CONFIGURED_ERROR_MESSAGE);
@@ -100,7 +124,7 @@ public class SendToEmailTasklet implements Tasklet {
     var request = TemplateProcessingRequest.builder()
       .templateId(templateId)
       .build();
-    request.setContext(orderEmailContextMapper.buildContext(orders));
+    request.setContext(context);
 
     try {
       TemplateProcessingResponse response = templateEngineClient.processTemplate(request);

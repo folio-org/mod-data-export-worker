@@ -35,7 +35,7 @@ public class ClaimCsvMapper extends AbstractCsvMapper<ClaimCsvEntry> {
     // Map each Piece ID to its corresponding Title
     var pieceIdToTitle = poLineIdToPieces.entrySet().stream()
       .flatMap(entry -> entry.getValue().stream()
-        .map(piece -> Pair.of(piece.getId(), getTitleById(poLineIdToPoLine.get(entry.getKey()), piece))))
+        .map(piece -> Pair.of(piece.getId(), ordersService.getPieceTitle(poLineIdToPoLine.get(entry.getKey()), piece))))
       .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
 
     // Key extractor for grouping pieces by: Po Line Number, Display Summary, Chronology, Enumeration, and Title
@@ -52,12 +52,6 @@ public class ClaimCsvMapper extends AbstractCsvMapper<ClaimCsvEntry> {
       .map(entry -> entry.getKey().withQuantity(entry.getValue()))
       .sorted(Comparator.comparing(o -> o.poLine().getPoLineNumber()))
       .toList();
-  }
-
-  private String getTitleById(PoLine poLine, Piece piece) {
-    return Boolean.TRUE.equals(poLine.getIsPackage())
-      ? ordersService.getTitleById(piece.getTitleId()).getTitle()
-      : poLine.getTitleOrPackage();
   }
 
 }

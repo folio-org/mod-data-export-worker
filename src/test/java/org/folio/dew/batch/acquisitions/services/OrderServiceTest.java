@@ -1,6 +1,8 @@
 package org.folio.dew.batch.acquisitions.services;
 
 import org.folio.dew.client.OrdersStorageClient;
+import org.folio.dew.domain.dto.OrdersTitle;
+import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.PoLineCollection;
 import org.folio.dew.domain.dto.PurchaseOrder;
@@ -16,6 +18,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -97,5 +100,21 @@ class OrderServiceTest {
     assertEquals(orders, allOrders);
     verify(ordersStorageClient).getPurchaseOrdersByQuery(query1, 0, Integer.MAX_VALUE);
     verify(ordersStorageClient).getPurchaseOrdersByQuery(query2, 0, Integer.MAX_VALUE);
+  }
+
+  @Test
+  void getPieceTitle_notPackage_takesPoLineTitle() {
+    var poLine = new PoLine().isPackage(false).titleOrPackage("Line title");
+
+    assertEquals("Line title", orderService.getPieceTitle(poLine, new Piece().titleId("title-id")));
+    verifyNoInteractions(ordersStorageClient);
+  }
+
+  @Test
+  void getPieceTitle_package_takesTitleOfTitleRecord() {
+    var poLine = new PoLine().isPackage(true).titleOrPackage("Package");
+    doReturn(new OrdersTitle().title("Journal of X")).when(ordersStorageClient).getTitleById("title-id");
+
+    assertEquals("Journal of X", orderService.getPieceTitle(poLine, new Piece().titleId("title-id")));
   }
 }

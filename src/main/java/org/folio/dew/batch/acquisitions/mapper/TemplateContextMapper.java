@@ -8,23 +8,28 @@ import org.folio.dew.batch.acquisitions.services.ConfigurationService;
 import org.folio.dew.batch.acquisitions.services.ContributorNameTypeService;
 import org.folio.dew.batch.acquisitions.services.CustomFieldsService;
 import org.folio.dew.batch.acquisitions.services.IdentifierTypeService;
+import org.folio.dew.batch.acquisitions.services.OrdersService;
 import org.folio.dew.batch.acquisitions.services.OrganizationsService;
 import org.folio.dew.batch.acquisitions.services.UserService;
 import org.folio.dew.domain.dto.*;
 import org.folio.dew.domain.dto.acquisitions.edifact.Organization;
 import org.folio.dew.domain.dto.acquisitions.edifact.OrganizationAddress;
+import org.folio.dew.domain.dto.templateengine.context.BaseTemplateContext;
+import org.folio.dew.domain.dto.templateengine.context.ClaimOrderLineContext;
+import org.folio.dew.domain.dto.templateengine.context.ClaimingTemplateContext;
 import org.folio.dew.domain.dto.templateengine.context.ContributorContext;
 import org.folio.dew.domain.dto.templateengine.context.CostContext;
 import org.folio.dew.domain.dto.templateengine.context.DetailsContext;
 import org.folio.dew.domain.dto.templateengine.context.FundDistributionContext;
 import org.folio.dew.domain.dto.templateengine.context.OrderContext;
-import org.folio.dew.domain.dto.templateengine.context.OrderEmailContext;
+import org.folio.dew.domain.dto.templateengine.context.OrderingTemplateContext;
 import org.folio.dew.domain.dto.templateengine.context.OrderLineContext;
 import org.folio.dew.domain.dto.templateengine.context.OrderLineWrapper;
 import org.folio.dew.domain.dto.templateengine.context.OrderMetadataContext;
 import org.folio.dew.domain.dto.templateengine.context.OrderWrapper;
 import org.folio.dew.domain.dto.templateengine.context.OrganizationAddressContext;
 import org.folio.dew.domain.dto.templateengine.context.OrganizationContext;
+import org.folio.dew.domain.dto.templateengine.context.PieceContext;
 import org.folio.dew.domain.dto.templateengine.context.ProductIdContext;
 import org.folio.dew.domain.dto.templateengine.context.TenantAddressContext;
 import org.folio.dew.domain.dto.templateengine.context.TypeContext;
@@ -35,6 +40,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -42,14 +48,22 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static java.util.Comparator.naturalOrder;
+import static java.util.Comparator.nullsLast;
+import static java.util.stream.Collectors.groupingBy;
+import static org.folio.dew.batch.acquisitions.utils.ExportUtils.getFormattedDate;
+
 @Component
 @RequiredArgsConstructor
 @Log4j2
-public class OrderEmailContextMapper {
+public class TemplateContextMapper {
 
   private static final DateTimeFormatter CREATED_AT_FORMATTER = new DateTimeFormatterBuilder().appendInstant(3).toFormatter();
   private static final String ENTITY_TYPE_PURCHASE_ORDER = "purchase_order";
   private static final String ENTITY_TYPE_PO_LINE = "po_line";
+  private static final Comparator<Piece> PIECE_ORDER = Comparator
+    .comparing(Piece::getReceiptDate, nullsLast(naturalOrder()))
+    .thenComparing(Piece::getDisplaySummary, nullsLast(naturalOrder()));
 
   private final IdentifierTypeService identifierTypeService;
   private final ContributorNameTypeService contributorNameTypeService;
@@ -57,20 +71,39 @@ public class OrderEmailContextMapper {
   private final UserService userService;
   private final OrganizationsService organizationsService;
   private final CustomFieldsService customFieldsService;
+  private final OrdersService ordersService;
 
-  public OrderEmailContext buildContext(List<CompositePurchaseOrder> orders) {
-    var orderWrappers = orders.stream()
+  public OrderingTemplateContext buildContext(List<CompositePurchaseOrder> orders) {
+    return fillContext(OrderingTemplateContext.builder(), orders,
+        line -> fillOrderLine(OrderLineContext.builder(), line).build())
+      .build();
+  }
+
+  public ClaimingTemplateContext buildClaimContext(List<CompositePurchaseOrder> orders, List<Piece> pieces) {
+    var piecesByPoLineId = pieces.stream().collect(groupingBy(Piece::getPoLineId));
+    return fillContext(ClaimingTemplateContext.builder(), orders,
+        line -> fillOrderLine(ClaimOrderLineContext.builder(), line)
+          .pieces(mapPieces(line, piecesByPoLineId.getOrDefault(line.getId(), List.of())))
+          .build())
+      .build();
+  }
+
+  private <B extends BaseTemplateContext.BaseTemplateContextBuilder<?, ?>> B fillContext(B builder,
+      List<CompositePurchaseOrder> orders, Function<PoLine, OrderLineContext> lineMapper) {
+    builder.createdAt(formatCreatedAt(Instant.now()))
+      .organization(mapOrganization(orders))
+      .orders(mapOrders(orders, lineMapper));
+    return builder;
+  }
+
+  private List<OrderWrapper> mapOrders(List<CompositePurchaseOrder> orders, Function<PoLine, OrderLineContext> lineMapper) {
+    return orders.stream()
       .map(order -> new OrderWrapper(
         mapOrder(order),
         order.getPoLines().stream()
-          .map(line -> new OrderLineWrapper(mapOrderLine(line)))
+          .map(line -> new OrderLineWrapper(lineMapper.apply(line)))
           .toList()))
       .toList();
-    return OrderEmailContext.builder()
-      .createdAt(formatCreatedAt(Instant.now()))
-      .organization(mapOrganization(orders))
-      .orders(orderWrappers)
-      .build();
   }
 
   static String formatCreatedAt(Instant instant) {
@@ -171,9 +204,8 @@ public class OrderEmailContextMapper {
       .build();
   }
 
-  private OrderLineContext mapOrderLine(PoLine line) {
-    return OrderLineContext.builder()
-      .poLineNumber(StringUtils.defaultString(line.getPoLineNumber()))
+  private <B extends OrderLineContext.OrderLineContextBuilder<?, ?>> B fillOrderLine(B builder, PoLine line) {
+    builder.poLineNumber(StringUtils.defaultString(line.getPoLineNumber()))
       .titleOrPackage(StringUtils.defaultString(line.getTitleOrPackage()))
       .publisher(StringUtils.defaultString(line.getPublisher()))
       .publicationDate(StringUtils.defaultString(line.getPublicationDate()))
@@ -184,7 +216,27 @@ public class OrderEmailContextMapper {
       .cost(mapCost(line.getCost()))
       .fundDistribution(mapList(line.getFundDistribution(), this::mapFundDistribution))
       .vendorDetail(mapVendorDetail(line.getVendorDetail()))
-      .customFields(customFieldsService.resolve(line.getCustomFields(), ENTITY_TYPE_PO_LINE))
+      .customFields(customFieldsService.resolve(line.getCustomFields(), ENTITY_TYPE_PO_LINE));
+    return builder;
+  }
+
+  private List<PieceContext> mapPieces(PoLine line, List<Piece> pieces) {
+    return pieces.stream()
+      .sorted(PIECE_ORDER)
+      .map(piece -> mapPiece(line, piece))
+      .toList();
+  }
+
+  private PieceContext mapPiece(PoLine line, Piece piece) {
+    return PieceContext.builder()
+      .title(StringUtils.defaultString(ordersService.getPieceTitle(line, piece)))
+      .displaySummary(StringUtils.defaultString(piece.getDisplaySummary()))
+      .enumeration(StringUtils.defaultString(piece.getEnumeration()))
+      .chronology(StringUtils.defaultString(piece.getChronology()))
+      .format(Optional.ofNullable(piece.getFormat()).map(Piece.FormatEnum::getValue).orElse(""))
+      .supplement(Optional.ofNullable(piece.getSupplement()).orElse(false))
+      .receiptDate(getFormattedDate(piece.getReceiptDate()))
+      .externalNote(StringUtils.defaultString(piece.getExternalNote()))
       .build();
   }
 

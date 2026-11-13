@@ -20,6 +20,7 @@ public class JobParameterNames {
   public static final String ACQ_EXPORT_FILE_NAME = "acqExportFileName";
   public static final String ACQ_EXPORT_TRANSMISSION_METHOD = "acqExportTransmissionMethod";
   public static final String ACQ_EXPORT_ORDERS = "acqExportOrders";
+  public static final String ACQ_EXPORT_PIECES = "acqExportPieces";
   public static final String E_HOLDINGS_FILE_NAME = "eHoldingsFileName";
   public static final String CIRCULATION_LOG_FILE_NAME = "circulationLogFileName";
   public static final String AUTHORITY_CONTROL_FILE_NAME = "authorityControlFileName";

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.CLAIM_PIECE_IDS;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.INTEGRATION_TYPE;
 import static org.folio.dew.batch.acquisitions.utils.ExportConfigFields.TRANSMISSION_METHOD;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_PIECES;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.IntegrationTypeEnum.CLAIMING;
 import static org.folio.dew.domain.dto.VendorEdiOrdersExportConfig.TransmissionMethodEnum.FTP;
 import static org.folio.dew.utils.QueryUtils.convertIdsToCqlQuery;
@@ -35,7 +36,10 @@ import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.infrastructure.item.ExecutionContext;
 import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import lombok.SneakyThrows;
@@ -46,6 +50,9 @@ class MapToEdifactClaimsTaskletTest extends MapToEdifactTaskletAbstractTest {
 
   @Autowired
   Job edifactClaimsExportJob;
+  @Autowired
+  @Qualifier("ediObjectMapper")
+  ObjectMapper ediObjectMapper;
 
   private List<PurchaseOrder> orders;
   private List<PoLine> poLines;
@@ -85,6 +92,10 @@ class MapToEdifactClaimsTaskletTest extends MapToEdifactTaskletAbstractTest {
     verify(ordersService).getPiecesByIdsAndReceivingStatus(pieceIds, Piece.ReceivingStatusEnum.CLAIM_SENT);
     verify(ordersService).getPoLinesByQuery(poLineQuery);
     verify(ordersService).getPurchaseOrdersByIds(anyList());
+
+    var piecesJson = jobExecution.getExecutionContext().getString(ACQ_EXPORT_PIECES);
+    var exportedPieces = ediObjectMapper.readValue(piecesJson, new TypeReference<List<Piece>>() {});
+    assertThat(exportedPieces).isEqualTo(pieces);
   }
 
   @Test

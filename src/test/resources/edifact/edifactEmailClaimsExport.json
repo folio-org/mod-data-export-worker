@@ -1,0 +1,27 @@
+{
+  "vendorId": "e54f0eb5-36c6-43c8-a219-dabbafb0176c",
+  "configName": "CLAIMS Email",
+  "configDescription": "Claims configuration for testing email export",
+  "integrationType": "Claiming",
+  "transmissionMethod": "Email",
+  "fileFormat": "CSV",
+  "ediConfig": {
+    "ediNamingConvention": "*.edi",
+    "libEdiCode": "7659876",
+    "libEdiType": "31B/US-SAN",
+    "vendorEdiCode": "1694510",
+    "vendorEdiType": "31B/US-SAN",
+    "notes": "no EDI invoices for our tech services invoices",
+    "sendAccountNumber": true,
+    "supportOrder": true,
+    "supportInvoice": true
+  },
+  "ediEmail": {
+    "emailFrom": "sender@example.com",
+    "emailTo": "vendor@example.com",
+    "emailTemplate": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  },
+  "claimPieceIds": [
+    "d4f4c0e6-0c3b-4b7e-9a7c-1f2e3d4c5b6a"
+  ]
+}

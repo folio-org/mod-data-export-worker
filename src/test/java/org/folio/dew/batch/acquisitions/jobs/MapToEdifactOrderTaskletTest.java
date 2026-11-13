@@ -1,6 +1,7 @@
 package org.folio.dew.batch.acquisitions.jobs;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_PIECES;
 import static org.folio.dew.utils.TestUtils.getMockData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -81,6 +82,7 @@ class MapToEdifactOrderTaskletTest extends MapToEdifactTaskletAbstractTest {
     Assertions.assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
     verify(ordersService).getPoLinesByQuery(cqlString);
     verify(ordersService).getPurchaseOrdersByIds(anyList());
+    assertThat(jobExecution.getExecutionContext().getString(ACQ_EXPORT_PIECES)).isEqualTo("[]");
   }
 
   @Test

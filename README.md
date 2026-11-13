@@ -62,14 +62,16 @@ This value should be `true` if AWS S3 is used as storage.
 | MAX_POOL_SIZE                                     | 10                            | Maximum number of threads that can be created after the queue is full and before rejecting the new tasks                                                                                              |
 | BUCKET_SIZE                                       | 50                            | Size of the bucket used in partitioning parameters                                                                                                                                                   |
 
-### Order Email — Template Context Payload
+### Orders & Claims Email — Template Context Payload
 
-This is the `context` payload sent to **mod-template-engine** when an `EDIFACT_ORDERS_EXPORT` job is transmitted by **Email**.
+This is the `context` payload sent to **mod-template-engine** when an `EDIFACT_ORDERS_EXPORT` or `CLAIMS` job is transmitted by **Email**.
+An orders export sends an `OrderingTemplateContext`, a claims export a `ClaimingTemplateContext`. Both share the
+structure of `BaseTemplateContext`; only the claims context adds `orderLine.pieces[]` with the claimed pieces.
 
 #### Structure overview
 
 ```
-OrderEmailContext
+OrderingTemplateContext / ClaimingTemplateContext
 ├── createdAt                                # context build time, ISO-8601 UTC with millis (e.g. 2026-03-30T16:22:13.284Z)
 ├── organization
 │   ├── name
@@ -131,12 +133,21 @@ OrderEmailContext
             │   └── code                     # code taken as-is from the PO line; fundId is not resolved
             ├── vendorDetail
             │   └── instructions             # vendor instructions
-            └── customFields{}               # map keyed by custom-field refId — email export only (omitted when none)
-                └── <refId>
-                    ├── name                 # custom-field display name
-                    ├── type                 # definition type (e.g. SINGLE_SELECT_DROPDOWN, SINGLE_CHECKBOX, TEXTBOX_LONG)
-                    ├── value                # scalar value — see Custom fields note below
-                    └── values[]             # array value  — see Custom fields note below
+            ├── customFields{}               # map keyed by custom-field refId — email export only (omitted when none)
+            │   └── <refId>
+            │       ├── name                 # custom-field display name
+            │       ├── type                 # definition type (e.g. SINGLE_SELECT_DROPDOWN, SINGLE_CHECKBOX, TEXTBOX_LONG)
+            │       ├── value                # scalar value — see Custom fields note below
+            │       └── values[]             # array value  — see Custom fields note below
+            └── pieces[]                     # claimed pieces of this line — CLAIMS export only (absent for orders)
+                ├── title                    # PO line title; for a package PO line the title of the piece's title record
+                ├── displaySummary           # e.g. issue label
+                ├── enumeration
+                ├── chronology
+                ├── format                   # Physical, Electronic, Other
+                ├── supplement               # boolean
+                ├── receiptDate              # expected receipt date, yyyy-MM-dd
+                └── externalNote             # note to the vendor (internalNote and comment are never exported)
 ```
 > **Null/empty policy:** missing values are rendered as safe defaults rather than
 > `null`, so templates can reference any field without null checks.
@@ -150,8 +161,17 @@ OrderEmailContext
 > - multi-select → `values[]` of `{ id, label }`; repeatable text → `values[]` of strings
 >
 > Hidden custom fields (definition `visible: false`) and fields whose definition cannot be resolved are omitted.
+>
+> **Pieces:** `orderLine.pieces[]` lists the claimed pieces of the line, one entry per piece (not grouped
+> like the claims CSV), sorted by `receiptDate` (pieces without one last), then `displaySummary`. Inside
+> `{{#pieces}}…{{/pieces}}` the piece fields are addressed directly, e.g. `{{enumeration}}`; every field always has a
+> value, so a template never falls back to an outer field. The key is absent in an orders export. Only PO lines with claimed pieces are included in a
+> claims export, and a claims job without claimed pieces fails instead of sending an email.
 
-#### Example payload
+#### Example payload — orders
+
+<details>
+<summary>Show orders example</summary>
 
 ```json
 {
@@ -276,4 +296,139 @@ OrderEmailContext
     }
   ]
 }
-```       
+```
+
+</details>
+
+#### Example payload — claims
+
+A serial with two claimed issues on the same PO line. Only PO lines with claimed pieces are included.
+
+<details>
+<summary>Show claims example</summary>
+
+```json
+{
+  "createdAt": "2027-04-16T09:41:07.123Z",
+  "organization": {
+    "name": "GOBI Library Solutions",
+    "primaryAddress": {
+      "addressLine1": "1 Innovation Way",
+      "city": "Contoocook",
+      "zipCode": "03229",
+      "country": "USA"
+    }
+  },
+  "orders": [
+    {
+      "order": {
+        "poNumber": "10042",
+        "orderType": "Ongoing",
+        "metadata": {
+          "createdByUser": {
+            "id": "7a626480-284e-5b55-9cf2-db32f93956cf",
+            "firstName": "John",
+            "lastName": "Doe",
+            "fullName": "John Doe"
+          }
+        },
+        "shipTo": {
+          "id": "11111111-1111-1111-1111-111111111111",
+          "address": "SLUB Dresden, Zellescher Weg 18, 01069 Dresden"
+        },
+        "billTo": {
+          "id": "22222222-2222-2222-2222-222222222222",
+          "address": "Accounts Payable, PO Box 42, Springfield IL"
+        },
+        "customFields": {
+          "order_channel": {
+            "name": "Order channel",
+            "type": "SINGLE_SELECT_DROPDOWN",
+            "value": { "id": "opt_1", "label": "Web" }
+          }
+        }
+      },
+      "orderLines": [
+        {
+          "orderLine": {
+            "poLineNumber": "10042-1",
+            "titleOrPackage": "Bibliotheksforum Aktuell",
+            "publisher": "FOLIO Press",
+            "publicationDate": "2027",
+            "edition": "",
+            "rush": false,
+            "contributors": [
+              {
+                "contributor": "Deutscher Bibliotheksverband",
+                "contributorNameType": {
+                  "id": "2e48e713-17f3-4c13-a9f8-23845bb210aa",
+                  "name": "Corporate name"
+                }
+              }
+            ],
+            "details": {
+              "productIds": [
+                {
+                  "productId": "1234-5678",
+                  "qualifier": "",
+                  "productIdType": {
+                    "id": "913300b2-03ed-469a-8179-c1092c991227",
+                    "name": "ISSN"
+                  }
+                }
+              ]
+            },
+            "cost": {
+              "listUnitPrice": "120.00",
+              "listUnitPriceElectronic": "0.00",
+              "quantityPhysical": 1,
+              "quantityElectronic": 0,
+              "poLineEstimatedPrice": "120.00",
+              "currency": "EUR"
+            },
+            "fundDistribution": [
+              {
+                "code": "SERIALS"
+              }
+            ],
+            "vendorDetail": {
+              "instructions": "Deliver to loading dock, ring bell on arrival"
+            },
+            "customFields": {
+              "binding": {
+                "name": "Binding",
+                "type": "SINGLE_SELECT_DROPDOWN",
+                "value": { "id": "opt_2", "label": "Paperback" }
+              }
+            },
+            "pieces": [
+              {
+                "title": "Bibliotheksforum Aktuell",
+                "displaySummary": "Heft 3/2027",
+                "enumeration": "Jg. 12, Nr. 3",
+                "chronology": "März 2027",
+                "format": "Physical",
+                "supplement": false,
+                "receiptDate": "2027-03-01",
+                "externalNote": "Second reminder – please deliver urgently"
+              },
+              {
+                "title": "Bibliotheksforum Aktuell",
+                "displaySummary": "Heft 4/2027",
+                "enumeration": "Jg. 12, Nr. 4",
+                "chronology": "April 2027",
+                "format": "Physical",
+                "supplement": false,
+                "receiptDate": "2027-04-01",
+                "externalNote": "Please confirm delivery date"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+</details>

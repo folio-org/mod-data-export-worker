@@ -14,7 +14,7 @@
       },
       {
         "name": "memoryReservation",
-        "value": "2800",
+        "value": "2600",
         "description": "Memory reservation for container"
       }
     ],

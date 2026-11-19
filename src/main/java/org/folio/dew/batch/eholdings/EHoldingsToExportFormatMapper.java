@@ -15,7 +15,6 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-import joptsimple.internal.Strings;
 import org.folio.de.entity.EHoldingsPackage;
 import org.folio.dew.client.AgreementClient.Agreement;
 import org.folio.dew.domain.dto.eholdings.AccessTypeData;
@@ -79,7 +78,7 @@ public class EHoldingsToExportFormatMapper {
 
   @NotNull
   private String agreementToString(Agreement agreement) {
-    return Strings.join(new String[] {agreement.getStartDate(), agreement.getName(), agreement.getStatus()}, ";");
+    return String.join(";", agreement.getStartDate(), agreement.getName(), agreement.getStatus());
   }
 
   private String noteToString(Note note) {
@@ -89,7 +88,7 @@ public class EHoldingsToExportFormatMapper {
       note.getTitle(),
       note.getContent()
     };
-    return Strings.join(pieces, ";");
+    return String.join(";", pieces);
   }
 
   private String dateToString(Date date) {

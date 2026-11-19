@@ -2,11 +2,11 @@ package org.folio.dew.batch.bursarfeesfines;
 
 import java.math.BigDecimal;
 import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import org.folio.dew.batch.bursarfeesfines.service.BursarTokenFormatter;
 import org.folio.dew.domain.dto.BursarExportJob;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
+import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.step.StepExecution;
@@ -32,7 +32,7 @@ public class AccountFormatter implements ItemProcessor<AccountWithAncillaryData,
   private BigDecimal currentTotalFeeAmount;
 
   @Override
-  public String process(@CheckForNull AccountWithAncillaryData item) {
+  public String process(@Nullable AccountWithAncillaryData item) {
     if (item == null) {
       return null;
     }

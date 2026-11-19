@@ -10,6 +10,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +33,7 @@ public class KafkaConfiguration {
 
   @Bean
   public <V> ConcurrentKafkaListenerContainerFactory<String, V> kafkaListenerContainerFactory(
-    ConsumerFactory<String, V> cf) {
+    @Qualifier("consumerFactory") ConsumerFactory<String, V> cf) {
     var factory = new ConcurrentKafkaListenerContainerFactory<String, V>();
     factory.setConsumerFactory(cf);
     if (kafkaProperties.getListener().getAckMode() != null) {

@@ -62,7 +62,7 @@ okapi:
 folio:
   kafka:
     tenant-filter:
-      enabled: ${KAFKA_TENANT_FILTER_ENABLED:true}
+      enabled: ${KAFKA_TENANT_FILTER_ENABLED:false}
       ignore-empty-batch: true
       tenant-disabled-strategy: ${KAFKA_TENANT_FILTER_TENANT_DISABLED_STRATEGY:skip}
       all-tenants-disabled-strategy: ${KAFKA_TENANT_FILTER_ALL_TENANTS_DISABLED_STRATEGY:fail}

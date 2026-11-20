@@ -4,7 +4,6 @@ import static org.folio.dew.utils.QueryUtils.combineCqlExpressions;
 import static org.folio.dew.utils.QueryUtils.convertIdsToCqlQuery;
 
 import org.folio.dew.client.OrdersStorageClient;
-import org.folio.dew.domain.dto.OrdersTitle;
 import org.folio.dew.domain.dto.Piece;
 import org.folio.dew.domain.dto.PoLine;
 import org.folio.dew.domain.dto.PurchaseOrder;
@@ -73,12 +72,18 @@ public class OrdersService {
     return pieces;
   }
 
-  @Cacheable("titleIds")
-  public OrdersTitle getTitleById(String titleId) {
-    log.debug("getTitleById: Fetching title: {}", titleId);
-    var title =  ordersStorageClient.getTitleById(titleId);
-    log.debug("getTitleById:: Fetched title: {}", title);
-    return title;
+  /**
+   * Title of a piece as shown to the vendor: a package PO line takes the title of the piece's title record,
+   * any other PO line its {@code titleOrPackage}. A failed lookup is not handled here, so the export fails.
+   * <p>
+   * Cached by {@code titleId}: a title record belongs to exactly one PO line, so the result depends on the
+   * title id only.
+   */
+  @Cacheable(cacheNames = "pieceTitles", key = "#piece.titleId", condition = "#piece.titleId != null")
+  public String getPieceTitle(PoLine poLine, Piece piece) {
+    return Boolean.TRUE.equals(poLine.getIsPackage())
+      ? ordersStorageClient.getTitleById(piece.getTitleId()).getTitle()
+      : poLine.getTitleOrPackage();
   }
 
 }

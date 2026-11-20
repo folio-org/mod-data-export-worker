@@ -1,13 +1,13 @@
 package org.folio.dew.domain.dto.templateengine.context;
 
-import lombok.Builder;
 import lombok.Data;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 import java.util.Map;
 
 @Data
-@Builder
+@SuperBuilder
 public class OrderLineContext {
   private String poLineNumber;
   private String titleOrPackage;

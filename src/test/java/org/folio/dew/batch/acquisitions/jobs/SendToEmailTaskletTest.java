@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_FILE_NAME;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_ORDERS;
+import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_PIECES;
 import static org.folio.dew.domain.dto.JobParameterNames.ACQ_EXPORT_TRANSMISSION_METHOD;
 import static org.folio.dew.domain.dto.JobParameterNames.EDIFACT_ORDERS_EXPORT;
 import static org.folio.dew.domain.dto.JobParameterNames.JOB_ID;
@@ -12,6 +13,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -22,10 +25,17 @@ import org.folio.dew.batch.acquisitions.services.OrganizationsService;
 import org.folio.dew.domain.dto.acquisitions.edifact.Organization;
 import org.folio.dew.client.EmailClient;
 import org.folio.dew.client.TemplateEngineClient;
+import org.folio.dew.domain.dto.templateengine.TemplateProcessingRequest;
 import org.folio.dew.domain.dto.templateengine.TemplateProcessingResponse;
+import org.folio.dew.domain.dto.templateengine.context.ClaimingTemplateContext;
+import org.folio.dew.domain.dto.templateengine.context.OrderingTemplateContext;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
@@ -41,6 +51,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import lombok.SneakyThrows;
 
 class SendToEmailTaskletTest extends BaseBatchTest {
+
+  private static final String CLAIMED_PIECES = "[{\"id\":\"d4f4c0e6-0c3b-4b7e-9a7c-1f2e3d4c5b6a\","
+    + "\"poLineId\":\"f7cebba9-900d-4e46-ac96-9dfdb6da214e\",\"receivingStatus\":\"Claim sent\"}]";
 
   @Autowired
   @Qualifier("edifactOrdersExportJob")
@@ -114,6 +127,40 @@ class SendToEmailTaskletTest extends BaseBatchTest {
     JobExecution jobExecution = testLauncher.startStep("sendToEmailStep", jobParameters, executionContext);
 
     assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+    assertThat(captureTemplateContext()).isInstanceOf(OrderingTemplateContext.class);
+  }
+
+  @Test
+  @DirtiesContext
+  void testSendEmailSuccessful_forClaimingIntegrationType() throws Exception {
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
+
+    var jobParameters = getJobParameters("edifact/edifactEmailClaimsExport.json");
+    ExecutionContext executionContext = getExecutionContext();
+    executionContext.put(ACQ_EXPORT_PIECES, CLAIMED_PIECES);
+    JobExecution jobExecution = testLauncher.startStep("sendToEmailStep", jobParameters, executionContext);
+
+    assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+    assertThat(captureTemplateContext()).isInstanceOf(ClaimingTemplateContext.class);
+  }
+
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(strings = {"", "[]"})
+  @DirtiesContext
+  void testSendEmail_shouldFail_whenNoClaimedPieces(String pieces) throws Exception {
+    JobOperatorTestUtils testLauncher = createTestLauncher(edifactExportJob);
+
+    var jobParameters = getJobParameters("edifact/edifactEmailClaimsExport.json");
+    ExecutionContext executionContext = getExecutionContext();
+    if (pieces != null) {
+      executionContext.put(ACQ_EXPORT_PIECES, pieces);
+    }
+    JobExecution jobExecution = testLauncher.startStep("sendToEmailStep", jobParameters, executionContext);
+
+    assertThat(jobExecution.getExitStatus().getExitCode()).isEqualTo(ExitStatus.FAILED.getExitCode());
+    verify(templateEngineClient, never()).processTemplate(any());
+    verify(emailClient, never()).sendEmail(any());
   }
 
   @Test
@@ -147,6 +194,12 @@ class SendToEmailTaskletTest extends BaseBatchTest {
     paramsBuilder.addString(EDIFACT_ORDERS_EXPORT, getMockData(edifactOrdersExport));
     paramsBuilder.addString(JOB_ID, UUID.randomUUID().toString());
     return paramsBuilder.toJobParameters();
+  }
+
+  private Object captureTemplateContext() {
+    var captor = ArgumentCaptor.forClass(TemplateProcessingRequest.class);
+    verify(templateEngineClient).processTemplate(captor.capture());
+    return captor.getValue().getContext();
   }
 
   private ExecutionContext getExecutionContext() {

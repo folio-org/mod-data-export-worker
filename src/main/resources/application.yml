@@ -122,7 +122,7 @@ folio:
   exchange:
     enabled: true
 okapi:
-  url: ${OKAPI_URL:http://okapi:9130}
+  url: ${folio.okapi-url}
 logging:
   level:
     org.folio.dew.client.*: debug

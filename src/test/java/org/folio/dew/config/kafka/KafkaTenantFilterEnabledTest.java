@@ -10,7 +10,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -125,7 +124,7 @@ class KafkaTenantFilterEnabledTest extends BaseBatchTest {
       .receiveStartJobCommand(argThat(command -> processedId.equals(command.getId())), anyMap());
     verify(jobCommandsReceiverService, never())
       .receiveStartJobCommand(argThat(command -> skippedId.equals(command.getId())), anyMap());
-    verify(exportJobManagerSync, times(1)).launchJob(any());
+    verify(exportJobManagerSync, timeout(WAIT_MS).times(1)).launchJob(any());
   }
 
   private static JobCommand createStartCirculationLogJobRequest(UUID id) {

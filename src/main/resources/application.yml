@@ -4,6 +4,7 @@ server:
 spring:
   application:
     name: mod-data-export-worker
+    version: ${MODULE_VERSION:@project.version@}
   jackson:
     default-property-inclusion: non_empty
     deserialization:
@@ -68,7 +69,7 @@ application:
       "edi-export-history.create":
         partitions: ${EDI_EXPORT_HISTORY_TOPIC_PARTITIONS:1}
     topic-pattern: ${ENV:folio}\.(.*\.)?data-export\.job.command
-    group-id: ${ENV:folio}-mod-data-export-worker-events-group
+    group-id: ${ENV:folio}-mod-data-export-worker-events-group-${spring.application.version}
   minio-remote:
     endpoint: ${S3_URL:http://127.0.0.1:9000/}
     region: ${S3_REGION:}
@@ -107,12 +108,21 @@ application:
   platform: ${PLATFORM:okapi}
 
 folio:
+  kafka:
+    tenant-filter:
+      enabled: ${KAFKA_TENANT_FILTER_ENABLED:false}
+      ignore-empty-batch: true
+      tenant-disabled-strategy: ${KAFKA_TENANT_FILTER_TENANT_DISABLED_STRATEGY:skip}
+      all-tenants-disabled-strategy: ${KAFKA_TENANT_FILTER_ALL_TENANTS_DISABLED_STRATEGY:fail}
+      entitlement-refresh-interval-seconds: ${KAFKA_TENANT_FILTER_ENTITLEMENT_REFRESH_INTERVAL_SECONDS:900}
   okapi-url: ${OKAPI_URL:http://okapi:9130}
   tenant:
     validation:
       enabled: true
   exchange:
     enabled: true
+okapi:
+  url: ${folio.okapi-url}
 logging:
   level:
     org.folio.dew.client.*: debug

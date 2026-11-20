@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.CheckForNull;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.BursarExportDataToken;
@@ -34,6 +33,7 @@ import org.folio.dew.domain.dto.Item;
 import org.folio.dew.domain.dto.User;
 import org.folio.dew.domain.dto.bursarfeesfines.AccountWithAncillaryData;
 import org.folio.dew.domain.dto.bursarfeesfines.AggregatedAccountsByUser;
+import org.jspecify.annotations.Nullable;
 
 @Log4j2
 @UtilityClass
@@ -321,7 +321,7 @@ public class BursarTokenFormatter {
    * @params tokenDate date token that needs to process into string
    */
   public static String processDateToken(
-    @CheckForNull ZonedDateTime dateTime,
+    @Nullable ZonedDateTime dateTime,
     BursarExportTokenDateType dateType,
     BursarExportTokenLengthControl lengthControl
   ) {
